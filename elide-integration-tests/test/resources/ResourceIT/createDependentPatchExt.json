@@ -1,0 +1,46 @@
+[
+    {
+        "data":{
+            "type":"parent",
+            "id":"7",
+            "attributes":{
+                "firstName":"test parent"
+            },
+            "relationships":{
+                "children":{
+                    "data":[
+                        {
+                            "type":"child",
+                            "id":"7"
+                        }
+                    ]
+                },
+                "spouses":{
+                    "data":[]
+                }
+            }
+        }
+    },
+    {
+        "data":{
+            "type":"child",
+            "id":"7",
+            "attributes":{
+                "name":null
+            },
+            "relationships":{
+                "friends":{
+                    "data":[]
+                },
+                "parents":{
+                    "data":[
+                        {
+                            "type":"parent",
+                            "id":"7"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]

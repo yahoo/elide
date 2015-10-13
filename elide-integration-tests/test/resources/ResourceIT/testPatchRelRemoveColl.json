@@ -1,0 +1,17 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"4",
+        "attributes":{
+            "firstName":"Unknown"
+        },
+        "relationships":{
+            "spouses":{
+                "data":[]
+            },
+            "children":{
+                "data":[]
+            }
+        }
+    }
+}

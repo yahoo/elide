@@ -1,0 +1,20 @@
+[
+    {
+        "op":"replace",
+        "path":"/7/children/8",
+        "value":{
+            "type":"child",
+            "id":"8",
+            "relationships":{
+                "parents":{
+                    "data":[
+                        {
+                            "type":"parent",
+                            "id":"5"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]

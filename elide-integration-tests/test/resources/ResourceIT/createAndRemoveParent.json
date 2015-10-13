@@ -1,0 +1,22 @@
+[
+    {
+        "data":{
+            "type":"parent",
+            "id":"9",
+            "attributes":{
+                "firstName":"ron jon"
+            },
+            "relationships":{
+                "children":{
+                    "data":[]
+                },
+                "spouses":{
+                    "data":[]
+                }
+            }
+        }
+    },
+    {
+        "data":null
+    }
+]

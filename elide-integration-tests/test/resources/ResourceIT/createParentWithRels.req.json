@@ -1,0 +1,19 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"required",
+        "attributes":{
+            "firstName":"omg. I have kidz."
+        },
+        "relationships":{
+            "children":{
+                "data":[
+                    {
+                        "type":"child",
+                        "id":"2"
+                    }
+                ]
+            }
+        }
+    }
+}

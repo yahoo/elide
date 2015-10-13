@@ -1,0 +1,21 @@
+[
+    {
+        "op":"add",
+        "path":"/-",
+        "value":{
+            "type":"parent",
+            "id":"12345678-1234-1234-1234-123456789ab1",
+            "attributes":{
+                "firstName":"ron jon"
+            }
+        }
+    },
+    {
+        "op":"remove",
+        "path":"/-",
+        "value":{
+            "type":"parent",
+            "id":"7"
+        }
+    }
+]

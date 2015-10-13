@@ -1,0 +1,9 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"2",
+        "attributes":{
+            "firstName":"syzygy"
+        }
+    }
+}

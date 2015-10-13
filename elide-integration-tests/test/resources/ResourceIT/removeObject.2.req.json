@@ -1,0 +1,10 @@
+[
+    {
+        "op":"remove",
+        "path":"/-",
+        "value":{
+            "type":"parent",
+            "id":"8"
+        }
+    }
+]

@@ -1,0 +1,9 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"required",
+        "attributes":{
+            "firstName":"I should not be created :x"
+        }
+    }
+}

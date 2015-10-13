@@ -1,0 +1,65 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.jsonapi;
+
+import com.yahoo.elide.core.EntityDictionary;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import java.io.IOException;
+import java.util.Set;
+
+/**
+ * JSON API Serializer
+ * @param <T> type supported
+ */
+public class JsonApiSerializer<T> extends StdSerializer<T> {
+
+    private final Class<T> type;
+    private final EntityDictionary dictionary;
+
+    JsonApiSerializer(Class<T> type, EntityDictionary dictionary) {
+        super(type);
+        this.type = type;
+        this.dictionary = dictionary;
+    }
+
+    public static Module getModule(EntityDictionary dictionary) {
+        SimpleModule jsonApiModule = new SimpleModule("JsonApiModule", new Version(1, 0, 0, null));
+        jsonApiModule.addSerializer(new JsonApiSerializer<>(Set.class, dictionary));
+        return jsonApiModule;
+    }
+
+    @Override
+    public void serialize(T object, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException {
+        if (object instanceof Set) {
+            jgen.writeStartArray();
+            for (Object value : (Set) object) {
+                jgen.writeObject(value);
+            }
+            jgen.writeEndArray();
+        } else {
+            jgen.writeObject(object);
+        }
+    }
+
+    @Override
+    public boolean usesObjectId() {
+        return true;
+    }
+
+    @Override
+    public Class<T> handledType() {
+        return this.type;
+    }
+}

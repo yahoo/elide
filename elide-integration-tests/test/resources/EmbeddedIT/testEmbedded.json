@@ -1,0 +1,13 @@
+{
+    "data":{
+        "type":"embedded",
+        "id":"1",
+        "attributes":{
+            "segmentIds":[
+                3,
+                4,
+                5
+            ]
+        }
+    }
+}

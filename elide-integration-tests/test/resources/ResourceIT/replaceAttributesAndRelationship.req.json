@@ -1,0 +1,18 @@
+[
+    {
+        "op":"replace",
+        "path":"/7",
+        "value":{
+            "id":"7",
+            "type":"parent",
+            "attributes":{
+                "firstName":"I've been modified =-o"
+            },
+            "relationships":{
+                "children":{
+                    "data":[]
+                }
+            }
+        }
+    }
+]

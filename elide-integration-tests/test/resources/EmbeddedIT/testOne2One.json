@@ -1,0 +1,26 @@
+{
+    "data":{
+        "type":"right",
+        "id":"1",
+        "relationships":{
+            "noUpdate":{
+                "data":[]
+            },
+            "many2one":{
+                "data":null
+            },
+            "noUpdateOne2One":{
+                "data":null
+            },
+            "one2one":{
+                "data":{
+                    "type":"left",
+                    "id":"1"
+                }
+            },
+            "noDelete":{
+                "data":[]
+            }
+        }
+    }
+}

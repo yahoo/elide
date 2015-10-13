@@ -1,0 +1,71 @@
+[
+  {
+    "op": "add",
+    "path": "parent",
+    "value": {
+      "type": "parent",
+      "id": "5d57b6ee-f538-4e49-8f35-edc00f6272d2",
+      "attributes": {
+          "firstName": null
+      },
+      "relationships": {
+        "spouses": {
+          "data": {
+            "type": "parent",
+            "id": "2"
+          }
+        },
+        "children": {
+          "data": [
+            {
+              "type": "child",
+              "id": "2d1b70cb-5821-4229-ba14-4dd7d3bd9b97"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "parent/5d57b6ee-f538-4e49-8f35-edc00f6272d2/children",
+    "value": {
+      "type": "child",
+      "id": "2d1b70cb-5821-4229-ba14-4dd7d3bd9b97",
+      "attributes": {
+          "name": "duplicate"
+      },
+      "relationships": {
+        "parents": {
+          "data": [
+              {
+                "type": "parent",
+                "id": "2"
+              }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "parent/5d57b6ee-f538-4e49-8f35-edc00f6272d2/children",
+    "value": {
+      "type": "child",
+      "id": "2d1b70cb-5821-4229-ba14-4dd7d3bd9b98",
+      "attributes": {
+          "name": "duplicate"
+      },
+      "relationships": {
+        "parents": {
+          "data": [
+              {
+                "type": "parent",
+                "id": "2"
+              }
+          ]
+        }
+      }
+    }
+  }
+]

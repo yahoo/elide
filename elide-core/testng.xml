@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2015, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+    <test name="com.yahoo.elide.core.PersistentResourceTest">
+        <classes>
+            <class name="com.yahoo.elide.core.PersistentResourceTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.core.EntityDictionaryTest">
+        <classes>
+            <class name="com.yahoo.elide.core.EntityDictionaryTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.core.PermissionAnnotationTest">
+        <classes>
+            <class name="com.yahoo.elide.core.PermissionAnnotationTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.security.UserTest">
+        <classes>
+            <class name="com.yahoo.elide.security.UserTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.audit.LogMessageTest">
+        <classes>
+            <class name="com.yahoo.elide.audit.LogMessageTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.endpoints.ResourceTest">
+        <classes>
+            <class name="com.yahoo.elide.endpoints.ResourceTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.jsonapi.JsonApiTest">
+        <classes>
+            <class name="com.yahoo.elide.jsonapi.JsonApiTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.jsonapi.document.processors.IncludedProcessorTest">
+        <classes>
+            <class name="com.yahoo.elide.jsonapi.document.processors.IncludedProcessorTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.jsonapi.document.processors.SortProcessorTest">
+        <classes>
+            <class name="com.yahoo.elide.jsonapi.document.processors.SortProcessorTest" />
+        </classes>
+    </test> <!-- Test -->
+    <test name="com.yahoo.elide.jsonapi.models.PatchTest">
+        <classes>
+            <class name="com.yahoo.elide.jsonapi.models.PatchTest" />
+        </classes>
+    </test> <!-- Test -->
+</suite> <!-- Suite -->

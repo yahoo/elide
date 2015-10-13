@@ -1,0 +1,113 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.jsonapi.models;
+
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * Model representing JSON API Relationship.
+ */
+public class Relationship {
+    private Map<String, String> links;
+    private Data<Resource> data; // NOTE: Our serializer handles resources so that's what we store
+    @JsonIgnore private Data<ResourceIdentifier> idData;
+
+    // NOTE: We take in a Resource instead of ResourceIdentifier here due to a deserialization conflict
+    public Relationship(@JsonProperty("links") Map<String, String> links,
+                        @JsonProperty("data") Data<Resource> data) {
+        this.links = links;
+        this.data = data;
+        if (data != null) {
+            if (data.isToOne()) {
+                Resource resource = data.get().iterator().next();
+                this.idData = new Data<>(resource != null ? resource.toResourceIdentifier() : null);
+            } else {
+                this.idData = new Data<>(
+                    data.get().stream().map(Resource::toResourceIdentifier).collect(Collectors.toList()));
+            }
+        } else {
+            this.idData = null;
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Map<String, String> getLinks() {
+        return (links == null || links.isEmpty()) ? null : links;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Data<Resource> getData() {
+        return data;
+    }
+
+    @JsonIgnore
+    public Data<ResourceIdentifier> getResourceIdentifierData() {
+        return idData;
+    }
+
+    public Set<PersistentResource> toPersistentResources(RequestScope requestScope)
+        throws ForbiddenAccessException, InvalidObjectIdentifierException {
+        Set<PersistentResource> res = new LinkedHashSet<>();
+        if (data == null) {
+            return null;
+        }
+        Collection<Resource> resources = data.get();
+        if (resources != null) {
+            for (Resource resource : resources) {
+                try {
+                    res.add(resource.toPersistentResource(requestScope));
+                } catch (ForbiddenAccessException e) {
+                    //skip resource
+                }
+            }
+        }
+        return (res.isEmpty()) ? ((data.isToOne()) ? null : res) : res;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Data<Resource> that = ((Relationship) o).getData();
+
+        if (that == null || data == null) {
+            return that == data;
+        }
+
+        Collection<ResourceIdentifier> resourceIdentifiers = data.toResourceIdentifiers();
+        Collection<ResourceIdentifier> theirIdentifiers = that.toResourceIdentifiers();
+
+        return resourceIdentifiers.stream().allMatch(theirIdentifiers::contains);
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+            .append(data)
+            .toHashCode();
+    }
+}

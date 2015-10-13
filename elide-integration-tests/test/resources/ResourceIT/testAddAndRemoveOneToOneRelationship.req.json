@@ -1,0 +1,14 @@
+{
+    "data":{
+        "type":"fun",
+        "id":"1",
+        "relationships":{
+            "relation3":{
+                "data":{
+                    "type":"child",
+                    "id":"2"
+                }
+            }
+        }
+    }
+}

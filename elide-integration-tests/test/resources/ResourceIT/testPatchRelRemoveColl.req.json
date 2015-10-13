@@ -1,0 +1,11 @@
+{
+    "data":{
+        "type":"parent",
+        "id":"4",
+        "relationships":{
+            "children":{
+                "data":[]
+            }
+        }
+    }
+}

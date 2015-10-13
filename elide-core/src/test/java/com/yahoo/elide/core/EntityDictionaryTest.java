@@ -1,0 +1,61 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.core;
+
+import com.yahoo.elide.annotation.ReadPermission;
+
+import example.Child;
+import example.FunWithPermissions;
+import example.Parent;
+import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+import java.lang.annotation.Annotation;
+
+public class EntityDictionaryTest extends EntityDictionary {
+    @BeforeTest
+    public void init() {
+        this.bindEntity(FunWithPermissions.class);
+        this.bindEntity(Parent.class);
+        this.bindEntity(Child.class);
+    }
+
+    @Test
+    public void testGetAttributeOrRelationAnnotation() {
+        String[] fields = {"field1", "field2", "field3", "relation1", "relation2"};
+        Annotation a;
+        for (String field :  fields) {
+            a = this.getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, "field1");
+            Assert.assertTrue((a != null && a instanceof ReadPermission), "Every field should return a ReadPermission annotation");
+        }
+    }
+
+    @Test
+    public void testGetParameterizedType() {
+        Class<?> type;
+
+        FunWithPermissions fun = new FunWithPermissions();
+
+        type = getParameterizedType(fun, "relation2");
+        Assert.assertEquals(type, Child.class, "A set of Child objects should return Child.class");
+
+        type = getParameterizedType(fun, "relation3");
+        Assert.assertEquals(type, Child.class, "A Child object should return Child.class");
+    }
+
+    @Test
+    public void testGetInverseRelationshipOwningSide()  {
+        Assert.assertEquals(getRelationInverse(Parent.class, "children"), "parents",
+                "The inverse relationship of children should be parents");
+    }
+
+    @Test
+    public void testGetInverseRelationshipOwnedSide()  {
+        Assert.assertEquals(getRelationInverse(Child.class, "parents"), "children",
+                "The inverse relationship of children should be parents");
+    }
+}

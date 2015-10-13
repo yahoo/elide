@@ -1,0 +1,20 @@
+[
+    {
+        "op":"add",
+        "path":"/parent/7/children",
+        "value":{
+            "type":"child",
+            "id":"12345678-1234-1234-1234-123456789ab1",
+            "relationships":{
+                "parents":{
+                    "data":[
+                        {
+                            "type":"parent",
+                            "id":"7"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]

@@ -1,0 +1,28 @@
+{
+    "data":{
+        "type":"fun",
+        "id":"1",
+        "attributes":{
+            "field6":null,
+            "field8":null,
+            "field3":null,
+            "field2":null,
+            "field5":null,
+            "field4":null
+        },
+        "relationships":{
+            "relation3":{
+                "data":{
+                    "type":"child",
+                    "id":"2"
+                }
+            },
+            "relation2":{
+                "data":[]
+            },
+            "relation1":{
+                "data":[]
+            }
+        }
+    }
+}

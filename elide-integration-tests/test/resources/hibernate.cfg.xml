@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2015, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <!-- MySQL session factory -->
+    <session-factory>
+        <!-- local connection properties -->
+        <!-- this is what we normally use -->
+        <property name="hibernate.connection.driver_class">
+            com.mysql.jdbc.Driver
+        </property>
+        <!-- dialect for Mysql -->
+        <property name="dialect">
+            org.hibernate.dialect.MySQL5InnoDBDialect
+        </property>
+
+        <property name="hibernate.jdbc.batch_size">50</property>
+        <property name="hibernate.jdbc.fetch_size">50</property>
+
+        <property name="hibernate.show_sql">true</property>
+
+        <property name="hibernate.transaction.factory_class">
+            org.hibernate.transaction.JDBCTransactionFactory
+        </property>
+
+        <property name="hibernate.cache.use_second_level_cache">false</property>
+        <property name="hibernate.cache.use_query_cache">false</property>
+        <property name="hibernate.cache.use_minimal_puts">true</property>
+        <!-- <property name="hibernate.cache.region.factory_class">com.flurry.hibernate.cache.WriteThroughCacheRegionFactory</property> -->
+        <property name="hibernate.cache.provider_class">
+            com.flurry.hibernate.memcached.MultiSchemaMemcachedCacheProvider
+        </property>
+        <property name="hibernate.memcached.schemaStrategy">com.flurry.hibernate.memcached.MultiSchemaStrategy</property>
+        <property name="hibernate.memcached.schemaRegistry">com.flurry.hibernate.cache.FlurryHibernateSchemaRegistry</property>
+
+        <property name="hibernate.memcached.servers">localhost:11211</property>
+        <property name="hibernate.memcached.cacheTimeSeconds">3600</property>
+        <property name="hibernate.memcached.daemonMode">true</property>
+        <property name="hibernate.bytecode.use_reflection_optimizer">false</property>
+
+        <!-- Configuration of the hibernate.c3p0 properties invokes the use of the Hibernate c3p0 provider http://www.mchange.com/projects/c3p0/index.html#hibernate-specific -->
+        <property name="hibernate.c3p0.min_size">1</property>
+        <property name="hibernate.c3p0.max_size">25</property>
+        <property name="hibernate.c3p0.timeout">1800</property>
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.acquire_increment">1</property>
+        <property name="hibernate.c3p0.idle_test_period">150</property>
+        <property name="hibernate.c3p0.preferredTestQuery">/* ping */ select 1</property>
+
+        <property name="hibernate.current_session_context_class">thread</property>
+    </session-factory>
+</hibernate-configuration>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2015, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<!--
+    This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<!--
+    Checkstyle-Configuration: elide
+    Description: none
+-->
+
+<module name="Checker">
+  <property name="severity" value="warning"/>
+  <module name="TreeWalker">
+    <module name="FileContentsHolder"/>
+    <module name="ConstantName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Constants (static finals) must be uppercase letters/digits/underscore."/>
+      <property name="severity" value="error"/>
+      <property name="format" value="^[A-Z][A-Z0-9_]*$"/>
+    </module>
+    <module name="RedundantImport">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Duplicate import checking."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="UnusedImports">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Unused imports checking."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="MethodName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Method name check."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="LocalVariableName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Local variable name check."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="LocalFinalVariableName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Local final variable name check."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="MemberName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Member name check."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="TypeName">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Class name check."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="LeftCurly">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Left curly goes on end of line (eol)."/>
+      <property name="severity" value="error"/>
+      <property name="tokens" value="INTERFACE_DEF,CLASS_DEF,ANNOTATION_DEF,ENUM_DEF,CTOR_DEF,METHOD_DEF,ENUM_CONSTANT_DEF,LITERAL_WHILE,LITERAL_TRY,LITERAL_CATCH,LITERAL_FINALLY,LITERAL_SYNCHRONIZED,LITERAL_SWITCH,LITERAL_DO,LITERAL_ELSE,LITERAL_FOR"/>
+    </module>
+    <module name="RightCurly">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Right curly goes same line as 'else', 'try', and 'catch'."/>
+      <property name="severity" value="error"/>
+      <property name="tokens" value="LITERAL_TRY,LITERAL_CATCH,LITERAL_FINALLY,LITERAL_ELSE"/>
+    </module>
+    <module name="NeedBraces">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Need braces for all code blocks."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="WhitespaceAround">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks that a token is surrounded by whitespace."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="WhitespaceAfter">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks that a token is followed by whitespace."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="ParenPad">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks the policy on the padding of parentheses."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="GenericWhitespace">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Fails if there is whitespace around generic '&lt;' '&gt;' characters."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="CyclomaticComplexity">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Cyclomatic complexity limit of 7."/>
+      <property name="severity" value="warning"/>
+      <property name="max" value="7"/>
+    </module>
+    <module name="UpperEll">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks that long constants are defined with an upper ell. 'l' looks too much like '1'. "/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="ArrayTypeStyle">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Enforce Java array type style."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="JavadocStyle">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Simple Javadoc style check."/>
+      <property name="severity" value="warning"/>
+      <property name="checkEmptyJavadoc" value="true"/>
+      <property name="checkFirstSentence" value="false"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="JavadocType">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks Javadoc comments for class and interface definitions."/>
+      <property name="severity" value="error"/>
+      <property name="scope" value="protected"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="JavadocMethod">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks the Javadoc of a method or constructor."/>
+      <property name="severity" value="warning"/>
+      <property name="scope" value="protected"/>
+      <property name="allowUndeclaredRTE" value="true"/>
+      <property name="allowThrowsTagsForSubclasses" value="true"/>
+      <property name="allowMissingParamTags" value="true"/>
+      <property name="allowMissingThrowsTags" value="true"/>
+      <property name="allowMissingJavadoc" value="true"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="JavadocVariable">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Checks that variables have Javadoc comments."/>
+      <property name="severity" value="ignore"/>
+      <property name="scope" value="protected"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="LineLength">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Line length of 120 characters except for import lines."/>
+      <property name="severity" value="error"/>
+      <property name="ignorePattern" value="^import.*$"/>
+      <property name="max" value="120"/>
+      <property name="tabWidth" value="4"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="EqualsHashCode">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Verify when Equals is overridden, hashCode is as well."/>
+      <property name="severity" value="error"/>
+    </module>
+    <module name="MethodCount">
+      <property name="severity" value="error"/>
+    </module>
+    <module name="ParameterNumber">
+      <property name="severity" value="warning"/>
+    </module>
+    <module name="MethodLength">
+      <property name="severity" value="error"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <metadata name="net.sf.eclipsecs.core.comment" value="toLowerCase must give a locale."/>
+      <property name="severity" value="error"/>
+      <property name="format" value="\.toLowerCase\(\)"/>
+      <property name="message" value="use toLowerCase(Locale.ENGLISH)"/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <metadata name="net.sf.eclipsecs.core.comment" value="toUpperCase must give a locale."/>
+      <property name="severity" value="error"/>
+      <property name="format" value="\.toUpperCase\(\)"/>
+      <property name="message" value="use toUpperCase(Locale.ENGLISH)"/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+    <module name="EmptyBlock">
+      <property name="severity" value="error"/>
+      <property name="option" value="text"/>
+    </module>
+    <module name="SeparatorWrap">
+      <metadata name="net.sf.eclipsecs.core.comment" value="When a line is broken at a non-assignment operator the break comes before the symbol."/>
+      <property name="severity" value="error"/>
+      <property name="option" value="nl"/>
+      <property name="tokens" value="DOT,ELLIPSIS,AT"/>
+    </module>
+    <module name="SeparatorWrap">
+      <metadata name="net.sf.eclipsecs.core.comment" value="A comma stays attached to the token that precedes it."/>
+      <property name="severity" value="error"/>
+      <property name="tokens" value="COMMA"/>
+    </module>
+    <module name="OperatorWrap">
+      <metadata name="net.sf.eclipsecs.core.comment" value="When a line is broken at a non-assignment operator the break comes before the symbol."/>
+      <property name="severity" value="error"/>
+    </module>
+  </module>
+  <module name="RegexpSingleline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Don't allow non-ASCII characters."/>
+    <property name="severity" value="error"/>
+    <property name="format" value="[\u0080-\uffff]"/>
+    <property name="message" value="Non-ASCII character"/>
+  </module>
+  <module name="RegexpHeader">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
+    <property name="severity" value="error"/>
+    <property name="headerFile" value="${basedir}/src/main/resources/build/java.header"/>
+    <property name="fileExtensions" value="java,groovy,g4"/>
+  </module>
+  <module name="RegexpHeader">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Checks that the file starts with a yahoo/apache copyright block."/>
+    <property name="severity" value="error"/>
+    <property name="headerFile" value="${basedir}/src/main/resources/build/xml.header"/>
+    <property name="fileExtensions" value="xml"/>
+  </module>
+  <module name="FileTabCharacter">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Enforce no tabs, only spaces for indent."/>
+    <property name="severity" value="error"/>
+    <property name="eachLine" value="true"/>
+  </module>
+  <module name="NewlineAtEndOfFile">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Enforce newline at end of file."/>
+    <property name="severity" value="error"/>
+    <property name="lineSeparator" value="lf"/>
+  </module>
+  <module name="SuppressionCommentFilter"/>
+  <module name="RegexpMultiline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Excessive white space"/>
+    <property name="severity" value="error"/>
+    <property name="format" value="^\n\n\n"/>
+    <property name="message" value="Excessive white space"/>
+  </module>
+  <module name="RegexpMultiline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Extra space at end of file"/>
+    <property name="severity" value="error"/>
+    <property name="format" value="^\n\Z"/>
+    <property name="message" value="Extra space at end of file"/>
+  </module>
+  <module name="RegexpMultiline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Extra lines between braces"/>
+    <property name="severity" value="error"/>
+    <property name="format" value="\}\n\n\s?\}"/>
+    <property name="message" value="Extra lines between braces"/>
+  </module>
+  <module name="RegexpSingleline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Trailing space"/>
+    <property name="severity" value="error"/>
+    <property name="format" value="\s$"/>
+    <property name="message" value="Trailing space"/>
+  </module>
+  <module name="SuppressionFilter">
+    <property name="file" value="${basedir}/src/main/resources/build/checkstyle-suppressions.xml"/>
+  </module>
+</module>

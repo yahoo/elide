@@ -1,0 +1,11 @@
+{
+    "errors":[
+        {
+            "detail":"Subsequent operation failed."
+        },
+        {
+            "detail":"Unknown attribute 'No attribute or relation badAttr in class example.Parent'",
+            "status":404
+        }
+    ]
+}

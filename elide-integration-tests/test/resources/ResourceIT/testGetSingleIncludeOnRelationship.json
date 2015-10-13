@@ -1,0 +1,30 @@
+{
+    "data":[
+        {
+            "type":"child",
+            "id":"1"
+        }
+    ],
+    "included":[
+        {
+            "type":"child",
+            "id":"1",
+            "attributes":{
+                "name":null
+            },
+            "relationships":{
+                "friends":{
+                    "data":[]
+                },
+                "parents":{
+                    "data":[
+                        {
+                            "type":"parent",
+                            "id":"1"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

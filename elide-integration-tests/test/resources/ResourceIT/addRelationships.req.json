@@ -1,0 +1,16 @@
+[
+    {
+        "op":"add",
+        "path":"",
+        "value":[
+            {
+                "type":"child",
+                "id":"5"
+            },
+            {
+                "type":"child",
+                "id":"4"
+            }
+        ]
+    }
+]

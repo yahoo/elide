@@ -1,0 +1,9 @@
+*/target/
+/target/
+/.settings
+.classpath
+.checkstyle
+/node_modules
+/test-output
+.idea/
+*.iml

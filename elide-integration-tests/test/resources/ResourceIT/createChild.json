@@ -1,0 +1,16 @@
+{
+    "data":{
+        "type":"child",
+        "id":"required",
+        "relationships":{
+            "parents":{
+                "data":[
+                    {
+                        "type":"parent",
+                        "id":"1"
+                    }
+                ]
+            }
+        }
+    }
+}

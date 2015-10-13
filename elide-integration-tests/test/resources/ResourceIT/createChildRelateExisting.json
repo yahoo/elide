@@ -1,0 +1,24 @@
+[
+    {
+        "data":{
+            "type":"child",
+            "id":"8",
+            "attributes":{
+                "name":null
+            },
+            "relationships":{
+                "friends":{
+                    "data":[]
+                },
+                "parents":{
+                    "data":[
+                        {
+                            "type":"parent",
+                            "id":"7"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]
