@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -237,7 +238,7 @@ public class InMemoryDB extends DatabaseManager {
         public <T> List<T> loadObjects(Class<T> loadClass) {
             ConcurrentHashMap<String, Object> objs = database.get(loadClass);
             if (objs == null) {
-                return null;
+                return Collections.emptyList();
             }
             List<Object> results = new ArrayList<>();
             objs.forEachValue(1, results::add);
