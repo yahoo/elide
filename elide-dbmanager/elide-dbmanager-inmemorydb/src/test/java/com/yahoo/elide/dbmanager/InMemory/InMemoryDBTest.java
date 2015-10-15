@@ -35,7 +35,7 @@ public class InMemoryDBTest {
         object.id = 0;
         object.name = "Test";
         try (DatabaseTransaction t = db.beginTransaction()) {
-            assertNull(t.loadObjects(FirstBean.class));
+            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.save(object);
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.commit();
