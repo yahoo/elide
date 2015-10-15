@@ -1,0 +1,7 @@
+language: java
+sudo: false # Use containers
+jdk:
+  - oraclejdk8
+script: mvn clean verify
+# TODO: Need to add a deploy line when we have OSSRH access
+# See: http://docs.travis-ci.com/user/customizing-the-build/
