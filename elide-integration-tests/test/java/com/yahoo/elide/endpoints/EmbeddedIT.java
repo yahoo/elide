@@ -5,24 +5,23 @@
  */
 package com.yahoo.elide.endpoints;
 
-import com.google.common.collect.ImmutableSet;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.hibernate.AHibernateTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 
+import com.google.common.collect.ImmutableSet;
+import example.Embedded;
+import example.Left;
+import example.Right;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-
-import example.Embedded;
-import example.Left;
-import example.Right;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 
 /**
  * The type Config resource test.
@@ -70,7 +69,10 @@ public class EmbeddedIT extends AHibernateTest {
     void testOne2One() {
         String expected = getJson("/EmbeddedIT/testOne2One.json");
 
-        String response = given().when().get("/right/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
+        String response =
+                given().when().get("/right/1")
+                .then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected);
     }
@@ -79,7 +81,10 @@ public class EmbeddedIT extends AHibernateTest {
     void testOne2OneAccess() {
         String expected = getJson("/EmbeddedIT/testOne2OneAccess.json");
 
-        String response = given().when().get("/right/1/one2one/one2one").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
+        String response =
+                given().when().get("/right/1/one2one/one2one")
+                .then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
 
         assertEqualDocuments(response, expected);
     }

@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 
+import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -29,8 +30,9 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 
-import lombok.ToString;
-
+/**
+ * Parent test bean
+ */
 // Flurry ORM Class Attributes
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
@@ -105,6 +107,9 @@ public class Parent extends BaseId {
         this.firstName = name;
     }
 
+    /**
+     * Initialization validation check
+     */
     static public class InitCheck implements Check<Parent> {
         @Override
         public boolean ok(PersistentResource<Parent> record) {

@@ -16,6 +16,10 @@
         <version>0.0.1.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

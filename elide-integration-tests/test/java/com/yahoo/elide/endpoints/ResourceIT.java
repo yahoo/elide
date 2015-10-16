@@ -5,7 +5,13 @@
  */
 package com.yahoo.elide.endpoints;
 
-import com.google.common.collect.Sets;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.startsWith;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestLogger;
@@ -18,6 +24,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 
+import com.google.common.collect.Sets;
+import example.Child;
+import example.Filtered;
+import example.FunWithPermissions;
+import example.Parent;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -29,18 +40,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import example.Child;
-import example.Filtered;
-import example.FunWithPermissions;
-import example.Parent;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * The type Config resource test.
@@ -1135,9 +1134,9 @@ public class ResourceIT extends AHibernateTest {
     public void elideBypassSecurity() {
         String expected = getJson("/ResourceIT/testChild.json");
 
-        Elide
-            elide = new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
-        ElideResponse response = elide.get("parent/1/children/1", new MultivaluedHashMap<String, String>(), -1, SecurityMode.BYPASS_SECURITY);
+        Elide elide = new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
+        ElideResponse response =
+                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.BYPASS_SECURITY);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }
@@ -1145,7 +1144,7 @@ public class ResourceIT extends AHibernateTest {
     @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<String, String>(), -1, SecurityMode.ACTIVE);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

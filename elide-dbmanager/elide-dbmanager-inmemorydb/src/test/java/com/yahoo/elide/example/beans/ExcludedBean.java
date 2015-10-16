@@ -7,6 +7,9 @@ package com.yahoo.elide.example.beans;
 
 import com.yahoo.elide.annotation.Exclude;
 
+/**
+ * Exclude Test bean
+ */
 @Exclude
 public class ExcludedBean {
     private boolean excluded;

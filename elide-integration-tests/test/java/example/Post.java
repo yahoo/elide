@@ -22,6 +22,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+/**
+ * Post test bean
+ */
 // Flurry ORM Class Attributes
 @CreatePermission(any = { Role.ALL.class })
 @ReadPermission(any = { Role.ALL.class })

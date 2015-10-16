@@ -10,6 +10,9 @@ import com.yahoo.elide.annotation.Include;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+/**
+ * test bean
+ */
 @Entity
 @Include
 public class FirstBean {

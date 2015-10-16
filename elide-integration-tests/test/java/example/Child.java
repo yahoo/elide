@@ -5,7 +5,6 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
@@ -13,6 +12,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import example.Child.InitCheck;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -26,8 +27,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
-import example.Child.InitCheck;
-
+/**
+ * Child test bean
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @CreatePermission(any = { InitCheck.class })
@@ -100,6 +102,9 @@ public class Child {
         this.name = name;
     }
 
+    /**
+     * Initialization validation check
+     */
     static public class InitCheck implements Check<Child> {
         @Override
         public boolean ok(PersistentResource<Child> record) {
