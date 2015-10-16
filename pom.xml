@@ -38,6 +38,18 @@
         </license>
     </licenses>
 
+    <distributionManagement>
+        <repository>
+            <id>bintray-elide-repo</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/elide;publish=1</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <min.jdk.version>1.8</min.jdk.version>
         <max.jdk.version>1.10</max.jdk.version>

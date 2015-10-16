@@ -5,7 +5,8 @@ before_install:
   - sudo apt-get install libaio1 # Needed to run mysqld for integration tests
 script: mvn verify
 # TODO: Add coveralls support
-#after_success:
+after_success:
+  - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn deploy --settings travis/settings.xml
 #  - mvn coveralls:report
 cache:
   directories:
