@@ -1,7 +1,8 @@
 language: java
-sudo: false # Use containers
 jdk:
   - oraclejdk8
-script: mvn clean verify
-# TODO: Need to add a deploy line when we have OSSRH access
+before_install:
+  - sudo apt-get install libaio1 # Needed to run mysqld for integration tests
+script: mvn verify
+# TODO: Need to add a deploy line when we have bintray access
 # See: http://docs.travis-ci.com/user/customizing-the-build/
