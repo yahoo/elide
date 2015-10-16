@@ -30,12 +30,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>${version.elide}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-dbmanager-hibernate3</artifactId>
-            <version>${version.elide}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Additional deps -->
