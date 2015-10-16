@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Example Logger test
+ */
 public class TestLogger extends Logger {
     @Override
     public void commit() throws IOException {

@@ -12,6 +12,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * No Create test bean
+ */
 @CreatePermission(all = { Role.NONE.class })
 @Include(rootLevel = true, type = "nocreate") // optional here because class has this name
 // Hibernate

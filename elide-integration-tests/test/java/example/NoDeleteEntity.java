@@ -12,6 +12,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * No Delete test bean
+ */
 @DeletePermission(all = { Role.NONE.class })
 @Include(rootLevel = true, type = "nodelete") // optional here because class has this name
 // Hibernate

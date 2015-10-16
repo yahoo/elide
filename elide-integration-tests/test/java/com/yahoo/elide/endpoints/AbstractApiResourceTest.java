@@ -5,11 +5,12 @@
  */
 package com.yahoo.elide.endpoints;
 
+import com.yahoo.elide.resources.JsonApiEndpoint;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -22,8 +23,9 @@ import org.testng.annotations.BeforeClass;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lombok.extern.slf4j.Slf4j;
-
+/**
+ * AbstractApiResource Test
+ */
 @Slf4j
 public class AbstractApiResourceTest {
     private Server server;
@@ -47,7 +49,8 @@ public class AbstractApiResourceTest {
 
         // port randomly picked in pom.xml
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
-        RestAssured.port = Integer.parseInt(restassuredPort != null && !restassuredPort.isEmpty() ? restassuredPort : "9999");
+        RestAssured.port =
+                Integer.parseInt(restassuredPort != null && !restassuredPort.isEmpty() ? restassuredPort : "9999");
 
         // embedded jetty server
         server = new Server(RestAssured.port);

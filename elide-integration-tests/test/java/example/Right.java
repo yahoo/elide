@@ -5,10 +5,10 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -25,6 +25,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 
+/**
+ * Right test bean
+ */
 @Include(rootLevel = true, type = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword

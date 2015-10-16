@@ -31,8 +31,7 @@ public class RequestScope {
     private final @Getter EntityDictionary dictionary;
     private final @Getter JsonApiMapper mapper;
     private final @Getter Optional<MultivaluedMap<String, String>> queryParams;
-    private final @Getter
-    ObjectEntityCache objectEntityCache;
+    private final @Getter ObjectEntityCache objectEntityCache;
     private final @Getter SecurityMode securityMode;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;

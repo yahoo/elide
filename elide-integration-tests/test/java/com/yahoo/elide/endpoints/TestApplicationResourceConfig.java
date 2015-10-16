@@ -15,6 +15,9 @@ import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+/**
+ * Jersey ApplicationResourceConfig for test framework
+ */
 public class TestApplicationResourceConfig extends ResourceConfig {
     public TestApplicationResourceConfig() {
         register(new AbstractBinder() {

@@ -14,6 +14,9 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.CriteriaCheck;
 
+import example.Filtered.FilterCheck;
+import example.Filtered.FilterCheck3;
+import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.criterion.Criterion;
@@ -24,11 +27,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import example.Filtered.FilterCheck;
-import example.Filtered.FilterCheck3;
-import lombok.ToString;
-
-// Flurry ORM Class Attributes
+/**
+ * Filtered permission check
+ */
+//Flurry ORM Class Attributes
 @CreatePermission(any = { FilterCheck.class })
 @ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class })
 @UpdatePermission(any = { FilterCheck.class })
@@ -52,6 +54,9 @@ public class Filtered extends BaseId {
         this.id = id;
     }
 
+    /**
+     * Filter for ID == 1
+     */
     static public class FilterCheck implements CriteriaCheck<Filtered> {
         @Override
         public boolean ok(PersistentResource<Filtered> record) {
@@ -65,6 +70,9 @@ public class Filtered extends BaseId {
         }
     }
 
+    /**
+     * Filter for ID == 3
+     */
     static public class FilterCheck3 implements CriteriaCheck<Filtered> {
         @Override
         public boolean ok(PersistentResource<Filtered> record) {

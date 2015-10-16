@@ -15,6 +15,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+/**
+ * No Update test bean
+ */
 @UpdatePermission(all = { Role.NONE.class })
 @Include(rootLevel = true, type = "noupdate") // optional here because class has this name
 // Hibernate

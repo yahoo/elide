@@ -7,6 +7,9 @@ package example;
 
 //import javax.persistence.Id;
 
+/**
+ * Entity base
+ */
 public abstract class BaseId {
 //    @JsonIgnore
 //    protected String id;

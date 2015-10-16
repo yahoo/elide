@@ -10,15 +10,14 @@ import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -36,9 +35,9 @@ import javax.persistence.Id;
  */
 @Slf4j
 public class InMemoryDB extends DatabaseManager {
-    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> database =
-        new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> DATABASE =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
     @Getter private EntityDictionary dictionary;
     @Getter private Package beanPackage;
 
@@ -46,6 +45,9 @@ public class InMemoryDB extends DatabaseManager {
         this.beanPackage = beanPackage;
     }
 
+    /**
+     * InMemoryDB transaction handler
+     */
     public static class InMemoryTransaction implements DatabaseTransaction {
         private List<Operation> operations;
         private EntityDictionary dictionary;
@@ -86,7 +88,7 @@ public class InMemoryDB extends DatabaseManager {
         public void commit() {
             operations.forEach(op -> {
                 Class<?> cls = op.getType();
-                ConcurrentHashMap<String, Object> data = database.get(cls);
+                ConcurrentHashMap<String, Object> data = DATABASE.get(cls);
                 Object instance = op.getInstance();
                 if (instance == null) {
                     return;
@@ -99,7 +101,7 @@ public class InMemoryDB extends DatabaseManager {
                 } else {
                     if (data == null) {
                         data = new ConcurrentHashMap<>();
-                        database.put(cls, data);
+                        DATABASE.put(cls, data);
                     }
                     data.put(id, instance);
                 }
@@ -109,11 +111,11 @@ public class InMemoryDB extends DatabaseManager {
 
         @Override
         public <T> T createObject(Class<T> entityClass) {
-            if (database.get(entityClass) == null) {
-                database.put(entityClass, new ConcurrentHashMap<>());
-                typeIds.put(entityClass, new AtomicLong(1));
+            if (DATABASE.get(entityClass) == null) {
+                DATABASE.put(entityClass, new ConcurrentHashMap<>());
+                TYPEIDS.put(entityClass, new AtomicLong(1));
             }
-            AtomicLong idValue = typeIds.get(entityClass);
+            AtomicLong idValue = TYPEIDS.get(entityClass);
             String id = String.valueOf(idValue.getAndIncrement());
             try {
                 T instance = entityClass.newInstance();
@@ -227,7 +229,7 @@ public class InMemoryDB extends DatabaseManager {
 
         @Override
         public <T> T loadObject(Class<T> loadClass, String id) {
-            ConcurrentHashMap<String, Object> objs = database.get(loadClass);
+            ConcurrentHashMap<String, Object> objs = DATABASE.get(loadClass);
             if (objs == null) {
                 return null;
             }
@@ -236,7 +238,7 @@ public class InMemoryDB extends DatabaseManager {
 
         @Override
         public <T> List<T> loadObjects(Class<T> loadClass) {
-            ConcurrentHashMap<String, Object> objs = database.get(loadClass);
+            ConcurrentHashMap<String, Object> objs = DATABASE.get(loadClass);
             if (objs == null) {
                 return Collections.emptyList();
             }
@@ -262,8 +264,8 @@ public class InMemoryDB extends DatabaseManager {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
-                                                      .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
-                                                      .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
+                .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
+                .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
         reflections.getTypesAnnotatedWith(Entity.class).forEach(dictionary::bindEntity);
         this.dictionary = dictionary;
     }
@@ -277,11 +279,11 @@ public class InMemoryDB extends DatabaseManager {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Database contents ");
-        for (Class<?> cls : database.keySet()) {
-            sb.append("\n Table "+ cls + " contents \n");
-            ConcurrentHashMap<String, Object> data = database.get(cls);
+        for (Class<?> cls : DATABASE.keySet()) {
+            sb.append("\n Table " + cls + " contents \n");
+            ConcurrentHashMap<String, Object> data = DATABASE.get(cls);
             for (String id : data.keySet()) {
-                sb.append(" Id: " + id + " Value: "+ data.get(id).toString());
+                sb.append(" Id: " + id + " Value: " + data.get(id).toString());
             }
         }
         return sb.toString();

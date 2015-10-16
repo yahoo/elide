@@ -54,8 +54,9 @@
         <testng.version>6.9.6</testng.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
-        <checkstyle.config.location>./src/main/resources/build/checkstyle-style.xml</checkstyle.config.location>
-        <checkstyle.suppressions.location>./src/main/resources/build/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+        <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
+        <checkstyle.config.location>${parent.pom.dir}/checkstyle-style.xml</checkstyle.config.location>
+        <checkstyle.suppressions.location>${parent.pom.dir}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
 
         <dependency.locations.enabled>false</dependency.locations.enabled>
     </properties>
