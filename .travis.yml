@@ -4,8 +4,9 @@ jdk:
 before_install:
   - sudo apt-get install libaio1 # Needed to run mysqld for integration tests
 script: mvn verify
+after_success:
+  - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn deploy --settings travis/settings.xml
 # TODO: Add coveralls support
-#after_success:
 #  - mvn coveralls:report
 cache:
   directories:
@@ -13,7 +14,7 @@ cache:
 branches:
   only:
     - master
-    - /^elide-[0-9]+\.[0-9]+\.[0-9]+/
+    - /^elide-parent-pom-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/
 env:
   global:
     - secure: #TODO
