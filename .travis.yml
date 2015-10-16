@@ -4,5 +4,17 @@ jdk:
 before_install:
   - sudo apt-get install libaio1 # Needed to run mysqld for integration tests
 script: mvn verify
-# TODO: Need to add a deploy line when we have bintray access
-# See: http://docs.travis-ci.com/user/customizing-the-build/
+# TODO: Add coveralls support
+#after_success:
+#  - mvn coveralls:report
+cache:
+  directories:
+    - ~/.m2
+branches:
+  only:
+    - master
+    - /^elide-[0-9]+\.[0-9]+\.[0-9]+/
+env:
+  global:
+    - secure: #TODO
+    - secure: #TODO
