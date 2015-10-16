@@ -5,27 +5,32 @@
  */
 package com.yahoo.elide.audit;
 
+import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-
 import com.yahoo.elide.core.RequestScope;
-import com.google.common.collect.Sets;
 
+import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 public class LogMessageTest {
-    private transient PersistentResource<Child> childRecord;
-    private transient PersistentResource<Child> friendRecord;
+    private PersistentResource<Parent> parentRecord;
+    private PersistentResource<Child> childRecord;
+    private PersistentResource<Child> friendRecord;
+    private EntityDictionary dictionary;
+    private DatabaseManager databaseManager;
 
     @BeforeTest
     public void setup() {
-        final EntityDictionary dictionary = new EntityDictionary();
-        dictionary.bindEntity(Child.class);
-        dictionary.bindEntity(Parent.class);
+        databaseManager = Mockito.mock(DatabaseManager.class);
+        dictionary = new EntityDictionary();
+        dictionary.bindEntity(Child.class, databaseManager);
+        dictionary.bindEntity(Parent.class, databaseManager);
 
         final Child child = new Child();
         child.setId(5);

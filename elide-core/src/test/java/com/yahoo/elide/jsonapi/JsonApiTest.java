@@ -9,6 +9,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -21,9 +22,9 @@ import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Parent;
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -40,12 +41,14 @@ import java.util.Map;
 public class JsonApiTest {
     private RequestScope userScope;
     private JsonApiMapper mapper;
+    private DatabaseManager databaseManager;
     @BeforeTest
     void init() {
         EntityDictionary dictionary = new EntityDictionary();
-        dictionary.bindEntity(Parent.class);
-        dictionary.bindEntity(Child.class);
-        dictionary.bindInitializer(Parent::doInit, Parent.class);
+        databaseManager = Mockito.mock(DatabaseManager.class);
+        dictionary = new EntityDictionary();
+        dictionary.bindEntity(Parent.class, databaseManager);
+        dictionary.bindEntity(Child.class, databaseManager);
         mapper = new JsonApiMapper(dictionary);
         userScope = new RequestScope(new JsonApiDocument(), null, new User(0), dictionary, mapper);
     }

@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.User;
 
 import example.FunWithPermissions;
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -23,8 +24,9 @@ public class PermissionAnnotationTest {
     private PersistentResource<FunWithPermissions> funRecord;
     private final User goodUser;
     private PersistentResource<FunWithPermissions> badRecord;
-    private final User badUser;
-    private final EntityDictionary dictionary;
+    private User badUser;
+    private EntityDictionary dictionary;
+    private DatabaseManager databaseManager;
 
     public PermissionAnnotationTest() {
         goodUser = new User(3);
@@ -34,7 +36,8 @@ public class PermissionAnnotationTest {
 
     @BeforeTest
     public void setup() {
-        dictionary.bindEntity(FunWithPermissions.class);
+        databaseManager = Mockito.mock(DatabaseManager.class);
+        dictionary.bindEntity(FunWithPermissions.class, databaseManager);
 
         FunWithPermissions fun = new FunWithPermissions();
         fun.setId(1);

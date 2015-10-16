@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -13,9 +14,9 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Parent;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -44,13 +45,16 @@ public class IncludedProcessorTest {
     private PersistentResource<Child> childRecord3;
     private PersistentResource<Child> childRecord4;
 
+    private DatabaseManager databaseManager;
+
     @BeforeMethod
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
         EntityDictionary dictionary = new EntityDictionary();
-        dictionary.bindEntity(Child.class);
-        dictionary.bindEntity(Parent.class);
+        databaseManager = Mockito.mock(DatabaseManager.class);
+        dictionary.bindEntity(Child.class, databaseManager);
+        dictionary.bindEntity(Parent.class, databaseManager);
 
         RequestScope goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null);
 

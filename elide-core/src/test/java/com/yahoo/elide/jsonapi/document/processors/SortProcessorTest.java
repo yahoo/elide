@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -16,6 +17,7 @@ import com.yahoo.elide.security.User;
 import example.Child;
 import example.Parent;
 import example.Post;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -41,12 +43,14 @@ public class SortProcessorTest {
 
     private EntityDictionary dictionary;
     private RequestScope goodUserScope;
+    private DatabaseManager databaseManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
+        databaseManager = Mockito.mock(DatabaseManager.class);
         dictionary = new EntityDictionary();
-        dictionary.bindEntity(Child.class);
-        dictionary.bindEntity(Parent.class);
+        dictionary.bindEntity(Child.class, databaseManager);
+        dictionary.bindEntity(Parent.class, databaseManager);
 
         sortProcessor = new SortProcessor();
         goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null);
@@ -125,7 +129,7 @@ public class SortProcessorTest {
     @Test
     public void testExecuteMultipleSortField() throws Exception {
         // Mock posts
-        dictionary.bindEntity(Post.class);
+        dictionary.bindEntity(Post.class, databaseManager);
 
         Post post1 = new Post();
         post1.setId(1);

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -12,12 +13,14 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import example.Child;
 import example.Parent;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 public class UserTest {
-    private final EntityDictionary dictionary = new EntityDictionary();
+    private EntityDictionary dictionary = new EntityDictionary();
+    private DatabaseManager databaseManager;
 
     public class CounterCheck implements Check {
         public int callCounter = 0;
@@ -30,8 +33,9 @@ public class UserTest {
 
     @BeforeTest
     void init() {
-        dictionary.bindEntity(Child.class);
-        dictionary.bindEntity(Parent.class);
+        databaseManager = Mockito.mock(DatabaseManager.class);
+        dictionary.bindEntity(Child.class, databaseManager);
+        dictionary.bindEntity(Parent.class, databaseManager);
     }
 
     @Test
