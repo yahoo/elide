@@ -15,14 +15,12 @@
     <name>Elide Parent Pom</name>
     <description>Parent pom for Elide project</description>
 
-    <!-- Children -->
     <modules>
         <module>elide-dbmanager</module>
         <module>elide-core</module>
         <module>elide-integration-tests</module>
     </modules>
 
-    <!-- Common settings -->
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/yahoo/elide/issues</url>
@@ -55,11 +53,15 @@
         <max.jdk.version>1.10</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- dependency versions -->
         <version.slf4j>1.7.12</version.slf4j>
         <version.jetty>9.2.10.v20150310</version.jetty>
         <version.jersey>2.19</version.jersey>
+
+        <!-- plugin versions -->
         <maven.checkstyle.plugin.version>2.15</maven.checkstyle.plugin.version>
         <checkstyle.version>6.1.1</checkstyle.version>
         <surefire.plugin.version>2.18.1</surefire.plugin.version>
@@ -91,6 +93,23 @@
                 <artifactId>guava</artifactId>
                 <version>16.0.1</version>
             </dependency>
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.3.2</version>
+            </dependency>
+
+            <!-- Test dependencies -->
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-servlet</artifactId>
@@ -127,25 +146,9 @@
                 <version>2.0.13-beta</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>javax.inject</groupId>
-                <artifactId>javax.inject</artifactId>
-                <version>1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>4.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.3.2</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <!-- Build settings -->
     <build>
         <pluginManagement>
             <plugins>
@@ -154,7 +157,6 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${surefire.plugin.version}</version>
                 </plugin>
-                <!-- Checkstyle -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
