@@ -16,7 +16,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Audit configuration annotation repeatable
+ * Audit configuration annotation repeatable.
  */
 @Retention(RUNTIME)
 @Target({METHOD, FIELD, TYPE})

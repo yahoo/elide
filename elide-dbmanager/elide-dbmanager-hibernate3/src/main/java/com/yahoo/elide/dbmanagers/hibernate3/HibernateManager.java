@@ -94,8 +94,8 @@ public class HibernateManager extends DatabaseManager {
      */
     public class HibernateTransaction implements DatabaseTransaction {
 
-        private Transaction transaction;
-        private LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
+        private final Transaction transaction;
+        private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
 
         /**
          * Instantiates a new Hibernate transaction.
@@ -119,9 +119,7 @@ public class HibernateManager extends DatabaseManager {
         @Override
         public void flush() {
             try {
-                for (Runnable task : deferredTasks) {
-                    task.run();
-                }
+                deferredTasks.forEach(Runnable::run);
                 deferredTasks.clear();
                 getSession().flush();
             } catch (HibernateException e) {

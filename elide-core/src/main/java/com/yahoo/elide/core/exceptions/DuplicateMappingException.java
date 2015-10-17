@@ -8,7 +8,7 @@ package com.yahoo.elide.core.exceptions;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Occurs when many mappings to an entity are detected
+ * Occurs when many mappings to an entity are detected.
  */
 @Slf4j
 public class DuplicateMappingException extends RuntimeException {
@@ -16,7 +16,7 @@ public class DuplicateMappingException extends RuntimeException {
     /**
      * Constructor
      *
-     * @param message
+     * @param message the exception message
      */
     public DuplicateMappingException(String message) {
         this(message, null);

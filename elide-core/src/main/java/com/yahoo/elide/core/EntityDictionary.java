@@ -135,7 +135,7 @@ public class EntityDictionary {
     /**
      * Get the list of relationship names for an entity
      *
-     * @param entity entity instnace
+     * @param entity entity instance
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Object entity) {
@@ -363,7 +363,7 @@ public class EntityDictionary {
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + duplicate.getName());
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
         bindEntityToJsonApi.put(cls, type);
         if (include.rootLevel()) {
@@ -681,7 +681,7 @@ public class EntityDictionary {
             } else {
                 name = ((Method) fieldOrMethod).getName();
             }
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + name);
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + name);
         }
     }
 

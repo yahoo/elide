@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Container for different representations of top-level data in JSON API
+ * Container for different representations of top-level data in JSON API.
  *
  * @param <T> type
  */
@@ -51,6 +51,8 @@ public class Data<T> {
     }
 
     /**
+     * Sort method using provided sort function.
+     *
      * @param sortFunction comparator to sort data with
      */
     public void sort(Comparator<T> sortFunction) {

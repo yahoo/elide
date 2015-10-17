@@ -29,7 +29,7 @@ import java.io.InputStream;
 @Slf4j
 public class AbstractApiResourceTest {
     private Server server;
-    private String resourceConfig;
+    private final String resourceConfig;
 
     private final ObjectMapper mapper = new ObjectMapper();
 

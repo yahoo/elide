@@ -18,7 +18,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Assign custom Read permission checks
+ * Assign custom Read permission checks.
  */
 @Target({METHOD, FIELD, TYPE, PACKAGE})
 @Retention(RUNTIME)

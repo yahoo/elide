@@ -33,7 +33,7 @@ public class ResourceIdentifier {
     }
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public PersistentResource toPersistentResource(RequestScope requestScope)

@@ -45,17 +45,26 @@ public class SortProcessor implements DocumentProcessor {
      */
     public static final char DESCENDING_TOKEN = '-';
 
+    /**
+     * Sorts a JsonApiDocument's data field based on attributes specified in the 'sort' query param.
+     * This method is a no-op as a single record is already sorted.
+     *
+     * @param jsonApiDocument the json api document
+     * @param resource the resource
+     * @param queryParams the query params
+     */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
                         Optional<MultivaluedMap<String, String>> queryParams) {
-
-        // Single record is already sorted
-        return;
     }
 
     /**
-    * Sorts a JsonApiDocument's data field based on attributes specified in the 'sort' query param
-    */
+     * Sorts a JsonApiDocument's data field based on attributes specified in the 'sort' query param.
+     *
+     * @param jsonApiDocument the json api document
+     * @param resources the resources
+     * @param queryParams the query params
+     */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
                         Optional<MultivaluedMap<String, String>> queryParams) {
@@ -71,6 +80,8 @@ public class SortProcessor implements DocumentProcessor {
     }
 
     /**
+     * Sort data based on provided sort field list.
+     *
      * @param data resource data to sort
      * @param sortFields - attribute fields within the data to sort by
      */
@@ -85,6 +96,8 @@ public class SortProcessor implements DocumentProcessor {
     }
 
     /**
+     * Build list of comparators.
+     *
      * @param sortFields attribute fields within the data to sort by
      * @return list of comparators to do the sorting
      */
@@ -96,30 +109,30 @@ public class SortProcessor implements DocumentProcessor {
     }
 
     /**
+     * Field comparator.
+     *
      * @param field name of attribute field to compare, prefix with '-' to specify descending order
      * @return a comparison between resources for the given attribute field
      */
     private Comparator<Resource> comparisonForField(String field) {
         // Determine if ascending or descending
         if (field.charAt(0) == DESCENDING_TOKEN) {
-
             // Remove descending token to get field name
             String parsedField = field.substring(1);
-
             return Ordering.from(attributeComparison(parsedField)).nullsFirst().reverse();
-
         } else {
             return Ordering.from(attributeComparison(field)).nullsFirst();
         }
     }
 
     /**
+     * Attribute comparator.
+     *
      * @param field - name of attribute field to compare
      * @return a comparison between resources for the given attribute field
      */
     private Comparator<Resource> attributeComparison(String field) {
         return (a, b) ->
-
             // Compare requested attribute using an object comparison
             Ordering.from(this::compareObjects)
                 .nullsFirst()
@@ -130,6 +143,8 @@ public class SortProcessor implements DocumentProcessor {
     }
 
     /**
+     * Compare objects.
+     *
      * @param a first object to compare
      * @param b second object to compare
      * @return negative number if a < b

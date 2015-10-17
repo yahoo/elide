@@ -38,7 +38,7 @@ public class TestApplicationResourceConfig extends ResourceConfig {
 
                 // User function
                 bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
-                    private final Integer user = Integer.valueOf(1);
+                    private final Integer user = 1;
 
                     @Override
                     public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {

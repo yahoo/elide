@@ -1338,7 +1338,7 @@ public class PersistentResource<T> {
 
     /**
      * Helper function for access to OpaqueUser in checks
-     * @return opqaue user
+     * @return opaque user
      */
     public Object getOpaqueUser() {
         return getRequestScope().getUser().getOpaqueUser();

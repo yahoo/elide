@@ -14,7 +14,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Restricts access to given entity
+ * Restricts access to given entity.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)

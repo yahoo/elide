@@ -40,16 +40,16 @@ public class JsonApiSerializer<T> extends StdSerializer<T> {
     }
 
     @Override
-    public void serialize(T object, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(T object, JsonGenerator jsonGenerator, SerializerProvider provider)
             throws IOException, JsonGenerationException {
         if (object instanceof Set) {
-            jgen.writeStartArray();
+            jsonGenerator.writeStartArray();
             for (Object value : (Set) object) {
-                jgen.writeObject(value);
+                jsonGenerator.writeObject(value);
             }
-            jgen.writeEndArray();
+            jsonGenerator.writeEndArray();
         } else {
-            jgen.writeObject(object);
+            jsonGenerator.writeObject(object);
         }
     }
 

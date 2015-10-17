@@ -28,7 +28,7 @@ import java.io.IOException;
  */
 // TODO: These tests (i.e. the whole suite) are too tightly coupled. We need to refactor them.
 public class EmbeddedIT extends AHibernateTest {
-    private JsonApiMapper mapper;
+    private final JsonApiMapper mapper;
 
     public EmbeddedIT() {
         /* There is no good way to get the dictionary from Elide */

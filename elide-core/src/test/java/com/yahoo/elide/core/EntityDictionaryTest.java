@@ -27,10 +27,10 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetAttributeOrRelationAnnotation() {
         String[] fields = {"field1", "field2", "field3", "relation1", "relation2"};
-        Annotation a;
-        for (String field :  fields) {
-            a = this.getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, "field1");
-            Assert.assertTrue((a != null && a instanceof ReadPermission), "Every field should return a ReadPermission annotation");
+        Annotation annotation;
+        for (String field : fields) {
+            annotation = this.getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
+            Assert.assertTrue(annotation != null && annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
     }
 

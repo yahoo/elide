@@ -65,7 +65,7 @@ public class ResourceIT extends AHibernateTest {
 
         // Single tests
         Parent p1 = new Parent(); // id 2
-        p1.setFirstName("BJ Blazkowicz");
+        p1.setFirstName("John");
         p1.setSpouses(Sets.newHashSet());
 
         Child c1 = new Child(); // id 2
@@ -703,14 +703,14 @@ public class ResourceIT extends AHibernateTest {
             .extract().body().asString();
 
         JsonApiDocument doc = mapper.readJsonApiDocument(resp);
-        boolean hasIdentifer = false;
+        boolean hasIdentifier = false;
 
         r = doc.getData().get().iterator().next();
         rIds = r.getRelationships().get("children").getResourceIdentifierData().get();
         for (ResourceIdentifier id : rIds) {
-            hasIdentifer |= id.getId().equals("6");
+            hasIdentifier |= id.getId().equals("6");
         }
-        assertTrue(hasIdentifer);
+        assertTrue(hasIdentifier);
     }
 
     @Test

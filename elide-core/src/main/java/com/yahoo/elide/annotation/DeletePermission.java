@@ -16,7 +16,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Assign custom Delete permission checks
+ * Assign custom Delete permission checks.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)

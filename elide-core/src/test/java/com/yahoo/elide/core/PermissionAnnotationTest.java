@@ -21,14 +21,14 @@ import org.testng.annotations.Test;
  */
 public class PermissionAnnotationTest {
     private PersistentResource<FunWithPermissions> funRecord;
-    private User goodUser;
+    private final User goodUser;
     private PersistentResource<FunWithPermissions> badRecord;
-    private User badUser;
-    private EntityDictionary dictionary;
+    private final User badUser;
+    private final EntityDictionary dictionary;
 
     public PermissionAnnotationTest() {
-        goodUser = new User(Integer.valueOf(3));
-        badUser = new User(Integer.valueOf(-1));
+        goodUser = new User(3);
+        badUser = new User(-1);
         dictionary = new EntityDictionary();
     }
 

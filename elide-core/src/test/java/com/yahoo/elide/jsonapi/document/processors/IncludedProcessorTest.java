@@ -44,18 +44,15 @@ public class IncludedProcessorTest {
     private PersistentResource<Child> childRecord3;
     private PersistentResource<Child> childRecord4;
 
-    private EntityDictionary dictionary;
-    private RequestScope goodUserScope;
-
     @BeforeMethod
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        dictionary = new EntityDictionary();
+        EntityDictionary dictionary = new EntityDictionary();
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 
-        goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null);
+        RequestScope goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -68,24 +65,24 @@ public class IncludedProcessorTest {
         Child child4 = newChild(5);
 
         //Form relationships
-        parent1.setSpouses(new HashSet<>(Arrays.asList(parent2)));
-        parent1.setChildren(new HashSet<>(Arrays.asList(child1)));
-        parent2.setChildren(new HashSet<>(Arrays.asList(child2)));
-        child1.setFriends(new HashSet<>(Arrays.asList(child2)));
+        parent1.setSpouses(new HashSet<>(Collections.singletonList(parent2)));
+        parent1.setChildren(new HashSet<>(Collections.singletonList(child1)));
+        parent2.setChildren(new HashSet<>(Collections.singletonList(child2)));
+        child1.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Parent with multiple children each with a friend
         parent3.setChildren(new HashSet<>(Arrays.asList(child3, child4)));
-        child3.setFriends(new HashSet<>(Arrays.asList(child1)));
-        child4.setFriends(new HashSet<>(Arrays.asList(child2)));
+        child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
+        child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Create Persistent Resources
         parentRecord1 = new PersistentResource<>(parent1, goodUserScope);
         parentRecord2 = new PersistentResource<>(parent2, goodUserScope);
         parentRecord3 = new PersistentResource<>(parent3, goodUserScope);
-        childRecord1  = new PersistentResource<>(child1,  goodUserScope);
-        childRecord2  = new PersistentResource<>(child2,  goodUserScope);
-        childRecord3  = new PersistentResource<>(child3,  goodUserScope);
-        childRecord4  = new PersistentResource<>(child4,  goodUserScope);
+        childRecord1  = new PersistentResource<>(child1, goodUserScope);
+        childRecord2  = new PersistentResource<>(child2, goodUserScope);
+        childRecord3  = new PersistentResource<>(child3, goodUserScope);
+        childRecord4  = new PersistentResource<>(child4, goodUserScope);
     }
 
     @Test
@@ -93,10 +90,10 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children"));
+        queryParams.put("include", Collections.singletonList("children"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
-        List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource());
+        List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
         List<Resource> actualIncluded = jsonApiDocument.getIncluded();
 
         Assert.assertEquals(actualIncluded, expectedIncluded,
@@ -112,7 +109,7 @@ public class IncludedProcessorTest {
         parents.add(parentRecord2);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children"));
+        queryParams.put("include", Collections.singletonList("children"));
         includedProcessor.execute(jsonApiDocument, parents, Optional.of(queryParams));
 
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
@@ -127,7 +124,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children.friends"));
+        queryParams.put("include", Collections.singletonList("children.friends"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded =
@@ -159,7 +156,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children.friends"));
+        queryParams.put("include", Collections.singletonList("children.friends"));
         includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
 
         Set<Resource> expectedIncluded =
