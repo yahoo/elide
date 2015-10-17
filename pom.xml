@@ -49,6 +49,7 @@
     </scm>
 
     <properties>
+        <autoVersionSubmodules>true</autoVersionSubmodules>
         <min.jdk.version>1.8</min.jdk.version>
         <max.jdk.version>1.10</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
