@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * test bean
+ * test bean.
  */
 @Entity
 @Include

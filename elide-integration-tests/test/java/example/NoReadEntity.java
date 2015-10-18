@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- * No Read test bean
+ * No Read test bean.
  */
 @ReadPermission(all = { Role.NONE.class })
 @Include(rootLevel = true, type = "noread") // optional here because class has this name

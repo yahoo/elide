@@ -31,9 +31,8 @@ import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 
 /**
- * Parent test bean
+ * Parent test bean.
  */
-// Flurry ORM Class Attributes
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
@@ -64,7 +63,6 @@ public class Parent extends BaseId {
         this.id = id;
     }
 
-    // Flurry ORM Method Attributes
     @ReadPermission(any = { Role.ALL.class, Role.NONE.class })
     @UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
 
@@ -108,7 +106,7 @@ public class Parent extends BaseId {
     }
 
     /**
-     * Initialization validation check
+     * Initialization validation check.
      */
     static public class InitCheck implements Check<Parent> {
         @Override

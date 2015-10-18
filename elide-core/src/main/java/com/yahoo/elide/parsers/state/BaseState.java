@@ -21,9 +21,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
 
-
 /**
- * Base class for state information
+ * Base class for state information.
  */
 public abstract class BaseState {
 

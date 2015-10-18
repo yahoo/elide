@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Custom serializer for top-level data
+ * Custom serializer for top-level data.
  */
 public class DataSerializer extends JsonSerializer<Data<Resource>> {
 

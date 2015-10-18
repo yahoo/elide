@@ -19,7 +19,7 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * A Document Processor that add requested relations to the include block of teh JsonApiDocument
+ * A Document Processor that add requested relations to the include block of teh JsonApiDocument.
  */
 public class IncludedProcessor implements DocumentProcessor {
 
@@ -28,7 +28,7 @@ public class IncludedProcessor implements DocumentProcessor {
 
     /**
      * If the include query param is present, this processor will add the requested relations resources
-     * to the included block of the JsonApiDocument
+     * to the included block of the JsonApiDocument.
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
@@ -40,7 +40,7 @@ public class IncludedProcessor implements DocumentProcessor {
 
     /**
      * If the include query param is present, this processor will add the requested relations resources
-     * to the included block of the JsonApiDocument
+     * to the included block of the JsonApiDocument.
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
@@ -54,7 +54,7 @@ public class IncludedProcessor implements DocumentProcessor {
     }
 
     /**
-     * Adds the requested relation resources to the included block of the JsonApiDocument
+     * Adds the requested relation resources to the included block of the JsonApiDocument.
      */
     private void addIncludedResources(JsonApiDocument jsonApiDocument, PersistentResource rec,
             List<String> requestedRelationPaths) {
@@ -72,7 +72,7 @@ public class IncludedProcessor implements DocumentProcessor {
 
     /**
      * Adds all the relation resources for a given relation path to the included block of the
-     * JsonApiDocument
+     * JsonApiDocument.
      */
     private void addResourcesForPath(JsonApiDocument jsonApiDocument, PersistentResource<?> rec,
                                      List<String> relationPath) {

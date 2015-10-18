@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JSON API testing
+ * JSON API testing.
  */
 public class JsonApiTest {
     private RequestScope userScope;

@@ -9,14 +9,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Cache to store object entity
+ * Cache to store object entity.
  */
 public class ObjectEntityCache {
     private final Map<String, Object> resourceCache;
     private final Map<Object, String> uuidReverseMap;
 
     /**
-     * Constructor
+     * Constructor.
      */
     public ObjectEntityCache() {
         resourceCache = new LinkedHashMap<>();
@@ -24,7 +24,7 @@ public class ObjectEntityCache {
     }
 
     /**
-     * Add a resource to cache
+     * Add a resource to cache.
      *
      * @param type the type
      * @param id the id
@@ -37,7 +37,7 @@ public class ObjectEntityCache {
     }
 
     /**
-     * Retrieve object entity from cache
+     * Retrieve object entity from cache.
      *
      * @param type the type
      * @param id the id
@@ -48,7 +48,7 @@ public class ObjectEntityCache {
     }
 
     /**
-     * Get a UUID for an entity object
+     * Get a UUID for an entity object.
      *
      * @param obj the obj
      * @return uUID
@@ -58,7 +58,7 @@ public class ObjectEntityCache {
     }
 
     /**
-     * Get key for resource cache
+     * Get key for resource cache.
      *
      * @param type the type
      * @param id the id

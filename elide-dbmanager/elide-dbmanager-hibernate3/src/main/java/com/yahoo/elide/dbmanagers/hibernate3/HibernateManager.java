@@ -40,12 +40,13 @@ import java.util.List;
 import lombok.NonNull;
 
 /**
- * Hibernate interface library
+ * Hibernate interface library.
  */
 public class HibernateManager extends DatabaseManager {
 
     /**
-     * Wraps ScrollableResult as Iterator
+     * Wraps ScrollableResult as Iterator.
+     *
      * @param <T> type of return object
      */
     public static class ScrollableIterator<T> implements Iterable<T>, Iterator<T> {
@@ -90,7 +91,7 @@ public class HibernateManager extends DatabaseManager {
     }
 
     /**
-     * Hibernate Transaction implementation
+     * Hibernate Transaction implementation.
      */
     public class HibernateTransaction implements DatabaseTransaction {
 
@@ -184,9 +185,10 @@ public class HibernateManager extends DatabaseManager {
         }
 
         /**
-         * builds criterion if all checks implement CriteriaCheck
-         * @param <T> Filter type
-         * @param filterScope Filter Scope
+         * builds criterion if all checks implement CriteriaCheck.
+         *
+         * @param filterScope the filterScope
+         * @return the criterion
          */
         public <T> Criterion buildCriterion(FilterScope<T> filterScope) {
             Criterion compositeCriterion = null;
@@ -248,7 +250,7 @@ public class HibernateManager extends DatabaseManager {
     private final SessionFactory sessionFactory;
 
     /**
-     * Initialize HibernateManager and dictionaries
+     * Initialize HibernateManager and dictionaries.
      *
      * @param aSessionFactory the a session factory
      */
@@ -265,7 +267,7 @@ public class HibernateManager extends DatabaseManager {
     }
 
     /**
-     * Get current Hibernate session
+     * Get current Hibernate session.
      *
      * @return session
      */
@@ -277,7 +279,7 @@ public class HibernateManager extends DatabaseManager {
     }
 
     /**
-     * Start Hibernate transaction
+     * Start Hibernate transaction.
      *
      * @return transaction
      */

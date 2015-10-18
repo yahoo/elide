@@ -28,7 +28,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
 /**
- * Child test bean
+ * Child test bean.
  */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -103,7 +103,7 @@ public class Child {
     }
 
     /**
-     * Initialization validation check
+     * Initialization validation check.
      */
     static public class InitCheck implements Check<Child> {
         @Override

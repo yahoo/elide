@@ -8,14 +8,14 @@ package com.yahoo.elide;
 import lombok.Getter;
 
 /**
- * Elide response object
+ * Elide response object.
  */
 public class ElideResponse {
     @Getter private final int responseCode;
     @Getter private final String body;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param responseCode HTTP response code
      * @param body returned body string

@@ -25,9 +25,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-
 /**
- * left bean
+ * left bean.
  */
 @Include(rootLevel = true, type = "left") // optional here because class has this name
 @Entity

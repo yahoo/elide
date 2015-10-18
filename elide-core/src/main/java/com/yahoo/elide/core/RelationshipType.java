@@ -6,7 +6,7 @@
 package com.yahoo.elide.core;
 
 /**
- * Relationship types
+ * Relationship types.
  */
 public enum RelationshipType {
     NONE(false, false),

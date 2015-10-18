@@ -15,12 +15,12 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
- * Parses the REST request
+ * Parses the REST request.
  */
 public class JsonApiParser {
 
     /**
-     * Compile request to AST
+     * Compile request to AST.
      * @param path request
      * @return AST
      */

@@ -6,7 +6,7 @@
 package com.yahoo.elide.example.beans;
 
 /**
- * Non-entity should not get picked up by ED
+ * Non-entity should not get picked up by ED.
  */
 public class NonEntity {
     public String name;

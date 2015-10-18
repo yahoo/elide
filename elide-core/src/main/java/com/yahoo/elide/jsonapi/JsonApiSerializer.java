@@ -19,7 +19,8 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * JSON API Serializer
+ * JSON API Serializer.
+ *
  * @param <T> type supported
  */
 public class JsonApiSerializer<T> extends StdSerializer<T> {

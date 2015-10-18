@@ -16,12 +16,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.function.Supplier;
 
 /**
- * GET handler
+ * GET handler.
  */
 public class GetVisitor extends BaseVisitor {
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param requestScope the request scope
      */

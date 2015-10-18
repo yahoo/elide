@@ -13,7 +13,7 @@ package com.yahoo.elide.core;
 public interface Initializer<T> {
 
     /**
-     * Initialize an entity bean
+     * Initialize an entity bean.
      *
      * @param entity Entity bean to initialize
      */

@@ -14,14 +14,14 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * An interface for building and processing a response document
+ * An interface for building and processing a response document.
  */
 public interface DocumentProcessor {
 
     //TODO Possibly add a 'beforeExecute' method for setup
 
     /**
-     * A method for making transformations to the JsonApiDocument
+     * A method for making transformations to the JsonApiDocument.
      *
      * @param jsonApiDocument the json api document
      * @param resource the resource
@@ -31,7 +31,7 @@ public interface DocumentProcessor {
                  Optional<MultivaluedMap<String, String>> queryParams);
 
     /**
-     * A method for making transformations to the JsonApiDocument
+     * A method for making transformations to the JsonApiDocument.
      *
      * @param jsonApiDocument the json api document
      * @param resources the resources

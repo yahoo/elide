@@ -10,11 +10,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * Model for representing JSON API meta information
+ * Model for representing JSON API meta information.
  */
 public class Meta extends KeyValMap {
     /**
-     * Constructor
+     * Constructor.
      *
      * @param meta Object containing meta information
      */

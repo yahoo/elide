@@ -33,7 +33,8 @@ public class Data<T> {
     private final RelationshipType relationshipType;
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param value singleton resource
      */
     public Data(T value) {
@@ -42,7 +43,8 @@ public class Data<T> {
     }
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param values List of resources
      */
     public Data(Collection<T> values) {
@@ -71,7 +73,8 @@ public class Data<T> {
     }
 
     /**
-     * Determine whether or not the contained type is toOne
+     * Determine whether or not the contained type is toOne.
+     *
      * @return True if toOne, false if toMany
      */
     public boolean isToOne() {

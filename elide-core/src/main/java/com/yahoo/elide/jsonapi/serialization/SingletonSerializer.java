@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.AbstractCollection;
 
 /**
- * Custom serializer for top-level data
+ * Custom serializer for top-level data.
  */
 public class SingletonSerializer extends JsonSerializer<AbstractCollection> {
 

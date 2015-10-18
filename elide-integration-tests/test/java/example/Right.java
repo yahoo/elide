@@ -24,9 +24,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-
 /**
- * Right test bean
+ * Right test bean.
  */
 @Include(rootLevel = true, type = "right") // optional here because class has this name
 @Entity

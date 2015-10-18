@@ -29,7 +29,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * Default endpoint/servlet for using Elide and JSONAPI
+ * Default endpoint/servlet for using Elide and JSONAPI.
  */
 @Singleton
 @Produces("application/vnd.api+json")
@@ -48,7 +48,8 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Create handler
+     * Create handler.
+     *
      * @param path request path
      * @param securityContext security context
      * @param jsonapiDocument post data as jsonapi document
@@ -64,7 +65,8 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Read handler
+     * Read handler.
+     *
      * @param path request path
      * @param uriInfo URI info
      * @param securityContext security context
@@ -81,7 +83,8 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Update handler
+     * Update handler.
+     *
      * @param contentType document MIME type
      * @param accept response MIME type
      * @param path request path
@@ -101,7 +104,8 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Delete handler
+     * Delete handler.
+     *
      * @param path request path
      * @param securityContext security context
      * @param jsonApiDocument DELETE document
@@ -121,7 +125,7 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Placeholder for injection frameworks
+     * Placeholder for injection frameworks.
      */
     public interface DefaultOpaqueUserFunction extends Function<SecurityContext, Object> {
         // Empty

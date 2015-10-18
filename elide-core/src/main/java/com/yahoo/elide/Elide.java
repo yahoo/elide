@@ -47,7 +47,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * REST Entry point handler
+ * REST Entry point handler.
  */
 @SuppressWarnings("static-method")
 public class Elide {
@@ -82,7 +82,7 @@ public class Elide {
     }
 
     /**
-     * Handle GET
+     * Handle GET.
      *
      * @param path the path
      * @param queryParams the query params
@@ -125,7 +125,7 @@ public class Elide {
     }
 
     /**
-     * Handle GET
+     * Handle GET.
      *
      * @param path the path
      * @param queryParams the query params
@@ -140,7 +140,7 @@ public class Elide {
     }
 
     /**
-     * Handle POST
+     * Handle POST.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -179,7 +179,7 @@ public class Elide {
     }
 
     /**
-     * Handle POST
+     * Handle POST.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -194,7 +194,7 @@ public class Elide {
     }
 
     /**
-     * Handle PATCH
+     * Handle PATCH.
      *
      * @param contentType the content type
      * @param accept the accept
@@ -242,7 +242,7 @@ public class Elide {
     }
 
     /**
-     * Handle PATCH
+     * Handle PATCH.
      *
      * @param contentType the content type
      * @param accept the accept
@@ -261,7 +261,7 @@ public class Elide {
     }
 
     /**
-     * Handle DELETE
+     * Handle DELETE.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -300,7 +300,7 @@ public class Elide {
     }
 
     /**
-     * Handle DELETE
+     * Handle DELETE.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -315,7 +315,7 @@ public class Elide {
     }
 
     /**
-     * Compile request to AST
+     * Compile request to AST.
      *
      * @param path request
      * @return AST parse tree

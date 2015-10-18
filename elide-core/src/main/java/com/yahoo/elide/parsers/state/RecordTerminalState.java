@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Record Found State
+ * Record Found State.
  */
 @Slf4j
 @ToString

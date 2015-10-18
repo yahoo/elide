@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * AbstractApiResource Test
+ * AbstractApiResource Test.
  */
 @Slf4j
 public class AbstractApiResourceTest {
@@ -81,7 +81,8 @@ public class AbstractApiResourceTest {
     }
 
     /**
-     * Parse provided string into JsonNode
+     * Parse provided string into JsonNode.
+     *
      * @param jsonString provided JSON
      * @return JsonNode representation
      */
@@ -95,7 +96,8 @@ public class AbstractApiResourceTest {
     }
 
     /**
-     * Read resource as a JSON string
+     * Read resource as a JSON string.
+     *
      * @param  resourceName name of the desired resource
      * @return JSON string
      */

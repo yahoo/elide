@@ -6,13 +6,14 @@
 package com.yahoo.elide.audit;
 
 /**
- * Broker to retrieve logger
+ * Broker to retrieve logger.
  */
 public class LoggerSingleton {
     private static Logger logger = new Slf4jLogger();
 
     /**
-     * Set a logger
+     * Set a logger.
+     *
      * @param logger Logger to set
      */
     public static void setLogger(Logger logger) {
@@ -20,7 +21,8 @@ public class LoggerSingleton {
     }
 
     /**
-     * Get logger
+     * Get logger.
+     *
      * @return Current logger or default if not set
      */
     public static Logger getLogger() {

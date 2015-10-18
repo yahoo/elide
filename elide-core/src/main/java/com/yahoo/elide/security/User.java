@@ -32,7 +32,7 @@ public class User {
     }
 
     /**
-     * get UserPermission for provided check, cache result
+     * get UserPermission for provided check, cache result.
      *
      * @param check Check to run
      * @return UserPermission type
@@ -50,7 +50,7 @@ public class User {
     }
 
     /**
-     * run filter check against provided resource and cache result
+     * run filter check against provided resource and cache result.
      *
      * @param check Check to run
      * @param resource provided resource

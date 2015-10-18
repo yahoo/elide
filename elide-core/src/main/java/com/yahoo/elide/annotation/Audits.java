@@ -24,7 +24,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Audits {
 
     /**
-     * the repeatable Audit annotation
+     * the repeatable Audit annotation.
+     *
      * @return the audit [ ]
      */
     Audit [] value();

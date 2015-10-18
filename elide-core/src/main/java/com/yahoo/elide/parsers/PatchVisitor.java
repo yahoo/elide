@@ -15,12 +15,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.function.Supplier;
 
 /**
- * PATCH handler
+ * PATCH handler.
  */
 public class PatchVisitor extends BaseVisitor {
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param requestScope the request scope
      */

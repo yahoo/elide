@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Record Read State
+ * Record Read State.
  */
 public class RecordState extends BaseState {
     private final PersistentResource resource;

@@ -46,7 +46,7 @@ public class InMemoryDB extends DatabaseManager {
     }
 
     /**
-     * InMemoryDB transaction handler
+     * InMemoryDB transaction handler.
      */
     public static class InMemoryTransaction implements DatabaseTransaction {
         private final List<Operation> operations;

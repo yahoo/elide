@@ -20,7 +20,7 @@ import com.yahoo.elide.example.beans.SecondBean;
 import org.testng.annotations.Test;
 
 /**
- * InMemoryDB tests
+ * InMemoryDB tests.
  */
 public class InMemoryDBTest {
 

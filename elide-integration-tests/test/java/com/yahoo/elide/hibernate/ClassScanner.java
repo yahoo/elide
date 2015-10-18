@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Scans a package for classes by looking at files in the classpath
+ * Scans a package for classes by looking at files in the classpath.
  */
 @Slf4j
 public class ClassScanner {

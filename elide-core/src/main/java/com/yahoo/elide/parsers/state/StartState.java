@@ -17,7 +17,7 @@ import com.yahoo.elide.parsers.ormParser.RootCollectionSubCollectionContext;
 import java.util.Optional;
 
 /**
- * Initial State
+ * Initial State.
  */
 public class StartState extends BaseState {
     @Override

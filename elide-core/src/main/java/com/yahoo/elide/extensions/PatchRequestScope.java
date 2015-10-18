@@ -13,12 +13,12 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
 /**
- * Special request scope for Patch Extension
+ * Special request scope for Patch Extension.
  */
 public class PatchRequestScope extends RequestScope {
 
     /**
-     * Outer RequestScope constructor for use by Patch Extension
+     * Outer RequestScope constructor for use by Patch Extension.
      */
     public PatchRequestScope(
             DatabaseTransaction transaction,
@@ -29,7 +29,8 @@ public class PatchRequestScope extends RequestScope {
     }
 
     /**
-     * Inner RequestScope copy constructor for use by Patch Extension actions
+     * Inner RequestScope copy constructor for use by Patch Extension actions.
+     *
      * @param jsonApiDocument document
      * @param scope outer request scope
      */

@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DuplicateMappingException extends RuntimeException {
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param message the exception message
      */

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Patch {
 
     /**
-     * Patch operation
+     * Patch operation.
      */
     public enum Operation {
         /**
@@ -86,7 +86,8 @@ public class Patch {
     }
 
     /**
-     * Creates a new patch entity body POJO
+     * Creates a new patch entity body POJO.
+     *
      * @param operation the operation
      * @param path the path
      * @param value the value

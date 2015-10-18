@@ -8,13 +8,13 @@ package com.yahoo.elide.jsonapi.models;
 import java.util.Map;
 
 /**
- * Map storing key-value and useful accessor functions
+ * Map storing key-value and useful accessor functions.
  */
 public abstract class KeyValMap {
     private final Map<String, Object> map;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param map Map to query
      */
@@ -23,7 +23,7 @@ public abstract class KeyValMap {
     }
 
     /**
-     * Get an object from map
+     * Get an object from map.
      *
      * @param key Key index
      * @return Object mapped to key. null if does not exist
@@ -33,7 +33,7 @@ public abstract class KeyValMap {
     }
 
     /**
-     * Get a typed object from map
+     * Get a typed object from map.
      *
      * @param key Key index
      * @param type the type

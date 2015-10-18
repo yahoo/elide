@@ -6,12 +6,13 @@
 package com.yahoo.elide.core;
 
 /**
- * Database interface library
+ * Database interface library.
  */
 public abstract class DatabaseManager {
 
     /**
      * Load entity dictionary with JPA annotated beans.
+     *
      * @param dictionary the dictionary
      */
     public abstract void populateEntityDictionary(EntityDictionary dictionary);

@@ -17,7 +17,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 /**
- * Tests audit functions inside RecordDao
+ * Tests audit functions inside RecordDao.
  */
 public class PermissionAnnotationTest {
     private PersistentResource<FunWithPermissions> funRecord;
@@ -78,7 +78,7 @@ public class PermissionAnnotationTest {
     }
 
     /**
-     * Verifies ANY where the first fails but the last succeeds
+     * Verifies ANY where the first fails but the last succeeds.
      */
     @Test()
     public void testField5PermissionOk() {

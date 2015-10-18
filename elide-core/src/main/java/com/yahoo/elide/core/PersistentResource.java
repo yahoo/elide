@@ -54,7 +54,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * Resource wrapper around Entity bean
+ * Resource wrapper around Entity bean.
+ *
  * @param <T> type of resource
  */
 @ToString
@@ -74,7 +75,7 @@ public class PersistentResource<T> {
      */
     protected final EntityDictionary dictionary;
 
-    /** Sort strings first by length then contents */
+    /* Sort strings first by length then contents */
     private Comparator<String> comparator = new Comparator<String>() {
         @Override
         public int compare(String string1, String string2) {
@@ -136,7 +137,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param parent the parent
      * @param obj the obj
      * @param requestScope the request scope
@@ -146,7 +148,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param obj the obj
      * @param requestScope the request scope
      */
@@ -156,6 +159,7 @@ public class PersistentResource<T> {
 
     /**
      * Construct a new resource from the ID provided.
+     *
      * @param obj the obj
      * @param parent the parent
      * @param id the id
@@ -177,7 +181,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Constructor for testing
+     * Constructor for testing.
+     *
      * @param obj the obj
      * @param parent the parent
      * @param requestScope the request scope
@@ -187,7 +192,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Check whether an id matches for this persistent resource
+     * Check whether an id matches for this persistent resource.
+     *
      * @param checkId the check id
      * @return True if matches false otherwise
      */
@@ -202,7 +208,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Load an single entity from the DB
+     * Load an single entity from the DB.
+     *
      * @param loadClass resource type
      * @param id the id
      * @param requestScope the request scope
@@ -240,7 +247,7 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Load a collection from the DB
+     * Load a collection from the DB.
      * @param loadClass the load class
      * @param requestScope the request scope
      * @return a filtered collection of resources loaded from the DB.
@@ -271,7 +278,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Update attribute in existing resource
+     * Update attribute in existing resource.
+     *
      * @param fieldName the field name
      * @param newVal the new val
      * @return true if object updated, false otherwise
@@ -386,7 +394,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Update a 2-one relationship
+     * Update a 2-one relationship.
+     *
      * @param fieldName the field name
      * @param resourceIdentifiers the resource identifiers
      * @return true if updated. false otherwise
@@ -426,7 +435,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Clear all elements from a relation
+     * Clear all elements from a relation.
+     *
      * @param relationName Name of relation to clear
      * @return True if object updated, false otherwise
      */
@@ -469,7 +479,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Remove a relationship
+     * Remove a relationship.
+     *
      * @param fieldName the field name
      * @param removeResource the remove resource
      */
@@ -496,7 +507,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Add relation link from a given parent resource to a child resource
+     * Add relation link from a given parent resource to a child resource.
+     *
      * @param fieldName which relation link
      * @param newRelation the new relation
      */
@@ -519,7 +531,8 @@ public class PersistentResource<T> {
 
 
     /**
-     * Delete an existing entity
+     * Delete an existing entity.
+     *
      * @param parentFieldName If owned by a parent, relationship to update
      * @throws ForbiddenAccessException the forbidden access exception
      */
@@ -534,7 +547,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Get resource ID
+     * Get resource ID.
+     *
      * @return ID id
      */
     public String getId() {
@@ -542,8 +556,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Gets uUID.
-     * @return the uUID
+     * Gets UUID.
+     * @return the UUID
      */
     public Optional<String> getUUID() {
         return uuid;
@@ -551,7 +565,8 @@ public class PersistentResource<T> {
 
 
     /**
-     * Load a single entity relation from the PersistentResource
+     * Load a single entity relation from the PersistentResource.
+     *
      * @param relation the relation
      * @param id the id
      * @return PersistentResource relation
@@ -568,7 +583,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Get collection of resources from relation field
+     * Get collection of resources from relation field.
+     *
      * @param relationName field
      * @return collection relation
      */
@@ -604,7 +620,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * If relationship collection type is denied, do not read lazy collection
+     * If relationship collection type is denied, do not read lazy collection.
+     *
      * @return true DENY check type
      */
     private static boolean isDenyFilter(RequestScope requestScope, Class<?> recordClass) {
@@ -620,7 +637,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Get a relationship type
+     * Get a relationship type.
+     *
      * @param relation Name of relationship
      * @return Relationship type. RelationshipType.NONE if not found.
      */
@@ -639,7 +657,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Wrapped Entity bean
+     * Wrapped Entity bean.
+     *
      * @return bean object
      */
     public T getObject() {
@@ -655,7 +674,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Entity type
+     * Entity type.
+     *
      * @return type resource class
      */
     @JsonIgnore
@@ -720,7 +740,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Convert a persistent resource to a resource
+     * Convert a persistent resource to a resource.
+     *
      * @return a resource
      */
     public Resource toResource() {
@@ -734,7 +755,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Get relationship mappings
+     * Get relationship mappings.
+     *
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationships() {
@@ -767,7 +789,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Get attributes mapping from entity
+     * Get attributes mapping from entity.
+     *
      * @return Mapping of attributes to objects
      */
     protected Map<String, Object> getAttributes() {
@@ -881,7 +904,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Coerce provided value into expected class type
+     * Coerce provided value into expected class type.
+     *
      * @param value provided value
      * @param fieldClass expected class type
      * @return coerced value
@@ -1115,7 +1139,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Filter a set of PersistentResources
+     * Filter a set of PersistentResources.
+     *
      * @param <A> the type parameter
      * @param permission the permission
      * @param resources the resources
@@ -1140,7 +1165,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Filter a set of fields
+     * Filter a set of fields.
+     *
      * @param <A> the type parameter
      * @param permission the permission
      * @param resource the resource
@@ -1163,7 +1189,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Check provided access permission
+     * Check provided access permission.
+     *
      * @param annotationClass one of Create, Read, Update or Delete permission annotations
      * @param annotation the instance of the annotation
      * @param resource given resource
@@ -1222,7 +1249,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Check provided access permission
+     * Check provided access permission.
+     *
      * @param annotationClass one of Create, Read, Update or Delete permission annotations
      * @param resource given resource
      * @see com.yahoo.elide.annotation.CreatePermission
@@ -1316,7 +1344,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Audit an action on an entity
+     * Audit an action on an entity.
+     *
      * @param action the action
      */
     protected void audit(Audit.Action action) {
@@ -1337,7 +1366,7 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Helper function for access to OpaqueUser in checks
+     * Helper function for access to OpaqueUser in checks.
      * @return opaque user
      */
     public Object getOpaqueUser() {

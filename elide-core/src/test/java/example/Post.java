@@ -15,7 +15,6 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-// Flurry ORM Class Attributes
 @CreatePermission(any = { Role.ALL.class })
 @ReadPermission(any = { Role.ALL.class })
 @UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
