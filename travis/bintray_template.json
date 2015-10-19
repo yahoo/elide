@@ -1,0 +1,36 @@
+{
+  "package": {
+    "name": "elide",
+    "repo": "maven",
+    "subject": "yahoo"
+  },
+  "version": {
+    "name": "${TRAVIS_TAG}",
+    "desc": "This is a version",
+    "released": "2015-01-04",
+    "vcs_tag": "${TRAVIS_TAG}"
+  },
+  "files":
+  [
+    {
+      "includePattern": "pom.xml",
+      "uploadPattern": "elide-parent-pom/${TRAVIS_TAG}/elide-parent-pom-${TRAVIS_TAG}.pom"
+    },
+    {
+      "includePattern": "elide-core\/pom.xml",
+      "uploadPattern": "elide-core/${TRAVIS_TAG}/elide-core-${TRAVIS_TAG}.pom"
+    },
+    {
+      "includePattern": "elide-core\/target\/(elide-core-${TRAVIS_TAG}\.jar)",
+      "uploadPattern": "elide-core/${TRAVIS_TAG}/$1"},
+    {
+      "includePattern": "elide-dbmanager\/(elide-dbmanager-[^\/]*)/pom.xml",
+      "uploadPattern": "$1/${TRAVIS_TAG}/$1.pom"
+    },
+    {
+      "includePattern": "elide-dbmanager\/(elide-dbmanager-[^\/]*)\/target\/(elide-dbmanager.*\.jar)",
+      "uploadPattern": "$1/${TRAVIS_TAG}/$2"
+    }
+  ],
+  "publish": true
+}
