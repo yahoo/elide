@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <name>Elide Parent Pom</name>
     <description>Parent pom for Elide project</description>
+    <url>https://github.com/yahoo/elide</url>
 
     <modules>
         <module>elide-dbmanager</module>
@@ -34,6 +35,13 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
     <distributionManagement>
         <repository>
             <id>bintray-elide-repo</id>
@@ -43,6 +51,7 @@
 
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -219,6 +228,30 @@
                             <version>1.9.4</version>
                         </dependency>
                     </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
