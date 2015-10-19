@@ -196,7 +196,7 @@ public class HibernateStore implements DataStore {
             List<Check<T>> checks = filterScope.getChecks();
             RequestScope requestScope = filterScope.getRequestScope();
             for (Check check : checks) {
-                         Criterion criterion;
+                Criterion criterion;
                 if (check instanceof CriteriaCheck) {
                     criterion = ((CriteriaCheck) check).getCriterion(requestScope);
                 } else {
@@ -223,7 +223,7 @@ public class HibernateStore implements DataStore {
 
                     // Otherwise no criteria filtering possible
                     return null;
-                } else  if (compositeCriterion == null) {
+                } else if (compositeCriterion == null) {
                     compositeCriterion = criterion;
                 } else if (filterScope.isAny()) {
                     compositeCriterion = Restrictions.or(compositeCriterion, criterion);

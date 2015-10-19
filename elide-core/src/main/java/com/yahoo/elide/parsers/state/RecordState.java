@@ -15,7 +15,6 @@ import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionToOneContext;
-import com.yahoo.elide.security.User;
 
 import com.google.common.base.Preconditions;
 
@@ -86,7 +85,6 @@ public class RecordState extends BaseState {
     public void handle(StateContext state, SubCollectionRelationshipContext ctx) {
         String id = ctx.entity().id().getText();
         String subCollection = ctx.entity().term().getText();
-        User user = state.getRequestScope().getUser();
 
         PersistentResource childRecord;
         try {

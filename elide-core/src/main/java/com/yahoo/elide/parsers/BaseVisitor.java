@@ -24,8 +24,6 @@ import com.yahoo.elide.parsers.state.StartState;
 import com.yahoo.elide.parsers.state.StateContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
@@ -33,7 +31,6 @@ import java.util.function.Supplier;
 /**
  * Base request handler.
  */
-@Slf4j
 public abstract class BaseVisitor extends ormBaseVisitor<Supplier<Pair<Integer, JsonNode>>> {
 
     protected final StateContext state;

@@ -8,7 +8,6 @@ package com.yahoo.elide.jsonapi.models;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import java.util.Map;
  * JSON API Document.
  */
 @ToString
-@Slf4j
 public class JsonApiDocument {
     private Data<Resource> data;
     private Meta meta;

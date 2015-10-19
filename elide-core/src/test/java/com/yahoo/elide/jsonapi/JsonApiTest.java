@@ -218,7 +218,6 @@ public class JsonApiTest {
 
         JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
 
-        @SuppressWarnings("unchecked")
         Data<Resource> dataObj = jsonApiDocument.getData();
         Resource data = dataObj.get().iterator().next();
         Map<String, Object> attributes = data.getAttributes();

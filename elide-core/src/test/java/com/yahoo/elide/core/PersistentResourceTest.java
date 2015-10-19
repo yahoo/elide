@@ -5,8 +5,16 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static com.yahoo.elide.security.UserCheck.ALLOW;
+import static com.yahoo.elide.security.UserCheck.DENY;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.audit.LogMessage;
@@ -20,7 +28,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.security.Role;
 import com.yahoo.elide.security.User;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;
 import example.Left;
@@ -31,7 +43,6 @@ import example.NoReadEntity;
 import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
-import com.yahoo.elide.security.Role;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -43,16 +54,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+/**
+ * Test PersistentResource.
+ */
 public class PersistentResourceTest extends PersistentResource {
     private final RequestScope goodUserScope;
     private final RequestScope badUserScope;
@@ -904,7 +908,7 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
         Assert.assertTrue(leftResource.clearRelation("noDeleteOne2One"));
-        Assert.assertEquals(leftResource.getObject().noDeleteOne2One, null);
+        Assert.assertNull(leftResource.getObject().noDeleteOne2One);
 
     }
 

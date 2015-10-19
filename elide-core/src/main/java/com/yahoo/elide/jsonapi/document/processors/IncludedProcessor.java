@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A Document Processor that add requested relations to the include block of teh JsonApiDocument.
+ * A Document Processor that add requested relations to the include block of the JsonApiDocument.
  */
 public class IncludedProcessor implements DocumentProcessor {
 
@@ -84,7 +84,7 @@ public class IncludedProcessor implements DocumentProcessor {
             //If more relations left in the path, process a level deeper
             if (!relationPath.isEmpty()) {
                 //Use a copy of the relationPath to preserve the path for remaining branches of the relationship tree
-                addResourcesForPath(jsonApiDocument, resource, new ArrayList(relationPath));
+                addResourcesForPath(jsonApiDocument, resource, new ArrayList<>(relationPath));
             }
         });
     }

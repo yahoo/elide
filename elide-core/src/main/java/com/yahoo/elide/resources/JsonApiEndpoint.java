@@ -34,7 +34,6 @@ import javax.ws.rs.core.UriInfo;
 @Singleton
 @Produces("application/vnd.api+json")
 @Consumes("application/vnd.api+json")
-@SuppressWarnings("static-method")
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
