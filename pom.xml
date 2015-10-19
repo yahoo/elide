@@ -51,6 +51,7 @@
 
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 

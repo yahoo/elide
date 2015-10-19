@@ -32,6 +32,12 @@
         </developer>
     </developers>
 
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+        <url>https://github.com/yahoo/elide.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
     </properties>
