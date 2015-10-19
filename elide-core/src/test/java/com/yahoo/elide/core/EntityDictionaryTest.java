@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -20,10 +19,9 @@ import java.lang.annotation.Annotation;
 public class EntityDictionaryTest extends EntityDictionary {
     @BeforeTest
     public void init() {
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        this.bindEntity(FunWithPermissions.class, databaseManager);
-        this.bindEntity(Parent.class, databaseManager);
-        this.bindEntity(Child.class, databaseManager);
+        this.bindEntity(FunWithPermissions.class);
+        this.bindEntity(Parent.class);
+        this.bindEntity(Child.class);
     }
 
     @Test

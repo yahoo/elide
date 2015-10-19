@@ -261,7 +261,7 @@ public class HibernateManager extends DatabaseManager {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
         for (ClassMetadata meta : sessionFactory.getAllClassMetadata().values()) {
-            dictionary.bindEntity(meta.getMappedClass(EntityMode.POJO), this);
+            dictionary.bindEntity(meta.getMappedClass(EntityMode.POJO));
         }
     }
 

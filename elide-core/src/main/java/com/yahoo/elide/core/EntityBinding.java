@@ -49,7 +49,6 @@ class EntityBinding {
     public final ConcurrentHashMap<String, String> relationshipToInverse;
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
     public final ConcurrentHashMap<String, String> aliasesToFields;
-    public final DatabaseManager databaseManager;
     @Getter private AccessibleObject idField;
     @Getter private AccessibleObject initializer;
 
@@ -67,12 +66,9 @@ class EntityBinding {
         relationshipToInverse = null;
         fieldsToValues = null;
         aliasesToFields = null;
-        databaseManager = null;
     }
 
-    public EntityBinding(Class<?> cls, String type, DatabaseManager databaseManager) {
-        this.databaseManager = databaseManager;
-
+    public EntityBinding(Class<?> cls, String type) {
         // Map id's, attributes, and relationships
         @SuppressWarnings("unchecked")
         Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
@@ -141,7 +137,7 @@ class EntityBinding {
             } else {
                 name = ((Method) fieldOrMethod).getName();
             }
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + name);
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + name);
         }
         idField = fieldOrMethod;
     }

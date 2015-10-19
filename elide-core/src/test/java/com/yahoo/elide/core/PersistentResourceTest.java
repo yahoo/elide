@@ -44,7 +44,6 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
 import example.Role;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -59,7 +58,6 @@ import java.util.stream.Collectors;
 public class PersistentResourceTest extends PersistentResource {
     private final RequestScope goodUserScope;
     private final RequestScope badUserScope;
-    private DatabaseManager databaseManager;
 
     public PersistentResourceTest() {
         super(new Child(), null, new RequestScope(null, null, null, new EntityDictionary(), null));
@@ -69,16 +67,15 @@ public class PersistentResourceTest extends PersistentResource {
 
     @BeforeTest
     public void init() {
-        databaseManager = Mockito.mock(DatabaseManager.class);
-        dictionary.bindEntity(Child.class, databaseManager);
-        dictionary.bindEntity(Parent.class, databaseManager);
-        dictionary.bindEntity(FunWithPermissions.class, databaseManager);
-        dictionary.bindEntity(Left.class, databaseManager);
-        dictionary.bindEntity(Right.class, databaseManager);
-        dictionary.bindEntity(NoReadEntity.class, databaseManager);
-        dictionary.bindEntity(NoDeleteEntity.class, databaseManager);
-        dictionary.bindEntity(NoUpdateEntity.class, databaseManager);
-        dictionary.bindEntity(NoCreateEntity.class, databaseManager);
+        dictionary.bindEntity(Child.class);
+        dictionary.bindEntity(Parent.class);
+        dictionary.bindEntity(FunWithPermissions.class);
+        dictionary.bindEntity(Left.class);
+        dictionary.bindEntity(Right.class);
+        dictionary.bindEntity(NoReadEntity.class);
+        dictionary.bindEntity(NoDeleteEntity.class);
+        dictionary.bindEntity(NoUpdateEntity.class);
+        dictionary.bindEntity(NoCreateEntity.class);
 
         Logger mockLogger = mock(Logger.class);
         LoggerSingleton.setLogger(mockLogger);

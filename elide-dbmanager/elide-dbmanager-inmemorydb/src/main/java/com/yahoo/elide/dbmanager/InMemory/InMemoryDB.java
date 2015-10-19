@@ -265,7 +265,7 @@ public class InMemoryDB extends DatabaseManager {
                 .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
         for (Class<?> cls: reflections.getTypesAnnotatedWith(Entity.class)) {
-            dictionary.bindEntity(cls, this);
+            dictionary.bindEntity(cls);
         }
         this.dictionary = dictionary;
     }

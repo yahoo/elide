@@ -76,16 +76,6 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the Database Manager for an entity
-     *
-     * @param entityClass entity name
-     * @return List of relationship names for entity
-     */
-    public DatabaseManager getDatabaseManager(Class<?> entityClass) {
-        return entity(entityClass).databaseManager;
-    }
-
-    /**
      * Get the list of attribute names for an entity
      *
      * @param entityClass entity name
@@ -319,7 +309,7 @@ public class EntityDictionary {
      * @param cls Entity bean class
      * @param databaseManager associated Database Manager
      */
-    public void bindEntity(Class<?> cls, DatabaseManager databaseManager) {
+    public void bindEntity(Class<?> cls) {
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
@@ -340,15 +330,10 @@ public class EntityDictionary {
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + duplicate.getName());
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        DatabaseManager duplicateDatabaseManager = entity(cls).databaseManager;
-        if (duplicateDatabaseManager != null && duplicateDatabaseManager.equals(databaseManager)) {
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + duplicateDatabaseManager);
-        }
-
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type, databaseManager));
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
