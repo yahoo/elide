@@ -25,6 +25,13 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>

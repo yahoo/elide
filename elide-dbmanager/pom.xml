@@ -25,6 +25,13 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
     </properties>

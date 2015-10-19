@@ -35,6 +35,13 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Yahoo Inc.</name>
+            <url>https://github.com/yahoo</url>
+        </developer>
+    </developers>
+
     <distributionManagement>
         <repository>
             <id>bintray-elide-repo</id>
