@@ -17,7 +17,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * Model representing JSON API Linkage
+ * Model representing JSON API Linkage.
  */
 public class ResourceIdentifier {
     private final String type;
@@ -33,7 +33,7 @@ public class ResourceIdentifier {
     }
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public PersistentResource toPersistentResource(RequestScope requestScope)

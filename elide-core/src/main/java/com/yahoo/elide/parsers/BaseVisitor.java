@@ -31,7 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.function.Supplier;
 
 /**
- * Base request handler
+ * Base request handler.
  */
 @Slf4j
 public abstract class BaseVisitor extends ormBaseVisitor<Supplier<Pair<Integer, JsonNode>>> {

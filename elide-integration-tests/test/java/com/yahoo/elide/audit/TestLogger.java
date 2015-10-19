@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Example Logger test
+ * Example Logger test.
  */
 public class TestLogger extends Logger {
     @Override

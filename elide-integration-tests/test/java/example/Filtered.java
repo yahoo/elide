@@ -28,9 +28,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
- * Filtered permission check
+ * Filtered permission check.
  */
-//Flurry ORM Class Attributes
 @CreatePermission(any = { FilterCheck.class })
 @ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class })
 @UpdatePermission(any = { FilterCheck.class })
@@ -55,7 +54,7 @@ public class Filtered extends BaseId {
     }
 
     /**
-     * Filter for ID == 1
+     * Filter for ID == 1.
      */
     static public class FilterCheck implements CriteriaCheck<Filtered> {
         @Override
@@ -71,7 +70,7 @@ public class Filtered extends BaseId {
     }
 
     /**
-     * Filter for ID == 3
+     * Filter for ID == 3.
      */
     static public class FilterCheck3 implements CriteriaCheck<Filtered> {
         @Override

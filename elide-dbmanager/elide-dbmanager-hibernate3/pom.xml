@@ -54,7 +54,7 @@
             <artifactId>jackson-datatype-hibernate3</artifactId>
             <version>2.5.0</version>
         </dependency>
-        <!-- Test deps -->
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

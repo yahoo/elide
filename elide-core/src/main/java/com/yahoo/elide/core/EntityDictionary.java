@@ -83,7 +83,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the binding class for a given entity name
+     * Returns the binding class for a given entity name.
      *
      * @param entityName entity name
      * @return binding class
@@ -93,7 +93,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the entity name for a given binding class
+     * Returns the entity name for a given binding class.
      *
      * @param entityClass the entity class
      * @return binding class
@@ -103,7 +103,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the list of attribute names for an entity
+     * Get the list of attribute names for an entity.
      *
      * @param entityClass entity name
      * @return List of attribute names for entity
@@ -113,7 +113,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the list of attribute names for an entity
+     * Get the list of attribute names for an entity.
      *
      * @param entity entity instance
      * @return List of attribute names for entity
@@ -123,7 +123,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the list of relationship names for an entity
+     * Get the list of relationship names for an entity.
      *
      * @param entityClass entity name
      * @return List of relationship names for entity
@@ -133,9 +133,9 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the list of relationship names for an entity
+     * Get the list of relationship names for an entity.
      *
-     * @param entity entity instnace
+     * @param entity entity instance
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Object entity) {
@@ -143,7 +143,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the type of relationship from a relation
+     * Get the type of relationship from a relation.
      *
      * @param cls Entity class
      * @param relation Name of relationship field
@@ -196,7 +196,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the type of relationship from a relation
+     * Get the type of relationship from a relation.
      *
      * @param entity Entity instance
      * @param relation Name of relationship field
@@ -207,7 +207,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get a type for a field on an entity
+     * Get a type for a field on an entity.
      *
      * @param entityClass Entity class
      * @param identifier Field to lookup type
@@ -230,7 +230,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get a type for a field on an entity
+     * Get a type for a field on an entity.
      *
      * @param entity Entity instance
      * @param identifier Field to lookup type
@@ -274,7 +274,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Retrieve the parameterized type for the given field
+     * Retrieve the parameterized type for the given field.
      *
      * @param entity Entity instance
      * @param identifier Field to lookup
@@ -285,7 +285,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the true field/method name from an alias
+     * Get the true field/method name from an alias.
      *
      * @param entityClass Entity name
      * @param alias Alias to convert
@@ -300,7 +300,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Get the true field/method name from an alias
+     * Get the true field/method name from an alias.
      *
      * @param entity Entity instance
      * @param alias Alias to convert
@@ -311,7 +311,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Initialize an entity
+     * Initialize an entity.
      *
      * @param <T>   the type parameter
      * @param entity Entity to initialize
@@ -327,7 +327,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Bind a particular initializer to a class
+     * Bind a particular initializer to a class.
      *
      * @param <T>   the type parameter
      * @param initializer Initializer to use for class
@@ -338,7 +338,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Add given Entity bean to dictionary
+     * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
      */
@@ -363,7 +363,7 @@ public class EntityDictionary {
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + duplicate.getName());
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
         bindEntityToJsonApi.put(cls, type);
         if (include.rootLevel()) {
@@ -390,7 +390,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Return annotation from class, parents or package
+     * Return annotation from class, parents or package.
      *
      * @param record the record
      * @param annotationClass the annotation class
@@ -402,7 +402,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Return annotation from class, parents or package
+     * Return annotation from class, parents or package.
      *
      * @param recordClass the record class
      * @param annotationClass the annotation class
@@ -466,7 +466,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Return first matching annotation from class, parents or package
+     * Return first matching annotation from class, parents or package.
      *
      * @param entityClass Entity class type
      * @param annotationClassList List of sought annotations
@@ -532,7 +532,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Find an arbitrary method
+     * Find an arbitrary method.
      *
      * @param entityClass the entity class
      * @param name the name
@@ -602,7 +602,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Bind an attribute or relationship
+     * Bind an attribute or relationship.
      *
      * @param cls Class type to bind fields
      * @param fieldOrMethod Field or method to bind
@@ -666,7 +666,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Bind an id field to an entity
+     * Bind an id field to an entity.
      *
      * @param cls Class type to bind fields
      * @param type JSON API type identifier
@@ -681,12 +681,12 @@ public class EntityDictionary {
             } else {
                 name = ((Method) fieldOrMethod).getName();
             }
-            throw new DuplicateMappingException(type.toString() + " " + cls.getName() + ":" + name);
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + name);
         }
     }
 
     /**
-     * Convert a deque to a list
+     * Convert a deque to a list.
      *
      * @param deque Deque to convert
      * @return Deque as a list

@@ -1,8 +1,8 @@
-*/target/
-/target/
-/.settings
+target/
+test-output/
+.settings
 .classpath
 .checkstyle
-/test-output
 .idea/
+.sonar/
 *.iml

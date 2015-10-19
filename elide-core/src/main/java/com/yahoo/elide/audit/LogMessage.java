@@ -26,12 +26,12 @@ import javax.el.ValueExpression;
  */
 public class LogMessage {
     //Supposedly this is thread safe.
-    private static ExpressionFactory xpressionFactory;
+    private static ExpressionFactory expressionFactory;
     private static final String CACHE_SIZE = "5000";
     static {
         Properties properties = new Properties();
         properties.put("javax.el.cacheSize", CACHE_SIZE);
-        xpressionFactory = new ExpressionFactoryImpl();
+        expressionFactory = new ExpressionFactoryImpl();
     }
 
     private final String message;
@@ -81,10 +81,10 @@ public class LogMessage {
 
             ValueExpression expression;
             if (values.size() == 1) {
-                expression = xpressionFactory.createValueExpression(values.get(0).getObject(), Object.class);
+                expression = expressionFactory.createValueExpression(values.get(0).getObject(), Object.class);
             } else {
                 List<Object> objects = values.stream().map(PersistentResource::getObject).collect(Collectors.toList());
-                expression = xpressionFactory.createValueExpression(objects, List.class);
+                expression = expressionFactory.createValueExpression(objects, List.class);
             }
             ctx.setVariable(name, expression);
         }
@@ -95,7 +95,7 @@ public class LogMessage {
 
             ValueExpression expression = null;
             try {
-                expression = xpressionFactory.createValueExpression(ctx, expressionText, Object.class);
+                expression = expressionFactory.createValueExpression(ctx, expressionText, Object.class);
             } catch (ELException e) {
                 throw new InvalidSyntaxException(e);
             }

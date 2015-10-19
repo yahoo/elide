@@ -11,7 +11,7 @@ Elide is designed to quickly build and deploy **production quality** web service
   3. **Atomic Requests** All requests to the library (including the patch extension) can be embedded in transactions to ensure operational integrity.
   4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data. 
   5. **Audit** Logging can be customized for any operation on any entity.
-  6. **Extension** Elide allows the ability to add custom business logic and to changeout the default JPA provider (Hibernate)
+  6. **Extension** Elide allows the ability to add custom business logic and replaceable JPA provider (from the default Hibernate provider).
   7. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.
 
 ##Getting Started

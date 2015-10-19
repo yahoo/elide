@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * Single object treated as List
+ * Single object treated as List.
  *
  * @param <T>  the type parameter
  */

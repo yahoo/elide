@@ -13,11 +13,12 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Scans a package for classes by looking at files in the classpath
+ * Scans a package for classes by looking at files in the classpath.
  */
 @Slf4j
 public class ClassScanner {
@@ -29,13 +30,13 @@ public class ClassScanner {
      * @return The classes
      */
     static public List<Class<?>> getAnnotatedClasses(Package pckg, Class<? extends Annotation> annotation) {
-        final AnnotationAcceptingListener asl = new AnnotationAcceptingListener(annotation);
+        final AnnotationAcceptingListener annotationAcceptingListener = new AnnotationAcceptingListener(annotation);
         try (final PackageNamesScanner scanner = new PackageNamesScanner(new String[] { pckg.getName() }, true)) {
             while (scanner.hasNext()) {
                 final String next = scanner.next();
-                if (asl.accept(next)) {
+                if (annotationAcceptingListener.accept(next)) {
                     try (final InputStream in = scanner.open()) {
-                        asl.process(next, in);
+                        annotationAcceptingListener.process(next, in);
                     } catch (IOException e) {
                         throw new RuntimeException("AnnotationAcceptingListener failed to process scanned resource: "
                                 + next);
@@ -44,10 +45,7 @@ public class ClassScanner {
             }
         }
 
-        ArrayList<Class<?>> classes = new ArrayList<>();
-        for (Class<?> cls : asl.getAnnotatedClasses()) {
-            classes.add(cls);
-        }
-        return classes;
+        return annotationAcceptingListener.getAnnotatedClasses()
+                .stream().collect(Collectors.toCollection(ArrayList::new));
     }
 }

@@ -98,7 +98,7 @@
       <metadata name="net.sf.eclipsecs.core.comment" value="Simple Javadoc style check."/>
       <property name="severity" value="warning"/>
       <property name="checkEmptyJavadoc" value="true"/>
-      <property name="checkFirstSentence" value="false"/>
+      <property name="checkFirstSentence" value="true"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="JavadocType">

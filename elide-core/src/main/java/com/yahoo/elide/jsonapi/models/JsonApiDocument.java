@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JSON API Document
+ * JSON API Document.
  */
 @ToString
 @Slf4j

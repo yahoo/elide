@@ -40,16 +40,14 @@ public abstract class AHibernateTest extends AbstractApiResourceTest {
     public static HibernateManager hibernateManager = null;
 
     /* Empty dictionary is OK provided the mapper is used for reading only */
-    protected JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
+    protected final JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
 
 
     protected static void databaseManagerInit() {
                 // method to force class initialization
         Configuration c = new Configuration();
         try {
-            for (Class<?> cls : ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)) {
-                c.addAnnotatedClass(cls);
-            }
+            ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class).forEach(c::addAnnotatedClass);
         } catch (MappingException e) {
             throw new RuntimeException(e);
         }

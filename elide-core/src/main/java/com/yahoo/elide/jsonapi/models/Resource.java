@@ -108,7 +108,8 @@ public class Resource {
     }
 
     /**
-     * Convert Resource to resource identifier
+     * Convert Resource to resource identifier.
+     *
      * @return linkage
      */
     public ResourceIdentifier toResourceIdentifier() {

@@ -8,7 +8,8 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
- * Access to the requested resource is
+ * Access to the requested resource is.
+ *
  * {@link com.yahoo.elide.core.HttpStatus#SC_FORBIDDEN forbidden}
  */
 public class ForbiddenAccessException extends HttpStatusException {

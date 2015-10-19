@@ -22,7 +22,7 @@ import javax.persistence.Id;
 
 
 /**
- * Embedded test bean
+ * Embedded test bean.
  */
 @Include(rootLevel = true)
 @Entity

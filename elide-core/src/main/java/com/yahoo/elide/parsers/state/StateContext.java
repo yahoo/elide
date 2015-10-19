@@ -25,7 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.function.Supplier;
 
 /**
- * Container for current state
+ * Container for current state.
  */
 @Slf4j
 public class StateContext {

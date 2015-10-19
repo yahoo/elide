@@ -44,6 +44,8 @@ public class FilterScope<T> {
     }
 
     /**
+     * Get User Permissions.
+     *
      * @return composite UserPermission for this FilterScope
      */
     public UserPermission getUserPermission() {

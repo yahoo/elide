@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 public @interface Audit {
 
     /**
-     * Action performed type
+     * Action performed type.
      */
     public enum Action {
         /**
@@ -44,7 +44,8 @@ public @interface Audit {
     }
 
     /**
-     * Action performed
+     * Action performed.
+     *
      * @return the action
      */
     Action action();
@@ -57,7 +58,8 @@ public @interface Audit {
     String path() default "";
 
     /**
-     * Operation code
+     * Operation code.
+     *
      * @return the int
      */
     int operation();

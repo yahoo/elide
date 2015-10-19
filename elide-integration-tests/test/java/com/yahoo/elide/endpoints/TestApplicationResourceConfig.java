@@ -16,7 +16,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
- * Jersey ApplicationResourceConfig for test framework
+ * Jersey ApplicationResourceConfig for test framework.
  */
 public class TestApplicationResourceConfig extends ResourceConfig {
     public TestApplicationResourceConfig() {
@@ -38,7 +38,7 @@ public class TestApplicationResourceConfig extends ResourceConfig {
 
                 // User function
                 bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
-                    private final Integer user = Integer.valueOf(1);
+                    private final Integer user = 1;
 
                     @Override
                     public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {

@@ -15,7 +15,10 @@ import org.hibernate.criterion.Criterion;
  */
 public interface CriteriaCheck<T> extends Check<T> {
     /**
-     * @see org.hibernate.criterion.Restrictions
+     * Get criterion for request scope.
+     *
+     * @param requestScope the requestSCope
+     * @return the criterion
      */
     Criterion getCriterion(RequestScope requestScope);
 }

@@ -22,7 +22,7 @@ import java.util.Optional;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Request scope object for relaying request-related data to various subsystems
+ * Request scope object for relaying request-related data to various subsystems.
  */
 public class RequestScope {
     private final @Getter JsonApiDocument jsonApiDocument;
@@ -81,7 +81,7 @@ public class RequestScope {
     }
 
     /**
-     * Outer RequestScope constructor for use by Patch Extension
+     * Outer RequestScope constructor for use by Patch Extension.
      */
     protected RequestScope(
             DatabaseTransaction transaction,
@@ -93,7 +93,7 @@ public class RequestScope {
     }
 
     /**
-     * Special copy constructor for use by PatchRequestScope
+     * Special copy constructor for use by PatchRequestScope.
      */
     protected RequestScope(JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;
@@ -108,7 +108,8 @@ public class RequestScope {
     }
 
     /**
-     * run any deferred permission checks due to create
+     * run any deferred permission checks due to create.
+     *
      * @see com.yahoo.elide.annotation.CreatePermission
      */
     public void runDeferredPermissionChecks() {
@@ -126,7 +127,8 @@ public class RequestScope {
     }
 
     /**
-     * Check provided access permission
+     * Check provided access permission.
+     *
      * @param annotationClass one of Create, Read, Update or Delete permission annotations
      * @param checks Check classes
      * @param isAny true if ANY, else ALL

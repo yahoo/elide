@@ -18,7 +18,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Assign custom Read permission checks
+ * Assign custom Read permission checks.
  */
 @Target({METHOD, FIELD, TYPE, PACKAGE})
 @Retention(RUNTIME)
@@ -26,13 +26,15 @@ import java.lang.annotation.Target;
 public @interface ReadPermission {
 
     /**
-     * All of these checks must pass
+     * All of these checks must pass.
+     *
      * @return the class [ ]
      */
     Class<? extends Check>[] any() default {};
 
     /**
-     * Any one of these checks must pass
+     * Any one of these checks must pass.
+     *
      * @return the class [ ]
      */
     Class<? extends Check>[] all() default {};

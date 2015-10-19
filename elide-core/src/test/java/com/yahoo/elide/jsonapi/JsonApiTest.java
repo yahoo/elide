@@ -29,27 +29,25 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 /**
- * JSON API testing
+ * JSON API testing.
  */
 public class JsonApiTest {
     private RequestScope userScope;
-    private EntityDictionary dictionary;
     private JsonApiMapper mapper;
     @BeforeTest
     void init() {
-        dictionary = new EntityDictionary();
+        EntityDictionary dictionary = new EntityDictionary();
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
-        userScope = new RequestScope(new JsonApiDocument(), null, new User(Integer.valueOf(0)), dictionary, mapper);
+        userScope = new RequestScope(new JsonApiDocument(), null, new User(0), dictionary, mapper);
     }
 
     @Test
@@ -136,7 +134,7 @@ public class JsonApiTest {
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(
-            new Data<>(Arrays.asList(new PersistentResource<>(parent, userScope).toResource())));
+            new Data<>(Collections.singletonList(new PersistentResource<>(parent, userScope).toResource())));
 
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}]}";
 
@@ -158,7 +156,7 @@ public class JsonApiTest {
         PersistentResource<Parent> pRec = new PersistentResource<>(parent, userScope);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        jsonApiDocument.setData(new Data<>(Arrays.asList(pRec.toResource())));
+        jsonApiDocument.setData(new Data<>(Collections.singletonList(pRec.toResource())));
         jsonApiDocument.addIncluded(new PersistentResource<>(pRec, child, userScope).toResource());
         // duplicate will be ignored
         jsonApiDocument.addIncluded(new PersistentResource<>(pRec, child, userScope).toResource());

@@ -16,7 +16,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Assign custom Create permission checks
+ * Assign custom Create permission checks.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)
@@ -24,13 +24,15 @@ import java.lang.annotation.Target;
 public @interface CreatePermission {
 
     /**
-     * All of these checks must pass
+     * All of these checks must pass.
+     *
      * @return the class [ ]
      */
     Class<? extends Check>[] any() default {};
 
     /**
-     * Any one of these checks must pass
+     * Any one of these checks must pass.
+     *
      * @return the class [ ]
      */
     Class<? extends Check>[] all() default {};

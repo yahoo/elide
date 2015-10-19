@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Custom deserializer for top-level data
+ * Custom deserializer for top-level data.
  */
 public class DataDeserializer extends JsonDeserializer<Data<Resource>> {
 

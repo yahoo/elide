@@ -87,7 +87,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Process json patch
+     * Process json patch.
      *
      * @param db the db
      * @param uri the uri
@@ -107,7 +107,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param db Database manager
      * @param actions List of patch actions
@@ -123,7 +123,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Process json patch actions
+     * Process json patch actions.
      *
      * @return Pair (return code, JsonNode)
      */
@@ -149,7 +149,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Handle a patch action
+     * Handle a patch action.
      *
      * @param requestScope outer request scope
      * @return List of responders
@@ -183,7 +183,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Add a document via patch extension
+     * Add a document via patch extension.
      */
     private Supplier<Pair<Integer, JsonNode>> handleAddOp(
             String path, JsonNode patchValue, PatchRequestScope requestScope, PatchAction action) {
@@ -215,7 +215,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Replace data via patch extension
+     * Replace data via patch extension.
      */
     private Supplier<Pair<Integer, JsonNode>> handleReplaceOp(
             String path, JsonNode patchVal, PatchRequestScope requestScope) {
@@ -230,7 +230,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Remove data via patch extension
+     * Remove data via patch extension.
      */
     private Supplier<Pair<Integer, JsonNode>> handleRemoveOp(String path,
                                                              JsonNode patchValue,
@@ -273,7 +273,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Turn an exception into a proper error response from patch extension
+     * Turn an exception into a proper error response from patch extension.
      */
     private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e) {
         if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
@@ -297,7 +297,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Clear all relationships for all resources in document
+     * Clear all relationships for all resources in document.
      */
     private static void clearAllExceptRelationships(JsonApiDocument doc) {
         Data<Resource> data = doc.getData();
@@ -308,7 +308,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Clear all properties except the relationships
+     * Clear all properties except the relationships.
      */
     private static void clearAllExceptRelationships(Resource resource) {
         resource.setAttributes(null);
@@ -317,7 +317,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Convert a message and status to an error node
+     * Convert a message and status to an error node.
      *
      */
     private static JsonNode toErrorNode(String detail, Integer status) {
@@ -330,7 +330,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Merge response documents to create final response
+     * Merge response documents to create final response.
      */
     private static JsonNode mergeResponse(List<Supplier<Pair<Integer, JsonNode>>> results) {
         ArrayNode list = JsonNodeFactory.instance.arrayNode();
@@ -345,7 +345,7 @@ public class JsonApiPatch {
     }
 
     /**
-     * Determine whether or not ext = jsonpatch is present in header
+     * Determine whether or not ext = jsonpatch is present in header.
      *
      * @param header the header
      * @return True if Json patch, false otherwise

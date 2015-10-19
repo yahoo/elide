@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Collection State
+ * Collection State.
  */
 @ToString
 @Slf4j

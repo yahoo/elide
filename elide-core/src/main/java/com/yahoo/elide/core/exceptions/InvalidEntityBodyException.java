@@ -7,7 +7,8 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
- * Requested object ID is
+ * Requested object ID is.
+ *
  * {@link com.yahoo.elide.core.HttpStatus#SC_BAD_REQUEST invalid}
  */
 public class InvalidEntityBodyException extends HttpStatusException {

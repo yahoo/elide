@@ -42,7 +42,7 @@ public interface UserCheck<T> extends Check<T> {
     }
 
     /**
-     * User level check to bypass need for per-record check
+     * User level check to bypass need for per-record check.
      *
      * @param user per user check
      * @return FILTER to support ok check

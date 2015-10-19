@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Container for different representations of top-level data in JSON API
+ * Container for different representations of top-level data in JSON API.
  *
  * @param <T> type
  */
@@ -33,7 +33,8 @@ public class Data<T> {
     private final RelationshipType relationshipType;
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param value singleton resource
      */
     public Data(T value) {
@@ -42,7 +43,8 @@ public class Data<T> {
     }
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param values List of resources
      */
     public Data(Collection<T> values) {
@@ -51,6 +53,8 @@ public class Data<T> {
     }
 
     /**
+     * Sort method using provided sort function.
+     *
      * @param sortFunction comparator to sort data with
      */
     public void sort(Comparator<T> sortFunction) {
@@ -69,7 +73,8 @@ public class Data<T> {
     }
 
     /**
-     * Determine whether or not the contained type is toOne
+     * Determine whether or not the contained type is toOne.
+     *
      * @return True if toOne, false if toMany
      */
     public boolean isToOne() {

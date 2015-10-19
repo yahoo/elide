@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * State to handle relationships
+ * State to handle relationships.
  */
 @Slf4j
 public class RelationshipTerminalState extends BaseState {

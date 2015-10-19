@@ -6,7 +6,7 @@
 package com.yahoo.elide.core;
 
 /**
- * HTTP status codes
+ * HTTP status codes.
  */
 public class HttpStatus {
 

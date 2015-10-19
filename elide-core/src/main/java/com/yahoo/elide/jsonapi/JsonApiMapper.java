@@ -17,13 +17,13 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Serializer/Deserializer for JSON API
+ * Serializer/Deserializer for JSON API.
  */
 public class JsonApiMapper {
     private ObjectMapper mapper;
 
     /**
-     * Instantiates a new Json api mapper.
+     * Instantiates a new JSON API mapper.
      *
      * @param dictionary the dictionary
      */
@@ -33,7 +33,7 @@ public class JsonApiMapper {
     }
 
     /**
-     * Write out JSON API Document as a string
+     * Write out JSON API Document as a string.
      *
      * @param jsonApiDocument the json api document
      * @return Document as string

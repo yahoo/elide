@@ -28,9 +28,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- * Permission checks test bean
+ * Permission checks test bean.
  */
-// Flurry ORM Class Attributes
 @CreatePermission(any = { Role.ALL.class })
 @ReadPermission(all = { Role.ALL.class })
 @UpdatePermission(any = { Role.NONE.class, Role.ALL.class })
@@ -86,7 +85,6 @@ public class FunWithPermissions {
         this.id = id;
     }
 
-    // Flurry ORM Method Attributes
     @ReadPermission(any = { Role.NONE.class})
     public String getField1() {
         return field1;

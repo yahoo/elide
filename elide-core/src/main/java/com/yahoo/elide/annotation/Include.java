@@ -14,7 +14,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Allows access to given entity
+ * Allows access to given entity.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)

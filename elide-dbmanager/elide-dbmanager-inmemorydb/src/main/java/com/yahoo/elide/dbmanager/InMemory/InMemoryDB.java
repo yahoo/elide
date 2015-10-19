@@ -46,11 +46,11 @@ public class InMemoryDB extends DatabaseManager {
     }
 
     /**
-     * InMemoryDB transaction handler
+     * InMemoryDB transaction handler.
      */
     public static class InMemoryTransaction implements DatabaseTransaction {
-        private List<Operation> operations;
-        private EntityDictionary dictionary;
+        private final List<Operation> operations;
+        private final EntityDictionary dictionary;
 
         public InMemoryTransaction(EntityDictionary dictionary) {
             this.dictionary = dictionary;
@@ -121,9 +121,7 @@ public class InMemoryDB extends DatabaseManager {
                 T instance = entityClass.newInstance();
                 setId(instance, id);
                 return instance;
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
             return null;
