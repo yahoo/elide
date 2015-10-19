@@ -1,5 +1,6 @@
 package com.yahoo.elide.dbmanagers.hibernate5;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -17,6 +18,7 @@ public class PersistenceManager extends DatabaseManager {
     private final EntityManagerFactory entityManagerFactory;
 
     public PersistenceManager(EntityManagerFactory entityManagerFactory) {
+        Preconditions.checkNotNull(entityManagerFactory);
         this.entityManagerFactory = entityManagerFactory;
     }
 
