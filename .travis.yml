@@ -7,7 +7,7 @@
   before_install:
     - sudo apt-get install libaio1
   script: mvn verify
-  before_deploy: "cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/ > travis/release.json"
+  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/ > travis/release.json
   deploy:
     provider: bintray
     file: "travis/release.json"
