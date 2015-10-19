@@ -2,6 +2,29 @@
 
 #Elide
 
+## Using Elide
+
+To integrate Elide into your project, simply include elide-core into your project's pom.xml:
+
+```xml
+<!-- Elide -->
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-core</artifactId>
+    <version>1.0.0.1</version>
+</dependency>
+```
+
+Additionally, if you do not plan to write your own database manager, select the appropriate DB manager for your setup and include it as well. For instance, if you plan on using the "in-memory database" (not recommended for production use) then you would add the following:
+
+```xml
+<dependency>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-dbmanager-inmemorydb</artifactId>
+    <version>1.0.0.1</version>
+</dependency>
+```
+
 ##What Is Elide?
 
 Elide is a Java library that let's you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a JPA annotated data model. 
