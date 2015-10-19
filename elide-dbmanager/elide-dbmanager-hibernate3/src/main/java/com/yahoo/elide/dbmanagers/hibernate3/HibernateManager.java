@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.dbmanagers.hibernate3;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -17,6 +15,9 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
+import lombok.NonNull;
 import org.hibernate.EntityMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -36,8 +37,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-
-import lombok.NonNull;
 
 /**
  * Hibernate interface library.

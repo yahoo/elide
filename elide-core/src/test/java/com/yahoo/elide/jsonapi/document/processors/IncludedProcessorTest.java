@@ -13,7 +13,6 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
 
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Parent;
 import org.testng.Assert;
@@ -43,6 +42,7 @@ public class IncludedProcessorTest {
     private PersistentResource<Child> childRecord2;
     private PersistentResource<Child> childRecord3;
     private PersistentResource<Child> childRecord4;
+
 
     @BeforeMethod
     public void setUp() throws Exception {

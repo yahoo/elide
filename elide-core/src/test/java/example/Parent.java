@@ -26,6 +26,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
 
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
@@ -42,6 +43,7 @@ public class Parent extends BaseId {
     private long id;
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
+    @PrePersist
     public void doInit() {
         init = true;
     }

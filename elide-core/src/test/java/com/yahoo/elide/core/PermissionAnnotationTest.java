@@ -23,8 +23,8 @@ public class PermissionAnnotationTest {
     private PersistentResource<FunWithPermissions> funRecord;
     private final User goodUser;
     private PersistentResource<FunWithPermissions> badRecord;
-    private final User badUser;
-    private final EntityDictionary dictionary;
+    private User badUser;
+    private EntityDictionary dictionary;
 
     public PermissionAnnotationTest() {
         goodUser = new User(3);

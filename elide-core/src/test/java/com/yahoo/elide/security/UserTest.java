@@ -17,7 +17,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 public class UserTest {
-    private final EntityDictionary dictionary = new EntityDictionary();
+    private EntityDictionary dictionary = new EntityDictionary();
 
     public class CounterCheck implements Check {
         public int callCounter = 0;

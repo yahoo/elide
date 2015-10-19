@@ -6,3 +6,4 @@ test-output/
 .idea/
 .sonar/
 *.iml
+bin
