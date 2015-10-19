@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <name>Elide REST ORM framework core</name>
     <description>Elide REST ORM framework core</description>
+    <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>

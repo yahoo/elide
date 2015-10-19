@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <name>Elide Database Manager Parent Pom</name>
     <description>Parent pom for database managers</description>
+    <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>

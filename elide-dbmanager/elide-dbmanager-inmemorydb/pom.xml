@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <name>Elide In-Memory Database Manager</name>
     <description>Elide database manager for a demonstrative in-memory db support</description>
+    <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-dbmanager-parent-pom</artifactId>

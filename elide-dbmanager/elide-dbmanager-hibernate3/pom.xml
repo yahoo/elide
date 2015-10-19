@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <name>Elide Hibernate3 Database Manager</name>
     <description>Elide database manager for Hibernate3 support</description>
+    <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-dbmanager-parent-pom</artifactId>

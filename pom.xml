@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <name>Elide Parent Pom</name>
     <description>Parent pom for Elide project</description>
+    <url>https://github.com/yahoo/elide</url>
 
     <modules>
         <module>elide-dbmanager</module>
