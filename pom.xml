@@ -18,6 +18,7 @@
         <module>elide-dbmanager</module>
         <module>elide-core</module>
         <module>elide-integration-tests</module>
+        <module>elide-example</module>
     </modules>
 
     <issueManagement>
