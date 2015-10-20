@@ -5,13 +5,12 @@
   cache:
     directories:
       - "~/.m2"
-  branches:
-    only:
-      - master
+
+  # build steps
   before_install:
     - sudo apt-get install libaio1
   script: mvn verify
-  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/ > travis/release.json
+  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/g > travis/release.json
   deploy:
     on:
       tags: true
@@ -21,5 +20,5 @@
       secure: TvyOrjLtOBgaBt986RSuRhyUYwBEPS3d3ug3Y7Bd0rRIw32jL8yH3GcSz+pf2wSb80CIm5xTRuyin3NEYAKGo2X4y2PQx6FkXrxxa4T/RR8u5OyAm4JqRjfB3ZCkSU5agvUCRPXSoch6r1FYZ/NL/tian3kw/ajKDutXurpyXAPCfXmRiQIqGUwzty+znIlmLvpwtsJMcOpSy/gqNJNqHSoLHSXTNETTFoeLvbogLhfl0em88LuApWC4sZIQTMtHPssugNYagxFpjUg16PCLdX5f7HolG8TLf7JjO/W7tXOwXHOl8sePVEtzZogJGWKtA8C9ob02uyPerGyK+lPyFPwf/2OhX4eVcq7W9WCTqnU3gR/ihkRe6ssqhOceWu3uSm9iZ5k9LUFgDId3VaDI3Tq1DI6TFTrco1F2qGSChB0avCITDGKhfeI/oiHD4a4T9AVKx7uyw7pTlkpRFvZMzKXHlq5FWml6pz4vY9+d26O23KTfKqbUhaLvHqN8O77ExjsPDpozIJtyZP8dA0od2xemZSy03GXhLpd9hu5P8t8q+c01EGNgTK93PCMcxjQddIGuYC8H87ElfinJ9XlnmTP9QVRky40NZiTSWZf1bXHZoFMV4t7zzJqw6LqENp8jeYzewM0hnW9TDTXmZMcXgg1bouyRnMBO9aN9SJvO69g=
     key:
       secure: ea9647jI7moJIjttA9YSCwKI0oXt53NiRBeN4+mngNT34u/8oCMpks2zXoc6RecYHfnX44gz9QO9F6c2PMn0alkGzZHZk46VhNx/kV0jXksIBs1WQK8gAR0hqkOpRgETUi+E9Gv/oZuA+ZSIr42YZ9X+DD2VwFE5S357GQhXeyZ+Z+OT2cr9bRxqMBjC7mbNUZuoCJMORuqQqbFIOkEIc0cHK8WZ9s8ZkMHlekr6cYdpL3WqPCjxs6j6fn7YfvGLgkspiM5WpNunQLbM9sLQt8O4lMNNPcPYJzMM4/cuXQxZ+JOARs5M7YJTjFkcHEufGYiqc6Ha5zpnqCo+d2QAc9atX+lMqr4TO7KuQjL+k6qqtzYRDg1QDZvz+lapEb5n6DPDNG92D8OQZMq4rYiRYqm9wOLQZ6TB3by9ClZJQZZT1+gsayCR8IHnp7LzaLFzQVOXCpht2pMx1Rk9z6lIvy3D2sCl7B8jIik9YoLr/86U4mg6kp/B9+3jtIC3S4Bxznm5v2ZMbzQlngm6z/26w86pJ8UYhK/nAh1TDYPZEWmyU0iScXAI8ocrhdPXKsd/grdEXnb+Ka7ct9EldINztDkoOpMcXvf2ZA1WdCevMtmelkaiW9nNenN94537JP+24RYNNdhZUg80X1B+Q8Mo1+QKcmhIhw+6BMqY4WVrghQ=
-    dry-run: true
+
   after_deploy: echo "Pending"
