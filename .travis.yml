@@ -5,9 +5,6 @@
   cache:
     directories:
       - "~/.m2"
-  branches:
-    only:
-      - master
   before_install:
     - sudo apt-get install libaio1
   script: mvn verify
