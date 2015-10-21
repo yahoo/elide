@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <name>Elide Parent Pom</name>
     <description>Parent pom for Elide project</description>
-    <url>https://github.com/yahoo/elide</url>
+    <url>https://github.com/clayreimann/elide</url>
 
     <modules>
         <module>elide-dbmanager</module>
@@ -22,7 +22,7 @@
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/yahoo/elide/issues</url>
+        <url>https://github.com/clayreimann/elide/issues</url>
     </issueManagement>
 
     <inceptionYear>2015</inceptionYear>
@@ -50,8 +50,8 @@
     </distributionManagement>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
-        <url>https://github.com/yahoo/elide.git</url>
+        <developerConnection>scm:git:ssh://git@github.com/clayreimann/elide.git</developerConnection>
+        <url>https://github.com/clayreimann/elide.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -228,6 +228,9 @@
                             <version>1.9.4</version>
                         </dependency>
                     </dependencies>
+                    <configuration>
+                        <tagNameFormat>@{project.version}</tagNameFormat>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

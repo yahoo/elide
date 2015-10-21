@@ -5,21 +5,18 @@
   cache:
     directories:
       - "~/.m2"
-  branches:
-    only:
-      - master
   before_install:
     - sudo apt-get install libaio1
   script: mvn verify
-  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/ > travis/release.json
+  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/g > travis/release.json
   deploy:
     on:
       tags: true
     provider: bintray
+    edge: true
     file: travis/release.json
     user:
-      secure: TvyOrjLtOBgaBt986RSuRhyUYwBEPS3d3ug3Y7Bd0rRIw32jL8yH3GcSz+pf2wSb80CIm5xTRuyin3NEYAKGo2X4y2PQx6FkXrxxa4T/RR8u5OyAm4JqRjfB3ZCkSU5agvUCRPXSoch6r1FYZ/NL/tian3kw/ajKDutXurpyXAPCfXmRiQIqGUwzty+znIlmLvpwtsJMcOpSy/gqNJNqHSoLHSXTNETTFoeLvbogLhfl0em88LuApWC4sZIQTMtHPssugNYagxFpjUg16PCLdX5f7HolG8TLf7JjO/W7tXOwXHOl8sePVEtzZogJGWKtA8C9ob02uyPerGyK+lPyFPwf/2OhX4eVcq7W9WCTqnU3gR/ihkRe6ssqhOceWu3uSm9iZ5k9LUFgDId3VaDI3Tq1DI6TFTrco1F2qGSChB0avCITDGKhfeI/oiHD4a4T9AVKx7uyw7pTlkpRFvZMzKXHlq5FWml6pz4vY9+d26O23KTfKqbUhaLvHqN8O77ExjsPDpozIJtyZP8dA0od2xemZSy03GXhLpd9hu5P8t8q+c01EGNgTK93PCMcxjQddIGuYC8H87ElfinJ9XlnmTP9QVRky40NZiTSWZf1bXHZoFMV4t7zzJqw6LqENp8jeYzewM0hnW9TDTXmZMcXgg1bouyRnMBO9aN9SJvO69g=
+      secure: NiC/w+eddXAfsnheXanAt1CaDyZD2E0+4hap6PDVOZyeKPBOFFHMLJ3BFDCZMNsTgO62O9KIMavVNCr1bjsiPcHVa7CULoOemYMcraDPWKA/6v0s2ps4t5gSJxRCCUZ0hVrPkozzOsYg/5IcbRZfmVSpfGeFWa4SPedh5TK93aYuaLuAuVjeqmX5SjKOcyjtu8azMwBedUUdRo2WtV1x9VRSUuHLrTVSVtxnPpVu8e2yANrmiyBIgw1fnFdYYk2WKao18/ucIuD0GLImm2SuZQBckTKXmEQateBRWcopHoYchQC8iDsceKzFOrHWC80XmrEE1qa9fFFH/cV7ZqZzd1hY+qRObwaXfxJTjApdFjcOYpHR1/HntlGpwa7vXAcHg6pt6ToU1FLXfcOh9EFZBvztTh+n4bWraZrYnVuOXVsZQdiN4wQ2rUkAvWSRz3Y5NHdP33Qzp9JkgWIDn8OjdxDbhUrh4x6Q3L8Kzh8KXsvVsowlpBgkm0Be5ymj85Mdsm+LoUIv3Mr946YbHXqJA70F9NcfvMlpgPPVEa+2gqJbguRnZYzQV3P4vxqj3wh8VsAIKvI5kN6RzSdEe9agHu7dsm8l1JrmZITBqqd07HvG7xCARBdJtAXs1+x9sGFDt80JwPSYXmXNQVqPuSLlBqCKsGZ/ysiRW3bg6DVaDks=
     key:
-      secure: ea9647jI7moJIjttA9YSCwKI0oXt53NiRBeN4+mngNT34u/8oCMpks2zXoc6RecYHfnX44gz9QO9F6c2PMn0alkGzZHZk46VhNx/kV0jXksIBs1WQK8gAR0hqkOpRgETUi+E9Gv/oZuA+ZSIr42YZ9X+DD2VwFE5S357GQhXeyZ+Z+OT2cr9bRxqMBjC7mbNUZuoCJMORuqQqbFIOkEIc0cHK8WZ9s8ZkMHlekr6cYdpL3WqPCjxs6j6fn7YfvGLgkspiM5WpNunQLbM9sLQt8O4lMNNPcPYJzMM4/cuXQxZ+JOARs5M7YJTjFkcHEufGYiqc6Ha5zpnqCo+d2QAc9atX+lMqr4TO7KuQjL+k6qqtzYRDg1QDZvz+lapEb5n6DPDNG92D8OQZMq4rYiRYqm9wOLQZ6TB3by9ClZJQZZT1+gsayCR8IHnp7LzaLFzQVOXCpht2pMx1Rk9z6lIvy3D2sCl7B8jIik9YoLr/86U4mg6kp/B9+3jtIC3S4Bxznm5v2ZMbzQlngm6z/26w86pJ8UYhK/nAh1TDYPZEWmyU0iScXAI8ocrhdPXKsd/grdEXnb+Ka7ct9EldINztDkoOpMcXvf2ZA1WdCevMtmelkaiW9nNenN94537JP+24RYNNdhZUg80X1B+Q8Mo1+QKcmhIhw+6BMqY4WVrghQ=
-    dry-run: true
+      secure: lGuYPsyJ4tYt5ma8OImPEGIgNeQWL7PwBpnyPHTIp+O3CBAPgz1oxHInc3r/ku6bmBSPKaCiOpazO6JHp7ux0kmbOnLkW7VRSnIzbFz2zyVioSl73+X1VuPDqVFI0ftq2AkkWwrQEJ6PgewcMZiGROIhU169+TdLArU9zNdK8csg6/XsHTwCBJfWMceQfRzQjC1SEcMHS9yGNxO8NuVBzb5bdptHexa8R9LA+XAqij9UwZQ6EudyGO6X7rAcKfXEVPBcwiAF6rxJXN/0vaE399Jno/B79IuSt5eDfbKZTMPTNAlLCsfl45Q/Q0eAHKVKYdWAJ9An0fKVuCh4HaVgGsCSTN9dXLY8k3y1HK+HnZ8vPLvahJw3AQY+SmIuKnfxS1DcbeshIjxS7+1o6tsRl3cY2iiu8KlzYO26ITr5AW/iR2SxxEUp4wSiWS1n8hMstPL+2AqT7CPVfP9Q5WZN0edogt8NJnHNlmtFONzIDdnYq/W0xsLiTyeEx5qLETTA5Dqja3iI2X9yCxnVTAFeZ2XWP4SnIHR9i/tMSynuTNQm9JvjrtrsDleF3HKfLhV73HSi2AjZD1YLgCCs9Td/EEgXocnfZwUuS49CS1HeDbuv7Ya21s9SgTrb0RSPv6D5uE51O0quh0rmzPk1cD18yn2um4zmDo+BaB0QN98y6X4=
   after_deploy: echo "Pending"
