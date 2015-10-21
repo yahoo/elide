@@ -2,10 +2,7 @@ package com.yahoo.elide.example.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
-import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -22,7 +19,7 @@ import java.io.InputStream;
 /**
  * Elide persistence MySQL integration test
  */
-public class ElidePersistenceMySqlIT {
+public class ElidePersistenceMySql {
     private Server server;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -33,7 +30,7 @@ public class ElidePersistenceMySqlIT {
      * @return JSON string
      */
     public String getJson(String resourceName) {
-        try (InputStream is = ElidePersistenceMySqlIT.class.getResourceAsStream(resourceName)) {
+        try (InputStream is = ElidePersistenceMySql.class.getResourceAsStream(resourceName)) {
             return String.valueOf(mapper.readTree(is));
         } catch (IOException e) {
             Assert.fail("Unable to open test data " + resourceName, e);
