@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide)
 
-#Elide
+![Elide Logo](https://raw.githubusercontent.com/yahoo/elide/master/elide.svg)
 
 ## Using Elide
 
