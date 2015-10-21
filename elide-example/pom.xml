@@ -47,7 +47,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>1.0.0.1-SNAPSHOT</version>
+                <version>1.0.0.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
