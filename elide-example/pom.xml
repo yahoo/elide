@@ -6,10 +6,10 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>elide-dbmanager-parent-pom</artifactId>
+    <artifactId>elide-example-parent-pom</artifactId>
     <packaging>pom</packaging>
-    <name>Elide Database Manager Parent Pom</name>
-    <description>Parent pom for database managers</description>
+    <name>Elide Example Parent Pom</name>
+    <description>Parent pom for various examples of Elide use</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
@@ -47,14 +47,21 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>1.0.0.3-SNAPSHOT</version>
+                <version>1.0.0.1-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <modules>
-        <module>elide-dbmanager-hibernate5</module>
-        <module>elide-dbmanager-hibernate3</module>
-        <module>elide-dbmanager-inmemorydb</module>
+        <module>elide-persistence-mysql-example</module>
+        <module>elide-hibernate3-mysql-example</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

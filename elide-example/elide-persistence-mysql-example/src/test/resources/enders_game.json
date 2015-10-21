@@ -1,0 +1,11 @@
+{
+  "data": {
+    "id": "-",
+    "type": "book",
+    "attributes": {
+      "title": "Ender's Game",
+      "genre": "Science Fiction",
+      "language": "English"
+    }
+  }
+}
