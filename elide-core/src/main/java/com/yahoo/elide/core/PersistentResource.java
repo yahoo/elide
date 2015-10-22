@@ -1319,7 +1319,7 @@ public class PersistentResource<T> {
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
                                                      String fieldName) {
-        if (sparseFields.size() != 0) {
+        if (!sparseFields.isEmpty()) {
             if (!sparseFields.containsKey(type)) {
                 return false;
             }

@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -127,16 +128,17 @@ public class RequestScope {
     private static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
-        for (String key : queryParams.keySet()) {
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
             if (key.startsWith("fields[") && key.endsWith("]")) {
                 String type = key.substring(7, key.length() - 1);
 
                 LinkedHashSet<String> filters = new LinkedHashSet<>();
-                for (String filterParams : queryParams.get(key)) {
+                for (String filterParams : kv.getValue()) {
                     Collections.addAll(filters, filterParams.split(","));
                 }
 
-                if (filters.size() > 0) {
+                if (!filters.isEmpty()) {
                     result.put(type, filters);
                 }
             }
