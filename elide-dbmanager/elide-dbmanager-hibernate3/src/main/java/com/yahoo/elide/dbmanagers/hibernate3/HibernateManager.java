@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.dbmanagers.hibernate3;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -16,6 +14,9 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 
 import org.hibernate.EntityMode;
 import org.hibernate.Hibernate;
@@ -30,14 +31,14 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
 
+import lombok.NonNull;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-
-import lombok.NonNull;
 
 /**
  * Hibernate interface library.
@@ -272,10 +273,14 @@ public class HibernateManager extends DatabaseManager {
      * @return session
      */
     public Session getSession() {
-        Session session = sessionFactory.getCurrentSession();
-        Preconditions.checkNotNull(session);
-        Preconditions.checkArgument(session.isConnected());
-        return session;
+        try {
+            Session session = sessionFactory.getCurrentSession();
+            Preconditions.checkNotNull(session);
+            Preconditions.checkArgument(session.isConnected());
+            return session;
+        } catch (HibernateException e) {
+            throw new TransactionException(e);
+        }
     }
 
     /**
