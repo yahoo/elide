@@ -13,7 +13,6 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
-import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.extensions.JsonApiPatch;
@@ -30,6 +29,7 @@ import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -119,8 +119,6 @@ public class Elide {
             return buildErrorResponse(new TransactionException(e));
         } catch (ParseCancellationException e) {
             return buildErrorResponse(new InvalidURLException(e));
-        } catch (RuntimeException e) {
-            return buildErrorResponse(new InternalServerErrorException(e));
         }
     }
 
