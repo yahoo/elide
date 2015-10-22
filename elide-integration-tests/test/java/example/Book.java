@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package example;
 
 import com.yahoo.elide.annotation.Include;
@@ -12,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Model for books
+ * Model for books.
  */
 @Entity
 @Table(name = "book")

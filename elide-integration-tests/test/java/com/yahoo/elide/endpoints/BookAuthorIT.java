@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.endpoints;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -5,13 +10,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.hibernate.AHibernateTest;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 
 /**
- * Elide persistence MySQL integration test
+ * Elide persistence MySQL integration test.
  */
 public class BookAuthorIT extends AHibernateTest {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -175,7 +179,6 @@ public class BookAuthorIT extends AHibernateTest {
         }
     }
 
-
     @Test
     public void testTwoSparseFieldFilters() throws Exception {
         JsonNode responseBody = mapper.readTree(
@@ -212,5 +215,4 @@ public class BookAuthorIT extends AHibernateTest {
             Assert.assertFalse(include.has("relationships"));
         }
     }
-
 }
