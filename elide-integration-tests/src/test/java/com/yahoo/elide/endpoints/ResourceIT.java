@@ -54,7 +54,7 @@ public class ResourceIT extends AHibernateTest {
 
     @BeforeTest
     public static void setup() {
-        DataStoreTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = dataStore.beginTransaction();
         Parent parent = new Parent(); // id 1
         Child child = new Child(); // id 1
         parent.setChildren(Sets.newHashSet(child));

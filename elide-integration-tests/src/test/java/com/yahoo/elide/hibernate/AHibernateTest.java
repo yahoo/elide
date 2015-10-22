@@ -5,13 +5,18 @@
  */
 package com.yahoo.elide.hibernate;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
+
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastore.multiplex.MultiplexManager;
 import com.yahoo.elide.datastores.hibernate3.HibernateStore;
 import com.yahoo.elide.endpoints.AbstractApiResourceTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
+import example.Parent;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -26,18 +31,13 @@ import java.io.IOException;
 
 import javax.persistence.Entity;
 
-import example.Parent;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
 /**
  * This class provides some helper functions for tests to start and end transactions. Any test that fails to terminate
  * its own transaction will have it rolled back at the end.
  */
 public abstract class AHibernateTest extends AbstractApiResourceTest {
     protected static volatile SessionFactory sessionFactory;
-    public static HibernateStore hibernateManager = null;
+    public static DataStore dataStore = null;
 
     /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
     protected final JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
@@ -68,15 +68,16 @@ public abstract class AHibernateTest extends AbstractApiResourceTest {
             throw new RuntimeException("" + se.getExceptions());
         }
 
-        hibernateManager = new HibernateStore(sessionFactory);
+        dataStore = new MultiplexManager(new HibernateStore(sessionFactory));
+        dataStore.populateEntityDictionary(new EntityDictionary());
     }
 
     public static DataStore getDatabaseManager() {
-        if (hibernateManager == null) {
+        if (dataStore == null) {
             databaseManagerInit();
         }
 
-        return hibernateManager;
+        return dataStore;
     }
 
     protected AHibernateTest() {

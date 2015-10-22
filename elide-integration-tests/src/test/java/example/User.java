@@ -55,7 +55,7 @@ public class User {
 
     /**
      * Sets the password.  This is intended for Hibernate
-     * @param reversedPassword
+     * @param reversedPassword reversed password
      */
     public void setReversedPassword(String reversedPassword) {
         this.reversedPassword = reversedPassword;
