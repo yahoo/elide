@@ -56,3 +56,5 @@
 8. Get books
 
         $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' http://localhost:4080/book/
+
+You can also load some pre-configured authors and books using `load_elide.sh` in `src/main/scripts/`
