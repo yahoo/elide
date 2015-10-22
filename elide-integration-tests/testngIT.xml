@@ -23,5 +23,10 @@
             <class name="com.yahoo.elide.endpoints.EmbeddedIT" />
         </classes>
     </test> <!-- Test -->
+    <test name="com.yahoo.elide.endpoints.BookAuthorIT">
+        <classes>
+            <class name="com.yahoo.elide.endpoints.BookAuthorIT" />
+        </classes>
+    </test> <!-- Test -->
     <!--// END Integration tests -->
 </suite> <!-- Suite -->

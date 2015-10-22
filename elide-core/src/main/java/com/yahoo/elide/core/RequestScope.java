@@ -16,8 +16,13 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -31,6 +36,7 @@ public class RequestScope {
     private final @Getter EntityDictionary dictionary;
     private final @Getter JsonApiMapper mapper;
     private final @Getter Optional<MultivaluedMap<String, String>> queryParams;
+    private final @Getter Map<String, Set<String>> sparseFields;
     private final @Getter ObjectEntityCache objectEntityCache;
     private final @Getter SecurityMode securityMode;
 
@@ -52,6 +58,12 @@ public class RequestScope {
                 ? Optional.empty() : Optional.ofNullable(queryParams));
         this.objectEntityCache = new ObjectEntityCache();
         this.securityMode = securityMode;
+
+        if (this.queryParams.isPresent()) {
+            sparseFields = parseSparseFields(this.queryParams.get());
+        } else {
+            sparseFields = Collections.emptyMap();
+        }
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -102,9 +114,37 @@ public class RequestScope {
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
         this.queryParams = Optional.empty();
+        this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
         this.deferredChecks = outerRequestScope.deferredChecks;
+    }
+
+    /**
+     * Parses queryParams and produces sparseFields map
+     * @param queryParams The request query parameters
+     * @return Parsed sparseFields map
+     */
+    private static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+        Map<String, Set<String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
+            if (key.startsWith("fields[") && key.endsWith("]")) {
+                String type = key.substring(7, key.length() - 1);
+
+                LinkedHashSet<String> filters = new LinkedHashSet<>();
+                for (String filterParams : kv.getValue()) {
+                    Collections.addAll(filters, filterParams.split(","));
+                }
+
+                if (!filters.isEmpty()) {
+                    result.put(type, filters);
+                }
+            }
+        }
+
+        return result;
     }
 
     /**

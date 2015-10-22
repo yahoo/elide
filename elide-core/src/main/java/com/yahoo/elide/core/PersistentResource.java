@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.security.UserCheck.DENY;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -28,10 +29,6 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
@@ -52,6 +49,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static com.yahoo.elide.security.UserCheck.DENY;
 
 /**
  * Resource wrapper around Entity bean.
@@ -1179,8 +1178,10 @@ public class PersistentResource<T> {
         Set<String> filteredSet = new LinkedHashSet<>();
         for (String field : fields) {
             try {
-                checkFieldPermission(permission, resource, field);
-                filteredSet.add(field);
+                if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
+                    checkFieldPermission(permission, resource, field);
+                    filteredSet.add(field);
+                }
             } catch (ForbiddenAccessException e) {
                 // Do nothing. Filter from set.
             }
@@ -1314,6 +1315,21 @@ public class PersistentResource<T> {
         }
 
         checkPermission(annotationClass, annotation, resource);
+    }
+
+    protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
+                                                     String fieldName) {
+        if (!sparseFields.isEmpty()) {
+            if (!sparseFields.containsKey(type)) {
+                return false;
+            }
+
+            if (!sparseFields.get(type).contains(fieldName)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
