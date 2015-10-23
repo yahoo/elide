@@ -8,19 +8,28 @@ package com.yahoo.elide.core;
 /**
  * Database interface library.
  */
-public abstract class DatabaseManager {
+public interface DatabaseManager {
 
     /**
      * Load entity dictionary with JPA annotated beans.
      *
      * @param dictionary the dictionary
      */
-    public abstract void populateEntityDictionary(EntityDictionary dictionary);
+    public void populateEntityDictionary(EntityDictionary dictionary);
 
     /**
      * Begin transaction.
      *
      * @return the database transaction
      */
-    public abstract DatabaseTransaction beginTransaction();
+    public DatabaseTransaction beginTransaction();
+
+    /**
+     * Begin read-only transaction.  Default to regular transaction.
+     *
+     * @return the database transaction
+     */
+    default public DatabaseTransaction beginReadTransaction() {
+        return beginTransaction();
+    }
 }

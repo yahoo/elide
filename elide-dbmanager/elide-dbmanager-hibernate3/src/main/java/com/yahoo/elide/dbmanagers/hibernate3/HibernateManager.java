@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * Hibernate interface library.
  */
-public class HibernateManager extends DatabaseManager {
+public class HibernateManager implements DatabaseManager {
 
     /**
      * Wraps ScrollableResult as Iterator.

@@ -34,7 +34,7 @@ import javax.persistence.Id;
  * Simple non-persistent in-memory database.
  */
 @Slf4j
-public class InMemoryDB extends DatabaseManager {
+public class InMemoryDB implements DatabaseManager {
     private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> DATABASE =
             new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
