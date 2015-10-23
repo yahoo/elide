@@ -342,7 +342,7 @@ public class Elide {
         return buildResponse(error.getErrorResponse());
     }
 
-    private ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
+    protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
         try {
             JsonNode responseNode = response.getRight();
             Integer responseCode = response.getLeft();
