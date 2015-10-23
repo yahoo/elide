@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Manager for javax.persistence compatible db resource
  */
-public class PersistenceManager extends DatabaseManager {
+public class PersistenceManager implements DatabaseManager {
     private final EntityManagerFactory entityManagerFactory;
 
     public PersistenceManager(EntityManagerFactory entityManagerFactory) {

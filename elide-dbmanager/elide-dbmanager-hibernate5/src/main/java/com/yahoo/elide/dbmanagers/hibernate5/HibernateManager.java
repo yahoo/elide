@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * Hibernate interface library
  */
-public class HibernateManager extends DatabaseManager {
+public class HibernateManager implements DatabaseManager {
 
     /**
      * Wraps ScrollableResult as Iterator
@@ -154,7 +154,7 @@ public class HibernateManager extends DatabaseManager {
         @Override
         public <T> T loadObject(Class<T> loadClass, String id) {
             @SuppressWarnings("unchecked")
-            T record = (T) getSession().load(loadClass, Long.valueOf(id));
+            T record = getSession().load(loadClass, Long.valueOf(id));
             try {
                 Hibernate.initialize(record);
             } catch (ObjectNotFoundException e) {
