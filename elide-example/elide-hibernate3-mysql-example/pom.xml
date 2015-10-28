@@ -13,11 +13,11 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-example-parent-pom</artifactId>
-        <version>1.0.0.2-SNAPSHOT</version>
+        <version>1.0.0.2</version>
     </parent>
 
     <properties>
-        <version.elide>1.0.0.2-SNAPSHOT</version.elide>
+        <version.elide>1.0.0.2</version.elide>
         <version.jetty>9.3.5.v20151012</version.jetty>
         <version.jersey>2.19</version.jersey>
         <version.slf4j>1.7.12</version.slf4j>
