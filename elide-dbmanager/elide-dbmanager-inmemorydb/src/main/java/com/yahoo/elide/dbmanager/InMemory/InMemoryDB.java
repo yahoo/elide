@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,8 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,9 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 /**
  * Simple non-persistent in-memory database.

@@ -133,6 +133,7 @@ public class RequestScope {
 
     /**
      * Parses queryParams and produces sparseFields map.
+     *
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */

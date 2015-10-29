@@ -93,7 +93,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
 
-        try (DatabaseTransaction transaction = db.beginReadTransaction()) {
+        try (DatabaseTransaction transaction = db.beginReadTransaction(queryParams)) {
             final User user = transaction.accessUser(opaqueUser);
             RequestScope requestScope = new RequestScope(
                     new JsonApiDocument(),

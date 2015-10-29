@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "attributes": {
+        "genre": "Science Fiction",
+        "language": "English",
+        "title": "Ender's Game"
+      },
+      "id": "2",
+      "relationships": {
+        "authors": {
+          "data": [
+            {
+              "id": "2",
+              "type": "author"
+            }
+          ]
+        }
+      },
+      "type": "book"
+    }
+  ],
+  "included": [
+    {
+      "attributes": {
+        "name": "Orson Scott Card"
+      },
+      "id": "2",
+      "relationships": {
+        "books": {
+          "data": [
+            {
+              "id": "2",
+              "type": "book"
+            }
+          ]
+        }
+      },
+      "type": "author"
+    }
+  ]
+}
