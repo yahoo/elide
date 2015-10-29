@@ -9,31 +9,28 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
-
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
-
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
 
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
 import javax.el.ValueExpression;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * An audit log message that can be logged to a logger.
  */
 public class LogMessage {
     //Supposedly this is thread safe.
-    private static ExpressionFactory expressionFactory;
+    private static final ExpressionFactory EXPRESSION_FACTORY = new ExpressionFactoryImpl();
     private static final String CACHE_SIZE = "5000";
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
     static {
         Properties properties = new Properties();
         properties.put("javax.el.cacheSize", CACHE_SIZE);
-        expressionFactory = new ExpressionFactoryImpl();
     }
 
     private final String template;
@@ -104,11 +101,11 @@ public class LogMessage {
 
                 ValueExpression expression;
                 if (values.size() == 1) {
-                    expression = expressionFactory.createValueExpression(values.get(0).getObject(), Object.class);
+                    expression = EXPRESSION_FACTORY.createValueExpression(values.get(0).getObject(), Object.class);
                 } else {
                     List<Object> objects = values.stream().map(PersistentResource::getObject)
                             .collect(Collectors.toList());
-                    expression = expressionFactory.createValueExpression(objects, List.class);
+                    expression = EXPRESSION_FACTORY.createValueExpression(objects, List.class);
                 }
                 ctx.setVariable(name, expression);
             }
@@ -120,7 +117,7 @@ public class LogMessage {
 
             ValueExpression expression;
             try {
-                expression = expressionFactory.createValueExpression(ctx, expressionText, Object.class);
+                expression = EXPRESSION_FACTORY.createValueExpression(ctx, expressionText, Object.class);
             } catch (ELException e) {
                 throw new InvalidSyntaxException(e);
             }

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.DatabaseManager;
 import com.yahoo.elide.core.DatabaseTransaction;
@@ -26,10 +28,6 @@ import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.parsers.ormLexer;
 import com.yahoo.elide.parsers.ormParser;
 import com.yahoo.elide.security.User;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -40,11 +38,10 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * REST Entry point handler.
@@ -97,7 +94,7 @@ public class Elide {
             SecurityMode securityMode) {
 
         try (DatabaseTransaction transaction = db.beginReadTransaction()) {
-            User user = transaction.accessUser(opaqueUser);
+            final User user = transaction.accessUser(opaqueUser);
             RequestScope requestScope = new RequestScope(
                     new JsonApiDocument(),
                     transaction,

@@ -34,8 +34,8 @@ public class Patch {
          */
         REPLACE(3, "replace");
 
-        private int id;
-        private String name;
+        private final int id;
+        private final String name;
 
         Operation(int id, String name) {
             this.id = id;

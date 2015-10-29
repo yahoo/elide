@@ -21,10 +21,8 @@ import java.util.Map;
 @Slf4j
 public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-
+    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public abstract int getStatus();
-    protected static ObjectMapper mapper = new ObjectMapper();
-
 
     public HttpStatusException() {
         this(null);
@@ -43,7 +41,7 @@ public abstract class HttpStatusException extends RuntimeException {
         Map<String, List<String>> errors = Collections.singletonMap(
                 "errors",
                 Collections.singletonList(getMessage() == null ? toString() : getMessage()));
-        JsonNode responseBody = mapper.convertValue(errors, JsonNode.class);
+        JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
         return Pair.of(getStatus(), responseBody);
     }
 }

@@ -60,7 +60,7 @@ public class JsonApiDocument {
 
     @JsonInclude(Include.NON_NULL)
     public Map<String, String> getLinks() {
-        return (links.isEmpty()) ? null : links;
+        return links.isEmpty() ? null : links;
     }
 
     public void addLink(String key, String val) {
@@ -69,7 +69,7 @@ public class JsonApiDocument {
 
     @JsonInclude(Include.NON_NULL)
     public List<Resource> getIncluded() {
-        return (included.isEmpty()) ? null : included;
+        return included.isEmpty() ? null : included;
     }
 
     public void addIncluded(Resource resource) {
@@ -107,7 +107,7 @@ public class JsonApiDocument {
         }
         // TODO: Verify links and meta?
         if (other.getIncluded() == null) {
-            return included.size() == 0;
+            return included.isEmpty();
         }
         return included.stream().allMatch(other.getIncluded()::contains);
     }

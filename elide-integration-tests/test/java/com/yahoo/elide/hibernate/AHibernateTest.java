@@ -39,7 +39,7 @@ public abstract class AHibernateTest extends AbstractApiResourceTest {
     protected static volatile SessionFactory sessionFactory;
     public static HibernateManager hibernateManager = null;
 
-    /* Empty dictionary is OK provided the mapper is used for reading only */
+    /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
     protected final JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
 
 

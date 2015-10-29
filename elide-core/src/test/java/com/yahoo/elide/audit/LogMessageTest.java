@@ -45,14 +45,14 @@ public class LogMessageTest {
     }
 
     @Test
-    public void verifyObjectExpressions() throws Exception {
+    public void verifyObjectExpressions() {
         final String[] expressions = { "${child.id}", "${parent.getId()}" };
         final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1);
         Assert.assertEquals("5 7", message.getMessage(), "JEXL substitution evaluates correctly.");
     }
 
     @Test
-    public void verifyListExpressions() throws Exception {
+    public void verifyListExpressions() {
         final String[] expressions = { "${child[0].id}", "${child[1].id}", "${parent.getId()}" };
         final LogMessage message = new LogMessage("{0} {1} {2}", friendRecord, expressions, 1);
         Assert.assertEquals("5 9 7", message.getMessage(), "JEXL substitution evaluates correctly.");
@@ -60,13 +60,13 @@ public class LogMessageTest {
 
 
     @Test(expectedExceptions = InvalidSyntaxException.class)
-    public void invalidExpression() throws Exception {
+    public void invalidExpression() {
         final String[] expressions = { "${child.id}, ${%%%}" };
         new LogMessage("{0} {1}", childRecord, expressions, 1).getMessage();
     }
 
     @Test(expectedExceptions = InvalidSyntaxException.class)
-    public void invalidTemplate() throws Exception {
+    public void invalidTemplate() {
         final String[] expressions = { "${child.id}" };
         new LogMessage("{}", childRecord, expressions, 1).getMessage();
     }

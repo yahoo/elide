@@ -83,9 +83,9 @@ public class Data<T> {
 
     @SuppressWarnings("unchecked")
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
-        return ((Collection<Resource>) get()).stream().map((obj) -> {
-            if (obj != null) {
-                return obj.toResourceIdentifier();
+        return ((Collection<Resource>) get()).stream().map(object -> {
+            if (object != null) {
+                return object.toResourceIdentifier();
             }
             return null;
         }).collect(Collectors.toList());

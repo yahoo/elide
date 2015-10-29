@@ -36,7 +36,7 @@ import java.util.function.Supplier;
 @Slf4j
 public abstract class BaseVisitor extends ormBaseVisitor<Supplier<Pair<Integer, JsonNode>>> {
 
-    protected StateContext state;
+    protected final StateContext state;
 
     public BaseVisitor(RequestScope requestScope) {
         state = new StateContext(new StartState(), requestScope);

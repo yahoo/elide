@@ -99,10 +99,10 @@ public class RecordTerminalState extends BaseState {
     private boolean patch(Resource resource, RequestScope requestScope) {
         boolean isUpdated = false;
 
-        // Update attrs first
-        Map<String, Object> attrs = resource.getAttributes();
-        if (attrs != null) {
-            for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+        // Update attributes first
+        Map<String, Object> attributes = resource.getAttributes();
+        if (attributes != null) {
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
                 String key = entry.getKey();
                 Object newVal = entry.getValue();
                 isUpdated |= record.updateAttribute(key, newVal);

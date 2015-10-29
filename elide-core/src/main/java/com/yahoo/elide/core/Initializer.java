@@ -17,5 +17,5 @@ public interface Initializer<T> {
      *
      * @param entity Entity bean to initialize
      */
-    public void initialize(T entity);
+    void initialize(T entity);
 }

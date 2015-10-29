@@ -30,13 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Collection State.
@@ -114,10 +114,7 @@ public class CollectionTerminalState extends BaseState {
         Preconditions.checkNotNull(collection);
         Preconditions.checkNotNull(user);
 
-        List<Resource> resources = new ArrayList<>();
-        for (PersistentResource r : collection) {
-            resources.add(r.toResource());
-        }
+        List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
         return new Data<>(resources);
     }
 
@@ -150,9 +147,9 @@ public class CollectionTerminalState extends BaseState {
             pResource = PersistentResource.createObject(entityClass, requestScope, id);
         }
 
-        Map<String, Object> attrs = resource.getAttributes();
-        if (attrs != null) {
-            for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+        Map<String, Object> attributes = resource.getAttributes();
+        if (attributes != null) {
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
                 String key = entry.getKey();
                 Object val = entry.getValue();
                 pResource.updateAttribute(key, val);

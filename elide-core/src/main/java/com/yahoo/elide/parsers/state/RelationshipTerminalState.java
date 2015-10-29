@@ -109,7 +109,7 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     private boolean patch(Data<Resource> data, RequestScope requestScope) {
-        boolean isUpdated = false;
+        boolean isUpdated;
 
         if (relationshipType.isToMany()) {
             Collection<Resource> resources = data.get();
