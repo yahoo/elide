@@ -42,4 +42,19 @@ public class PredicateIT extends AbstractBookAuthorData {
                 .extract().body().asString();
         assertEqualDocuments(response, expected);
     }
+
+    @Test
+    public void testPredicateWithNestedCollections() throws IOException {
+        String expected = getJson("/PredicateIT/testPredicateWithNestedCollections.json");
+        String response = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .param("include", "authors")
+                .param("filter[Author.name]", "Ernest Hemingway")
+                .param("filter[Author.Books.title]", "The Old Man and the Sea")
+                .get("/author/1/books").then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+        System.out.println(response);
+        assertEqualDocuments(response, expected);
+    }
 }

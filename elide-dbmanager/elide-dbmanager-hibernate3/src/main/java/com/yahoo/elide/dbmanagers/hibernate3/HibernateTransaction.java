@@ -17,13 +17,17 @@ import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
 import org.hibernate.ScrollMode;
+import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,19 +105,15 @@ public class HibernateTransaction implements DatabaseTransaction {
     public <T> T loadObject(Class<T> loadClass, String id) {
         @SuppressWarnings("unchecked")
         T record = (T) hibernateManager.getSession().load(loadClass, Long.valueOf(id));
-        try {
-            Hibernate.initialize(record);
-        } catch (ObjectNotFoundException e) {
-            return null;
-        }
-        return record;
+        T initializedRecord = initializeHibernateRecord(record);
+        return initializedRecord;
     }
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         @SuppressWarnings("unchecked")
         Iterable<T> list = new HibernateManager.ScrollableIterator(
-                applyPredicate(hibernateManager.getSession().createCriteria(loadClass), queryParams)
+                applyRootPredicate(hibernateManager.getSession().createCriteria(loadClass), queryParams)
                 .scroll(ScrollMode.FORWARD_ONLY));
         return list;
     }
@@ -129,7 +129,7 @@ public class HibernateTransaction implements DatabaseTransaction {
 
         @SuppressWarnings("unchecked")
         Iterable<T> list = new HibernateManager.ScrollableIterator(
-                applyPredicate(hibernateManager.getSession().createCriteria(loadClass), queryParams)
+                applyRootPredicate(hibernateManager.getSession().createCriteria(loadClass), queryParams)
                 .add(criterion)
                 .scroll(ScrollMode.FORWARD_ONLY));
         return list;
@@ -204,9 +204,53 @@ public class HibernateTransaction implements DatabaseTransaction {
      * @param queryParams query parameters
      * @return criteria
      */
-    protected Criteria applyPredicate(final Criteria criteria, final MultivaluedMap<String, String> queryParams) {
+    protected Criteria applyRootPredicate(final Criteria criteria,
+                                              final MultivaluedMap<String, String> queryParams) {
         Set<Predicate> predicateSet = Predicate.parseQueryParams(queryParams);
         predicateSet.forEach(predicate -> criteria.add(Restrictions.in(predicate.getField(), predicate.getValues())));
         return criteria;
+    }
+
+    protected Query applyNestedPredicates(final Class loadClass, final Session session,
+                                               final MultivaluedMap<String, String> queryParams) {
+        Set<Predicate> predicateSet = Predicate.parseQueryParams(queryParams);
+        String rootSimpleClassName = loadClass.getSimpleName().split("_")[0];
+        Query filteredRecordQuery = null;
+
+        for (Predicate predicate : predicateSet) {
+            try {
+                if (predicate.getCollection().equals(rootSimpleClassName)) {
+                    // subject is already the root collection
+                    // TODO: root filtering, currently skipped or should be handled by applyRootPredicate
+                    continue;
+                } else {
+                    List<String> lineage = predicate.getLineage(); // Author, Books
+                    lineage.remove(0); // remove the top
+                    try {
+                        Method method = loadClass.getDeclaredMethod("get" + lineage.get(0)); // getFields
+                        String whereClause = "where " + predicate.getField() + " in (:" + predicate.getField() + ")";
+                        filteredRecordQuery = session.createFilter(method.invoke(loadClass), whereClause)
+                                .setParameterList(predicate.getField(), predicate.getValues());
+                    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (HibernateException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return filteredRecordQuery;
+    }
+
+    private <T> T initializeHibernateRecord(final T record) {
+        if (!Hibernate.isInitialized(record)) {
+            try {
+                Hibernate.initialize(record);
+            } catch (ObjectNotFoundException e) {
+                return null;
+            }
+        }
+        return record;
     }
 }

@@ -1,0 +1,65 @@
+{
+  "data": [
+    {
+      "attributes": {
+        "name": "Ernest Hemingway"
+      },
+      "id": "1",
+      "relationships": {
+        "books": {
+          "data": [
+            {
+              "id": "1",
+              "type": "book"
+            },
+            {
+              "id": "3",
+              "type": "book"
+            }
+          ]
+        }
+      },
+      "type": "author"
+    }
+  ],
+  "included": [
+    {
+      "attributes": {
+        "genre": "Literary Fiction",
+        "language": "English",
+        "title": "The Old Man and the Sea"
+      },
+      "id": "1",
+      "relationships": {
+        "authors": {
+          "data": [
+            {
+              "id": "1",
+              "type": "author"
+            }
+          ]
+        }
+      },
+      "type": "book"
+    },
+    {
+      "attributes": {
+        "genre": "Literary Fiction",
+        "language": "English",
+        "title": "For Whom the Bell Tolls"
+      },
+      "id": "3",
+      "relationships": {
+        "authors": {
+          "data": [
+            {
+              "id": "1",
+              "type": "author"
+            }
+          ]
+        }
+      },
+      "type": "book"
+    }
+  ]
+}

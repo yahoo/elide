@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
@@ -56,11 +55,11 @@ public class Predicate {
      *
      * @return lineage
      */
-    public String getLineage() {
+    public List<String> getLineage() {
         String[] keys = key.split("\\.");
         List<String> keyList = new ArrayList<>(Arrays.asList(keys));
         keyList.remove(keyList.size() - 1);
-        return StringUtils.join(keyList, ".");
+        return keyList;
     }
 
     public static Set<Predicate> parseQueryParams(final MultivaluedMap<String, String> queryParams) {
@@ -70,8 +69,8 @@ public class Predicate {
             final Set<Predicate> predicateSet = new HashSet<>();
             queryParams.entrySet().forEach(queryParameter -> {
                 Operator operator;
-                // matching "filter[<key>][<operator, optional>]
-                final Matcher matcher = Pattern.compile("filter\\[([^\\]]*)\\]{1}(\\[([^\\]]*)\\]{1})?")
+                // matching "filter[<key>]" OR "filter[<key>][<operator>]"
+                final Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?")
                         .matcher(queryParameter.getKey());
                 if (matcher.find()) {
                     operator = (matcher.group(3) == null) ? Operator.IN : Operator.fromString(matcher.group(3));
