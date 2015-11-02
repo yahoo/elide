@@ -1386,6 +1386,10 @@ public class PersistentResource<T> {
      * @return opaque user
      */
     public Object getOpaqueUser() {
+        if (getRequestScope().getUser() == null) {
+            return null;
+        }
+
         return getRequestScope().getUser().getOpaqueUser();
     }
 }

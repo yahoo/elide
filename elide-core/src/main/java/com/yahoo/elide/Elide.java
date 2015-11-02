@@ -111,6 +111,7 @@ public class Elide {
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -165,6 +166,7 @@ public class Elide {
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -228,6 +230,7 @@ public class Elide {
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -286,6 +289,7 @@ public class Elide {
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
