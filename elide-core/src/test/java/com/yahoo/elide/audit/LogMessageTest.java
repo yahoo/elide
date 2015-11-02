@@ -37,7 +37,7 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null);
+        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, new TestLogger());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);
