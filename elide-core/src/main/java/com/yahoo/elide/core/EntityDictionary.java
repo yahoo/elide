@@ -5,15 +5,22 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.ComputedProperty;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -32,15 +39,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -582,7 +580,8 @@ public class EntityDictionary {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
-            } else if (fieldOrMethod.isAnnotationPresent(Transient.class)) {
+            } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
+                    && !fieldOrMethod.isAnnotationPresent(ComputedProperty.class)) {
                 continue; // Transient. Don't serialize
             } else if (!fieldOrMethod.isAnnotationPresent(Exclude.class)) {
                 if (fieldOrMethod instanceof Field && Modifier.isTransient(((Field) fieldOrMethod).getModifiers())) {

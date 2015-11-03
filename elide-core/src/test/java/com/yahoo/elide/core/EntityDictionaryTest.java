@@ -6,15 +6,16 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
-
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
+import example.User;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 public class EntityDictionaryTest extends EntityDictionary {
     @BeforeTest
@@ -22,6 +23,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(FunWithPermissions.class);
         this.bindEntity(Parent.class);
         this.bindEntity(Child.class);
+        this.bindEntity(User.class);
     }
 
     @Test
@@ -57,5 +59,11 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetInverseRelationshipOwnedSide()  {
         Assert.assertEquals(getRelationInverse(Child.class, "parents"), "children",
                 "The inverse relationship of children should be parents");
+    }
+
+    @Test
+    public void testComputedPropertyIsExposed() {
+        List<String> attributes = getAttributes(User.class);
+        Assert.assertTrue(attributes.contains("password"));
     }
 }

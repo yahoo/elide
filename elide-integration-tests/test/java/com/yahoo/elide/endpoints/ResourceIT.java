@@ -29,6 +29,7 @@ import example.Child;
 import example.Filtered;
 import example.FunWithPermissions;
 import example.Parent;
+import example.User;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -117,6 +118,10 @@ public class ResourceIT extends AHibernateTest {
 
         FunWithPermissions fun = new FunWithPermissions();
         tx.save(fun);
+
+        User user = new User(); //ID 1
+        user.setPassword("god");
+        tx.save(user);
 
         tx.save(tx.createObject(Filtered.class));
         tx.save(tx.createObject(Filtered.class));
@@ -1155,5 +1160,23 @@ public class ResourceIT extends AHibernateTest {
 
         given().when().get("/filtered").then().statusCode(HttpStatus.SC_OK)
         .body(equalTo(expected));
+    }
+
+    @Test
+    public void testComputedProperty() throws Exception {
+        String expected = getJson("/ResourceIT/testComputedProperty.json");
+
+        String req = getJson("/ResourceIT/testComputedProperty.req.json");
+
+        given()
+            .contentType("application/vnd.api+json")
+            .accept("application/vnd.api+json")
+            .body(req)
+            .patch("/user/1")
+            .then()
+            .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
+            .body(equalTo(expected));
     }
 }
