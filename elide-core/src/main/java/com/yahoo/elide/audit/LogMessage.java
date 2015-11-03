@@ -112,10 +112,6 @@ public class LogMessage {
                 }
                 ctx.setVariable(name, expression);
             }
-
-            // Add the OpaqueUser to available expressions as "user"
-            final Object user = record.getOpaqueUser();
-            ctx.setVariable("user", expressionFactory.createValueExpression(user, Object.class));
         }
 
         Object[] results = new Object[expressions.length];
