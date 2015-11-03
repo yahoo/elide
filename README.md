@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide)
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Dependency Status](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99/badge.svg?style=flat)](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99)
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
