@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -52,7 +53,8 @@ public class IncludedProcessorTest {
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 
-        RequestScope goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null);
+        RequestScope goodUserScope = new RequestScope(
+                new JsonApiDocument(), null, new User(1), dictionary, null, new TestLogger());
 
         //Create objects
         Parent parent1 = newParent(1);

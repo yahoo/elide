@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.extensions;
 
+import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
@@ -24,8 +25,9 @@ public class PatchRequestScope extends RequestScope {
             DatabaseTransaction transaction,
             User user,
             EntityDictionary dictionary,
-            JsonApiMapper mapper) {
-        super(transaction, user, dictionary, mapper);
+            JsonApiMapper mapper,
+            Logger logger) {
+        super(transaction, user, dictionary, mapper, logger);
     }
 
     /**

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -18,6 +20,7 @@ import org.testng.annotations.Test;
 
 public class UserTest {
     private final EntityDictionary dictionary = new EntityDictionary();
+    private final Logger testLogger = new TestLogger();
 
     public class CounterCheck implements Check {
         public int callCounter = 0;
@@ -57,6 +60,6 @@ public class UserTest {
     }
 
     private RequestScope getScope(User user) {
-        return new RequestScope(new JsonApiDocument(), null, user, dictionary, null);
+        return new RequestScope(new JsonApiDocument(), null, user, dictionary, null, testLogger);
     }
 }

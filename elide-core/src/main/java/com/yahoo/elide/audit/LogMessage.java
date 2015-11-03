@@ -7,6 +7,7 @@ package com.yahoo.elide.audit;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
 
 import de.odysseus.el.ExpressionFactoryImpl;
@@ -28,15 +29,17 @@ public class LogMessage {
     //Supposedly this is thread safe.
     private static ExpressionFactory expressionFactory;
     private static final String CACHE_SIZE = "5000";
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
     static {
         Properties properties = new Properties();
         properties.put("javax.el.cacheSize", CACHE_SIZE);
         expressionFactory = new ExpressionFactoryImpl();
     }
 
-    private final String message;
+    private final String template;
+    private final PersistentResource record;
+    private final String[] expressions;
     private final int operationCode;
-
 
     /**
      * Construct a log message that does not involve any templating.
@@ -44,8 +47,7 @@ public class LogMessage {
      * @param code - The operation code of the auditable action.
      */
     public LogMessage(String template, int code) {
-        this.message = template;
-        this.operationCode = code;
+        this(template, null, EMPTY_STRING_ARRAY, code);
     }
 
     /**
@@ -70,44 +72,10 @@ public class LogMessage {
             PersistentResource record,
             String[] expressions,
             int code) throws InvalidSyntaxException {
+        this.template = template;
+        this.record = record;
+        this.expressions = expressions;
         this.operationCode = code;
-        SimpleContext ctx = new SimpleContext();
-
-        /* Create a new lineage which includes the passed in record */
-        ResourceLineage lineage = new ResourceLineage(record.getLineage(), record);
-
-        for (String name : lineage.getKeys()) {
-            List<PersistentResource> values = lineage.getRecord(name);
-
-            ValueExpression expression;
-            if (values.size() == 1) {
-                expression = expressionFactory.createValueExpression(values.get(0).getObject(), Object.class);
-            } else {
-                List<Object> objects = values.stream().map(PersistentResource::getObject).collect(Collectors.toList());
-                expression = expressionFactory.createValueExpression(objects, List.class);
-            }
-            ctx.setVariable(name, expression);
-        }
-
-        Object[] results = new Object[expressions.length];
-        for (int idx = 0; idx < results.length; idx++) {
-            String expressionText = expressions[idx];
-
-            ValueExpression expression = null;
-            try {
-                expression = expressionFactory.createValueExpression(ctx, expressionText, Object.class);
-            } catch (ELException e) {
-                throw new InvalidSyntaxException(e);
-            }
-            Object result = expression.getValue(ctx);
-            results[idx] = result;
-        }
-
-        try {
-            message = MessageFormat.format(template, results);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidSyntaxException(e);
-        }
     }
 
     /**
@@ -125,14 +93,60 @@ public class LogMessage {
      * @return the message
      */
     public String getMessage() {
-        return message;
+        SimpleContext ctx = new SimpleContext();
+
+        if (record != null) {
+            /* Create a new lineage which includes the passed in record */
+            ResourceLineage lineage = new ResourceLineage(record.getLineage(), record);
+
+            for (String name : lineage.getKeys()) {
+                List<PersistentResource> values = lineage.getRecord(name);
+
+                ValueExpression expression;
+                if (values.size() == 1) {
+                    expression = expressionFactory.createValueExpression(values.get(0).getObject(), Object.class);
+                } else {
+                    List<Object> objects = values.stream().map(PersistentResource::getObject)
+                            .collect(Collectors.toList());
+                    expression = expressionFactory.createValueExpression(objects, List.class);
+                }
+                ctx.setVariable(name, expression);
+            }
+        }
+
+        Object[] results = new Object[expressions.length];
+        for (int idx = 0; idx < results.length; idx++) {
+            String expressionText = expressions[idx];
+
+            ValueExpression expression;
+            try {
+                expression = expressionFactory.createValueExpression(ctx, expressionText, Object.class);
+            } catch (ELException e) {
+                throw new InvalidSyntaxException(e);
+            }
+            Object result = expression.getValue(ctx);
+            results[idx] = result;
+        }
+
+        try {
+            return MessageFormat.format(template, results);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidSyntaxException(e);
+        }
+    }
+
+    public RequestScope getRequestScope() {
+        if (record != null) {
+            return record.getRequestScope();
+        }
+        return null;
     }
 
     @Override
     public String toString() {
         return "LogMessage{"
-                + "message='" + message + '\''
-                + ", operationCode=" + operationCode
+                + "message='" + getMessage() + '\''
+                + ", operationCode=" + getOperationCode()
                 + '}';
     }
 }

@@ -15,8 +15,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
-import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.audit.LoggerSingleton;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -1337,8 +1335,6 @@ public class PersistentResource<T> {
      * @param fieldName the field name
      */
     protected void audit(String fieldName) {
-        final Logger logger = LoggerSingleton.getLogger();
-
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
@@ -1350,9 +1346,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == Audit.Action.UPDATE) {
                 LogMessage message = new LogMessage(annotation, this);
-
-                // TODO - log user
-                logger.log(message);
+                getRequestScope().getLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
             }
@@ -1365,7 +1359,6 @@ public class PersistentResource<T> {
      * @param action the action
      */
     protected void audit(Audit.Action action) {
-        final Logger logger = LoggerSingleton.getLogger();
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {
@@ -1374,9 +1367,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == action) {
                 LogMessage message = new LogMessage(annotation, this);
-
-                // TODO - log user
-                logger.log(message);
+                getRequestScope().getLogger().log(message);
             }
         }
     }
@@ -1386,6 +1377,10 @@ public class PersistentResource<T> {
      * @return opaque user
      */
     public Object getOpaqueUser() {
+        if (getRequestScope().getUser() == null) {
+            return null;
+        }
+
         return getRequestScope().getUser().getOpaqueUser();
     }
 }

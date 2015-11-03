@@ -104,6 +104,7 @@ public class Elide {
                     user,
                     dictionary,
                     mapper,
+                    auditLogger,
                     queryParams,
                     securityMode);
             GetVisitor visitor = new GetVisitor(requestScope);
@@ -111,6 +112,7 @@ public class Elide {
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -159,12 +161,14 @@ public class Elide {
                     user,
                     dictionary,
                     mapper,
+                    auditLogger,
                     securityMode);
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -216,18 +220,20 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder;
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
-                PatchRequestScope patchRequestScope = new PatchRequestScope(transaction, user, dictionary, mapper);
+                PatchRequestScope patchRequestScope = new PatchRequestScope(
+                        transaction, user, dictionary, mapper, auditLogger);
                 requestScope = patchRequestScope;
                 responder = JsonApiPatch.processJsonPatch(db, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-                requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, securityMode);
+                requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
             }
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {
@@ -280,12 +286,14 @@ public class Elide {
             } else {
                 doc = new JsonApiDocument();
             }
-            RequestScope requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, securityMode);
+            RequestScope requestScope = new RequestScope(
+                    doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.runDeferredPermissionChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            auditLogger.commit();
             transaction.commit();
             return response;
         } catch (HttpStatusException e) {

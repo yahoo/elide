@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
@@ -35,6 +36,7 @@ public class RequestScope {
     private final @Getter User user;
     private final @Getter EntityDictionary dictionary;
     private final @Getter JsonApiMapper mapper;
+    private final @Getter Logger logger;
     private final @Getter Optional<MultivaluedMap<String, String>> queryParams;
     private final @Getter Map<String, Set<String>> sparseFields;
     private final @Getter ObjectEntityCache objectEntityCache;
@@ -47,6 +49,7 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode) {
         this.jsonApiDocument = jsonApiDocument;
@@ -54,6 +57,7 @@ public class RequestScope {
         this.user = user;
         this.dictionary = dictionary;
         this.mapper = mapper;
+        this.logger = logger;
         this.queryParams = ((queryParams == null) || (queryParams.size() == 0)
                 ? Optional.empty() : Optional.ofNullable(queryParams));
         this.objectEntityCache = new ObjectEntityCache();
@@ -71,8 +75,9 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         SecurityMode securityMode) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, null, securityMode);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, securityMode);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -80,16 +85,18 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         MultivaluedMap<String, String> queryParams) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, queryParams, SecurityMode.ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, queryParams, SecurityMode.ACTIVE);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DatabaseTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
-                        JsonApiMapper mapper) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, null, SecurityMode.ACTIVE);
+                        JsonApiMapper mapper,
+                        Logger logger) {
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, SecurityMode.ACTIVE);
     }
 
     /**
@@ -99,8 +106,9 @@ public class RequestScope {
             DatabaseTransaction transaction,
             User user,
             EntityDictionary dictionary,
-            JsonApiMapper mapper) {
-        this(null, transaction, user, dictionary, mapper);
+            JsonApiMapper mapper,
+            Logger logger) {
+        this(null, transaction, user, dictionary, mapper, logger);
         this.deferredChecks = new LinkedHashSet<>();
     }
 
@@ -113,6 +121,7 @@ public class RequestScope {
         this.user = outerRequestScope.user;
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
+        this.logger = outerRequestScope.logger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
@@ -121,7 +130,7 @@ public class RequestScope {
     }
 
     /**
-     * Parses queryParams and produces sparseFields map
+     * Parses queryParams and produces sparseFields map.
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */

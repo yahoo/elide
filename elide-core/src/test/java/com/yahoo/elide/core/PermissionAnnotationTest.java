@@ -9,6 +9,8 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.User;
 
@@ -39,8 +41,9 @@ public class PermissionAnnotationTest {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setId(1);
 
-        funRecord = new PersistentResource<>(fun, new RequestScope(null, null, goodUser, dictionary, null));
-        badRecord = new PersistentResource<>(fun, new RequestScope(null, null, badUser, dictionary, null));
+        Logger testLogger = new TestLogger();
+        funRecord = new PersistentResource<>(fun, new RequestScope(null, null, goodUser, dictionary, null, testLogger));
+        badRecord = new PersistentResource<>(fun, new RequestScope(null, null, badUser, dictionary, null, testLogger));
     }
 
     @Test

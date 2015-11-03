@@ -37,7 +37,7 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null);
+        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, new TestLogger());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);
@@ -62,12 +62,12 @@ public class LogMessageTest {
     @Test(expectedExceptions = InvalidSyntaxException.class)
     public void invalidExpression() throws Exception {
         final String[] expressions = { "${child.id}, ${%%%}" };
-        new LogMessage("{0} {1}", childRecord, expressions, 1);
+        new LogMessage("{0} {1}", childRecord, expressions, 1).getMessage();
     }
 
     @Test(expectedExceptions = InvalidSyntaxException.class)
     public void invalidTemplate() throws Exception {
         final String[] expressions = { "${child.id}" };
-        new LogMessage("{}", childRecord, expressions, 1);
+        new LogMessage("{}", childRecord, expressions, 1).getMessage();
     }
 }
