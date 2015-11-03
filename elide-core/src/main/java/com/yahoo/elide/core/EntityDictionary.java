@@ -147,7 +147,8 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, RelationshipType> types = bindEntityToRelationshipTypes.get(lookupEntityClass(cls));
+        final ConcurrentHashMap<String, RelationshipType> types =
+                bindEntityToRelationshipTypes.get(lookupEntityClass(cls));
         if (types == null) {
             return RelationshipType.NONE;
         }
