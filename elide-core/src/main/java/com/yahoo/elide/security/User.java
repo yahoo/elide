@@ -21,7 +21,7 @@ import java.util.Set;
  * which checks have already been run (so they are not repeated.
  */
 public class User {
-    private final @Getter Object opaqueUser;
+    @Getter private final Object opaqueUser;
     private final Map<Class<? extends Check>, UserPermission> okUserPermissions;
     private final Map<Class<? extends Check>, Set<PersistentResource>> okCheckResources;
 

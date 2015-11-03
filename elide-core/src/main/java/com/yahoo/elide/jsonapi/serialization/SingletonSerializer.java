@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.serialization;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -20,7 +19,7 @@ public class SingletonSerializer extends JsonSerializer<AbstractCollection> {
 
     @Override
     public void serialize(AbstractCollection data, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-        throws IOException, JsonGenerationException {
+        throws IOException {
         jsonGenerator.writeObject(data.iterator().next());
     }
 }

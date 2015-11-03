@@ -34,7 +34,7 @@ public class EmbeddedIT extends AHibernateTest {
         /* There is no good way to get the dictionary from Elide */
         EntityDictionary empty = new EntityDictionary();
 
-        /* Empty dictionary is OK provided the mapper is used for reading only */
+        /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
         mapper = new JsonApiMapper(empty);
     }
 

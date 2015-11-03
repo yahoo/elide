@@ -5,16 +5,16 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,22 +25,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
 public class RequestScope {
-    private final @Getter JsonApiDocument jsonApiDocument;
-    private final @Getter DatabaseTransaction transaction;
-    private final @Getter User user;
-    private final @Getter EntityDictionary dictionary;
-    private final @Getter JsonApiMapper mapper;
-    private final @Getter Logger logger;
-    private final @Getter Optional<MultivaluedMap<String, String>> queryParams;
-    private final @Getter Map<String, Set<String>> sparseFields;
-    private final @Getter ObjectEntityCache objectEntityCache;
-    private final @Getter SecurityMode securityMode;
+    @Getter private final JsonApiDocument jsonApiDocument;
+    @Getter private final DatabaseTransaction transaction;
+    @Getter private final User user;
+    @Getter private final EntityDictionary dictionary;
+    @Getter private final JsonApiMapper mapper;
+    @Getter private final Logger logger;
+    @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
+    @Getter private final Map<String, Set<String>> sparseFields;
+    @Getter private final ObjectEntityCache objectEntityCache;
+    @Getter private final SecurityMode securityMode;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
 
@@ -164,11 +162,7 @@ public class RequestScope {
     public void runDeferredPermissionChecks() {
         if (deferredChecks != null) {
             try {
-                for (Runnable task : new ArrayList<>(deferredChecks)) {
-                    task.run();
-                }
-            } catch (RuntimeException e) {
-                throw e;
+                new ArrayList<>(deferredChecks).forEach(Runnable::run);
             } finally {
                 deferredChecks = null;
             }
@@ -201,11 +195,11 @@ public class RequestScope {
         }
     }
 
-    static private class CheckPermissions implements Runnable {
-        Class<? extends Check>[] anyChecks;
-        boolean any;
-        PersistentResource resource;
-        private Class<?> annotationClass;
+    private static class CheckPermissions implements Runnable {
+        final Class<? extends Check>[] anyChecks;
+        final boolean any;
+        final PersistentResource resource;
+        private final Class<?> annotationClass;
 
         public CheckPermissions(
                 Class<?> annotationClass,

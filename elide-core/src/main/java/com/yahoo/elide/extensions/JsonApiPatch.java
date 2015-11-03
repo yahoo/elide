@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class JsonApiPatch {
     private class PatchAction {
-        final public Patch patch;
+        public final Patch patch;
 
         // Failure
         public HttpStatusException cause;
@@ -118,7 +118,7 @@ public class JsonApiPatch {
             String rootUri,
             RequestScope requestScope) {
         this.db = db;
-        this.actions = actions.stream().map(a -> new PatchAction(a)).collect(Collectors.toList());
+        this.actions = actions.stream().map(PatchAction::new).collect(Collectors.toList());
         this.rootUri = rootUri;
     }
 
@@ -155,7 +155,7 @@ public class JsonApiPatch {
      * @return List of responders
      */
     private List<Supplier<Pair<Integer, JsonNode>>> handleActions(PatchRequestScope requestScope) {
-        return actions.stream().map((action) -> {
+        return actions.stream().map(action -> {
             Supplier<Pair<Integer, JsonNode>> result;
             try {
                 String[] combined = ArrayUtils.addAll(rootUri.split("/"), action.patch.getPath().split("/"));

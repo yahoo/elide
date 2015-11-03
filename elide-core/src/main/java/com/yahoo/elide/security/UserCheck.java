@@ -20,14 +20,14 @@ public interface UserCheck<T> extends Check<T> {
      * DENY - Access to none of these resources
      * FILTER - Filters collection by calling ok for each resource
      */
-    static enum UserPermission {
+    enum UserPermission {
         ALLOW, DENY, FILTER
     }
 
     /* Helper defines */
-    final static UserPermission ALLOW = UserPermission.ALLOW;
-    final static UserPermission DENY = UserPermission.DENY;
-    final static UserPermission FILTER = UserPermission.FILTER;
+    UserPermission ALLOW = UserPermission.ALLOW;
+    UserPermission DENY = UserPermission.DENY;
+    UserPermission FILTER = UserPermission.FILTER;
 
     /**
      * Determines whether the user can access the resource.

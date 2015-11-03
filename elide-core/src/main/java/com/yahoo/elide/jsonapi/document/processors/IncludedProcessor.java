@@ -5,26 +5,24 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import com.google.common.collect.Lists;
-
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 /**
  * A Document Processor that add requested relations to the include block of teh JsonApiDocument.
  */
 public class IncludedProcessor implements DocumentProcessor {
 
-    private final static String RELATION_PATH_DELIMITER = "\\.";
-    private final static String RELATION_PATH_SEPARATOR = ",";
+    private static final String RELATION_PATH_DELIMITER = "\\.";
+    private static final String RELATION_PATH_SEPARATOR = ",";
 
     /**
      * If the include query param is present, this processor will add the requested relations resources
@@ -91,7 +89,7 @@ public class IncludedProcessor implements DocumentProcessor {
         });
     }
 
-    private boolean isPresent(Optional<MultivaluedMap<String, String>> queryParams, String key) {
+    private static boolean isPresent(Optional<MultivaluedMap<String, String>> queryParams, String key) {
         return (queryParams.isPresent() && queryParams.get().get(key) != null);
     }
 }
