@@ -560,17 +560,16 @@ public class PersistentResource<T> {
      * @return Boolean
      */
     public Boolean isIdGenerated() {
-        return getIdAnnotataions().stream().anyMatch(a ->
+        return getIdAnnotations().stream().anyMatch(a ->
                         a.annotationType().equals(GeneratedValue.class)
         );
     }
 
     /**
      * Returns annotations applied to the ID field
-     * @param value the value
      * @return Collection of Annotations
      */
-    private Collection<Annotation> getIdAnnotataions() {
+    private Collection<Annotation> getIdAnnotations() {
         return dictionary.getIdAnnotations(getObject());
     }
 
