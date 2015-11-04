@@ -13,7 +13,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks a method or field as a computed property that should be exposed via Elide regardless of whether or
+ * Marks a method or field as a computed attribute that should be exposed via Elide regardless of whether or
  * not it is marked as Transient.
  */
 @Target({METHOD, FIELD})

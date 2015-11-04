@@ -16,7 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 
 /**
- * Used to test computed properties.
+ * Used to test computed attributes.
  */
 @Entity
 @Include(rootLevel = true)
