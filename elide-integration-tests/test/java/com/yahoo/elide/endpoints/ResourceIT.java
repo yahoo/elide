@@ -1163,7 +1163,7 @@ public class ResourceIT extends AHibernateTest {
     }
 
     @Test
-    public void testComputedProperty() throws Exception {
+    public void testComputedAttribute() throws Exception {
         String expected = getJson("/ResourceIT/testComputedAttribute.json");
 
         String req = getJson("/ResourceIT/testComputedAttribute.req.json");

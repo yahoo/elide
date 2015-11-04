@@ -62,7 +62,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
-    public void testComputedPropertyIsExposed() {
+    public void testComputedAttributeIsExposed() {
         List<String> attributes = getAttributes(User.class);
         Assert.assertTrue(attributes.contains("password"));
     }
