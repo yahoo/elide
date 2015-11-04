@@ -530,6 +530,28 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns annotations applied to the ID field
+     * @param value the value
+     * @return Collection of Annotations
+     */
+    public Collection<Annotation> getIdAnnotations(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        AccessibleObject idField = null;
+        for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
+            idField = bindIdField.get(cls);
+        }
+
+        if (idField != null) {
+            return Arrays.asList(idField.getDeclaredAnnotations());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Find an arbitrary method.
      *
      * @param entityClass the entity class

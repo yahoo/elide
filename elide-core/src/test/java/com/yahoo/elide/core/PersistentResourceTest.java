@@ -1196,6 +1196,21 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertEquals(child.getParents().size(), 0, "The non-owning relationship should also be updated");
     }
 
+    @Test
+
+    public void testIsIdGenerated() {
+
+        PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", goodUserScope);
+
+        Assert.assertTrue(generated.isIdGenerated(),
+                "isIdGenerated returns true when ID field has the GeneratedValue annotation");
+
+        PersistentResource<NoCreateEntity> notGenerated = new PersistentResource<>(new NoCreateEntity(), null, "1", goodUserScope);
+
+        Assert.assertFalse(notGenerated.isIdGenerated(),
+                "isIdGenerated returns false when ID field does not have the GeneratedValue annotation");
+    }
+
     private RequestScope getUserScope(User user) {
         return new RequestScope(new JsonApiDocument(), null, user, dictionary, null, MOCK_LOGGER);
     }

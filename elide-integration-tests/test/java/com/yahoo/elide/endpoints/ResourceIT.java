@@ -727,19 +727,6 @@ public class ResourceIT extends AHibernateTest {
     }
 
     @Test
-    public void createParentWithoutId() {
-        String req = getJson("/ResourceIT/createParentWithoutId.json");
-
-        given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
-            .body(req)
-            .post("/parent")
-            .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN);
-    }
-
-    @Test
     public void createChildNonRootable() {
         String req = getJson("/ResourceIT/createChildNonRootable.json");
         given()
@@ -1128,6 +1115,53 @@ public class ResourceIT extends AHibernateTest {
             .then()
             .statusCode(HttpStatus.SC_BAD_REQUEST)
             .body(equalTo(expected));
+    }
+
+    @Test(priority = 30)
+    public void createParentWithoutId() {
+        String req = getJson("/ResourceIT/createParentWithoutId.req.json");
+        String res = getJson("/ResourceIT/createParentWithoutId.json");
+
+        String response = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body(req)
+                .post("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
+
+        assertEqualDocuments(response, res);
+    }
+
+    @Test
+    public void assignedId() {
+        String req = getJson("/ResourceIT/assignedId.req.json");
+        String res = getJson("/ResourceIT/assignedId.json");
+
+        String response = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body(req)
+                .post("/assignedId")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
+
+        assertEqualDocuments(response, res);
+    }
+
+    @Test
+    public void assignedIdWithoutProvidedId() {
+        String req = getJson("/ResourceIT/assignedIdWithoutId.req.json");
+
+        given()
+            .contentType("application/vnd.api+json")
+            .accept("application/vnd.api+json")
+            .body(req)
+            .post("/assignedId")
+            .then()
+            .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test

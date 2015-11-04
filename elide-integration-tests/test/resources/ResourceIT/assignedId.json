@@ -1,0 +1,9 @@
+{
+    "data":{
+        "type":"assignedId",
+        "id":"user1",
+        "attributes": {
+            "value": 22
+        }
+    }
+}

@@ -31,6 +31,7 @@ import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.GeneratedValue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -542,6 +543,34 @@ public class PersistentResource<T> {
      */
     public String getId() {
         return dictionary.getId(getObject());
+    }
+
+
+    /**
+     * Set resource ID.
+     *
+     * @param id resource id
+     */
+    public void setId(String id) {
+        this.setValue("id", id);
+    }
+
+    /**
+     * Indicates if the ID is generated or not
+     * @return Boolean
+     */
+    public Boolean isIdGenerated() {
+        return getIdAnnotations().stream().anyMatch(a ->
+                        a.annotationType().equals(GeneratedValue.class)
+        );
+    }
+
+    /**
+     * Returns annotations applied to the ID field
+     * @return Collection of Annotations
+     */
+    private Collection<Annotation> getIdAnnotations() {
+        return dictionary.getIdAnnotations(getObject());
     }
 
     /**
