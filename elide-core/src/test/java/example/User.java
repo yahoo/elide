@@ -6,7 +6,7 @@
 package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yahoo.elide.annotation.ComputedProperty;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
@@ -29,7 +29,7 @@ public class User {
     /**
      * @return empty string
      */
-    @ComputedProperty
+    @ComputedAttribute
     @Transient
     public String getPassword() {
         return "";
@@ -39,7 +39,7 @@ public class User {
     /**
      * Sets the password but first reverses it.
      */
-    @ComputedProperty
+    @ComputedAttribute
     @Transient
     public void setPassword(String password) {
         this.reversedPassword = new StringBuilder(password).reverse().toString();

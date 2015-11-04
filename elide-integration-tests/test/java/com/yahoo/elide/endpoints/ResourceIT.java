@@ -1164,9 +1164,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void testComputedProperty() throws Exception {
-        String expected = getJson("/ResourceIT/testComputedProperty.json");
+        String expected = getJson("/ResourceIT/testComputedAttribute.json");
 
-        String req = getJson("/ResourceIT/testComputedProperty.req.json");
+        String req = getJson("/ResourceIT/testComputedAttribute.req.json");
 
         given()
             .contentType("application/vnd.api+json")

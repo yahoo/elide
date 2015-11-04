@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.ComputedProperty;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
@@ -581,7 +581,7 @@ public class EntityDictionary {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
-                    && !fieldOrMethod.isAnnotationPresent(ComputedProperty.class)) {
+                    && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)) {
                 continue; // Transient. Don't serialize
             } else if (!fieldOrMethod.isAnnotationPresent(Exclude.class)) {
                 if (fieldOrMethod instanceof Field && Modifier.isTransient(((Field) fieldOrMethod).getModifiers())) {
