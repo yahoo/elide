@@ -19,7 +19,6 @@
     <properties>
         <version.elide>1.0.0.5-SNAPSHOT</version.elide>
         <version.jetty>9.3.5.v20151012</version.jetty>
-        <version.jersey>2.19</version.jersey>
         <version.slf4j>1.7.12</version.slf4j>
         <version.log4j>2.3</version.log4j>
         <version.jdk>1.8</version.jdk>
@@ -55,12 +54,12 @@
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>
-            <version>${version.jersey}</version>
+            <version>RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-jetty-servlet</artifactId>
-            <version>${version.jersey}</version>
+            <version>RELEASE</version>
         </dependency>
         <!-- logging -->
         <dependency>
