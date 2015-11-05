@@ -19,5 +19,5 @@ public interface Check<T> {
      * @param record the record
      * @return true if allowed
      */
-    public boolean ok(PersistentResource<T> record);
+    boolean ok(PersistentResource<T> record);
 }

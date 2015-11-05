@@ -19,8 +19,8 @@ public class TransactionException extends HttpStatusException {
         super(formatMessage(e.getCause() == null ? e : e.getCause()), e);
     }
 
-    static private String formatMessage(Throwable e) {
-        return (e == null ? null : e.getMessage() == null ? e.toString() : e.getMessage());
+    private static String formatMessage(Throwable e) {
+        return e == null ? null : e.getMessage() == null ? e.toString() : e.getMessage();
     }
 
     @Override

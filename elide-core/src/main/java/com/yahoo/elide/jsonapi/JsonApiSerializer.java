@@ -5,15 +5,13 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.core.EntityDictionary;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.yahoo.elide.core.EntityDictionary;
 
 import java.io.IOException;
 import java.util.Set;
@@ -42,7 +40,7 @@ public class JsonApiSerializer<T> extends StdSerializer<T> {
 
     @Override
     public void serialize(T object, JsonGenerator jsonGenerator, SerializerProvider provider)
-            throws IOException, JsonGenerationException {
+            throws IOException {
         if (object instanceof Set) {
             jsonGenerator.writeStartArray();
             for (Object value : (Set) object) {

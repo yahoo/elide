@@ -17,7 +17,7 @@ import java.util.List;
  * These lineage paths are used for both security checks and audit logging.
  */
 public class ResourceLineage {
-    private LinkedMap<String, List<PersistentResource>> resourceMap;
+    private final LinkedMap<String, List<PersistentResource>> resourceMap;
 
     /**
      * Empty lineage for objects rooted in the URL.
@@ -74,6 +74,7 @@ public class ResourceLineage {
         addRecord(latest, latest.getType());
     }
 
+    @Override
     public int hashCode() {
         return new HashCodeBuilder(13, 123)
             .append(getKeys())
@@ -81,6 +82,7 @@ public class ResourceLineage {
             .toHashCode();
     }
 
+    @Override
     public boolean equals(Object input) {
         if (!(input instanceof ResourceLineage)) {
             return false;

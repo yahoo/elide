@@ -20,10 +20,10 @@ import java.util.List;
  * Serializer/Deserializer for JSON API.
  */
 public class JsonApiMapper {
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     /**
-     * Instantiates a new JSON API mapper.
+     * Instantiates a new JSON API OBJECT_MAPPER.
      *
      * @param dictionary the dictionary
      */
@@ -111,9 +111,9 @@ public class JsonApiMapper {
     }
 
     /**
-     * Gets object mapper.
+     * Gets object OBJECT_MAPPER.
      *
-     * @return the object mapper
+     * @return the object OBJECT_MAPPER
      */
     public ObjectMapper getObjectMapper() {
         return mapper;

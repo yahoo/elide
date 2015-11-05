@@ -14,8 +14,14 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class EntityDictionaryTest extends EntityDictionary {
     @BeforeTest
@@ -65,5 +71,41 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testComputedAttributeIsExposed() {
         List<String> attributes = getAttributes(User.class);
         Assert.assertTrue(attributes.contains("password"));
+    }
+
+    @Test
+    public void testGetIdAnnotations() throws Exception {
+
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
+        Collection<Class> actualAnnotationsClasses  = getIdAnnotations(new Parent()).stream()
+            .map(Annotation::annotationType)
+        .collect(Collectors.toList());
+
+        Assert.assertEquals(actualAnnotationsClasses, expectedAnnotationClasses,
+                "getIdAnnotations returns annotations on the ID field of the given class");
+    }
+
+    @Test
+    public void testGetIdAnnotationsNoId() throws Exception {
+
+        Collection<Annotation> expectedAnnotation = Collections.emptyList();
+        Collection<Annotation> actualAnnotations  = getIdAnnotations(new Object());
+
+        Assert.assertEquals(actualAnnotations, expectedAnnotation,
+                "getIdAnnotations returns an empty collection if there is no ID field for given class");
+    }
+
+    @Test
+    public void testGetIdAnnotationsSubClass() throws Exception {
+
+        class Friend extends Child { }
+
+        Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
+        Collection<Class> actualAnnotationsClasses  = getIdAnnotations(new Friend()).stream()
+                .map(Annotation::annotationType)
+        .collect(Collectors.toList());
+
+        Assert.assertEquals(actualAnnotationsClasses, expectedAnnotationClasses,
+                "getIdAnnotations returns annotations on the ID field when defined in a super class");
     }
 }

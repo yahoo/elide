@@ -26,9 +26,9 @@ import java.util.stream.Collectors;
  * Model representing JSON API Relationship.
  */
 public class Relationship {
-    private Map<String, String> links;
-    private Data<Resource> data; // NOTE: Our serializer handles resources so that's what we store
-    @JsonIgnore private Data<ResourceIdentifier> idData;
+    private final Map<String, String> links;
+    private final Data<Resource> data; // NOTE: Our serializer handles resources so that's what we store
+    @JsonIgnore private final Data<ResourceIdentifier> idData;
 
     // NOTE: We take in a Resource instead of ResourceIdentifier here due to a deserialization conflict
     public Relationship(@JsonProperty("links") Map<String, String> links,

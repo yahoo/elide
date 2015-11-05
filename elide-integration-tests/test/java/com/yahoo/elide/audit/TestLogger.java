@@ -6,18 +6,22 @@
 package com.yahoo.elide.audit;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Example Logger test.
  */
 public class TestLogger extends Logger {
+    public int commitCount = 0;
+    public int logCount = 0;
+
     @Override
-    public void commit() throws IOException {
+    public void log(LogMessage message) {
+        super.log(message);
+        logCount++;
     }
 
-    public List<LogMessage> getMessages() {
-        return new ArrayList<>(this.messages);
+    @Override
+    public void commit() throws IOException {
+        commitCount++;
     }
 }

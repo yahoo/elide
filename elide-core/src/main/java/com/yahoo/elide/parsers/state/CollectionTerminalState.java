@@ -30,13 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Collection State.
@@ -114,10 +114,7 @@ public class CollectionTerminalState extends BaseState {
         Preconditions.checkNotNull(collection);
         Preconditions.checkNotNull(user);
 
-        List<Resource> resources = new ArrayList<>();
-        for (PersistentResource r : collection) {
-            resources.add(r.toResource());
-        }
+        List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
         return new Data<>(resources);
     }
 
@@ -139,10 +136,6 @@ public class CollectionTerminalState extends BaseState {
         }
 
         String id = resource.getId();
-        if (id == null || id.isEmpty()) {
-            throw new ForbiddenAccessException();
-        }
-
         PersistentResource pResource;
         if (parent.isPresent()) {
             pResource = PersistentResource.createObject(parent.get(), entityClass, requestScope, id);
@@ -150,9 +143,11 @@ public class CollectionTerminalState extends BaseState {
             pResource = PersistentResource.createObject(entityClass, requestScope, id);
         }
 
-        Map<String, Object> attrs = resource.getAttributes();
-        if (attrs != null) {
-            for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+        assignId(pResource, id);
+
+        Map<String, Object> attributes = resource.getAttributes();
+        if (attributes != null) {
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
                 String key = entry.getKey();
                 Object val = entry.getValue();
                 pResource.updateAttribute(key, val);
@@ -172,5 +167,23 @@ public class CollectionTerminalState extends BaseState {
         }
 
         return pResource;
+    }
+
+    /**
+     * Assign provided id if id field is not generated
+     * @param persistentResource
+     * @param id
+     */
+    private void assignId(PersistentResource persistentResource, String id) {
+
+        //If id field is not a `@GeneratedValue` persist the provided id
+        if (!persistentResource.isIdGenerated()) {
+            if (id != null && !id.isEmpty()) {
+                persistentResource.setId(id);
+            } else {
+                //If expecting id to persist and id is not present, throw exception
+                throw new ForbiddenAccessException();
+            }
+        }
     }
 }

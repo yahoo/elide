@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide)
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Dependency Status](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99/badge.svg?style=flat)](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99)
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
@@ -11,7 +11,7 @@ To integrate Elide into your project, simply include elide-core into your projec
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-core</artifactId>
-    <version>1.0.0.1</version>
+    <version>1.0.0.3</version>
 </dependency>
 ```
 
@@ -21,7 +21,7 @@ Additionally, if you do not plan to write your own database manager, select the 
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-dbmanager-inmemorydb</artifactId>
-    <version>1.0.0.1</version>
+    <version>1.0.0.3</version>
 </dependency>
 ```
 

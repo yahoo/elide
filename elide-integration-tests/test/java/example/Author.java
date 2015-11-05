@@ -5,6 +5,7 @@
  */
 package example;
 
+import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
@@ -22,6 +23,10 @@ import java.util.Collection;
 @Entity
 @Table(name = "author")
 @Include(rootLevel = true)
+@Audit(action = Audit.Action.CREATE,
+        operation = 10,
+        logStatement = "{0}",
+        logExpressions = {"${author.name}"})
 public class Author {
     private long id;
     private String name;

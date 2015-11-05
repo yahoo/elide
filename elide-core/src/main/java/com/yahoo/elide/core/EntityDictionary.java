@@ -49,7 +49,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
-    private final static List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
     private final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Class<?>, String> bindEntityToJsonApi = new ConcurrentHashMap<>();
@@ -148,11 +148,12 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Class<?> cls, String relation) {
-        ConcurrentHashMap<String, RelationshipType> types = bindEntityToRelationshipTypes.get(lookupEntityClass(cls));
+        final ConcurrentHashMap<String, RelationshipType> types =
+                bindEntityToRelationshipTypes.get(lookupEntityClass(cls));
         if (types == null) {
             return RelationshipType.NONE;
         }
-        RelationshipType type = types.get(relation);
+        final RelationshipType type = types.get(relation);
         return (type == null) ? RelationshipType.NONE : type;
     }
 
@@ -163,9 +164,9 @@ public class EntityDictionary {
      * @return relation inverse
      */
     public String getRelationInverse(Class<?> cls, String relation) {
-        ConcurrentHashMap<String, String> mappings = bindEntityRelationshipToInverse.get(lookupEntityClass(cls));
+        final ConcurrentHashMap<String, String> mappings = bindEntityRelationshipToInverse.get(lookupEntityClass(cls));
         if (mappings != null) {
-            String mapping = mappings.get(relation);
+            final String mapping = mappings.get(relation);
 
             if (mapping != null && !mapping.equals("")) {
                 return mapping;
@@ -176,13 +177,13 @@ public class EntityDictionary {
          * This could be the owning side of the relation.  Let's see if the entity referenced in the relation
          * has a bidirectional reference that is mapped to the given relation.
          */
-        Class<?> inverseType = getParameterizedType(cls, relation);
-        ConcurrentHashMap<String, String> inverseMappings =
+        final Class<?> inverseType = getParameterizedType(cls, relation);
+        final ConcurrentHashMap<String, String> inverseMappings =
                 bindEntityRelationshipToInverse.get(lookupEntityClass(inverseType));
 
-        for (Map.Entry<String, String> inverseMapping: inverseMappings.entrySet()) {
-            String inverseRelationName = inverseMapping.getKey();
-            String inverseMappedBy = inverseMapping.getValue();
+        for (final Map.Entry<String, String> inverseMapping: inverseMappings.entrySet()) {
+            final String inverseRelationName = inverseMapping.getKey();
+            final String inverseMappedBy = inverseMapping.getValue();
 
             if (relation.equals(inverseMappedBy)
                     && getParameterizedType(inverseType, inverseRelationName).equals(lookupEntityClass(cls))) {
@@ -530,6 +531,28 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns annotations applied to the ID field
+     * @param value the value
+     * @return Collection of Annotations
+     */
+    public Collection<Annotation> getIdAnnotations(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        AccessibleObject idField = null;
+        for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
+            idField = bindIdField.get(cls);
+        }
+
+        if (idField != null) {
+            return Arrays.asList(idField.getDeclaredAnnotations());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Find an arbitrary method.
      *
      * @param entityClass the entity class
@@ -617,7 +640,7 @@ public class EntityDictionary {
         if (fieldOrMethod instanceof Field) {
             name = ((Field) fieldOrMethod).getName();
         } else {
-            Method method = ((Method) fieldOrMethod);
+            Method method = (Method) fieldOrMethod;
             name = method.getName();
             if (name.startsWith("get") && method.getParameterCount() == 0) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));

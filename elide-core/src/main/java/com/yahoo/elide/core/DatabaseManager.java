@@ -15,21 +15,21 @@ public interface DatabaseManager {
      *
      * @param dictionary the dictionary
      */
-    public void populateEntityDictionary(EntityDictionary dictionary);
+    void populateEntityDictionary(EntityDictionary dictionary);
 
     /**
      * Begin transaction.
      *
      * @return the database transaction
      */
-    public DatabaseTransaction beginTransaction();
+    DatabaseTransaction beginTransaction();
 
     /**
      * Begin read-only transaction.  Default to regular transaction.
      *
      * @return the database transaction
      */
-    default public DatabaseTransaction beginReadTransaction() {
+    default DatabaseTransaction beginReadTransaction() {
         return beginTransaction();
     }
 }

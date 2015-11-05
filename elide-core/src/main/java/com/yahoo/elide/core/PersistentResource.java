@@ -15,8 +15,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
-import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.audit.LoggerSingleton;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
@@ -33,6 +31,7 @@ import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.GeneratedValue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -66,7 +65,7 @@ public class PersistentResource<T> {
     private final User user;
     private final ObjectEntityCache entityCache;
     private final DatabaseTransaction transaction;
-    private final @NonNull RequestScope requestScope;
+    @NonNull private final RequestScope requestScope;
     private final Optional<PersistentResource<?>> parent;
 
     /**
@@ -75,12 +74,9 @@ public class PersistentResource<T> {
     protected final EntityDictionary dictionary;
 
     /* Sort strings first by length then contents */
-    private Comparator<String> comparator = new Comparator<String>() {
-        @Override
-        public int compare(String string1, String string2) {
-            int diff = string1.length() - string2.length();
-            return diff == 0 ? string1.compareTo(string2) : diff;
-        }
+    private Comparator<String> comparator = (string1, string2) -> {
+        int diff = string1.length() - string2.length();
+        return diff == 0 ? string1.compareTo(string2) : diff;
     };
 
     protected static final boolean ANY = true;
@@ -113,13 +109,10 @@ public class PersistentResource<T> {
         requestScope.getObjectEntityCache().put(type, uuid, newResource.getObject());
 
         // Initialize null ToMany collections
-        for (String relationName : requestScope.getDictionary().getRelationships(entityClass)) {
-            if (newResource.getRelationshipType(relationName).isToMany()
-                    && newResource.getValue(relationName) == null) {
-                newResource.setValue(relationName, new LinkedHashSet<>());
-            }
-        }
-
+        requestScope.getDictionary().getRelationships(entityClass).stream()
+                .filter(relationName -> newResource.getRelationshipType(relationName).isToMany()
+                && newResource.getValue(relationName) == null)
+                .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
         return newResource;
     }
 
@@ -132,7 +125,7 @@ public class PersistentResource<T> {
      * @return persistent resource
      */
     public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
-        return createObject((PersistentResource<?>) null, entityClass, requestScope, uuid);
+        return createObject(null, entityClass, requestScope, uuid);
     }
 
     /**
@@ -217,7 +210,7 @@ public class PersistentResource<T> {
      * @throws InvalidObjectIdentifierException the invalid object identifier exception
      */
     @SuppressWarnings("resource")
-    public static @NonNull <T> PersistentResource<T> loadRecord(
+    @NonNull public static <T> PersistentResource<T> loadRecord(
             Class<T> loadClass, String id, RequestScope requestScope)
             throws InvalidObjectIdentifierException {
         Preconditions.checkNotNull(loadClass);
@@ -251,7 +244,7 @@ public class PersistentResource<T> {
      * @param requestScope the request scope
      * @return a filtered collection of resources loaded from the DB.
      */
-    public static @NonNull <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
+    @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         User user = requestScope.getUser();
         DatabaseTransaction tx = requestScope.getTransaction();
 
@@ -368,7 +361,7 @@ public class PersistentResource<T> {
 
         deleted
                 .stream()
-                .forEach((toDelete) -> {
+                .forEach(toDelete -> {
                     checkPermission(UpdatePermission.class, this);
                     checkFieldPermission(UpdatePermission.class, this, fieldName);
                     checkPermission(DeletePermission.class, toDelete);
@@ -379,7 +372,7 @@ public class PersistentResource<T> {
 
         Sets.difference(updated, deleted)
                 .stream()
-                .forEach((toAdd) -> {
+                .forEach(toAdd -> {
                     addToCollection(collection, fieldName, toAdd);
                     addInverseRelation(fieldName, toAdd.getObject());
                     transaction.save(toAdd.getObject());
@@ -389,7 +382,7 @@ public class PersistentResource<T> {
         transaction.save(getObject());
         audit(fieldName);
 
-        return (updated.size() > 0);
+        return !updated.isEmpty();
     }
 
     /**
@@ -411,7 +404,7 @@ public class PersistentResource<T> {
             newValue = newResource.getObject();
         }
 
-        PersistentResource oldResource = mine.size() > 0 ? mine.iterator().next() : null;
+        PersistentResource oldResource = !mine.isEmpty() ? mine.iterator().next() : null;
 
         this.setValueChecked(fieldName, newValue);
 
@@ -451,9 +444,7 @@ public class PersistentResource<T> {
         RelationshipType type = getRelationshipType(relationName);
 
         mine.stream()
-                .forEach((toDelete) -> {
-                    deleteInverseRelation(relationName, toDelete.getObject());
-                });
+                .forEach(toDelete -> deleteInverseRelation(relationName, toDelete.getObject()));
 
         if (type.isToOne()) {
             PersistentResource oldValue = mine.iterator().next();
@@ -462,7 +453,7 @@ public class PersistentResource<T> {
         } else {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
-                    .forEach((toDelete) -> {
+                    .forEach(toDelete -> {
                         checkPermission(UpdatePermission.class, this);
                         checkFieldPermission(UpdatePermission.class, this, relationName);
                         checkPermission(DeletePermission.class, toDelete);
@@ -554,6 +545,34 @@ public class PersistentResource<T> {
         return dictionary.getId(getObject());
     }
 
+
+    /**
+     * Set resource ID.
+     *
+     * @param id resource id
+     */
+    public void setId(String id) {
+        this.setValue("id", id);
+    }
+
+    /**
+     * Indicates if the ID is generated or not
+     * @return Boolean
+     */
+    public Boolean isIdGenerated() {
+        return getIdAnnotations().stream().anyMatch(a ->
+                        a.annotationType().equals(GeneratedValue.class)
+        );
+    }
+
+    /**
+     * Returns annotations applied to the ID field
+     * @return Collection of Annotations
+     */
+    private Collection<Annotation> getIdAnnotations() {
+        return dictionary.getIdAnnotations(getObject());
+    }
+
     /**
      * Gets UUID.
      * @return the UUID
@@ -632,7 +651,7 @@ public class PersistentResource<T> {
 
         FilterScope filterScope = loadChecks(annotation, requestScope);
 
-        return (filterScope.getUserPermission() == DENY);
+        return filterScope.getUserPermission() == DENY;
     }
 
     /**
@@ -651,8 +670,7 @@ public class PersistentResource<T> {
      * @return Object value for attribute
      */
     public Object getAttribute(String attr) {
-        Object attribute = this.getValue(attr);
-        return attribute;
+        return this.getValue(attr);
     }
 
     /**
@@ -773,7 +791,7 @@ public class PersistentResource<T> {
             }
             Collection<Resource> resources = orderedById.values();
 
-            Data<Resource> data = null;
+            Data<Resource> data;
             RelationshipType relationshipType = getRelationshipType(field);
             if (relationshipType.isToOne()) {
                 data = resources.isEmpty() ? new Data<>((Resource) null) : new Data<>(resources.iterator().next());
@@ -918,13 +936,13 @@ public class PersistentResource<T> {
     }
 
     private Collection coerceCollection(Collection values, String fieldName, Class<?> fieldClass) {
-        Class<?> ptype = dictionary.getParameterizedType(obj, fieldName);
+        Class<?> providedType = dictionary.getParameterizedType(obj, fieldName);
 
         // check if collection is of and contains the correct types
         if (fieldClass.isAssignableFrom(values.getClass())) {
             boolean valid = true;
             for (Object member : values) {
-                if (member != null && !ptype.isAssignableFrom(member.getClass())) {
+                if (member != null && !providedType.isAssignableFrom(member.getClass())) {
                     valid = false;
                     break;
                 }
@@ -936,7 +954,7 @@ public class PersistentResource<T> {
 
         ArrayList<Object> list = new ArrayList<>(values.size());
         for (Object member : values) {
-            list.add(coerce(member, ptype));
+            list.add(coerce(member, providedType));
         }
 
         if (Set.class.isAssignableFrom(fieldClass)) {
@@ -1337,8 +1355,6 @@ public class PersistentResource<T> {
      * @param fieldName the field name
      */
     protected void audit(String fieldName) {
-        final Logger logger = LoggerSingleton.getLogger();
-
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
@@ -1350,9 +1366,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == Audit.Action.UPDATE) {
                 LogMessage message = new LogMessage(annotation, this);
-
-                // TODO - log user
-                logger.log(message);
+                getRequestScope().getLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
             }
@@ -1365,7 +1379,6 @@ public class PersistentResource<T> {
      * @param action the action
      */
     protected void audit(Audit.Action action) {
-        final Logger logger = LoggerSingleton.getLogger();
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {
@@ -1374,9 +1387,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == action) {
                 LogMessage message = new LogMessage(annotation, this);
-
-                // TODO - log user
-                logger.log(message);
+                getRequestScope().getLogger().log(message);
             }
         }
     }
@@ -1386,6 +1397,10 @@ public class PersistentResource<T> {
      * @return opaque user
      */
     public Object getOpaqueUser() {
+        if (getRequestScope().getUser() == null) {
+            return null;
+        }
+
         return getRequestScope().getUser().getOpaqueUser();
     }
 }

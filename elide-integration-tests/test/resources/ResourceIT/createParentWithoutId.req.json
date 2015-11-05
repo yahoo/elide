@@ -1,7 +1,6 @@
 {
     "data":{
         "type":"parent",
-        "id":16,
         "attributes":{
             "firstName":"omg. I have kidz."
         },
@@ -13,9 +12,6 @@
                         "id":"2"
                     }
                 ]
-            },
-            "spouses": {
-                "data": []
             }
         }
     }

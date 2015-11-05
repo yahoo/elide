@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,21 +25,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
 public class RequestScope {
-    private final @Getter JsonApiDocument jsonApiDocument;
-    private final @Getter DatabaseTransaction transaction;
-    private final @Getter User user;
-    private final @Getter EntityDictionary dictionary;
-    private final @Getter JsonApiMapper mapper;
-    private final @Getter Optional<MultivaluedMap<String, String>> queryParams;
-    private final @Getter Map<String, Set<String>> sparseFields;
-    private final @Getter ObjectEntityCache objectEntityCache;
-    private final @Getter SecurityMode securityMode;
+    @Getter private final JsonApiDocument jsonApiDocument;
+    @Getter private final DatabaseTransaction transaction;
+    @Getter private final User user;
+    @Getter private final EntityDictionary dictionary;
+    @Getter private final JsonApiMapper mapper;
+    @Getter private final Logger logger;
+    @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
+    @Getter private final Map<String, Set<String>> sparseFields;
+    @Getter private final ObjectEntityCache objectEntityCache;
+    @Getter private final SecurityMode securityMode;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
 
@@ -47,6 +47,7 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode) {
         this.jsonApiDocument = jsonApiDocument;
@@ -54,6 +55,7 @@ public class RequestScope {
         this.user = user;
         this.dictionary = dictionary;
         this.mapper = mapper;
+        this.logger = logger;
         this.queryParams = ((queryParams == null) || (queryParams.size() == 0)
                 ? Optional.empty() : Optional.ofNullable(queryParams));
         this.objectEntityCache = new ObjectEntityCache();
@@ -71,8 +73,9 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         SecurityMode securityMode) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, null, securityMode);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, securityMode);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -80,16 +83,18 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
+                        Logger logger,
                         MultivaluedMap<String, String> queryParams) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, queryParams, SecurityMode.ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, queryParams, SecurityMode.ACTIVE);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DatabaseTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
-                        JsonApiMapper mapper) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, null, SecurityMode.ACTIVE);
+                        JsonApiMapper mapper,
+                        Logger logger) {
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, SecurityMode.ACTIVE);
     }
 
     /**
@@ -99,8 +104,9 @@ public class RequestScope {
             DatabaseTransaction transaction,
             User user,
             EntityDictionary dictionary,
-            JsonApiMapper mapper) {
-        this(null, transaction, user, dictionary, mapper);
+            JsonApiMapper mapper,
+            Logger logger) {
+        this(null, transaction, user, dictionary, mapper, logger);
         this.deferredChecks = new LinkedHashSet<>();
     }
 
@@ -113,6 +119,7 @@ public class RequestScope {
         this.user = outerRequestScope.user;
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
+        this.logger = outerRequestScope.logger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
@@ -121,7 +128,7 @@ public class RequestScope {
     }
 
     /**
-     * Parses queryParams and produces sparseFields map
+     * Parses queryParams and produces sparseFields map.
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
@@ -155,11 +162,7 @@ public class RequestScope {
     public void runDeferredPermissionChecks() {
         if (deferredChecks != null) {
             try {
-                for (Runnable task : new ArrayList<>(deferredChecks)) {
-                    task.run();
-                }
-            } catch (RuntimeException e) {
-                throw e;
+                new ArrayList<>(deferredChecks).forEach(Runnable::run);
             } finally {
                 deferredChecks = null;
             }
@@ -192,11 +195,11 @@ public class RequestScope {
         }
     }
 
-    static private class CheckPermissions implements Runnable {
-        Class<? extends Check>[] anyChecks;
-        boolean any;
-        PersistentResource resource;
-        private Class<?> annotationClass;
+    private static class CheckPermissions implements Runnable {
+        final Class<? extends Check>[] anyChecks;
+        final boolean any;
+        final PersistentResource resource;
+        private final Class<?> annotationClass;
 
         public CheckPermissions(
                 Class<?> annotationClass,
