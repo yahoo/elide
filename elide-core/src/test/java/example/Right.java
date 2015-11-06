@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,6 +26,7 @@ import javax.persistence.Table;
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
 @Entity
+@Shareable
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
     @JsonIgnore

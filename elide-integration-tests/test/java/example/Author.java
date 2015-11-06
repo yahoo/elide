@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Shareable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,6 +28,7 @@ import java.util.Collection;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
+@Shareable
 public class Author {
     private long id;
     private String name;

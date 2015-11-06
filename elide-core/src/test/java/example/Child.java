@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 
@@ -26,6 +27,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
 @Entity
+@Shareable
 @CreatePermission(any = { InitCheck.class })
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
 @Include

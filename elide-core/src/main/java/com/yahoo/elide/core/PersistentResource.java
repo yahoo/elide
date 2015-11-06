@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -113,6 +114,10 @@ public class PersistentResource<T> {
                 .filter(relationName -> newResource.getRelationshipType(relationName).isToMany()
                 && newResource.getValue(relationName) == null)
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
+
+        // Keep track of new resources for non shareable resources
+        requestScope.getNewResources().add(newResource);
+
         return newResource;
     }
 
@@ -312,6 +317,7 @@ public class PersistentResource<T> {
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
+        checkShareable(resourceIdentifiers);
         RelationshipType type = getRelationshipType(fieldName);
         if (type.isToMany()) {
             return updateToManyRelation(fieldName, resourceIdentifiers);
@@ -505,6 +511,7 @@ public class PersistentResource<T> {
     public void addRelation(String fieldName, PersistentResource newRelation) {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
+        checkShareable(Collections.singleton(newRelation));
         Object relation = this.getValue(fieldName);
 
         if (relation instanceof Collection) {
@@ -519,6 +526,34 @@ public class PersistentResource<T> {
         audit(fieldName);
     }
 
+    /**
+     * Check if adding or updating a relation is allowed.
+     *
+     * @param resourceIdentifiers The persistent resources that are being added
+     * @throws ForbiddenAccessException if the resource is not @Shareable or hasn't been created in this request
+     */
+    protected void checkShareable(Set<PersistentResource> resourceIdentifiers) {
+        if (resourceIdentifiers == null) {
+            return;
+        }
+
+        final Set<PersistentResource> newResources = getRequestScope().getNewResources();
+
+        for (PersistentResource persistentResource : resourceIdentifiers) {
+            if (!persistentResource.hasShareableAnnotation() && !newResources.contains(persistentResource)) {
+                throw new ForbiddenAccessException();
+            }
+        }
+    }
+
+    /**
+     * Checks if this persistent resource's underlying entity has the @Shareable annotation.
+     *
+     * @return true if this persistent resource's entity has the @Shareable annotation
+     */
+    private boolean hasShareableAnnotation() {
+        return getRequestScope().getDictionary().getAnnotation(obj.getClass(), Shareable.class) != null;
+    }
 
     /**
      * Delete an existing entity.
