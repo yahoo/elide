@@ -38,7 +38,7 @@ Elide is designed to quickly build and deploy **production quality** web service
   7. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.
 
 ##More Information
-More information about Elide can be found at [www.elide.io](http://www.elide.io/).
+More information about Elide can be found at [elide.io](http://elide.io/).
 
 ##Getting Started
 
