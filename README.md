@@ -37,6 +37,9 @@ Elide is designed to quickly build and deploy **production quality** web service
   6. **Extension** Elide allows the ability to add custom business logic and replaceable JPA provider (from the default Hibernate provider).
   7. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.
 
+##More Information
+More information about Elide can be found at [www.elide.io](http://www.elide.io/).
+
 ##Getting Started
 
 ###Prerequisites
@@ -72,6 +75,7 @@ It returns a `ElideResponse` which contains the HTTP response status code and a 
     ElideResponse response = elide.post(path, requestBody, user)
 
 Wire up the four HTTP verbs to your container and you will have a functioning JSON API server.
+
 
 ##License
 
