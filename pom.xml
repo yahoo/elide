@@ -75,6 +75,7 @@
         <checkstyle.version>6.12</checkstyle.version>
         <surefire.plugin.version>2.19</surefire.plugin.version>
         <testng.version>6.9.9</testng.version>
+        <groovy.version>2.4.5</groovy.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -153,6 +154,12 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>2.0.13-beta</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>${groovy.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -253,6 +260,24 @@
                             <id>attach-javadocs</id>
                             <goals>
                                 <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.gmaven</groupId>
+                    <artifactId>gmaven-plugin</artifactId>
+                    <version>1.5</version>
+                    <configuration>
+                        <providerSelection>2.0</providerSelection>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>generateStubs</goal>
+                                <goal>compile</goal>
+                                <goal>generateTestStubs</goal>
+                                <goal>testCompile</goal>
                             </goals>
                         </execution>
                     </executions>

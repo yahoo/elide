@@ -39,6 +39,7 @@ public class RequestScope {
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
+    @Getter private final Set<PersistentResource> newResources;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
 
@@ -66,6 +67,8 @@ public class RequestScope {
         } else {
             sparseFields = Collections.emptyMap();
         }
+
+        newResources = new LinkedHashSet<>();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -125,6 +128,7 @@ public class RequestScope {
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
         this.deferredChecks = outerRequestScope.deferredChecks;
+        this.newResources = outerRequestScope.newResources;
     }
 
     /**

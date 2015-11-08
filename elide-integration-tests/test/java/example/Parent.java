@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
@@ -33,6 +34,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Parent test bean.
  */
+@Shareable
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
