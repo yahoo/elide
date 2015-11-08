@@ -236,7 +236,6 @@ public class Elide {
         } catch (HttpStatusException e) {
             return buildErrorResponse(e);
         } catch (ParseCancellationException e) {
-            e.printStackTrace();
             return buildErrorResponse(new InvalidURLException(e));
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e));

@@ -540,7 +540,7 @@ public class PersistentResource<T> {
         final Set<PersistentResource> newResources = getRequestScope().getNewResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
-            if (!persistentResource.hasShareableAnnotation() && !newResources.contains(persistentResource)) {
+            if (!persistentResource.isShareable() && !newResources.contains(persistentResource)) {
                 throw new ForbiddenAccessException();
             }
         }
@@ -551,7 +551,7 @@ public class PersistentResource<T> {
      *
      * @return true if this persistent resource's entity has the @Shareable annotation
      */
-    private boolean hasShareableAnnotation() {
+    private boolean isShareable() {
         return getRequestScope().getDictionary().getAnnotation(obj.getClass(), Shareable.class) != null;
     }
 

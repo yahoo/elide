@@ -169,8 +169,6 @@ public class BookAuthorIT extends AHibernateTest {
                         .param("include", "authors")
                         .get("/book").asString());
 
-        System.out.println(responseBody);
-
         Assert.assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
