@@ -342,8 +342,7 @@ public class EntityDictionary {
      * @return true if entityClass is sharable.  False otherwise.
      */
     public boolean isSharable(Class<?> entityClass) {
-        Annotation annotation = getFirstAnnotation(entityClass, Arrays.asList(Include.class));
-        Include include = annotation instanceof Include ? (Include) annotation : null;
+        Include include = (Include) getFirstAnnotation(entityClass, Arrays.asList(Include.class));
         if (include == null) {
             return false;
         } else {
