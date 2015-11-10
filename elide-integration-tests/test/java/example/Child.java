@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 import example.Child.InitCheck;
@@ -31,8 +32,9 @@ import java.util.Set;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @CreatePermission(any = { InitCheck.class })
+@SharePermission(any = { Role.ALL.class })
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
-@Include(shareable = true)
+@Include
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -338,16 +339,12 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not an entity is shareable
-     * @param entityClass the entity type to check for the shareable flag
+     * @param entityClass the entity type to check for the shareable permissions
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        Include include = (Include) getFirstAnnotation(entityClass, Arrays.asList(Include.class));
-        if (include == null) {
-            return false;
-        } else {
-            return include.shareable();
-        }
+        SharePermission share = (SharePermission) getFirstAnnotation(entityClass, Arrays.asList(SharePermission.class));
+        return (share != null);
     }
 
     /**

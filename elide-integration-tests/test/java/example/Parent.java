@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
@@ -33,9 +34,10 @@ import java.util.Set;
  */
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
+@SharePermission(any = { Role.ALL.class })
 @UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
 @DeletePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@Include(rootLevel = true, type = "parent", shareable = true) // optional here because class has this name
+@Include(rootLevel = true, type = "parent") // optional here because class has this name
 // Hibernate
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

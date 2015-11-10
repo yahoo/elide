@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -316,7 +317,7 @@ public class PersistentResource<T> {
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
-        checkShareable(resourceIdentifiers);
+        checkSharePermission(resourceIdentifiers);
         RelationshipType type = getRelationshipType(fieldName);
         if (type.isToMany()) {
             return updateToManyRelation(fieldName, resourceIdentifiers);
@@ -510,7 +511,7 @@ public class PersistentResource<T> {
     public void addRelation(String fieldName, PersistentResource newRelation) {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
-        checkShareable(Collections.singleton(newRelation));
+        checkSharePermission(Collections.singleton(newRelation));
         Object relation = this.getValue(fieldName);
 
         if (relation instanceof Collection) {
@@ -529,9 +530,8 @@ public class PersistentResource<T> {
      * Check if adding or updating a relation is allowed.
      *
      * @param resourceIdentifiers The persistent resources that are being added
-     * @throws ForbiddenAccessException if the resource is not shareable or hasn't been created in this request
      */
-    protected void checkShareable(Set<PersistentResource> resourceIdentifiers) {
+    protected void checkSharePermission(Set<PersistentResource> resourceIdentifiers) {
         if (resourceIdentifiers == null) {
             return;
         }
@@ -539,8 +539,8 @@ public class PersistentResource<T> {
         final Set<PersistentResource> newResources = getRequestScope().getNewResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
-            if (!persistentResource.isShareable() && !newResources.contains(persistentResource)) {
-                throw new ForbiddenAccessException();
+            if (!newResources.contains(persistentResource)) {
+                checkPermission(SharePermission.class, persistentResource);
             }
         }
     }

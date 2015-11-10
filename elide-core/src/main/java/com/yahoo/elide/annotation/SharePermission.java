@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.annotation;
 
+import com.yahoo.elide.security.Check;
+
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -14,22 +16,25 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Allows access to given entity.
+ * A permission that is checked whenever an object is loaded without the context of a lineage and assigned
+ * to a relationship or collection.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)
 @Inherited
-public @interface Include {
+public @interface SharePermission {
 
     /**
-     * (Optional) Whether or not the entity can be accessed at the root URL path (i.e. /company)
-     * @return the boolean
+     * Any one of these checks must pass.
+     *
+     * @return the class [ ]
      */
-    boolean rootLevel() default false;
+    Class<? extends Check>[] any() default {};
 
     /**
-     * The type of the JsonApi object. Defaults to the simple name of the entity class.
-     * @return the string
+     * All of these checks must pass.
+     *
+     * @return the class [ ]
      */
-    String type() default "";
+    Class<? extends Check>[] all() default {};
 }

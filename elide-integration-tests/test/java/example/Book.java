@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -21,8 +22,9 @@ import java.util.Collection;
  * Model for books.
  */
 @Entity
+@SharePermission(any = {Role.ALL.class})
 @Table(name = "book")
-@Include(rootLevel = true, shareable = true)
+@Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

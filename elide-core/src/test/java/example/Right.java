@@ -7,6 +7,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.CascadeType;
@@ -21,7 +22,8 @@ import javax.persistence.Table;
 import java.util.Set;
 
 
-@Include(rootLevel = true, shareable = true, type = "right") // optional here because class has this name
+@Include(rootLevel = true, type = "right") // optional here because class has this name
+@SharePermission(any = {Role.ALL.class})
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
