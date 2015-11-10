@@ -1,6 +1,7 @@
 package com.yahoo.elide.example.persistence.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,8 +16,9 @@ import java.util.Collection;
  * Model for authors
  */
 @Entity
+@SharePermission
 @Table(name = "author")
-@Include(rootLevel = true, shareable = true)
+@Include(rootLevel = true)
 public class Author {
     private long id;
     private String name;
