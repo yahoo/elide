@@ -5,19 +5,18 @@
  */
 package com.yahoo.elide.dbmanager.InMemory;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
 import com.yahoo.elide.core.DatabaseTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
-
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * InMemoryDB tests.

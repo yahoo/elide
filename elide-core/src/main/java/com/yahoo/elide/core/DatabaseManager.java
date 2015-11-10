@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 /**
  * Database interface library.
  */
@@ -25,11 +27,12 @@ public interface DatabaseManager {
     DatabaseTransaction beginTransaction();
 
     /**
-     * Begin read-only transaction.  Default to regular transaction.
+     * Begin read-only transaction.
+     * Default to regular transaction.
      *
      * @return the database transaction
      */
-    default DatabaseTransaction beginReadTransaction() {
+    default DatabaseTransaction beginReadTransaction(MultivaluedMap<String, String> queryParams) {
         return beginTransaction();
     }
 }

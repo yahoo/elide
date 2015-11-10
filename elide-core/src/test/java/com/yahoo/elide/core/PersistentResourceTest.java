@@ -988,7 +988,7 @@ public class PersistentResourceTest extends PersistentResource {
         DatabaseTransaction tx = mock(DatabaseTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObjects(eq(Child.class), anyObject()))
+        when(tx.loadObjects(eq(Child.class), (FilterScope) anyObject()))
             .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
