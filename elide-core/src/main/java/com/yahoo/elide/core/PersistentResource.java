@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -530,7 +529,7 @@ public class PersistentResource<T> {
      * Check if adding or updating a relation is allowed.
      *
      * @param resourceIdentifiers The persistent resources that are being added
-     * @throws ForbiddenAccessException if the resource is not @Shareable or hasn't been created in this request
+     * @throws ForbiddenAccessException if the resource is not sharable or hasn't been created in this request
      */
     protected void checkShareable(Set<PersistentResource> resourceIdentifiers) {
         if (resourceIdentifiers == null) {
@@ -547,12 +546,12 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Checks if this persistent resource's underlying entity has the @Shareable annotation.
+     * Checks if this persistent resource's underlying entity is sharable.
      *
-     * @return true if this persistent resource's entity has the @Shareable annotation
+     * @return true if this persistent resource's entity is sharable.
      */
     private boolean isShareable() {
-        return getRequestScope().getDictionary().getAnnotation(obj.getClass(), Shareable.class) != null;
+        return getRequestScope().getDictionary().isSharable(obj.getClass());
     }
 
     /**

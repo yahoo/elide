@@ -8,7 +8,9 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ReadPermission;
 import example.Child;
 import example.FunWithPermissions;
+import example.Left;
 import example.Parent;
+import example.Right;
 import example.User;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -17,10 +19,10 @@ import org.testng.annotations.Test;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class EntityDictionaryTest extends EntityDictionary {
@@ -30,6 +32,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(Parent.class);
         this.bindEntity(Child.class);
         this.bindEntity(User.class);
+        this.bindEntity(Left.class);
+        this.bindEntity(Right.class);
     }
 
     @Test
@@ -107,5 +111,15 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(actualAnnotationsClasses, expectedAnnotationClasses,
                 "getIdAnnotations returns annotations on the ID field when defined in a super class");
+    }
+
+    @Test
+    public void testIsSharableTrue() throws Exception {
+        Assert.assertTrue(isSharable(Right.class));
+    }
+
+    @Test
+    public void testIsSharableFalse() throws Exception {
+        Assert.assertFalse(isSharable(Left.class));
     }
 }

@@ -5,18 +5,14 @@
  */
 package example;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.Shareable;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import example.Child.InitCheck;
-
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,12 +21,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import java.util.Set;
 
 @Entity
-@Shareable
 @CreatePermission(any = { InitCheck.class })
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
-@Include
+@Include(sharable = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

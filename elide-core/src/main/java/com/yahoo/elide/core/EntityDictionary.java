@@ -337,6 +337,21 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns whether or not an entity is sharable
+     * @param entityClass the entity type to check for the sharable flag
+     * @return true if entityClass is sharable.  False otherwise.
+     */
+    public boolean isSharable(Class<?> entityClass) {
+        Annotation annotation = getFirstAnnotation(entityClass, Arrays.asList(Include.class));
+        Include include = annotation instanceof Include ? (Include) annotation : null;
+        if (include == null) {
+            return false;
+        } else {
+            return include.sharable();
+        }
+    }
+
+    /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
