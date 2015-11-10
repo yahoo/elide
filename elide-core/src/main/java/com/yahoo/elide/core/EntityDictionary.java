@@ -337,16 +337,16 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns whether or not an entity is sharable
-     * @param entityClass the entity type to check for the sharable flag
-     * @return true if entityClass is sharable.  False otherwise.
+     * Returns whether or not an entity is shareable
+     * @param entityClass the entity type to check for the shareable flag
+     * @return true if entityClass is shareable.  False otherwise.
      */
-    public boolean isSharable(Class<?> entityClass) {
+    public boolean isShareable(Class<?> entityClass) {
         Include include = (Include) getFirstAnnotation(entityClass, Arrays.asList(Include.class));
         if (include == null) {
             return false;
         } else {
-            return include.sharable();
+            return include.shareable();
         }
     }
 

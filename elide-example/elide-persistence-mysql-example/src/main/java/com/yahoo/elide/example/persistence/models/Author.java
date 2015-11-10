@@ -16,7 +16,7 @@ import java.util.Collection;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true, sharable = true)
+@Include(rootLevel = true, shareable = true)
 public class Author {
     private long id;
     private String name;

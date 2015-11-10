@@ -26,7 +26,7 @@ import java.util.Set;
 @Entity
 @CreatePermission(any = { InitCheck.class })
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
-@Include(sharable = true)
+@Include(shareable = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

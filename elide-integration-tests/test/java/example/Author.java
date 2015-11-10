@@ -22,7 +22,7 @@ import java.util.Collection;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true, sharable = true)
+@Include(rootLevel = true, shareable = true)
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

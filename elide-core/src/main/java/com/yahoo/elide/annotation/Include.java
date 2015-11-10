@@ -31,7 +31,7 @@ public @interface Include {
      * (Optional) Whether or not an existing instance of this entity can be added to another collection or relationship.
      * @return the boolean
      */
-    boolean sharable() default false;
+    boolean shareable() default false;
 
     /**
      * The type of the JsonApi object. Defaults to the simple name of the entity class.

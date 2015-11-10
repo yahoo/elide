@@ -35,7 +35,7 @@ import java.util.Set;
 @ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
 @DeletePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@Include(rootLevel = true, type = "parent", sharable = true) // optional here because class has this name
+@Include(rootLevel = true, type = "parent", shareable = true) // optional here because class has this name
 // Hibernate
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

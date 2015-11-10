@@ -21,7 +21,7 @@ import javax.persistence.Table;
 import java.util.Set;
 
 
-@Include(rootLevel = true, sharable = true, type = "right") // optional here because class has this name
+@Include(rootLevel = true, shareable = true, type = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {

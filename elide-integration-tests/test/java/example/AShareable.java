@@ -19,7 +19,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "shareable")
-@Include(rootLevel = true, sharable = true, type = "shareable")
+@Include(rootLevel = true, shareable = true, type = "shareable")
 public class AShareable {
     private long id;
     private Container container;

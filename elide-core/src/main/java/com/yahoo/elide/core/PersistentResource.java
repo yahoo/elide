@@ -529,7 +529,7 @@ public class PersistentResource<T> {
      * Check if adding or updating a relation is allowed.
      *
      * @param resourceIdentifiers The persistent resources that are being added
-     * @throws ForbiddenAccessException if the resource is not sharable or hasn't been created in this request
+     * @throws ForbiddenAccessException if the resource is not shareable or hasn't been created in this request
      */
     protected void checkShareable(Set<PersistentResource> resourceIdentifiers) {
         if (resourceIdentifiers == null) {
@@ -546,12 +546,12 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Checks if this persistent resource's underlying entity is sharable.
+     * Checks if this persistent resource's underlying entity is shareable.
      *
-     * @return true if this persistent resource's entity is sharable.
+     * @return true if this persistent resource's entity is shareable.
      */
     private boolean isShareable() {
-        return getRequestScope().getDictionary().isSharable(obj.getClass());
+        return getRequestScope().getDictionary().isShareable(obj.getClass());
     }
 
     /**
