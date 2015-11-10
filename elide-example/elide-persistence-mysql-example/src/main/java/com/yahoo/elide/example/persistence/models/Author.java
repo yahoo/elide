@@ -1,7 +1,6 @@
 package com.yahoo.elide.example.persistence.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Shareable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,8 +16,7 @@ import java.util.Collection;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true)
-@Shareable
+@Include(rootLevel = true, shareable = true)
 public class Author {
     private long id;
     private String name;

@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Shareable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,12 +15,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Shareable bean.
+ * A shareable bean.
  */
 @Entity
-@Shareable
 @Table(name = "shareable")
-@Include(rootLevel = true, type = "shareable")
+@Include(rootLevel = true, shareable = true, type = "shareable")
 public class AShareable {
     private long id;
     private Container container;

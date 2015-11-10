@@ -5,13 +5,9 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Shareable;
-import com.yahoo.elide.annotation.UpdatePermission;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.Set;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -22,11 +18,11 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.Set;
 
 
-@Include(rootLevel = true, type = "right") // optional here because class has this name
+@Include(rootLevel = true, shareable = true, type = "right") // optional here because class has this name
 @Entity
-@Shareable
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
     @JsonIgnore
