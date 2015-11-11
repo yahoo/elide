@@ -8,6 +8,7 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.security.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

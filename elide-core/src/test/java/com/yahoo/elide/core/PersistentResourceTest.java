@@ -31,7 +31,7 @@ import example.NoReadEntity;
 import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
-import example.Role;
+import com.yahoo.elide.security.Role;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

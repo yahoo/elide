@@ -3,17 +3,15 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example;
-
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.UserCheck;
+package com.yahoo.elide.security;
 
 /**
- * Example UserCheck beans.
+ * Simple checks to always grant or deny.
  */
 public class Role {
+
     /**
-     * Allow check.
+     * Check which always grants.
      */
     public static class ALL implements UserCheck {
         @Override
@@ -23,8 +21,8 @@ public class Role {
     }
 
     /**
-     * Deny check.
-     * */
+     * Check which always denies.
+     */
     public static class NONE implements UserCheck {
         @Override
         public UserPermission userPermission(User user) {

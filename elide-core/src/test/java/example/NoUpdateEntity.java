@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.security.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

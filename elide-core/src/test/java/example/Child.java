@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.Role;
 import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;

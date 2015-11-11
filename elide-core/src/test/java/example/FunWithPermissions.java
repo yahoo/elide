@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.security.Role;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
