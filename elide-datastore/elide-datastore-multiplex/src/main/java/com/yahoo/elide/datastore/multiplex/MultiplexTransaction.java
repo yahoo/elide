@@ -12,6 +12,7 @@ import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 
 /**
@@ -58,7 +59,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, String id) {
+    public <T> T loadObject(Class<T> loadClass, Serializable id) {
         return getTransaction(loadClass).loadObject(loadClass, id);
     }
 

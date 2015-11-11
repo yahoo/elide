@@ -34,6 +34,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
 import javax.persistence.GeneratedValue;
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -232,7 +233,8 @@ public class PersistentResource<T> {
         T obj = (T) cache.get(dictionary.getBinding(loadClass), id);
         if (obj == null) {
             // try to load object
-            obj = tx.loadObject(loadClass, id);
+            Class<?> idType = dictionary.getIdType(loadClass);
+            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType));
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id);
             }
@@ -591,7 +593,6 @@ public class PersistentResource<T> {
     public String getId() {
         return dictionary.getId(getObject());
     }
-
 
     /**
      * Set resource ID.

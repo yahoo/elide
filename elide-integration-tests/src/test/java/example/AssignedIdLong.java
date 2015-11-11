@@ -15,19 +15,19 @@ import javax.persistence.Table;
  * Test Bean without GeneratedValue Id.
  */
 @Entity
-@Table(name = "assigned_id")
+@Table(name = "assigned_id_long")
 @Include(rootLevel = true)
-public class AssignedId {
+public class AssignedIdLong {
 
-    String id;
+    long id;
     int value;
 
     @Id
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 

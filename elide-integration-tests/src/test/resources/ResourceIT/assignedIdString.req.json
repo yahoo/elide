@@ -1,6 +1,7 @@
 {
     "data":{
         "type":"assignedIdString",
+        "id":"user1",
         "attributes": {
             "value": 22
         }

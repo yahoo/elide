@@ -17,6 +17,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import javax.persistence.Entity;
 
@@ -73,7 +74,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> entityClass, String id) {
+    public <T> T loadObject(Class<T> entityClass, Serializable id) {
         throw new TransactionException(null);
     }
 

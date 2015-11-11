@@ -311,7 +311,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         Relationship ids = new Relationship(null, new Data<>(new ResourceIdentifier("right", "3").castToResource()));
 
-        when(tx.loadObject(Right.class, "3")).thenReturn(right);
+        when(tx.loadObject(Right.class, 3L)).thenReturn(right);
         boolean updated = leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
         verify(tx).save(left);
         verify(tx).save(right);
@@ -369,11 +369,11 @@ public class PersistentResourceTest extends PersistentResource {
         Relationship ids = new Relationship(null, new Data<>(idList));
 
 
-        when(tx.loadObject(Child.class, "2")).thenReturn(child2);
-        when(tx.loadObject(Child.class, "3")).thenReturn(child3);
-        when(tx.loadObject(Child.class, "-4")).thenReturn(child4);
-        when(tx.loadObject(Child.class, "-5")).thenReturn(child5);
-        when(tx.loadObject(Child.class, "6")).thenReturn(child6);
+        when(tx.loadObject(Child.class, 2L)).thenReturn(child2);
+        when(tx.loadObject(Child.class, 3L)).thenReturn(child3);
+        when(tx.loadObject(Child.class, -4L)).thenReturn(child4);
+        when(tx.loadObject(Child.class, -5L)).thenReturn(child5);
+        when(tx.loadObject(Child.class, 6L)).thenReturn(child6);
 
         //Final set after operation = (3,4,5,6)
         Set<Child> expected = new HashSet<>();
@@ -1067,7 +1067,7 @@ public class PersistentResourceTest extends PersistentResource {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObject(Child.class, "1")).thenReturn(child1);
+        when(tx.loadObject(Child.class, 1L)).thenReturn(child1);
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(Child.class, "1", goodScope);
@@ -1095,7 +1095,7 @@ public class PersistentResourceTest extends PersistentResource {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObject(NoReadEntity.class, "1")).thenReturn(noRead);
+        when(tx.loadObject(NoReadEntity.class, 1L)).thenReturn(noRead);
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<NoReadEntity> loaded = PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope);

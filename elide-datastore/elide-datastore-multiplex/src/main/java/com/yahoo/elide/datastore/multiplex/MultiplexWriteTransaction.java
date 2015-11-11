@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, String id) {
+    public <T> T loadObject(Class<T> loadClass, Serializable id) {
         DataStoreTransaction transaction = getTransaction(loadClass);
         return hold(transaction, transaction.loadObject(loadClass, id));
     }

@@ -51,8 +51,10 @@ class EntityBinding {
     public final ConcurrentHashMap<String, RelationshipType> relationshipTypes;
     public final ConcurrentHashMap<String, String> relationshipToInverse;
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
+    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes;
     public final ConcurrentHashMap<String, String> aliasesToFields;
     @Getter private AccessibleObject idField;
+    @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
 
     public final static EntityBinding EMPTY_BINDING = new EntityBinding();
@@ -61,6 +63,7 @@ class EntityBinding {
     private EntityBinding() {
         jsonApi = null;
         idField = null;
+        idType = null;
         attrsDeque = null;
         attrs = null;
         relationshipsDeque = null;
@@ -68,6 +71,7 @@ class EntityBinding {
         relationshipTypes = null;
         relationshipToInverse = null;
         fieldsToValues = null;
+        fieldsToTypes = null;
         aliasesToFields = null;
     }
 
@@ -84,6 +88,7 @@ class EntityBinding {
         relationshipTypes = new ConcurrentHashMap<>();
         relationshipToInverse = new ConcurrentHashMap<>();
         fieldsToValues = new ConcurrentHashMap<>();
+        fieldsToTypes = new ConcurrentHashMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
 
@@ -130,16 +135,19 @@ class EntityBinding {
      * @param fieldOrMethod Field or method to bind
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
-        if (idField != null && !fieldOrMethod.equals(idField)) {
-            String name;
-            if (fieldOrMethod instanceof Field) {
-                name = ((Field) fieldOrMethod).getName();
-            } else {
-                name = ((Method) fieldOrMethod).getName();
-            }
-            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + name);
-        }
+        String fieldName = getFieldName(fieldOrMethod);
+        Class<?> fieldType = getFieldType(fieldOrMethod);
+
+        //Add id field to type map for the entity
+        fieldsToTypes.put(fieldName, fieldType);
+
+        //Set id field & type
         idField = fieldOrMethod;
+        idType  = fieldType;
+
+        if (idField != null && !fieldOrMethod.equals(idField)) {
+            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + fieldName);
+        }
     }
 
     /**
@@ -168,23 +176,14 @@ class EntityBinding {
         boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
         boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne;
 
-        String name;
-        if (fieldOrMethod instanceof Field) {
-            name = ((Field) fieldOrMethod).getName();
-        } else {
-            Method method = (Method) fieldOrMethod;
-            name = method.getName();
-            if (name.startsWith("get") && method.getParameterCount() == 0) {
-                name = WordUtils.uncapitalize(name.substring("get".length()));
-            } else if (name.startsWith("is") && method.getParameterCount() == 0) {
-                name = WordUtils.uncapitalize(name.substring("is".length()));
-            } else {
-                return;
-            }
-            if (name.equals("id") || name.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
-                return; // Reserved. Not attributes.
-            }
+        String fieldName = getFieldName(fieldOrMethod);
+
+        if (fieldName == null || fieldName.equals("id")
+                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
+            return; // Reserved. Not attributes.
         }
+
+        Class<?> fieldType = getFieldType(fieldOrMethod);
 
         ConcurrentLinkedDeque<String> fieldList;
         if (isRelation) {
@@ -207,14 +206,50 @@ class EntityBinding {
                 type = RelationshipType.NONE;
                 mappedBy = "";
             }
-            relationshipTypes.put(name, type);
-            relationshipToInverse.put(name, mappedBy);
+            relationshipTypes.put(fieldName, type);
+            relationshipToInverse.put(fieldName, mappedBy);
         } else {
             fieldList = attrsDeque;
         }
 
-        fieldList.push(name);
+        fieldList.push(fieldName);
+        fieldsToValues.put(fieldName, fieldOrMethod);
+        fieldsToTypes.put(fieldName, fieldType);
+    }
 
-        fieldsToValues.put(name, fieldOrMethod);
+    /**
+     * Returns name of field whether public member or method
+     * @param fieldOrMethod
+     * @return
+     */
+    private static String getFieldName(AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Field) {
+            return ((Field) fieldOrMethod).getName();
+        } else {
+            Method method = (Method) fieldOrMethod;
+            String name   = method.getName();
+
+            if (name.startsWith("get") && method.getParameterCount() == 0) {
+                name = WordUtils.uncapitalize(name.substring("get".length()));
+            } else if (name.startsWith("is") && method.getParameterCount() == 0) {
+                name = WordUtils.uncapitalize(name.substring("is".length()));
+            } else {
+                return null;
+            }
+            return name;
+        }
+    }
+
+    /**
+     * Returns type of field whether public member or method
+     * @param fieldOrMethod
+     * @return
+     */
+    private static Class<?> getFieldType(AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Field) {
+            return ((Field) fieldOrMethod).getType();
+        } else {
+            return ((Method) fieldOrMethod).getReturnType();
+        }
     }
 }
