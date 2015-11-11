@@ -28,5 +28,10 @@
             <class name="com.yahoo.elide.endpoints.BookAuthorIT" />
         </classes>
     </test> <!-- Test -->
+    <test name="com.yahoo.elide.tests.ShareableIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.ShareableIT" />
+        </classes>
+    </test> <!-- Test -->
     <!--// END Integration tests -->
 </suite> <!-- Suite -->
