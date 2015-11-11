@@ -5,23 +5,14 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -30,16 +21,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.persistence.Entity;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -50,35 +41,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
-    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
-
-    private final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, String> bindEntityToJsonApi = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, AccessibleObject> bindIdField = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, Initializer<?>> initializers = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<String>>
-        bindEntityToAttrsDeque = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, List<String>>
-        bindEntityToAttrs = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentLinkedDeque<String>>
-        bindEntityToRelationshipsDeque = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, List<String>>
-        bindEntityToRelationships = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, RelationshipType>>
-        bindEntityToRelationshipTypes = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, String>>
-        bindEntityRelationshipToInverse = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, AccessibleObject>>
-        bindEntityFieldsToValues = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, String>>
-        bindEntityAliasesToFields = new ConcurrentHashMap<>();
-    private final CopyOnWriteArrayList<Class<?>>  bindEntityRoots = new CopyOnWriteArrayList<>();
+    protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    protected final CopyOnWriteArrayList<Class<?>>  bindEntityRoots = new CopyOnWriteArrayList<>();
 
     /**
      * Instantiates a new Entity dictionary.
      */
     public EntityDictionary() {
         // Do nothing
+    }
+
+    protected EntityBinding entityBinding(Class<?> entityClass) {
+        EntityBinding entityBinding = entityBindings.get(lookupEntityClass(entityClass));
+        return entityBinding == null ? EntityBinding.EMPTY_BINDING : entityBinding;
     }
 
     /**
@@ -98,7 +74,11 @@ public class EntityDictionary {
      * @return binding class
      */
     public String getBinding(Class<?> entityClass) {
-        return bindEntityToJsonApi.get(lookupEntityClass(entityClass));
+        return entityBinding(entityClass).jsonApi;
+    }
+
+    public Set<Class<?>> getBindings() {
+        return entityBindings.keySet();
     }
 
     /**
@@ -108,7 +88,7 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return bindEntityToAttrs.get(lookupEntityClass(entityClass));
+        return entityBinding(entityClass).attrs;
     }
 
     /**
@@ -128,7 +108,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Class<?> entityClass) {
-        return bindEntityToRelationships.get(lookupEntityClass(entityClass));
+        return entityBinding(entityClass).relationships;
     }
 
     /**
@@ -149,8 +129,7 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, RelationshipType> types =
-                bindEntityToRelationshipTypes.get(lookupEntityClass(cls));
+        final ConcurrentHashMap<String, RelationshipType> types = entityBinding(cls).relationshipTypes;
         if (types == null) {
             return RelationshipType.NONE;
         }
@@ -165,7 +144,7 @@ public class EntityDictionary {
      * @return relation inverse
      */
     public String getRelationInverse(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, String> mappings = bindEntityRelationshipToInverse.get(lookupEntityClass(cls));
+        final ConcurrentHashMap<String, String> mappings = entityBinding(cls).relationshipToInverse;
         if (mappings != null) {
             final String mapping = mappings.get(relation);
 
@@ -180,11 +159,11 @@ public class EntityDictionary {
          */
         final Class<?> inverseType = getParameterizedType(cls, relation);
         final ConcurrentHashMap<String, String> inverseMappings =
-                bindEntityRelationshipToInverse.get(lookupEntityClass(inverseType));
+                entityBinding(inverseType).relationshipToInverse;
 
-        for (final Map.Entry<String, String> inverseMapping: inverseMappings.entrySet()) {
-            final String inverseRelationName = inverseMapping.getKey();
-            final String inverseMappedBy = inverseMapping.getValue();
+        for (Map.Entry<String, String> inverseMapping: inverseMappings.entrySet()) {
+            String inverseRelationName = inverseMapping.getKey();
+            String inverseMappedBy = inverseMapping.getValue();
 
             if (relation.equals(inverseMappedBy)
                     && getParameterizedType(inverseType, inverseRelationName).equals(lookupEntityClass(cls))) {
@@ -214,8 +193,7 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods =
-            bindEntityFieldsToValues.get(lookupEntityClass(entityClass));
+        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
         }
@@ -248,8 +226,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods =
-            bindEntityFieldsToValues.get(lookupEntityClass(entityClass));
+        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
         }
@@ -292,7 +269,7 @@ public class EntityDictionary {
      * @return Real field/method name as a string. null if not found.
      */
     public String getNameFromAlias(Class<?> entityClass, String alias) {
-        ConcurrentHashMap<String, String> map = bindEntityAliasesToFields.get(lookupEntityClass(entityClass));
+        ConcurrentHashMap<String, String> map = entityBinding(entityClass).aliasesToFields;
         if (map != null) {
             return map.get(alias);
         }
@@ -319,7 +296,7 @@ public class EntityDictionary {
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
             @SuppressWarnings("unchecked")
-            Initializer<T> initializer = (Initializer<T>) initializers.get(lookupEntityClass(entity.getClass()));
+            Initializer<T> initializer = entityBinding(entity.getClass()).getInitializer();
             if (initializer != null) {
                 initializer.initialize(entity);
             }
@@ -334,7 +311,7 @@ public class EntityDictionary {
      * @param cls Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        initializers.put(cls, initializer);
+        entityBinding(cls).setInitializer(initializer);
     }
 
     /**
@@ -375,28 +352,11 @@ public class EntityDictionary {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
-        bindEntityToJsonApi.put(cls, type);
+
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
-
-        // Map id's, attributes, and relationships
-        @SuppressWarnings("unchecked")
-        Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
-            Arrays.asList(cls.getFields()),
-            Arrays.asList(cls.getMethods()));
-
-        // Initialize our maps for this entity. Duplicates are checked above.
-        bindEntityToAttrsDeque.put(cls, new ConcurrentLinkedDeque<>());
-        bindEntityToRelationshipsDeque.put(cls, new ConcurrentLinkedDeque<>());
-        bindEntityToRelationshipTypes.put(cls, new ConcurrentHashMap<>());
-        bindEntityRelationshipToInverse.put(cls, new ConcurrentHashMap<>());
-        bindEntityFieldsToValues.put(cls, new ConcurrentHashMap<>());
-        bindEntityAliasesToFields.put(cls, new ConcurrentHashMap<>());
-        bindEntityFields(cls, type, fieldOrMethodList);
-
-        bindEntityToAttrs.put(cls, dequeToList(bindEntityToAttrsDeque.get(cls)));
-        bindEntityToRelationships.put(cls, dequeToList(bindEntityToRelationshipsDeque.get(cls)));
     }
 
     /**
@@ -449,7 +409,7 @@ public class EntityDictionary {
     public <A extends Annotation> A getAttributeOrRelationAnnotation(Class<?> entityClass,
                                                                      Class<A> annotationClass,
                                                                      String identifier) {
-        AccessibleObject fieldOrMethod = bindEntityFieldsToValues.get(lookupEntityClass(entityClass)).get(identifier);
+        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -468,7 +428,7 @@ public class EntityDictionary {
     public <A extends Annotation> A[] getAttributeOrRelationAnnotations(Class<?> entityClass,
                                                                         Class<A> annotationClass,
                                                                         String identifier) {
-        AccessibleObject fieldOrMethod = bindEntityFieldsToValues.get(lookupEntityClass(entityClass)).get(identifier);
+        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -527,7 +487,7 @@ public class EntityDictionary {
         try {
             AccessibleObject idField = null;
             for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-                idField = bindIdField.get(cls);
+                idField = entityBinding(cls).getIdField();
             }
             if (idField instanceof Field) {
                 return String.valueOf(((Field) idField).get(value));
@@ -551,16 +511,12 @@ public class EntityDictionary {
             return null;
         }
 
-        AccessibleObject idField = null;
-        for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-            idField = bindIdField.get(cls);
-        }
-
+        AccessibleObject idField = entityBinding(value.getClass()).getIdField();
         if (idField != null) {
             return Arrays.asList(idField.getDeclaredAnnotations());
-        } else {
-            return Collections.emptyList();
         }
+
+        return Collections.emptyList();
     }
 
     /**
@@ -604,134 +560,11 @@ public class EntityDictionary {
     }
 
     /**
-     * Bind fields of an entity including the Id field, attributes, and relationships.
-     *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
-     * @param fieldOrMethodList List of fields and methods on entity
+     * Follow for this class or super-class for Entity annotation.
+     * @param objClass provided class
+     * @return class with Entity annotation
      */
-    private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
-        for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            if (fieldOrMethod.isAnnotationPresent(Id.class)) {
-                bindEntityId(cls, type, fieldOrMethod);
-            } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
-                    && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)) {
-                continue; // Transient. Don't serialize
-            } else if (!fieldOrMethod.isAnnotationPresent(Exclude.class)) {
-                if (fieldOrMethod instanceof Field && Modifier.isTransient(((Field) fieldOrMethod).getModifiers())) {
-                    continue; // Transient. Don't serialize
-                }
-                if (fieldOrMethod instanceof Method && Modifier.isTransient(((Method) fieldOrMethod).getModifiers())) {
-                    continue; // Transient. Don't serialize
-                }
-                if (fieldOrMethod instanceof Field
-                        && !fieldOrMethod.isAnnotationPresent(Column.class)
-                        && Modifier.isStatic(((Field) fieldOrMethod).getModifiers())) {
-                    continue; // Field must have Column annotation?
-                }
-                bindAttrOrRelation(cls, fieldOrMethod);
-            }
-        }
-    }
-
-    /**
-     * Bind an attribute or relationship.
-     *
-     * @param cls Class type to bind fields
-     * @param fieldOrMethod Field or method to bind
-     */
-    private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
-        boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
-        boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
-        boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
-        boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
-        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne;
-
-        String name;
-        if (fieldOrMethod instanceof Field) {
-            name = ((Field) fieldOrMethod).getName();
-        } else {
-            Method method = (Method) fieldOrMethod;
-            name = method.getName();
-            if (name.startsWith("get") && method.getParameterCount() == 0) {
-                name = WordUtils.uncapitalize(name.substring("get".length()));
-            } else if (name.startsWith("is") && method.getParameterCount() == 0) {
-                name = WordUtils.uncapitalize(name.substring("is".length()));
-            } else {
-                return;
-            }
-            if (name.equals("id") || name.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
-                return; // Reserved. Not attributes.
-            }
-        }
-
-        ConcurrentLinkedDeque<String> fieldList;
-        if (isRelation) {
-            fieldList = bindEntityToRelationshipsDeque.get(cls);
-            RelationshipType type;
-            String mappedBy;
-            if (oneToMany) {
-                type = RelationshipType.ONE_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
-            } else if (oneToOne) {
-                type = RelationshipType.ONE_TO_ONE;
-                mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
-            } else if (manyToMany) {
-                type = RelationshipType.MANY_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
-            } else if (manyToOne) {
-                type = RelationshipType.MANY_TO_ONE;
-                mappedBy = "";
-            } else {
-                type = RelationshipType.NONE;
-                mappedBy = "";
-            }
-            bindEntityToRelationshipTypes.get(cls).put(name, type);
-            bindEntityRelationshipToInverse.get(cls).put(name, mappedBy);
-        } else {
-            fieldList = bindEntityToAttrsDeque.get(cls);
-        }
-
-        fieldList.push(name);
-        log.trace("{} {}", name, fieldOrMethod);
-
-        bindEntityFieldsToValues.get(cls).put(name, fieldOrMethod);
-    }
-
-    /**
-     * Bind an id field to an entity.
-     *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
-     * @param fieldOrMethod Field or method to bind
-     */
-    private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
-        AccessibleObject dup = bindIdField.put(cls, fieldOrMethod);
-        if (dup != null && !fieldOrMethod.equals(dup)) {
-            String name;
-            if (fieldOrMethod instanceof Field) {
-                name = ((Field) fieldOrMethod).getName();
-            } else {
-                name = ((Method) fieldOrMethod).getName();
-            }
-            throw new DuplicateMappingException(type + " " + cls.getName() + ":" + name);
-        }
-    }
-
-    /**
-     * Convert a deque to a list.
-     *
-     * @param deque Deque to convert
-     * @return Deque as a list
-     */
-    private List<String> dequeToList(final Deque<String> deque) {
-        ArrayList<String> result = new ArrayList<>();
-        deque.stream().forEachOrdered(result::add);
-        result.sort(String.CASE_INSENSITIVE_ORDER);
-        return Collections.unmodifiableList(result);
-    }
-
-    static Class<?> lookupEntityClass(Class<?> objClass) {
+    public static Class<?> lookupEntityClass(Class<?> objClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
             if (cls.isAnnotationPresent(Entity.class)) {
                 return cls;

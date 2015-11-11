@@ -7,12 +7,11 @@ package com.yahoo.elide.hibernate;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 
+import example.Parent;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
-
-import example.Parent;
 
 /**
  * The type Config resource test.
@@ -22,14 +21,14 @@ public class ExampleIT extends AHibernateTest {
 
     @Test
     public void verifySession() throws IOException {
-        try (DataStoreTransaction tx = hibernateManager.beginTransaction()) {
+        try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             tx.commit();
         }
     }
 
     @Test
     public void accessParentBean() {
-        DataStoreTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = dataStore.beginTransaction();
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
         parent.setSpouses(new HashSet<>());

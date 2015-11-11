@@ -24,12 +24,10 @@ import java.util.Set;
 public class JsonApiSerializer<T> extends StdSerializer<T> {
 
     private final Class<T> type;
-    private final EntityDictionary dictionary;
 
     JsonApiSerializer(Class<T> type, EntityDictionary dictionary) {
         super(type);
         this.type = type;
-        this.dictionary = dictionary;
     }
 
     public static Module getModule(EntityDictionary dictionary) {

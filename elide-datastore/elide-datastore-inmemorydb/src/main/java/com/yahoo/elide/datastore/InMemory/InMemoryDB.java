@@ -8,11 +8,10 @@ package com.yahoo.elide.datastore.InMemory;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.PersistentResource;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -33,9 +32,8 @@ import javax.persistence.Id;
 /**
  * Simple non-persistent in-memory database.
  */
-@Slf4j
 public class InMemoryDB implements DataStore {
-    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> DATABASE =
+    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> database =
             new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
     @Getter private EntityDictionary dictionary;
@@ -48,7 +46,7 @@ public class InMemoryDB implements DataStore {
     /**
      * InMemoryDB transaction handler.
      */
-    public static class InMemoryTransaction implements DataStoreTransaction {
+    public class InMemoryTransaction implements DataStoreTransaction {
         private final List<Operation> operations;
         private final EntityDictionary dictionary;
 
@@ -88,7 +86,7 @@ public class InMemoryDB implements DataStore {
         public void commit() {
             operations.forEach(op -> {
                 Class<?> cls = op.getType();
-                ConcurrentHashMap<String, Object> data = DATABASE.get(cls);
+                ConcurrentHashMap<String, Object> data = database.get(cls);
                 Object instance = op.getInstance();
                 if (instance == null) {
                     return;
@@ -101,7 +99,7 @@ public class InMemoryDB implements DataStore {
                 } else {
                     if (data == null) {
                         data = new ConcurrentHashMap<>();
-                        DATABASE.put(cls, data);
+                        database.put(cls, data);
                     }
                     data.put(id, instance);
                 }
@@ -111,8 +109,8 @@ public class InMemoryDB implements DataStore {
 
         @Override
         public <T> T createObject(Class<T> entityClass) {
-            if (DATABASE.get(entityClass) == null) {
-                DATABASE.put(entityClass, new ConcurrentHashMap<>());
+            if (database.get(entityClass) == null) {
+                database.put(entityClass, new ConcurrentHashMap<>());
                 TYPEIDS.put(entityClass, new AtomicLong(1));
             }
             AtomicLong idValue = TYPEIDS.get(entityClass);
@@ -154,80 +152,60 @@ public class InMemoryDB implements DataStore {
                 return value;
             }
 
-            if (float.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).floatValue();
+            if (short.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Short.valueOf((String) value);
             }
 
-            if (double.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).doubleValue();
+            if (byte.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Byte.valueOf((String) value);
             }
 
-            if (int.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).intValue();
+            if (float.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Float.valueOf((String) value);
+            }
+
+            if (double.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Double.valueOf((String) value);
             }
 
             if (int.class.isAssignableFrom(fieldClass) && value instanceof String) {
                 return Integer.valueOf((String) value);
             }
 
-            if (long.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).longValue();
-            }
-
-            if (boolean.class.isAssignableFrom(fieldClass) && value instanceof Boolean) {
-                return value;
-            }
-
-            if (Float.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).floatValue();
-            }
-
-            if (Double.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).doubleValue();
-            }
-
-            if (Integer.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-
-            if (Long.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-                return ((Number) value).longValue();
-            }
-
             if (long.class.isAssignableFrom(fieldClass) && value instanceof String) {
-                return Long.parseLong((String) value);
+                return Long.valueOf((String) value);
+            }
+
+            if (Short.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Short.valueOf((String) value);
+            }
+
+            if (Byte.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Byte.valueOf((String) value);
+            }
+
+            if (Float.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Float.valueOf((String) value);
+            }
+
+            if (Double.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Double.valueOf((String) value);
+            }
+
+            if (Integer.class.isAssignableFrom(fieldClass) && value instanceof String) {
+                return Integer.valueOf((String) value);
             }
 
             if (Long.class.isAssignableFrom(fieldClass) && value instanceof String) {
-                return Long.parseLong((String) value);
+                return Long.valueOf((String) value);
             }
 
-            if (Enum.class.isAssignableFrom(fieldClass) && value instanceof String) {
-                try {
-                    @SuppressWarnings({ "unchecked", "rawtypes" })
-                    Enum e = Enum.valueOf((Class<Enum>) fieldClass, (String) value);
-                    return e;
-                } catch (IllegalArgumentException e) {
-                    throw new InvalidAttributeException("Unknown " + fieldClass.getSimpleName() + " value " + value);
-                }
-            }
-
-            if (Enum.class.isAssignableFrom(fieldClass) && value instanceof Integer) {
-                try {
-                    // call Enum.values()
-                    Object[] values = (Object[]) fieldClass.getMethod("values").invoke(null, (Object[]) null);
-                    return values[(Integer) value];
-                } catch (IndexOutOfBoundsException | ReflectiveOperationException e) {
-                    throw new InvalidAttributeException("Unknown " + fieldClass.getSimpleName() + " value " + value);
-                }
-            }
-
-            throw new IllegalArgumentException("Unable to coerce " + value.getClass() + " to " + fieldClass);
+            return PersistentResource.coerce(value, fieldClass);
         }
 
         @Override
         public <T> T loadObject(Class<T> loadClass, String id) {
-            ConcurrentHashMap<String, Object> objs = DATABASE.get(loadClass);
+            ConcurrentHashMap<String, Object> objs = database.get(loadClass);
             if (objs == null) {
                 return null;
             }
@@ -236,7 +214,7 @@ public class InMemoryDB implements DataStore {
 
         @Override
         public <T> List<T> loadObjects(Class<T> loadClass) {
-            ConcurrentHashMap<String, Object> objs = DATABASE.get(loadClass);
+            ConcurrentHashMap<String, Object> objs = database.get(loadClass);
             if (objs == null) {
                 return Collections.emptyList();
             }
@@ -251,7 +229,7 @@ public class InMemoryDB implements DataStore {
         }
 
         @AllArgsConstructor
-        private static class Operation {
+        private class Operation {
             @Getter private final String id;
             @Getter private final Object instance;
             @Getter private final Class<?> type;
@@ -264,7 +242,11 @@ public class InMemoryDB implements DataStore {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        reflections.getTypesAnnotatedWith(Entity.class).forEach(dictionary::bindEntity);
+        for (Class<?> a : reflections.getTypesAnnotatedWith(Entity.class)) {
+            if (a.getPackage().getName().startsWith(beanPackage.getName())) {
+                dictionary.bindEntity(a);
+            }
+        }
         this.dictionary = dictionary;
     }
 
@@ -277,9 +259,9 @@ public class InMemoryDB implements DataStore {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Database contents ");
-        for (Class<?> cls : DATABASE.keySet()) {
+        for (Class<?> cls : database.keySet()) {
             sb.append("\n Table " + cls + " contents \n");
-            ConcurrentHashMap<String, Object> data = DATABASE.get(cls);
+            ConcurrentHashMap<String, Object> data = database.get(cls);
             for (String id : data.keySet()) {
                 sb.append(" Id: " + id + " Value: " + data.get(id).toString());
             }

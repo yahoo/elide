@@ -46,7 +46,6 @@ import java.util.function.Supplier;
 /**
  * REST Entry point handler.
  */
-@SuppressWarnings("static-method")
 public class Elide {
 
     private final Logger auditLogger;

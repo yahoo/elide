@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.parsers.state;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -25,11 +21,14 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +37,12 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 /**
  * Collection State.
  */
 @ToString
-@Slf4j
 public class CollectionTerminalState extends BaseState {
     private final Optional<PersistentResource> parent;
     private final Optional<String> relationName;
@@ -171,8 +171,8 @@ public class CollectionTerminalState extends BaseState {
 
     /**
      * Assign provided id if id field is not generated
-     * @param persistentResource
-     * @param id
+     * @param persistentResource resource
+     * @param id resource id
      */
     private void assignId(PersistentResource persistentResource, String id) {
 

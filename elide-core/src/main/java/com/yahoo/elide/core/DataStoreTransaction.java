@@ -67,7 +67,7 @@ public interface DataStoreTransaction extends Closeable {
     <T> T loadObject(Class<T> entityClass, String id);
 
     /**
-     * Read entity records from database table
+     * Read entity records from database table.
      * <P>TODO Want to support filtering, limiting, and sorting?
      * @param entityClass the entity class
      * @return records

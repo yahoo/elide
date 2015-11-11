@@ -40,7 +40,7 @@ public class EmbeddedIT extends AHibernateTest {
 
     @BeforeTest
     public static void setup() throws IOException {
-        DataStoreTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = dataStore.beginTransaction();
         Embedded embedded = new Embedded(); // id 1
         embedded.setSegmentIds(ImmutableSet.of(3L, 4L, 5L));
 

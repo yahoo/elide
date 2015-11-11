@@ -56,6 +56,7 @@ public class SortProcessor implements DocumentProcessor {
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
                         Optional<MultivaluedMap<String, String>> queryParams) {
+        // NO-OP
     }
 
     /**

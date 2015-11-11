@@ -5,16 +5,14 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.PersistentResource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yahoo.elide.core.RequestScope;
-
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +25,6 @@ import java.util.Objects;
  *       interchangeable even though they represent very similar data
  */
 @ToString
-@Slf4j
 public class Resource {
     private String type;
     private String id;
