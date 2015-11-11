@@ -28,6 +28,7 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.coerse.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
@@ -978,7 +979,7 @@ public class PersistentResource<T> {
             return coerceCollection((Collection) value, fieldName, fieldClass);
         }
 
-        return coerce(value, fieldClass);
+        return CoerceUtil.coerce(value, fieldClass);
     }
 
     private Collection coerceCollection(Collection values, String fieldName, Class<?> fieldClass) {
@@ -1000,7 +1001,7 @@ public class PersistentResource<T> {
 
         ArrayList<Object> list = new ArrayList<>(values.size());
         for (Object member : values) {
-            list.add(coerce(member, providedType));
+            list.add(CoerceUtil.coerce(member, providedType));
         }
 
         if (Set.class.isAssignableFrom(fieldClass)) {
@@ -1008,90 +1009,6 @@ public class PersistentResource<T> {
         }
 
         return list;
-    }
-
-    public static Object coerce(Object value, Class<?> fieldClass) {
-        if (value == null || fieldClass == null || fieldClass.isAssignableFrom(value.getClass())) {
-            return value;
-        }
-
-        if (short.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).shortValue();
-        }
-
-        if (byte.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).byteValue();
-        }
-
-        if (float.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).floatValue();
-        }
-
-        if (double.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).doubleValue();
-        }
-
-        if (int.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-
-        if (long.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-
-        if (boolean.class.isAssignableFrom(fieldClass) && value instanceof Boolean) {
-            return value;
-        }
-
-        if (Short.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).shortValue();
-        }
-
-        if (Byte.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).byteValue();
-        }
-
-        if (Float.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).floatValue();
-        }
-
-        if (Double.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).doubleValue();
-        }
-
-        if (Integer.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-
-        if (Long.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-
-        if (java.util.Date.class.isAssignableFrom(fieldClass) && value instanceof Number) {
-            return new java.util.Date(((Number) value).longValue());
-        }
-
-        if (Enum.class.isAssignableFrom(fieldClass) && value instanceof String) {
-            try {
-                @SuppressWarnings({ "unchecked", "rawtypes" })
-                Enum e = Enum.valueOf((Class<Enum>) fieldClass, (String) value);
-                return e;
-            } catch (IllegalArgumentException e) {
-                throw new InvalidAttributeException("Unknown " + fieldClass.getSimpleName() + " value " + value);
-            }
-        }
-
-        if (Enum.class.isAssignableFrom(fieldClass) && value instanceof Integer) {
-            try {
-                // call Enum.values()
-                Object[] values = (Object[]) fieldClass.getMethod("values").invoke(null, (Object[]) null);
-                return values[(Integer) value];
-            } catch (IndexOutOfBoundsException | ReflectiveOperationException e) {
-                throw new InvalidAttributeException("Unknown " + fieldClass.getSimpleName() + " value " + value);
-            }
-        }
-
-        throw new IllegalArgumentException("Unable to coerce " + value.getClass() + " to " + fieldClass);
     }
 
     /**
