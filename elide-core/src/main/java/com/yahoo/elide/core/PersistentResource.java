@@ -540,7 +540,11 @@ public class PersistentResource<T> {
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
             if (!newResources.contains(persistentResource)) {
-                checkPermission(SharePermission.class, persistentResource);
+                if (persistentResource.isShareable()) {
+                    checkPermission(SharePermission.class, persistentResource);
+                } else {
+                    throw new ForbiddenAccessException();
+                }
             }
         }
     }
