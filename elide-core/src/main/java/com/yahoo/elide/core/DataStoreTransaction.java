@@ -9,6 +9,7 @@ import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Wraps the Database Transaction type.
@@ -85,5 +86,17 @@ public interface DataStoreTransaction extends Closeable {
     default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
         // default to ignoring criteria
         return loadObjects(entityClass);
+    }
+
+    /**
+     * Filter a collection by the Predicates in filterScope.
+     *
+     * @param collection the collection to filter
+     * @param type
+     * @param filterScope the FilterScope containing the set of Predicates
+     * @return the filtered collection
+     */
+    default Collection filterCollection(Collection collection, String type, FilterScope<?> filterScope) {
+        return collection;
     }
 }

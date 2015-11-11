@@ -5,37 +5,44 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
-
+import lombok.NonNull;
 import org.hibernate.EntityMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.collection.PersistentBag;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
 
-import lombok.NonNull;
-
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Hibernate interface library.
@@ -168,9 +175,14 @@ public class HibernateStore implements DataStore {
                     .scroll(ScrollMode.FORWARD_ONLY));
             return list;
         }
+
         @Override
         public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
-            Criterion criterion = buildCriterion(filterScope);
+            Criterion criterion = buildCheckCriterion(filterScope);
+
+            String type = filterScope.getRequestScope().getDictionary().getBinding(loadClass);
+            Set<Predicate> filteredPredicates = filterScope.getPredicatesOfType(type);
+            criterion = andWithNull(criterion, buildFilterCriterion(filteredPredicates));
 
             // if no criterion then return all objects
             if (criterion == null) {
@@ -190,7 +202,7 @@ public class HibernateStore implements DataStore {
          * @param filterScope the filterScope
          * @return the criterion
          */
-        public <T> Criterion buildCriterion(FilterScope<T> filterScope) {
+        public <T> Criterion buildCheckCriterion(FilterScope<T> filterScope) {
             Criterion compositeCriterion = null;
             List<Check<T>> checks = filterScope.getChecks();
             RequestScope requestScope = filterScope.getRequestScope();
@@ -230,7 +242,94 @@ public class HibernateStore implements DataStore {
                     compositeCriterion = Restrictions.and(compositeCriterion, criterion);
                 }
             }
+
             return compositeCriterion;
+        }
+
+        @Override
+        public Collection filterCollection(Collection collection, String type, FilterScope<?> filterScope) {
+            if (collection instanceof PersistentBag && filterScope.hasPredicates()) {
+                StringBuilder filterString = new StringBuilder();
+
+                Set<Predicate> filteredPredicates = filterScope.getPredicatesOfType(type);
+                for (Predicate predicate : filteredPredicates) {
+                    if (filterString.length() == 0) {
+                        filterString.append("where ");
+                    } else {
+                        filterString.append(" and ");
+                    }
+
+                    if (predicate.getOperator() == Operator.IN) {
+                        filterString.append(String.format("%s in (:%s)",
+                                predicate.getField(), predicate.getField()));
+                    } else if (predicate.getOperator() == Operator.NOT) {
+                        filterString.append(String.format("%s not in (:%s)",
+                                predicate.getField(), predicate.getField()));
+                    } else if (predicate.getOperator() == Operator.PREFIX
+                            || predicate.getOperator() == Operator.POSTFIX
+                            || predicate.getOperator() == Operator.INFIX) {
+                        filterString.append(String.format("%s LIKE :%s",
+                                predicate.getField(), predicate.getField()));
+                    }
+                }
+
+                if (filterString.length() != 0) {
+                    Query query = getSession().createFilter(collection, filterString.toString());
+
+                    for (Predicate predicate : filteredPredicates) {
+                        if (predicate.getOperator() == Operator.IN || predicate.getOperator() == Operator.NOT) {
+                            query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        } else if (predicate.getOperator() == Operator.PREFIX) {
+                            query = query.setParameter(predicate.getField(), predicate.getValues().get(0) + "%");
+                        } else if (predicate.getOperator() == Operator.POSTFIX) {
+                            query = query.setParameter(predicate.getField(), "%" + predicate.getValues().get(0));
+                        } else if (predicate.getOperator() == Operator.INFIX) {
+                            query = query.setParameter(predicate.getField(), "%" + predicate.getValues().get(0) + "%");
+                        }
+                    }
+
+                    return query.list();
+                }
+            }
+
+            return collection;
+        }
+
+        private Criterion buildFilterCriterion(Set<Predicate> predicates) {
+            Criterion result = null;
+
+            for (Predicate predicate : predicates) {
+                if (predicate.getOperator() == Operator.IN) {
+                    result = andWithNull(result,
+                            Restrictions.in(predicate.getField(), predicate.getValues()));
+                } else if (predicate.getOperator() == Operator.NOT) {
+                    result = andWithNull(result,
+                            Restrictions.not(Restrictions.in(predicate.getField(), predicate.getValues())));
+                } else if (predicate.getOperator() == Operator.PREFIX) {
+                    result = andWithNull(result,
+                            Restrictions.like(predicate.getField(), predicate.getValues().get(0) + "%"));
+                } else if (predicate.getOperator() == Operator.POSTFIX) {
+                    result = andWithNull(result,
+                            Restrictions.like(predicate.getField(), "%" + predicate.getValues().get(0)));
+                } else if (predicate.getOperator() == Operator.INFIX) {
+                    result = andWithNull(result,
+                            Restrictions.like(predicate.getField(), "%" + predicate.getValues().get(0) + "%"));
+                }
+            }
+
+            return result;
+        }
+
+        private Criterion andWithNull(Criterion lhs, Criterion rhs) {
+            if (lhs == null && rhs == null) {
+                return null;
+            } else if (lhs == null) {
+                return rhs;
+            } else if (rhs == null) {
+                return lhs;
+            } else {
+                return Restrictions.and(lhs, rhs);
+            }
         }
 
         @Override

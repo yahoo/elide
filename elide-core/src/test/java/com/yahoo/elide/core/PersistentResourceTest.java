@@ -7,6 +7,8 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.security.UserCheck.ALLOW;
 import static com.yahoo.elide.security.UserCheck.DENY;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -47,6 +49,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -503,6 +507,30 @@ public class PersistentResourceTest extends PersistentResource {
         Set<PersistentResource> results = funResource.getRelation("relation2");
 
         Assert.assertEquals(results.size(), 2, "Only filtered relation elements should be returned.");
+    }
+
+    @Test
+    public void testGetRelationWithPredicateSuccess() {
+        Parent parent = newParent(1);
+        Child child1 = newChild(1, "paul john");
+        Child child2 = newChild(2, "john buzzard");
+        Child child3 = newChild(3, "chris smith");
+        parent.setChildren(Sets.newHashSet(child1, child2, child3));
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.filterCollection(anyCollection(), eq("child"), any())).thenReturn(Sets.newHashSet(child1));
+        User goodUser = new User(1);
+
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[child.name]", "paul john");
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER, queryParams);
+
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
+
+        Set<PersistentResource> results = parentResource.getRelation("children");
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -1296,6 +1324,12 @@ public class PersistentResourceTest extends PersistentResource {
         child.setId(id);
         child.setParents(new HashSet<>());
         child.setFriends(new HashSet<>());
+        return child;
+    }
+
+    private static Child newChild(int id, String name) {
+        Child child = newChild(id);
+        child.setName(name);
         return child;
     }
 }

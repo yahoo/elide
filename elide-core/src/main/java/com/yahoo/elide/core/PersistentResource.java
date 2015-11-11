@@ -261,15 +261,10 @@ public class PersistentResource<T> {
             return resources;
         }
 
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
-
         Iterable<T> list;
-        if (annotation == null) {
-            list = tx.loadObjects(loadClass);
-        } else {
-            FilterScope filterScope = loadChecks(annotation, requestScope);
-            list = tx.loadObjects(loadClass, filterScope);
-        }
+        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
+        FilterScope filterScope = loadChecks(annotation, requestScope);
+        list = tx.loadObjects(loadClass, filterScope);
 
         for (T obj : list) {
             resources.add(new PersistentResource<>(obj, requestScope));
@@ -673,7 +668,15 @@ public class PersistentResource<T> {
         } else if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
             return (Set) resources;
         } else if (val instanceof Collection) {
-            for (Object m : (Collection) val) {
+            Collection filteredVal = (Collection) val;
+
+            if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
+                String valType = dictionary.getBinding(dictionary.getParameterizedType(obj, relationName));
+                FilterScope filterScope = new FilterScope(requestScope);
+                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, valType, filterScope);
+            }
+
+            for (Object m : filteredVal) {
                 resources.add(new PersistentResource<>(this, m, getRequestScope()));
             }
         } else if (type.isToOne()) {
@@ -691,12 +694,11 @@ public class PersistentResource<T> {
      * @return true DENY check type
      */
     private static boolean isDenyFilter(RequestScope requestScope, Class<?> recordClass) {
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
-
-        if (annotation == null || requestScope.getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
+        if (requestScope.getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
             return false;
         }
 
+        ReadPermission annotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
         FilterScope filterScope = loadChecks(annotation, requestScope);
 
         return filterScope.getUserPermission() == DENY;
@@ -1202,6 +1204,10 @@ public class PersistentResource<T> {
     }
 
     static <A extends Annotation> FilterScope loadChecks(A annotation, RequestScope requestScope) {
+        if (annotation == null) {
+            return new FilterScope(requestScope);
+        }
+
         Class<? extends Check>[] anyChecks;
         Class<? extends Check>[] allChecks;
         Class<? extends Annotation> annotationClass = annotation.getClass();

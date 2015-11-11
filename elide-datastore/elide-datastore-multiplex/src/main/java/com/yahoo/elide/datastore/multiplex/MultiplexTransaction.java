@@ -13,6 +13,7 @@ import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 
 /**
@@ -71,6 +72,12 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
         return getTransaction(entityClass).loadObjects(entityClass, filterScope);
+    }
+
+    @Override
+    public Collection filterCollection(Collection collection, String type, FilterScope<?> filterScope) {
+        Class entityClass = multiplexManager.getDictionary().getBinding(type);
+        return getTransaction(entityClass).filterCollection(collection, type, filterScope);
     }
 
     @Override

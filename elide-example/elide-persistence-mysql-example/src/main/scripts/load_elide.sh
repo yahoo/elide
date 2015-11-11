@@ -98,3 +98,60 @@ curl -H'Content-Type: application/vnd.api+json; ext=jsonpatch' \
   }
 ]
 ' -X PATCH http://localhost:4080/
+
+curl -H'Content-Type: application/vnd.api+json; ext=jsonpatch' \
+     -H'Accept: application/vnd.api+json; ext=jsonpatch' --data '
+[
+  {
+    "op": "add",
+    "path": "/author",
+    "value": {
+      "id": "12345680-1234-1234-1234-1234567890ab",
+      "type": "author",
+      "attributes": {
+        "name": "Isaac Asimov"
+      },
+      "relationships": {
+        "books": {
+          "data": [
+            {
+              "type": "book",
+              "id": "12345680-1234-1234-1234-1234567890ac"
+            },
+            {
+              "type": "book",
+              "id": "12345680-1234-1234-1234-1234567890ad"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "12345680-1234-1234-1234-1234567890ac",
+      "attributes": {
+      "title": "Foundation",
+      "genre": "Science Fiction",
+      "language": "English"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "12345680-1234-1234-1234-1234567890ad",
+      "attributes": {
+      "title": "The Roman Republic",
+      "genre": "History",
+      "language": "English"
+      }
+    }
+  }
+]
+' -X PATCH http://localhost:4080/

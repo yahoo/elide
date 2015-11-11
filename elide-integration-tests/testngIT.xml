@@ -33,5 +33,10 @@
             <class name="com.yahoo.elide.tests.ShareableIT" />
         </classes>
     </test> <!-- Test -->
+    <test name="com.yahoo.elide.tests.FilterIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.FilterIT" />
+        </classes>
+    </test> <!-- Test -->
     <!--// END Integration tests -->
 </suite> <!-- Suite -->
