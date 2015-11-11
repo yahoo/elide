@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.hibernate;
 
-import com.yahoo.elide.core.DatabaseManager;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.dbmanagers.hibernate3.HibernateManager;
+import com.yahoo.elide.datastores.hibernate3.HibernateStore;
 import com.yahoo.elide.endpoints.AbstractApiResourceTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -37,7 +37,7 @@ import static org.testng.Assert.fail;
  */
 public abstract class AHibernateTest extends AbstractApiResourceTest {
     protected static volatile SessionFactory sessionFactory;
-    public static HibernateManager hibernateManager = null;
+    public static HibernateStore hibernateManager = null;
 
     /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
     protected final JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
@@ -68,10 +68,10 @@ public abstract class AHibernateTest extends AbstractApiResourceTest {
             throw new RuntimeException("" + se.getExceptions());
         }
 
-        hibernateManager = new HibernateManager(sessionFactory);
+        hibernateManager = new HibernateStore(sessionFactory);
     }
 
-    public static DatabaseManager getDatabaseManager() {
+    public static DataStore getDatabaseManager() {
         if (hibernateManager == null) {
             databaseManagerInit();
         }

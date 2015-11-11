@@ -8,7 +8,7 @@ package com.yahoo.elide.endpoints;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.core.DatabaseTransaction;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.hibernate.AHibernateTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -40,7 +40,7 @@ public class EmbeddedIT extends AHibernateTest {
 
     @BeforeTest
     public static void setup() throws IOException {
-        DatabaseTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = hibernateManager.beginTransaction();
         Embedded embedded = new Embedded(); // id 1
         embedded.setSegmentIds(ImmutableSet.of(3L, 4L, 5L));
 

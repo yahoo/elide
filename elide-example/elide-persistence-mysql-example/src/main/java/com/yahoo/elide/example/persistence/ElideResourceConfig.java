@@ -2,7 +2,7 @@ package com.yahoo.elide.example.persistence;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.dbmanagers.hibernate5.PersistenceManager;
+import com.yahoo.elide.datastores.hibernate5.PersistenceStore;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -25,7 +25,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 EntityManagerFactory entityManagerFactory =
                         Persistence.createEntityManagerFactory("com.yahoo.elide.example");
-                bind(new Elide(new Slf4jLogger(), new PersistenceManager(entityManagerFactory)))
+                bind(new Elide(new Slf4jLogger(), new PersistenceStore(entityManagerFactory)))
                         .to(Elide.class).named("elide");
             }
         });

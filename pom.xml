@@ -15,7 +15,7 @@
     <url>https://github.com/yahoo/elide</url>
 
     <modules>
-        <module>elide-dbmanager</module>
+        <module>elide-datastore</module>
         <module>elide-core</module>
         <module>elide-integration-tests</module>
         <module>elide-example</module>

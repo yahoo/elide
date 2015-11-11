@@ -6,7 +6,7 @@
 package com.yahoo.elide.extensions;
 
 import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.core.DatabaseTransaction;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -22,7 +22,7 @@ public class PatchRequestScope extends RequestScope {
      * Outer RequestScope constructor for use by Patch Extension.
      */
     public PatchRequestScope(
-            DatabaseTransaction transaction,
+            DataStoreTransaction transaction,
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,

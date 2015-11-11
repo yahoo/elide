@@ -15,7 +15,7 @@ import static org.testng.Assert.assertTrue;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestLogger;
-import com.yahoo.elide.core.DatabaseTransaction;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.hibernate.AHibernateTest;
@@ -54,7 +54,7 @@ public class ResourceIT extends AHibernateTest {
 
     @BeforeTest
     public static void setup() {
-        DatabaseTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = hibernateManager.beginTransaction();
         Parent parent = new Parent(); // id 1
         Child child = new Child(); // id 1
         parent.setChildren(Sets.newHashSet(child));
