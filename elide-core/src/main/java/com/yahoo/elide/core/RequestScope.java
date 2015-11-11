@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public class RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
-    @Getter private final DatabaseTransaction transaction;
+    @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
     @Getter private final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
@@ -44,7 +44,7 @@ public class RequestScope {
     private transient LinkedHashSet<Runnable> deferredChecks = null;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
-                        DatabaseTransaction transaction,
+                        DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
@@ -72,7 +72,7 @@ public class RequestScope {
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
-                        DatabaseTransaction transaction,
+                        DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
@@ -82,7 +82,7 @@ public class RequestScope {
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
-                        DatabaseTransaction transaction,
+                        DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
@@ -92,7 +92,7 @@ public class RequestScope {
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
-                        DatabaseTransaction transaction,
+                        DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
@@ -104,7 +104,7 @@ public class RequestScope {
      * Outer RequestScope constructor for use by Patch Extension.
      */
     protected RequestScope(
-            DatabaseTransaction transaction,
+            DataStoreTransaction transaction,
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,

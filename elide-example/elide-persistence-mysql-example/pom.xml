@@ -36,7 +36,7 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-dbmanager-hibernate5</artifactId>
+            <artifactId>elide-datastore-hibernate5</artifactId>
             <version>${version.elide}</version>
         </dependency>
 

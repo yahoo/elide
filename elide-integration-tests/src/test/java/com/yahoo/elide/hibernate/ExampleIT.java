@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.hibernate;
 
-import com.yahoo.elide.core.DatabaseTransaction;
+import com.yahoo.elide.core.DataStoreTransaction;
 
 import org.testng.annotations.Test;
 
@@ -22,14 +22,14 @@ public class ExampleIT extends AHibernateTest {
 
     @Test
     public void verifySession() throws IOException {
-        try (DatabaseTransaction tx = hibernateManager.beginTransaction()) {
+        try (DataStoreTransaction tx = hibernateManager.beginTransaction()) {
             tx.commit();
         }
     }
 
     @Test
     public void accessParentBean() {
-        DatabaseTransaction tx = hibernateManager.beginTransaction();
+        DataStoreTransaction tx = hibernateManager.beginTransaction();
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
         parent.setSpouses(new HashSet<>());

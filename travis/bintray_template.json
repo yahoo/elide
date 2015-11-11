@@ -24,11 +24,11 @@
       "includePattern": "elide-core\/target\/(elide-core-${TRAVIS_TAG}\\.jar)",
       "uploadPattern": "elide-core/${TRAVIS_TAG}/$1"},
     {
-      "includePattern": "elide-dbmanager\/(elide-dbmanager-[^\/]*)/pom.xml",
+      "includePattern": "elide-datastore\/(elide-datastore-[^\/]*)/pom.xml",
       "uploadPattern": "$1/${TRAVIS_TAG}/$1.pom"
     },
     {
-      "includePattern": "elide-dbmanager\/(elide-dbmanager-[^\/]*)\/target\/(elide-dbmanager.*\\.jar)",
+      "includePattern": "elide-datastore\/(elide-datastore-[^\/]*)\/target\/(elide-datastore.*\\.jar)",
       "uploadPattern": "$1/${TRAVIS_TAG}/$2"
     }
   ],

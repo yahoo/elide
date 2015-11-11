@@ -6,7 +6,7 @@
 package com.yahoo.elide.extensions;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.core.DatabaseManager;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -71,7 +71,7 @@ public class JsonApiPatch {
         }
     }
 
-    private final DatabaseManager db;
+    private final DataStore db;
     private final List<PatchAction> actions;
     private final String rootUri;
 
@@ -96,7 +96,7 @@ public class JsonApiPatch {
      * @return pair
      * @throws IOException the iO exception
      */
-    public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DatabaseManager db,
+    public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore db,
             String uri,
             String patchDoc,
             PatchRequestScope requestScope)
@@ -109,11 +109,11 @@ public class JsonApiPatch {
     /**
      * Constructor.
      *
-     * @param db Database manager
+     * @param db Data Store
      * @param actions List of patch actions
      * @param rootUri root URI
      */
-    private JsonApiPatch(DatabaseManager db,
+    private JsonApiPatch(DataStore db,
             List<Patch> actions,
             String rootUri,
             RequestScope requestScope) {
@@ -264,7 +264,7 @@ public class JsonApiPatch {
      * This is required since we have no way of determining which object should be created first. That is,
      * in the case of a cyclic relationship between 2 or more newly created objects, some object needs to be created
      * first. In our case, we will create all objects and then add the relationships in memory. Finally, at the end, we
-     * rely on the commit of DatabaseTransaction to handle the creation properly.
+     * rely on the commit of DataStoreTransaction to handle the creation properly.
      *
      * @param requestScope request scope
      */

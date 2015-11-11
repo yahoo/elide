@@ -15,12 +15,12 @@ To integrate Elide into your project, simply include elide-core into your projec
 </dependency>
 ```
 
-Additionally, if you do not plan to write your own database manager, select the appropriate DB manager for your setup and include it as well. For instance, if you plan on using the "in-memory database" (not recommended for production use) then you would add the following:
+Additionally, if you do not plan to write your own data store, select the appropriate data store for your setup and include it as well. For instance, if you plan on using the "in-memory database" (not recommended for production use) then you would add the following:
 
 ```xml
 <dependency>
     <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-dbmanager-inmemorydb</artifactId>
+    <artifactId>elide-datastore-inmemorydb</artifactId>
     <version>1.0.0.3</version>
 </dependency>
 ```
@@ -50,11 +50,11 @@ The first step is to create a JPA data model and mark which beans to expose via 
     @Include(rootLevel=true)
     package example;
 
-The second step is to create a `DatabaseManager`.   It is an interface that binds to a JPA provider.  Elide ships with a default implementation for
-Hibernate.  The default `HibernateManager` will discover all of the JPA beans in your deployment and expose those that have been annotated to do so.
+The second step is to create a `DataStore`.   It is an interface that binds to a JPA provider.  Elide ships with a default implementation for
+Hibernate.  The default `HibernateStore` will discover all of the JPA beans in your deployment and expose those that have been annotated to do so.
 
     /* Takes a hibernate session factory */
-    DatabaseManager db = new HibernateManager(sessionFactory);
+    DataStore db = new HibernateStore(sessionFactory);
 
 The third step is to create an `AuditLogger`.   It is an interface that does something with Audit messages.  Elide ships with a default that
 dumps them to slf4j:

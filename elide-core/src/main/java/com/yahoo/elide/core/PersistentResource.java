@@ -65,7 +65,7 @@ public class PersistentResource<T> {
     private final Optional<String> uuid;
     private final User user;
     private final ObjectEntityCache entityCache;
-    private final DatabaseTransaction transaction;
+    private final DataStoreTransaction transaction;
     @NonNull private final RequestScope requestScope;
     private final Optional<PersistentResource<?>> parent;
 
@@ -98,7 +98,7 @@ public class PersistentResource<T> {
             Class<T> entityClass,
             RequestScope requestScope,
             String uuid) {
-        DatabaseTransaction tx = requestScope.getTransaction();
+        DataStoreTransaction tx = requestScope.getTransaction();
 
         @SuppressWarnings("unchecked")
         T obj = tx.createObject(entityClass);
@@ -222,7 +222,7 @@ public class PersistentResource<T> {
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(requestScope);
 
-        DatabaseTransaction tx = requestScope.getTransaction();
+        DataStoreTransaction tx = requestScope.getTransaction();
         EntityDictionary dictionary = requestScope.getDictionary();
         ObjectEntityCache cache = requestScope.getObjectEntityCache();
 
@@ -251,7 +251,7 @@ public class PersistentResource<T> {
      */
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         User user = requestScope.getUser();
-        DatabaseTransaction tx = requestScope.getTransaction();
+        DataStoreTransaction tx = requestScope.getTransaction();
 
         LinkedHashSet<PersistentResource<T>> resources = new LinkedHashSet<>();
         if (isDenyFilter(requestScope, loadClass)) {

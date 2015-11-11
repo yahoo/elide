@@ -8,8 +8,8 @@ package com.yahoo.elide;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.core.DatabaseManager;
-import com.yahoo.elide.core.DatabaseTransaction;
+import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 public class Elide {
 
     private final Logger auditLogger;
-    private final DatabaseManager db;
+    private final DataStore db;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
     /**
@@ -60,7 +60,7 @@ public class Elide {
      * @param db the db
      * @param dictionary the dictionary
      */
-    public Elide(Logger auditLogger, DatabaseManager db, EntityDictionary dictionary) {
+    public Elide(Logger auditLogger, DataStore db, EntityDictionary dictionary) {
         this.auditLogger = auditLogger;
         this.db = db;
         this.dictionary = dictionary;
@@ -74,7 +74,7 @@ public class Elide {
      * @param auditLogger the audit logger
      * @param db the db
      */
-    public Elide(Logger auditLogger, DatabaseManager db) {
+    public Elide(Logger auditLogger, DataStore db) {
         this(auditLogger, db, new EntityDictionary());
     }
 
@@ -93,7 +93,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
 
-        try (DatabaseTransaction transaction = db.beginReadTransaction()) {
+        try (DataStoreTransaction transaction = db.beginReadTransaction()) {
             final User user = transaction.accessUser(opaqueUser);
             RequestScope requestScope = new RequestScope(
                     new JsonApiDocument(),
@@ -150,7 +150,7 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
-        try (DatabaseTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = db.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(doc,
@@ -210,7 +210,7 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
-        try (DatabaseTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = db.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
 
             RequestScope requestScope;
@@ -276,7 +276,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
         JsonApiDocument doc;
-        try (DatabaseTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = db.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             if (jsonApiDocument != null && !jsonApiDocument.equals("")) {
                 doc = mapper.readJsonApiDocument(jsonApiDocument);
