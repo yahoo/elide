@@ -34,7 +34,6 @@ subCollection
     | entity '/' relationship   #subCollectionRelationship
     | entity '/' subCollection  #subCollectionSubCollection
     | entity                    #subCollectionReadEntity
-    | term '/' subCollection    #subCollectionToOne
     ;
 
 relationship: RELATIONSHIPS '/' term;

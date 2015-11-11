@@ -14,7 +14,6 @@ import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionToOneContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
@@ -96,16 +95,6 @@ public abstract class BaseState {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
-
-    /**
-     * Handle void.
-     *
-     * @param state the state
-     * @param ctx the ctx
-     */
-    public void handle(StateContext state, SubCollectionToOneContext ctx) {
-        throw new UnsupportedOperationException(this.getClass().toString());
-    }
 
     /**
      * Handle void.

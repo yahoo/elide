@@ -15,7 +15,6 @@ import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionToOneContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -94,13 +93,6 @@ public class StateContext {
     }
 
     public void handle(SubCollectionSubCollectionContext ctx) {
-        if (log.isDebugEnabled()) {
-            log.debug("{}", ctx.toStringTree());
-        }
-        currentState.handle(this, ctx);
-    }
-
-    public void handle(SubCollectionToOneContext ctx) {
         if (log.isDebugEnabled()) {
             log.debug("{}", ctx.toStringTree());
         }
