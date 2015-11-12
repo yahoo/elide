@@ -745,6 +745,56 @@ public class PersistentResourceTest extends PersistentResource {
     }
 
     @Test()
+    public void testRemoveNonexistingToOneRelation() {
+        FunWithPermissions fun = new FunWithPermissions();
+        Child ownedChild = newChild(1);
+        Child unownedChild = newChild(2);
+        fun.setRelation3(ownedChild);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        User goodUser = new User(1);
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
+        PersistentResource<Object> removeResource = new PersistentResource<>(unownedChild, null, "1", goodScope);
+
+        funResource.removeRelation("relation3", removeResource);
+
+        Assert.assertEquals(fun.getRelation3(), ownedChild, "The one-2-one relationship should NOT be cleared");
+
+        verify(tx, never()).save(fun);
+        verify(tx, never()).save(ownedChild);
+    }
+
+    @Test()
+    public void testRemoveNonexistingToManyRelation() {
+        Child child = newChild(1);
+        Parent parent1 = newParent(1, child);
+        Parent parent2 = newParent(2, child);
+        Parent parent3 = newParent(3, child);
+        child.setParents(Sets.newHashSet(parent1, parent2, parent3));
+
+        Parent unownedParent = newParent(4, null);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        User goodUser = new User(1);
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        PersistentResource<Object> removeResource = new PersistentResource<>(unownedParent, null, "1", goodScope);
+        childResource.removeRelation("parents", removeResource);
+
+        Assert.assertEquals(child.getParents().size(), 3, "The many-2-many relationship should not be cleared");
+        Assert.assertEquals(parent1.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
+        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
+        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
+
+        verify(tx, never()).save(child);
+        verify(tx, never()).save(parent1);
+        verify(tx, never()).save(parent2);
+        verify(tx, never()).save(parent3);
+    }
+
+    @Test()
     public void testClearToManyRelationSuccess() {
         Child child = newChild(1);
         Parent parent1 = newParent(1, child);

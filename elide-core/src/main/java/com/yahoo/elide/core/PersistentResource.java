@@ -483,19 +483,27 @@ public class PersistentResource<T> {
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
+        checkPermission(DeletePermission.class, removeResource);
         Object relation = this.getValue(fieldName);
 
-        deleteInverseRelation(fieldName, removeResource.getObject());
-
         if (relation instanceof Collection) {
-            checkPermission(UpdatePermission.class, this);
-            checkFieldPermission(UpdatePermission.class, this, fieldName);
-            checkPermission(DeletePermission.class, removeResource);
+            if (!((Collection) relation).contains(removeResource.getObject())) {
+
+                //Nothing to do
+                return;
+            }
             delFromCollection((Collection) relation, fieldName, removeResource);
         } else {
-            checkPermission(DeletePermission.class, removeResource);
+            Object oldValue = getValue(fieldName);
+            if (oldValue == null || !oldValue.equals(removeResource.getObject())) {
+
+                //Nothing to do
+                return;
+            }
             this.nullValue(fieldName, removeResource);
         }
+
+        deleteInverseRelation(fieldName, removeResource.getObject());
 
         transaction.save(removeResource.getObject());
         transaction.save(obj);
@@ -1131,10 +1139,6 @@ public class PersistentResource<T> {
         String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
         Object inverseEntity = relationValue; // Assigned to improve readability.
 
-        /*
-         * TODO - Hibernate doesn't have metadata to navigate from the owning side of the relationship to
-         * the unowned. We'll need an annotation to capture this.
-         */
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
 
@@ -1169,10 +1173,6 @@ public class PersistentResource<T> {
         Object inverseEntity = relationValue; // Assigned to improve readability.
         String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
 
-        /*
-         * TODO - Hibernate doesn't have metadata to navigate from the owning side of the relationship to
-         * the unowned. We'll need an annotation to capture this.
-         */
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
 
