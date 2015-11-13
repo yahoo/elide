@@ -30,7 +30,7 @@ public class CoerceUtil {
      * Convert value to target class
      * @param value value to convert
      * @param cls class to convert to
-     * @return
+     * @return coerced value
      */
     public static Object coerce(Object value, Class<?> cls) {
 

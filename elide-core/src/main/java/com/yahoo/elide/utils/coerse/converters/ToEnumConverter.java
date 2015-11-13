@@ -17,8 +17,8 @@ public class ToEnumConverter implements Converter {
      * Convert value to Enum
      * @param cls enum to convert to
      * @param value value to convert
-     * @param <T>
-     * @return
+     * @param <T> enum type
+     * @return enum
      */
     @Override
     public <T> T convert(Class<T> cls, Object value) {
@@ -41,9 +41,9 @@ public class ToEnumConverter implements Converter {
      * Convert digit to enum
      * @param cls enum to convert to
      * @param value value to convert
-     * @param <T>
-     * @return
-     * @throws ReflectiveOperationException
+     * @param <T> enum type
+     * @return enum
+     * @throws ReflectiveOperationException reflection exception
      */
     private <T> T intToEnum(Class<?> cls, Integer value) throws ReflectiveOperationException {
         Object[] values = (Object[]) cls.getMethod("values").invoke(null, (Object[]) null);
@@ -54,8 +54,8 @@ public class ToEnumConverter implements Converter {
      * Convert string to enum
      * @param cls enum to convert to
      * @param value value to convert
-     * @param <T>
-     * @return
+     * @param <T> enum type
+     * @return enum
      */
     private <T> T stringToEnum(Class<?> cls, String value) {
         Enum e = Enum.valueOf((Class<Enum>) cls, value);
