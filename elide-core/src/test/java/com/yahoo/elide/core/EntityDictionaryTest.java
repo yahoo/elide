@@ -8,10 +8,12 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ReadPermission;
 
 import example.Child;
+import example.FieldAnnotations;
 import example.FunWithPermissions;
 import example.Left;
 import example.Parent;
 import example.Right;
+import example.StringId;
 import example.User;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
@@ -29,6 +32,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 public class EntityDictionaryTest extends EntityDictionary {
+
+    //Test class to validate inheritance logic
+    private class Friend extends Child { }
+
     @BeforeTest
     public void init() {
         this.bindEntity(FunWithPermissions.class);
@@ -37,6 +44,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(User.class);
         this.bindEntity(Left.class);
         this.bindEntity(Right.class);
+        this.bindEntity(StringId.class);
+        this.bindEntity(Friend.class);
+        this.bindEntity(FieldAnnotations.class);
     }
 
     @Test
@@ -110,8 +120,6 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testGetIdAnnotationsSubClass() throws Exception {
 
-        class Friend extends Child { }
-
         Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
         Collection<Class> actualAnnotationsClasses  = getIdAnnotations(new Friend()).stream()
                 .map(Annotation::annotationType)
@@ -129,5 +137,48 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testIsSharableFalse() throws Exception {
         Assert.assertFalse(isShareable(Left.class));
+    }
+
+    @Test
+    public void testGetIdType() throws Exception {
+
+        Assert.assertEquals(getIdType(Parent.class), long.class,
+                "getIdType returns the type of the ID field of the given class");
+
+        Assert.assertEquals(getIdType(StringId.class), String.class,
+                "getIdType returns the type of the ID field of the given class");
+
+        Assert.assertEquals(getIdType(NoId.class), null,
+                "getIdType returns null if ID field is missing");
+
+        Assert.assertEquals(getIdType(Friend.class), long.class,
+                "getIdType returns the type of the ID field when defined in a super class");
+    }
+
+    @Test
+    public void testGetType() throws Exception {
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "id"), Long.class,
+            "getType returns the type of the ID field of the given class");
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "publicField"), long.class,
+            "getType returns the type of attribute when Column annotation is on a field");
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "privateField"), Boolean.class,
+            "getType returns the type of attribute when Column annotation is on a getter");
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "missingField"), null,
+            "getId returns null if attribute is missing");
+
+        Assert.assertEquals(getType(Parent.class, "children"), Set.class,
+            "getType returns the type of relationship fields");
+
+        Assert.assertEquals(getType(Friend.class, "name"), String.class,
+                "getType returns the type of attribute when defined in a super class");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testGetTypUnknownEntityException() {
+        getType(Object.class, "id");
     }
 }

@@ -34,11 +34,8 @@ import org.hibernate.metadata.ClassMetadata;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Hibernate interface library.
@@ -151,10 +148,12 @@ public class HibernateStore implements DataStore {
         }
 
         @Override
-        public <T> T loadObject(Class<T> loadClass, String id) {
+        public <T> T loadObject(Class<T> loadClass, Serializable id) {
             @SuppressWarnings("unchecked")
-            T record = (T) getSession().load(loadClass, Long.valueOf(id));
+
+            T record = null;
             try {
+                record = (T) getSession().load(loadClass, id);
                 Hibernate.initialize(record);
             } catch (ObjectNotFoundException e) {
                 return null;

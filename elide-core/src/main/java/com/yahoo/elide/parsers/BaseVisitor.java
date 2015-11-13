@@ -18,7 +18,6 @@ import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionToOneContext;
 import com.yahoo.elide.parsers.ormParser.TermContext;
 import com.yahoo.elide.parsers.state.StartState;
 import com.yahoo.elide.parsers.state.StateContext;
@@ -107,12 +106,6 @@ public abstract class BaseVisitor extends ormBaseVisitor<Supplier<Pair<Integer, 
     visitSubCollectionRelationship(SubCollectionRelationshipContext ctx) {
         state.handle(ctx);
         return super.visitSubCollectionRelationship(ctx);
-    }
-
-    @Override
-    public Supplier<Pair<Integer, JsonNode>> visitSubCollectionToOne(SubCollectionToOneContext ctx) {
-        state.handle(ctx);
-        return super.visitSubCollectionToOne(ctx);
     }
 
     @Override

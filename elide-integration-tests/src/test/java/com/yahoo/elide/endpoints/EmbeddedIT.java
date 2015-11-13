@@ -76,16 +76,4 @@ public class EmbeddedIT extends AHibernateTest {
 
         assertEqualDocuments(response, expected);
     }
-
-    @Test
-    void testOne2OneAccess() {
-        String expected = getJson("/EmbeddedIT/testOne2OneAccess.json");
-
-        String response =
-                given().when().get("/right/1/one2one/one2one")
-                .then().statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(response, expected);
-    }
 }

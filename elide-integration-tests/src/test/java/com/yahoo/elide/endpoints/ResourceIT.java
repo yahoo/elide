@@ -1140,20 +1140,77 @@ public class ResourceIT extends AHibernateTest {
     }
 
     @Test
-    public void assignedId() {
-        String req = getJson("/ResourceIT/assignedId.req.json");
-        String res = getJson("/ResourceIT/assignedId.json");
+    public void assignedIdString() {
+        String expectedResponse = getJson("/ResourceIT/assignedIdString.json");
 
-        String response = given()
+        //Create user with assigned id
+        String postRequest = getJson("/ResourceIT/assignedIdString.req.json");
+        String postResponse = given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(req)
-                .post("/assignedId")
+                .body(postRequest)
+                .post("/assignedIdString")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract().body().asString();
+        assertEqualDocuments(postResponse, expectedResponse);
 
-        assertEqualDocuments(response, res);
+        //Fetch newly created user
+        String getResponse = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .get("/assignedIdString/user1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+        assertEqualDocuments(getResponse, expectedResponse);
+
+        //Try to reassign id
+        String patchRequest = getJson("/ResourceIT/failPatchIdString.req.json");
+        given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body(patchRequest)
+                .patch("/assignedIdString/user1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void assignedIdLong() {
+        String expectedResponse = getJson("/ResourceIT/assignedIdLong.json");
+
+        //Create user with assigned id
+        String postRequest = getJson("/ResourceIT/assignedIdLong.req.json");
+        String postResponse = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body(postRequest)
+                .post("/assignedIdLong")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
+        assertEqualDocuments(postResponse, expectedResponse);
+
+        //Fetch newly created user
+        String getResponse = given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .get("/assignedIdLong/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+        assertEqualDocuments(getResponse, expectedResponse);
+
+        //Try to reassign id
+        String patchRequest = getJson("/ResourceIT/failPatchIdLong.req.json");
+        given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body(patchRequest)
+                .patch("/assignedIdLong/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -1164,7 +1221,7 @@ public class ResourceIT extends AHibernateTest {
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
             .body(req)
-            .post("/assignedId")
+            .post("/assignedIdString")
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN);
     }

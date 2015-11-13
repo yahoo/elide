@@ -1,7 +1,7 @@
 {
     "data":{
-        "type":"assignedId",
-        "id":"user1",
+        "type":"assignedIdLong",
+        "id":2,
         "attributes": {
             "value": 22
         }

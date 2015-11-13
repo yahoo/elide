@@ -34,19 +34,41 @@ subCollection
     | entity '/' relationship   #subCollectionRelationship
     | entity '/' subCollection  #subCollectionSubCollection
     | entity                    #subCollectionReadEntity
-    | term '/' subCollection    #subCollectionToOne
     ;
 
 relationship: RELATIONSHIPS '/' term;
 
 query: ; // Visitor performs query and outputs result
 
-term: NAME;
-id: NUMBER | UUID;
+term: PATHSTR;
+id: PATHSTR;
 
 RELATIONSHIPS: 'relationships';
-NAME: [a-zA-Z][a-zA-Z0-9]* ;
-NUMBER: ([1-9][0-9]*);
-// TODO: Antlr4 doesn't expect {NUM_OCCURRENCES} notation. We would likely need another grammar to detect this correctly
-UUID: (HEXDIGIT+'-'HEXDIGIT+'-'HEXDIGIT+'-'HEXDIGIT+'-'HEXDIGIT+);
-HEXDIGIT: [a-fA-F0-9];
+
+PATHSTR: UNRESERVED+;
+
+UNRESERVED
+    : ALPHANUM
+    | MARK
+    ;
+
+MARK
+    : '-'
+    | '_'
+    | '.'
+    | '!'
+    | '~'
+    | '*'
+    | '\''
+    | '('
+    | ')'
+    ;
+
+ALPHANUM
+      : ALPHA
+      | DIGIT
+      ;
+
+ALPHA: [a-zA-Z];
+
+DIGIT: [0-9];

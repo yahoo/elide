@@ -8,8 +8,8 @@ package com.yahoo.elide.datastore.InMemory;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.PersistentResource;
 
+import com.yahoo.elide.utils.coerse.CoerceUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.reflections.Reflections;
@@ -19,6 +19,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -200,16 +201,16 @@ public class InMemoryDB implements DataStore {
                 return Long.valueOf((String) value);
             }
 
-            return PersistentResource.coerce(value, fieldClass);
+            return CoerceUtil.coerce(value, fieldClass);
         }
 
         @Override
-        public <T> T loadObject(Class<T> loadClass, String id) {
+        public <T> T loadObject(Class<T> loadClass, Serializable id) {
             ConcurrentHashMap<String, Object> objs = database.get(loadClass);
             if (objs == null) {
                 return null;
             }
-            return (T) objs.get(id);
+            return (T) objs.get(id.toString());
         }
 
         @Override
@@ -263,7 +264,7 @@ public class InMemoryDB implements DataStore {
             sb.append("\n Table " + cls + " contents \n");
             ConcurrentHashMap<String, Object> data = database.get(cls);
             for (String id : data.keySet()) {
-                sb.append(" Id: " + id + " Value: " + data.get(id).toString());
+                sb.append(" Id: " + id + " Value: " + data.get(id.toString()));
             }
         }
         return sb.toString();

@@ -14,7 +14,6 @@ import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionToOneContext;
 
 import com.google.common.base.Preconditions;
 
@@ -101,16 +100,5 @@ public class RecordState extends BaseState {
         }
 
         state.setState(new RelationshipTerminalState(childRecord, relationName));
-    }
-
-    @Override
-    public void handle(StateContext state, SubCollectionToOneContext ctx) {
-        String subCollection = ctx.term().getText();
-        Set<PersistentResource> single = resource.getRelation(subCollection);
-        if (single instanceof SingleElementSet) {
-            state.setState(new RecordState(single.iterator().next()));
-        } else {
-            throw new InvalidCollectionException("Expected single element but found list for '%s'", subCollection);
-        }
     }
 }

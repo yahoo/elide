@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * Manager for javax.persistence compatible db resource
@@ -75,8 +76,8 @@ public class PersistenceStore implements DataStore {
         }
 
         @Override
-        public <T> T loadObject(Class<T> entityClass, String id) {
-            return entityManager.find(entityClass, Long.valueOf(id));
+        public <T> T loadObject(Class<T> entityClass, Serializable id) {
+            return entityManager.find(entityClass, id);
         }
 
         @Override

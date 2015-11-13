@@ -34,6 +34,7 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -152,9 +153,9 @@ public class HibernateStore implements DataStore {
         }
 
         @Override
-        public <T> T loadObject(Class<T> loadClass, String id) {
+        public <T> T loadObject(Class<T> loadClass, Serializable id) {
             @SuppressWarnings("unchecked")
-            T record = getSession().load(loadClass, Long.valueOf(id));
+            T record = getSession().load(loadClass, id);
             try {
                 Hibernate.initialize(record);
             } catch (ObjectNotFoundException e) {

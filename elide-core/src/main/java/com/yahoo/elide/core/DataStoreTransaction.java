@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
+import java.io.Serializable;
 
 /**
  * Wraps the Database Transaction type.
@@ -64,7 +65,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param id ID of object
      * @return record
      */
-    <T> T loadObject(Class<T> entityClass, String id);
+    <T> T loadObject(Class<T> entityClass, Serializable id);
 
     /**
      * Read entity records from database table.

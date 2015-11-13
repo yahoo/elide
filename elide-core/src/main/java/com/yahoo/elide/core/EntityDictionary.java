@@ -193,18 +193,8 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
-        if (fieldOrMethods == null) {
-            return null;
-        }
-        AccessibleObject fieldOrMethod = fieldOrMethods.get(identifier);
-        if (fieldOrMethod == null) {
-            return null;
-        }
-        if (fieldOrMethod instanceof Method) {
-            return ((Method) fieldOrMethod).getReturnType();
-        }
-        return ((Field) fieldOrMethod).getType();
+        ConcurrentHashMap<String, Class<?>> fieldTypes = entityBinding(entityClass).fieldsToTypes;
+        return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
 
     /**
@@ -502,6 +492,15 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns type of id field
+     * @param entityClass the entity class
+     * @return
+     */
+    public Class<?> getIdType(Class<?> entityClass) {
+        return entityBinding(entityClass).getIdType();
+    }
+
+    /**
      * Returns annotations applied to the ID field
      * @param value the value
      * @return Collection of Annotations
@@ -538,9 +537,7 @@ public class EntityDictionary {
                     if (params.length == paramClass.length) {
                         boolean validMethod = true;
                         for (int i = 0; i < params.length; ++i) {
-                            if (paramClass[i] == null) {
-                                validMethod &= !params[i].isPrimitive();
-                            } else {
+                            if (paramClass[i] != null) {
                                 validMethod &= params[i].isAssignableFrom(paramClass[i]);
                             }
                         }
