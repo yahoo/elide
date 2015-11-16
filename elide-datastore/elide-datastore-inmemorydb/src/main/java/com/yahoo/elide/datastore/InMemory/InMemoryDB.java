@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -111,8 +112,8 @@ public class InMemoryDB implements DataStore {
         @Override
         public <T> T createObject(Class<T> entityClass) {
             if (database.get(entityClass) == null) {
-                database.put(entityClass, new ConcurrentHashMap<>());
-                TYPEIDS.put(entityClass, new AtomicLong(1));
+                database.putIfAbsent(entityClass, new ConcurrentHashMap<>());
+                TYPEIDS.putIfAbsent(entityClass, new AtomicLong(1));
             }
             AtomicLong idValue = TYPEIDS.get(entityClass);
             String id = String.valueOf(idValue.getAndIncrement());
@@ -261,10 +262,10 @@ public class InMemoryDB implements DataStore {
         StringBuilder sb = new StringBuilder();
         sb.append("Database contents ");
         for (Class<?> cls : database.keySet()) {
-            sb.append("\n Table " + cls + " contents \n");
+            sb.append("\n Table ").append(cls).append(" contents \n");
             ConcurrentHashMap<String, Object> data = database.get(cls);
-            for (String id : data.keySet()) {
-                sb.append(" Id: " + id + " Value: " + data.get(id.toString()));
+            for (Entry<String, Object> e : data.entrySet()) {
+                sb.append(" Id: ").append(e.getKey()).append(" Value: ").append(e.getValue());
             }
         }
         return sb.toString();

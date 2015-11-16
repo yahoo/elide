@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * See: http://jsonapi.org/extensions/jsonpatch/
  */
 public class JsonApiPatch {
-    private class PatchAction {
+    private static class PatchAction {
         public final Patch patch;
 
         // Failure

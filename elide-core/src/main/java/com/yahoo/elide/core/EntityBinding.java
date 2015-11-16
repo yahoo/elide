@@ -219,8 +219,8 @@ class EntityBinding {
 
     /**
      * Returns name of field whether public member or method
-     * @param fieldOrMethod
-     * @return
+     * @param fieldOrMethod field or method
+     * @return field or method name
      */
     private static String getFieldName(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {
@@ -242,8 +242,8 @@ class EntityBinding {
 
     /**
      * Returns type of field whether public member or method
-     * @param fieldOrMethod
-     * @return
+     * @param fieldOrMethod field or method
+     * @return field type
      */
     private static Class<?> getFieldType(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {

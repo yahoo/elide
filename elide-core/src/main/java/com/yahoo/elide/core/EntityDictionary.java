@@ -494,7 +494,7 @@ public class EntityDictionary {
     /**
      * Returns type of id field
      * @param entityClass the entity class
-     * @return
+     * @return ID type
      */
     public Class<?> getIdType(Class<?> entityClass) {
         return entityBinding(entityClass).getIdType();

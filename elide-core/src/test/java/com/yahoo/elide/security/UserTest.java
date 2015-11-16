@@ -22,7 +22,7 @@ public class UserTest {
     private final EntityDictionary dictionary = new EntityDictionary();
     private final Logger testLogger = new TestLogger();
 
-    public class CounterCheck implements Check {
+    public static class CounterCheck implements Check {
         public int callCounter = 0;
         @Override
         public boolean ok(PersistentResource resource) {
