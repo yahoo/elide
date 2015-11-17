@@ -40,11 +40,6 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-hibernate3</artifactId>
-            <version>1.0.0.8-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
             <version>1.0.0.8-SNAPSHOT</version>
         </dependency>
@@ -180,6 +175,33 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>hibernate3</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.yahoo.elide</groupId>
+                    <artifactId>elide-datastore-hibernate3</artifactId>
+                    <version>1.0.0.8-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>hibernate5</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.yahoo.elide</groupId>
+                    <artifactId>elide-datastore-hibernate5</artifactId>
+                    <version>1.0.0.8-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

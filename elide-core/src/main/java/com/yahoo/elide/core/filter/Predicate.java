@@ -15,8 +15,10 @@ import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,14 +29,13 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 @ToString
 public class Predicate {
-    @Getter @NonNull private String type;
     @Getter @NonNull private String field;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
 
-    public static Set<Predicate> parseQueryParams(final EntityDictionary dictionary,
-                                                  final MultivaluedMap<String, String> queryParams) {
-        final Set<Predicate> predicateSet = new HashSet<>();
+    public static Map<String, Set<Predicate>> parseQueryParams(final EntityDictionary dictionary,
+                                                               final MultivaluedMap<String, String> queryParams) {
+        final Map<String, Set<Predicate>> predicates = new HashMap<>();
 
         queryParams.entrySet().forEach(queryParameter -> {
             // Match "filter[<type>.<field>]" OR "filter[<type>.<field>][<operator>]"
@@ -70,10 +71,13 @@ public class Predicate {
                     }
                 }
 
-                predicateSet.add(new Predicate(type, field, operator, values));
+                if (!predicates.containsKey(type)) {
+                    predicates.put(type, new LinkedHashSet<>());
+                }
+                predicates.get(type).add(new Predicate(field, operator, values));
             }
         });
 
-        return predicateSet;
+        return predicates;
     }
 }

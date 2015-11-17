@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.UserCheck.UserPermission;
 import lombok.Getter;
@@ -13,8 +12,6 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.yahoo.elide.security.UserCheck.ALLOW;
 import static com.yahoo.elide.security.UserCheck.DENY;
@@ -50,17 +47,6 @@ public class FilterScope<T> {
             }
         }
         this.checks = checks;
-    }
-
-    /**
-     * Get the set of filter predicates applied to this request
-     *
-     * @return The set of predicates
-     */
-    public Set<Predicate> getPredicatesOfType(String type) {
-        return requestScope.getPredicates().stream()
-                .filter(predicate -> predicate.getType().equals(type))
-                .collect(Collectors.toSet());
     }
 
     /**

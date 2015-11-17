@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -671,9 +672,10 @@ public class PersistentResource<T> {
             Collection filteredVal = (Collection) val;
 
             if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
-                String valType = dictionary.getBinding(dictionary.getParameterizedType(obj, relationName));
-                FilterScope filterScope = new FilterScope(requestScope);
-                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, valType, filterScope);
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                final String valType = dictionary.getBinding(entityClass);
+                final Set<Predicate> predicates = requestScope.getPredicatesOfType(valType);
+                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, predicates);
             }
 
             for (Object m : filteredVal) {

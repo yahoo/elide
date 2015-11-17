@@ -38,11 +38,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1]", "abc")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.IN)
         Assert.assertEquals(predicate.getValues(), ["abc"])
@@ -53,11 +52,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1]", "abc,def")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.IN)
         Assert.assertEquals(predicate.getValues(), ["abc", "def"])
@@ -69,11 +67,10 @@ public class PredicateTest {
         queryParams.add("filter[type1.field1]", "abc,def")
         queryParams.add("filter[type1.field2]", "def,jkl")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 2)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        for (Predicate predicate : predicateSet) {
-            Assert.assertEquals(predicate.getType(), "type1")
+        for (Predicate predicate : predicates.get("type1")) {
             switch (predicate.getField()) {
                 case "field1":
                     Assert.assertEquals(predicate.getOperator(), Operator.IN)
@@ -94,11 +91,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][in]", "abc,def")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.IN)
         Assert.assertEquals(predicate.getValues(), ["abc", "def"])
@@ -109,11 +105,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][not]", "abc,def")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.NOT)
         Assert.assertEquals(predicate.getValues(), ["abc", "def"])
@@ -124,11 +119,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][prefix]", "abc")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.PREFIX)
         Assert.assertEquals(predicate.getValues(), ["abc"])
@@ -139,11 +133,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][postfix]", "abc,def")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.POSTFIX)
         Assert.assertEquals(predicate.getValues(), ["abc", "def"])
@@ -154,11 +147,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][infix]", "abc,def")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "field1")
         Assert.assertEquals(predicate.getOperator(), Operator.INFIX)
         Assert.assertEquals(predicate.getValues(), ["abc", "def"])
@@ -177,11 +169,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.intField]", "1")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "intField")
         Assert.assertEquals(predicate.getOperator(), Operator.IN)
         Assert.assertEquals(predicate.getValues(), [1])
@@ -192,11 +183,10 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.intField]", "1,2,3")
 
-        def predicateSet = Predicate.parseQueryParams(entityDictionary, queryParams)
-        Assert.assertEquals(predicateSet.size(), 1)
+        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        Assert.assertTrue(predicates.containsKey("type1"))
 
-        def predicate = predicateSet.iterator().next()
-        Assert.assertEquals(predicate.getType(), "type1")
+        def predicate = predicates.get("type1").iterator().next()
         Assert.assertEquals(predicate.getField(), "intField")
         Assert.assertEquals(predicate.getOperator(), Operator.IN)
         Assert.assertEquals(predicate.getValues(), [1, 2, 3])

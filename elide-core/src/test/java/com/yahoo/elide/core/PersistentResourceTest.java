@@ -518,7 +518,7 @@ public class PersistentResourceTest extends PersistentResource {
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.filterCollection(anyCollection(), eq("child"), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();

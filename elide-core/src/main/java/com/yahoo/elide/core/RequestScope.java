@@ -38,7 +38,7 @@ public class RequestScope {
     @Getter private final Logger logger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
-    @Getter private final Set<Predicate> predicates;
+    @Getter private final Map<String, Set<Predicate>> predicates;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
@@ -69,7 +69,7 @@ public class RequestScope {
             predicates = Predicate.parseQueryParams(this.dictionary, this.queryParams.get());
         } else {
             sparseFields = Collections.emptyMap();
-            predicates = Collections.emptySet();
+            predicates = Collections.emptyMap();
         }
 
         newResources = new LinkedHashSet<>();
@@ -129,7 +129,7 @@ public class RequestScope {
         this.logger = outerRequestScope.logger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
-        this.predicates = Collections.emptySet();
+        this.predicates = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
         this.deferredChecks = outerRequestScope.deferredChecks;
@@ -161,6 +161,15 @@ public class RequestScope {
         }
 
         return result;
+    }
+
+    /**
+     * Get predicates for a specific collection type.
+     * @param type The name of the type
+     * @return The set of predicates for the given type
+     */
+    public Set<Predicate> getPredicatesOfType(String type) {
+        return predicates.getOrDefault(type, Collections.emptySet());
     }
 
     /**

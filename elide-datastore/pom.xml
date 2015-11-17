@@ -53,6 +53,7 @@
     </dependencyManagement>
 
     <modules>
+        <module>elide-datastore-hibernate</module>
         <module>elide-datastore-hibernate5</module>
         <module>elide-datastore-hibernate3</module>
         <module>elide-datastore-inmemorydb</module>
