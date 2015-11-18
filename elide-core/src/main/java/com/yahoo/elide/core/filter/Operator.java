@@ -14,13 +14,16 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public enum Operator {
-    IN("in"),
-    NOT("not"),
-    PREFIX("prefix"),
-    POSTFIX("postfix"),
-    INFIX("infix");
+    IN("in", true),
+    NOT("not", true),
+    PREFIX("prefix", true),
+    POSTFIX("postfix", true),
+    INFIX("infix", true),
+    ISNULL("isnull", false),
+    NOTNULL("notnull", false);
 
     @Getter private final String string;
+    @Getter private final boolean parameterized;
 
     /**
      * Returns Operator from query parameter operator string.

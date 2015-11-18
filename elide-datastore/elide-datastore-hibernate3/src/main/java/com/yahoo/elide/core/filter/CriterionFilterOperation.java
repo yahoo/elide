@@ -28,6 +28,10 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.like(predicate.getField(), "%" + predicate.getValues().get(0));
             case INFIX:
                 return Restrictions.like(predicate.getField(), "%" + predicate.getValues().get(0) + "%");
+            case ISNULL:
+                return Restrictions.isNull(predicate.getField());
+            case NOTNULL:
+                return Restrictions.isNotNull(predicate.getField());
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

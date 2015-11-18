@@ -259,7 +259,9 @@ public class HibernateStore implements DataStore {
                     Query query = getSession().createFilter(collection, filterString);
 
                     for (Predicate predicate : predicates) {
-                        query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        if (predicate.getOperator().isParameterized()) {
+                            query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        }
                     }
 
                     return query.list();

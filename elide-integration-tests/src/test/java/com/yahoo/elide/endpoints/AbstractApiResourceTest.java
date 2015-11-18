@@ -5,11 +5,10 @@
  */
 package com.yahoo.elide.endpoints;
 
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -17,8 +16,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +40,7 @@ public class AbstractApiResourceTest {
         this.resourceConfig = TestApplicationResourceConfig.class.getCanonicalName();
     }
 
-    @BeforeClass
+    @BeforeSuite
     public final void setUpServer() throws Exception {
         // setup RestAssured
         RestAssured.baseURI = "http://localhost/";
@@ -70,7 +69,7 @@ public class AbstractApiResourceTest {
         server.start();
     }
 
-    @AfterClass
+    @AfterSuite
     public final void tearDownServer() {
         log.debug("...Stopping Server...");
         try {
