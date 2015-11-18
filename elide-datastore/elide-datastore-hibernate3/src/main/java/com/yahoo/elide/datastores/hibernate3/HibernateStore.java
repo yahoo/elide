@@ -5,42 +5,52 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.CriterionFilterOperation;
+import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
-
+import lombok.NonNull;
 import org.hibernate.EntityMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.collection.PersistentBag;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
 
-import lombok.NonNull;
-
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Hibernate interface library.
  */
 public class HibernateStore implements DataStore {
+    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
+    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
     /**
      * Wraps ScrollableResult as Iterator.
@@ -168,9 +178,15 @@ public class HibernateStore implements DataStore {
                     .scroll(ScrollMode.FORWARD_ONLY));
             return list;
         }
+
         @Override
         public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
-            Criterion criterion = buildCriterion(filterScope);
+            Criterion criterion = buildCheckCriterion(filterScope);
+
+            String type = filterScope.getRequestScope().getDictionary().getBinding(loadClass);
+            Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
+            criterion = CriterionFilterOperation.andWithNull(criterion,
+                    criterionFilterOperation.applyAll(filteredPredicates));
 
             // if no criterion then return all objects
             if (criterion == null) {
@@ -190,7 +206,7 @@ public class HibernateStore implements DataStore {
          * @param filterScope the filterScope
          * @return the criterion
          */
-        public <T> Criterion buildCriterion(FilterScope<T> filterScope) {
+        public <T> Criterion buildCheckCriterion(FilterScope<T> filterScope) {
             Criterion compositeCriterion = null;
             List<Check<T>> checks = filterScope.getChecks();
             RequestScope requestScope = filterScope.getRequestScope();
@@ -230,7 +246,27 @@ public class HibernateStore implements DataStore {
                     compositeCriterion = Restrictions.and(compositeCriterion, criterion);
                 }
             }
+
             return compositeCriterion;
+        }
+
+        @Override
+        public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
+            if (collection instanceof PersistentBag && !predicates.isEmpty()) {
+                String filterString = hqlFilterOperation.applyAll(predicates);
+
+                if (filterString.length() != 0) {
+                    Query query = getSession().createFilter(collection, filterString);
+
+                    for (Predicate predicate : predicates) {
+                        query = query.setParameterList(predicate.getField(), predicate.getValues());
+                    }
+
+                    return query.list();
+                }
+            }
+
+            return collection;
         }
 
         @Override

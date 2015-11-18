@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.hibernate.AHibernateTest
 import org.testng.Assert
-import org.testng.annotations.BeforeSuite
 import org.testng.annotations.Test
 
 import static com.jayway.restassured.RestAssured.given

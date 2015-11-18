@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -261,15 +262,10 @@ public class PersistentResource<T> {
             return resources;
         }
 
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
-
         Iterable<T> list;
-        if (annotation == null) {
-            list = tx.loadObjects(loadClass);
-        } else {
-            FilterScope filterScope = loadChecks(annotation, requestScope);
-            list = tx.loadObjects(loadClass, filterScope);
-        }
+        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
+        FilterScope filterScope = loadChecks(annotation, requestScope);
+        list = tx.loadObjects(loadClass, filterScope);
 
         for (T obj : list) {
             resources.add(new PersistentResource<>(obj, requestScope));
@@ -673,7 +669,16 @@ public class PersistentResource<T> {
         } else if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
             return (Set) resources;
         } else if (val instanceof Collection) {
-            for (Object m : (Collection) val) {
+            Collection filteredVal = (Collection) val;
+
+            if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                final String valType = dictionary.getBinding(entityClass);
+                final Set<Predicate> predicates = requestScope.getPredicatesOfType(valType);
+                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, predicates);
+            }
+
+            for (Object m : filteredVal) {
                 resources.add(new PersistentResource<>(this, m, getRequestScope()));
             }
         } else if (type.isToOne()) {
@@ -691,12 +696,11 @@ public class PersistentResource<T> {
      * @return true DENY check type
      */
     private static boolean isDenyFilter(RequestScope requestScope, Class<?> recordClass) {
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
-
-        if (annotation == null || requestScope.getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
+        if (requestScope.getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
             return false;
         }
 
+        ReadPermission annotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
         FilterScope filterScope = loadChecks(annotation, requestScope);
 
         return filterScope.getUserPermission() == DENY;
@@ -1202,6 +1206,10 @@ public class PersistentResource<T> {
     }
 
     static <A extends Annotation> FilterScope loadChecks(A annotation, RequestScope requestScope) {
+        if (annotation == null) {
+            return new FilterScope(requestScope);
+        }
+
         Class<? extends Check>[] anyChecks;
         Class<? extends Check>[] allChecks;
         Class<? extends Annotation> annotationClass = annotation.getClass();

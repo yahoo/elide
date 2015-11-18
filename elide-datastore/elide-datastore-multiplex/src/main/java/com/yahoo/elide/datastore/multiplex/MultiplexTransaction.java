@@ -9,11 +9,14 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -71,6 +74,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
         return getTransaction(entityClass).loadObjects(entityClass, filterScope);
+    }
+
+    @Override
+    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
+        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
     }
 
     @Override

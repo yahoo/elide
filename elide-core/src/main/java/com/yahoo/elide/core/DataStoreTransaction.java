@@ -5,10 +5,13 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Wraps the Database Transaction type.
@@ -85,5 +88,17 @@ public interface DataStoreTransaction extends Closeable {
     default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
         // default to ignoring criteria
         return loadObjects(entityClass);
+    }
+
+    /**
+     * Filter a collection by the Predicates in filterScope.
+     *
+     * @param collection the collection to filter
+     * @param entityClass the class of the entities in the collection
+     * @param predicates the set of Predicate's to filter by
+     * @return the filtered collection
+     */
+    default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
+        return collection;
     }
 }
