@@ -26,6 +26,10 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return String.format("%s LIKE CONCAT('%%', :%s)", predicate.getField(), predicate.getField());
             case INFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s, '%%')", predicate.getField(), predicate.getField());
+            case ISNULL:
+                return String.format("%s IS NULL", predicate.getField());
+            case NOTNULL:
+                return String.format("%s IS NOT NULL", predicate.getField());
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

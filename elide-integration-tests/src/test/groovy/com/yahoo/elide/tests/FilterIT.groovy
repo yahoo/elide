@@ -11,9 +11,8 @@ import com.jayway.restassured.RestAssured
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.hibernate.AHibernateTest
 import org.testng.Assert
+import org.testng.annotations.BeforeTest
 import org.testng.annotations.Test
-
-import javax.validation.constraints.AssertTrue
 
 /**
  * Tests for Filters
@@ -25,8 +24,10 @@ class FilterIT extends AHibernateTest {
     private JsonNode authors = null
     private String asimovId = null
     private JsonNode asimovBooks = null
+    private String nullNedId = null
+    private JsonNode nullNedBooks = null
 
-    @Test(priority = -1)
+    @BeforeTest
     public void setup() {
         RestAssured
                 .given()
@@ -123,9 +124,9 @@ class FilterIT extends AHibernateTest {
                           "type": "book",
                           "id": "12345679-1234-1234-1234-1234567890ac",
                           "attributes": {
-                          "title": "Enders Game",
-                          "genre": "Science Fiction",
-                          "language": "English"
+                            "title": "Enders Game",
+                            "genre": "Science Fiction",
+                            "language": "English"
                           }
                         }
                       }
@@ -171,9 +172,9 @@ class FilterIT extends AHibernateTest {
                           "type": "book",
                           "id": "12345680-1234-1234-1234-1234567890ac",
                           "attributes": {
-                          "title": "Foundation",
-                          "genre": "Science Fiction",
-                          "language": "English"
+                            "title": "Foundation",
+                            "genre": "Science Fiction",
+                            "language": "English"
                           }
                         }
                       },
@@ -184,9 +185,69 @@ class FilterIT extends AHibernateTest {
                           "type": "book",
                           "id": "12345680-1234-1234-1234-1234567890ad",
                           "attributes": {
-                          "title": "The Roman Republic",
-                          "genre": "History",
-                          "language": "English"
+                            "title": "The Roman Republic",
+                            "genre": "History",
+                            "language": "English"
+                          }
+                        }
+                      }
+                    ]
+                    ''')
+                .patch("/")
+
+        RestAssured
+                .given()
+                .contentType("application/vnd.api+json; ext=jsonpatch")
+                .accept("application/vnd.api+json; ext=jsonpatch")
+                .body('''
+                    [
+                      {
+                        "op": "add",
+                        "path": "/author",
+                        "value": {
+                          "id": "12345681-1234-1234-1234-1234567890ab",
+                          "type": "author",
+                          "attributes": {
+                            "name": "Null Ned"
+                          },
+                          "relationships": {
+                            "books": {
+                              "data": [
+                                {
+                                  "type": "book",
+                                  "id": "12345681-1234-1234-1234-1234567890ac"
+                                },
+                                {
+                                  "type": "book",
+                                  "id": "12345681-1234-1234-1234-1234567890ad"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book",
+                        "value": {
+                          "type": "book",
+                          "id": "12345681-1234-1234-1234-1234567890ac",
+                          "attributes": {
+                            "title": "Life with Null Ned",
+                            "language": "English"
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book",
+                        "value": {
+                          "type": "book",
+                          "id": "12345681-1234-1234-1234-1234567890ad",
+                          "attributes": {
+                            "title": "Life with Null Ned 2",
+                            "genre": "Not Null",
+                            "language": "English"
                           }
                         }
                       }
@@ -201,11 +262,17 @@ class FilterIT extends AHibernateTest {
             if (author.get("attributes").get("name").asText() == "Isaac Asimov") {
                 asimovId = author.get("id").asText()
             }
+
+            if (author.get("attributes").get("name").asText() == "Null Ned") {
+                nullNedId = author.get("id").asText()
+            }
         }
 
         Assert.assertNotNull(asimovId)
+        Assert.assertNotNull(nullNedId)
 
         asimovBooks = mapper.readTree(RestAssured.get("/author/${asimovId}/books").asString())
+        nullNedBooks = mapper.readTree(RestAssured.get("/author/${nullNedId}/books").asString())
     }
 
     @Test
@@ -294,7 +361,8 @@ class FilterIT extends AHibernateTest {
     public void testRootFilterNotInSingle() {
         int nonLiteraryFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (!node.get("attributes").get("genre").asText().equals("Literary Fiction")) {
+            if (!node.get("attributes").get("genre").isNull()
+                    && !node.get("attributes").get("genre").asText().equals("Literary Fiction")) {
                 nonLiteraryFictionBookCount += 1
             }
         }
@@ -311,8 +379,9 @@ class FilterIT extends AHibernateTest {
     public void testRootFilterNotInMultiple() {
         int nonFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (!node.get("attributes").get("genre").asText().equals("Literary Fiction") &&
-                    !node.get("attributes").get("genre").asText().equals("Science Fiction")) {
+            if (!node.get("attributes").get("genre").isNull()
+                    && !node.get("attributes").get("genre").asText().equals("Literary Fiction")
+                    && !node.get("attributes").get("genre").asText().equals("Science Fiction")) {
                 nonFictionBookCount += 1
             }
         }
@@ -417,6 +486,52 @@ class FilterIT extends AHibernateTest {
     }
 
     @Test
+    public void testRootFilterIsNull() {
+        def bookIdsWithNullGenre = [] as Set
+
+        for (JsonNode book : books.get("data")) {
+            if (book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNullGenre.size() > 0)
+
+        def result = mapper.readTree(
+                RestAssured.get("/book?filter[book.genre][isnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+    }
+
+    @Test
+    public void testRootFilterIsNotNull() {
+        def bookIdsWithNonNullGenre = [] as Set
+
+        for (JsonNode book : books.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+
+        def result = mapper.readTree(
+                RestAssured.get("/book?filter[book.genre][notnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+    }
+
+    @Test
     public void testNonRootFilterImplicitSingle() {
         int asimovScienceFictionBookCount = 0
         for (JsonNode node : asimovBooks.get("data")) {
@@ -454,7 +569,8 @@ class FilterIT extends AHibernateTest {
     public void testNonRootFilterNotInSingle() {
         int nonHistoryBookCount = 0
         for (JsonNode node : asimovBooks.get("data")) {
-            if (!node.get("attributes").get("genre").asText().equals("History")) {
+            if (!node.get("attributes").get("genre").isNull()
+                    && !node.get("attributes").get("genre").asText().equals("History")) {
                 nonHistoryBookCount += 1
             }
         }
@@ -537,6 +653,52 @@ class FilterIT extends AHibernateTest {
 
         for (JsonNode author : result.get("included")) {
             Assert.assertTrue(authorIdsOfScienceFiction.contains(author.get("id").asText()))
+        }
+    }
+
+    @Test
+    public void testNonRootFilterIsNull() {
+        def bookIdsWithNullGenre = [] as Set
+
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNullGenre.size() > 0)
+
+        def result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.genre][isnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+    }
+
+    @Test
+    public void testNonRootFilterIsNotNull() {
+        def bookIdsWithNonNullGenre = [] as Set
+
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+
+        def result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.genre][notnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
         }
     }
 }
