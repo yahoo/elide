@@ -549,7 +549,7 @@ public class PersistentResource<T> {
             if (!newResources.contains(persistentResource)) {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
-                } else {
+                } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
                     throw new ForbiddenAccessException();
                 }
             }

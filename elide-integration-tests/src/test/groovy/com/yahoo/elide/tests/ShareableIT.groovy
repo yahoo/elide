@@ -416,4 +416,30 @@ class ShareableIT extends AHibernateTest {
         // Container should have 2 shareables
         Assert.assertEquals(patchJson[0]["data"]["relationships"]["shareables"]["data"].size(), 2)
     }
+
+
+    @Test(priority = 3)
+    public void addUnsharedRelationship() {
+        given()
+                .contentType("application/vnd.api+json")
+                .accept("application/vnd.api+json")
+                .body("""
+                    {
+                        "data":{
+                            "type":"right",
+                            "relationships":{
+                                "one2one":{
+                                    "data":{
+                                        "type":"left",
+                                        "id":"1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                """)
+                .post("/left/1/one2many")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+    }
 }
