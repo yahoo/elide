@@ -8,7 +8,7 @@ package com.yahoo.elide.endpoints;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.hibernate.AHibernateTest;
+import com.yahoo.elide.datastore.AHibernateTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import org.glassfish.hk2.api.Factory;

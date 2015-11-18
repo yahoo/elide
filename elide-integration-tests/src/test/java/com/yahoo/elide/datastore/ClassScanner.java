@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.hibernate;
+package com.yahoo.elide.datastore;
 
 import org.glassfish.jersey.server.internal.scanning.AnnotationAcceptingListener;
 import org.glassfish.jersey.server.internal.scanning.PackageNamesScanner;

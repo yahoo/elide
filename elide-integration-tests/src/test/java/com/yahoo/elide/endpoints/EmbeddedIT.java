@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.hibernate.AHibernateTest;
+import com.yahoo.elide.datastore.AHibernateTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 
 import com.google.common.collect.ImmutableSet;
