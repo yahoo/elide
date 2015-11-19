@@ -9,6 +9,7 @@ import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -58,7 +59,8 @@ public class ResourceLineage {
      * @return the record
      */
     public List<PersistentResource> getRecord(String name) {
-        return resourceMap.get(name);
+        List<PersistentResource> list = resourceMap.get(name);
+        return list == null ? Collections.emptyList() : list;
     }
 
     /**
