@@ -18,7 +18,7 @@ import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.SecurityMode;
-import com.yahoo.elide.hibernate.AHibernateTest;
+import com.yahoo.elide.datastore.AHibernateTest;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
