@@ -8,7 +8,6 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -218,7 +217,8 @@ class EntityBinding {
     }
 
     /**
-     * Returns name of field whether public member or method
+     * Returns name of field whether public member or method.
+     *
      * @param fieldOrMethod field or method
      * @return field or method name
      */
@@ -241,7 +241,8 @@ class EntityBinding {
     }
 
     /**
-     * Returns type of field whether public member or method
+     * Returns type of field whether public member or method.
+     *
      * @param fieldOrMethod field or method
      * @return field type
      */

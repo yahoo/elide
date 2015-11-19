@@ -34,7 +34,6 @@ import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -53,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.persistence.GeneratedValue;
 import static com.yahoo.elide.security.UserCheck.DENY;
 
 /**
@@ -600,7 +600,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Indicates if the ID is generated or not
+     * Indicates if the ID is generated or not.
+     *
      * @return Boolean
      */
     public Boolean isIdGenerated() {
@@ -610,7 +611,8 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Returns annotations applied to the ID field
+     * Returns annotations applied to the ID field.
+     *
      * @return Collection of Annotations
      */
     private Collection<Annotation> getIdAnnotations() {

@@ -14,7 +14,8 @@ import org.apache.commons.lang3.ClassUtils;
  */
 public class ToEnumConverter implements Converter {
     /**
-     * Convert value to Enum
+     * Convert value to enum.
+     *
      * @param cls enum to convert to
      * @param value value to convert
      * @param <T> enum type
@@ -38,7 +39,8 @@ public class ToEnumConverter implements Converter {
     }
 
     /**
-     * Convert digit to enum
+     * Convert digit to enum.
+     *
      * @param cls enum to convert to
      * @param value value to convert
      * @param <T> enum type
@@ -51,7 +53,8 @@ public class ToEnumConverter implements Converter {
     }
 
     /**
-     * Convert string to enum
+     * Convert string to enum.
+     *
      * @param cls enum to convert to
      * @param value value to convert
      * @param <T> enum type
