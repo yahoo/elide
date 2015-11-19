@@ -5,15 +5,11 @@
  */
 package com.yahoo.elide.endpoints;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-
+import com.google.common.collect.ImmutableSet;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastore.AHibernateTest;
+import com.yahoo.elide.datastores.AHibernateTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-
-import com.google.common.collect.ImmutableSet;
 import example.Embedded;
 import example.Left;
 import example.Right;
@@ -22,6 +18,9 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * The type Config resource test.

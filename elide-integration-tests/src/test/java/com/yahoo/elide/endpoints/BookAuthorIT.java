@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.datastore.AHibernateTest;
+import com.yahoo.elide.datastores.AHibernateTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
