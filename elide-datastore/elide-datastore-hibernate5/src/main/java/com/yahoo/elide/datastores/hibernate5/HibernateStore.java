@@ -20,7 +20,6 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
 import lombok.NonNull;
-import org.hibernate.EntityMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -260,7 +259,9 @@ public class HibernateStore implements DataStore {
                     Query query = getSession().createFilter(collection, filterString);
 
                     for (Predicate predicate : predicates) {
-                        query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        if (predicate.getOperator().isParameterized()) {
+                            query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        }
                     }
 
                     return query.list();
