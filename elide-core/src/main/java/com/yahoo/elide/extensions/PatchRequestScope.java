@@ -20,10 +20,12 @@ public class PatchRequestScope extends RequestScope {
 
     /**
      * Outer RequestScope constructor for use by Patch Extension.
+     *
      * @param transaction current database transaction
-     * @param user request user
-     * @param dictionary entity dictionary
-     * @param mapper Json API mapper
+     * @param user        request user
+     * @param dictionary  entity dictionary
+     * @param mapper      Json API mapper
+     * @param logger      the logger
      */
     public PatchRequestScope(
             DataStoreTransaction transaction,
@@ -38,7 +40,7 @@ public class PatchRequestScope extends RequestScope {
      * Inner RequestScope copy constructor for use by Patch Extension actions.
      *
      * @param jsonApiDocument document
-     * @param scope outer request scope
+     * @param scope           outer request scope
      */
     public PatchRequestScope(JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
         super(jsonApiDocument, scope);

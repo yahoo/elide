@@ -3,11 +3,11 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.utils.coerse;
+package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.utils.coerse.converters.ToEnumConverter;
+import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;

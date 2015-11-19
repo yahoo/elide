@@ -3,14 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.utils.coerse.converters;
+package com.yahoo.elide.utils.coerce.converters;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang3.ClassUtils;
 
 /**
- * Converter to Enum
+ * Converter to Enum.
  */
 public class ToEnumConverter implements Converter {
     /**

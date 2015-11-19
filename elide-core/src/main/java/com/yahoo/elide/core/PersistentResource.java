@@ -29,7 +29,7 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.utils.coerse.CoerceUtil;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
