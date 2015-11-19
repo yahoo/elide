@@ -8,8 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-core</artifactId>
     <packaging>jar</packaging>
-    <name>Elide REST ORM framework core</name>
-    <description>Elide REST ORM framework core</description>
+    <name>Elide Core</name>
+    <description>Elide Core</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>

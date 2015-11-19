@@ -15,7 +15,6 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 import lombok.Getter;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -106,6 +107,12 @@ public class RequestScope {
 
     /**
      * Outer RequestScope constructor for use by Patch Extension.
+     *
+     * @param transaction the transaction
+     * @param user        the user
+     * @param dictionary  the dictionary
+     * @param mapper      the mapper
+     * @param logger      the logger
      */
     protected RequestScope(
             DataStoreTransaction transaction,
@@ -119,6 +126,9 @@ public class RequestScope {
 
     /**
      * Special copy constructor for use by PatchRequestScope.
+     *
+     * @param jsonApiDocument   the json api document
+     * @param outerRequestScope the outer request scope
      */
     protected RequestScope(JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;

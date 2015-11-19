@@ -7,7 +7,7 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
- * Exception when invalid value is used
+ * Exception when an invalid value is used.
  *
  * {@link com.yahoo.elide.core.HttpStatus#SC_BAD_REQUEST invalid}
  */

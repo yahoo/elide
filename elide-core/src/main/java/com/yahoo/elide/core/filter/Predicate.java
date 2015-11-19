@@ -7,7 +7,7 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.utils.coerse.CoerceUtil;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;

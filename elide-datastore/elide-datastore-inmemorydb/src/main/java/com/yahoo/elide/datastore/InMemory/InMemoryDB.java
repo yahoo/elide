@@ -9,7 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
-import com.yahoo.elide.utils.coerse.CoerceUtil;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.reflections.Reflections;

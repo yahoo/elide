@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.utils.coerse;
+package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import org.testng.annotations.Test;

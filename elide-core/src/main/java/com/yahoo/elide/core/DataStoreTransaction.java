@@ -56,6 +56,7 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Create new entity record.
      *
+     * @param <T>         the type parameter
      * @param entityClass the entity class
      * @return new record
      */
@@ -64,26 +65,29 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Read entity record from database table.
      *
+     * @param <T>         the type parameter
      * @param entityClass the entity class
-     * @param id ID of object
-     * @return record
+     * @param id          ID of object
+     * @return record t
      */
     <T> T loadObject(Class<T> entityClass, Serializable id);
 
     /**
      * Read entity records from database table.
-     * <P>TODO Want to support filtering, limiting, and sorting?
+     *
+     * @param <T>         the type parameter
      * @param entityClass the entity class
-     * @return records
+     * @return records iterable
      */
     <T> Iterable<T> loadObjects(Class<T> entityClass);
 
     /**
      * Read entity records from database table with applied criteria.
      *
+     * @param <T>         the type parameter
      * @param entityClass the entity class
      * @param filterScope scope for filter processing
-     * @return records
+     * @return records iterable
      */
     default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
         // default to ignoring criteria
@@ -93,9 +97,10 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Filter a collection by the Predicates in filterScope.
      *
-     * @param collection the collection to filter
+     * @param <T>         the type parameter
+     * @param collection  the collection to filter
      * @param entityClass the class of the entities in the collection
-     * @param predicates the set of Predicate's to filter by
+     * @param predicates  the set of Predicate's to filter by
      * @return the filtered collection
      */
     default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {

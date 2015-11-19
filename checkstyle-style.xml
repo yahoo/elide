@@ -82,9 +82,9 @@
       <property name="severity" value="error"/>
     </module>
     <module name="CyclomaticComplexity">
-      <metadata name="net.sf.eclipsecs.core.comment" value="Cyclomatic complexity limit of 7."/>
+      <metadata name="net.sf.eclipsecs.core.comment" value="Cyclomatic complexity limit of 15."/>
       <property name="severity" value="warning"/>
-      <property name="max" value="7"/>
+      <property name="max" value="15"/>
     </module>
     <module name="UpperEll">
       <metadata name="net.sf.eclipsecs.core.comment" value="Checks that long constants are defined with an upper ell. 'l' looks too much like '1'. "/>

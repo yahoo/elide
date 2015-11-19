@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -305,7 +304,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns whether or not an entity is shareable
+     * Returns whether or not an entity is shareable.
+     *
      * @param entityClass the entity type to check for the shareable permissions
      * @return true if entityClass is shareable.  False otherwise.
      */
@@ -492,7 +492,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns type of id field
+     * Returns type of id field.
+     *
      * @param entityClass the entity class
      * @return ID type
      */
@@ -501,7 +502,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns annotations applied to the ID field
+     * Returns annotations applied to the ID field.
+     *
      * @param value the value
      * @return Collection of Annotations
      */
