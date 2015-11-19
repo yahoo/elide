@@ -9,7 +9,7 @@
     <artifactId>elide-datastore-inmemorydb</artifactId>
     <packaging>jar</packaging>
     <name>Elide In-Memory Data Store</name>
-    <description>Elide data store for a demonstrative in-memory db support</description>
+    <description>Elide data store for a demonstrative in-memory datastore support</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>

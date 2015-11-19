@@ -157,7 +157,7 @@
             </activation>
 
             <properties>
-                <dataStoreSupplier>com.yahoo.elide.datastore.Hibernate3DataStoreSupplier</dataStoreSupplier>
+                <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate3DataStoreSupplier</dataStoreSupplier>
             </properties>
 
             <dependencies>
@@ -198,7 +198,7 @@
             <id>hibernate5</id>
 
             <properties>
-                <dataStoreSupplier>com.yahoo.elide.datastore.Hibernate5DataStoreSupplier</dataStoreSupplier>
+                <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate5DataStoreSupplier</dataStoreSupplier>
             </properties>
 
             <dependencies>
