@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>1.0.0.8</version>
+        <version>1.0.0.9-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -36,12 +36,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>1.0.0.8</version>
+            <version>1.0.0.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>1.0.0.8</version>
+            <version>1.0.0.9-SNAPSHOT</version>
         </dependency>
 
         <!-- Additional dependencies -->
@@ -164,7 +164,7 @@
                 <dependency>
                     <groupId>com.yahoo.elide</groupId>
                     <artifactId>elide-datastore-hibernate3</artifactId>
-                    <version>1.0.0.8</version>
+                    <version>1.0.0.9-SNAPSHOT</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -205,7 +205,7 @@
                 <dependency>
                     <groupId>com.yahoo.elide</groupId>
                     <artifactId>elide-datastore-hibernate5</artifactId>
-                    <version>1.0.0.8</version>
+                    <version>1.0.0.9-SNAPSHOT</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
