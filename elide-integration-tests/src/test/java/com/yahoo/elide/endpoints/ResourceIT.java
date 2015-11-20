@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestLogger;
@@ -31,6 +32,7 @@ import example.FunWithPermissions;
 import example.Parent;
 import example.User;
 import org.apache.http.HttpStatus;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -1095,17 +1097,23 @@ public class ResourceIT extends AHibernateTest {
     }
 
     @Test(priority = 28)
-    public void patchExtBadValue() {
+    public void patchExtBadValue() throws IOException {
         String req = getJson("/ResourceIT/patchExtBadValue.req.json");
-        String expected = getJson("/ResourceIT/patchExtBadValue.json");
-        given()
+
+        JsonNode result = mapper.getObjectMapper().readTree(given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
             .body(req)
             .patch("/")
             .then()
             .statusCode(HttpStatus.SC_LOCKED)
-            .body(equalTo(expected));
+            .extract()
+            .body()
+            .asString());
+
+        Assert.assertTrue(result.has("errors"));
+        Assert.assertEquals(result.get("errors").size(), 1);
+        Assert.assertTrue(result.get("errors").get(0).asText().startsWith("Duplicate entry 'duplicate' for key"));
     }
 
     @Test(priority = 29)
