@@ -12,9 +12,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
+import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.Role;
-
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -45,7 +44,7 @@ public class Filtered extends BaseId {
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
         return id;
     }
