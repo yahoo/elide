@@ -158,9 +158,9 @@
         <profile>
             <id>hibernate3</id>
 
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
 
             <properties>
                 <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate3DataStoreSupplier</dataStoreSupplier>
