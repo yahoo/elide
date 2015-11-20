@@ -15,8 +15,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.Role;
 import lombok.ToString;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -41,7 +39,6 @@ import java.util.Set;
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 // Hibernate
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
 public class Parent extends BaseId {
     private Set<Child> children;

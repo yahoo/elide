@@ -8,9 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.ForeignKey;
 
 import java.util.Set;
 
@@ -26,7 +23,6 @@ import javax.persistence.Id;
  */
 @Include(rootLevel = true)
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Embedded {
     @JsonIgnore
     private long id;
@@ -43,7 +39,6 @@ public class Embedded {
     }
 
     @ElementCollection
-    @ForeignKey(name = "FK_Extended_Segments", inverseName = "FK_ExtendedSegments_Extended")
     public Set<Long> getSegmentIds() {
         return segmentIds;
     }

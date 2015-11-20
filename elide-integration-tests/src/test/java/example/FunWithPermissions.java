@@ -12,8 +12,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.Role;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -36,7 +34,6 @@ import java.util.Set;
 @Include(rootLevel = true, type = "fun") // optional here because class has this name
 // Hibernate
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "fun")
 public class FunWithPermissions {
     @JsonIgnore
