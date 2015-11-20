@@ -10,8 +10,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.Role;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -30,7 +28,6 @@ import java.util.Set;
 @Include(rootLevel = true, type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @DeletePermission(
         any = {NegativeIntegerUserCheck.class}
 )

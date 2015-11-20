@@ -66,6 +66,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+            <version>1.0.0.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>4.1.0.Final</version>
@@ -152,9 +158,9 @@
         <profile>
             <id>hibernate3</id>
 
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
 
             <properties>
                 <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate3DataStoreSupplier</dataStoreSupplier>
@@ -226,6 +232,47 @@
                                 <configuration>
                                     <sources>
                                         <source>src/test/java-hibernate5</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>inmemory</id>
+
+            <properties>
+                <dataStoreSupplier>com.yahoo.elide.datastores.InMemoryDataStoreSupplier</dataStoreSupplier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.yahoo.elide</groupId>
+                    <artifactId>elide-datastore-inmemorydb</artifactId>
+                    <version>1.0.0.9-SNAPSHOT</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>1.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>add-test-source</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/test/java-inmemory</source>
                                     </sources>
                                 </configuration>
                             </execution>

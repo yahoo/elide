@@ -9,8 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.Role;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -29,8 +27,6 @@ import java.util.Set;
 @Include(rootLevel = true, type = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-
 public class Right {
     @JsonIgnore
     private long id;

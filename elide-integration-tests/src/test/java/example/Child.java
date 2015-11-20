@@ -15,8 +15,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.Role;
 import example.Child.InitCheck;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -31,7 +29,6 @@ import java.util.Set;
  * Child test bean.
  */
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @CreatePermission(any = { InitCheck.class })
 @SharePermission(any = { Role.ALL.class })
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
