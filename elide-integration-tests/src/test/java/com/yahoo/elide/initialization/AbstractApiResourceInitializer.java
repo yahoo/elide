@@ -3,41 +3,28 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.endpoints;
+package com.yahoo.elide.initialization;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
- * AbstractApiResource Test.
+ * Initialize API service.
  */
 @Slf4j
-public class AbstractApiResourceTest {
+public abstract class AbstractApiResourceInitializer {
     private Server server;
     private final String resourceConfig;
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    public AbstractApiResourceTest(Class<? extends ResourceConfig> resourceConfig) {
-        this.resourceConfig = resourceConfig.getCanonicalName();
-    }
-
-    public AbstractApiResourceTest() {
-        this.resourceConfig = TestApplicationResourceConfig.class.getCanonicalName();
+    public AbstractApiResourceInitializer() {
+        this.resourceConfig = IntegrationTestApplicationResourceConfig.class.getCanonicalName();
     }
 
     @BeforeSuite
@@ -54,7 +41,7 @@ public class AbstractApiResourceTest {
         // embedded jetty server
         server = new Server(RestAssured.port);
         final ServletContextHandler servletContextHandler =
-            new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+                new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
 
@@ -76,36 +63,6 @@ public class AbstractApiResourceTest {
             server.stop();
         } catch (Exception e) {
             log.debug(e.getMessage());
-        }
-    }
-
-    /**
-     * Parse provided string into JsonNode.
-     *
-     * @param jsonString provided JSON
-     * @return JsonNode representation
-     */
-    public JsonNode toJsonNode(String jsonString) {
-        try {
-            return mapper.readTree(jsonString);
-        } catch (IOException e) {
-            Assert.fail("Unable to parse JSON\n" + jsonString, e);
-            throw new IllegalStateException(); // should not reach here
-        }
-    }
-
-    /**
-     * Read resource as a JSON string.
-     *
-     * @param  resourceName name of the desired resource
-     * @return JSON string
-     */
-    public String getJson(String resourceName) {
-        try (InputStream is = AbstractApiResourceTest.class.getResourceAsStream(resourceName)) {
-            return String.valueOf(mapper.readTree(is));
-        } catch (IOException e) {
-            Assert.fail("Unable to open test data " + resourceName, e);
-            throw new IllegalStateException(); // should not reach here
         }
     }
 }

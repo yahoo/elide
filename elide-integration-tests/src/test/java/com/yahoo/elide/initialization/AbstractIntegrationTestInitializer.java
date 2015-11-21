@@ -3,14 +3,12 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores;
+package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.endpoints.AbstractApiResourceTest;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import org.hibernate.SessionFactory;
 import org.testng.annotations.BeforeTest;
 
 import java.io.IOException;
@@ -20,16 +18,25 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 /**
- * This class provides some helper functions for tests to start and end transactions. Any test that fails to terminate
- * its own transaction will have it rolled back at the end.
+ * Integration test initializer.
+ *
  */
-public abstract class AHibernateTest extends AbstractApiResourceTest {
-    protected static volatile SessionFactory sessionFactory;
+public abstract class AbstractIntegrationTestInitializer extends AbstractApiResourceInitializer {
+    /**
+     * The constant dataStore.
+     */
     public static DataStore dataStore = null;
+    /**
+     * The Json api mapper.
+     * Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only
+     */
+    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary());
 
-    /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
-    protected final JsonApiMapper mapper = new JsonApiMapper(new EntityDictionary());
-
+    /**
+     * Gets database manager.
+     *
+     * @return the database manager
+     */
     public static DataStore getDatabaseManager() {
         if (dataStore == null) {
             try {
@@ -45,18 +52,27 @@ public abstract class AHibernateTest extends AbstractApiResourceTest {
         return dataStore;
     }
 
-    protected AHibernateTest() {
+    protected AbstractIntegrationTestInitializer() {
     }
 
+    /**
+     * Hibernate init.
+     */
     @BeforeTest
     public static void hibernateInit() {
-       getDatabaseManager();
+        getDatabaseManager();
     }
 
-    protected void assertEqualDocuments(String actual, String expected) {
+    /**
+     * Assert equal documents.
+     *
+     * @param actual   the actual
+     * @param expected the expected
+     */
+    protected void assertEqualDocuments(final String actual, final String expected) {
         try {
-            JsonApiDocument expectedDoc = mapper.readJsonApiDocument(expected);
-            JsonApiDocument actualDoc = mapper.readJsonApiDocument(actual);
+            JsonApiDocument expectedDoc = jsonApiMapper.readJsonApiDocument(expected);
+            JsonApiDocument actualDoc = jsonApiMapper.readJsonApiDocument(actual);
             assertEquals(actualDoc, expectedDoc, "\n" + actual + "\n" + expected + "\n");
         } catch (IOException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);

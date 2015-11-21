@@ -27,8 +27,6 @@
     <properties>
         <version.logback>1.1.3</version.logback>
         <version.restassured>2.7.0</version.restassured>
-
-        <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
     </properties>
 
     <dependencies>
@@ -38,12 +36,11 @@
             <artifactId>elide-core</artifactId>
             <version>1.0.0.10-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-multiplex</artifactId>
-            <version>1.0.0.10-SNAPSHOT</version>
-        </dependency>
-
+        <!--<dependency>-->
+            <!--<groupId>com.yahoo.elide</groupId>-->
+            <!--<artifactId>elide-datastore-multiplex</artifactId>-->
+            <!--<version>1.0.0.10-SNAPSHOT</version>-->
+        <!--</dependency>-->
         <!-- Additional dependencies -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -153,251 +150,15 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>hibernate3</id>
-
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-
-            <properties>
-                <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate3DataStoreSupplier</dataStoreSupplier>
-            </properties>
-
-            <dependencies>
-                <dependency>
-                    <groupId>com.yahoo.elide</groupId>
-                    <artifactId>elide-datastore-hibernate3</artifactId>
-                    <version>1.0.0.10-SNAPSHOT</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.9.1</version>
-                        <executions>
-                            <execution>
-                                <id>add-test-source</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>add-test-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>src/test/java-hibernate3</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>hibernate5</id>
-
-            <properties>
-                <dataStoreSupplier>com.yahoo.elide.datastores.Hibernate5DataStoreSupplier</dataStoreSupplier>
-            </properties>
-
-            <dependencies>
-                <dependency>
-                    <groupId>com.yahoo.elide</groupId>
-                    <artifactId>elide-datastore-hibernate5</artifactId>
-                    <version>1.0.0.10-SNAPSHOT</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.9.1</version>
-                        <executions>
-                            <execution>
-                                <id>add-test-source</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>add-test-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>src/test/java-hibernate5</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>inmemory</id>
-
-            <properties>
-                <dataStoreSupplier>com.yahoo.elide.datastores.InMemoryDataStoreSupplier</dataStoreSupplier>
-            </properties>
-
-            <dependencies>
-                <dependency>
-                    <groupId>com.yahoo.elide</groupId>
-                    <artifactId>elide-datastore-inmemorydb</artifactId>
-                    <version>1.0.0.10-SNAPSHOT</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.9.1</version>
-                        <executions>
-                            <execution>
-                                <id>add-test-source</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>add-test-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>src/test/java-inmemory</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.9.1</version>
-                <executions>
-                    <execution>
-                        <id>add-source-generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>target/generated-sources/antlr4</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>reserve-network-port-pre-integration-test</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>reserve-network-port</goal>
-                        </goals>
-                        <configuration>
-                            <portNames>
-                                <portName>mysql.port</portName>
-                            </portNames>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>reserve-network-port-process-test-classes</id>
-                        <phase>process-test-classes</phase>
-                        <goals>
-                            <goal>reserve-network-port</goal>
-                        </goals>
-                        <configuration>
-                            <portNames>
-                                <portName>restassured.port</portName>
-                            </portNames>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
+                <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>pre-integration-test</phase>
                         <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.jcabi</groupId>
-                                    <artifactId>mysql-dist</artifactId>
-                                    <version>5.6.14</version>
-                                    <classifier>${mysql.classifier}</classifier>
-                                    <type>zip</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/mysql-dist</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.jcabi</groupId>
-                <artifactId>jcabi-mysql-maven-plugin</artifactId>
-                <version>0.9</version>
-                <executions>
-                    <execution>
-                        <id>mysql-test</id>
-                        <goals>
-                            <goal>classify</goal>
-                            <goal>start</goal>
-                            <goal>stop</goal>
-                        </goals>
-                        <configuration>
-                            <port>${mysql.port}</port>
-                            <data>${mysql.data.directory}</data>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <mysql.port>${mysql.port}</mysql.port>
-                        <restassured.port>${restassured.port}</restassured.port>
-                        <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
-                    </systemPropertyVariables>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>testngIT.xml</suiteXmlFile>
-                    </suiteXmlFiles>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>verify</id>
-                        <goals>
-                            <goal>verify</goal>
+                            <goal>test-jar</goal>
                         </goals>
                     </execution>
                 </executions>

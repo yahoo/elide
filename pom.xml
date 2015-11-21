@@ -74,7 +74,6 @@
         <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
         <checkstyle.version>6.12</checkstyle.version>
         <surefire.plugin.version>2.19</surefire.plugin.version>
-        <testng.version>6.9.9</testng.version>
         <groovy.version>2.4.5</groovy.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
@@ -135,7 +134,7 @@
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
+                <version>6.9.9</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>

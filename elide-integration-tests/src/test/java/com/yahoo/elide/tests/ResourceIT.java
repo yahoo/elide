@@ -3,31 +3,23 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.endpoints;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.SecurityMode;
-import com.yahoo.elide.datastores.AHibernateTest;
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-
-import com.google.common.collect.Sets;
+import com.yahoo.elide.utils.JsonParser;
 import example.Child;
-import example.Filtered;
 import example.FunWithPermissions;
 import example.Parent;
 import example.User;
@@ -36,21 +28,27 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedHashMap;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * The type Config resource test.
  */
 // TODO: These tests (i.e. the whole suite) are too tightly coupled. We need to refactor them.
-public class ResourceIT extends AHibernateTest {
+public class ResourceIT extends AbstractIntegrationTestInitializer {
+    private final JsonParser jsonParser = new JsonParser();
+
     public ResourceIT() {
-        /* There is no good way to get the dictionary from Elide */
+        // There is no good way to get the dictionary from Elide
         EntityDictionary empty = new EntityDictionary();
     }
 
@@ -125,9 +123,6 @@ public class ResourceIT extends AHibernateTest {
         user.setPassword("god");
         tx.save(user);
 
-        tx.save(tx.createObject(Filtered.class));
-        tx.save(tx.createObject(Filtered.class));
-        tx.save(tx.createObject(Filtered.class));
         tx.commit();
     }
 
@@ -136,13 +131,13 @@ public class ResourceIT extends AHibernateTest {
         String resp = given().when().get("/parent").then().statusCode(HttpStatus.SC_OK)
         .extract().body().asString();
 
-        JsonApiDocument doc = mapper.readJsonApiDocument(resp);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(resp);
         assertEquals(doc.getData().get().size(), 4);
     }
 
     @Test
     public void testRootCollectionId() {
-        String expected = getJson("/ResourceIT/testRootCollectionId.json");
+        String expected = jsonParser.getJson("/ResourceIT/testRootCollectionId.json");
 
         String response = given().when().get("/parent/1").then().statusCode(HttpStatus.SC_OK)
         .extract().body().asString();
@@ -152,7 +147,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void testRootCollectionRelationships() {
-        String expected = getJson("/ResourceIT/testRootCollectionRelationships.json");
+        String expected = jsonParser.getJson("/ResourceIT/testRootCollectionRelationships.json");
 
         given()
             .when().get("/parent/1/relationships/children").then().statusCode(HttpStatus.SC_OK)
@@ -161,7 +156,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void testChild() throws Exception {
-        String expected = getJson("/ResourceIT/testChild.json");
+        String expected = jsonParser.getJson("/ResourceIT/testChild.json");
 
         given().when().get("/parent/1/children/1").then().statusCode(HttpStatus.SC_OK)
         .body(equalTo(expected));
@@ -169,7 +164,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void testSubCollectionRelationships() throws Exception {
-        String expected = getJson("/ResourceIT/testSubCollectionRelationships.json");
+        String expected = jsonParser.getJson("/ResourceIT/testSubCollectionRelationships.json");
 
         given().when().get("/parent/1/children/1/relationships/parents").then().statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected));
@@ -182,7 +177,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void failRootCollection() throws Exception {
-        String expected = getJson("/ResourceIT/failRootCollection.json");
+        String expected = jsonParser.getJson("/ResourceIT/failRootCollection.json");
 
         given().when().get("/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -190,7 +185,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void failRootCollectionId() {
-        String expected = getJson("/ResourceIT/failRootCollectionId.json");
+        String expected = jsonParser.getJson("/ResourceIT/failRootCollectionId.json");
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -198,7 +193,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void failChild() throws Exception {
-        String expected = getJson("/ResourceIT/failChild.json");
+        String expected = jsonParser.getJson("/ResourceIT/failChild.json");
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -206,7 +201,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void failFieldRequest() throws Exception {
-        String expected = getJson("/ResourceIT/failFieldRequest.json");
+        String expected = jsonParser.getJson("/ResourceIT/failFieldRequest.json");
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -214,7 +209,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void parseFailure() {
-        String expected = getJson("/ResourceIT/parseFailure.json");
+        String expected = jsonParser.getJson("/ResourceIT/parseFailure.json");
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -222,7 +217,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 1)
     public void testPatchAttrSingle() throws Exception {
-        String req = getJson("/ResourceIT/testPatchAttrSingle.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchAttrSingle.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -241,7 +236,7 @@ public class ResourceIT extends AHibernateTest {
             .contentType("application/vnd.api+json")
             .extract().response().asString();
 
-        JsonApiDocument doc = mapper.readJsonApiDocument(resp);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(resp);
         Data<Resource> data = doc.getData();
         Resource resource = data.get().iterator().next();
 
@@ -254,7 +249,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 2)
     public void testPatchAttrNoUpdateSingle() {
-        String req = getJson("/ResourceIT/testPatchAttrNoUpdateSingle.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchAttrNoUpdateSingle.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -268,7 +263,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 3)
     public void testPatchAttrList() throws Exception {
-        String req = getJson("/ResourceIT/testPatchAttrList.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchAttrList.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -281,7 +276,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 4)
     public void testPatchSetRel() throws Exception {
-        String req = getJson("/ResourceIT/testPatchSetRel.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchSetRel.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -299,7 +294,7 @@ public class ResourceIT extends AHibernateTest {
             .statusCode(HttpStatus.SC_OK)
             .extract().response().asString();
 
-        JsonApiDocument doc = mapper.readJsonApiDocument(resp);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(resp);
         Data<Resource> data = doc.getData();
         Resource r = data.get().iterator().next();
         Iterator<Resource> itr = r.getRelationships().get("children").getData().get().iterator();
@@ -324,8 +319,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 5)
     public void testPatchRemoveRelSingle() {
-        String req = getJson("/ResourceIT/testPatchRemoveRelSingle.req.json");
-        String expected = getJson("/ResourceIT/testPatchRemoveRelSingle.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchRemoveRelSingle.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/testPatchRemoveRelSingle.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -348,7 +343,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 6)
     public void testPatchRelNoUpdateSingle() {
-        String req = getJson("/ResourceIT/testPatchRelNoUpdateSingle.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchRelNoUpdateSingle.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -361,8 +356,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 7)
     public void testPatchRelRemoveColl() {
-        String req = getJson("/ResourceIT/testPatchRelRemoveColl.req.json");
-        String expected = getJson("/ResourceIT/testPatchRelRemoveColl.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchRelRemoveColl.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/testPatchRelRemoveColl.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -386,7 +381,7 @@ public class ResourceIT extends AHibernateTest {
     @Test(priority = 8)
     public void testGetNestedSingleInclude() throws IOException {
 
-        String expected  = getJson("/ResourceIT/testGetNestedSingleInclude.json");
+        String expected  = jsonParser.getJson("/ResourceIT/testGetNestedSingleInclude.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -411,7 +406,7 @@ public class ResourceIT extends AHibernateTest {
          *      all the children belonging to a parent
          * ]}
          */
-        String expected  = getJson("/ResourceIT/testGetSingleIncludeOnCollection.json");
+        String expected  = jsonParser.getJson("/ResourceIT/testGetSingleIncludeOnCollection.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -436,7 +431,7 @@ public class ResourceIT extends AHibernateTest {
          *      all the children and spouses belonging to a parent
          * ]}
          */
-        String expected  = getJson("/ResourceIT/testGetMultipleIncludeOnCollection.json");
+        String expected  = jsonParser.getJson("/ResourceIT/testGetMultipleIncludeOnCollection.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -461,7 +456,7 @@ public class ResourceIT extends AHibernateTest {
          *      child 1's data
          * ]}
          */
-        String expected = getJson("/ResourceIT/testGetSingleIncludeOnRelationship.json");
+        String expected = jsonParser.getJson("/ResourceIT/testGetSingleIncludeOnRelationship.json");
 
         given()
                 .when().get("/parent/1/relationships/children?include=children").then().statusCode(HttpStatus.SC_OK)
@@ -489,7 +484,7 @@ public class ResourceIT extends AHibernateTest {
          *      parents sorted by name
          * ]}
          */
-        String expected  = getJson("/ResourceIT/testGetSortCollection.json");
+        String expected  = jsonParser.getJson("/ResourceIT/testGetSortCollection.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -512,7 +507,7 @@ public class ResourceIT extends AHibernateTest {
          *      parents sorted by name
          * ]}
          */
-        String expected  = getJson("/ResourceIT/testGetReverseSortCollection.json");
+        String expected  = jsonParser.getJson("/ResourceIT/testGetReverseSortCollection.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -527,7 +522,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 8)
     public void testGetRelEmptyColl() {
-        String expected = getJson("/ResourceIT/testGetRelEmptyColl.json");
+        String expected = jsonParser.getJson("/ResourceIT/testGetRelEmptyColl.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -540,7 +535,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 8)
     public void testGetWithTrailingSlash() {
-        String expected = getJson("/ResourceIT/testGetWithTrailingSlash.json");
+        String expected = jsonParser.getJson("/ResourceIT/testGetWithTrailingSlash.json");
 
         String response = given()
             .contentType("application/vnd.api+json")
@@ -555,7 +550,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 9)
     public void testPatchRelSetDirect() throws Exception {
-        String req = getJson("/ResourceIT/testPatchRelSetDirect.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchRelSetDirect.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -573,7 +568,7 @@ public class ResourceIT extends AHibernateTest {
             .statusCode(HttpStatus.SC_OK)
             .extract().response().asString();
 
-        JsonApiDocument doc = mapper.readJsonApiDocument(resp);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(resp);
         Data<Resource> list = doc.getData();
         Iterator<Resource> itr = list.get().iterator();
         String rel1 = itr.next().getId();
@@ -596,7 +591,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 10)
     public void testPatchRelNoUpdateDirect() throws Exception {
-        String req = getJson("/ResourceIT/testPatchRelNoUpdateDirect.json");
+        String req = jsonParser.getJson("/ResourceIT/testPatchRelNoUpdateDirect.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -631,8 +626,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 1)
     public void createParentNoRels() {
-        String req = getJson("/ResourceIT/createParentNoRels.req.json");
-        String resp = getJson("/ResourceIT/createParentNoRels.json");
+        String req = jsonParser.getJson("/ResourceIT/createParentNoRels.req.json");
+        String resp = jsonParser.getJson("/ResourceIT/createParentNoRels.json");
 
         String response = given()
             .contentType("application/vnd.api+json")
@@ -648,8 +643,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 2)
     public void createParentWithRels() {
-        String req = getJson("/ResourceIT/createParentWithRels.req.json");
-        String resp = getJson("/ResourceIT/createParentWithRels.json");
+        String req = jsonParser.getJson("/ResourceIT/createParentWithRels.req.json");
+        String resp = jsonParser.getJson("/ResourceIT/createParentWithRels.json");
 
         String response = given()
             .contentType("application/vnd.api+json")
@@ -665,7 +660,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void createParentList() {
-        String req = getJson("/ResourceIT/createParentList.req.json");
+        String req = jsonParser.getJson("/ResourceIT/createParentList.req.json");
         String expected = "{\"errors\":[\"Bad Request Body";
 
         given()
@@ -680,7 +675,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 3)
     public void createChild() throws Exception {
-        String req = getJson("/ResourceIT/createChild.json");
+        String req = jsonParser.getJson("/ResourceIT/createChild.json");
 
         String cResp = given()
             .contentType("application/vnd.api+json")
@@ -691,7 +686,7 @@ public class ResourceIT extends AHibernateTest {
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
-        JsonApiDocument respDoc = mapper.readJsonApiDocument(cResp);
+        JsonApiDocument respDoc = jsonApiMapper.readJsonApiDocument(cResp);
         Resource r = respDoc.getData().get().iterator().next();
         Collection<ResourceIdentifier> rIds = (r.getRelationships().get("parents").getResourceIdentifierData()).get();
         ResourceIdentifier rId1 = rIds.iterator().next();
@@ -709,7 +704,7 @@ public class ResourceIT extends AHibernateTest {
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
 
-        JsonApiDocument doc = mapper.readJsonApiDocument(resp);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(resp);
         boolean hasIdentifier = false;
 
         r = doc.getData().get().iterator().next();
@@ -722,7 +717,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void createParentBadUri() {
-        String req = getJson("/ResourceIT/createParentBadUri.json");
+        String req = jsonParser.getJson("/ResourceIT/createParentBadUri.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -735,7 +730,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void createChildNonRootable() {
-        String req = getJson("/ResourceIT/createChildNonRootable.json");
+        String req = jsonParser.getJson("/ResourceIT/createChildNonRootable.json");
         given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
@@ -747,7 +742,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void testAddAndRemoveOneToOneRelationship() {
-        String req = getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.req.json");
+        String req = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.req.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -757,13 +752,13 @@ public class ResourceIT extends AHibernateTest {
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        String expected = getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.json");
+        String expected = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.json");
 
         String response = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
         assertEqualDocuments(response, expected);
 
-        req = getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.req.json");
+        req = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.req.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -773,7 +768,7 @@ public class ResourceIT extends AHibernateTest {
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        expected = getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.json");
+        expected = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.json");
 
         response = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
@@ -782,8 +777,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 13)
     public void createDependentPatchExt() {
-        String req = getJson("/ResourceIT/createDependentPatchExt.req.json");
-        String expected = getJson("/ResourceIT/createDependentPatchExt.json");
+        String req = jsonParser.getJson("/ResourceIT/createDependentPatchExt.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/createDependentPatchExt.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -796,8 +791,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 14)
     public void createChildRelateExisting() {
-        String req = getJson("/ResourceIT/createChildRelateExisting.req.json");
-        String expected = getJson("/ResourceIT/createChildRelateExisting.json");
+        String req = jsonParser.getJson("/ResourceIT/createChildRelateExisting.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/createChildRelateExisting.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -810,9 +805,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 15)
     public void updateChildRelationToExisting() {
-        String req = getJson("/ResourceIT/updateChildRelationToExisting.req.json");
-        String expected1 = getJson("/ResourceIT/updateChildRelationToExisting.1.json");
-        String expected2 = getJson("/ResourceIT/updateChildRelationToExisting.2.json");
+        String req = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -832,9 +827,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 16)
     public void replaceAttributesAndRelationship() {
-        String req = getJson("/ResourceIT/replaceAttributesAndRelationship.req.json");
-        String expected1 = getJson("/ResourceIT/replaceAttributesAndRelationship.json");
-        String expected2 = getJson("/ResourceIT/replaceAttributesAndRelationship.2.json");
+        String req = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -856,11 +851,11 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 17)
     public void removeObject() {
-        String req1 = getJson("/ResourceIT/removeObject.1.req.json");
-        String req2 = getJson("/ResourceIT/removeObject.2.req.json");
-        String expectedDirect = getJson("/ResourceIT/removeObject.direct.json");
-        String expected1 = getJson("/ResourceIT/removeObject.1.json");
-        String expected2 = getJson("/ResourceIT/removeObject.2.json");
+        String req1 = jsonParser.getJson("/ResourceIT/removeObject.1.req.json");
+        String req2 = jsonParser.getJson("/ResourceIT/removeObject.2.req.json");
+        String expectedDirect = jsonParser.getJson("/ResourceIT/removeObject.direct.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/removeObject.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/removeObject.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -894,8 +889,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 18)
     public void createAndRemoveParent() {
-        String req = getJson("/ResourceIT/createAndRemoveParent.req.json");
-        String expected = getJson("/ResourceIT/createAndRemoveParent.json");
+        String req = jsonParser.getJson("/ResourceIT/createAndRemoveParent.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/createAndRemoveParent.json");
         given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
@@ -920,9 +915,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 19)
     public void testAddRoot() {
-        String req = getJson("/ResourceIT/testAddRoot.req.json");
-        String expected1 = getJson("/ResourceIT/testAddRoot.1.json");
-        String expected2 = getJson("/ResourceIT/testAddRoot.2.json");
+        String req = jsonParser.getJson("/ResourceIT/testAddRoot.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/testAddRoot.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/testAddRoot.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -942,9 +937,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 20)
     public void updateRelationshipDirect() {
-        String req = getJson("/ResourceIT/updateRelationshipDirect.req.json");
-        String expected1 = getJson("/ResourceIT/updateRelationshipDirect.1.json");
-        String expected2 = getJson("/ResourceIT/updateRelationshipDirect.2.json");
+        String req = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -966,9 +961,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 21)
     public void removeSingleRelationship() {
-        String req = getJson("/ResourceIT/removeSingleRelationship.req.json");
-        String expected1 = getJson("/ResourceIT/removeSingleRelationship.1.json");
-        String expected2 = getJson("/ResourceIT/removeSingleRelationship.2.json");
+        String req = jsonParser.getJson("/ResourceIT/removeSingleRelationship.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.1.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -990,8 +985,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 22)
     public void addRelationshipChild() {
-        String req = getJson("/ResourceIT/addRelationshipChild.req.json");
-        String expected = getJson("/ResourceIT/addRelationshipChild.json");
+        String req = jsonParser.getJson("/ResourceIT/addRelationshipChild.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/addRelationshipChild.json");
         given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
@@ -1012,8 +1007,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 23)
     public void removeRelationshipChild() {
-        String req = getJson("/ResourceIT/removeRelationshipChild.req.json");
-        String expected = getJson("/ResourceIT/removeRelationshipChild.json");
+        String req = jsonParser.getJson("/ResourceIT/removeRelationshipChild.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/removeRelationshipChild.json");
         given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
@@ -1032,9 +1027,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 24)
     public void addRelationships() throws IOException {
-        String req = getJson("/ResourceIT/addRelationships.req.json");
-        String expected1 = getJson("/ResourceIT/addRelationships.json");
-        String expected2 = getJson("/ResourceIT/addRelationships.2.json");
+        String req = jsonParser.getJson("/ResourceIT/addRelationships.req.json");
+        String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
+        String expected2 = jsonParser.getJson("/ResourceIT/addRelationships.2.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -1056,8 +1051,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 25)
     public void checkJsonApiPatchWithError() {
-        String req = getJson("/ResourceIT/checkJsonApiPatchWithError.req.json");
-        String expected = getJson("/ResourceIT/checkJsonApiPatchWithError.json");
+        String req = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -1070,8 +1065,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 26)
     public void patchExtBadId() {
-        String req = getJson("/ResourceIT/patchExtBadId.req.json");
-        String expected = getJson("/ResourceIT/patchExtBadId.json");
+        String req = jsonParser.getJson("/ResourceIT/patchExtBadId.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/patchExtBadId.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -1084,8 +1079,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 27)
     public void patchExtAddUpdate() {
-        String req = getJson("/ResourceIT/patchExtAddUpdate.req.json");
-        String expected = getJson("/ResourceIT/patchExtAddUpdate.json");
+        String req = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -1098,9 +1093,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 28)
     public void patchExtBadValue() throws IOException {
-        String req = getJson("/ResourceIT/patchExtBadValue.req.json");
+        String req = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
 
-        JsonNode result = mapper.getObjectMapper().readTree(given()
+        JsonNode result = jsonApiMapper.getObjectMapper().readTree(given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
             .body(req)
@@ -1118,8 +1113,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 29)
     public void patchExtBadDelete() {
-        String req = getJson("/ResourceIT/patchExtBadDelete.req.json");
-        String expected = getJson("/ResourceIT/patchExtBadDelete.json");
+        String req = jsonParser.getJson("/ResourceIT/patchExtBadDelete.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/patchExtBadDelete.json");
         given()
             .contentType("application/vnd.api+json; ext=jsonpatch")
             .accept("application/vnd.api+json; ext=jsonpatch")
@@ -1132,8 +1127,8 @@ public class ResourceIT extends AHibernateTest {
 
     @Test(priority = 30)
     public void createParentWithoutId() {
-        String req = getJson("/ResourceIT/createParentWithoutId.req.json");
-        String res = getJson("/ResourceIT/createParentWithoutId.json");
+        String req = jsonParser.getJson("/ResourceIT/createParentWithoutId.req.json");
+        String res = jsonParser.getJson("/ResourceIT/createParentWithoutId.json");
 
         String response = given()
                 .contentType("application/vnd.api+json")
@@ -1149,10 +1144,10 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void assignedIdString() {
-        String expectedResponse = getJson("/ResourceIT/assignedIdString.json");
+        String expectedResponse = jsonParser.getJson("/ResourceIT/assignedIdString.json");
 
         //Create user with assigned id
-        String postRequest = getJson("/ResourceIT/assignedIdString.req.json");
+        String postRequest = jsonParser.getJson("/ResourceIT/assignedIdString.req.json");
         String postResponse = given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
@@ -1174,7 +1169,7 @@ public class ResourceIT extends AHibernateTest {
         assertEqualDocuments(getResponse, expectedResponse);
 
         //Try to reassign id
-        String patchRequest = getJson("/ResourceIT/failPatchIdString.req.json");
+        String patchRequest = jsonParser.getJson("/ResourceIT/failPatchIdString.req.json");
         given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
@@ -1186,10 +1181,10 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void assignedIdLong() {
-        String expectedResponse = getJson("/ResourceIT/assignedIdLong.json");
+        String expectedResponse = jsonParser.getJson("/ResourceIT/assignedIdLong.json");
 
         //Create user with assigned id
-        String postRequest = getJson("/ResourceIT/assignedIdLong.req.json");
+        String postRequest = jsonParser.getJson("/ResourceIT/assignedIdLong.req.json");
         String postResponse = given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
@@ -1211,7 +1206,7 @@ public class ResourceIT extends AHibernateTest {
         assertEqualDocuments(getResponse, expectedResponse);
 
         //Try to reassign id
-        String patchRequest = getJson("/ResourceIT/failPatchIdLong.req.json");
+        String patchRequest = jsonParser.getJson("/ResourceIT/failPatchIdLong.req.json");
         given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
@@ -1223,7 +1218,7 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void assignedIdWithoutProvidedId() {
-        String req = getJson("/ResourceIT/assignedIdWithoutId.req.json");
+        String req = jsonParser.getJson("/ResourceIT/assignedIdWithoutId.req.json");
 
         given()
             .contentType("application/vnd.api+json")
@@ -1236,9 +1231,9 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void elideBypassSecurity() {
-        String expected = getJson("/ResourceIT/testChild.json");
+        String expected = jsonParser.getJson("/ResourceIT/testChild.json");
 
-        Elide elide = new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response =
                 elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.BYPASS_SECURITY);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
@@ -1247,25 +1242,17 @@ public class ResourceIT extends AHibernateTest {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
 
     @Test
-    public void testFiltered() throws Exception {
-        String expected = getJson("/ResourceIT/testFiltered.json");
-
-        given().when().get("/filtered").then().statusCode(HttpStatus.SC_OK)
-        .body(equalTo(expected));
-    }
-
-    @Test
     public void testComputedAttribute() throws Exception {
-        String expected = getJson("/ResourceIT/testComputedAttribute.json");
+        String expected = jsonParser.getJson("/ResourceIT/testComputedAttribute.json");
 
-        String req = getJson("/ResourceIT/testComputedAttribute.req.json");
+        String req = jsonParser.getJson("/ResourceIT/testComputedAttribute.req.json");
 
         given()
             .contentType("application/vnd.api+json")

@@ -3,32 +3,31 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.endpoints;
+package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.datastores.AHibernateTest;
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.utils.JsonParser;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-/**
- * Elide persistence MySQL integration test.
- */
-public class BookAuthorIT extends AHibernateTest {
-    private final ObjectMapper mapper = new ObjectMapper();
+public class BookAuthorIT extends AbstractIntegrationTestInitializer {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonParser jsonParser = new JsonParser();
 
-    @Test(priority = -1)
+    @Test
     public void setup() throws IOException {
         // Create Author: Ernest Hemingway
         RestAssured
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/ernest_hemingway.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway.json"))
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -38,7 +37,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/the_old_man_and_the_sea.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/the_old_man_and_the_sea.json"))
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -48,7 +47,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
                 .patch("/book/1/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -58,7 +57,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/orson_scott_card.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card.json"))
                 .post("/author")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -68,7 +67,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/enders_game.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/enders_game.json"))
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -78,7 +77,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/orson_scott_card_relationship.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card_relationship.json"))
                 .patch("/book/2/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -88,7 +87,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/for_whom_the_bell_tolls.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/for_whom_the_bell_tolls.json"))
                 .post("/book")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -98,7 +97,7 @@ public class BookAuthorIT extends AHibernateTest {
                 .given()
                 .contentType("application/vnd.api+json")
                 .accept("application/vnd.api+json")
-                .body(getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
+                .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
                 .patch("/book/3/relationships/authors")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -106,7 +105,7 @@ public class BookAuthorIT extends AHibernateTest {
 
     @Test
     public void testSparseSingleDataFieldValue() throws Exception {
-        JsonNode responseBody = mapper.readTree(
+        JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
                         .contentType("application/vnd.api+json")
@@ -136,7 +135,7 @@ public class BookAuthorIT extends AHibernateTest {
 
     @Test
     public void testSparseTwoDataFieldValuesNoIncludes() throws Exception {
-        JsonNode responseBody = mapper.readTree(
+        JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
                         .contentType("application/vnd.api+json")
@@ -161,7 +160,7 @@ public class BookAuthorIT extends AHibernateTest {
 
     @Test
     public void testSparseNoFilters() throws Exception {
-        JsonNode responseBody = mapper.readTree(
+        JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
                         .contentType("application/vnd.api+json")
@@ -198,7 +197,7 @@ public class BookAuthorIT extends AHibernateTest {
 
     @Test
     public void testTwoSparseFieldFilters() throws Exception {
-        JsonNode responseBody = mapper.readTree(
+        JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
                         .contentType("application/vnd.api+json")

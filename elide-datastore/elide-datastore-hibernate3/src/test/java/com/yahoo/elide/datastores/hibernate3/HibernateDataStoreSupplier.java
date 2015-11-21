@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores;
+package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.datastores.hibernate3.HibernateStore;
+import com.yahoo.elide.utils.ClassScanner;
 import example.Parent;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
@@ -21,7 +21,7 @@ import javax.persistence.Entity;
 /**
  * Supplier of Hibernate5 Data Store.
  */
-public class Hibernate3DataStoreSupplier implements Supplier<DataStore> {
+public class HibernateDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
         // method to force class initialization

@@ -16,6 +16,8 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.Role;
 import example.Child.InitCheck;
 
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +25,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import java.util.Set;
 
 /**
  * Child test bean.

@@ -49,6 +49,13 @@
             <version>1.0.0.10-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-integration-tests</artifactId>
+            <version>1.0.0.9-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>5.0.2.Final</version>

@@ -3,23 +3,21 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.endpoints;
+package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.AHibernateTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
-
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
- * Jersey ApplicationResourceConfig for test framework.
+ * Resource configuration for integration tests.
  */
-public class TestApplicationResourceConfig extends ResourceConfig {
-    public TestApplicationResourceConfig() {
+public class IntegrationTestApplicationResourceConfig extends ResourceConfig {
+    public IntegrationTestApplicationResourceConfig() {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
@@ -27,7 +25,7 @@ public class TestApplicationResourceConfig extends ResourceConfig {
                 bindFactory(new Factory<Elide>() {
                     @Override
                     public Elide provide() {
-                        return new Elide(new TestLogger(), AHibernateTest.getDatabaseManager(), new EntityDictionary());
+                        return new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
                     }
 
                     @Override

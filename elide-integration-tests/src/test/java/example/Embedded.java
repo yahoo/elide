@@ -5,9 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.Include;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
 

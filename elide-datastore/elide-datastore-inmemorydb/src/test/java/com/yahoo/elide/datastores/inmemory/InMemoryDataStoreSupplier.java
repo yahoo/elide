@@ -3,10 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores;
+package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import example.Parent;
 
 import java.util.function.Supplier;

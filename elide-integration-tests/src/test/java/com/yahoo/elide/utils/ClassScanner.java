@@ -3,8 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores;
+package com.yahoo.elide.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.server.internal.scanning.AnnotationAcceptingListener;
 import org.glassfish.jersey.server.internal.scanning.PackageNamesScanner;
 
@@ -15,14 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Scans a package for classes by looking at files in the classpath.
  */
 @Slf4j
 public class ClassScanner {
-
     /**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
      * @param pckg package name
