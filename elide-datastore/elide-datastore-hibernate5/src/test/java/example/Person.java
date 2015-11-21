@@ -15,7 +15,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-
 @Entity
 @Include(rootLevel = true)
 public class Person {
@@ -35,7 +34,7 @@ public class Person {
     }
 
     @Column(name = "address", columnDefinition = "TEXT")
-    @Type(type = "usertypes.JsonType", parameters = {
+    @Type(type = "com.yahoo.elide.datastores.hibernate5.usertypes.JsonType", parameters = {
             @Parameter(name = "class", value = "example.AddressFragment")
     })
     public AddressFragment getAddress() {

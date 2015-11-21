@@ -8,8 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-datastore-hibernate3</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Hibernate3 Data Store</name>
-    <description>Elide Data Store for Hibernate3 support</description>
+    <name>Elide Data Store: Hibernate 3</name>
+    <description>Elide Data Store for Hibernate 3 support</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
@@ -56,17 +56,19 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate</artifactId>
-            <version>1.0.0.9-SNAPSHOT</version>
+            <version>1.0.0.10-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>1.0.0.9-SNAPSHOT</version>
+            <version>1.0.0.10-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+
+        <!-- Hibernate 3 -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -101,7 +103,7 @@
             <version>2.6.3</version>
         </dependency>
 
-        <!-- Integration test dependencies -->
+        <!-- Integration test -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -158,19 +160,7 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

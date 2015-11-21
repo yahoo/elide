@@ -5,8 +5,8 @@
  */
 package example;
 
+import com.yahoo.elide.datastores.hibernate3.usertypes.JsonType;
 import org.hibernate.annotations.TypeDef;
-import usertypes.JsonType;
 
 @TypeDef(typeClass = JsonType.class, name = "json")
 public class AddressFragment {

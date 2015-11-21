@@ -8,8 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-integration-tests</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Integration Tests</name>
-    <description>Integration test suite for Elide</description>
+    <name>Elide: Integration Test Library</name>
+    <description>Integration tests to be executed with each data store</description>
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
@@ -24,11 +24,6 @@
         </license>
     </licenses>
 
-    <properties>
-        <version.logback>1.1.3</version.logback>
-        <version.restassured>2.7.0</version.restassured>
-    </properties>
-
     <dependencies>
         <!-- Elide dependencies for integration testing -->
         <dependency>
@@ -36,11 +31,6 @@
             <artifactId>elide-core</artifactId>
             <version>1.0.0.10-SNAPSHOT</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.yahoo.elide</groupId>-->
-            <!--<artifactId>elide-datastore-multiplex</artifactId>-->
-            <!--<version>1.0.0.10-SNAPSHOT</version>-->
-        <!--</dependency>-->
         <!-- Additional dependencies -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -99,24 +89,12 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>${version.restassured}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>${version.restassured}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jackson-databind</artifactId>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jsr305</artifactId>
-                    <groupId>com.google.code.findbugs</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Logging -->
@@ -128,13 +106,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${version.logback}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${version.logback}</version>
             <scope>test</scope>
         </dependency>
 
@@ -146,7 +122,6 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>${groovy.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -166,10 +141,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <!-- Do not deploy -->
             <plugin>

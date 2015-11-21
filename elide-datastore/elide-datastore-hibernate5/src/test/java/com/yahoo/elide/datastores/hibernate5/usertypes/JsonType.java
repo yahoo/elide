@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package usertypes;
+package com.yahoo.elide.datastores.hibernate5.usertypes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Objects;
 import java.util.Properties;
-
 
 /**
  * JsonType serializes an object to json string and vice versa

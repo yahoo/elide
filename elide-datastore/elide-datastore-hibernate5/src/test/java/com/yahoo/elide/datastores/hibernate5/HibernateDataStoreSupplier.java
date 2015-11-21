@@ -15,18 +15,17 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
+import javax.persistence.Entity;
 import java.util.function.Supplier;
 
-import javax.persistence.Entity;
-
 /**
- * Supplier of Hibernate5 Data Store.
+ * Supplier of Hibernate 5 Data Store.
  */
-public class Hibernate5DataStoreSupplier implements Supplier<DataStore> {
+public class HibernateDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
         // method to force class initialization
-        MetadataSources metadata = new MetadataSources(
+        MetadataSources metadataSources = new MetadataSources(
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
@@ -38,22 +37,22 @@ public class Hibernate5DataStoreSupplier implements Supplier<DataStore> {
 
         try {
             ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
-                    .forEach(metadata::addAnnotatedClass);
+                    .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new RuntimeException(e);
         }
 
-        MetadataImplementor metadataImpl = (MetadataImplementor) metadata.buildMetadata();
+        MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
-        // create Example tables from beans
-        SchemaExport export = new SchemaExport(metadataImpl); //.setHaltOnError(true);
-        export.drop(false, true);
-        export.execute(false, true, false, true);
+        // create example tables from beans
+        SchemaExport schemaExport = new SchemaExport(metadataImplementor); //.setHaltOnError(true);
+        schemaExport.drop(false, true);
+        schemaExport.execute(false, true, false, true);
 
-        if (export.getExceptions().size() != 0) {
-            throw new RuntimeException("" + export.getExceptions());
+        if (!schemaExport.getExceptions().isEmpty()) {
+            throw new RuntimeException("" + schemaExport.getExceptions());
         }
 
-        return new HibernateStore(metadataImpl.buildSessionFactory());
+        return new HibernateStore(metadataImplementor.buildSessionFactory());
     }
 }

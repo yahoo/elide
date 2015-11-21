@@ -4,17 +4,15 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
-
 import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.datastores.AHibernateTest
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.annotations.Test
 
 import static com.jayway.restassured.RestAssured.given
-
 /**
  * Tests for UserType
  */
-class UserTypeIT extends AHibernateTest {
+class UserTypeIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testUserTypePost() {

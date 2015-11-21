@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-datastore-hibernate</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Hibernate Common</name>
+    <name>Elide Data Store: Hibernate Common</name>
     <description>Common files for Elide Data Store Hibernate3 and Hibernate5</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
@@ -72,19 +72,7 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
