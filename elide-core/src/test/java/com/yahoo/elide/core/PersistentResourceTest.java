@@ -5,18 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.audit.LogMessage;
@@ -32,9 +22,6 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.Role;
 import com.yahoo.elide.security.User;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;
 import example.Left;
@@ -52,11 +39,24 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.yahoo.elide.security.UserCheck.ALLOW;
+import static com.yahoo.elide.security.UserCheck.DENY;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test PersistentResource.
@@ -571,10 +571,13 @@ public class PersistentResourceTest extends PersistentResource {
         Child child3 = newChild(3);
         fun.relation2 = Sets.newHashSet(child1, child2, child3);
 
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
         User goodUser = new User(1);
 
-        RequestScope goodScope = new RequestScope(null, null, goodUser, dictionary, null, MOCK_LOGGER);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Sets.newHashSet(child1));
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
         PersistentResource<?> result = funResource.getRelation("relation2", "1");
 
@@ -589,10 +592,13 @@ public class PersistentResourceTest extends PersistentResource {
         Child child3 = newChild(3);
         fun.relation2 = Sets.newHashSet(child1, child2, child3);
 
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
         User goodUser = new User(1);
 
-        RequestScope goodScope = new RequestScope(null, null, goodUser, dictionary, null, MOCK_LOGGER);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Collections.emptySet());
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
         PersistentResource<?> result = funResource.getRelation("relation2", "-1000");
     }
