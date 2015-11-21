@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -34,6 +35,7 @@ import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -52,7 +55,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.persistence.GeneratedValue;
 import static com.yahoo.elide.security.UserCheck.DENY;
 
 /**
@@ -636,8 +638,12 @@ public class PersistentResource<T> {
      * @return PersistentResource relation
      */
     public PersistentResource getRelation(String relation, String id) {
+
+        Predicate idFilter = new Predicate(relation, Operator.IN, Collections.singletonList(id));
+        Set<Predicate> filters = Collections.singleton(idFilter);
+
         /* getRelation performs read permission checks */
-        Set<PersistentResource> resources = getRelation(relation);
+        Set<PersistentResource> resources = getRelation(relation, filters);
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
                 return childResource;
@@ -653,6 +659,25 @@ public class PersistentResource<T> {
      * @return collection relation
      */
     public Set<PersistentResource> getRelation(String relationName) {
+        if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
+            final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+            final String valType = dictionary.getBinding(entityClass);
+            final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
+            return getRelation(relationName, filters);
+        } else {
+            return getRelation(relationName, Collections.<Predicate>emptySet());
+        }
+    }
+
+    /**
+     * Get collection of resources from relation field.
+     *
+     * @param relationName field
+     * @param filters A set of filters (possibly empty) to attempt to push down to the data store to filter
+     *                the returned collection.
+     * @return collection relation
+     */
+    protected Set<PersistentResource> getRelation(String relationName, Set<Predicate> filters) {
         List<String> relations = dictionary.getRelationships(obj);
 
         String realName = dictionary.getNameFromAlias(obj, relationName);
@@ -673,11 +698,9 @@ public class PersistentResource<T> {
         } else if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
 
-            if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
+            if (!filters.isEmpty()) {
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-                final String valType = dictionary.getBinding(entityClass);
-                final Set<Predicate> predicates = requestScope.getPredicatesOfType(valType);
-                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, predicates);
+                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
             }
 
             for (Object m : filteredVal) {
