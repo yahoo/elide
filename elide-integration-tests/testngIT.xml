@@ -38,5 +38,10 @@
             <class name="com.yahoo.elide.tests.FilterIT" />
         </classes>
     </test> <!-- Test -->
+    <test name="com.yahoo.elide.tests.UserTypeIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.UserTypeIT" />
+        </classes>
+    </test> <!-- Test -->
     <!--// END Integration tests -->
 </suite> <!-- Suite -->

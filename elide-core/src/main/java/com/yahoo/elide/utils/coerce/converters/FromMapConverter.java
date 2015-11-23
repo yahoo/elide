@@ -1,0 +1,27 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package com.yahoo.elide.utils.coerce.converters;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.beanutils.Converter;
+
+/**
+ * Uses Jackson to Convert from Map to target object
+ */
+public class FromMapConverter implements Converter {
+    /**
+     * Convert value to Enum
+     * @param cls class to convert to
+     * @param value value to convert
+     * @param <T>
+     * @return
+     */
+    @Override
+    public <T> T convert(Class<T> cls, Object value) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(value, cls);
+    }
+}

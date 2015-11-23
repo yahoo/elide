@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-public class ToEnumConvertTest {
+public class ToEnumConverterTest {
 
     private Converter converter;
 

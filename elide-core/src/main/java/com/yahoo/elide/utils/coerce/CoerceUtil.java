@@ -7,6 +7,7 @@ package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
@@ -14,12 +15,15 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 
+import java.util.Map;
+
 /**
  * Class for coercing a value to a target class.
  */
 public class CoerceUtil {
 
-    private static final ToEnumConverter ENUM_CONVERTER = new ToEnumConverter();
+    private static final ToEnumConverter TO_ENUM_CONVERTER = new ToEnumConverter();
+    private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
 
     //static block for setup and registering new converters
     static {
@@ -42,23 +46,27 @@ public class CoerceUtil {
         try {
             return ConvertUtils.convert(value, cls);
 
-        } catch (ConversionException | InvalidAttributeException e) {
+        } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
             throw new InvalidValueException(value);
         }
     }
 
     /**
      * Perform CoerceUtil setup.
-     *
      */
     private static void setup() {
         BeanUtilsBean.setInstance(new BeanUtilsBean(new ConvertUtilsBean() {
 
-            //Overriding lookup to execute enum converter if target is enum
             @Override
+            /*
+             * Overriding lookup to execute enum converter if target is enum
+             * or map convert if source is map
+             */
             public Converter lookup(Class<?> sourceType, Class<?> targetType) {
                 if (targetType.isEnum()) {
-                    return ENUM_CONVERTER;
+                    return TO_ENUM_CONVERTER;
+                } else if (Map.class.isAssignableFrom(sourceType)) {
+                    return FROM_MAP_CONVERTER;
                 } else {
                     return super.lookup(sourceType, targetType);
                 }
