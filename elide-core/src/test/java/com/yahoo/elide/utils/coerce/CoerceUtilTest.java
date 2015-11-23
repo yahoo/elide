@@ -6,13 +6,27 @@
 package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
 
 public class CoerceUtilTest {
 
     public static enum Seasons { WINTER, SPRING }
+
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class TestClass {
+        public int field1;
+        public int field2;
+    }
 
     @Test
     public void testNoConversions() throws Exception {
@@ -31,7 +45,7 @@ public class CoerceUtilTest {
     public void testToEnumConversion() throws Exception {
 
         assertEquals(CoerceUtil.coerce(1, Seasons.class), Seasons.SPRING,
-                "EnumConverter is called when target class is Enum");
+                "ToEnumConverter is called when target class is Enum");
     }
 
     @Test
@@ -54,5 +68,31 @@ public class CoerceUtilTest {
     public void testError() throws Exception {
 
         CoerceUtil.coerce('A', Seasons.class);
+    }
+
+    @Test
+    public void testMapConversion() {
+
+        //Input Map
+        Map<String, Object> testMap = new LinkedHashMap<>();
+        testMap.put("field1", 1);
+        testMap.put("field2", 2);
+
+        //ExpectedObject
+        TestClass testClass = new TestClass(1, 2);
+
+        assertEquals(CoerceUtil.coerce(testMap, TestClass.class), testClass,
+                "FromMapConverter is called when source class is a Map");
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testMapError() throws Exception {
+
+        //Input Map
+        Map<String, Object> testMap = new LinkedHashMap<>();
+        testMap.put("foo", "bar");
+        testMap.put("baz", "qaz");
+
+        CoerceUtil.coerce(testMap, TestClass.class);
     }
 }
