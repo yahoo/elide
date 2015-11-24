@@ -6,7 +6,6 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
-
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
@@ -19,6 +18,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,10 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 
 public class EntityDictionaryTest extends EntityDictionary {
 
@@ -55,7 +53,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Annotation annotation;
         for (String field : fields) {
             annotation = this.getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
-            Assert.assertTrue(annotation != null && annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
+            Assert.assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
     }
 

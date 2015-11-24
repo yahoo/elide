@@ -53,12 +53,12 @@ class TestDataStore implements DataStore, DataStoreTransaction {
 
     @Override
     public void delete(Object entity) {
-        throw new UnsupportedOperationException("" + this);
+        throw new UnsupportedOperationException(this.toString());
     }
 
     @Override
     public void commit() {
-        throw new UnsupportedOperationException("" + this);
+        throw new UnsupportedOperationException(this.toString());
     }
 
     @Override

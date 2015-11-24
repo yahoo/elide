@@ -101,7 +101,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
         @SuppressWarnings("unchecked")
 
-        T record = null;
+        T record;
         try {
             record = session.load(loadClass, id);
             Hibernate.initialize(record);

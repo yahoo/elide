@@ -66,7 +66,6 @@ public class PersistentResourceTest extends PersistentResource {
     private final RequestScope badUserScope;
     private static final Logger MOCK_LOGGER = mock(Logger.class);
 
-
     public PersistentResourceTest() {
         super(new Child(), null, new RequestScope(null, null, null, new EntityDictionary(), null, MOCK_LOGGER));
         goodUserScope = new RequestScope(null, null, new User(1), dictionary, null, MOCK_LOGGER);
@@ -93,8 +92,6 @@ public class PersistentResourceTest extends PersistentResource {
         fun.relation2 = Sets.newHashSet();
         fun.setRelation3(null);
 
-        User goodUser = new User(1);
-        User badUser = new User(-1);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
         Map<String, Relationship> relationships = funResource.getRelationships();
@@ -119,8 +116,6 @@ public class PersistentResourceTest extends PersistentResource {
         fun.field4 = "bar";
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
-        User goodUser = new User(1);
-        User badUser = new User(-1);
 
         Map<String, Object> attributes = funResource.getAttributes();
 
@@ -166,8 +161,6 @@ public class PersistentResourceTest extends PersistentResource {
             Set<PersistentResource<Child>> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
-            User goodUser = goodUserScope.getUser();
-
             Set<PersistentResource<Child>> results = filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 2, "Only a subset of the children are readable");
             Assert.assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
@@ -182,8 +175,6 @@ public class PersistentResourceTest extends PersistentResource {
 
             Set<PersistentResource<Child>> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
-
-            User badUser = badUserScope.getUser();
 
             Set<PersistentResource<Child>> results = filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 0, "No children are readable by an invalid user");
@@ -251,7 +242,6 @@ public class PersistentResourceTest extends PersistentResource {
         Right right = new Right();
         left.setOne2one(right);
         right.setOne2one(left);
-        User goodUser = new User(1);
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "3", goodUserScope);
 
@@ -278,7 +268,6 @@ public class PersistentResourceTest extends PersistentResource {
     public void testAddBidirectionalRelation() {
         Left left = new Left();
         Right right = new Right();
-        User goodUser = new User(-1);
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "3", goodUserScope);
 
@@ -439,7 +428,6 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
-        User goodUser = new User(1);
         String result = (String) funResource.getAttribute("field2");
         Assert.assertEquals(result, "blah", "The correct attribute should be returned.");
         result = (String) funResource.getAttribute("field3");
@@ -452,7 +440,6 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
-        User goodUser = new User(1);
         funResource.getAttribute("invalid");
     }
 
@@ -463,7 +450,6 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
-        User goodUser = new User(1);
         funResource.getAttribute("field1");
     }
 
@@ -473,7 +459,6 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "1", goodUserScope);
 
-        User goodUser = new User(1);
         noreadResource.getAttribute("field");
     }
 
@@ -486,7 +471,6 @@ public class PersistentResourceTest extends PersistentResource {
         fun.relation2 = Sets.newHashSet(child1, child2, child3);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
-        User goodUser = new User(1);
 
         Set<PersistentResource> results = funResource.getRelation("relation2");
 
@@ -502,7 +486,6 @@ public class PersistentResourceTest extends PersistentResource {
         fun.relation2 = Sets.newHashSet(child1, child2, child3);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
-        User goodUser = new User(1);
 
         Set<PersistentResource> results = funResource.getRelation("relation2");
 
@@ -538,9 +521,7 @@ public class PersistentResourceTest extends PersistentResource {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", goodUserScope);
-        User goodUser = new User(1);
-
-        Set<PersistentResource> results = noreadResource.getRelation("child");
+        noreadResource.getRelation("child");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -548,9 +529,8 @@ public class PersistentResourceTest extends PersistentResource {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
-        User badUser = new User(-1);
 
-        Set<PersistentResource> results = funResource.getRelation("relation1");
+        funResource.getRelation("relation1");
     }
 
     @Test(expectedExceptions = InvalidAttributeException.class)
@@ -558,9 +538,8 @@ public class PersistentResourceTest extends PersistentResource {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
-        User goodUser = new User(1);
 
-        Set<PersistentResource> results = funResource.getRelation("invalid");
+        funResource.getRelation("invalid");
     }
 
     @Test
@@ -600,7 +579,7 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
-        PersistentResource<?> result = funResource.getRelation("relation2", "-1000");
+        funResource.getRelation("relation2", "-1000");
     }
 
     @Test
@@ -1119,7 +1098,7 @@ public class PersistentResourceTest extends PersistentResource {
         when(tx.loadObject(Child.class, "1")).thenReturn(null);
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
-        PersistentResource<Child> loaded = PersistentResource.loadRecord(Child.class, "1", goodScope);
+        PersistentResource.loadRecord(Child.class, "1", goodScope);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -1132,7 +1111,7 @@ public class PersistentResourceTest extends PersistentResource {
         when(tx.loadObject(NoReadEntity.class, 1L)).thenReturn(noRead);
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
-        PersistentResource<NoReadEntity> loaded = PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope);
+        PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope);
     }
 
     @Test()

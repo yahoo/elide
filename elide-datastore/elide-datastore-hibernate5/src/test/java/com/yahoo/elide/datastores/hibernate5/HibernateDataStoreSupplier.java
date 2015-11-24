@@ -50,7 +50,7 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
         schemaExport.execute(false, true, false, true);
 
         if (!schemaExport.getExceptions().isEmpty()) {
-            throw new RuntimeException("" + schemaExport.getExceptions());
+            throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
         return new HibernateStore(metadataImplementor.buildSessionFactory());

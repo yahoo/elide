@@ -5,11 +5,5 @@
  */
 package example;
 
-//import javax.persistence.Id;
-
 public abstract class BaseId {
-//    @JsonIgnore
-//    protected String id;
-
-
 }

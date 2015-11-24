@@ -7,10 +7,8 @@ package com.yahoo.elide.tests;
 
 import com.google.common.collect.ImmutableSet;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.utils.JsonParser;
 import example.Embedded;
 import example.Left;
@@ -28,15 +26,6 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class EmbeddedIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
-    private final JsonApiMapper mapper;
-
-    public EmbeddedIT() {
-        /* There is no good way to get the dictionary from Elide */
-        EntityDictionary empty = new EntityDictionary();
-
-        /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
-        mapper = new JsonApiMapper(empty);
-    }
 
     @BeforeTest
     public static void setup() throws IOException {
@@ -69,11 +58,11 @@ public class EmbeddedIT extends AbstractIntegrationTestInitializer {
     void testOne2One() {
         String expected = jsonParser.getJson("/EmbeddedIT/testOne2One.json");
 
-        String response =
+        String actual =
                 given().when().get("/right/1")
                         .then().statusCode(HttpStatus.SC_OK)
                         .extract().body().asString();
 
-        assertEqualDocuments(response, expected);
+        assertEqualDocuments(actual, expected);
     }
 }

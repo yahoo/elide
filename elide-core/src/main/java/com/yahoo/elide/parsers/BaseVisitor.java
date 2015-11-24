@@ -5,24 +5,24 @@
  */
 package com.yahoo.elide.parsers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.parsers.ormParser.EntityContext;
-import com.yahoo.elide.parsers.ormParser.IdContext;
-import com.yahoo.elide.parsers.ormParser.QueryContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntitiesContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntityContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.StartContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.TermContext;
+import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
+import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.IdContext;
+import com.yahoo.elide.generated.parsers.CoreParser.QueryContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.StartContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.TermContext;
 import com.yahoo.elide.parsers.state.StartState;
 import com.yahoo.elide.parsers.state.StateContext;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 /**
  * Base request handler.
  */
-public abstract class BaseVisitor extends ormBaseVisitor<Supplier<Pair<Integer, JsonNode>>> {
+public abstract class BaseVisitor extends CoreBaseVisitor<Supplier<Pair<Integer, JsonNode>>> {
 
     protected final StateContext state;
 

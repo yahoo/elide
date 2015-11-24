@@ -10,10 +10,10 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 
 import com.google.common.base.Preconditions;
 

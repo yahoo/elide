@@ -9,7 +9,6 @@ package com.yahoo.elide.security;
  * Simple checks to always grant or deny.
  */
 public class Role {
-
     /**
      * Check which always grants.
      */

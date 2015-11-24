@@ -5,22 +5,16 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
+import lombok.AllArgsConstructor;
+
 import java.util.Map;
 
 /**
  * Map storing key-value and useful accessor functions.
  */
+@AllArgsConstructor
 public abstract class KeyValMap {
     private final Map<String, Object> map;
-
-    /**
-     * Constructor.
-     *
-     * @param map Map to query
-     */
-    public KeyValMap(Map<String, Object> map) {
-        this.map = map;
-    }
 
     /**
      * Get an object from map.

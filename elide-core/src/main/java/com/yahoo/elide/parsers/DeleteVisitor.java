@@ -6,7 +6,7 @@
 package com.yahoo.elide.parsers;
 
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.parsers.ormParser.QueryContext;
+import com.yahoo.elide.generated.parsers.CoreParser.QueryContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

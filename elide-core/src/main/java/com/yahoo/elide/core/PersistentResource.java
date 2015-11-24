@@ -256,7 +256,6 @@ public class PersistentResource<T> {
      * @return a filtered collection of resources loaded from the DB.
      */
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
-        User user = requestScope.getUser();
         DataStoreTransaction tx = requestScope.getTransaction();
 
         LinkedHashSet<PersistentResource<T>> resources = new LinkedHashSet<>();
@@ -286,7 +285,7 @@ public class PersistentResource<T> {
         checkPermission(UpdatePermission.class, this);
         checkFieldPermission(UpdatePermission.class, this, fieldName);
         Object val = getAttribute(fieldName);
-        if ((val != newVal) && (val == null || !val.equals(newVal))) {
+        if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             transaction.save(obj);
             audit(fieldName);
@@ -790,9 +789,9 @@ public class PersistentResource<T> {
         final int prime = 31;
         int result = 1;
         String id = dictionary.getId(getObject());
-        result = prime * result + ((uuid.isPresent()) ? uuid.hashCode() : 0);
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + (uuid.isPresent() ? uuid.hashCode() : 0);
+        result = prime * result + (id == null ? 0 : id.hashCode());
+        result = prime * result + (type == null ? 0 : type.hashCode());
         return result;
     }
 
@@ -1052,7 +1051,7 @@ public class PersistentResource<T> {
         Class<?> targetClass = EntityDictionary.lookupEntityClass(target.getClass());
         try {
             String realName = dictionary.getNameFromAlias(target, fieldName);
-            fieldName = (realName != null) ? realName : fieldName;
+            fieldName = realName != null ? realName : fieldName;
             Method method;
             try {
                 String getMethod = "get" + WordUtils.capitalize(fieldName);

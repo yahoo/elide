@@ -311,7 +311,7 @@ public class EntityDictionary {
     public boolean isShareable(Class<?> entityClass) {
         SharePermission share = (SharePermission) getFirstAnnotation(entityClass,
                 Collections.singletonList(SharePermission.class));
-        return (share != null);
+        return share != null;
     }
 
     /**

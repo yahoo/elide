@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
 
-import com.google.common.collect.Lists;
-
+import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-
-import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * Multiplex transaction handler.
@@ -136,7 +134,6 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      *  Clone contents of object for possible reverse transaction.
      */
     private Object cloneObject(Object object) {
-        EntityDictionary dictionary = this.multiplexManager.getDictionary();
         Class<?> cls = EntityDictionary.lookupEntityClass(object.getClass());
         try {
             Object clone = cls.newInstance();

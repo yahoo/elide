@@ -18,9 +18,8 @@ import javax.persistence.Table;
 @Table(name = "assigned_id_string")
 @Include(rootLevel = true)
 public class AssignedIdString {
-
-    String id;
-    int value;
+    private String id;
+    private int value;
 
     @Id
     public String getId() {

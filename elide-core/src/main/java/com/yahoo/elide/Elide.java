@@ -25,8 +25,8 @@ import com.yahoo.elide.parsers.DeleteVisitor;
 import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
-import com.yahoo.elide.parsers.ormLexer;
-import com.yahoo.elide.parsers.ormParser;
+import com.yahoo.elide.generated.parsers.CoreLexer;
+import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.security.User;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -328,7 +328,7 @@ public class Elide {
             path = path.substring(1);
         }
         ANTLRInputStream is = new ANTLRInputStream(path);
-        ormLexer lexer = new ormLexer(is);
+        CoreLexer lexer = new CoreLexer(is);
         lexer.removeErrorListeners();
         lexer.addErrorListener(new BaseErrorListener() {
             @Override
@@ -337,7 +337,7 @@ public class Elide {
                 throw new ParseCancellationException(msg, e);
             }
         });
-        ormParser parser = new ormParser(new CommonTokenStream(lexer));
+        CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new BailErrorStrategy());
         return parser.start();
     }

@@ -18,9 +18,8 @@ import javax.persistence.Table;
 @Table(name = "assigned_id_long")
 @Include(rootLevel = true)
 public class AssignedIdLong {
-
-    long id;
-    int value;
+    private long id;
+    private int value;
 
     @Id
     public long getId() {
