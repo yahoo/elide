@@ -47,11 +47,6 @@ import static org.testng.Assert.assertTrue;
 public class ResourceIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
-    public ResourceIT() {
-        // There is no good way to get the dictionary from Elide
-        EntityDictionary empty = new EntityDictionary();
-    }
-
     @BeforeTest
     public static void setup() {
         DataStoreTransaction tx = dataStore.beginTransaction();

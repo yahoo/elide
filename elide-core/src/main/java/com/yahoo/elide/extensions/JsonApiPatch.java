@@ -71,7 +71,7 @@ public class JsonApiPatch {
         }
     }
 
-    private final DataStore db;
+    private final DataStore dataStore;
     private final List<PatchAction> actions;
     private final String rootUri;
 
@@ -89,35 +89,35 @@ public class JsonApiPatch {
     /**
      * Process json patch.
      *
-     * @param db the db
+     * @param dataStore the dataStore
      * @param uri the uri
      * @param patchDoc the patch doc
      * @param requestScope request scope
      * @return pair
      * @throws IOException the iO exception
      */
-    public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore db,
+    public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore dataStore,
             String uri,
             String patchDoc,
             PatchRequestScope requestScope)
             throws IOException {
         List<Patch> actions = requestScope.getMapper().readJsonApiPatchExtDoc(patchDoc);
-        JsonApiPatch processor = new JsonApiPatch(db, actions, uri, requestScope);
+        JsonApiPatch processor = new JsonApiPatch(dataStore, actions, uri, requestScope);
         return processor.processActions(requestScope);
     }
 
     /**
      * Constructor.
      *
-     * @param db Data Store
+     * @param dataStore Data Store
      * @param actions List of patch actions
      * @param rootUri root URI
      */
-    private JsonApiPatch(DataStore db,
+    private JsonApiPatch(DataStore dataStore,
             List<Patch> actions,
             String rootUri,
             RequestScope requestScope) {
-        this.db = db;
+        this.dataStore = dataStore;
         this.actions = actions.stream().map(PatchAction::new).collect(Collectors.toList());
         this.rootUri = rootUri;
     }

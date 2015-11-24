@@ -23,7 +23,7 @@ import javax.persistence.Table;
 @SharePermission(any = {Role.ALL.class})
 @Table(name = "shareable")
 @Include(rootLevel = true, type = "shareable")
-public class AShareable {
+public class Shareable {
     private long id;
     private Container container;
 

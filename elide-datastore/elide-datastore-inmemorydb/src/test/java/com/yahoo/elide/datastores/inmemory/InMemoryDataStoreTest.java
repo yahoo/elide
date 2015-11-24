@@ -11,6 +11,7 @@ import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertFalse;
@@ -22,42 +23,41 @@ import static org.testng.Assert.assertTrue;
  * InMemoryDataStore tests.
  */
 public class InMemoryDataStoreTest {
+    private InMemoryDataStore inMemoryDataStore;
+
+    @BeforeTest
+    public void setup() {
+        final EntityDictionary entityDictionary = new EntityDictionary();
+        inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
+        inMemoryDataStore.populateEntityDictionary(entityDictionary);
+    }
 
     @Test(expectedExceptions = {IllegalArgumentException.class})
     public void checkLoading() {
-        InMemoryDataStore db = dbInstance();
-        EntityDictionary ed = db.getDictionary();
-        assertNotNull(ed.getBinding(FirstBean.class));
-        assertNotNull(ed.getBinding(SecondBean.class));
-        assertNull(ed.getBinding(ExcludedBean.class));
-        assertNull(ed.getBinding(NonEntity.class));
+        final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
+        assertNotNull(entityDictionary.getBinding(FirstBean.class));
+        assertNotNull(entityDictionary.getBinding(SecondBean.class));
+        assertNull(entityDictionary.getBinding(ExcludedBean.class));
+        assertNull(entityDictionary.getBinding(NonEntity.class));
     }
 
     @Test
     public void testValidCommit() throws Exception {
-        InMemoryDataStore db = dbInstance();
         FirstBean object = new FirstBean();
         object.id = 0;
         object.name = "Test";
-        try (DataStoreTransaction t = db.beginTransaction()) {
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.save(object);
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.commit();
         }
-        try (DataStoreTransaction t = db.beginTransaction()) {
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = beans.iterator().next();
             assertTrue(bean.id == 1 && bean.name.equals("Test"));
         }
-    }
-
-    private static InMemoryDataStore dbInstance() {
-        EntityDictionary ed = new EntityDictionary();
-        InMemoryDataStore db = new InMemoryDataStore(FirstBean.class.getPackage());
-        db.populateEntityDictionary(ed);
-        return db;
     }
 }

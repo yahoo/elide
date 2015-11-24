@@ -49,21 +49,21 @@ import java.util.function.Supplier;
 public class Elide {
 
     private final Logger auditLogger;
-    private final DataStore db;
+    private final DataStore dataStore;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
     /**
      * Instantiates a new Elide.
      *
      * @param auditLogger the audit logger
-     * @param db the db
+     * @param dataStore the dataStore
      * @param dictionary the dictionary
      */
-    public Elide(Logger auditLogger, DataStore db, EntityDictionary dictionary) {
+    public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
         this.auditLogger = auditLogger;
-        this.db = db;
+        this.dataStore = dataStore;
         this.dictionary = dictionary;
-        db.populateEntityDictionary(dictionary);
+        dataStore.populateEntityDictionary(dictionary);
         this.mapper = new JsonApiMapper(dictionary);
     }
 
@@ -71,10 +71,10 @@ public class Elide {
      * Instantiates a new Elide.
      *
      * @param auditLogger the audit logger
-     * @param db the db
+     * @param dataStore the dataStore
      */
-    public Elide(Logger auditLogger, DataStore db) {
-        this(auditLogger, db, new EntityDictionary());
+    public Elide(Logger auditLogger, DataStore dataStore) {
+        this(auditLogger, dataStore, new EntityDictionary());
     }
 
     /**
@@ -92,7 +92,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
 
-        try (DataStoreTransaction transaction = db.beginReadTransaction()) {
+        try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
             final User user = transaction.accessUser(opaqueUser);
             RequestScope requestScope = new RequestScope(
                     new JsonApiDocument(),
@@ -149,7 +149,7 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
-        try (DataStoreTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(doc,
@@ -209,7 +209,7 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
-        try (DataStoreTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
 
             RequestScope requestScope;
@@ -219,7 +219,7 @@ public class Elide {
                 PatchRequestScope patchRequestScope = new PatchRequestScope(
                         transaction, user, dictionary, mapper, auditLogger);
                 requestScope = patchRequestScope;
-                responder = JsonApiPatch.processJsonPatch(db, path, jsonApiDocument, patchRequestScope);
+                responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
                 requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
@@ -275,7 +275,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
         JsonApiDocument doc;
-        try (DataStoreTransaction transaction = db.beginTransaction()) {
+        try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             if (jsonApiDocument != null && !jsonApiDocument.equals("")) {
                 doc = mapper.readJsonApiDocument(jsonApiDocument);

@@ -18,7 +18,7 @@ public class FromMapConverter implements Converter {
      * @param cls class to convert to
      * @param value value to convert
      * @param <T>
-     * @return
+     * @return converted object
      */
     @Override
     public <T> T convert(Class<T> cls, Object value) {

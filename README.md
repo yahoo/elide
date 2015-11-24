@@ -54,7 +54,7 @@ The second step is to create a `DataStore`.   It is an interface that binds to a
 Hibernate.  The default `HibernateStore` will discover all of the JPA beans in your deployment and expose those that have been annotated to do so.
 
     /* Takes a hibernate session factory */
-    DataStore db = new HibernateStore(sessionFactory);
+    DataStore dataStore = new HibernateStore(sessionFactory);
 
 The third step is to create an `AuditLogger`.   It is an interface that does something with Audit messages.  Elide ships with a default that
 dumps them to slf4j:
@@ -63,7 +63,7 @@ dumps them to slf4j:
 
 Create an `Elide class`.  It is the entry point for handling requests from your web server/container.  
 
-    Elide elide = new Elide(logger, db);
+    Elide elide = new Elide(logger, dataStore);
 
 `Elide` has methods for `get`, `patch`, `post`, and `delete`.  These methods generally take:
   1. An opaque user `Object`

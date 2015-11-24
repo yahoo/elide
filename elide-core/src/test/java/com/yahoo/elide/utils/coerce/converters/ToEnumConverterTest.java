@@ -16,7 +16,7 @@ public class ToEnumConverterTest {
 
     private Converter converter;
 
-    public static enum Seasons { WINTER, SPRING, SUMMER, FALL }
+    public enum Seasons { WINTER, SPRING, SUMMER, FALL }
 
     @BeforeMethod
     public void setUp() throws Exception {

@@ -80,7 +80,7 @@ public class PersistentResource<T> {
     protected final EntityDictionary dictionary;
 
     /* Sort strings first by length then contents */
-    private Comparator<String> comparator = (string1, string2) -> {
+    private final Comparator<String> comparator = (string1, string2) -> {
         int diff = string1.length() - string2.length();
         return diff == 0 ? string1.compareTo(string2) : diff;
     };

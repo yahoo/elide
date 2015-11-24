@@ -103,7 +103,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         T record = null;
         try {
-            record = (T) session.load(loadClass, id);
+            record = session.load(loadClass, id);
             Hibernate.initialize(record);
         } catch (ObjectNotFoundException e) {
             return null;

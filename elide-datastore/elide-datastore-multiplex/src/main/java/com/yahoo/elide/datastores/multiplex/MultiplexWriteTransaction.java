@@ -137,7 +137,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      */
     private Object cloneObject(Object object) {
         EntityDictionary dictionary = this.multiplexManager.getDictionary();
-        Class<?> cls = dictionary.lookupEntityClass(object.getClass());
+        Class<?> cls = EntityDictionary.lookupEntityClass(object.getClass());
         try {
             Object clone = cls.newInstance();
             for (Field field : cls.getFields()) {

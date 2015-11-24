@@ -18,7 +18,7 @@ import static org.testng.Assert.assertEquals;
 
 public class CoerceUtilTest {
 
-    public static enum Seasons { WINTER, SPRING }
+    public enum Seasons { WINTER, SPRING }
 
     @EqualsAndHashCode
     @AllArgsConstructor
@@ -56,9 +56,6 @@ public class CoerceUtilTest {
 
         assertEquals(CoerceUtil.coerce("1", Long.class), Long.valueOf("1"),
                 "coerce converts String to Long");
-
-        assertEquals(CoerceUtil.coerce("1", long.class), Long.valueOf("1").longValue(),
-                "coerce converts String to long");
 
         assertEquals(CoerceUtil.coerce(1.0, int.class), 1,
                 "coerce converts float to int");

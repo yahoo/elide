@@ -12,7 +12,7 @@ import org.testng.annotations.Test
 
 import static com.jayway.restassured.RestAssured.given
 /**
- * @AShareable annotation integration tests
+ * @Shareable annotation integration tests
  */
 class ShareableIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper mapper = new ObjectMapper();

@@ -24,7 +24,7 @@ import java.util.Collection;
 public class Container {
     private long id;
     private Collection<Unshareable> unshareables;
-    private Collection<AShareable> shareables;
+    private Collection<Shareable> shareables;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,11 +46,11 @@ public class Container {
     }
 
     @OneToMany(mappedBy = "container")
-    public Collection<AShareable> getShareables() {
+    public Collection<Shareable> getShareables() {
         return shareables;
     }
 
-    public void setShareables(Collection<AShareable> shareables) {
+    public void setShareables(Collection<Shareable> shareables) {
         this.shareables = shareables;
     }
 }
