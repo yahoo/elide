@@ -2,7 +2,25 @@
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
-## Using Elide
+##What Is Elide?
+
+Elide is a Java library that let's you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a JPA annotated data model. 
+Elide is designed to quickly build and deploy **production quality** web services that expose databases as services.  Beyond the basics, elide provides:
+  1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
+  2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.
+  3. **Atomic Requests** All requests to the library (including the patch extension) can be embedded in transactions to ensure operational integrity.
+  4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data. 
+  5. **Audit** Logging can be customized for any operation on any entity.
+  6. **Extension** Elide allows the ability to add custom business logic and replaceable JPA provider (from the default Hibernate provider).
+  7. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.
+
+##Documentation
+
+More information about Elide can be found at [elide.io](http://elide.io/).
+
+##Getting Started
+
+### Using Elide
 
 To integrate Elide into your project, simply include elide-core into your project's pom.xml:
 
@@ -25,26 +43,8 @@ Additionally, if you do not plan to write your own data store, select the approp
 </dependency>
 ```
 
-##What Is Elide?
-
-Elide is a Java library that let's you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a JPA annotated data model. 
-Elide is designed to quickly build and deploy **production quality** web services that expose databases as services.  Beyond the basics, elide provides:
-  1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
-  2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.
-  3. **Atomic Requests** All requests to the library (including the patch extension) can be embedded in transactions to ensure operational integrity.
-  4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data. 
-  5. **Audit** Logging can be customized for any operation on any entity.
-  6. **Extension** Elide allows the ability to add custom business logic and replaceable JPA provider (from the default Hibernate provider).
-  7. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.
-
-##More Information
-More information about Elide can be found at [elide.io](http://elide.io/).
-
-##Getting Started
-
-###Prerequisites
-
 ###Code 
+
 The first step is to create a JPA data model and mark which beans to expose via Elide.  The following directive exposes **everything** in a package:  
 
     @Include(rootLevel=true)
@@ -75,7 +75,6 @@ It returns a `ElideResponse` which contains the HTTP response status code and a 
     ElideResponse response = elide.post(path, requestBody, user)
 
 Wire up the four HTTP verbs to your container and you will have a functioning JSON API server.
-
 
 ##License
 
