@@ -10,7 +10,7 @@ import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import java.util.Set;
 
 /**
- * FilterOperation that creates Hibernate query language fragments
+ * FilterOperation that creates Hibernate query language fragments.
  */
 public class HQLFilterOperation implements FilterOperation<String> {
     @Override

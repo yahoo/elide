@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-hibernate3-mysql-example</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Hibernate 3 MySQL Example</name>
+    <name>Elide Example: Hibernate 3 API with MySQL</name>
     <description>Elide example using Hibernate 3 and MySQL</description>
     <parent>
         <groupId>com.yahoo.elide</groupId>
@@ -17,38 +17,30 @@
     </parent>
 
     <properties>
-        <version.elide>1.0.0.10-SNAPSHOT</version.elide>
-        <version.jetty>9.3.5.v20151012</version.jetty>
-        <version.slf4j>1.7.12</version.slf4j>
-        <version.log4j>2.3</version.log4j>
-        <version.jdk>1.8</version.jdk>
-
         <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
     </properties>
 
     <dependencies>
-        <!-- Elide deps for example -->
+        <!-- Elide dependencies for example -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>${version.elide}</version>
+            <version>1.0.0.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate3</artifactId>
-            <version>${version.elide}</version>
+            <version>1.0.0.10-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${version.jetty}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>${version.jetty}</version>
         </dependency>
         <!-- Jersey -->
         <dependency>
@@ -61,21 +53,18 @@
             <artifactId>jersey-container-jetty-servlet</artifactId>
             <version>RELEASE</version>
         </dependency>
-        <!-- logging -->
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${version.slf4j}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${version.log4j}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${version.log4j}</version>
         </dependency>
         <!-- Persistence -->
         <dependency>
@@ -109,16 +98,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <source>${version.jdk}</source>
-                    <target>${version.jdk}</target>
-                    <compilerVersion>${version.jdk}</compilerVersion>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

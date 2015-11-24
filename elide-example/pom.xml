@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-example-parent-pom</artifactId>
     <packaging>pom</packaging>
-    <name>Elide Example Parent Pom</name>
+    <name>Elide Example: Parent Pom</name>
     <description>Parent pom for various examples of Elide use</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
@@ -40,6 +40,7 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
+        <version.log4j>2.4.1</version.log4j>
     </properties>
 
     <dependencyManagement>
@@ -48,6 +49,16 @@
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
                 <version>1.0.0.10-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${version.log4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${version.log4j}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

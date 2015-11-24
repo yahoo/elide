@@ -16,6 +16,8 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.Role;
 import lombok.ToString;
 
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,7 +28,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
-import java.util.Set;
 
 /**
  * Parent test bean.

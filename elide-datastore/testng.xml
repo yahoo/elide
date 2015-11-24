@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2015, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+    <test name="com.yahoo.elide.tests.ResourceIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.ResourceIT" />
+        </classes>
+    </test>
+    <test name="com.yahoo.elide.tests.AccessIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.AccessIT" />
+        </classes>
+    </test>
+    <test name="com.yahoo.elide.tests.EmbeddedIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.EmbeddedIT" />
+        </classes>
+    </test>
+    <test name="com.yahoo.elide.tests.BookAuthorIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.BookAuthorIT" />
+        </classes>
+    </test>
+    <test name="com.yahoo.elide.tests.FilterIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.FilterIT" />
+        </classes>
+    </test>
+    <test name="com.yahoo.elide.tests.ShareableIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.ShareableIT" />
+        </classes>
+    </test>
+</suite>

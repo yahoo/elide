@@ -4,20 +4,18 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
-
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.restassured.RestAssured
 import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.datastores.AHibernateTest
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.Assert
 import org.testng.annotations.BeforeTest
 import org.testng.annotations.Test
-
 /**
  * Tests for Filters
  */
-class FilterIT extends AHibernateTest {
+class FilterIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper mapper = new ObjectMapper()
 
     private JsonNode books = null

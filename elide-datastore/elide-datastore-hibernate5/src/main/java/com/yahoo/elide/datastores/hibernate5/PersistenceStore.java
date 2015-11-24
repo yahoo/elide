@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.google.common.base.Preconditions;
@@ -13,7 +18,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
- * Manager for javax.persistence compatible db resource
+ * Manager for javax.persistence compatible db resource.
  */
 public class PersistenceStore implements DataStore {
     private final EntityManagerFactory entityManagerFactory;
@@ -35,6 +40,9 @@ public class PersistenceStore implements DataStore {
         return new PersistenceTransaction(entityManagerFactory.createEntityManager());
     }
 
+    /**
+     * The type Persistence transaction.
+     */
     public class PersistenceTransaction implements DataStoreTransaction {
         private final EntityManager entityManager;
 

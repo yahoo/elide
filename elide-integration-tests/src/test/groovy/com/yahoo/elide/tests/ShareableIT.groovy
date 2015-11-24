@@ -4,19 +4,17 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.datastores.AHibernateTest
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.Assert
 import org.testng.annotations.Test
 
 import static com.jayway.restassured.RestAssured.given
-
 /**
  * @AShareable annotation integration tests
  */
-class ShareableIT extends AHibernateTest {
+class ShareableIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test

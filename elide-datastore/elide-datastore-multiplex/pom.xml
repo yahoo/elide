@@ -4,8 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-datastore-multiplex</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Multiplex Database Manager</name>
-    <description>Elide entity manager for multiple database support</description>
+    <name>Elide Data Store: Multiplex Library</name>
+    <description>Elide entity manager for multiple data store support</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
         <groupId>com.yahoo.elide</groupId>
@@ -34,14 +34,17 @@
         <tag>HEAD</tag>
     </scm>
 
-    <properties>
-        <version.logback>1.1.3</version.logback>
-    </properties>
-
     <dependencies>
+        <!-- Elide dependencies (include test dependencies) -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-inmemorydb</artifactId>
+            <version>1.0.0.10-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <!-- For proper serialization in elide-core -->
         <dependency>
@@ -62,21 +65,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-inmemorydb</artifactId>
-            <version>1.0.0.10-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${version.logback}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${version.logback}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -85,19 +80,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
