@@ -12,13 +12,12 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.Role;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Post test bean.
@@ -34,7 +33,7 @@ public class Post extends BaseId {
     private String title;
     private int created;
     private long id;
-    private Set<Parent> spouses = new HashSet<>();
+    private final Set<Parent> spouses = new HashSet<>();
 
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 

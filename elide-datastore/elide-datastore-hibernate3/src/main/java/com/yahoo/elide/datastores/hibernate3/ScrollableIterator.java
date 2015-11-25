@@ -20,7 +20,7 @@ import java.util.Iterator;
  * @param <T> type of return object
  */
 public class ScrollableIterator<T> implements Iterable<T>, Iterator<T> {
-    final private ScrollableResults scroll;
+    private final ScrollableResults scroll;
     private boolean inUse = false;
     private boolean hasNext;
 
@@ -46,12 +46,10 @@ public class ScrollableIterator<T> implements Iterable<T>, Iterator<T> {
     @Override
     public boolean hasNext() {
         return hasNext;
-
     }
 
     @Override
-    public @NonNull
-    T next() {
+    @NonNull public T next() {
         @SuppressWarnings("unchecked")
         @NonNull T row = (T) scroll.get()[0];
         Preconditions.checkNotNull(row);

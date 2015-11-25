@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.parsers;
 
+import com.yahoo.elide.generated.parsers.CoreLexer;
+import com.yahoo.elide.generated.parsers.CoreParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -26,7 +28,7 @@ public class JsonApiParser {
      */
     public static ParseTree parse(String path) {
         ANTLRInputStream is = new ANTLRInputStream(path);
-        ormLexer lexer = new ormLexer(is);
+        CoreLexer lexer = new CoreLexer(is);
         lexer.removeErrorListeners();
         lexer.addErrorListener(new BaseErrorListener() {
             @Override
@@ -35,7 +37,7 @@ public class JsonApiParser {
                 throw new ParseCancellationException(e);
             }
         });
-        ormParser parser = new ormParser(new CommonTokenStream(lexer));
+        CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new BailErrorStrategy());
         return parser.start();
     }

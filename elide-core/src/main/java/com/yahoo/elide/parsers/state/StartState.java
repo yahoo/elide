@@ -9,10 +9,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntitiesContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntityContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
 
 import java.util.Optional;
 

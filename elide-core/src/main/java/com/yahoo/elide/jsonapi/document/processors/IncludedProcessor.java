@@ -20,9 +20,9 @@ import java.util.Set;
  * A Document Processor that add requested relations to the include block of the JsonApiDocument.
  */
 public class IncludedProcessor implements DocumentProcessor {
-
     private static final String RELATION_PATH_DELIMITER = "\\.";
     private static final String RELATION_PATH_SEPARATOR = ",";
+    private static final String INCLUDE = "include";
 
     /**
      * If the include query param is present, this processor will add the requested relations resources
@@ -31,8 +31,8 @@ public class IncludedProcessor implements DocumentProcessor {
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
                         Optional<MultivaluedMap<String, String>> queryParams) {
-        if (isPresent(queryParams, "include")) {
-            addIncludedResources(jsonApiDocument, resource, queryParams.get().get("include"));
+        if (isPresent(queryParams, INCLUDE)) {
+            addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE));
         }
     }
 
@@ -43,11 +43,11 @@ public class IncludedProcessor implements DocumentProcessor {
     @Override
     public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
                         Optional<MultivaluedMap<String, String>> queryParams) {
-        if (isPresent(queryParams, "include")) {
+        if (isPresent(queryParams, INCLUDE)) {
 
             // Process include for each resource
             resources.forEach(resource ->
-                    addIncludedResources(jsonApiDocument, resource, queryParams.get().get("include")));
+                    addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE)));
         }
     }
 
@@ -90,6 +90,6 @@ public class IncludedProcessor implements DocumentProcessor {
     }
 
     private static boolean isPresent(Optional<MultivaluedMap<String, String>> queryParams, String key) {
-        return (queryParams.isPresent() && queryParams.get().get(key) != null);
+        return queryParams.isPresent() && queryParams.get().get(key) != null;
     }
 }

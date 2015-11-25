@@ -13,7 +13,6 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
-
 import example.Child;
 import example.Parent;
 import example.Post;
@@ -21,6 +20,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,10 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
 public class SortProcessorTest {
+    private static final String SORT = "sort";
 
     private SortProcessor sortProcessor;
 
@@ -82,7 +81,7 @@ public class SortProcessorTest {
 
         // Mock query params
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("sort", Collections.singletonList("firstName"));
+        queryParams.put(SORT, Collections.singletonList("firstName"));
 
         // Assert sort order
         List<Resource> givenOrder = Arrays.asList(parentRecord1.toResource(), parentRecord2.toResource(), parentRecord3.toResource());
@@ -108,7 +107,7 @@ public class SortProcessorTest {
 
         // Mock query params
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("sort", Collections.singletonList("-firstName"));
+        queryParams.put(SORT, Collections.singletonList("-firstName"));
 
         // Assert sort order
         List<Resource> givenOrder = Arrays.asList(parentRecord1.toResource(), parentRecord2.toResource(), parentRecord3.toResource());
@@ -156,7 +155,7 @@ public class SortProcessorTest {
 
         // Mock query params
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("sort", Arrays.asList("title", "-created"));
+        queryParams.put(SORT, Arrays.asList("title", "-created"));
 
         // Assert sort order
         List<Resource> givenOrder = Arrays.asList(postRecord1.toResource(), postRecord2.toResource(), postRecord3.toResource());
@@ -182,7 +181,7 @@ public class SortProcessorTest {
 
         // Mock query params
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("sort", Collections.singletonList("doesNotExist"));
+        queryParams.put(SORT, Collections.singletonList("doesNotExist"));
 
         // Assert sort order
         List<Resource> givenOrder = Arrays.asList(parentRecord1.toResource(), parentRecord2.toResource(), parentRecord3.toResource());

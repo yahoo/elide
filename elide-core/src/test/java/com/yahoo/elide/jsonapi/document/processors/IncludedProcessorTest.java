@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
@@ -12,15 +13,14 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
-
-import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Parent;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,11 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
 
 public class IncludedProcessorTest {
+    private static final String INCLUDE = "include";
 
     private IncludedProcessor includedProcessor;
 
@@ -92,7 +90,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Collections.singletonList("children"));
+        queryParams.put(INCLUDE, Collections.singletonList("children"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
@@ -111,7 +109,7 @@ public class IncludedProcessorTest {
         parents.add(parentRecord2);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Collections.singletonList("children"));
+        queryParams.put(INCLUDE, Collections.singletonList("children"));
         includedProcessor.execute(jsonApiDocument, parents, Optional.of(queryParams));
 
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
@@ -126,7 +124,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Collections.singletonList("children.friends"));
+        queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded =
@@ -142,7 +140,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children", "spouses"));
+        queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded =
@@ -158,7 +156,7 @@ public class IncludedProcessorTest {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Collections.singletonList("children.friends"));
+        queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
         includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
 
         Set<Resource> expectedIncluded =
@@ -177,9 +175,6 @@ public class IncludedProcessorTest {
     @Test
     public void testNoQueryParams() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-        queryParams.put("include", Arrays.asList("children", "spouses"));
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.empty());
 
         Assert.assertNull(jsonApiDocument.getIncluded(),

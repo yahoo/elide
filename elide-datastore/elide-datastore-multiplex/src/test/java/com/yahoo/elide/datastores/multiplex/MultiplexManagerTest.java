@@ -5,12 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -18,39 +13,52 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
-
-import com.google.common.collect.Lists;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
 /**
  * MultiplexManager tests.
  */
 public class MultiplexManagerTest {
+    private MultiplexManager multiplexManager;
+
+    @BeforeTest
+    public void setup() {
+        final EntityDictionary entityDictionary = new EntityDictionary();
+        final InMemoryDataStore inMemoryDataStore1 = new InMemoryDataStore(FirstBean.class.getPackage());
+        final InMemoryDataStore inMemoryDataStore2 = new InMemoryDataStore(OtherBean.class.getPackage());
+        multiplexManager = new MultiplexManager(inMemoryDataStore1, inMemoryDataStore2);
+        multiplexManager.populateEntityDictionary(entityDictionary);
+    }
 
     @Test
     public void checkLoading() {
-        MultiplexManager db = dbInstance();
-        EntityDictionary ed = db.getDictionary();
-        assertNotNull(ed.getBinding(FirstBean.class));
-        assertNotNull(ed.getBinding(OtherBean.class));
+        EntityDictionary entityDictionary = multiplexManager.getDictionary();
+        assertNotNull(entityDictionary.getBinding(FirstBean.class));
+        assertNotNull(entityDictionary.getBinding(OtherBean.class));
     }
 
     @Test
     public void testValidCommit() throws IOException {
-        MultiplexManager db = dbInstance();
-        FirstBean object = new FirstBean();
+        final FirstBean object = new FirstBean();
         object.id = 0;
         object.name = "Test";
-        try (DataStoreTransaction t = db.beginTransaction()) {
+        try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.save(object);
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.commit();
         }
-        try (DataStoreTransaction t = db.beginTransaction()) {
+        try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
@@ -61,16 +69,16 @@ public class MultiplexManagerTest {
 
     @Test(priority = 3)
     public void partialCommitFailure() throws IOException {
-        EntityDictionary ed = new EntityDictionary();
-        InMemoryDataStore db1 = new InMemoryDataStore(FirstBean.class.getPackage());
-        DataStore db2 = new TestDataStore(OtherBean.class.getPackage());
-        MultiplexManager db = new MultiplexManager(db1, db2);
-        db.populateEntityDictionary(ed);
+        final EntityDictionary entityDictionary = new EntityDictionary();
+        final InMemoryDataStore ds1 = new InMemoryDataStore(FirstBean.class.getPackage());
+        final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
+        final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
+        multiplexManager.populateEntityDictionary(entityDictionary);
 
-        assertEquals(db.getSubManager(FirstBean.class), db1);
-        assertEquals(db.getSubManager(OtherBean.class), db2);
+        assertEquals(multiplexManager.getSubManager(FirstBean.class), ds1);
+        assertEquals(multiplexManager.getSubManager(OtherBean.class), ds2);
 
-        try (DataStoreTransaction t = db1.beginTransaction()) {
+        try (DataStoreTransaction t = ds1.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             FirstBean firstBean = t.createObject(FirstBean.class);
             firstBean.name = "name";
@@ -78,7 +86,7 @@ public class MultiplexManagerTest {
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.commit();
         }
-        try (DataStoreTransaction t = db.beginTransaction()) {
+        try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             FirstBean firstBean = t.loadObjects(FirstBean.class).iterator().next();
             firstBean.name = "update";
             t.save(firstBean);
@@ -92,21 +100,12 @@ public class MultiplexManagerTest {
             }
         }
         // verify state
-        try (DataStoreTransaction t = db1.beginTransaction()) {
+        try (DataStoreTransaction t = ds1.beginTransaction()) {
             Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
             assertNotNull(beans);
             ArrayList<FirstBean> list = Lists.newArrayList(beans.iterator());
             assertEquals(list.size(), 1);
             assertEquals(list.get(0).name, "name");
         }
-    }
-
-    private static MultiplexManager dbInstance() {
-        EntityDictionary ed = new EntityDictionary();
-        InMemoryDataStore db1 = new InMemoryDataStore(FirstBean.class.getPackage());
-        InMemoryDataStore db2 = new InMemoryDataStore(OtherBean.class.getPackage());
-        MultiplexManager db = new MultiplexManager(db1, db2);
-        db.populateEntityDictionary(ed);
-        return db;
     }
 }

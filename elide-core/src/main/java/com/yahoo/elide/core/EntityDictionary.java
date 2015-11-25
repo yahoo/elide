@@ -12,6 +12,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.Entity;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -28,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.persistence.Entity;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -310,8 +309,9 @@ public class EntityDictionary {
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        SharePermission share = (SharePermission) getFirstAnnotation(entityClass, Arrays.asList(SharePermission.class));
-        return (share != null);
+        SharePermission share = (SharePermission) getFirstAnnotation(entityClass,
+                Collections.singletonList(SharePermission.class));
+        return share != null;
     }
 
     /**

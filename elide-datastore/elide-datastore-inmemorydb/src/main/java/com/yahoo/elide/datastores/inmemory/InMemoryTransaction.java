@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.inmemory;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import javax.persistence.Id;
 import java.io.IOException;
@@ -154,13 +152,5 @@ public class InMemoryTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         operations.clear();
-    }
-
-    @AllArgsConstructor
-    private class Operation {
-        @Getter private final String id;
-        @Getter private final Object instance;
-        @Getter private final Class<?> type;
-        @Getter private final Boolean delete;
     }
 }

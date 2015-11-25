@@ -15,6 +15,6 @@ public class NegativeChildIdCheck implements Check<Child> {
     @Override
     public boolean ok(PersistentResource<Child> record) {
         Child child = record.getObject();
-        return (child.getId() >= 0);
+        return child.getId() >= 0;
     }
 }

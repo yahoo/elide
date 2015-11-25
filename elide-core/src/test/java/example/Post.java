@@ -26,7 +26,7 @@ public class Post extends BaseId {
     private String title;
     private int created;
     private long id;
-    private Set<Parent> spouses = new HashSet<>();
+    private final Set<Parent> spouses = new HashSet<>();
 
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 

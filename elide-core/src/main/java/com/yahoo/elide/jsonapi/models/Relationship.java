@@ -50,7 +50,7 @@ public class Relationship {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Map<String, String> getLinks() {
-        return (links == null || links.isEmpty()) ? null : links;
+        return links == null || links.isEmpty() ? null : links;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -79,7 +79,7 @@ public class Relationship {
                 }
             }
         }
-        return (res.isEmpty()) ? ((data.isToOne()) ? null : res) : res;
+        return res.isEmpty() ? (data.isToOne() ? null : res) : res;
     }
 
     @Override

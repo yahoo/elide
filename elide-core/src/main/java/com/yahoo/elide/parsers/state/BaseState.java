@@ -6,14 +6,14 @@
 package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.exceptions.HttpStatusException;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntitiesContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionLoadEntityContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.RootCollectionSubCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadCollectionContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionReadEntityContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionRelationshipContext;
-import com.yahoo.elide.parsers.ormParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
+import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;

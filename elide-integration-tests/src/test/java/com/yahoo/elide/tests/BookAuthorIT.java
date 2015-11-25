@@ -17,6 +17,12 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 
 public class BookAuthorIT extends AbstractIntegrationTestInitializer {
+    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+
+    private static final String ATTRIBUTES = "attributes";
+    private static final String RELATIONSHIPS = "relationships";
+    private static final String INCLUDED = "included";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonParser jsonParser = new JsonParser();
 
@@ -25,8 +31,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Author: Ernest Hemingway
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway.json"))
                 .post("/author")
                 .then()
@@ -35,8 +41,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Book: The Old Man and the Sea
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/the_old_man_and_the_sea.json"))
                 .post("/book")
                 .then()
@@ -45,8 +51,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Relationship: Ernest Hemingway -> The Old Man and the Sea
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
                 .patch("/book/1/relationships/authors")
                 .then()
@@ -55,8 +61,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Author: Orson Scott Card
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card.json"))
                 .post("/author")
                 .then()
@@ -65,8 +71,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Book: Ender's Game
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/enders_game.json"))
                 .post("/book")
                 .then()
@@ -75,8 +81,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Relationship: Orson Scott Card -> Ender's Game
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/orson_scott_card_relationship.json"))
                 .patch("/book/2/relationships/authors")
                 .then()
@@ -85,8 +91,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Book: For Whom the Bell Tolls
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/for_whom_the_bell_tolls.json"))
                 .post("/book")
                 .then()
@@ -95,8 +101,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         // Create Relationship: Ernest Hemingway -> For Whom the Bell Tolls
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/BookAuthorIT/ernest_hemingway_relationship.json"))
                 .patch("/book/3/relationships/authors")
                 .then()
@@ -108,8 +114,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
-                        .contentType("application/vnd.api+json")
-                        .accept("application/vnd.api+json")
+                        .contentType(JSONAPI_CONTENT_TYPE)
+                        .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title")
                         .get("/book").asString());
@@ -117,19 +123,19 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         Assert.assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has("attributes"));
-            Assert.assertFalse(bookNode.has("relationships"));
+            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            Assert.assertFalse(bookNode.has(RELATIONSHIPS));
 
-            JsonNode attributes = bookNode.get("attributes");
+            JsonNode attributes = bookNode.get(ATTRIBUTES);
             Assert.assertEquals(attributes.size(), 1);
             Assert.assertTrue(attributes.has("title"));
         }
 
-        Assert.assertTrue(responseBody.has("included"));
+        Assert.assertTrue(responseBody.has(INCLUDED));
 
-        for (JsonNode include : responseBody.get("included")) {
-            Assert.assertFalse(include.has("attributes"));
-            Assert.assertFalse(include.has("relationships"));
+        for (JsonNode include : responseBody.get(INCLUDED)) {
+            Assert.assertFalse(include.has(ATTRIBUTES));
+            Assert.assertFalse(include.has(RELATIONSHIPS));
         }
     }
 
@@ -138,24 +144,24 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
-                        .contentType("application/vnd.api+json")
-                        .accept("application/vnd.api+json")
+                        .contentType(JSONAPI_CONTENT_TYPE)
+                        .accept(JSONAPI_CONTENT_TYPE)
                         .param("fields[book]", "title,language")
                         .get("/book").asString());
 
         Assert.assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has("attributes"));
-            Assert.assertFalse(bookNode.has("relationships"));
+            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            Assert.assertFalse(bookNode.has(RELATIONSHIPS));
 
-            JsonNode attributes = bookNode.get("attributes");
+            JsonNode attributes = bookNode.get(ATTRIBUTES);
             Assert.assertEquals(attributes.size(), 2);
             Assert.assertTrue(attributes.has("title"));
             Assert.assertTrue(attributes.has("language"));
         }
 
-        Assert.assertFalse(responseBody.has("included"));
+        Assert.assertFalse(responseBody.has(INCLUDED));
     }
 
     @Test
@@ -163,34 +169,34 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
-                        .contentType("application/vnd.api+json")
-                        .accept("application/vnd.api+json")
+                        .contentType(JSONAPI_CONTENT_TYPE)
+                        .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .get("/book").asString());
 
         Assert.assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has("attributes"));
-            JsonNode attributes = bookNode.get("attributes");
+            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            JsonNode attributes = bookNode.get(ATTRIBUTES);
             Assert.assertTrue(attributes.has("title"));
             Assert.assertTrue(attributes.has("language"));
             Assert.assertTrue(attributes.has("genre"));
 
-            Assert.assertTrue(bookNode.has("relationships"));
-            JsonNode relationships = bookNode.get("relationships");
+            Assert.assertTrue(bookNode.has(RELATIONSHIPS));
+            JsonNode relationships = bookNode.get(RELATIONSHIPS);
             Assert.assertTrue(relationships.has("authors"));
         }
 
-        Assert.assertTrue(responseBody.has("included"));
+        Assert.assertTrue(responseBody.has(INCLUDED));
 
-        for (JsonNode include : responseBody.get("included")) {
-            Assert.assertTrue(include.has("attributes"));
-            JsonNode attributes = include.get("attributes");
+        for (JsonNode include : responseBody.get(INCLUDED)) {
+            Assert.assertTrue(include.has(ATTRIBUTES));
+            JsonNode attributes = include.get(ATTRIBUTES);
             Assert.assertTrue(attributes.has("name"));
 
-            Assert.assertTrue(include.has("relationships"));
-            JsonNode relationships = include.get("relationships");
+            Assert.assertTrue(include.has(RELATIONSHIPS));
+            JsonNode relationships = include.get(RELATIONSHIPS);
             Assert.assertTrue(relationships.has("books"));
         }
     }
@@ -200,8 +206,8 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         JsonNode responseBody = objectMapper.readTree(
                 RestAssured
                         .given()
-                        .contentType("application/vnd.api+json")
-                        .accept("application/vnd.api+json")
+                        .contentType(JSONAPI_CONTENT_TYPE)
+                        .accept(JSONAPI_CONTENT_TYPE)
                         .param("include", "authors")
                         .param("fields[book]", "title,genre,authors")
                         .param("fields[author]", "name")
@@ -210,25 +216,25 @@ public class BookAuthorIT extends AbstractIntegrationTestInitializer {
         Assert.assertTrue(responseBody.has("data"));
 
         for (JsonNode bookNode : responseBody.get("data")) {
-            Assert.assertTrue(bookNode.has("attributes"));
-            JsonNode attributes = bookNode.get("attributes");
+            Assert.assertTrue(bookNode.has(ATTRIBUTES));
+            JsonNode attributes = bookNode.get(ATTRIBUTES);
             Assert.assertEquals(attributes.size(), 2);
             Assert.assertTrue(attributes.has("title"));
             Assert.assertTrue(attributes.has("genre"));
 
-            Assert.assertTrue(bookNode.has("relationships"));
-            JsonNode relationships = bookNode.get("relationships");
+            Assert.assertTrue(bookNode.has(RELATIONSHIPS));
+            JsonNode relationships = bookNode.get(RELATIONSHIPS);
             Assert.assertTrue(relationships.has("authors"));
         }
 
-        Assert.assertTrue(responseBody.has("included"));
+        Assert.assertTrue(responseBody.has(INCLUDED));
 
-        for (JsonNode include : responseBody.get("included")) {
-            Assert.assertTrue(include.has("attributes"));
-            JsonNode attributes = include.get("attributes");
+        for (JsonNode include : responseBody.get(INCLUDED)) {
+            Assert.assertTrue(include.has(ATTRIBUTES));
+            JsonNode attributes = include.get(ATTRIBUTES);
             Assert.assertTrue(attributes.has("name"));
 
-            Assert.assertFalse(include.has("relationships"));
+            Assert.assertFalse(include.has(RELATIONSHIPS));
         }
     }
 }

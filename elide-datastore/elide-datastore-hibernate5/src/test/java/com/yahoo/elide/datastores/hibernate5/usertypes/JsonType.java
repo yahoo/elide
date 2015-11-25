@@ -159,7 +159,7 @@ public class JsonType implements UserType, ParameterizedType {
 
     /**
      * Setter used to set the class to serialize/deserialize
-     * @param properties
+     * @param properties properties object
      */
     @Override
     public void setParameterValues(Properties properties) {

@@ -15,6 +15,6 @@ public class NegativeIntegerUserCheck implements UserCheck {
     @Override
     public UserPermission userPermission(User user) {
         Integer id = (Integer) user.getOpaqueUser();
-        return (id >= 0) ? ALLOW : DENY;
+        return id >= 0 ? ALLOW : DENY;
     }
 }

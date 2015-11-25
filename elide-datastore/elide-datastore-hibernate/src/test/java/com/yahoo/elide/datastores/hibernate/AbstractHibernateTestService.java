@@ -19,7 +19,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 @NoArgsConstructor
-public class AbstractHibernateTestService {
+public abstract class AbstractHibernateTestService {
     public static DataStore dataStore = null;
 
     /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */

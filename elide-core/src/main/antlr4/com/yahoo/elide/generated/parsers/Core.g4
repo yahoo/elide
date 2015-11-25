@@ -14,7 +14,7 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-grammar orm;
+grammar Core;
 
 start: rootCollection query;
 

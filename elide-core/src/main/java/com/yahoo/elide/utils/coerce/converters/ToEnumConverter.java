@@ -47,7 +47,7 @@ public class ToEnumConverter implements Converter {
      * @return enum
      * @throws ReflectiveOperationException reflection exception
      */
-    private <T> T intToEnum(Class<?> cls, Integer value) throws ReflectiveOperationException {
+    private static <T> T intToEnum(Class<?> cls, Integer value) throws ReflectiveOperationException {
         Object[] values = (Object[]) cls.getMethod("values").invoke(null, (Object[]) null);
         return (T) values[value];
     }
@@ -60,8 +60,7 @@ public class ToEnumConverter implements Converter {
      * @param <T> enum type
      * @return enum
      */
-    private <T> T stringToEnum(Class<?> cls, String value) {
-        Enum e = Enum.valueOf((Class<Enum>) cls, value);
-        return (T) e;
+    private static <T> T stringToEnum(Class<?> cls, String value) {
+        return (T) Enum.valueOf((Class<Enum>) cls, value);
     }
 }

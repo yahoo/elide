@@ -15,6 +15,7 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 import lombok.Getter;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -60,8 +59,8 @@ public class RequestScope {
         this.dictionary = dictionary;
         this.mapper = mapper;
         this.logger = logger;
-        this.queryParams = ((queryParams == null) || (queryParams.size() == 0)
-                ? Optional.empty() : Optional.ofNullable(queryParams));
+        this.queryParams = (queryParams == null || (queryParams.size() == 0)
+                ? Optional.empty() : Optional.of(queryParams));
         this.objectEntityCache = new ObjectEntityCache();
         this.securityMode = securityMode;
 

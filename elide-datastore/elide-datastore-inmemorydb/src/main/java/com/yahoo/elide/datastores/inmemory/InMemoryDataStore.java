@@ -26,7 +26,7 @@ public class InMemoryDataStore implements DataStore {
     private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore =
             new ConcurrentHashMap<>();
     @Getter private EntityDictionary dictionary;
-    @Getter private Package beanPackage;
+    @Getter private final Package beanPackage;
 
     public InMemoryDataStore(Package beanPackage) {
         this.beanPackage = beanPackage;
@@ -37,11 +37,10 @@ public class InMemoryDataStore implements DataStore {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        for (Class<?> a : reflections.getTypesAnnotatedWith(Entity.class)) {
-            if (a.getPackage().getName().startsWith(beanPackage.getName())) {
-                dictionary.bindEntity(a);
-            }
-        }
+        reflections.getTypesAnnotatedWith(Entity.class).stream()
+                .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
+                        .startsWith(beanPackage.getName()))
+                .forEach(dictionary::bindEntity);
         this.dictionary = dictionary;
     }
 
