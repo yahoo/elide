@@ -21,7 +21,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.collection.PersistentBag;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -38,7 +37,6 @@ import java.util.Set;
  */
 public class HibernateTransaction implements DataStoreTransaction {
     private final Session session;
-    private final Transaction transaction;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
@@ -46,11 +44,10 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * Instantiates a new Hibernate transaction.
      *
-     * @param transaction the transaction
+     * @param session the session
      */
-    public HibernateTransaction(Session session, Transaction transaction) {
+    public HibernateTransaction(Session session) {
         this.session = session;
-        this.transaction = transaction;
     }
 
     @Override
@@ -78,7 +75,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     public void commit() {
         try {
             this.flush();
-            this.transaction.commit();
+            this.session.getTransaction().commit();
         } catch (HibernateException e) {
             throw new TransactionException(e);
         }
@@ -211,8 +208,8 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public void close() throws IOException {
-        if (this.transaction.isActive()) {
-            transaction.rollback();
+        if (session.isOpen() && session.getTransaction().isActive()) {
+            session.getTransaction().rollback();
             throw new IOException("Transaction not closed");
         }
     }
