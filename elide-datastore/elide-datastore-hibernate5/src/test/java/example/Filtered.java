@@ -14,6 +14,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.Role;
+
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -23,9 +24,6 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 /**
  * Filtered permission check.
@@ -40,18 +38,7 @@ import javax.persistence.Id;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
 public class Filtered extends BaseId {
-    private long id;
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     /**
      * Filter for ID == 1.
