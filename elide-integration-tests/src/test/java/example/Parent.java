@@ -14,6 +14,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.Role;
+
 import lombok.ToString;
 
 import java.util.Set;
@@ -21,9 +22,6 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -45,21 +43,10 @@ public class Parent extends BaseId {
     private Set<Child> children;
     private Set<Parent> spouses;
     private String firstName;
-    private long id;
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
     public void doInit() {
         init = true;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     @ReadPermission(any = { Role.ALL.class, Role.NONE.class })
