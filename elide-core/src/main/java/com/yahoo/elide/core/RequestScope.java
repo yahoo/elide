@@ -5,17 +5,18 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
+
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -44,6 +47,7 @@ public class RequestScope {
     @Getter private final Set<PersistentResource> newResources;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
+    final private transient LinkedHashSet<Runnable> commitTriggers;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -73,6 +77,7 @@ public class RequestScope {
         }
 
         newResources = new LinkedHashSet<>();
+        commitTriggers = new LinkedHashSet<>();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -143,6 +148,7 @@ public class RequestScope {
         this.securityMode = outerRequestScope.securityMode;
         this.deferredChecks = outerRequestScope.deferredChecks;
         this.newResources = outerRequestScope.newResources;
+        this.commitTriggers = outerRequestScope.commitTriggers;
     }
 
     /**
@@ -197,6 +203,15 @@ public class RequestScope {
     }
 
     /**
+     * run any deferred post-commit triggers
+     * @see com.yahoo.elide.annotation.CreatePermission
+     */
+    public void runCommitTriggers() {
+        new ArrayList<>(commitTriggers).forEach(Runnable::run);
+        commitTriggers.clear();
+    }
+
+    /**
      * Check provided access permission.
      *
      * @param annotationClass one of Create, Read, Update or Delete permission annotations
@@ -222,11 +237,20 @@ public class RequestScope {
         }
     }
 
+    public void queueCommitTrigger(PersistentResource resource) {
+        queueCommitTrigger(resource, "");
+    }
+
+    public void queueCommitTrigger(PersistentResource resource, String fieldName) {
+        commitTriggers.add(() -> {
+            resource.runTriggers(OnCommit.class, fieldName);
+        });
+    }
+
     private static class CheckPermissions implements Runnable {
         final Class<? extends Check>[] anyChecks;
         final boolean any;
         final PersistentResource resource;
-        private final Class<?> annotationClass;
 
         public CheckPermissions(
                 Class<?> annotationClass,
@@ -234,7 +258,6 @@ public class RequestScope {
                 boolean isAny,
                 PersistentResource resource) {
             Preconditions.checkArgument(checks.length > 0);
-            this.annotationClass = annotationClass;
             this.anyChecks = Arrays.copyOf(checks, checks.length);
             this.any = isAny;
             this.resource = resource;

@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
+
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -94,16 +95,14 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
-        @SuppressWarnings("unchecked")
-
-        T record;
         try {
-            record = (T) session.load(loadClass, id);
+            @SuppressWarnings("unchecked")
+            T record = (T) session.load(loadClass, id);
             Hibernate.initialize(record);
+            return record;
         } catch (ObjectNotFoundException e) {
             return null;
         }
-        return record;
     }
 
     @Override
