@@ -12,9 +12,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Wrapper for opaque user passed in every request. This user wrapper keeps track of
@@ -23,7 +21,7 @@ import java.util.Set;
 public class User {
     @Getter private final Object opaqueUser;
     private final Map<Class<? extends Check>, UserPermission> okUserPermissions;
-    private final Map<Class<? extends Check>, Set<PersistentResource>> okCheckResources;
+    private final Map<Class<? extends Check>, Map<PersistentResource, Boolean>> okCheckResources;
 
     public User(Object opaqueUser) {
         this.opaqueUser = opaqueUser;
@@ -58,7 +56,7 @@ public class User {
      */
     public boolean ok(Check check, PersistentResource resource) {
         Preconditions.checkState(this == resource.getRequestScope().getUser());
-        Set<PersistentResource> okResources;
+        Map<PersistentResource, Boolean> okResourceMap;
 
         /* check user permission for ALLOW or DENY */
         switch (checkUserPermission(check)) {
@@ -72,21 +70,18 @@ public class User {
 
         /* check resource cache */
         if (okCheckResources.containsKey(check.getClass())) {
-            okResources = okCheckResources.get(check.getClass());
-            if (okResources.contains(resource)) {
-                return true;
+            okResourceMap = okCheckResources.get(check.getClass());
+            if (okResourceMap.containsKey(resource)) {
+                return okResourceMap.get(resource);
             }
         } else {
-            okResources = new LinkedHashSet<>();
-            okCheckResources.put(check.getClass(), okResources);
+            okResourceMap = new LinkedHashMap<>();
+            okCheckResources.put(check.getClass(), okResourceMap);
         }
 
-        /* run check */
+        /* run check and cache results */
         boolean ok = check.ok(resource);
-
-        if (ok) {
-            okResources.add(resource);
-        }
+        okResourceMap.put(resource, ok);
         return ok;
     }
 }
