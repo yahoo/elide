@@ -9,10 +9,10 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.Entity;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.persistence.Entity;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -75,6 +77,10 @@ public class EntityDictionary {
         return entityBinding(entityClass).jsonApi;
     }
 
+    /**
+     * Get all bindings
+     * @return the bindings
+     */
     public Set<Class<?>> getBindings() {
         return entityBindings.keySet();
     }
@@ -381,6 +387,12 @@ public class EntityDictionary {
         return annotation;
     }
 
+    public <A extends Annotation> Collection<Method> getTriggers(Class<?> cls,
+            Class<A> annotationClass,
+            String fieldName) {
+        return entityBinding(cls).getTriggers(annotationClass, fieldName);
+    }
+
     private static Package getParentPackage(Package pkg) {
         String name = pkg.getName();
         int idx = name.lastIndexOf('.');
@@ -563,7 +575,7 @@ public class EntityDictionary {
      * @param objClass provided class
      * @return class with Entity annotation
      */
-    public static Class<?> lookupEntityClass(Class<?> objClass) {
+    public Class<?> lookupEntityClass(Class<?> objClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
             if (cls.isAnnotationPresent(Entity.class)) {
                 return cls;

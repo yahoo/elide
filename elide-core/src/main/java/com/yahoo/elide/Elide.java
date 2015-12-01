@@ -110,6 +110,7 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
+            requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
             return buildErrorResponse(e);
@@ -166,6 +167,7 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
+            requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
             return buildErrorResponse(e);
@@ -231,6 +233,7 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
+            requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
             return buildErrorResponse(e);
@@ -291,6 +294,7 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
+            requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
             return buildErrorResponse(e);

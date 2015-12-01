@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -71,7 +70,6 @@ public class JsonApiPatch {
         }
     }
 
-    private final DataStore dataStore;
     private final List<PatchAction> actions;
     private final String rootUri;
 
@@ -117,7 +115,6 @@ public class JsonApiPatch {
             List<Patch> actions,
             String rootUri,
             RequestScope requestScope) {
-        this.dataStore = dataStore;
         this.actions = actions.stream().map(PatchAction::new).collect(Collectors.toList());
         this.rootUri = rootUri;
     }

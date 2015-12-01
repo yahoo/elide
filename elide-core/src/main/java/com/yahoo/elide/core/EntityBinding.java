@@ -7,19 +7,20 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.OnCommit;
+import com.yahoo.elide.annotation.OnCreate;
+import com.yahoo.elide.annotation.OnDelete;
+import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -32,6 +33,14 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -51,6 +60,7 @@ class EntityBinding {
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes;
     public final ConcurrentHashMap<String, String> aliasesToFields;
+    public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
     @Getter private AccessibleObject idField;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
@@ -70,6 +80,7 @@ class EntityBinding {
         relationshipToInverse = null;
         fieldsToValues = null;
         fieldsToTypes = null;
+        fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
     }
 
@@ -87,6 +98,7 @@ class EntityBinding {
         relationshipToInverse = new ConcurrentHashMap<>();
         fieldsToValues = new ConcurrentHashMap<>();
         fieldsToTypes = new ConcurrentHashMap<>();
+        fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
 
@@ -103,6 +115,11 @@ class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
+            bindTrigger(OnCreate.class, fieldOrMethod);
+            bindTrigger(OnDelete.class, fieldOrMethod);
+            bindTrigger(OnUpdate.class, fieldOrMethod);
+            bindTrigger(OnCommit.class, fieldOrMethod);
+
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
@@ -251,5 +268,23 @@ class EntityBinding {
         } else {
             return ((Method) fieldOrMethod).getReturnType();
         }
+    }
+
+    private <A extends Annotation> void bindTrigger(Class<A> annotationClass, AccessibleObject fieldOrMethod) {
+        if (fieldOrMethod instanceof Method && fieldOrMethod.isAnnotationPresent(annotationClass)) {
+            A onTrigger = fieldOrMethod.getAnnotation(annotationClass);
+            String value;
+            try {
+                value = (String) annotationClass.getMethod("value").invoke(onTrigger);
+            } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+                value = "";
+            }
+            fieldsToTriggers.put(Pair.of(annotationClass, value), fieldOrMethod);
+        }
+    }
+
+    public <A extends Annotation> Collection<Method> getTriggers(Class<A> annotationClass, String fieldName) {
+        Collection<Method> methods = fieldsToTriggers.getCollection(Pair.of(annotationClass, fieldName));
+        return methods == null ? Collections.emptyList() : methods;
     }
 }

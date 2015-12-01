@@ -5,12 +5,14 @@
  */
 package com.yahoo.elide.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import static com.yahoo.elide.security.UserCheck.DENY;
+
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.OnCreate;
+import com.yahoo.elide.annotation.OnDelete;
+import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -31,11 +33,14 @@ import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -55,7 +60,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-import static com.yahoo.elide.security.UserCheck.DENY;
+import javax.persistence.GeneratedValue;
 
 /**
  * Resource wrapper around Entity bean.
@@ -105,11 +110,12 @@ public class PersistentResource<T> {
             String uuid) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
-        @SuppressWarnings("unchecked")
         T obj = tx.createObject(entityClass);
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
         newResource.audit(Audit.Action.CREATE);
+        newResource.runTriggers(OnCreate.class);
+        requestScope.queueCommitTrigger(newResource);
 
         String type = newResource.getType();
         requestScope.getObjectEntityCache().put(type, uuid, newResource.getObject());
@@ -245,6 +251,7 @@ public class PersistentResource<T> {
 
         PersistentResource<T> resource = new PersistentResource<>(obj, requestScope);
         checkPermission(ReadPermission.class, resource);
+        requestScope.queueCommitTrigger(resource);
 
         return resource;
     }
@@ -258,7 +265,7 @@ public class PersistentResource<T> {
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
-        LinkedHashSet<PersistentResource<T>> resources = new LinkedHashSet<>();
+        Set<PersistentResource<T>> resources = new LinkedHashSet<>();
         if (isDenyFilter(requestScope, loadClass)) {
             return resources;
         }
@@ -271,7 +278,11 @@ public class PersistentResource<T> {
         for (T obj : list) {
             resources.add(new PersistentResource<>(obj, requestScope));
         }
-        return filter(ReadPermission.class, resources);
+        resources = filter(ReadPermission.class, resources);
+        for (PersistentResource<T> resource : resources) {
+            requestScope.queueCommitTrigger(resource);
+        }
+        return resources;
     }
 
     /**
@@ -406,7 +417,7 @@ public class PersistentResource<T> {
         if (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) {
             newValue = null;
         } else {
-            PersistentResource newResource = (PersistentResource) (resourceIdentifiers.toArray()[0]);
+            PersistentResource newResource = resourceIdentifiers.iterator().next();
             newValue = newResource.getObject();
         }
 
@@ -580,6 +591,7 @@ public class PersistentResource<T> {
         }
         transaction.delete(getObject());
         audit(Audit.Action.DELETE);
+        runTriggers(OnDelete.class);
     }
 
     /**
@@ -773,7 +785,7 @@ public class PersistentResource<T> {
      */
     @JsonIgnore
     public Class<T> getResourceClass() {
-        return (Class) EntityDictionary.lookupEntityClass(obj.getClass());
+        return (Class) dictionary.lookupEntityClass(obj.getClass());
     }
 
     /**
@@ -994,6 +1006,26 @@ public class PersistentResource<T> {
                 throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
             }
         }
+
+        runTriggers(OnUpdate.class, fieldName);
+        this.requestScope.queueCommitTrigger(this, fieldName);
+    }
+
+    <A extends Annotation> void runTriggers(Class<A> annotationClass) {
+        runTriggers(annotationClass, "");
+    }
+
+    <A extends Annotation> void runTriggers(Class<A> annotationClass, String fieldName) {
+        Class<?> targetClass = obj.getClass();
+
+        Collection<Method> methods = dictionary.getTriggers(targetClass, annotationClass, fieldName);
+        for (Method method : methods) {
+            try {
+                method.invoke(obj);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
     }
 
     /**
@@ -1048,7 +1080,7 @@ public class PersistentResource<T> {
      * @return the value
      */
     protected static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
-        Class<?> targetClass = EntityDictionary.lookupEntityClass(target.getClass());
+        Class<?> targetClass = dictionary.lookupEntityClass(target.getClass());
         try {
             String realName = dictionary.getNameFromAlias(target, fieldName);
             fieldName = realName != null ? realName : fieldName;
@@ -1080,7 +1112,7 @@ public class PersistentResource<T> {
      * @param relationValue The value (B) which has been deleted from this object.
      */
     protected void deleteInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = EntityDictionary.lookupEntityClass(obj.getClass());
+        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
 
         String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
         Object inverseEntity = relationValue; // Assigned to improve readability.
@@ -1114,7 +1146,7 @@ public class PersistentResource<T> {
      * @param relationValue The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = EntityDictionary.lookupEntityClass(obj.getClass());
+        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
 
         Object inverseEntity = relationValue; // Assigned to improve readability.
         String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
