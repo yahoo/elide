@@ -36,6 +36,7 @@ import com.yahoo.elide.security.User;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Child;
+import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Left;
 import example.NegativeIntegerUserCheck;
@@ -85,6 +86,7 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(NoDeleteEntity.class);
         dictionary.bindEntity(NoUpdateEntity.class);
         dictionary.bindEntity(NoCreateEntity.class);
+        dictionary.bindEntity(FirstClassFields.class);
     }
 
     @Test
@@ -533,6 +535,43 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
 
         funResource.getRelation("relation1");
+    }
+
+    @Test
+    public void testGetRelationForbiddenByEntityAllowedByField() {
+        FirstClassFields firstClassFields = new FirstClassFields();
+
+        PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
+
+        fcResource.getRelation("public2");
+    }
+
+    @Test
+    public void testGetAttributeForbiddenByEntityAllowedByField() {
+        FirstClassFields firstClassFields = new FirstClassFields();
+
+        PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
+
+        fcResource.getAttribute("public1");
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testGetRelationForbiddenByEntity2() {
+        FirstClassFields firstClassFields = new FirstClassFields();
+
+        PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
+
+        fcResource.getRelation("private2");
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testGetAttributeForbiddenByEntity2() {
+        FirstClassFields firstClassFields = new FirstClassFields();
+
+        PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields,
+                                                                                    null, "3", goodUserScope);
+
+        fcResource.getAttribute("private1");
     }
 
     @Test(expectedExceptions = InvalidAttributeException.class)
