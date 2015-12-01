@@ -64,6 +64,7 @@ public class HibernateStore implements DataStore {
     public DataStoreTransaction beginTransaction() {
         Session session = sessionFactory.getCurrentSession();
         Preconditions.checkNotNull(session);
-        return new HibernateTransaction(session, session.beginTransaction());
+        session.beginTransaction();
+        return new HibernateTransaction(session);
     }
 }
