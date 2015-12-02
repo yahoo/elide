@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,7 +32,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -48,7 +46,7 @@ import javax.persistence.Transient;
  * @see com.yahoo.elide.annotation.Include#type
  */
 class EntityBinding {
-    private final static List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
     public final String jsonApi;
     public final ConcurrentLinkedDeque<String> attrsDeque;
@@ -65,7 +63,7 @@ class EntityBinding {
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
 
-    public final static EntityBinding EMPTY_BINDING = new EntityBinding();
+    public static final EntityBinding EMPTY_BINDING = new EntityBinding();
 
     /* empty binding constructor */
     private EntityBinding() {

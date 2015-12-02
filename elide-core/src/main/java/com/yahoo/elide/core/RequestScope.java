@@ -203,7 +203,8 @@ public class RequestScope {
     }
 
     /**
-     * run any deferred post-commit triggers
+     * run any deferred post-commit triggers.
+     *
      * @see com.yahoo.elide.annotation.CreatePermission
      */
     public void runCommitTriggers() {

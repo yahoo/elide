@@ -108,7 +108,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
-                <version>4.0</version>
+                <version>4.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -343,14 +343,45 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.1.0</version>
                 <configuration>
                     <repoToken>${env.coveralls_repo_token}</repoToken>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.versioneye</groupId>
+                <artifactId>versioneye-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <apiKey>${env.versioneye_api_key}</apiKey>
+                    <parentGroupId>com.yahoo.elide</parentGroupId>
+                    <parentArtifactId>elide-parent-pom</parentArtifactId>
+                    <mergeAfterCreate>true</mergeAfterCreate>
                 </configuration>
             </plugin>
         </plugins>

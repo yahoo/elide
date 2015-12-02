@@ -78,7 +78,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Get all bindings
+     * Get all bindings.
+     *
      * @return the bindings
      */
     public Set<Class<?>> getBindings() {

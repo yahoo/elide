@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.security.UserCheck.DENY;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -33,13 +34,11 @@ import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.text.WordUtils;
+
+import static com.yahoo.elide.security.UserCheck.DENY;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -59,7 +58,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-
 import javax.persistence.GeneratedValue;
 
 /**
@@ -257,10 +255,12 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Load a collection from the DB.
-     * @param loadClass the load class
+     * Load a collection from the datastore.
+     *
+     * @param <T>          the type parameter
+     * @param loadClass    the load class
      * @param requestScope the request scope
-     * @return a filtered collection of resources loaded from the DB.
+     * @return a filtered collection of resources loaded from the datastore.
      */
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         DataStoreTransaction tx = requestScope.getTransaction();
@@ -1174,9 +1174,10 @@ public class PersistentResource<T> {
     /**
      * Filter a set of PersistentResources.
      *
-     * @param <A> the type parameter
+     * @param <A>        the type parameter
+     * @param <T>        the type parameter
      * @param permission the permission
-     * @param resources the resources
+     * @param resources  the resources
      * @return Filtered set of resources
      */
     protected static <A extends Annotation, T> Set<PersistentResource<T>> filter(Class<A> permission,

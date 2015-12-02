@@ -1,7 +1,5 @@
 # elide-integration-tests
 
-[![Dependency Status](https://www.versioneye.com/user/projects/5621504336d0ab001900090b/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5621504336d0ab001900090b)
-
 This package contains integration tests for Elide, and is executed as part of the maven verify lifecycle.
 
 ## Executing in IntelliJ

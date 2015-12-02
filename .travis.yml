@@ -20,8 +20,9 @@
       - "/^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/"
   # build steps
   install: true
-  script: mvn clean verify jacoco:report coveralls:report
+  script: mvn clean verify coveralls:report
   after_success:
+    - test "${TRAVIS_PULL_REQUEST}" == "false" && mvn versioneye:update
     - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn deploy --settings travis/settings.xml
 #  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/g > travis/release.json
 #  deploy:
