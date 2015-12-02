@@ -1,0 +1,17 @@
+{
+  "data": {
+    "type": "oneToOneNonRoot",
+    "id": "1",
+    "attributes": {
+      "test": "Other object"
+    },
+    "relationships": {
+      "root": {
+        "data": {
+          "type": "oneToOneRoot",
+          "id": "1"
+        }
+      }
+    }
+  }
+}
