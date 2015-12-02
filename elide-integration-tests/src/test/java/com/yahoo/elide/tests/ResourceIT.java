@@ -1130,6 +1130,65 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(actualResponse, expected);
     }
 
+    @Test(priority = 31)
+    public void testOneToOneRelationshipAdding() {
+        // This is a regression test: we had an issue that disallowed creation of non-root one-to-one objects.
+        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(createRoot)
+            .post("/oneToOneRoot")
+            .then()
+            .statusCode(HttpStatus.SC_CREATED);
+
+        // Verify it was actually created
+        String o = given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(createRoot)
+            .get("/oneToOneRoot/1")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().asString();
+
+        // Create other object
+        String createChild = jsonParser.getJson("/ResourceIT/createOneToOneNonRoot.json");
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(createChild)
+            .post("/oneToOneRoot/1/otherObject")
+            .then()
+            .statusCode(HttpStatus.SC_CREATED);
+
+        // Verify contents
+        String actualFirst = given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(createChild)
+            .get("/oneToOneRoot/1")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().body().asString();
+
+        String actualChild = given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(createChild)
+            .get("/oneToOneRoot/1/otherObject")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().body().asString();
+
+        String expectedFirst = jsonParser.getJson("/ResourceIT/oneToOneRootCreatedRelationship.json");
+        String expectedChild = jsonParser.getJson("/ResourceIT/oneToOneNonRootCreatedRelationship.json");
+
+        assertEqualDocuments(actualFirst, expectedFirst);
+        assertEqualDocuments(actualChild, expectedChild);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");

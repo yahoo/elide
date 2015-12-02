@@ -533,7 +533,9 @@ public class PersistentResource<T> {
             addToCollection((Collection) relation, fieldName, newRelation);
             addInverseRelation(fieldName, newRelation.getObject());
         } else {
-            throw new InternalServerErrorException("Cannot add a relation to a non-collection.");
+            // Not a collection, but may be trying to create a ToOne relationship.
+            updateRelation(fieldName, Collections.singleton(newRelation));
+            return;
         }
 
         transaction.save(newRelation.getObject());
@@ -993,7 +995,7 @@ public class PersistentResource<T> {
             throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
             try {
-                Field field = targetClass.getDeclaredField(fieldName);
+                Field field = targetClass.getField(fieldName);
                 field.set(obj, coerce(value, fieldName, field.getType()));
             } catch (NoSuchFieldException | IllegalAccessException noField) {
                 throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
