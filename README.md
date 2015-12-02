@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Dependency Status](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99/badge.svg?style=flat)](https://www.versioneye.com/user/projects/562150c736d0ab0016000a99)
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Dependency Status](https://www.versioneye.com/user/projects/565ed237a3a446000a019aab/badge.svg?style=flat)](https://www.versioneye.com/user/projects/565ed237a3a446000a019aab)
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
@@ -29,7 +29,7 @@ To integrate Elide into your project, simply include elide-core into your projec
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-core</artifactId>
-    <version>1.0.0.7</version>
+    <version>1.0.0.10</version>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ Additionally, if you do not plan to write your own data store, select the approp
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-datastore-inmemorydb</artifactId>
-    <version>1.0.0.7</version>
+    <version>1.0.0.10</version>
 </dependency>
 ```
 

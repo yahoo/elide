@@ -13,7 +13,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * On Commit trigger annotation
+ * On Commit trigger annotation.
  */
 @Target({METHOD, FIELD})
 @Retention(RUNTIME)

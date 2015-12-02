@@ -27,6 +27,8 @@ public class User {
     private String reversedPassword;
 
     /**
+     * Get password.
+     *
      * @return empty string
      */
     @ComputedAttribute
@@ -46,6 +48,8 @@ public class User {
     }
 
     /**
+     * Get reversed password.
+     *
      * @return the 'encrypted' password
      */
     public String getReversedPassword() {
@@ -53,7 +57,8 @@ public class User {
     }
 
     /**
-     * Sets the password.  This is intended for Hibernate
+     * Sets the password.  This is intended for Hibernate.
+     *
      * @param reversedPassword reversed password
      */
     public void setReversedPassword(String reversedPassword) {
