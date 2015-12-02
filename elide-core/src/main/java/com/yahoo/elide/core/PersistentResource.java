@@ -123,7 +123,7 @@ public class PersistentResource<T> {
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
                 .filter(relationName -> newResource.getRelationshipType(relationName).isToMany()
-                && newResource.getValue(relationName) == null)
+                && newResource.getValue(newResource.getObject(), relationName, newResource.dictionary) == null)
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
 
         // Keep track of new resources for non shareable resources
