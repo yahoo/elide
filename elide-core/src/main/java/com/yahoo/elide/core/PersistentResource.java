@@ -36,6 +36,7 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
 import static com.yahoo.elide.security.UserCheck.DENY;
@@ -46,6 +47,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +68,7 @@ import javax.persistence.GeneratedValue;
  * @param <T> type of resource
  */
 @ToString
+@Slf4j
 public class PersistentResource<T> {
     private final String type;
     protected T obj;
@@ -121,7 +124,7 @@ public class PersistentResource<T> {
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
                 .filter(relationName -> newResource.getRelationshipType(relationName).isToMany()
-                && newResource.getValue(relationName) == null)
+                && newResource.getValue(newResource.getObject(), relationName, newResource.dictionary) == null)
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
 
         // Keep track of new resources for non shareable resources
@@ -555,6 +558,8 @@ public class PersistentResource<T> {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
+                    log.debug("ForbiddenAccess not shared {}#{}",
+                            persistentResource.getType(), persistentResource.getId());
                     throw new ForbiddenAccessException();
                 }
             }
@@ -1315,10 +1320,12 @@ public class PersistentResource<T> {
             }
 
             if (!ok && mode == ALL) {
+                log.debug("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
                 throw new ForbiddenAccessException();
             }
         }
         if (mode == ANY) {
+            log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
             throw new ForbiddenAccessException();
         }
     }
