@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -17,6 +18,7 @@ import com.yahoo.elide.security.User;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +50,7 @@ public class RequestScope {
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
+    private boolean doNotDefer = false;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -226,16 +229,18 @@ public class RequestScope {
      */
     public void checkPermissions(Class<?> annotationClass, Class<? extends Check>[] checks, boolean isAny,
             PersistentResource resource) {
-        CheckPermissions task = new CheckPermissions(annotationClass, checks, isAny, resource);
-        // CreatePermission queues deferred permission checks
-        if (deferredChecks == null && CreatePermission.class.equals(annotationClass)) {
-            deferredChecks = new LinkedHashSet<>();
-        }
-        if (deferredChecks == null) {
-            task.run();
-        } else {
-            deferredChecks.add(task);
-        }
+        checkPermissions(annotationClass, new CheckPermissions(annotationClass, checks, isAny, resource));
+    }
+
+    public <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
+                                                                  PersistentResource resource) {
+        checkPermissions(annotationClass, new FieldAwareCheck<>(annotationClass, resource));
+    }
+
+    public <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
+                                                                  PersistentResource resource,
+                                                                  String fieldName) {
+        checkPermissions(annotationClass, new FieldAwareCheck<>(annotationClass, resource, fieldName));
     }
 
     public void queueCommitTrigger(PersistentResource resource) {
@@ -246,6 +251,24 @@ public class RequestScope {
         commitTriggers.add(() -> {
             resource.runTriggers(OnCommit.class, fieldName);
         });
+    }
+
+    /**
+     * Check permissions
+     *
+     * @param annotationClass
+     * @param task
+     */
+    private void checkPermissions(Class<?> annotationClass, Runnable task) {
+        // CreatePermission queues deferred permission checks
+        if (deferredChecks == null && CreatePermission.class.equals(annotationClass)) {
+            deferredChecks = new LinkedHashSet<>();
+        }
+        if (deferredChecks == null || doNotDefer) {
+            task.run();
+        } else {
+            deferredChecks.add(task);
+        }
     }
 
     private static class CheckPermissions implements Runnable {
@@ -273,6 +296,77 @@ public class RequestScope {
         public String toString() {
             return "CheckPermissions [anyChecks=" + Arrays.toString(anyChecks) + ", any=" + any + ", resource="
                     + resource.getId() + ", user=" + resource.getRequestScope().getUser() + "]";
+        }
+    }
+
+    private static class FieldAwareCheck<A extends Annotation> implements Runnable {
+        final Class<A> annotationClass;
+        final PersistentResource resource;
+        final String fieldName;
+
+        public FieldAwareCheck(Class<A> annotationClass, PersistentResource resource) {
+            this.annotationClass = annotationClass;
+            this.resource = resource;
+            this.fieldName = null;
+        }
+
+        public FieldAwareCheck(Class<A> annotationClass, PersistentResource resource, String fieldName) {
+            this.annotationClass = annotationClass;
+            this.resource = resource;
+            this.fieldName = fieldName;
+        }
+
+        public void run() {
+            resource.getRequestScope().doNotDefer = true;
+            if (fieldName != null && !fieldName.isEmpty()) {
+                specificField(fieldName);
+            } else {
+                allFields();
+            }
+            resource.getRequestScope().doNotDefer = false;
+        }
+
+        public void specificField(String theField) {
+            try {
+                resource.checkPermission(annotationClass, resource);
+            } catch (ForbiddenAccessException e) {
+                resource.checkFieldPermissionIfExists(annotationClass, resource, theField);
+            }
+            resource.checkFieldPermission(annotationClass, resource, theField);
+        }
+
+        public void allFields() {
+            EntityDictionary dictionary = resource.getDictionary();
+
+            try {
+                resource.checkPermission(annotationClass, resource);
+                return; // Object has permission
+            } catch (ForbiddenAccessException e) {
+                // Ignore
+            }
+
+            // Check attrs
+            for (String attr : dictionary.getAttributes(resource.getObject().getClass())) {
+                try {
+                    specificField(attr);
+                    return; // We have at least a single accessible field
+                } catch (ForbiddenAccessException e) {
+                    // Ignore this.
+                }
+            }
+
+            // Check relationships
+            for (String rel : dictionary.getRelationships(resource.getObject().getClass())) {
+                try {
+                    specificField(rel);
+                    return; // We have at least a single accessible field
+                } catch (ForbiddenAccessException e) {
+                    // Ignore
+                }
+            }
+
+            // No accessible fields
+            throw new ForbiddenAccessException();
         }
     }
 }
