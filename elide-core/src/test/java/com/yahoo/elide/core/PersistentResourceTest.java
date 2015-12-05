@@ -5,18 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.audit.LogMessage;
@@ -32,9 +22,6 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.Role;
 import com.yahoo.elide.security.User;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import example.Child;
 import example.FirstClassFields;
 import example.FunWithPermissions;
@@ -43,6 +30,7 @@ import example.NegativeIntegerUserCheck;
 import example.NoCreateEntity;
 import example.NoDeleteEntity;
 import example.NoReadEntity;
+import example.NoShareEntity;
 import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
@@ -50,6 +38,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,8 +48,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import static com.yahoo.elide.security.UserCheck.ALLOW;
+import static com.yahoo.elide.security.UserCheck.DENY;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 /**
  * Test PersistentResource.
@@ -86,6 +86,8 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(NoDeleteEntity.class);
         dictionary.bindEntity(NoUpdateEntity.class);
         dictionary.bindEntity(NoCreateEntity.class);
+        dictionary.bindEntity(NoShareEntity.class);
+        dictionary.bindEntity(example.User.class);
         dictionary.bindEntity(FirstClassFields.class);
     }
 
@@ -1305,7 +1307,6 @@ public class PersistentResourceTest extends PersistentResource {
     }
 
     @Test
-
     public void testIsIdGenerated() {
 
         PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", goodUserScope);
@@ -1317,6 +1318,138 @@ public class PersistentResourceTest extends PersistentResource {
 
         Assert.assertFalse(notGenerated.isIdGenerated(),
                 "isIdGenerated returns false when ID field does not have the GeneratedValue annotation");
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testSharePermissionErrorOnUpdateSingularRelationship() {
+        example.User userModel = new example.User();
+        userModel.setId(1);
+
+        NoShareEntity noShare = new NoShareEntity();
+        noShare.setId(1);
+
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("noshare", "1").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.loadObject(NoShareEntity.class, 1L)).thenReturn(noShare);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
+
+        userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testSharePermissionErrorOnUpdateManyRelationship() {
+        example.User userModel = new example.User();
+        userModel.setId(1);
+
+        NoShareEntity noShare1 = new NoShareEntity();
+        noShare1.setId(1);
+        NoShareEntity noShare2 = new NoShareEntity();
+        noShare2.setId(2);
+
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("noshare", "1").castToResource());
+        idList.add(new ResourceIdentifier("noshare", "2").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.loadObject(NoShareEntity.class, 1L)).thenReturn(noShare1);
+        when(tx.loadObject(NoShareEntity.class, 2L)).thenReturn(noShare2);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
+
+        userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
+    }
+
+    @Test
+    public void testSharePermissionSuccessOnUpdateManyRelationship() {
+        example.User userModel = new example.User();
+        userModel.setId(1);
+
+        NoShareEntity noShare1 = new NoShareEntity();
+        noShare1.setId(1);
+        NoShareEntity noShare2 = new NoShareEntity();
+        noShare2.setId(2);
+        HashSet<NoShareEntity> noshares = Sets.newHashSet(noShare1, noShare2);
+
+        /* The no shares already exist so no exception should be thrown */
+        userModel.setNoShares(noshares);
+
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("noshare", "1").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.loadObject(NoShareEntity.class, 1L)).thenReturn(noShare1);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
+
+        boolean returnVal = userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
+
+        Assert.assertTrue(returnVal);
+        Assert.assertEquals(userModel.getNoShares().size(), 1);
+        Assert.assertTrue(userModel.getNoShares().contains(noShare1));
+    }
+
+    @Test
+    public void testSharePermissionSuccessOnUpdateSingularRelationship() {
+        example.User userModel = new example.User();
+        userModel.setId(1);
+
+        NoShareEntity noShare = new NoShareEntity();
+
+        /* The noshare already exists so no exception should be thrown */
+        userModel.setNoShare(noShare);
+
+        List<Resource> idList = new ArrayList<>();
+        idList.add(new ResourceIdentifier("noshare", "1").castToResource());
+        Relationship ids = new Relationship(null, new Data<>(idList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.loadObject(NoShareEntity.class, 1L)).thenReturn(noShare);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
+
+        boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+
+        Assert.assertFalse(returnVal);
+        Assert.assertEquals(userModel.getNoShare(), noShare);
+    }
+
+    @Test
+    public void testSharePermissionSuccessOnClearSingularRelationship() {
+        example.User userModel = new example.User();
+        userModel.setId(1);
+
+        NoShareEntity noShare = new NoShareEntity();
+
+        /* The noshare already exists so no exception should be thrown */
+        userModel.setNoShare(noShare);
+
+        List<Resource> empty = new ArrayList<>();
+        Relationship ids = new Relationship(null, new Data<>(empty));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
+        PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
+
+        boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+
+        Assert.assertTrue(returnVal);
+        Assert.assertEquals(userModel.getNoShare(), null);
     }
 
     private RequestScope getUserScope(User user, Logger logger) {

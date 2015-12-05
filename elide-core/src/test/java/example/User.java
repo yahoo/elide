@@ -13,7 +13,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import java.util.Set;
 
 /**
  * Used to test computed attributes.
@@ -25,6 +28,28 @@ public class User {
     private long id;
 
     private String reversedPassword;
+
+    private Set<NoShareEntity> noShares;
+
+    @OneToOne
+    public NoShareEntity getNoShare() {
+        return noShare;
+    }
+
+    public void setNoShare(NoShareEntity noShare) {
+        this.noShare = noShare;
+    }
+
+    @OneToMany
+    public Set<NoShareEntity> getNoShares() {
+        return noShares;
+    }
+
+    public void setNoShares(Set<NoShareEntity> noShares) {
+        this.noShares = noShares;
+    }
+
+    private NoShareEntity noShare;
 
     /**
      * Get password.
