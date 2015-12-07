@@ -329,7 +329,6 @@ public class PersistentResource<T> {
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         checkObjectAndFieldPermissions(UpdatePermission.class, this, fieldName);
-        checkSharePermission(resourceIdentifiers);
         RelationshipType type = getRelationshipType(fieldName);
         if (type.isToMany()) {
             return updateToManyRelation(fieldName, resourceIdentifiers);
@@ -350,6 +349,7 @@ public class PersistentResource<T> {
         Set<PersistentResource> requested;
         Set<PersistentResource> updated;
         Set<PersistentResource> deleted;
+        Set<PersistentResource> added;
 
         if (resourceIdentifiers == null) {
             throw new InvalidEntityBodyException("Bad relation data");
@@ -371,6 +371,10 @@ public class PersistentResource<T> {
                 Sets.intersection(mine, requested)
                 );
 
+        added = Sets.difference(updated, deleted);
+
+        checkSharePermission(added);
+
         Collection collection = (Collection) this.getValue(fieldName);
 
         if (collection == null) {
@@ -387,7 +391,7 @@ public class PersistentResource<T> {
                     transaction.save(toDelete.getObject());
                 });
 
-        Sets.difference(updated, deleted)
+        added
                 .stream()
                 .forEach(toAdd -> {
                     addToCollection(collection, fieldName, toAdd);
@@ -423,20 +427,22 @@ public class PersistentResource<T> {
 
         PersistentResource oldResource = !mine.isEmpty() ? mine.iterator().next() : null;
 
-        this.setValueChecked(fieldName, newValue);
-
         if (oldResource == null) {
             if (newValue == null) {
                 return false;
             }
+            checkSharePermission(resourceIdentifiers);
             addInverseRelation(fieldName, newValue);
             transaction.save(newValue);
         } else if (oldResource.getObject().equals(newValue)) {
             return false;
         } else {
+            checkSharePermission(resourceIdentifiers);
             deleteInverseRelation(fieldName, oldResource.getObject());
             transaction.save(oldResource.getObject());
         }
+
+        this.setValueChecked(fieldName, newValue);
 
         transaction.save(obj);
         audit(fieldName);
