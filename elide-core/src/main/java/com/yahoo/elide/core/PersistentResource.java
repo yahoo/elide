@@ -251,7 +251,7 @@ public class PersistentResource<T> {
         }
 
         PersistentResource<T> resource = new PersistentResource<>(obj, requestScope);
-        requestScope.checkFieldAwarePermissions(ReadPermission.class, resource);
+        resource.checkFieldAwarePermissions(ReadPermission.class);
         requestScope.queueCommitTrigger(resource);
 
         return resource;
@@ -296,7 +296,7 @@ public class PersistentResource<T> {
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         Object val = getAttribute(fieldName);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
@@ -328,7 +328,7 @@ public class PersistentResource<T> {
      * @return True if object updated, false otherwise
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         RelationshipType type = getRelationshipType(fieldName);
         if (type.isToMany()) {
             return updateToManyRelation(fieldName, resourceIdentifiers);
@@ -384,7 +384,7 @@ public class PersistentResource<T> {
         deleted
                 .stream()
                 .forEach(toDelete -> {
-                    requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+                    checkFieldAwarePermissions(UpdatePermission.class, fieldName);
                     checkPermission(DeletePermission.class, toDelete);
                     delFromCollection(collection, fieldName, toDelete);
                     deleteInverseRelation(fieldName, toDelete.getObject());
@@ -456,7 +456,7 @@ public class PersistentResource<T> {
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, relationName);
+        checkFieldAwarePermissions(UpdatePermission.class, relationName);
         Set<PersistentResource> mine = getRelation(relationName);
 
         if (mine.isEmpty()) {
@@ -476,7 +476,7 @@ public class PersistentResource<T> {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
                     .forEach(toDelete -> {
-                        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, relationName);
+                        checkFieldAwarePermissions(UpdatePermission.class, relationName);
                         checkPermission(DeletePermission.class, toDelete);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
@@ -496,7 +496,7 @@ public class PersistentResource<T> {
      * @param removeResource the remove resource
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         checkPermission(DeletePermission.class, removeResource);
         Object relation = this.getValue(fieldName);
 
@@ -531,7 +531,7 @@ public class PersistentResource<T> {
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         checkSharePermission(Collections.singleton(newRelation));
         Object relation = this.getValue(fieldName);
 
@@ -921,7 +921,7 @@ public class PersistentResource<T> {
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         setValue(fieldName, newValue);
     }
 
@@ -945,8 +945,7 @@ public class PersistentResource<T> {
      * @return value value
      */
     protected Object getValue(String fieldName) {
-        requestScope.checkFieldAwarePermissions(ReadPermission.class, this, fieldName);
-
+        checkFieldAwarePermissions(ReadPermission.class, fieldName);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -957,8 +956,8 @@ public class PersistentResource<T> {
      * @param toAdd the to add
      */
     protected void addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
-        requestScope.checkFieldAwarePermissions(UpdatePermission.class, this, collectionName);
-        requestScope.checkFieldAwarePermissions(ReadPermission.class, toAdd, collectionName);
+        checkFieldAwarePermissions(UpdatePermission.class, collectionName);
+        toAdd.checkFieldAwarePermissions(ReadPermission.class, collectionName);
 
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
@@ -1129,7 +1128,7 @@ public class PersistentResource<T> {
             }
 
             if (inverseRelation instanceof Collection) {
-                requestScope.checkFieldAwarePermissions(UpdatePermission.class, inverseResource, inverseRelationName);
+                inverseResource.checkFieldAwarePermissions(UpdatePermission.class, inverseRelationName);
                 inverseResource.delFromCollection((Collection) inverseRelation, inverseRelationName, this);
             } else if (inverseRelationType.equals(this.getResourceClass())) {
                 inverseResource.nullValue(inverseRelationName, this);
@@ -1185,7 +1184,7 @@ public class PersistentResource<T> {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
             try {
-                resource.getRequestScope().checkFieldAwarePermissions(permission, resource);
+                resource.checkFieldAwarePermissions(permission);
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
                 // Do nothing. Filter from set.
@@ -1214,7 +1213,7 @@ public class PersistentResource<T> {
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
-                    resource.getRequestScope().checkFieldAwarePermissions(permission, resource, field);
+                    resource.checkFieldAwarePermissions(permission, field);
                     filteredSet.add(field);
                 }
             } catch (ForbiddenAccessException e) {
@@ -1305,6 +1304,14 @@ public class PersistentResource<T> {
             return;
         }
         checkPermission(annotationClass, annotation, resource);
+    }
+
+    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass) {
+        requestScope.checkFieldAwarePermissions(annotationClass, this);
+    }
+
+    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass, String fieldName) {
+        requestScope.checkFieldAwarePermissions(annotationClass, this, fieldName);
     }
 
     /**
