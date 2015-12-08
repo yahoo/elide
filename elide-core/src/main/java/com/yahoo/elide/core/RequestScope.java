@@ -299,6 +299,12 @@ public class RequestScope {
         }
     }
 
+    /**
+     * Field-Aware checks are for checking overrides on fields when appropriate. At time of writing, this should
+     * really only include ReadPermission and UpdatePermission checks.
+     *
+     * @param <A> type annotation
+     */
     private static class FieldAwareCheck<A extends Annotation> implements Runnable {
         final Class<A> annotationClass;
         final PersistentResource resource;
@@ -317,6 +323,9 @@ public class RequestScope {
         }
 
         public void run() {
+            // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
+            // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
+            // We should probably find a cleaner way to do this.
             resource.getRequestScope().doNotDefer = true;
             if (fieldName != null && !fieldName.isEmpty()) {
                 specificField(fieldName);
@@ -326,7 +335,14 @@ public class RequestScope {
             resource.getRequestScope().doNotDefer = false;
         }
 
-        public void specificField(String theField) {
+        /**
+         * Determine whether or not a specific field has the specified permission. If this field has the permission
+         * either by default or override, then this method will return successfully. Otherwise, a
+         * ForbiddenAccessException is thrown.
+         *
+         * @param theField Field to check
+         */
+        private void specificField(String theField) {
             try {
                 resource.checkPermission(annotationClass, resource);
             } catch (ForbiddenAccessException e) {
@@ -335,7 +351,12 @@ public class RequestScope {
             resource.checkFieldPermission(annotationClass, resource, theField);
         }
 
-        public void allFields() {
+        /**
+         * Checks whether or not the object itself or ANY field on the object has the specified permission.
+         * If either condition is true, then this method will return without error. Otherwise, a
+         * ForbiddenAccessException is thrown.
+         */
+        private void allFields() {
             EntityDictionary dictionary = resource.getDictionary();
 
             try {
@@ -365,7 +386,7 @@ public class RequestScope {
                 }
             }
 
-            // No accessible fields
+            // No accessible fields and object is not accessible
             throw new ForbiddenAccessException();
         }
     }
