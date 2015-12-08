@@ -382,6 +382,7 @@
                     <parentGroupId>com.yahoo.elide</parentGroupId>
                     <parentArtifactId>elide-parent-pom</parentArtifactId>
                     <mergeAfterCreate>true</mergeAfterCreate>
+                    <skipScopes>test</skipScopes>
                 </configuration>
             </plugin>
         </plugins>
