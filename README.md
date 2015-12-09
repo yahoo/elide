@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core) [![Dependency Status](https://www.versioneye.com/user/projects/565ed237a3a446000a019aab/badge.svg?style=flat)](https://www.versioneye.com/user/projects/565ed237a3a446000a019aab)
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
@@ -29,7 +29,7 @@ To integrate Elide into your project, simply include elide-core into your projec
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-core</artifactId>
-    <version>1.0.0.11</version>
+    <version>1.0.0.12</version>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ Additionally, if you do not plan to write your own data store, select the approp
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-datastore-inmemorydb</artifactId>
-    <version>1.0.0.11</version>
+    <version>1.0.0.12</version>
 </dependency>
 ```
 
