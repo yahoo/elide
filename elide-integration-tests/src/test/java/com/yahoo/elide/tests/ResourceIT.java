@@ -1189,6 +1189,32 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(actualChild, expectedChild);
     }
 
+    @Test(priority = 32)
+    public void testReadPermissionDefaultOverride() {
+        String create = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.json");
+
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(create)
+            .post("/yetAnotherPermission")
+            .then()
+            .statusCode(HttpStatus.SC_CREATED);
+
+        // Verify contents
+        String actual = given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .get("/yetAnotherPermission/1")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().body().asString();
+
+        String expected = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.json");
+
+        assertEqualDocuments(actual, expected);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
