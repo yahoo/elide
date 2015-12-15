@@ -385,7 +385,7 @@ public class PersistentResource<T> {
                 .stream()
                 .forEach(toDelete -> {
                     checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-                    checkPermission(DeletePermission.class, toDelete);
+                    checkPermission(UpdatePermission.class, toDelete);
                     delFromCollection(collection, fieldName, toDelete);
                     deleteInverseRelation(fieldName, toDelete.getObject());
                     transaction.save(toDelete.getObject());
@@ -477,7 +477,7 @@ public class PersistentResource<T> {
             mine.stream()
                     .forEach(toDelete -> {
                         checkFieldAwarePermissions(UpdatePermission.class, relationName);
-                        checkPermission(DeletePermission.class, toDelete);
+                        checkPermission(UpdatePermission.class, toDelete);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
                     });
@@ -497,7 +497,7 @@ public class PersistentResource<T> {
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-        checkPermission(DeletePermission.class, removeResource);
+        checkPermission(UpdatePermission.class, removeResource);
         Object relation = this.getValue(fieldName);
 
         if (relation instanceof Collection) {
