@@ -586,15 +586,27 @@ public class PersistentResource<T> {
     /**
      * Delete an existing entity.
      *
-     * @param parentFieldName If owned by a parent, relationship to update
      * @throws ForbiddenAccessException the forbidden access exception
      */
-    public void deleteResource(String parentFieldName) throws ForbiddenAccessException {
+    public void deleteResource() throws ForbiddenAccessException {
         checkPermission(DeletePermission.class, this);
-        if (parent.isPresent()) {
-            PersistentResource parentResource = parent.get();
-            parentResource.removeRelation(parentFieldName, this);
+
+        /*
+         * Search for bidirectional relationships.  For each bidirectional relationship,
+         * we need to remove ourselves from that relationship
+         */
+        Map<String, Relationship> relations = getRelationships();
+        for (Map.Entry<String, Relationship> entry : relations.entrySet()) {
+            String relationName = entry.getKey();
+            String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
+            if (!inverseRelationName.equals("")) {
+                for (PersistentResource inverseResource : getRelation(relationName)) {
+                    deleteInverseRelation(relationName, inverseResource.getObject());
+                    transaction.save(inverseResource.getObject());
+                }
+            }
         }
+
         transaction.delete(getObject());
         audit(Audit.Action.DELETE);
         runTriggers(OnDelete.class);

@@ -46,7 +46,7 @@ public class RecordState extends BaseState {
             final BaseState nextState;
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = collection.iterator().next();
-                nextState = new RecordTerminalState(subCollection, record);
+                nextState = new RecordTerminalState(record);
             } else {
                 nextState = new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
             }
@@ -63,7 +63,7 @@ public class RecordState extends BaseState {
 
         try {
             PersistentResource nextRecord = resource.getRelation(subCollection, id);
-            state.setState(new RecordTerminalState(subCollection, nextRecord));
+            state.setState(new RecordTerminalState(nextRecord));
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(subCollection);
         }

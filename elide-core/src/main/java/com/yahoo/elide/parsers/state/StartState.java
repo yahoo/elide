@@ -42,7 +42,7 @@ public class StartState extends BaseState {
         }
 
         PersistentResource record = PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
-        state.setState(new RecordTerminalState(null, record));
+        state.setState(new RecordTerminalState(record));
     }
 
     @Override

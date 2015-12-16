@@ -635,7 +635,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
-        parentResource.deleteResource(null);
+        parentResource.deleteResource();
 
         verify(tx).delete(parent);
     }
@@ -657,11 +657,10 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, parentResource, "1", goodScope);
 
-        childResource.deleteResource("children");
+        childResource.deleteResource();
 
-        verify(tx).save(child);
-        verify(tx).save(parent);
         verify(tx).delete(child);
+        verify(tx).save(parent);
         verify(tx, never()).delete(parent);
         Assert.assertTrue(parent.getChildren().isEmpty());
     }
@@ -678,7 +677,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<NoDeleteEntity> nodeleteResource = new PersistentResource<>(nodelete, null, "1", goodScope);
 
-        nodeleteResource.deleteResource(null);
+        nodeleteResource.deleteResource();
 
         verify(tx, never()).delete(nodelete);
     }

@@ -5,22 +5,22 @@
  */
 package com.yahoo.elide.core;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.security.User;
-
+import example.Author;
 import example.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Set;
+
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test PersistentResource.
@@ -44,6 +44,7 @@ public class LifeCycleTest {
     LifeCycleTest() {
         dictionary = new TestEntityDictionary();
         dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Author.class);
     }
 
     @Test
@@ -129,7 +130,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
-        resource.deleteResource(null);
+        resource.deleteResource();
         verify(book, times(0)).onCreateBook();
         verify(book, times(1)).onDeleteBook();
         verify(book, times(0)).onCommitBook();
