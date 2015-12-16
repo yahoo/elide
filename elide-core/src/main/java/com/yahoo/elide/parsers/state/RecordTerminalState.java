@@ -37,10 +37,8 @@ import javax.ws.rs.core.MultivaluedMap;
 @ToString
 public class RecordTerminalState extends BaseState {
     private final PersistentResource record;
-    private final String parentField;
 
-    public RecordTerminalState(String parentField, PersistentResource record) {
-        this.parentField = parentField;
+    public RecordTerminalState(PersistentResource record) {
         this.record = record;
     }
 
@@ -74,7 +72,7 @@ public class RecordTerminalState extends BaseState {
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
         try {
-            record.deleteResource(parentField);
+            record.deleteResource();
             return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
         } catch (ForbiddenAccessException e) {
             return () -> Pair.of(e.getStatus(), null);
