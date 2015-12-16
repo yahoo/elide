@@ -701,7 +701,7 @@ public class PersistentResource<T> {
         relationName = (realName == null) ? relationName : realName;
 
         if (relationName == null || relations == null || !relations.contains(relationName)) {
-            throw new InvalidAttributeException("No attribute " + relationName + " in " + type);
+            throw new InvalidAttributeException("No attribute '" + relationName + "' in " + type);
         }
 
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
@@ -997,13 +997,13 @@ public class PersistentResource<T> {
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
             method.invoke(obj, coerce(value, fieldName, fieldClass));
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
+            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
             try {
                 Field field = targetClass.getField(fieldName);
                 field.set(obj, coerce(value, fieldName, field.getType()));
             } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
+                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
             }
         }
 
@@ -1094,13 +1094,13 @@ public class PersistentResource<T> {
             }
             return method.invoke(target);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
+            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
         } catch (NoSuchMethodException e) {
             try {
                 Field field = targetClass.getDeclaredField(fieldName);
                 return field.get(target);
             } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException("No attribute or relation " + fieldName + " in " + targetClass);
+                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
             }
         }
     }
