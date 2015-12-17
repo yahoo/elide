@@ -1,9 +1,9 @@
 {
-  "data": [{
+  "data": {
     "type": "yetAnotherPermission",
     "id": "1",
     "attributes": {
       "youShouldBeAbleToRead": "this!"
     }
-  }]
+  }
 }

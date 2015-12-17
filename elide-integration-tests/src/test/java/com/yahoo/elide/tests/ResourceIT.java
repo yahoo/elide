@@ -1191,7 +1191,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test(priority = 32)
     public void testReadPermissionDefaultOverride() {
-        String create = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.json");
+        String create = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.req.json");
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1205,7 +1205,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/yetAnotherPermission/1")
+            .get("/yetAnotherPermission")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();

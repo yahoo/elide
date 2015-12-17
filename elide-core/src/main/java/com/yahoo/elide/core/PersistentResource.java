@@ -754,10 +754,29 @@ public class PersistentResource<T> {
             return false;
         }
 
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
+        EntityDictionary dictionary = requestScope.getDictionary();
+        ReadPermission annotation = dictionary.getAnnotation(recordClass, ReadPermission.class);
         FilterScope filterScope = loadChecks(annotation, requestScope);
 
-        return filterScope.getUserPermission() == DENY;
+        if (filterScope.getUserPermission() != DENY) {
+            return false;
+        }
+
+         // Temporary fix for UserLevel checks. This concept will be reworked in Elide 2.0
+         // In short, check all fields.
+        List<String> fields = new ArrayList<>();
+        fields.addAll(dictionary.getAttributes(recordClass));
+        fields.addAll(dictionary.getRelationships(recordClass));
+        for (String field : fields) {
+            Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
+                    ReadPermission.class, field);
+            FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
+            if (fieldFilterScope.getUserPermission() != DENY) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
