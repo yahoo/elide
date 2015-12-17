@@ -8,15 +8,19 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.UserCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@CreatePermission(any = {Role.ALL.class })
-@ReadPermission(all = {Role.NONE.class })
+@CreatePermission(any = {Role.ALL.class})
+// Make sure we can override both standard checks and UserCheck's
+@ReadPermission(all = {YetAnotherPermission.SampleUserCheck.class})
 @Include(rootLevel = true)
 @Entity
 public class YetAnotherPermission {
@@ -49,5 +53,17 @@ public class YetAnotherPermission {
 
     public void setYouShouldBeAbleToRead(String youShouldBeAbleToRead) {
         this.youShouldBeAbleToRead = youShouldBeAbleToRead;
+    }
+
+    public static final class SampleUserCheck implements UserCheck<YetAnotherPermission> {
+        @Override
+        public UserPermission userPermission(User user) {
+            return DENY;
+        }
+
+        @Override
+        public boolean ok(PersistentResource<YetAnotherPermission> record) {
+            return false;
+        }
     }
 }
