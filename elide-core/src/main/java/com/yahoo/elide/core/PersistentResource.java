@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -32,12 +32,13 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 import javax.persistence.GeneratedValue;
@@ -48,7 +49,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,8 +61,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static com.yahoo.elide.security.UserCheck.DENY;
+import java.util.stream.Collectors;
 
 /**
  * Resource wrapper around Entity bean.
@@ -92,9 +91,6 @@ public class PersistentResource<T> {
         int diff = string1.length() - string2.length();
         return diff == 0 ? string1.compareTo(string2) : diff;
     };
-
-    protected static final boolean ANY = true;
-    protected static final boolean ALL = false;
 
     /**
      * Create a resource in the database.
@@ -270,13 +266,12 @@ public class PersistentResource<T> {
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
-        if (isDenyFilter(requestScope, loadClass)) {
+        if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             return Collections.emptySet();
         }
 
         Iterable<T> list;
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
+        FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjects(loadClass, filterScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
@@ -294,7 +289,7 @@ public class PersistentResource<T> {
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newVal, getValue(fieldName));
         Object val = getAttribute(fieldName);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
@@ -326,11 +321,23 @@ public class PersistentResource<T> {
      * @return True if object updated, false otherwise
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         RelationshipType type = getRelationshipType(fieldName);
+        Set<PersistentResource> resources = getRelation(fieldName);
         if (type.isToMany()) {
+            checkFieldAwarePermissions(
+                    UpdatePermission.class,
+                    fieldName,
+                    resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
+                    resources.stream().map(PersistentResource::getObject).collect(Collectors.toList()));
             return updateToManyRelation(fieldName, resourceIdentifiers);
         } else { // To One Relationship
+            PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
+            Object original = (resource == null) ? null : resource.getObject();
+            PersistentResource modifiedResource =
+                (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) ? null
+                                                                               : resourceIdentifiers.iterator().next();
+            Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
+            checkFieldAwarePermissions(UpdatePermission.class, fieldName, modified, original);
             return updateToOneRelation(fieldName, resourceIdentifiers);
         }
     }
@@ -382,8 +389,6 @@ public class PersistentResource<T> {
         deleted
                 .stream()
                 .forEach(toDelete -> {
-                    checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-                    checkPermission(UpdatePermission.class, toDelete);
                     delFromCollection(collection, fieldName, toDelete);
                     deleteInverseRelation(fieldName, toDelete.getObject());
                     transaction.save(toDelete.getObject());
@@ -457,8 +462,9 @@ public class PersistentResource<T> {
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        checkFieldAwarePermissions(UpdatePermission.class, relationName);
         Set<PersistentResource> mine = getRelation(relationName);
+        checkFieldAwarePermissions(UpdatePermission.class, relationName, Collections.emptySet(),
+                mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
         if (mine.isEmpty()) {
             return false;
@@ -477,9 +483,9 @@ public class PersistentResource<T> {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
                     .forEach(toDelete -> {
-                        String inverseRelation = getInverseRelationField(relationName);
-                        checkFieldAwarePermissions(UpdatePermission.class, relationName);
-                        toDelete.checkFieldAwarePermissions(UpdatePermission.class, inverseRelation);
+//                        String inverseRelation = getInverseRelationField(relationName);
+//                        checkFieldAwarePermissions(UpdatePermission.class, relationName);
+//                        toDelete.checkFieldAwarePermissions(UpdatePermission.class, inverseRelation);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
                     });
@@ -498,10 +504,16 @@ public class PersistentResource<T> {
      * @param removeResource the remove resource
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-        removeResource.checkFieldAwarePermissions(UpdatePermission.class, getInverseRelationField(fieldName));
-
+        checkPermission(UpdatePermission.class, removeResource);
         Object relation = this.getValue(fieldName);
+        Object original = (relation instanceof Collection) ? copyCollection((Collection) relation) : relation;
+        Object modified =
+                (relation instanceof Collection && removeResource != null)
+                        ? CollectionUtils.disjunction((Collection) relation,
+                                Collections.singleton(removeResource.getObject()))
+                        : null;
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName, modified, original);
+
         if (relation instanceof Collection) {
             if (!((Collection) relation).contains(removeResource.getObject())) {
 
@@ -533,7 +545,6 @@ public class PersistentResource<T> {
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
         checkSharePermission(Collections.singleton(newRelation));
         Object relation = this.getValue(fieldName);
 
@@ -735,7 +746,7 @@ public class PersistentResource<T> {
         Object val = this.getValue(relationName);
         if (val == null) {
             return (Set) resources;
-        } else if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
+        } else if (shouldSkipCollection(ReadPermission.class, relationName)) {
             return (Set) resources;
         } else if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
@@ -756,38 +767,40 @@ public class PersistentResource<T> {
     }
 
     /**
-     * If relationship collection type is denied, do not read lazy collection.
+     * Determine whether or not a lazy collection should be read.
      *
-     * @return true DENY check type
+     * @param annotationClass Annotation class
+     * @param field Field
+     * @param <A> type parameter
+     * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
-    private static boolean isDenyFilter(RequestScope requestScope, Class<?> recordClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return false;
+    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String field) {
+        try {
+            requestScope.getPermissionExecutor().checkUserPermissions(this, annotationClass, field);
+        } catch (ForbiddenAccessException e) {
+            return true;
         }
+        return false;
+    }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-        ReadPermission annotation = dictionary.getAnnotation(recordClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
-
-        if (filterScope.getUserPermission() != DENY) {
-            return false;
+    /**
+     * Determine whether or not to skip loading a collection.
+     *
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param requestScope Request scope
+     * @param <A> type parameter
+     * @return True if collection should be skipped (i.e. denied access), false otherwise
+     */
+    private static <A extends Annotation> boolean shouldSkipCollection(Class<?> resourceClass,
+                                                                       Class<A> annotationClass,
+                                                                       RequestScope requestScope) {
+        try {
+            requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
+        } catch (ForbiddenAccessException e) {
+            return true;
         }
-
-         // Temporary fix for UserLevel checks. This concept will be reworked in Elide 2.0
-         // In short, check all fields.
-        List<String> fields = new ArrayList<>();
-        fields.addAll(dictionary.getAttributes(recordClass));
-        fields.addAll(dictionary.getRelationships(recordClass));
-        for (String field : fields) {
-            Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
-                    ReadPermission.class, field);
-            FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
-            if (fieldFilterScope.getUserPermission() != DENY) {
-                return false;
-            }
-        }
-
-        return true;
+        return false;
     }
 
     /**
@@ -914,8 +927,7 @@ public class PersistentResource<T> {
      */
     protected Map<String, Relationship> getRelationships() {
         final Map<String, Relationship> relationshipMap = new LinkedHashMap<>();
-        final Set<String> relationshipFields =
-                filterFields(ReadPermission.class, this, dictionary.getRelationships(obj));
+        final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
             Set<PersistentResource> relationships = getRelation(field);
@@ -949,7 +961,7 @@ public class PersistentResource<T> {
     protected Map<String, Object> getAttributes() {
         final Map<String, Object> attributes = new LinkedHashMap<>();
 
-        final Set<String> attrFields = filterFields(ReadPermission.class, this, dictionary.getAttributes(obj));
+        final Set<String> attrFields = filterFields(dictionary.getAttributes(obj));
         for (String field : attrFields) {
             Object val = getAttribute(field);
             attributes.put(field, val);
@@ -963,7 +975,7 @@ public class PersistentResource<T> {
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName);
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newValue, getValue(fieldName));
         setValue(fieldName, newValue);
     }
 
@@ -987,7 +999,7 @@ public class PersistentResource<T> {
      * @return value value
      */
     protected Object getValue(String fieldName) {
-        checkFieldAwarePermissions(ReadPermission.class, fieldName);
+        checkFieldAwarePermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -998,15 +1010,20 @@ public class PersistentResource<T> {
      * @param toAdd the to add
      */
     protected void addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
-        checkFieldAwarePermissions(UpdatePermission.class, collectionName);
-        toAdd.checkFieldAwarePermissions(ReadPermission.class, collectionName);
+        Collection singleton = Collections.singleton(toAdd.getObject());
+        checkFieldAwarePermissions(
+                UpdatePermission.class,
+                collectionName,
+                CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
+                copyCollection(collection));
+        toAdd.checkFieldAwarePermissions(ReadPermission.class, collectionName, (Object) null, (Object) null);
 
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
             this.setValueChecked(collectionName, collection);
+        } else {
+            collection.add(toAdd.getObject());
         }
-
-        collection.add(toAdd.getObject());
     }
 
     /**
@@ -1016,6 +1033,11 @@ public class PersistentResource<T> {
      * @param toDelete the to delete
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
+        checkPermission(UpdatePermission.class, toDelete);
+        checkFieldAwarePermissions(UpdatePermission.class,
+                collectionName,
+                CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
+                copyCollection(collection));
 
         if (collection == null) {
             return;
@@ -1188,7 +1210,6 @@ public class PersistentResource<T> {
             }
 
             if (inverseRelation instanceof Collection) {
-                inverseResource.checkFieldAwarePermissions(UpdatePermission.class, inverseRelationName);
                 inverseResource.delFromCollection((Collection) inverseRelation, inverseRelationName, this);
             } else if (inverseRelationType.equals(this.getResourceClass())) {
                 inverseResource.nullValue(inverseRelationName, this);
@@ -1265,210 +1286,42 @@ public class PersistentResource<T> {
     /**
      * Filter a set of fields.
      *
-     * @param <A> the type parameter
-     * @param permission the permission
-     * @param resource the resource
      * @param fields the fields
      * @return Filtered set of fields
      */
-    protected static <A extends Annotation> Set<String> filterFields(Class<A> permission,
-            PersistentResource resource,
-            Collection<String> fields) {
+    protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
-        // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
-        // We should probably find a cleaner way to do this.
-        boolean save = resource.getRequestScope().isNotDeferred();
-        try {
-            resource.getRequestScope().setNotDeferred(true);
-            for (String field : fields) {
-                try {
-                    if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
-                        resource.checkFieldAwarePermissions(permission, field);
-                        filteredSet.add(field);
-                    }
-                } catch (ForbiddenAccessException e) {
-                    // Do nothing. Filter from set.
+        for (String field : fields) {
+            try {
+                if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
+                    checkFieldAwarePermissions(ReadPermission.class, field, (Object) null, (Object) null);
+                    filteredSet.add(field);
                 }
+            } catch (ForbiddenAccessException e) {
+                // Do nothing. Filter from set.
             }
-        } finally {
-            resource.getRequestScope().setNotDeferred(save);
         }
         return filteredSet;
     }
 
-    /**
-     * Check provided access permission.
-     *
-     * @param annotationClass one of Create, Read, Update or Delete permission annotations
-     * @param annotation the instance of the annotation
-     * @param resource given resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    static <A extends Annotation> void checkPermission(
-            Class<A> annotationClass,
-            A annotation,
-            PersistentResource resource) {
-        if (resource.getRequestScope().getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return;
-        }
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
-
-        if (anyChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, anyChecks, ANY, resource);
-        } else if (allChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, allChecks, ALL, resource);
-        } else {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
-        }
-    }
-
-    static <A extends Annotation> FilterScope loadChecks(A annotation, RequestScope requestScope) {
-        if (annotation == null) {
-            return new FilterScope(requestScope);
-        }
-
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
-        Class<? extends Annotation> annotationClass = annotation.getClass();
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
-
-        if (anyChecks.length > 0) {
-            return new FilterScope(requestScope, ANY, anyChecks);
-        } else if (allChecks.length > 0) {
-            return new FilterScope(requestScope, ALL, allChecks);
-        } else {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
-        }
-    }
-
-    /**
-     * Check provided access permission.
-     *
-     * @param annotationClass one of Create, Read, Update or Delete permission annotations
-     * @param resource given resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    static <A extends Annotation> void checkPermission(Class<A> annotationClass,
-            PersistentResource resource) {
-        A annotation = resource.getDictionary().getAnnotation(resource, annotationClass);
-        if (annotation == null) {
-            return;
-        }
-        checkPermission(annotationClass, annotation, resource);
+    private static <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource) {
+        resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
     }
 
     private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this);
+        requestScope.getPermissionExecutor().checkPermission(annotationClass, this);
     }
 
-    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass, String fieldName) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this, fieldName);
-    }
-
-    /**
-     * Execute a set of permission checks.
-     * @param checks Array of Check annotations
-     * @param mode true if ANY, else ALL
-     * @param resource provided PersistentResource to check
-     */
-    static void checkPermissions(Class<? extends Check>[] checks, boolean mode, PersistentResource resource) {
-        for (Class<? extends Check> check : checks) {
-            Check checkHandler;
-            try {
-                checkHandler = check.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new InvalidSyntaxException("Illegal permission check " + check.getName(), e);
-            }
-            boolean ok = resource.getRequestScope().getUser().ok(checkHandler, resource);
-
-            if (ok && mode == ANY) {
-                return;
-            }
-
-            if (!ok && mode == ALL) {
-                String message = String.format("ForbiddenAccess %s %s#%s",
-                        check,
-                        resource.getType(),
-                        resource.getId());
-                log.debug(message);
-                throw new ForbiddenAccessException(message);
-            }
-        }
-        if (mode == ANY) {
-            String message = String.format("ForbiddenAccess %s %s#%s",
-                    Arrays.asList(checks),
-                    resource.getType(),
-                    resource.getId());
-            log.debug(message);
-            throw new ForbiddenAccessException(message);
-        }
-    }
-
-    /**
-     * Check a permission on a field.
-     * @param <A> the type parameter
-     * @param annotationClass the annotation class
-     * @param resource the resource
-     * @param fieldName the field name
-     */
-    protected static <A extends Annotation> void checkFieldPermission(Class<A> annotationClass,
-            PersistentResource resource,
-            String fieldName) {
-        A annotation = resource.getDictionary().getAttributeOrRelationAnnotation(resource.getResourceClass(),
-                annotationClass,
-                fieldName);
-        if (annotation == null) {
-            return;
-        }
-
-        checkPermission(annotationClass, annotation, resource);
-    }
-
-    /**
-     * Check a field permission if it exists. Otherwise, forbidden.
-     *
-     * @param <A> the type parameter
-     * @param annotationClass the annotation class
-     * @param resource the resource
-     * @param fieldName the field name
-     */
-    protected static <A extends Annotation> void checkFieldPermissionIfExists(Class<A> annotationClass,
-                                                                              PersistentResource resource,
-                                                                              String fieldName) {
-        A annotation = resource.getDictionary().getAttributeOrRelationAnnotation(resource.getResourceClass(),
-                                                                                 annotationClass,
-                                                                                 fieldName);
-        if (annotation == null) {
-            throw new ForbiddenAccessException(
-                    "Unable to find " + annotationClass.getSimpleName() + " annotation for "
-                            + resource.getResourceClass().getSimpleName() + "#" + fieldName
-            );
-        }
-
-        checkFieldPermission(annotationClass, resource, fieldName);
+    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
+                                                                   String fieldName,
+                                                                   Object modified,
+                                                                   Object original) {
+        ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
+                                ? new ChangeSpec(this, fieldName, original, modified)
+                                : null;
+        requestScope
+                .getPermissionExecutor()
+                .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
@@ -1529,14 +1382,17 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Helper function for access to OpaqueUser in checks.
-     * @return opaque user
+     * Shallow copy a collection.
+     *
+     * @param collection Collection to copy
+     * @return New copy of collection
      */
-    public Object getOpaqueUser() {
-        if (getRequestScope().getUser() == null) {
-            return null;
+    private Collection copyCollection(final Collection collection) {
+        final ArrayList newCollection = new ArrayList();
+        if (collection == null || collection.isEmpty()) {
+            return newCollection;
         }
-
-        return getRequestScope().getUser().getOpaqueUser();
+        collection.iterator().forEachRemaining(newCollection::add);
+        return newCollection;
     }
 }

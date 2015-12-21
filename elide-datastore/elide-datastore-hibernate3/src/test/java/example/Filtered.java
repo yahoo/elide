@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,11 +10,12 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
-import com.yahoo.elide.security.Role;
 
+import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.checks.OperationCheck;
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -24,6 +25,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.persistence.Entity;
+import java.util.Optional;
 
 /**
  * Filtered permission check.
@@ -43,32 +45,32 @@ public class Filtered extends BaseId {
     /**
      * Filter for ID == 1.
      */
-    static public class FilterCheck implements CriteriaCheck<Filtered> {
-        @Override
-        public boolean ok(PersistentResource<Filtered> record) {
-            return true;
-        }
-
+    static public class FilterCheck extends OperationCheck<Filtered> implements CriteriaCheck<Filtered> {
         /* Limit reads to ID 1 */
         @Override
         public Criterion getCriterion(RequestScope requestScope) {
             return Restrictions.idEq(1L);
+        }
+
+        @Override
+        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
         }
     }
 
     /**
      * Filter for ID == 3.
      */
-    static public class FilterCheck3 implements CriteriaCheck<Filtered> {
-        @Override
-        public boolean ok(PersistentResource<Filtered> record) {
-            return true;
-        }
-
+    static public class FilterCheck3 extends OperationCheck<Filtered> implements CriteriaCheck<Filtered> {
         /* Limit reads to ID 3 */
         @Override
         public Criterion getCriterion(RequestScope requestScope) {
             return Restrictions.idEq(3L);
+        }
+
+        @Override
+        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
         }
     }
 }
