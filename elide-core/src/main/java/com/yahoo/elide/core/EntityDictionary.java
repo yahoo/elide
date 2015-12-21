@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -124,6 +125,39 @@ public class EntityDictionary {
      */
     public List<String> getRelationships(Object entity) {
         return getRelationships(entity.getClass());
+    }
+
+    /**
+     * Get a list of all fields including both relationships and attributes.
+     *
+     * @param entityClass entity name
+     * @return List of all fields.
+     */
+    public List<String> getAllFields(Class<?> entityClass) {
+        List<String> fields = new ArrayList<>();
+
+        List<String> attrs = getAttributes(entityClass);
+        List<String> rels = getRelationships(entityClass);
+
+        if (attrs != null) {
+            fields.addAll(attrs);
+        }
+
+        if (rels != null) {
+            fields.addAll(rels);
+        }
+
+        return fields;
+    }
+
+    /**
+     * Get a list of all fields including both relationships and attributes.
+     *
+     * @param entity entity
+     * @return List of all fields.
+     */
+    public List<String> getAllFields(Object entity) {
+        return getAllFields(entity.getClass());
     }
 
     /**

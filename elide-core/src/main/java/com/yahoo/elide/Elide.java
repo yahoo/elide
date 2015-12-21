@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -105,7 +105,7 @@ public class Elide {
                     securityMode);
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            requestScope.runDeferredPermissionChecks();
+            requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
@@ -162,7 +162,7 @@ public class Elide {
                     securityMode);
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            requestScope.runDeferredPermissionChecks();
+            requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
@@ -228,7 +228,7 @@ public class Elide {
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
             }
-            requestScope.runDeferredPermissionChecks();
+            requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
@@ -289,7 +289,7 @@ public class Elide {
                     doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-            requestScope.runDeferredPermissionChecks();
+            requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
