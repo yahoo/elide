@@ -3,7 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.security;
+package com.yahoo.elide.optimization;
+
+import com.yahoo.elide.security.User;
 
 /**
  * Simple checks to always grant or deny.

@@ -8,15 +8,7 @@ package com.yahoo.elide.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -31,7 +23,9 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
+import com.yahoo.elide.optimization.UserCheck;
 import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
@@ -39,7 +33,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
-import static com.yahoo.elide.security.UserCheck.DENY;
+import static com.yahoo.elide.optimization.UserCheck.DENY;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -47,7 +41,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -275,7 +268,8 @@ public class PersistentResource<T> {
 
         Iterable<T> list;
         ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
+        UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(loadClass, UserPermission.class);
+        FilterScope filterScope = loadChecks(annotation, userAnnotation, requestScope);
         list = tx.loadObjects(loadClass, filterScope);
 
         for (T obj : list) {
@@ -754,29 +748,11 @@ public class PersistentResource<T> {
             return false;
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-        ReadPermission annotation = dictionary.getAnnotation(recordClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
+        UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(recordClass, UserPermission.class);
+        ReadPermission readAnnotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
+        FilterScope filterScope = loadChecks(readAnnotation, userAnnotation, requestScope);
 
-        if (filterScope.getUserPermission() != DENY) {
-            return false;
-        }
-
-         // Temporary fix for UserLevel checks. This concept will be reworked in Elide 2.0
-         // In short, check all fields.
-        List<String> fields = new ArrayList<>();
-        fields.addAll(dictionary.getAttributes(recordClass));
-        fields.addAll(dictionary.getRelationships(recordClass));
-        for (String field : fields) {
-            Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
-                    ReadPermission.class, field);
-            FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
-            if (fieldFilterScope.getUserPermission() != DENY) {
-                return false;
-            }
-        }
-
-        return true;
+        return filterScope.getUserPermission() == DENY;
     }
 
     /**
@@ -903,8 +879,7 @@ public class PersistentResource<T> {
      */
     protected Map<String, Relationship> getRelationships() {
         final Map<String, Relationship> relationshipMap = new LinkedHashMap<>();
-        final Set<String> relationshipFields =
-                filterFields(ReadPermission.class, this, dictionary.getRelationships(obj));
+        final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
             Set<PersistentResource> relationships = getRelation(field);
@@ -938,7 +913,7 @@ public class PersistentResource<T> {
     protected Map<String, Object> getAttributes() {
         final Map<String, Object> attributes = new LinkedHashMap<>();
 
-        final Set<String> attrFields = filterFields(ReadPermission.class, this, dictionary.getAttributes(obj));
+        final Set<String> attrFields = filterFields(dictionary.getAttributes(obj));
         for (String field : attrFields) {
             Object val = getAttribute(field);
             attributes.put(field, val);
@@ -1231,20 +1206,15 @@ public class PersistentResource<T> {
     /**
      * Filter a set of fields.
      *
-     * @param <A> the type parameter
-     * @param permission the permission
-     * @param resource the resource
      * @param fields the fields
      * @return Filtered set of fields
      */
-    protected static <A extends Annotation> Set<String> filterFields(Class<A> permission,
-            PersistentResource resource,
-            Collection<String> fields) {
+    protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
         for (String field : fields) {
             try {
-                if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
-                    resource.checkFieldAwarePermissions(permission, field);
+                if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
+                    checkFieldAwarePermissions(ReadPermission.class, field);
                     filteredSet.add(field);
                 }
             } catch (ForbiddenAccessException e) {
@@ -1269,50 +1239,41 @@ public class PersistentResource<T> {
             Class<A> annotationClass,
             A annotation,
             PersistentResource resource) {
-        if (resource.getRequestScope().getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
-            return;
-        }
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
+        PermissionManager.ExtractedChecks checks = PermissionManager.extractChecks(annotationClass, annotation);
+
+        Class<? extends Check>[] anyChecks = checks.getAnyChecks();
+        Class<? extends Check>[] allChecks = checks.getAllChecks();
 
         if (anyChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, anyChecks, ANY, resource);
+            resource.getRequestScope().getPermissionManager().checkPermissions(anyChecks,
+                    ANY, resource, annotationClass);
         } else if (allChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, allChecks, ALL, resource);
+            resource.getRequestScope().getPermissionManager().checkPermissions(allChecks,
+                    ALL, resource, annotationClass);
         } else {
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
         }
     }
 
-    static <A extends Annotation> FilterScope loadChecks(A annotation, RequestScope requestScope) {
+    static <A extends Annotation> FilterScope loadChecks(A annotation,
+                                                         UserPermission userPermission,
+                                                         RequestScope requestScope) {
         if (annotation == null) {
             return new FilterScope(requestScope);
         }
 
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
+        PermissionManager.ExtractedChecks checks = PermissionManager.extractChecks((Class<A>) annotation.getClass(),
+                annotation);
+
+        Class<? extends Check>[] anyChecks = checks.getAnyChecks();
+        Class<? extends Check>[] allChecks = checks.getAllChecks();
+        Class<? extends UserCheck>[] userChecks = (userPermission == null) ? new Class[]{} : userPermission.value();
         Class<? extends Annotation> annotationClass = annotation.getClass();
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
 
         if (anyChecks.length > 0) {
-            return new FilterScope(requestScope, ANY, anyChecks);
+            return new FilterScope(requestScope, ANY, anyChecks, userChecks);
         } else if (allChecks.length > 0) {
-            return new FilterScope(requestScope, ALL, allChecks);
+            return new FilterScope(requestScope, ALL, allChecks, userChecks);
         } else {
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
         }
@@ -1338,42 +1299,13 @@ public class PersistentResource<T> {
     }
 
     private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this);
+        // TODO: Need ChangeSet support
+        requestScope.getPermissionManager().checkFieldAwarePermissions(this, null, annotationClass);
     }
 
     private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass, String fieldName) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this, fieldName);
-    }
-
-    /**
-     * Execute a set of permission checks.
-     * @param checks Array of Check annotations
-     * @param mode true if ANY, else ALL
-     * @param resource provided PersistentResource to check
-     */
-    static void checkPermissions(Class<? extends Check>[] checks, boolean mode, PersistentResource resource) {
-        for (Class<? extends Check> check : checks) {
-            Check checkHandler;
-            try {
-                checkHandler = check.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new InvalidSyntaxException("Illegal permission check " + check.getName(), e);
-            }
-            boolean ok = resource.getRequestScope().getUser().ok(checkHandler, resource);
-
-            if (ok && mode == ANY) {
-                return;
-            }
-
-            if (!ok && mode == ALL) {
-                log.debug("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
-                throw new ForbiddenAccessException();
-            }
-        }
-        if (mode == ANY) {
-            log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
-            throw new ForbiddenAccessException();
-        }
+        // TODO: Need ChangeSet support
+        requestScope.getPermissionManager().checkFieldAwarePermissions(this, null, annotationClass, fieldName);
     }
 
     /**

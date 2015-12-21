@@ -13,7 +13,7 @@ import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.optimization.UserCheck;
 import com.yahoo.elide.security.User;
 
 import org.hibernate.Hibernate;
@@ -143,9 +143,9 @@ public class HibernateTransaction implements DataStoreTransaction {
      */
     public <T> Criterion buildCheckCriterion(FilterScope<T> filterScope) {
         Criterion compositeCriterion = null;
-        List<Check<T>> checks = filterScope.getChecks();
+        List<UserCheck> checks = filterScope.getUserChecks();
         RequestScope requestScope = filterScope.getRequestScope();
-        for (Check check : checks) {
+        for (UserCheck check : checks) {
             Criterion criterion;
             if (check instanceof CriteriaCheck) {
                 criterion = ((CriteriaCheck) check).getCriterion(requestScope);

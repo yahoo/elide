@@ -5,22 +5,17 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -47,10 +42,10 @@ public class RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
+    @Getter private final PermissionManager permissionManager;
 
-    private transient LinkedHashSet<Runnable> deferredChecks = null;
+    private transient LinkedHashSet<Runnable> commitChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
-    private boolean doNotDefer = false;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -81,6 +76,7 @@ public class RequestScope {
 
         newResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
+        permissionManager = new PermissionManager();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -128,7 +124,7 @@ public class RequestScope {
             JsonApiMapper mapper,
             Logger logger) {
         this(null, transaction, user, dictionary, mapper, logger);
-        this.deferredChecks = new LinkedHashSet<>();
+        this.commitChecks = new LinkedHashSet<>();
     }
 
     /**
@@ -149,9 +145,10 @@ public class RequestScope {
         this.predicates = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
-        this.deferredChecks = outerRequestScope.deferredChecks;
+        this.commitChecks = outerRequestScope.commitChecks;
         this.newResources = outerRequestScope.newResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
+        this.permissionManager = new PermissionManager();
     }
 
     /**
@@ -191,21 +188,6 @@ public class RequestScope {
     }
 
     /**
-     * run any deferred permission checks due to create.
-     *
-     * @see com.yahoo.elide.annotation.CreatePermission
-     */
-    public void runDeferredPermissionChecks() {
-        if (deferredChecks != null) {
-            try {
-                new ArrayList<>(deferredChecks).forEach(Runnable::run);
-            } finally {
-                deferredChecks = null;
-            }
-        }
-    }
-
-    /**
      * run any deferred post-commit triggers.
      *
      * @see com.yahoo.elide.annotation.CreatePermission
@@ -215,179 +197,11 @@ public class RequestScope {
         commitTriggers.clear();
     }
 
-    /**
-     * Check provided access permission.
-     *
-     * @param annotationClass one of Create, Read, Update or Delete permission annotations
-     * @param checks Check classes
-     * @param isAny true if ANY, else ALL
-     * @param resource given resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    public void checkPermissions(Class<?> annotationClass, Class<? extends Check>[] checks, boolean isAny,
-            PersistentResource resource) {
-        checkPermissions(annotationClass, new CheckPermissions(annotationClass, checks, isAny, resource));
-    }
-
-    public <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
-                                                                  PersistentResource resource) {
-        checkPermissions(annotationClass, new FieldAwareCheck<>(annotationClass, resource));
-    }
-
-    public <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
-                                                                  PersistentResource resource,
-                                                                  String fieldName) {
-        checkPermissions(annotationClass, new FieldAwareCheck<>(annotationClass, resource, fieldName));
-    }
-
     public void queueCommitTrigger(PersistentResource resource) {
         queueCommitTrigger(resource, "");
     }
 
     public void queueCommitTrigger(PersistentResource resource, String fieldName) {
-        commitTriggers.add(() -> {
-            resource.runTriggers(OnCommit.class, fieldName);
-        });
-    }
-
-    /**
-     * Check permissions
-     *
-     * @param annotationClass
-     * @param task
-     */
-    private void checkPermissions(Class<?> annotationClass, Runnable task) {
-        // CreatePermission queues deferred permission checks
-        if (deferredChecks == null && CreatePermission.class.equals(annotationClass)) {
-            deferredChecks = new LinkedHashSet<>();
-        }
-        if (deferredChecks == null || doNotDefer) {
-            task.run();
-        } else {
-            deferredChecks.add(task);
-        }
-    }
-
-    private static class CheckPermissions implements Runnable {
-        final Class<? extends Check>[] anyChecks;
-        final boolean any;
-        final PersistentResource resource;
-
-        public CheckPermissions(
-                Class<?> annotationClass,
-                Class<? extends Check>[] checks,
-                boolean isAny,
-                PersistentResource resource) {
-            Preconditions.checkArgument(checks.length > 0);
-            this.anyChecks = Arrays.copyOf(checks, checks.length);
-            this.any = isAny;
-            this.resource = resource;
-        }
-
-        @Override
-        public void run() {
-            PersistentResource.checkPermissions(anyChecks, any, resource);
-        }
-
-        @Override
-        public String toString() {
-            return "CheckPermissions [anyChecks=" + Arrays.toString(anyChecks) + ", any=" + any + ", resource="
-                    + resource.getId() + ", user=" + resource.getRequestScope().getUser() + "]";
-        }
-    }
-
-    /**
-     * Field-Aware checks are for checking overrides on fields when appropriate. At time of writing, this should
-     * really only include ReadPermission and UpdatePermission checks.
-     *
-     * @param <A> type annotation
-     */
-    private static class FieldAwareCheck<A extends Annotation> implements Runnable {
-        final Class<A> annotationClass;
-        final PersistentResource resource;
-        final String fieldName;
-
-        public FieldAwareCheck(Class<A> annotationClass, PersistentResource resource) {
-            this.annotationClass = annotationClass;
-            this.resource = resource;
-            this.fieldName = null;
-        }
-
-        public FieldAwareCheck(Class<A> annotationClass, PersistentResource resource, String fieldName) {
-            this.annotationClass = annotationClass;
-            this.resource = resource;
-            this.fieldName = fieldName;
-        }
-
-        public void run() {
-            // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
-            // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
-            // We should probably find a cleaner way to do this.
-            resource.getRequestScope().doNotDefer = true;
-            if (fieldName != null && !fieldName.isEmpty()) {
-                specificField(fieldName);
-            } else {
-                allFields();
-            }
-            resource.getRequestScope().doNotDefer = false;
-        }
-
-        /**
-         * Determine whether or not a specific field has the specified permission. If this field has the permission
-         * either by default or override, then this method will return successfully. Otherwise, a
-         * ForbiddenAccessException is thrown.
-         *
-         * @param theField Field to check
-         */
-        private void specificField(String theField) {
-            try {
-                resource.checkPermission(annotationClass, resource);
-            } catch (ForbiddenAccessException e) {
-                resource.checkFieldPermissionIfExists(annotationClass, resource, theField);
-            }
-            resource.checkFieldPermission(annotationClass, resource, theField);
-        }
-
-        /**
-         * Checks whether or not the object itself or ANY field on the object has the specified permission.
-         * If either condition is true, then this method will return without error. Otherwise, a
-         * ForbiddenAccessException is thrown.
-         */
-        private void allFields() {
-            EntityDictionary dictionary = resource.getDictionary();
-
-            try {
-                resource.checkPermission(annotationClass, resource);
-                return; // Object has permission
-            } catch (ForbiddenAccessException e) {
-                // Ignore
-            }
-
-            // Check attrs
-            for (String attr : dictionary.getAttributes(resource.getObject().getClass())) {
-                try {
-                    specificField(attr);
-                    return; // We have at least a single accessible field
-                } catch (ForbiddenAccessException e) {
-                    // Ignore this.
-                }
-            }
-
-            // Check relationships
-            for (String rel : dictionary.getRelationships(resource.getObject().getClass())) {
-                try {
-                    specificField(rel);
-                    return; // We have at least a single accessible field
-                } catch (ForbiddenAccessException e) {
-                    // Ignore
-                }
-            }
-
-            // No accessible fields and object is not accessible
-            throw new ForbiddenAccessException();
-        }
+        commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
     }
 }

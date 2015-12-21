@@ -10,11 +10,11 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
-import com.yahoo.elide.security.Role;
 
+import com.yahoo.elide.security.Access;
+import com.yahoo.elide.security.ChangeSpec;
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -24,12 +24,13 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.persistence.Entity;
+import java.util.Optional;
 
 /**
  * Filtered permission check.
  */
 @CreatePermission(any = { FilterCheck.class })
-@ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class })
+@ReadPermission(any = { Access.NONE.class, FilterCheck.class, FilterCheck3.class })
 @UpdatePermission(any = { FilterCheck.class })
 @DeletePermission(any = { FilterCheck.class })
 @Include(rootLevel = true)
@@ -38,14 +39,19 @@ import javax.persistence.Entity;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
 public class Filtered extends BaseId {
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
+    @ReadPermission(all = { Access.NONE.class }) public transient boolean init = false;
 
     /**
      * Filter for ID == 1.
      */
     static public class FilterCheck implements CriteriaCheck<Filtered> {
         @Override
-        public boolean ok(PersistentResource<Filtered> record) {
+        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
+        }
+
+        @Override
+        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return true;
         }
 
@@ -61,7 +67,12 @@ public class Filtered extends BaseId {
      */
     static public class FilterCheck3 implements CriteriaCheck<Filtered> {
         @Override
-        public boolean ok(PersistentResource<Filtered> record) {
+        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
+        }
+
+        @Override
+        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return true;
         }
 

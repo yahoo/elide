@@ -10,12 +10,14 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.Access;
+import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.Check;
-import com.yahoo.elide.security.Role;
 
 import lombok.ToString;
 
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -27,10 +29,10 @@ import javax.persistence.ManyToMany;
 import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
 
-@CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
-@ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
-@UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@DeletePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
+@CreatePermission(any = { Parent.InitCheck.class, Access.ALL.class })
+@ReadPermission(any = { Parent.InitCheck.class, Access.ALL.class })
+@UpdatePermission(any = { Parent.InitCheck.class, Access.ALL.class, Access.NONE.class })
+@DeletePermission(any = { Parent.InitCheck.class, Access.ALL.class, Access.NONE.class })
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Entity
 @ToString
@@ -38,15 +40,15 @@ public class Parent extends BaseId {
     private Set<Child> children;
     private Set<Parent> spouses;
     private String firstName;
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
+    @ReadPermission(all = { Access.NONE.class }) public transient boolean init = false;
 
     @PrePersist
     public void doInit() {
         init = true;
     }
 
-    @ReadPermission(any = { Role.ALL.class, Role.NONE.class })
-    @UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
+    @ReadPermission(any = { Access.ALL.class, Access.NONE.class })
+    @UpdatePermission(any = { Access.ALL.class, Access.NONE.class })
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
@@ -87,13 +89,18 @@ public class Parent extends BaseId {
     }
 
     static public class InitCheck implements Check<Parent> {
+        // Only a commit check
         @Override
-        public boolean ok(PersistentResource<Parent> record) {
-            Parent parent = record.getObject();
+        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {
                 return true;
             }
-            throw new IllegalStateException("Uninitialized " + parent);
+            return false;
+        }
+
+        @Override
+        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
         }
     }
 }

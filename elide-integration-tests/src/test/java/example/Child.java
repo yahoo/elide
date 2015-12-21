@@ -6,16 +6,14 @@
 package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.Access;
+import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.Check;
-import com.yahoo.elide.security.Role;
 import example.Child.InitCheck;
 
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -31,8 +29,9 @@ import javax.persistence.ManyToMany;
  */
 @Entity
 @CreatePermission(any = { InitCheck.class })
-@SharePermission(any = { Role.ALL.class })
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
+@SharePermission(any = { Access.ALL.class })
+@ReadPermission(all = {NegativeChildIdCheck.class, InitCheck.class})
+@UserPermission({NegativeIntegerUserCheck.class})
 @Include
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -106,12 +105,16 @@ public class Child {
      */
     static public class InitCheck implements Check<Child> {
         @Override
-        public boolean ok(PersistentResource<Child> record) {
-            Child child = record.getObject();
+        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }
-            throw new IllegalStateException("Uninitialized " + child);
+            return false;
+        }
+
+        @Override
+        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
         }
     }
 }

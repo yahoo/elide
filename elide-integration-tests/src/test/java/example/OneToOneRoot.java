@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,9 +18,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 @Include(rootLevel = true)
-@ReadPermission(any = {Role.ALL.class})
-@CreatePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.ALL.class})
+@ReadPermission(any = {Access.ALL.class})
+@CreatePermission(any = {Access.ALL.class})
+@UpdatePermission(any = {Access.ALL.class})
 @Entity
 public class OneToOneRoot {
     private Long id;

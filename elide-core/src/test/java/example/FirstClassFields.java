@@ -10,16 +10,16 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-@CreatePermission(all = {Role.NONE.class})
-@ReadPermission(all = {Role.NONE.class})
-@UpdatePermission(all = {Role.NONE.class})
-@DeletePermission(all = {Role.NONE.class})
+@CreatePermission(all = {Access.NONE.class})
+@ReadPermission(all = {Access.NONE.class})
+@UpdatePermission(all = {Access.NONE.class})
+@DeletePermission(all = {Access.NONE.class})
 @Include(rootLevel = true)
 @Entity
 public class FirstClassFields {
@@ -33,10 +33,10 @@ public class FirstClassFields {
     public Left private2;
 
     // Public vars
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(any = {Access.ALL.class})
     public String public1;
 
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(any = {Access.ALL.class})
     @OneToOne
     public Left public2;
 }

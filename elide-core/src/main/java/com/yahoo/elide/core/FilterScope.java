@@ -5,17 +5,18 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.optimization.UserCheck;
 import com.yahoo.elide.security.Check;
-import com.yahoo.elide.security.UserCheck.UserPermission;
+import com.yahoo.elide.optimization.UserCheck.UserPermission;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
-import static com.yahoo.elide.security.UserCheck.FILTER;
+import static com.yahoo.elide.optimization.UserCheck.ALLOW;
+import static com.yahoo.elide.optimization.UserCheck.DENY;
+import static com.yahoo.elide.optimization.UserCheck.FILTER;
 
 /**
  * Scope for filter processing.  Contains requestScope and checks.
@@ -26,19 +27,32 @@ public class FilterScope<T> {
     @Getter private final RequestScope requestScope;
     @Getter private final boolean isAny;
     @Getter private final List<Check<T>> checks;
+    @Getter private final List<UserCheck> userChecks;
     private UserPermission filterUserPermission = null;
 
     public FilterScope(RequestScope requestScope) {
         this.requestScope = requestScope;
         this.isAny = false;
         checks = Collections.emptyList();
+        userChecks = Collections.emptyList();
     }
 
-    public FilterScope(RequestScope requestScope, boolean isAny, Class<? extends Check>[] checkClasses) {
+    public FilterScope(RequestScope requestScope,
+                       boolean isAny,
+                       Class<? extends Check>[] checkClasses,
+                       Class<? extends UserCheck>[] userCheckClasses) {
         this.requestScope = requestScope;
         this.isAny = isAny;
 
         List<Check<T>> checks = new ArrayList<>(checkClasses.length);
+        List<UserCheck> userChecks = new ArrayList<>(userCheckClasses.length);
+        for (Class<? extends UserCheck> checkClass : userCheckClasses) {
+            try {
+                userChecks.add(checkClass.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                userChecks.add(null);
+            }
+        }
         for (Class<? extends Check> checkClass : checkClasses) {
             try {
                 checks.add(checkClass.newInstance());
@@ -47,6 +61,7 @@ public class FilterScope<T> {
             }
         }
         this.checks = checks;
+        this.userChecks = userChecks;
     }
 
     /**
@@ -68,8 +83,8 @@ public class FilterScope<T> {
             return filterUserPermission;
         }
 
-        UserPermission compositeUserPermission = null;
-        for (Check check : checks) {
+        UserPermission compositeUserPermission = checks.isEmpty() ? null : FILTER;
+        for (UserCheck check : userChecks) {
             UserPermission checkUserPermission = requestScope.getUser().checkUserPermission(check);
 
             // short-cut for ALLOW and ANY
@@ -87,7 +102,6 @@ public class FilterScope<T> {
             // if FILTER set as found and keep looking
             if (checkUserPermission == FILTER) {
                 compositeUserPermission = FILTER;
-                continue;
             }
         }
 

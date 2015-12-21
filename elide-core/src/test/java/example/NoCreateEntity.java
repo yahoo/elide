@@ -7,13 +7,13 @@ package example;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@CreatePermission(all = { Role.NONE.class })
+@CreatePermission(all = { Access.NONE.class })
 @Include(rootLevel = true, type = "nocreate") // optional here because class has this name
 // Hibernate
 @Entity
