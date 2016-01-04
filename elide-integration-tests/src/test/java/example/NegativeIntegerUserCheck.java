@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 public class NegativeIntegerUserCheck implements UserCheck, Check<Object> {
     @Override
-    public UserPermission userPermission(User user) {
+    public UserPermission ok(User user) {
         Integer id = (Integer) user.getOpaqueUser();
         return id >= 0 ? ALLOW : DENY;
     }

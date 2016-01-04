@@ -37,5 +37,5 @@ public interface UserCheck {
      * @param user per user check
      * @return FILTER to support ok check
      */
-    UserPermission userPermission(User user);
+    UserPermission ok(User user);
 }

@@ -31,7 +31,7 @@ public class UserTest {
         public int callCounter = 0;
 
         @Override
-        public UserPermission userPermission(User user) {
+        public UserPermission ok(User user) {
             callCounter++;
             return ALLOW;
         }

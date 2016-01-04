@@ -35,7 +35,7 @@ public class User {
     public UserPermission checkUserPermission(UserCheck check) {
         UserPermission checkType = okUserPermissions.get(check.getClass());
         if (checkType == null) {
-            checkType = check.userPermission(this);
+            checkType = check.ok(this);
             okUserPermissions.put(check.getClass(), checkType);
         }
         return checkType;

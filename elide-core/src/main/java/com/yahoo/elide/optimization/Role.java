@@ -16,7 +16,7 @@ public class Role {
      */
     public static class ALL implements UserCheck {
         @Override
-        public UserPermission userPermission(User user) {
+        public UserPermission ok(User user) {
             return ALLOW;
         }
     }
@@ -26,7 +26,7 @@ public class Role {
      */
     public static class NONE implements UserCheck {
         @Override
-        public UserPermission userPermission(User user) {
+        public UserPermission ok(User user) {
             return DENY;
         }
     }

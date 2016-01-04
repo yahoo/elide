@@ -44,7 +44,6 @@ public class RequestScope {
     @Getter private final Set<PersistentResource> newResources;
     @Getter private final PermissionManager permissionManager;
 
-    private transient LinkedHashSet<Runnable> commitChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -124,7 +123,6 @@ public class RequestScope {
             JsonApiMapper mapper,
             Logger logger) {
         this(null, transaction, user, dictionary, mapper, logger);
-        this.commitChecks = new LinkedHashSet<>();
     }
 
     /**
@@ -145,7 +143,6 @@ public class RequestScope {
         this.predicates = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
-        this.commitChecks = outerRequestScope.commitChecks;
         this.newResources = outerRequestScope.newResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionManager = new PermissionManager();
