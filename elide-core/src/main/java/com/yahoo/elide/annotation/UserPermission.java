@@ -20,9 +20,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UserPermission {
     /**
-     * UserCheck's to run before evaluating additional checks on object
+     * Any one of these checks must pass.
      *
-     * @return
+     * @return the class [ ]
      */
-    Class<? extends UserCheck>[] value() default {};
+    Class<? extends UserCheck>[] any() default {};
+
+    /**
+     * All of these checks must pass.
+     *
+     * @return the class [ ]
+     */
+    Class<? extends UserCheck>[] all() default {};
 }

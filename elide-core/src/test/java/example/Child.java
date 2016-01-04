@@ -27,7 +27,7 @@ import java.util.Set;
 @CreatePermission(any = { InitCheck.class })
 @SharePermission(any = {Access.ALL.class})
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
-@UserPermission({NegativeIntegerUserCheck.class})
+@UserPermission(any = {NegativeIntegerUserCheck.class})
 @Include
 @Audit(action = Audit.Action.DELETE,
        operation = 0,

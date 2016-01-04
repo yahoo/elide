@@ -267,9 +267,8 @@ public class PersistentResource<T> {
         }
 
         Iterable<T> list;
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
         UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(loadClass, UserPermission.class);
-        FilterScope filterScope = loadChecks(annotation, userAnnotation, requestScope);
+        FilterScope filterScope = loadChecks(userAnnotation, requestScope);
         list = tx.loadObjects(loadClass, filterScope);
 
         for (T obj : list) {
@@ -749,8 +748,7 @@ public class PersistentResource<T> {
         }
 
         UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(recordClass, UserPermission.class);
-        ReadPermission readAnnotation = requestScope.getDictionary().getAnnotation(recordClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(readAnnotation, userAnnotation, requestScope);
+        FilterScope filterScope = loadChecks(userAnnotation, requestScope);
 
         return filterScope.getUserPermission() == DENY;
     }
@@ -1255,25 +1253,19 @@ public class PersistentResource<T> {
         }
     }
 
-    static <A extends Annotation> FilterScope loadChecks(A annotation,
-                                                         UserPermission userPermission,
-                                                         RequestScope requestScope) {
-        if (annotation == null) {
+    static FilterScope loadChecks(UserPermission userPermission, RequestScope requestScope) {
+        if (userPermission == null) {
             return new FilterScope(requestScope);
         }
 
-        PermissionManager.ExtractedChecks checks = PermissionManager.extractChecks((Class<A>) annotation.getClass(),
-                annotation);
-
-        Class<? extends Check>[] anyChecks = checks.getAnyChecks();
-        Class<? extends Check>[] allChecks = checks.getAllChecks();
-        Class<? extends UserCheck>[] userChecks = (userPermission == null) ? new Class[]{} : userPermission.value();
-        Class<? extends Annotation> annotationClass = annotation.getClass();
+        Class<? extends UserCheck>[] anyChecks = userPermission.any();
+        Class<? extends UserCheck>[] allChecks = userPermission.all();
+        Class<? extends Annotation> annotationClass = userPermission.getClass();
 
         if (anyChecks.length > 0) {
-            return new FilterScope(requestScope, ANY, anyChecks, userChecks);
+            return new FilterScope(requestScope, ANY, anyChecks);
         } else if (allChecks.length > 0) {
-            return new FilterScope(requestScope, ALL, allChecks, userChecks);
+            return new FilterScope(requestScope, ALL, allChecks);
         } else {
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
         }

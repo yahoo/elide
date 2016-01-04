@@ -6,7 +6,6 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.optimization.UserCheck;
-import com.yahoo.elide.security.Check;
 import com.yahoo.elide.optimization.UserCheck.UserPermission;
 import lombok.Getter;
 
@@ -26,25 +25,21 @@ public class FilterScope<T> {
 
     @Getter private final RequestScope requestScope;
     @Getter private final boolean isAny;
-    @Getter private final List<Check<T>> checks;
     @Getter private final List<UserCheck> userChecks;
     private UserPermission filterUserPermission = null;
 
     public FilterScope(RequestScope requestScope) {
         this.requestScope = requestScope;
         this.isAny = false;
-        checks = Collections.emptyList();
         userChecks = Collections.emptyList();
     }
 
     public FilterScope(RequestScope requestScope,
                        boolean isAny,
-                       Class<? extends Check>[] checkClasses,
                        Class<? extends UserCheck>[] userCheckClasses) {
         this.requestScope = requestScope;
         this.isAny = isAny;
 
-        List<Check<T>> checks = new ArrayList<>(checkClasses.length);
         List<UserCheck> userChecks = new ArrayList<>(userCheckClasses.length);
         for (Class<? extends UserCheck> checkClass : userCheckClasses) {
             try {
@@ -53,14 +48,6 @@ public class FilterScope<T> {
                 userChecks.add(null);
             }
         }
-        for (Class<? extends Check> checkClass : checkClasses) {
-            try {
-                checks.add(checkClass.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
-                checks.add(null);
-            }
-        }
-        this.checks = checks;
         this.userChecks = userChecks;
     }
 
@@ -83,7 +70,7 @@ public class FilterScope<T> {
             return filterUserPermission;
         }
 
-        UserPermission compositeUserPermission = checks.isEmpty() ? null : FILTER;
+        UserPermission compositeUserPermission = null;
         for (UserCheck check : userChecks) {
             UserPermission checkUserPermission = requestScope.getUser().checkUserPermission(check);
 

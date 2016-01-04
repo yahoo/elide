@@ -407,10 +407,16 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         FilterScope filterScope;
 
-        filterScope = new FilterScope(goodScope, ANY, new Class[]{}, new Class[] { Role.NONE.class, Role.NONE.class });
+        filterScope = new FilterScope(goodScope, ANY, new Class[] { Role.NONE.class, Role.NONE.class });
         Assert.assertEquals(filterScope.getUserPermission(), DENY);
 
-        filterScope = new FilterScope(goodScope, ALL, new Class[]{}, new Class[] { Role.ALL.class, Role.ALL.class });
+        filterScope = new FilterScope(goodScope, ALL, new Class[] { Role.ALL.class, Role.NONE.class });
+        Assert.assertEquals(filterScope.getUserPermission(), DENY);
+
+        filterScope = new FilterScope(goodScope, ANY, new Class[] { Role.NONE.class, Role.ALL.class });
+        Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
+
+        filterScope = new FilterScope(goodScope, ALL, new Class[] { Role.ALL.class, Role.ALL.class });
         Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
     }
 
