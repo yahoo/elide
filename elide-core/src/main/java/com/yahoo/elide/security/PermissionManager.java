@@ -55,9 +55,11 @@ public class PermissionManager {
             allChecks = (Class<? extends Check>[]) annotationClass
                     .getMethod("all").invoke(annotation, (Object[]) null);
         } catch (ReflectiveOperationException e) {
+            log.debug("Unknown permission: {}, {}", annotationClass.getName(), e);
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
         }
         if (anyChecks.length <= 0 && allChecks.length <= 0) {
+            log.debug("Unknown permission: {}, {}", annotationClass.getName());
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
         }
         return new ExtractedChecks(anyChecks, allChecks);
@@ -83,7 +85,7 @@ public class PermissionManager {
                                                                   Class<A> annotationClass) {
         EntityDictionary dictionary = resource.getDictionary();
         // Check full object, then all fields
-        boolean anyPassing = true;
+        boolean hasPassingCheck = true;
         try {
             A annotation = dictionary.getAnnotation(resource, annotationClass);
             if (annotation != null) {
@@ -99,7 +101,7 @@ public class PermissionManager {
             }
         } catch (ForbiddenAccessException e) {
             // Ignore this and continue on to checking our fields
-            anyPassing = false;
+            hasPassingCheck = false;
         }
 
         Class<?> entityClass = resource.getResourceClass();
@@ -124,14 +126,14 @@ public class PermissionManager {
                 if (isAny) {
                     return;
                 }
-                anyPassing = true;
+                hasPassingCheck = true;
             } catch (ForbiddenAccessException e) {
                 // Ignore and keep looking or queueing
             }
         }
 
         // If nothing succeeded, we know nothing is queued up. We should fail out.
-        if (!anyPassing) {
+        if (!hasPassingCheck) {
             throw new ForbiddenAccessException();
         }
     }
@@ -219,12 +221,12 @@ public class PermissionManager {
                                     boolean shouldDefer,
                                     boolean isFieldAware,
                                     BiFunction<Check, Optional<ChangeSpec<?>>, Boolean> checkFn) {
-        // TODO: Need to write field-aware checks.
         for (Class<? extends Check> check : checks) {
             Check checkHandler;
             try {
                 checkHandler = check.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
+                log.debug("Illegal permission check {} {}", check.getName(), e);
                 throw new InvalidSyntaxException("Illegal permission check " + check.getName(), e);
             }
 

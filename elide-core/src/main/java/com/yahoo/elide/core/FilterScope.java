@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.optimization.UserCheck;
 import com.yahoo.elide.optimization.UserCheck.UserPermission;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import static com.yahoo.elide.optimization.UserCheck.FILTER;
  * Scope for filter processing.  Contains requestScope and checks.
  * @param <T> Filter type
  */
+@Slf4j
 public class FilterScope<T> {
 
     @Getter private final RequestScope requestScope;
@@ -45,7 +47,8 @@ public class FilterScope<T> {
             try {
                 userChecks.add(checkClass.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                userChecks.add(null);
+                log.debug("Could not instantiate UserCheck: {}", checkClass.getName());
+                throw new IllegalStateException("Failed to instantiate UserCheck.");
             }
         }
         this.userChecks = userChecks;
