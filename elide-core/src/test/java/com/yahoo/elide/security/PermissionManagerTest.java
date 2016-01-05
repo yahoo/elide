@@ -28,7 +28,7 @@ public class PermissionManagerTest {
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
         ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermissions(checks, true, resource, cspec, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ANY, resource, cspec, UpdatePermission.class);
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
@@ -38,7 +38,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource();
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
-        requestScope.getPermissionManager().checkPermissions(checks, false, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, UpdatePermission.class);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -47,7 +47,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource();
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
-        requestScope.getPermissionManager().checkPermissions(checks, true, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ANY, resource, UpdatePermission.class);
         // Update permissions are deferred. In the case of "any," commit checks must execute before failure can be detected
         requestScope.getPermissionManager().executeCommitChecks();
     }
@@ -59,7 +59,7 @@ public class PermissionManagerTest {
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
         ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermissions(checks, false, resource, cspec, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, cspec, UpdatePermission.class);
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
@@ -70,7 +70,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource();
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        requestScope.getPermissionManager().checkPermissions(checks, false, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, UpdatePermission.class);
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
@@ -81,7 +81,7 @@ public class PermissionManagerTest {
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
         ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermissions(checks, false, resource, cspec, ReadPermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, cspec, ReadPermission.class);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -91,7 +91,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource();
         RequestScope requestScope = resource.getRequestScope();
         Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        requestScope.getPermissionManager().checkPermissions(checks, false, resource, ReadPermission.class);
+        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, ReadPermission.class);
     }
 
     @Test

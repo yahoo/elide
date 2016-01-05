@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.optimization.UserCheck;
 import com.yahoo.elide.optimization.UserCheck.UserPermission;
+import com.yahoo.elide.security.PermissionManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,27 +21,26 @@ import static com.yahoo.elide.optimization.UserCheck.FILTER;
 
 /**
  * Scope for filter processing.  Contains requestScope and checks.
- * @param <T> Filter type
  */
 @Slf4j
-public class FilterScope<T> {
+public class FilterScope {
 
     @Getter private final RequestScope requestScope;
-    @Getter private final boolean isAny;
+    @Getter private final PermissionManager.CheckMode checkMode;
     @Getter private final List<UserCheck> userChecks;
     private UserPermission filterUserPermission = null;
 
     public FilterScope(RequestScope requestScope) {
         this.requestScope = requestScope;
-        this.isAny = false;
+        this.checkMode = PermissionManager.CheckMode.ALL;
         userChecks = Collections.emptyList();
     }
 
     public FilterScope(RequestScope requestScope,
-                       boolean isAny,
+                       PermissionManager.CheckMode isAny,
                        Class<? extends UserCheck>[] userCheckClasses) {
         this.requestScope = requestScope;
-        this.isAny = isAny;
+        this.checkMode = isAny;
 
         List<UserCheck> userChecks = new ArrayList<>(userCheckClasses.length);
         for (Class<? extends UserCheck> checkClass : userCheckClasses) {
@@ -55,7 +55,20 @@ public class FilterScope<T> {
     }
 
     /**
+     * Determine whether or not the check mode is any.
+     *
+     * NOTE: This method is often used in transaction implementations.
+     *
+     * @return True if checkmode is any, false if all.
+     */
+    public boolean isAny() {
+        return PermissionManager.CheckMode.ANY == checkMode;
+    }
+
+    /**
      * Returns true if filters are applied to this query.
+     *
+     * NOTE: This method is often used in transaction implementations.
      *
      * @return true if there are filters
      */
@@ -78,13 +91,13 @@ public class FilterScope<T> {
             UserPermission checkUserPermission = requestScope.getUser().checkUserPermission(check);
 
             // short-cut for ALLOW and ANY
-            if (checkUserPermission == ALLOW && isAny) {
+            if (checkUserPermission == ALLOW && checkMode == PermissionManager.CheckMode.ANY) {
                 compositeUserPermission = ALLOW;
                 break;
             }
 
             // short-cut for DENY and ALL
-            if (checkUserPermission == DENY && !isAny) {
+            if (checkUserPermission == DENY && checkMode == PermissionManager.CheckMode.ALL) {
                 compositeUserPermission = DENY;
                 break;
             }
@@ -97,7 +110,7 @@ public class FilterScope<T> {
 
         // if still null, then all are DENY & ALL or ALLOW & ANY
         if (compositeUserPermission == null) {
-            compositeUserPermission = isAny ? DENY : ALLOW;
+            compositeUserPermission = checkMode == PermissionManager.CheckMode.ANY ? DENY : ALLOW;
         }
         return this.filterUserPermission = compositeUserPermission;
     }

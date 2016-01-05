@@ -8,12 +8,12 @@ package com.yahoo.elide.security;
 import com.google.common.base.Supplier;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.UserPermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.SecurityMode;
+import com.yahoo.elide.core.*;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 
+import com.yahoo.elide.optimization.UserCheck;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +23,14 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 /**
- * Class responsible for managing the life-cycle and execution of checks
+ * Class responsible for managing the life-cycle and execution of checks.
  */
 @Slf4j
 public class PermissionManager {
     private final LinkedHashSet<Supplier<Void>> commitChecks = new LinkedHashSet<>();
 
     /**
-     * Enum describing check combinators
+     * Enum describing check combinators.
      */
     public enum CheckMode {
         ANY,
@@ -38,7 +38,7 @@ public class PermissionManager {
     }
 
     /**
-     * Extract a set of permissions from an annotation
+     * Extract a set of permissions from an annotation.
      *
      * @param annotationClass Type of annotation to extract values
      * @param annotation Annotation instance to extract values
@@ -56,30 +56,129 @@ public class PermissionManager {
                     .getMethod("all").invoke(annotation, (Object[]) null);
         } catch (ReflectiveOperationException e) {
             log.debug("Unknown permission: {}, {}", annotationClass.getName(), e);
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
+            throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'", e);
         }
         if (anyChecks.length <= 0 && allChecks.length <= 0) {
             log.debug("Unknown permission: {}, {}", annotationClass.getName());
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
+            throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'");
         }
         return new ExtractedChecks(anyChecks, allChecks);
     }
 
-    public void checkPermissions(Class<? extends Check>[] checks,
-                                 boolean isAny,
-                                 PersistentResource<?> resource,
-                                 Class<? extends Annotation> annotationClass) {
-        checkPermissions(checks, isAny, resource, null, annotationClass);
+    /**
+     * Load checks for filter scope.
+     *
+     * @param userPermission User permission to check
+     * @param requestScope Request scope
+     * @return Filter scope containing user permission checks.
+     */
+    public static FilterScope loadChecks(UserPermission userPermission, RequestScope requestScope) {
+        if (userPermission == null) {
+            return new FilterScope(requestScope);
+        }
+
+        Class<? extends UserCheck>[] anyChecks = userPermission.any();
+        Class<? extends UserCheck>[] allChecks = userPermission.all();
+        Class<? extends Annotation> annotationClass = userPermission.getClass();
+
+        if (anyChecks.length > 0) {
+            return new FilterScope(requestScope, CheckMode.ANY, anyChecks);
+        } else if (allChecks.length > 0) {
+            return new FilterScope(requestScope, CheckMode.ALL, allChecks);
+        } else {
+            log.debug("Unknown user permission '{}'", annotationClass.getName());
+            throw new InvalidSyntaxException("Unknown user permission '" + annotationClass.getName() + "'");
+        }
     }
 
-    public void checkPermissions(Class<? extends Check>[] checks,
-                                boolean isAny,
+    /**
+     * Check permission on class.
+     *
+     * @param annotationClass annotation class
+     * @param resource resource
+     * @param <A> type parameter
+     * @see com.yahoo.elide.annotation.CreatePermission
+     * @see com.yahoo.elide.annotation.ReadPermission
+     * @see com.yahoo.elide.annotation.UpdatePermission
+     * @see com.yahoo.elide.annotation.DeletePermission
+     */
+    public <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource) {
+        A annotation = resource.getDictionary().getAnnotation(resource, annotationClass);
+        if (annotation == null) {
+            return;
+        }
+        checkPermission(annotationClass, annotation, resource);
+    }
+
+    /**
+     * Check permission on class.
+     *
+     * @param annotationClass Annotation class
+     * @param annotation annotation
+     * @param resource Resource
+     * @param <A> type parameter
+     * @see com.yahoo.elide.annotation.CreatePermission
+     * @see com.yahoo.elide.annotation.ReadPermission
+     * @see com.yahoo.elide.annotation.UpdatePermission
+     * @see com.yahoo.elide.annotation.DeletePermission
+     */
+    public <A extends Annotation> void checkPermission(Class<A> annotationClass, A annotation,
+                                                       PersistentResource resource) {
+        PermissionManager.ExtractedChecks checks = PermissionManager.extractChecks(annotationClass, annotation);
+
+        Class<? extends Check>[] anyChecks = checks.getAnyChecks();
+        Class<? extends Check>[] allChecks = checks.getAllChecks();
+
+        if (anyChecks.length > 0) {
+            checkPermission(anyChecks, PermissionManager.CheckMode.ANY, resource, annotationClass);
+        } else if (allChecks.length > 0) {
+            checkPermission(allChecks, PermissionManager.CheckMode.ALL, resource, annotationClass);
+        } else {
+            log.debug("Unknown permission '{}'", annotationClass.getName());
+            throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'");
+        }
+    }
+
+    /**
+     * Check permissions on a class.
+     *
+     * @param checks checks
+     * @param checkMode The check mode
+     * @param resource resource
+     * @param annotationClass annotation class
+     */
+    public void checkPermission(Class<? extends Check>[] checks,
+                                CheckMode checkMode,
+                                PersistentResource<?> resource,
+                                Class<? extends Annotation> annotationClass) {
+        checkPermission(checks, checkMode, resource, null, annotationClass);
+    }
+
+    /**
+     * Check permissions on a class.
+     *
+     * @param checks checks
+     * @param checkMode The check mode
+     * @param resource resource
+     * @param changeSpec change spec
+     * @param annotationClass annotation class
+     */
+    public void checkPermission(Class<? extends Check>[] checks,
+                                CheckMode checkMode,
                                 PersistentResource<?> resource,
                                 ChangeSpec<?> changeSpec,
                                 Class<? extends Annotation> annotationClass) {
-        runPermissionChecks(checks, isAny, resource, changeSpec, annotationClass, false);
+        runPermissionChecks(checks, checkMode, resource, changeSpec, annotationClass, false);
     }
 
+    /**
+     * Check for permissions on a class and its fields.
+     *
+     * @param resource resource
+     * @param changeSpec change spec
+     * @param annotationClass annotation class
+     * @param <A> type parameter
+     */
     public <A extends Annotation> void checkFieldAwarePermissions(PersistentResource<?> resource,
                                                                   ChangeSpec<?> changeSpec,
                                                                   Class<A> annotationClass) {
@@ -91,8 +190,9 @@ public class PermissionManager {
             if (annotation != null) {
                 ExtractedChecks extracted = extractChecks(annotationClass, annotation);
                 boolean isAny = extracted.getAnyChecks().length > 0;
+                CheckMode checkMode = (isAny) ? CheckMode.ANY : CheckMode.ALL;
                 Class<? extends Check>[] checks = (isAny) ? extracted.getAnyChecks() : extracted.getAllChecks();
-                runPermissionChecks(checks, isAny, resource, changeSpec, annotationClass, true);
+                runPermissionChecks(checks, checkMode, resource, changeSpec, annotationClass, true);
                 // If this is an "any" check, then we're done. If it is an "all" check, we may have commit checks queued
                 // up. This means we really need to check additional fields and queue up those checks as well.
                 if (isAny) {
@@ -121,8 +221,9 @@ public class PermissionManager {
             ExtractedChecks extracted = extractChecks(annotationClass, annotation);
             try {
                 boolean isAny = extracted.getAnyChecks().length > 0;
+                CheckMode checkMode = (isAny) ? CheckMode.ANY : CheckMode.ALL;
                 Class<? extends Check>[] checks = (isAny) ? extracted.getAnyChecks() : extracted.getAllChecks();
-                runPermissionChecks(checks, isAny, resource, changeSpec, annotationClass, true);
+                runPermissionChecks(checks, checkMode, resource, changeSpec, annotationClass, true);
                 if (isAny) {
                     return;
                 }
@@ -138,6 +239,15 @@ public class PermissionManager {
         }
     }
 
+    /**
+     * Check for permissions on a specific field.
+     *
+     * @param resource resource
+     * @param changeSpec changepsec
+     * @param annotationClass annotation class
+     * @param field field to check
+     * @param <A> type parameter
+     */
     public <A extends Annotation> void checkFieldAwarePermissions(PersistentResource<?> resource,
                                                                   ChangeSpec<?> changeSpec,
                                                                   Class<A> annotationClass,
@@ -150,8 +260,9 @@ public class PermissionManager {
             if (annotation != null) {
                 ExtractedChecks extracted = extractChecks(annotationClass, annotation);
                 boolean isAny = extracted.getAnyChecks().length > 0;
+                CheckMode checkMode = (isAny) ? CheckMode.ANY : CheckMode.ALL;
                 Class<? extends Check>[] checks = (isAny) ? extracted.getAnyChecks() : extracted.getAllChecks();
-                runPermissionChecks(checks, isAny, resource, changeSpec, annotationClass, true);
+                runPermissionChecks(checks, checkMode, resource, changeSpec, annotationClass, true);
             }
         } catch (ForbiddenAccessException e) {
             // Ignore this and continue on to checking our fields
@@ -162,19 +273,23 @@ public class PermissionManager {
         if (annotation != null) {
             ExtractedChecks extracted = extractChecks(annotationClass, annotation);
             boolean isAny = extracted.getAnyChecks().length > 0;
+            CheckMode checkMode = (isAny) ? CheckMode.ANY : CheckMode.ALL;
             Class<? extends Check>[] checks = (isAny) ? extracted.getAnyChecks() : extracted.getAllChecks();
-            runPermissionChecks(checks, isAny, resource, changeSpec, annotationClass, true);
+            runPermissionChecks(checks, checkMode, resource, changeSpec, annotationClass, true);
         } else if (entityFailed) {
             throw new ForbiddenAccessException();
         }
     }
 
+    /**
+     * Execute commmit checks.
+     */
     public void executeCommitChecks() {
         commitChecks.forEach(Supplier::get);
     }
 
     private void runPermissionChecks(Class<? extends Check>[] checks,
-                                     boolean isAny,
+                                     CheckMode checkMode,
                                      PersistentResource<?> resource,
                                      ChangeSpec<?> changeSpec,
                                      Class<? extends Annotation> annotationClass,
@@ -195,7 +310,7 @@ public class PermissionManager {
         }
 
         executePermissions(checks,
-                isAny ? CheckMode.ANY : CheckMode.ALL,
+                checkMode,
                 resource,
                 Optional.ofNullable(changeSpec),
                 shouldDefer,
@@ -226,8 +341,8 @@ public class PermissionManager {
             try {
                 checkHandler = check.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                log.debug("Illegal permission check {} {}", check.getName(), e);
-                throw new InvalidSyntaxException("Illegal permission check " + check.getName(), e);
+                log.debug("Illegal permission check '{}' {}", check.getName(), e);
+                throw new InvalidSyntaxException("Illegal permission check '" + check.getName() + "'", e);
             }
 
             Boolean ok = checkFn.apply(checkHandler, changeSpec);
@@ -270,7 +385,7 @@ public class PermissionManager {
     }
 
     /**
-     * Extracted checks
+     * Extracted checks.
      */
     @AllArgsConstructor
     public static final class ExtractedChecks {

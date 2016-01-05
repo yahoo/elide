@@ -72,7 +72,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
+    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
         return getTransaction(entityClass).loadObjects(entityClass, filterScope);
     }
 

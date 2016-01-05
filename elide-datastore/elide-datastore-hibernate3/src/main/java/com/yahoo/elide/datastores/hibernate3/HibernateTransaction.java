@@ -114,7 +114,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
+    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
 
         String type = filterScope.getRequestScope().getDictionary().getBinding(loadClass);
@@ -140,7 +140,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param filterScope the filterScope
      * @return the criterion
      */
-    public <T> Criterion buildCheckCriterion(FilterScope<T> filterScope) {
+    public Criterion buildCheckCriterion(FilterScope filterScope) {
         Criterion compositeCriterion = null;
         List<UserCheck> checks = filterScope.getUserChecks();
         RequestScope requestScope = filterScope.getRequestScope();
