@@ -268,19 +268,15 @@ public class PersistentResource<T> {
     @NonNull public static <T> Set<PersistentResource<T>> loadRecords(Class<T> loadClass, RequestScope requestScope) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
-        Set<PersistentResource<T>> resources = new LinkedHashSet<>();
         if (isDenyFilter(requestScope, loadClass)) {
-            return resources;
+            return Collections.emptySet();
         }
 
         Iterable<T> list;
         ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
         FilterScope filterScope = loadChecks(annotation, requestScope);
         list = tx.loadObjects(loadClass, filterScope);
-
-        for (T obj : list) {
-            resources.add(new PersistentResource<>(obj, requestScope));
-        }
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
             requestScope.queueCommitTrigger(resource);
@@ -732,9 +728,7 @@ public class PersistentResource<T> {
                 filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
             }
 
-            for (Object m : filteredVal) {
-                resources.add(new PersistentResource<>(this, m, getRequestScope()));
-            }
+            resources = new PersistentResourceSet(filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
         } else {

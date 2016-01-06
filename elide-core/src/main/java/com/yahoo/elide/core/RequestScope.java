@@ -256,8 +256,8 @@ public class RequestScope {
     /**
      * Check permissions
      *
-     * @param annotationClass
-     * @param task
+     * @param annotationClass annotation type
+     * @param task runnable task
      */
     private void checkPermissions(Class<?> annotationClass, Runnable task) {
         // CreatePermission queues deferred permission checks
@@ -322,6 +322,7 @@ public class RequestScope {
             this.fieldName = fieldName;
         }
 
+        @Override
         public void run() {
             // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
             // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
