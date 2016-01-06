@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.OperationCheck;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -28,12 +28,12 @@ public @interface DeletePermission {
      *
      * @return the class [ ]
      */
-    Class<? extends Check>[] any() default {};
+    Class<? extends OperationCheck>[] any() default {};
 
     /**
      * All of these checks must pass.
      *
      * @return the class [ ]
      */
-    Class<? extends Check>[] all() default {};
+    Class<? extends OperationCheck>[] all() default {};
 }

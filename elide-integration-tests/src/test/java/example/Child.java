@@ -10,7 +10,8 @@ import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.Access;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.CommitCheck;
+import com.yahoo.elide.security.OperationCheck;
 import example.Child.InitCheck;
 
 import java.util.Optional;
@@ -103,18 +104,13 @@ public class Child {
     /**
      * Initialization validation check.
      */
-    static public class InitCheck implements Check<Child> {
+    static public class InitCheck implements CommitCheck<Child>, OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }
             return false;
-        }
-
-        @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
         }
     }
 }

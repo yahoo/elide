@@ -5,18 +5,17 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.core.PersistentResource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
  * ChangeSpec for a particular field.
- *
- * @param <T> type parameter
  */
 @AllArgsConstructor
-public class ChangeSpec<T> {
-    @Getter private final String parentType;
+public class ChangeSpec {
+    @Getter private final PersistentResource resource;
     @Getter private final String fieldName;
-    @Getter private final T added;
-    @Getter private final T removed;
+    @Getter private final Object original;
+    @Getter private final Object modified;
 }

@@ -13,8 +13,9 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.Access;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.Check;
 
+import com.yahoo.elide.security.CommitCheck;
+import com.yahoo.elide.security.OperationCheck;
 import lombok.ToString;
 
 import java.util.Optional;
@@ -88,19 +89,13 @@ public class Parent extends BaseId {
         this.firstName = name;
     }
 
-    static public class InitCheck implements Check<Parent> {
-        // Only a commit check
+    static public class InitCheck implements CommitCheck<Parent>, OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {
                 return true;
             }
             return false;
-        }
-
-        @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
         }
     }
 }

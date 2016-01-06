@@ -12,7 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import example.Child;
+
 import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
@@ -23,82 +23,71 @@ public class PermissionManagerTest {
 
     @Test
     public void testSuccessfulOperationCheck() throws Exception {
-        // Simulating: @UpdatePermission(all = {SampleOperationCheck.class})
-        PersistentResource resource = newResource();
+        @Entity
+        @UpdatePermission(all = {SampleOperationCheck.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
-        ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ANY, resource, cspec, UpdatePermission.class);
-        requestScope.getPermissionManager().executeCommitChecks();
+        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
+        requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource, cspec);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailOperationCheckAll() throws Exception {
-        // Simulating: @UpdatePermission(all = {SampleOperationCheck.class})
-        PersistentResource resource = newResource();
+        @Entity
+        @UpdatePermission(all = {SampleOperationCheck.class, Access.NONE.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailOperationCheckAny() throws Exception {
-        // Simulating: @UpdatePermission(all = {SampleOperationCheck.class})
-        PersistentResource resource = newResource();
+        @Entity
+        @UpdatePermission(any = {SampleOperationCheck.class, SampleCommitCheck.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleOperationCheck.class};
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ANY, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource);
         // Update permissions are deferred. In the case of "any," commit checks must execute before failure can be detected
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test
     public void testSuccessfulCommitChecks() throws Exception {
-        // Simulating: @UpdatePermission(all = {SampleCommitCheck.class})
-        PersistentResource resource = newResource();
+        @Entity
+        @UpdatePermission(all = {SampleCommitCheck.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, cspec, UpdatePermission.class);
+        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
+        requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource, cspec);
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailCommitChecks() throws Exception {
-        // Simulating: @UpdatePermission(all = {SampleCommitCheck.class})
-        PersistentResource resource = newResource();
+        @Entity
+        @UpdatePermission(all = {SampleCommitCheck.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, UpdatePermission.class);
+        requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource);
         requestScope.getPermissionManager().executeCommitChecks();
-    }
-
-    @Test
-    public void testReadCheckSucceedsWithCommitCheck() {
-        // Simulating: @ReadPermission(all = {SampleCommitCheck.class})
-        PersistentResource resource = newResource();
-        RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        ChangeSpec<Object> cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, cspec, ReadPermission.class);
-    }
-
-    @Test(expectedExceptions = ForbiddenAccessException.class)
-    public void testReadCheckFailsInCommitCheck() {
-        // Commit checks should be "and'ed" with operation checks to make a single "and" check in this case
-        // Simulating: @ReadPermission(all = {SampleCommitCheck.class})
-        PersistentResource resource = newResource();
-        RequestScope requestScope = resource.getRequestScope();
-        Class<? extends Check>[] checks = new Class[]{SampleCommitCheck.class};
-        requestScope.getPermissionManager().checkPermission(checks, PermissionManager.CheckMode.ALL, resource, ReadPermission.class);
     }
 
     @Test
     public void testReadFieldAwareSuccessAllAnyField() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec<>(null, null, null, null), ReadPermission.class);
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -112,7 +101,7 @@ public class PermissionManagerTest {
     public void testReadFieldAwareSuccessAll() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec<>(null, null, null, null), ReadPermission.class, "allVisible");
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "allVisible");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -140,7 +129,7 @@ public class PermissionManagerTest {
     public void testReadFieldAwareSuccessAny() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec<>(null, null, null, null), ReadPermission.class, "mayFailInCommit");
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "mayFailInCommit");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -154,7 +143,7 @@ public class PermissionManagerTest {
     public void testUpdateFieldAwareSuccessAll() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec<>(null, null, null, null), UpdatePermission.class, "allVisible");
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), UpdatePermission.class, "allVisible");
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
@@ -170,7 +159,7 @@ public class PermissionManagerTest {
     public void testUpdateFieldAwareSuccessAny() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec<>(null, null, null, null), UpdatePermission.class, "mayFailInCommit");
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), UpdatePermission.class, "mayFailInCommit");
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
@@ -199,8 +188,11 @@ public class PermissionManagerTest {
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
-    public PersistentResource newResource() {
-        return newResource(Child.class);
+    public <T> PersistentResource newResource(T obj, Class<T> cls) {
+        EntityDictionary dictionary = new EntityDictionary();
+        dictionary.bindEntity(cls);
+        RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
+        return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
@@ -214,20 +206,14 @@ public class PermissionManagerTest {
         }
     }
 
-    public static final class SampleOperationCheck implements Check<Object> {
+    public static final class SampleOperationCheck implements OperationCheck<Object> {
         @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
         }
     }
 
-    public static final class SampleCommitCheck implements Check<Object> {
-        @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            // Operation check should always succeed in this case
-            return true;
-        }
-
+    public static final class SampleCommitCheck implements CommitCheck<Object> {
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
@@ -242,7 +228,7 @@ public class PermissionManagerTest {
         @Id
         public Long id;
 
-        @ReadPermission(all = {Access.ALL.class, SampleCommitCheck.class})
+        @ReadPermission(all = {Access.ALL.class, SampleOperationCheck.class})
         @UpdatePermission(all = {Access.ALL.class, SampleCommitCheck.class})
         public String allVisible = "You should see me!";
 
@@ -252,7 +238,7 @@ public class PermissionManagerTest {
         @UpdatePermission(all = {Access.ALL.class, Access.NONE.class})
         public String cannotSeeMe = "hidden";
 
-        @ReadPermission(any = {SampleCommitCheck.class, Access.NONE.class})
+        @ReadPermission(any = {SampleOperationCheck.class})
         @UpdatePermission(any = {SampleCommitCheck.class, Access.NONE.class})
         public String mayFailInCommit = "aw :(";
     }
@@ -267,11 +253,11 @@ public class PermissionManagerTest {
 
         public String open;
 
-        @ReadPermission(all = {SampleCommitCheck.class, SampleOperationCheck.class})
+        @ReadPermission(all = {Access.NONE.class, SampleOperationCheck.class})
         @UpdatePermission(all = {SampleCommitCheck.class, SampleOperationCheck.class})
         public String openAll = "all";
 
-        @ReadPermission(any = {SampleCommitCheck.class, SampleOperationCheck.class})
+        @ReadPermission(any = {SampleOperationCheck.class, SampleOperationCheck.class})
         @UpdatePermission(any = {SampleCommitCheck.class, SampleOperationCheck.class})
         public String openAny = "all";
     }
