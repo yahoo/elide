@@ -6,6 +6,8 @@
 package com.yahoo.elide.security;
 
 import com.google.common.base.Supplier;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.annotation.UserPermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.*;
@@ -195,22 +197,26 @@ public class PermissionManager {
             }
             ExtractedChecks extracted = extractChecks(annotationClass, annotation);
             fieldOpChecks.add(extracted.getOperationChecks());
-            fieldComChecks.add(extracted.getOperationChecks());
+            fieldComChecks.add(extracted.getCommitChecks());
             fieldCheckModes.add(extracted.getCheckMode());
         }
 
+        boolean hasDeferredChecks = (!isEmptyCheckArray(classComChecks) || !isEmptyListOfChecks(fieldComChecks))
+                && (annotationClass.equals(UpdatePermission.class) || annotationClass.equals(CreatePermission.class));
+
         // Run operation checks
-        checkClassAndFields(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec);
+        checkClassAndFields(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec,
+                hasDeferredChecks);
 
         // Need these to be final so we can capture within lambda
         final Class<? extends Check>[] captureClassComChecks = classComChecks;
         final CheckMode captureClassCheckMode = classCheckMode;
 
         // If that succeeds, queue up the commit checks
-        if ((captureClassComChecks != null && captureClassComChecks.length > 0) || fieldComChecks.size() > 0) {
+        if (hasDeferredChecks) {
             commitChecks.add(() -> {
                 checkClassAndFields(captureClassComChecks, fieldComChecks, captureClassCheckMode,
-                        fieldCheckModes, resource, changeSpec);
+                        fieldCheckModes, resource, changeSpec, false);
                 return null;
             });
         }
@@ -337,11 +343,13 @@ public class PermissionManager {
                                      CheckMode classMode,
                                      List<CheckMode> fieldModes,
                                      PersistentResource<?> resource,
-                                     ChangeSpec changeSpec) {
-        boolean hasPassingCheck = true;
+                                     ChangeSpec changeSpec,
+                                     boolean hasDeferredChecks) {
+        boolean hasPassingCheck = !isEmptyCheckArray(classChecks)
+                || (isEmptyCheckArray(classChecks) && isEmptyListOfChecks(fieldChecks));
 
         // Check full object, then all fields
-        if (classChecks != null) {
+        if (!isEmptyCheckArray(classChecks)) {
             try {
                 runPermissionChecks(classChecks, classMode, resource, changeSpec);
                 // If this is an "any" check, then we're done. If it is an "all" check, we may have commit checks queued
@@ -355,7 +363,7 @@ public class PermissionManager {
             }
         }
 
-        if (fieldChecks != null && !fieldChecks.isEmpty() && fieldChecks.size() == fieldModes.size()) {
+        if (!isEmptyListOfChecks(fieldChecks) && fieldChecks.size() == fieldModes.size()) {
             for (int i = 0 ; i < fieldChecks.size() ; ++i) {
                 try {
                     CheckMode mode = fieldModes.get(i);
@@ -371,7 +379,7 @@ public class PermissionManager {
         }
 
         // If nothing succeeded, we know nothing is queued up. We should fail out.
-        if (!hasPassingCheck) {
+        if (!hasPassingCheck && !hasDeferredChecks) {
             throw new ForbiddenAccessException();
         }
     }
@@ -418,6 +426,34 @@ public class PermissionManager {
         } else if (entityFailed) {
             throw new ForbiddenAccessException();
         }
+    }
+
+    /**
+     * Check whether or not an array of checks is empty.
+     *
+     * @param checks Array of checks
+     * @return True if empty, false otherwise.
+     */
+    private static boolean isEmptyCheckArray(Class<? extends Check>[] checks) {
+        return checks == null || checks.length < 1;
+    }
+
+    /**
+     * Check if a list containing an array of checks is empty.
+     *
+     * @param checks List of check arrays
+     * @return True if empty, false otherwise.
+     */
+    private static boolean isEmptyListOfChecks(List<Class<? extends Check>[]> checks) {
+        if (checks == null || checks.isEmpty()) {
+            return true;
+        }
+        for (Class<? extends Check>[] checkArray : checks) {
+            if (!isEmptyCheckArray(checkArray)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

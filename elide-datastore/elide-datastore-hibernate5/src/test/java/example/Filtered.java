@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 
 import com.yahoo.elide.security.Access;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.OperationCheck;
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -44,12 +45,7 @@ public class Filtered extends BaseId {
     /**
      * Filter for ID == 1.
      */
-    static public class FilterCheck implements CriteriaCheck<Filtered> {
-        @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
-        }
-
+    static public class FilterCheck implements CriteriaCheck<Filtered>, OperationCheck<Filtered> {
         @Override
         public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return true;
@@ -65,12 +61,7 @@ public class Filtered extends BaseId {
     /**
      * Filter for ID == 3.
      */
-    static public class FilterCheck3 implements CriteriaCheck<Filtered> {
-        @Override
-        public boolean ok(RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
-        }
-
+    static public class FilterCheck3 implements CriteriaCheck<Filtered>, OperationCheck<Filtered> {
         @Override
         public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return true;

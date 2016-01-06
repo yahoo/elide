@@ -8,6 +8,7 @@ package com.yahoo.elide.security;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -17,9 +18,46 @@ import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.lang.annotation.Annotation;
 import java.util.Optional;
 
 public class PermissionManagerTest {
+
+    @Test(expectedExceptions = {InvalidSyntaxException.class})
+    public void testBadCheckExtraction() {
+        // Non-permission annotation passed in
+        PermissionManager.extractChecks(Entity.class, new Entity() {
+            @Override
+            public String name() {
+                return null;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return null;
+            }
+        });
+    }
+
+    @Test(expectedExceptions = {InvalidSyntaxException.class})
+    public void testNoChecks() {
+        PermissionManager.extractChecks(UpdatePermission.class, new UpdatePermission() {
+            @Override
+            public Class<? extends Check>[] any() {
+                return new Class[]{};
+            }
+
+            @Override
+            public Class<? extends Check>[] all() {
+                return new Class[]{};
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return null;
+            }
+        });
+    }
 
     @Test
     public void testSuccessfulOperationCheck() throws Exception {
@@ -188,6 +226,93 @@ public class PermissionManagerTest {
         requestScope.getPermissionManager().executeCommitChecks();
     }
 
+    @Test
+    public void testPassAnyFieldAwareFailOperationSuccessCommit() {
+        @Entity
+        @Include
+        @UpdatePermission(all = {Access.NONE.class, PassingCommitCheck.class})
+        class Model {
+            @Id
+            public Long id;
+
+            @UpdatePermission(any = {Access.NONE.class, PassingCommitCheck.class})
+            public String field = "some data";
+        }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class);
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = {ForbiddenAccessException.class})
+    public void testFailAllFieldAwareSuccessOperationFailCommit() {
+        @Entity
+        @Include
+        @UpdatePermission(all = {Access.NONE.class})
+        class Model {
+            @Id
+            public Long id;
+
+            @UpdatePermission(all = {Access.ALL.class, FailingCommitCheck.class})
+            public String field = "some data";
+        }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class);
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test
+    public void testPassAnySpecificFieldAwareFailOperationSuccessCommit() {
+        @Entity
+        @Include
+        @UpdatePermission(all = {Access.NONE.class, PassingCommitCheck.class})
+        class Model {
+            @Id
+            public Long id;
+
+            @UpdatePermission(any = {Access.NONE.class, PassingCommitCheck.class})
+            public String field = "some data";
+        }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class, "field");
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = {ForbiddenAccessException.class})
+    public void testFailAllSpecificFieldAwareSuccessOperationFailCommit() {
+        @Entity
+        @Include
+        @UpdatePermission(all = {Access.ALL.class})
+        class Model {
+            @Id
+            public Long id;
+
+            @UpdatePermission(all = {Access.ALL.class, FailingCommitCheck.class})
+            public String field = "some data";
+        }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class, "field");
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = {InvalidSyntaxException.class})
+    public void testBadInstance() {
+        @Entity
+        @UpdatePermission(all = {PrivatePermission.class})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class);
+    }
+
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary();
         dictionary.bindEntity(cls);
@@ -217,6 +342,27 @@ public class PermissionManagerTest {
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
+        }
+    }
+
+    public static final class PassingCommitCheck implements CommitCheck<Object> {
+        @Override
+        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return true;
+        }
+    }
+
+    public static final class FailingCommitCheck implements CommitCheck<Object> {
+        @Override
+        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return false;
+        }
+    }
+
+    private static final class PrivatePermission implements OperationCheck<Object> {
+        @Override
+        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return false;
         }
     }
 
