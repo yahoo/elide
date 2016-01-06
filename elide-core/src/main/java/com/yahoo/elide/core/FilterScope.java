@@ -47,7 +47,7 @@ public class FilterScope {
             try {
                 userChecks.add(checkClass.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                log.debug("Could not instantiate UserCheck: {}", checkClass.getName());
+                log.error("Could not instantiate UserCheck: {}", checkClass.getName());
                 throw new IllegalStateException("Failed to instantiate UserCheck.");
             }
         }

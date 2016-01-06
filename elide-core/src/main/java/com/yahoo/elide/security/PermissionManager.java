@@ -57,11 +57,11 @@ public class PermissionManager {
             allChecks = (Class<? extends Check>[]) annotationClass
                     .getMethod("all").invoke(annotation, (Object[]) null);
         } catch (ReflectiveOperationException e) {
-            log.debug("Unknown permission: {}, {}", annotationClass.getName(), e);
+            log.warn("Unknown permission: {}, {}", annotationClass.getName(), e);
             throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'", e);
         }
         if (anyChecks.length <= 0 && allChecks.length <= 0) {
-            log.debug("Unknown permission: {}, {}", annotationClass.getName());
+            log.warn("Unknown permission: {}, {}", annotationClass.getName());
             throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'");
         }
         return new ExtractedChecks(anyChecks, allChecks);
@@ -88,7 +88,7 @@ public class PermissionManager {
         } else if (allChecks.length > 0) {
             return new FilterScope(requestScope, CheckMode.ALL, allChecks);
         } else {
-            log.debug("Unknown user permission '{}'", annotationClass.getName());
+            log.warn("Unknown user permission '{}'", annotationClass.getName());
             throw new InvalidSyntaxException("Unknown user permission '" + annotationClass.getName() + "'");
         }
     }
@@ -465,7 +465,7 @@ public class PermissionManager {
         private final Class<? extends Check>[] allChecks;
 
         @SuppressWarnings("unchecked")
-        public Class<? extends Check>[] getAllChecks() {
+        public Class<? extends Check>[] getCompleteSetOfChecks() {
             return (anyChecks.length > 0) ? anyChecks : allChecks;
         }
 
@@ -483,7 +483,7 @@ public class PermissionManager {
 
         @SuppressWarnings("unchecked")
         private <T extends Check> Class<T>[] getArray(Class<T> cls) {
-            Class<? extends Check>[] checks = getAllChecks();
+            Class<? extends Check>[] checks = getCompleteSetOfChecks();
             ArrayList<Class<T>> checksList = new ArrayList<>();
             for (Class<? extends Check> check : checks) {
                 if (cls.isAssignableFrom(check)) {
