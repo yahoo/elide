@@ -39,8 +39,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
-import static com.yahoo.elide.security.UserCheck.DENY;
-
+import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -60,7 +59,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.persistence.GeneratedValue;
+
+import static com.yahoo.elide.security.UserCheck.DENY;
 
 /**
  * Resource wrapper around Entity bean.
@@ -885,8 +885,14 @@ public class PersistentResource<T> {
                 ? uuid.orElseThrow(
                         () -> new InvalidEntityBodyException("No id found on object"))
                 : dictionary.getId(obj));
-        resource.setRelationships(getRelationships());
-        resource.setAttributes(getAttributes());
+        boolean save = this.getRequestScope().isNotDeferred();
+        try {
+            this.getRequestScope().setNotDeferred(true);
+            resource.setRelationships(getRelationships());
+            resource.setAttributes(getAttributes());
+        } finally {
+            this.getRequestScope().setNotDeferred(save);
+        }
         return resource;
     }
 

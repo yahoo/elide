@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
@@ -14,10 +15,10 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.Setter;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -50,7 +49,7 @@ public class RequestScope {
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
-    private boolean doNotDefer = false;
+    @Getter @Setter private boolean isNotDeferred = false;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -264,7 +263,7 @@ public class RequestScope {
         if (deferredChecks == null && CreatePermission.class.equals(annotationClass)) {
             deferredChecks = new LinkedHashSet<>();
         }
-        if (deferredChecks == null || doNotDefer) {
+        if (deferredChecks == null || isNotDeferred) {
             task.run();
         } else {
             deferredChecks.add(task);
@@ -327,13 +326,17 @@ public class RequestScope {
             // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
             // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
             // We should probably find a cleaner way to do this.
-            resource.getRequestScope().doNotDefer = true;
-            if (fieldName != null && !fieldName.isEmpty()) {
-                specificField(fieldName);
-            } else {
-                allFields();
+            boolean save = resource.getRequestScope().isNotDeferred;
+            try {
+                resource.getRequestScope().isNotDeferred = true;
+                if (fieldName != null && !fieldName.isEmpty()) {
+                    specificField(fieldName);
+                } else {
+                    allFields();
+                }
+            } finally {
+                resource.getRequestScope().isNotDeferred = save;
             }
-            resource.getRequestScope().doNotDefer = false;
         }
 
         /**
