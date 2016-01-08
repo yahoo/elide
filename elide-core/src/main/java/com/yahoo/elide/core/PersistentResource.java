@@ -632,9 +632,7 @@ public class PersistentResource<T> {
      * @return Boolean
      */
     public Boolean isIdGenerated() {
-        return getIdAnnotations().stream().anyMatch(a ->
-                        a.annotationType().equals(GeneratedValue.class)
-        );
+        return getIdAnnotations().stream().anyMatch(a -> a.annotationType().equals(GeneratedValue.class));
     }
 
     /**
@@ -885,14 +883,8 @@ public class PersistentResource<T> {
                 ? uuid.orElseThrow(
                         () -> new InvalidEntityBodyException("No id found on object"))
                 : dictionary.getId(obj));
-        boolean save = this.getRequestScope().isNotDeferred();
-        try {
-            this.getRequestScope().setNotDeferred(true);
-            resource.setRelationships(getRelationships());
-            resource.setAttributes(getAttributes());
-        } finally {
-            this.getRequestScope().setNotDeferred(save);
-        }
+        resource.setRelationships(getRelationships());
+        resource.setAttributes(getAttributes());
         return resource;
     }
 
@@ -1241,15 +1233,24 @@ public class PersistentResource<T> {
             PersistentResource resource,
             Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        for (String field : fields) {
-            try {
-                if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
-                    resource.checkFieldAwarePermissions(permission, field);
-                    filteredSet.add(field);
+        // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
+        // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
+        // We should probably find a cleaner way to do this.
+        boolean save = resource.getRequestScope().isNotDeferred();
+        try {
+            resource.getRequestScope().setNotDeferred(true);
+            for (String field : fields) {
+                try {
+                    if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
+                        resource.checkFieldAwarePermissions(permission, field);
+                        filteredSet.add(field);
+                    }
+                } catch (ForbiddenAccessException e) {
+                    // Do nothing. Filter from set.
                 }
-            } catch (ForbiddenAccessException e) {
-                // Do nothing. Filter from set.
             }
+        } finally {
+            resource.getRequestScope().setNotDeferred(save);
         }
         return filteredSet;
     }

@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.base.Preconditions;
+import static lombok.AccessLevel.PACKAGE;
+
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
@@ -15,10 +16,11 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
+
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -49,7 +53,7 @@ public class RequestScope {
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
-    @Getter @Setter private boolean isNotDeferred = false;
+    @Getter(PACKAGE) @Setter(PACKAGE) private boolean notDeferred = false;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -263,7 +267,7 @@ public class RequestScope {
         if (deferredChecks == null && CreatePermission.class.equals(annotationClass)) {
             deferredChecks = new LinkedHashSet<>();
         }
-        if (deferredChecks == null || isNotDeferred) {
+        if (deferredChecks == null || notDeferred) {
             task.run();
         } else {
             deferredChecks.add(task);
@@ -326,16 +330,16 @@ public class RequestScope {
             // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
             // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
             // We should probably find a cleaner way to do this.
-            boolean save = resource.getRequestScope().isNotDeferred;
+            boolean save = resource.getRequestScope().notDeferred;
             try {
-                resource.getRequestScope().isNotDeferred = true;
+                resource.getRequestScope().notDeferred = true;
                 if (fieldName != null && !fieldName.isEmpty()) {
                     specificField(fieldName);
                 } else {
                     allFields();
                 }
             } finally {
-                resource.getRequestScope().isNotDeferred = save;
+                resource.getRequestScope().notDeferred = save;
             }
         }
 
@@ -347,6 +351,7 @@ public class RequestScope {
          * @param theField Field to check
          */
         private void specificField(String theField) {
+            assert resource.getRequestScope().isNotDeferred();
             try {
                 resource.checkPermission(annotationClass, resource);
             } catch (ForbiddenAccessException e) {
@@ -361,6 +366,7 @@ public class RequestScope {
          * ForbiddenAccessException is thrown.
          */
         private void allFields() {
+            assert resource.getRequestScope().isNotDeferred();
             EntityDictionary dictionary = resource.getDictionary();
 
             try {
