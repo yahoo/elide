@@ -14,6 +14,9 @@ import com.yahoo.elide.core.*;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 
 import com.yahoo.elide.optimization.UserCheck;
+import com.yahoo.elide.security.strategies.AnyField;
+import com.yahoo.elide.security.strategies.SpecificField;
+import com.yahoo.elide.security.strategies.Strategy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  * Class responsible for managing the life-cycle and execution of checks.
@@ -30,6 +34,8 @@ import java.util.Optional;
 @Slf4j
 public class PermissionManager {
     private final LinkedHashSet<Supplier<Void>> commitChecks = new LinkedHashSet<>();
+    private static final SpecificField SPECIFIC_STRATEGY = new SpecificField();
+    private static final AnyField ANY_STRATEGY = new AnyField();
 
     /**
      * Enum describing check combinators.
@@ -205,8 +211,16 @@ public class PermissionManager {
                 && (annotationClass.equals(UpdatePermission.class) || annotationClass.equals(CreatePermission.class));
 
         // Run operation checks
-        checkClassAndFields(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec,
-                hasDeferredChecks);
+        BiFunction<Boolean, Boolean, BiFunction<Boolean, Boolean, Void>> strat = (hasPassingCheck, hasDeferredCheck) ->
+            (entityFailed, hasFieldChecks) -> {
+                // If nothing succeeded, we know nothing is queued up. We should fail out.
+                if (!hasPassingCheck && !hasDeferredChecks) {
+                    throw new ForbiddenAccessException();
+                }
+                return null;
+            };
+        fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec,
+                hasDeferredChecks, ANY_STRATEGY);
 
         // Need these to be final so we can capture within lambda
         final Class<? extends Check>[] captureClassComChecks = classComChecks;
@@ -215,8 +229,8 @@ public class PermissionManager {
         // If that succeeds, queue up the commit checks
         if (hasDeferredChecks) {
             commitChecks.add(() -> {
-                checkClassAndFields(captureClassComChecks, fieldComChecks, captureClassCheckMode,
-                        fieldCheckModes, resource, changeSpec, false);
+                fieldAwareExecute(captureClassComChecks, fieldComChecks, captureClassCheckMode,
+                        fieldCheckModes, resource, changeSpec, false, ANY_STRATEGY);
                 return null;
             });
         }
@@ -262,8 +276,15 @@ public class PermissionManager {
         }
 
         // Run checks
-        fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckMode, resource, changeSpec,
-                (fieldComChecks != null && fieldComChecks.length > 0));
+        List<Class<? extends Check>[]> fieldOpList = new ArrayList();
+        fieldOpList.add(fieldOpChecks);
+        fieldAwareExecute(classOpChecks,
+                fieldOpList,
+                classCheckMode,
+                Arrays.asList(fieldCheckMode),
+                resource, changeSpec,
+                (fieldComChecks != null && fieldComChecks.length > 0),
+                SPECIFIC_STRATEGY);
 
         // Capture these as final for lambda
         final Class<? extends Check>[] capClassComChecks = classComChecks;
@@ -274,14 +295,17 @@ public class PermissionManager {
         // Queue up on success
         if ((capFieldComChecks != null && capFieldComChecks.length > 0)
                 || (capClassComChecks != null && capClassComChecks.length > 0)) {
+            final List<Class<? extends Check>[]> fieldComList = new ArrayList();
+            fieldComList.add(fieldComChecks);
             commitChecks.add(() -> {
                 fieldAwareExecute(capClassComChecks,
-                        capFieldComChecks,
+                        fieldComList,
                         capClassCheckMode,
-                        capFieldCheckMode,
+                        Arrays.asList(capFieldCheckMode),
                         resource,
                         changeSpec,
-                        false);
+                        false,
+                        SPECIFIC_STRATEGY);
                 return null;
             });
         }
@@ -338,94 +362,58 @@ public class PermissionManager {
      * @param changeSpec
      * @return True if done (i.e. no commit checks), false otherwise. Throws a ForbiddenAccessException upon failure.
      */
-    private void checkClassAndFields(Class<? extends Check>[] classChecks,
-                                     List<Class<? extends Check>[]> fieldChecks,
-                                     CheckMode classMode,
-                                     List<CheckMode> fieldModes,
-                                     PersistentResource<?> resource,
-                                     ChangeSpec changeSpec,
-                                     boolean hasDeferredChecks) {
+    private void fieldAwareExecute(Class<? extends Check>[] classChecks,
+                                   List<Class<? extends Check>[]> fieldChecks,
+                                   CheckMode classMode,
+                                   List<CheckMode> fieldModes,
+                                   PersistentResource<?> resource,
+                                   ChangeSpec changeSpec,
+                                   boolean hasDeferredChecks,
+                                   Strategy strategy) {
         boolean hasPassingCheck = !isEmptyCheckArray(classChecks)
                 || (isEmptyCheckArray(classChecks) && isEmptyListOfChecks(fieldChecks));
+        boolean entityFailed = false;
 
         // Check full object, then all fields
         if (!isEmptyCheckArray(classChecks)) {
             try {
                 runPermissionChecks(classChecks, classMode, resource, changeSpec);
-                // If this is an "any" check, then we're done. If it is an "all" check, we may have commit checks queued
-                // up. This means we really need to check additional fields and queue up those checks as well.
-                if (classMode == CheckMode.ANY) {
+                // Check if we can short-circuit the rest of the checks
+                if (!strategy.shouldContinueUponEntitySuccess(classMode)) {
                     return;
                 }
             } catch (ForbiddenAccessException e) {
                 // Ignore this and continue on to checking our fields
                 hasPassingCheck = false;
+                entityFailed = true;
             }
         }
 
-        if (!isEmptyListOfChecks(fieldChecks) && fieldChecks.size() == fieldModes.size()) {
+        // Check fields
+        boolean hasFieldChecks = !isEmptyListOfChecks(fieldChecks);
+        boolean modeCheckCardinalityMatch = fieldChecks.size() == fieldModes.size();
+        if (hasFieldChecks && modeCheckCardinalityMatch) {
             for (int i = 0 ; i < fieldChecks.size() ; ++i) {
+                CheckMode mode = fieldModes.get(i);
                 try {
-                    CheckMode mode = fieldModes.get(i);
                     runPermissionChecks(fieldChecks.get(i), mode, resource, changeSpec);
                     if (mode == CheckMode.ANY) {
                         return;
                     }
                     hasPassingCheck = true;
                 } catch (ForbiddenAccessException e) {
-                    // Ignore and keep looking or queueing
+                    if (!strategy.shouldContinueUponFieldFailure(mode, hasDeferredChecks)) {
+                        throw e;
+                    }
                 }
             }
-        }
-
-        // If nothing succeeded, we know nothing is queued up. We should fail out.
-        if (!hasPassingCheck && !hasDeferredChecks) {
+        } else if (!modeCheckCardinalityMatch) {
+            // NOTE: This should never happen, but unfortunately bugs do occur. Err on the side of caution.
+            log.error("Something went wrong internally! The cardinality of fields and check mode arrays differ.");
             throw new ForbiddenAccessException();
         }
-    }
 
-    /**
-     * Execute field-aware checks for a single field by specifying the set of class and field checks to be run.
-     *
-     * @param classChecks Class-level checks
-     * @param fieldChecks Field-level checks
-     * @param classCheckMode Class-level check mode
-     * @param fieldCheckMode Field-level check mode
-     * @param resource Resource to check
-     * @param changeSpec Change spec
-     * @param hasDeferredChecks Whether or not this check can expect deferred checks later on
-     */
-    private void fieldAwareExecute(Class<? extends Check>[] classChecks,
-                                   Class<? extends Check>[] fieldChecks,
-                                   CheckMode classCheckMode,
-                                   CheckMode fieldCheckMode,
-                                   PersistentResource resource,
-                                   ChangeSpec changeSpec,
-                                   boolean hasDeferredChecks) {
-        // Check full object, then field
-        boolean entityFailed = false;
-        if (classChecks != null) {
-            try {
-                runPermissionChecks(classChecks, classCheckMode, resource, changeSpec);
-            } catch (ForbiddenAccessException e) {
-                // Ignore this and continue on to checking our fields
-                entityFailed = true;
-            }
-        }
-
-        if (fieldChecks != null && fieldChecks.length > 0) {
-            try {
-                runPermissionChecks(fieldChecks, fieldCheckMode, resource, changeSpec);
-            } catch (ForbiddenAccessException e) {
-                if (fieldCheckMode == CheckMode.ALL || !hasDeferredChecks) {
-                    // No need to wait if we either (a) require all checks to pass or (b) don't have deferred checks
-                    // to wait on
-                    throw e;
-                }
-            }
-        } else if (entityFailed) {
-            throw new ForbiddenAccessException();
-        }
+        strategy.run(hasPassingCheck, hasDeferredChecks, hasFieldChecks, entityFailed);
     }
 
     /**

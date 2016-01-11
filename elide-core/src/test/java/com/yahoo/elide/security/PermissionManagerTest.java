@@ -8,12 +8,16 @@ package com.yahoo.elide.security;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.UserPermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 
+import example.NegativeIntegerUserCheck;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
@@ -57,6 +61,38 @@ public class PermissionManagerTest {
                 return null;
             }
         });
+    }
+
+    @Test
+    public void testLoadUserChecks() {
+        @Entity
+        @UserPermission(any = {NegativeIntegerUserCheck.class})
+        class Model1 { }
+
+        @Entity
+        @UserPermission(all = {NegativeIntegerUserCheck.class})
+        class Model2 { }
+
+        PersistentResource resource1 = newResource(new Model1(), Model1.class);
+        PersistentResource resource2 = newResource(new Model2(), Model2.class);
+
+        FilterScope scope1 = PermissionManager.loadChecks(resource1.getDictionary().getAnnotation(Model1.class, UserPermission.class), resource1.getRequestScope());
+        FilterScope scope2 = PermissionManager.loadChecks(resource2.getDictionary().getAnnotation(Model2.class, UserPermission.class), resource2.getRequestScope());
+
+        Assert.assertEquals(scope1.getCheckMode(), PermissionManager.CheckMode.ANY);
+        Assert.assertEquals(scope2.getCheckMode(), PermissionManager.CheckMode.ALL);
+        Assert.assertTrue(scope1.getUserChecks().get(0) instanceof NegativeIntegerUserCheck);
+        Assert.assertTrue(scope2.getUserChecks().get(0) instanceof NegativeIntegerUserCheck);
+    }
+
+    @Test(expectedExceptions = {InvalidSyntaxException.class})
+    public void testBadLoadUserChecks() {
+        @Entity
+        @UserPermission(any = {})
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        PermissionManager.loadChecks(resource.getDictionary().getAnnotation(Model.class, UserPermission.class), resource.getRequestScope());
     }
 
     @Test
