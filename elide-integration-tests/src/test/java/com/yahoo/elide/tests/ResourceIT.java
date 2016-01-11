@@ -1304,7 +1304,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void elideBypassSecurity() {
-        String expected = jsonParser.getJson("/ResourceIT/testChild.json");
+        String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
         Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response =

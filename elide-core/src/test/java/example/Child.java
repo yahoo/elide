@@ -24,6 +24,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import java.util.Set;
+import javax.persistence.OneToOne;
 
 @Entity
 @CreatePermission(any = { InitCheck.class })
@@ -48,6 +49,7 @@ public class Child {
     private String name;
 
     private Set<Child> friends;
+    private Child noReadAccess;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -95,6 +97,18 @@ public class Child {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @OneToOne(
+            targetEntity = Child.class
+    )
+    @ReadPermission(all = {Role.NONE.class})
+    public Child getReadNoAccess() {
+        return noReadAccess;
+    }
+
+    public void setReadNoAccess(Child noReadAccess) {
+        this.noReadAccess = noReadAccess;
     }
 
     static public class InitCheck implements Check<Child> {
