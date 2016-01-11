@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static lombok.AccessLevel.PACKAGE;
+
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.filter.Predicate;
@@ -14,6 +16,7 @@ import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +48,7 @@ public class RequestScope {
     @Getter private final PermissionManager permissionManager;
 
     final private transient LinkedHashSet<Runnable> commitTriggers;
+    @Getter(PACKAGE) @Setter(PACKAGE) private boolean notDeferred = false;
 
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,

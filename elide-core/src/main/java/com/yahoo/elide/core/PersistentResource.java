@@ -33,6 +33,7 @@ import org.apache.commons.lang3.text.WordUtils;
 
 import static com.yahoo.elide.optimization.UserCheck.DENY;
 
+import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -51,7 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.persistence.GeneratedValue;
 
 /**
  * Resource wrapper around Entity bean.
@@ -620,9 +620,7 @@ public class PersistentResource<T> {
      * @return Boolean
      */
     public Boolean isIdGenerated() {
-        return getIdAnnotations().stream().anyMatch(a ->
-                        a.annotationType().equals(GeneratedValue.class)
-        );
+        return getIdAnnotations().stream().anyMatch(a -> a.annotationType().equals(GeneratedValue.class));
     }
 
     /**

@@ -1450,7 +1450,7 @@ public class PersistentResourceTest extends PersistentResource {
         boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
 
         Assert.assertTrue(returnVal);
-        Assert.assertEquals(userModel.getNoShare(), null);
+        Assert.assertNull(userModel.getNoShare());
     }
 
     private RequestScope getUserScope(User user, Logger logger) {

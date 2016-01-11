@@ -24,6 +24,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 
 /**
  * Child test bean.
@@ -52,6 +53,7 @@ public class Child {
     private String name;
 
     private Set<Child> friends;
+    private Child noReadAccess;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -99,6 +101,18 @@ public class Child {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @OneToOne(
+            targetEntity = Child.class
+    )
+    @ReadPermission(all = {Access.NONE.class})
+    public Child getNoReadAccess() {
+        return noReadAccess;
+    }
+
+    public void setNoReadAccess(Child noReadAccess) {
+        this.noReadAccess = noReadAccess;
     }
 
     /**
