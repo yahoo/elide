@@ -1,0 +1,25 @@
+{
+    "data":{
+        "type":"child",
+        "id":"1",
+        "attributes":{
+            "name":null
+        },
+        "relationships":{
+            "friends":{
+                "data":[]
+            },
+            "noReadAccess":{
+                "data":null
+            },
+            "parents":{
+                "data":[
+                    {
+                        "type":"parent",
+                        "id":"1"
+                    }
+                ]
+            }
+        }
+    }
+}
