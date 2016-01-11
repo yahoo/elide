@@ -40,12 +40,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.optimization.UserCheck.ALLOW;
@@ -408,16 +403,16 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         FilterScope filterScope;
 
-        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, new Class[] { Role.NONE.class, Role.NONE.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, Arrays.asList(new Role.NONE(), new Role.NONE()));
         Assert.assertEquals(filterScope.getUserPermission(), DENY);
 
-        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, new Class[] { Role.ALL.class, Role.NONE.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, Arrays.asList(new Role.ALL(), new Role.NONE()));
         Assert.assertEquals(filterScope.getUserPermission(), DENY);
 
-        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, new Class[] { Role.NONE.class, Role.ALL.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, Arrays.asList(new Role.NONE(), new Role.ALL()));
         Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
 
-        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, new Class[] { Role.ALL.class, Role.ALL.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, Arrays.asList(new Role.ALL(), new Role.ALL()));
         Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
     }
 

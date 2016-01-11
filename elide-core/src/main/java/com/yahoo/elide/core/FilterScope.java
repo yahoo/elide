@@ -11,7 +11,6 @@ import com.yahoo.elide.security.PermissionManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,20 +36,10 @@ public class FilterScope {
     }
 
     public FilterScope(RequestScope requestScope,
-                       PermissionManager.CheckMode isAny,
-                       Class<? extends UserCheck>[] userCheckClasses) {
+                       PermissionManager.CheckMode checkMode,
+                       List<UserCheck> userChecks) {
         this.requestScope = requestScope;
-        this.checkMode = isAny;
-
-        List<UserCheck> userChecks = new ArrayList<>(userCheckClasses.length);
-        for (Class<? extends UserCheck> checkClass : userCheckClasses) {
-            try {
-                userChecks.add(checkClass.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
-                log.error("Could not instantiate UserCheck: {}", checkClass.getName());
-                throw new IllegalStateException("Failed to instantiate UserCheck.");
-            }
-        }
+        this.checkMode = checkMode;
         this.userChecks = userChecks;
     }
 

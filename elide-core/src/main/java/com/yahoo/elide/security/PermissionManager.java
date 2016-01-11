@@ -84,9 +84,9 @@ public class PermissionManager {
         Class<? extends Annotation> annotationClass = userPermission.getClass();
 
         if (anyChecks.length > 0) {
-            return new FilterScope(requestScope, CheckMode.ANY, anyChecks);
+            return new FilterScope(requestScope, CheckMode.ANY, instantiateUserChecks(anyChecks));
         } else if (allChecks.length > 0) {
-            return new FilterScope(requestScope, CheckMode.ALL, allChecks);
+            return new FilterScope(requestScope, CheckMode.ALL, instantiateUserChecks(allChecks));
         } else {
             log.warn("Unknown user permission '{}'", annotationClass.getName());
             throw new InvalidSyntaxException("Unknown user permission '" + annotationClass.getName() + "'");
@@ -454,6 +454,25 @@ public class PermissionManager {
             }
         }
         return true;
+    }
+
+    /**
+     * Instantiate a list of UserCheck's.
+     *
+     * @param userCheckClasses Array of classes to instantiate
+     * @return List of ordered, instantiated UserCheck's
+     */
+    private static List<UserCheck> instantiateUserChecks(Class<? extends UserCheck>[] userCheckClasses) {
+        List<UserCheck> userChecks = new ArrayList<>(userCheckClasses.length);
+        for (Class<? extends UserCheck> checkClass : userCheckClasses) {
+            try {
+                userChecks.add(checkClass.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                log.error("Could not instantiate UserCheck: {}", checkClass.getName());
+                throw new IllegalStateException("Failed to instantiate UserCheck.");
+            }
+        }
+        return userChecks;
     }
 
     /**
