@@ -105,6 +105,7 @@ public class PermissionManagerTest {
         RequestScope requestScope = resource.getRequestScope();
         ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource, cspec);
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -116,6 +117,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkPermission(UpdatePermission.class, resource);
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -162,6 +164,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class);
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -169,6 +172,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, ReadPermission.class);
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test
@@ -176,6 +180,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "allVisible");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -183,6 +188,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, ReadPermission.class, "allVisible");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -190,6 +196,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, ReadPermission.class, "defaultHidden");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -197,6 +204,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, ReadPermission.class, "cannotSeeMe");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test
@@ -204,6 +212,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "mayFailInCommit");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -211,6 +220,7 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, ReadPermission.class, "mayFailInCommit");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     @Test
@@ -347,6 +357,25 @@ public class PermissionManagerTest {
         PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class);
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test
+    public void testSpecificFieldOveriddenOperationCheckSucceed() {
+        PersistentResource resource = newResource(CommitCheckEntity.class);
+        RequestScope requestScope = resource.getRequestScope();
+        // Should succeed in operation check despite the commit check failure
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, null, UpdatePermission.class, "hello");
+        requestScope.getPermissionManager().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = {ForbiddenAccessException.class})
+    public void testSpecificFieldCommitCheckFailByOveriddenField() {
+        PersistentResource resource = newResource(CommitCheckEntity.class);
+        RequestScope requestScope = resource.getRequestScope();
+        // Should succeed in commit check despite the operation check failure
+        requestScope.getPermissionManager().checkFieldAwarePermissions(resource, new ChangeSpec(null, null, null, null), UpdatePermission.class, "hello");
+        requestScope.getPermissionManager().executeCommitChecks();
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
@@ -378,6 +407,13 @@ public class PermissionManagerTest {
         @Override
         public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
+        }
+    }
+
+    public static final class SampleOperationCheckCommitInverse implements OperationCheck<Object> {
+        @Override
+        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return !changeSpec.isPresent();
         }
     }
 
@@ -442,5 +478,16 @@ public class PermissionManagerTest {
         @ReadPermission(any = {SampleOperationCheck.class, SampleOperationCheck.class})
         @UpdatePermission(any = {SampleCommitCheck.class, SampleOperationCheck.class})
         public String openAny = "all";
+    }
+
+    @Entity
+    @Include
+    @UpdatePermission(all = {SampleCommitCheck.class})
+    public static final class CommitCheckEntity {
+        @Id
+        public Long id;
+
+        @UpdatePermission(all = {SampleOperationCheckCommitInverse.class})
+        public String hello;
     }
 }

@@ -33,8 +33,6 @@ import java.util.Optional;
 @Slf4j
 public class PermissionManager {
     private final LinkedHashSet<Supplier<Void>> commitChecks = new LinkedHashSet<>();
-    private static final SpecificField SPECIFIC_STRATEGY = new SpecificField();
-    private static final AnyField ANY_STRATEGY = new AnyField();
 
     /**
      * Enum describing check combinators.
@@ -211,8 +209,9 @@ public class PermissionManager {
                 && (annotationClass.equals(UpdatePermission.class) || annotationClass.equals(CreatePermission.class));
 
         // Run operation checks
-        fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec,
-                hasDeferredChecks, ANY_STRATEGY);
+        final AnyField strategy = new AnyField();
+        fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource,
+                changeSpec, hasDeferredChecks, strategy);
 
         // Need these to be final so we can capture within lambda
         final Class<? extends Check>[] captureClassComChecks = classComChecks;
@@ -222,7 +221,7 @@ public class PermissionManager {
         if (hasDeferredChecks) {
             commitChecks.add(() -> {
                 fieldAwareExecute(captureClassComChecks, fieldComChecks, captureClassCheckMode,
-                        fieldCheckModes, resource, changeSpec, false, ANY_STRATEGY);
+                        fieldCheckModes, resource, changeSpec, false, strategy);
                 return null;
             });
         }
@@ -267,6 +266,8 @@ public class PermissionManager {
             fieldCheckMode = extracted.getCheckMode();
         }
 
+        final SpecificField strategy = new SpecificField();
+
         // Run checks
         List<Class<? extends Check>[]> fieldOpList = new ArrayList();
         fieldOpList.add(fieldOpChecks);
@@ -276,7 +277,7 @@ public class PermissionManager {
                 Arrays.asList(fieldCheckMode),
                 resource, changeSpec,
                 (fieldComChecks != null && fieldComChecks.length > 0),
-                SPECIFIC_STRATEGY);
+                strategy);
 
         // Capture these as final for lambda
         final Class<? extends Check>[] capClassComChecks = classComChecks;
@@ -287,6 +288,7 @@ public class PermissionManager {
         // Queue up on success
         if ((capFieldComChecks != null && capFieldComChecks.length > 0)
                 || (capClassComChecks != null && capClassComChecks.length > 0)) {
+            strategy.setCommitCheck(true);
             final List<Class<? extends Check>[]> fieldComList = new ArrayList();
             fieldComList.add(fieldComChecks);
             commitChecks.add(() -> {
@@ -297,7 +299,7 @@ public class PermissionManager {
                         resource,
                         changeSpec,
                         false,
-                        SPECIFIC_STRATEGY);
+                        strategy);
                 return null;
             });
         }
@@ -348,11 +350,13 @@ public class PermissionManager {
     /**
      * Check object and all fields for field- and class-level checks.
      *
-     * @param classChecks
-     * @param fieldChecks
-     * @param resource
-     * @param changeSpec
-     * @return True if done (i.e. no commit checks), false otherwise. Throws a ForbiddenAccessException upon failure.
+     * @param classChecks Array of class/entity-level checks
+     * @param fieldChecks Array of field checks
+     * @param resource Resource
+     * @param changeSpec Change spec
+     * @param hasDeferredChecks Whether or not there are deferred checks beyond
+     * @param strategy Strategy to use upon failure/success of checks
+     * @return True if any of the field-level checks succeed, false otherwise. False if no field-level checks exist.
      */
     private void fieldAwareExecute(Class<? extends Check>[] classChecks,
                                    List<Class<? extends Check>[]> fieldChecks,
