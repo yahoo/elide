@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 /**
  * Class responsible for managing the life-cycle and execution of checks.
@@ -144,6 +143,7 @@ public class PermissionManager {
             runPermissionChecks(opChecks, mode, resource, changeSpec);
         } catch (ForbiddenAccessException e) {
             if (mode == CheckMode.ALL || comChecks.length < 1) {
+                log.debug("Forbidden access at entity-level.");
                 throw e;
             }
         }
@@ -211,14 +211,6 @@ public class PermissionManager {
                 && (annotationClass.equals(UpdatePermission.class) || annotationClass.equals(CreatePermission.class));
 
         // Run operation checks
-        BiFunction<Boolean, Boolean, BiFunction<Boolean, Boolean, Void>> strat = (hasPassingCheck, hasDeferredCheck) ->
-            (entityFailed, hasFieldChecks) -> {
-                // If nothing succeeded, we know nothing is queued up. We should fail out.
-                if (!hasPassingCheck && !hasDeferredChecks) {
-                    throw new ForbiddenAccessException();
-                }
-                return null;
-            };
         fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource, changeSpec,
                 hasDeferredChecks, ANY_STRATEGY);
 
@@ -403,6 +395,7 @@ public class PermissionManager {
                     hasPassingCheck = true;
                 } catch (ForbiddenAccessException e) {
                     if (!strategy.shouldContinueUponFieldFailure(mode, hasDeferredChecks)) {
+                        log.debug("Failed specific field and not continuing.");
                         throw e;
                     }
                 }
