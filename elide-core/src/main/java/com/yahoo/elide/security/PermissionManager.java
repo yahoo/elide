@@ -20,10 +20,12 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.optimization.UserCheck;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +36,8 @@ import java.util.Optional;
 @Slf4j
 public class PermissionManager {
     private final LinkedHashSet<Supplier<Void>> commitChecks = new LinkedHashSet<>();
+    private final HashMap<Class<? extends UserCheck>, Boolean> userCheckCache = new HashMap<>();
+    private final HashMap<CheckIdentifier, Boolean> resourceCache = new HashMap<>();
 
     /**
      * Enum describing check combinators.
@@ -138,8 +142,10 @@ public class PermissionManager {
         Class<OperationCheck>[] opChecks = extracted.getOperationChecks();
         Class<CommitCheck>[] comChecks = extracted.getCommitChecks();
 
+        boolean isUpdate = UpdatePermission.class.isAssignableFrom(annotationClass);
+
         try {
-            runPermissionChecks(opChecks, mode, resource, changeSpec);
+            runPermissionChecks(opChecks, mode, resource, changeSpec, isUpdate);
         } catch (ForbiddenAccessException e) {
             if (mode == CheckMode.ALL || comChecks.length < 1) {
                 log.debug("Forbidden access at entity-level.");
@@ -150,7 +156,7 @@ public class PermissionManager {
         // If that succeeds, queue up our commit checks
         if (!isEmptyCheckArray(comChecks)) {
             commitChecks.add(() -> {
-                runPermissionChecks(comChecks, mode, resource, changeSpec);
+                runPermissionChecks(comChecks, mode, resource, changeSpec, isUpdate);
                 return null;
             });
         }
@@ -210,21 +216,17 @@ public class PermissionManager {
     private void runPermissionChecks(Class<? extends Check>[] checks,
                                      CheckMode checkMode,
                                      PersistentResource<?> resource,
-                                     ChangeSpec changeSpec) {
+                                     ChangeSpec changeSpec,
+                                     boolean isUpdate) {
         if (resource.getRequestScope().getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
             return;
         }
 
         for (Class<? extends Check> check : checks) {
-            Check handler;
-            try {
-                handler = check.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                log.debug("Illegal permission check '{}' {}", check.getName(), e);
-                throw new InvalidSyntaxException("Illegal permission check '" + check.getName() + "'", e);
-            }
+            CheckIdentifier checkId = new CheckIdentifier(resource, check);
 
-            boolean ok = handler.ok(resource.getObject(), resource.getRequestScope(), Optional.ofNullable(changeSpec));
+            boolean ok = (isUpdate) ? computeCheck(check, resource, changeSpec)
+                : resourceCache.computeIfAbsent(checkId, (id) -> computeCheck(check, resource, changeSpec));
 
             if (ok && checkMode == CheckMode.ANY) {
                 return;
@@ -240,6 +242,25 @@ public class PermissionManager {
             log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
             throw new ForbiddenAccessException();
         }
+    }
+
+    /**
+     * Compute the value of a check.
+     *
+     * @param check Check to compute
+     * @param resource Resource to compute check for
+     * @param changeSpec Change spec
+     * @return True if check successful, false otherwise.
+     */
+    private boolean computeCheck(Class<? extends Check> check, PersistentResource resource, ChangeSpec changeSpec) {
+        Check handler;
+        try {
+            handler = check.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.debug("Illegal permission check '{}' {}", check.getName(), e);
+            throw new InvalidSyntaxException("Illegal permission check '" + check.getName() + "'", e);
+        }
+        return handler.ok(resource.getObject(), resource.getRequestScope(), Optional.ofNullable(changeSpec));
     }
 
     /**
@@ -347,6 +368,31 @@ public class PermissionManager {
     }
 
     /**
+     * Identifier class for checks.
+     */
+    @AllArgsConstructor
+    private final class CheckIdentifier<A extends Annotation> {
+        private final PersistentResource resource;
+        private final Class<A> annotation;
+
+        public int hashCode() {
+            return new HashCodeBuilder(3, 37)
+                    .append(resource)
+                    .append(annotation)
+                    .toHashCode();
+        }
+
+        public boolean equals(CheckIdentifier other) {
+            if (other != null || other.resource == null || other.annotation == null) {
+                return false;
+            }
+            return resource.equals(other.resource) && annotation.equals(other.annotation);
+        }
+    }
+
+    /** Security strategy */
+
+    /**
      * Interface to encode field-aware check result response.
      */
     private interface Strategy {
@@ -395,6 +441,7 @@ public class PermissionManager {
         private CheckMode fieldCheckMode;
 
         private final boolean containsDeferredChecks;
+        private final boolean isUpdate;
 
         public <A extends Annotation> SpecificFieldStrategy(PersistentResource resource,
                                                             String field,
@@ -409,6 +456,7 @@ public class PermissionManager {
             }
             populateChecks(field, annotationClass);
             containsDeferredChecks = containsCommitChecks(classComChecks, fieldComChecks, annotationClass);
+            isUpdate = UpdatePermission.class.isAssignableFrom(annotationClass);
         }
 
         @Override
@@ -432,7 +480,7 @@ public class PermissionManager {
             boolean entityFailed = false;
             if (!isEmptyCheckArray(classChecks)) {
                 try {
-                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec);
+                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec, isUpdate);
                 } catch (ForbiddenAccessException e) {
                     // Ignore this and continue on to checking our fields
                     entityFailed = true;
@@ -441,7 +489,7 @@ public class PermissionManager {
 
             if (!isEmptyCheckArray(fieldChecks)) {
                 try {
-                    runPermissionChecks(fieldChecks, fieldCheckMode, resource, changeSpec);
+                    runPermissionChecks(fieldChecks, fieldCheckMode, resource, changeSpec, isUpdate);
                     previousStatus = CheckStatus.CHECKS_SUCCEEDED;
                     if (fieldCheckMode == CheckMode.ANY) {
                         return;
@@ -497,6 +545,7 @@ public class PermissionManager {
         private List<CheckMode> fieldCheckModes;
 
         private final boolean containsDeferredChecks;
+        private final boolean isUpdate;
 
         public <A extends Annotation> AnyFieldStrategy(PersistentResource resource,
                                                        Class<A> annotationClass,
@@ -505,6 +554,7 @@ public class PermissionManager {
             this.changeSpec = changeSpec;
             populateChecks(annotationClass);
             containsDeferredChecks = containsCommitChecks(classComChecks, fieldComChecks, annotationClass);
+            isUpdate = UpdatePermission.class.isAssignableFrom(annotationClass);
         }
 
         @Override
@@ -530,7 +580,7 @@ public class PermissionManager {
             // Check full object, then all fields
             if (!isEmptyCheckArray(classChecks)) {
                 try {
-                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec);
+                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec, isUpdate);
                     // If this is an "any" check, then we're done. If it is an "all" check, we may have commit checks
                     // queued up. This means we really need to check additional fields and queue up those checks as
                     // well.
@@ -548,7 +598,7 @@ public class PermissionManager {
                 for (int i = 0 ; i < fieldChecks.size() ; ++i) {
                     try {
                         CheckMode mode = fieldCheckModes.get(i);
-                        runPermissionChecks(fieldChecks.get(i), mode, resource, changeSpec);
+                        runPermissionChecks(fieldChecks.get(i), mode, resource, changeSpec, isUpdate);
                         if (mode == CheckMode.ANY) {
                             return;
                         }
