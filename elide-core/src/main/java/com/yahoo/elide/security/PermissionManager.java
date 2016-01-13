@@ -10,13 +10,14 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.annotation.UserPermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
-import com.yahoo.elide.core.*;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 
 import com.yahoo.elide.optimization.UserCheck;
-import com.yahoo.elide.security.strategies.AnyField;
-import com.yahoo.elide.security.strategies.SpecificField;
-import com.yahoo.elide.security.strategies.Strategy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -147,7 +148,7 @@ public class PermissionManager {
         }
 
         // If that succeeds, queue up our commit checks
-        if (comChecks.length > 0) {
+        if (!isEmptyCheckArray(comChecks)) {
             commitChecks.add(() -> {
                 runPermissionChecks(comChecks, mode, resource, changeSpec);
                 return null;
@@ -166,65 +167,7 @@ public class PermissionManager {
     public <A extends Annotation> void checkFieldAwarePermissions(PersistentResource<?> resource,
                                                                   ChangeSpec changeSpec,
                                                                   Class<A> annotationClass) {
-        EntityDictionary dictionary = resource.getDictionary();
-
-        // First gather all checks and modes
-        Class<? extends Check>[] classOpChecks = null;
-        Class<? extends Check>[] classComChecks = null;
-        final ArrayList<Class<? extends Check>[]> fieldOpChecks = new ArrayList<>();
-        final ArrayList<Class<? extends Check>[]> fieldComChecks = new ArrayList<>();
-        CheckMode classCheckMode = null;
-        final ArrayList<CheckMode> fieldCheckModes = new ArrayList<>();
-
-        A annotation = dictionary.getAnnotation(resource, annotationClass);
-        if (annotation != null) {
-            ExtractedChecks extracted = extractChecks(annotationClass, annotation);
-            classOpChecks = extracted.getOperationChecks();
-            classComChecks = extracted.getCommitChecks();
-            classCheckMode = extracted.getCheckMode();
-        }
-
-        // Get all fields
-        Class<?> entityClass = resource.getResourceClass();
-        List<String> attributes = dictionary.getAttributes(entityClass);
-        List<String> relationships = dictionary.getRelationships(entityClass);
-        List<String> fields = (attributes != null) ? new ArrayList<>(dictionary.getAttributes(entityClass))
-                                                   : new ArrayList<>();
-        if (relationships != null) {
-            fields.addAll(relationships);
-        }
-
-        for (String field : fields) {
-            annotation = dictionary.getAttributeOrRelationAnnotation(entityClass, annotationClass, field);
-            if (annotation == null) {
-                continue;
-            }
-            ExtractedChecks extracted = extractChecks(annotationClass, annotation);
-            fieldOpChecks.add(extracted.getOperationChecks());
-            fieldComChecks.add(extracted.getCommitChecks());
-            fieldCheckModes.add(extracted.getCheckMode());
-        }
-
-        boolean hasDeferredChecks = (!isEmptyCheckArray(classComChecks) || !isEmptyListOfChecks(fieldComChecks))
-                && (annotationClass.equals(UpdatePermission.class) || annotationClass.equals(CreatePermission.class));
-
-        // Run operation checks
-        final AnyField strategy = new AnyField();
-        fieldAwareExecute(classOpChecks, fieldOpChecks, classCheckMode, fieldCheckModes, resource,
-                changeSpec, hasDeferredChecks, strategy);
-
-        // Need these to be final so we can capture within lambda
-        final Class<? extends Check>[] captureClassComChecks = classComChecks;
-        final CheckMode captureClassCheckMode = classCheckMode;
-
-        // If that succeeds, queue up the commit checks
-        if (hasDeferredChecks) {
-            commitChecks.add(() -> {
-                fieldAwareExecute(captureClassComChecks, fieldComChecks, captureClassCheckMode,
-                        fieldCheckModes, resource, changeSpec, false, strategy);
-                return null;
-            });
-        }
+        checkFieldAwarePermissions(resource, changeSpec, annotationClass, null);
     }
 
     /**
@@ -240,66 +183,18 @@ public class PermissionManager {
                                                                   ChangeSpec changeSpec,
                                                                   Class<A> annotationClass,
                                                                   String field) {
-        EntityDictionary dictionary = resource.getDictionary();
-
-        // Gather important bits
-        Class<? extends Check>[] classOpChecks = null;
-        Class<? extends Check>[] classComChecks = null;
-        Class<? extends Check>[] fieldOpChecks = null;
-        Class<? extends Check>[] fieldComChecks = null;
-        CheckMode classCheckMode = null;
-        CheckMode fieldCheckMode = null;
-
-        A annotation = dictionary.getAnnotation(resource, annotationClass);
-        if (annotation != null) {
-            ExtractedChecks extracted = extractChecks(annotationClass, annotation);
-            classOpChecks = extracted.getOperationChecks();
-            classComChecks = extracted.getCommitChecks();
-            classCheckMode = extracted.getCheckMode();
-        }
-
-        annotation = dictionary.getAttributeOrRelationAnnotation(resource.getResourceClass(), annotationClass, field);
-        if (annotation != null) {
-            ExtractedChecks extracted = extractChecks(annotationClass, annotation);
-            fieldOpChecks = extracted.getOperationChecks();
-            fieldComChecks = extracted.getCommitChecks();
-            fieldCheckMode = extracted.getCheckMode();
-        }
-
-        final SpecificField strategy = new SpecificField();
+        // Select strategy
+        final Strategy strategy = (field == null)
+                                  ? new AnyFieldStrategy(resource, annotationClass, changeSpec)
+                                  : new SpecificFieldStrategy(resource, field, annotationClass, changeSpec);
 
         // Run checks
-        List<Class<? extends Check>[]> fieldOpList = new ArrayList();
-        fieldOpList.add(fieldOpChecks);
-        fieldAwareExecute(classOpChecks,
-                fieldOpList,
-                classCheckMode,
-                Arrays.asList(fieldCheckMode),
-                resource, changeSpec,
-                (fieldComChecks != null && fieldComChecks.length > 0),
-                strategy);
-
-        // Capture these as final for lambda
-        final Class<? extends Check>[] capClassComChecks = classComChecks;
-        final Class<? extends Check>[] capFieldComChecks = fieldComChecks;
-        final CheckMode capClassCheckMode = classCheckMode;
-        final CheckMode capFieldCheckMode = fieldCheckMode;
+        strategy.executeOperationChecks();
 
         // Queue up on success
-        if ((capFieldComChecks != null && capFieldComChecks.length > 0)
-                || (capClassComChecks != null && capClassComChecks.length > 0)) {
-            strategy.setCommitCheck(true);
-            final List<Class<? extends Check>[]> fieldComList = new ArrayList();
-            fieldComList.add(fieldComChecks);
+        if (strategy.hasCommitChecks()) {
             commitChecks.add(() -> {
-                fieldAwareExecute(capClassComChecks,
-                        fieldComList,
-                        capClassCheckMode,
-                        Arrays.asList(capFieldCheckMode),
-                        resource,
-                        changeSpec,
-                        false,
-                        strategy);
+                strategy.executeCommitChecks();
                 return null;
             });
         }
@@ -345,72 +240,6 @@ public class PermissionManager {
             log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
             throw new ForbiddenAccessException();
         }
-    }
-
-    /**
-     * Check object and all fields for field- and class-level checks.
-     *
-     * @param classChecks Array of class/entity-level checks
-     * @param fieldChecks Array of field checks
-     * @param resource Resource
-     * @param changeSpec Change spec
-     * @param hasDeferredChecks Whether or not there are deferred checks beyond
-     * @param strategy Strategy to use upon failure/success of checks
-     * @return True if any of the field-level checks succeed, false otherwise. False if no field-level checks exist.
-     */
-    private void fieldAwareExecute(Class<? extends Check>[] classChecks,
-                                   List<Class<? extends Check>[]> fieldChecks,
-                                   CheckMode classMode,
-                                   List<CheckMode> fieldModes,
-                                   PersistentResource<?> resource,
-                                   ChangeSpec changeSpec,
-                                   boolean hasDeferredChecks,
-                                   Strategy strategy) {
-        boolean hasPassingCheck = !isEmptyCheckArray(classChecks)
-                || (isEmptyCheckArray(classChecks) && isEmptyListOfChecks(fieldChecks));
-        boolean entityFailed = false;
-
-        // Check full object, then all fields
-        if (!isEmptyCheckArray(classChecks)) {
-            try {
-                runPermissionChecks(classChecks, classMode, resource, changeSpec);
-                // Check if we can short-circuit the rest of the checks
-                if (!strategy.shouldContinueUponEntitySuccess(classMode)) {
-                    return;
-                }
-            } catch (ForbiddenAccessException e) {
-                // Ignore this and continue on to checking our fields
-                hasPassingCheck = false;
-                entityFailed = true;
-            }
-        }
-
-        // Check fields
-        boolean hasFieldChecks = !isEmptyListOfChecks(fieldChecks);
-        boolean modeCheckCardinalityMatch = fieldChecks.size() == fieldModes.size();
-        if (hasFieldChecks && modeCheckCardinalityMatch) {
-            for (int i = 0 ; i < fieldChecks.size() ; ++i) {
-                CheckMode mode = fieldModes.get(i);
-                try {
-                    runPermissionChecks(fieldChecks.get(i), mode, resource, changeSpec);
-                    if (mode == CheckMode.ANY) {
-                        return;
-                    }
-                    hasPassingCheck = true;
-                } catch (ForbiddenAccessException e) {
-                    if (!strategy.shouldContinueUponFieldFailure(mode, hasDeferredChecks)) {
-                        log.debug("Failed specific field and not continuing.");
-                        throw e;
-                    }
-                }
-            }
-        } else if (!modeCheckCardinalityMatch) {
-            // NOTE: This should never happen, but unfortunately bugs do occur. Err on the side of caution.
-            log.error("Something went wrong internally! The cardinality of fields and check mode arrays differ.");
-            throw new ForbiddenAccessException();
-        }
-
-        strategy.run(hasPassingCheck, hasDeferredChecks, hasFieldChecks, entityFailed);
     }
 
     /**
@@ -460,6 +289,25 @@ public class PermissionManager {
         return userChecks;
     }
 
+    private static <A extends Annotation> boolean containsCommitChecks(Class<? extends Check>[] classChecks,
+                                                                       List<Class<? extends Check>[]> fieldChecks,
+                                                                       Class<A> annotationClass) {
+        for (Class<? extends Check>[] checks : fieldChecks) {
+            if (containsCommitChecks(classChecks, checks, annotationClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static <A extends Annotation> boolean containsCommitChecks(Class<? extends Check>[] classChecks,
+                                                                       Class<? extends Check>[] fieldChecks,
+                                                                       Class<A> annotationClass) {
+        return (!isEmptyCheckArray(classChecks) || !isEmptyCheckArray(fieldChecks))
+                && (UpdatePermission.class.isAssignableFrom(annotationClass)
+                || CreatePermission.class.isAssignableFrom(annotationClass));
+    }
+
     /**
      * Extracted checks.
      */
@@ -495,6 +343,267 @@ public class PermissionManager {
                 }
             }
             return checksList.toArray(new Class[checksList.size()]);
+        }
+    }
+
+    /**
+     * Interface to encode field-aware check result response.
+     */
+    private interface Strategy {
+
+        /**
+         * Execute operation checks.
+         */
+        void executeOperationChecks();
+
+        /**
+         * Execute commit checks.
+         */
+        void executeCommitChecks();
+
+        /**
+         * Whether or not the strategy expects to execute commit checks.
+         *
+         * @return True if commit checks should be run, false otherwise.
+         */
+        boolean hasCommitChecks();
+
+        /**
+         * Status of the check state.
+         */
+        enum CheckStatus {
+            NO_CHECKS_RUN,
+            CHECKS_SUCCEEDED,
+            CHECKS_FAILED
+        }
+    }
+
+    /**
+     * Strategy for checking a specific field.
+     */
+    private final class SpecificFieldStrategy implements Strategy {
+        private CheckStatus previousStatus;
+
+        private final PersistentResource resource;
+        private final ChangeSpec changeSpec;
+
+        private Class<? extends Check>[] classOpChecks;
+        private Class<? extends Check>[] classComChecks;
+        private Class<? extends Check>[] fieldOpChecks;
+        private Class<? extends Check>[] fieldComChecks;
+        private CheckMode classCheckMode;
+        private CheckMode fieldCheckMode;
+
+        private final boolean containsDeferredChecks;
+
+        public <A extends Annotation> SpecificFieldStrategy(PersistentResource resource,
+                                                            String field,
+                                                            Class<A> annotationClass,
+                                                            ChangeSpec changeSpec) {
+            this.resource = resource;
+            this.previousStatus = CheckStatus.NO_CHECKS_RUN;
+            this.changeSpec = changeSpec;
+            if (field == null) {
+                log.error("Problem occurred trying to initialize Specific Field Strategy: null field.");
+                throw new IllegalStateException();
+            }
+            populateChecks(field, annotationClass);
+            containsDeferredChecks = containsCommitChecks(classComChecks, fieldComChecks, annotationClass);
+        }
+
+        @Override
+        public void executeOperationChecks() {
+            execute(classOpChecks, fieldOpChecks, containsDeferredChecks);
+        }
+
+        @Override
+        public void executeCommitChecks() {
+            execute(classComChecks, fieldComChecks, false);
+        }
+
+        @Override
+        public boolean hasCommitChecks() {
+            return containsDeferredChecks;
+        }
+
+        private void execute(Class<? extends Check>[] classChecks,
+                             Class<? extends Check>[] fieldChecks,
+                             boolean hasDeferredChecks) {
+            boolean entityFailed = false;
+            if (!isEmptyCheckArray(classChecks)) {
+                try {
+                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec);
+                } catch (ForbiddenAccessException e) {
+                    // Ignore this and continue on to checking our fields
+                    entityFailed = true;
+                }
+            }
+
+            if (!isEmptyCheckArray(fieldChecks)) {
+                try {
+                    runPermissionChecks(fieldChecks, fieldCheckMode, resource, changeSpec);
+                    previousStatus = CheckStatus.CHECKS_SUCCEEDED;
+                    if (fieldCheckMode == CheckMode.ANY) {
+                        return;
+                    }
+                } catch (ForbiddenAccessException e) {
+                    if (fieldCheckMode == CheckMode.ALL || !hasDeferredChecks) {
+                        // No need to wait if we either (a) require all checks to pass or (b) don't have deferred checks
+                        // to wait on
+                        log.debug("Failed a definitive check on a field override. Forbidding access.");
+                        throw e;
+                    }
+                    previousStatus = CheckStatus.CHECKS_FAILED;
+                }
+            } else if (entityFailed && !hasDeferredChecks && (previousStatus != CheckStatus.CHECKS_SUCCEEDED)) {
+                throw new ForbiddenAccessException();
+            }
+        }
+
+        private <A extends Annotation> void populateChecks(String field, Class<A> annotationClass) {
+            EntityDictionary dictionary = resource.getDictionary();
+
+            A annotation = dictionary.getAnnotation(resource, annotationClass);
+            if (annotation != null) {
+                ExtractedChecks extracted = extractChecks(annotationClass, annotation);
+                classOpChecks = extracted.getOperationChecks();
+                classComChecks = extracted.getCommitChecks();
+                classCheckMode = extracted.getCheckMode();
+            }
+
+            annotation =
+                    dictionary.getAttributeOrRelationAnnotation(resource.getResourceClass(), annotationClass, field);
+            if (annotation != null) {
+                ExtractedChecks extracted = extractChecks(annotationClass, annotation);
+                fieldOpChecks = extracted.getOperationChecks();
+                fieldComChecks = extracted.getCommitChecks();
+                fieldCheckMode = extracted.getCheckMode();
+            }
+        }
+    }
+
+    /**
+     * Strategy for checking that the entity allows access anywhere.
+     */
+    private final class AnyFieldStrategy implements Strategy {
+        private final PersistentResource resource;
+        private final ChangeSpec changeSpec;
+
+        private Class<? extends Check>[] classOpChecks;
+        private Class<? extends Check>[] classComChecks;
+        private List<Class<? extends Check>[]> fieldOpChecks;
+        private List<Class<? extends Check>[]> fieldComChecks;
+        private CheckMode classCheckMode;
+        private List<CheckMode> fieldCheckModes;
+
+        private final boolean containsDeferredChecks;
+
+        public <A extends Annotation> AnyFieldStrategy(PersistentResource resource,
+                                                       Class<A> annotationClass,
+                                                       ChangeSpec changeSpec) {
+            this.resource = resource;
+            this.changeSpec = changeSpec;
+            populateChecks(annotationClass);
+            containsDeferredChecks = containsCommitChecks(classComChecks, fieldComChecks, annotationClass);
+        }
+
+        @Override
+        public void executeOperationChecks() {
+            execute(classOpChecks, fieldOpChecks, containsDeferredChecks);
+        }
+
+        @Override
+        public void executeCommitChecks() {
+            execute(classComChecks, fieldComChecks, false);
+        }
+
+        @Override
+        public boolean hasCommitChecks() {
+            return containsDeferredChecks;
+        }
+
+        private void execute(Class<? extends Check>[] classChecks,
+                             List<Class<? extends Check>[]> fieldChecks,
+                             boolean hasDeferredChecks) {
+            CheckStatus checkStatus = CheckStatus.NO_CHECKS_RUN;
+
+            // Check full object, then all fields
+            if (!isEmptyCheckArray(classChecks)) {
+                try {
+                    runPermissionChecks(classChecks, classCheckMode, resource, changeSpec);
+                    // If this is an "any" check, then we're done. If it is an "all" check, we may have commit checks
+                    // queued up. This means we really need to check additional fields and queue up those checks as
+                    // well.
+                    if (!hasDeferredChecks || classCheckMode == CheckMode.ANY) {
+                        return;
+                    }
+                    checkStatus = CheckStatus.CHECKS_SUCCEEDED;
+                } catch (ForbiddenAccessException e) {
+                    // Ignore this and continue on to checking our fields
+                    checkStatus = CheckStatus.CHECKS_FAILED;
+                }
+            }
+
+            if (fieldChecks != null && !fieldChecks.isEmpty() && fieldChecks.size() == fieldCheckModes.size()) {
+                for (int i = 0 ; i < fieldChecks.size() ; ++i) {
+                    try {
+                        CheckMode mode = fieldCheckModes.get(i);
+                        runPermissionChecks(fieldChecks.get(i), mode, resource, changeSpec);
+                        if (mode == CheckMode.ANY) {
+                            return;
+                        }
+                        checkStatus = CheckStatus.CHECKS_SUCCEEDED;
+                    } catch (ForbiddenAccessException e) {
+                        // Ignore and keep looking or queueing
+                        if (checkStatus == CheckStatus.NO_CHECKS_RUN) {
+                            checkStatus = CheckStatus.CHECKS_FAILED;
+                        }
+                    }
+                }
+            }
+
+            // If nothing succeeded, we know nothing is queued up. We should fail out.
+            if ((checkStatus == CheckStatus.CHECKS_FAILED) && !hasDeferredChecks) {
+                log.debug("Failed any check with status: {} and deferred checks: {}", checkStatus, hasDeferredChecks);
+                throw new ForbiddenAccessException();
+            }
+        }
+
+        private <A extends Annotation> void populateChecks(Class<A> annotationClass) {
+            EntityDictionary dictionary = resource.getDictionary();
+
+            A annotation = dictionary.getAnnotation(resource, annotationClass);
+            if (annotation != null) {
+                ExtractedChecks extracted = extractChecks(annotationClass, annotation);
+                classOpChecks = extracted.getOperationChecks();
+                classComChecks = extracted.getCommitChecks();
+                classCheckMode = extracted.getCheckMode();
+            }
+
+            // Get all fields
+            Class<?> entityClass = resource.getResourceClass();
+            List<String> attributes = dictionary.getAttributes(entityClass);
+            List<String> relationships = dictionary.getRelationships(entityClass);
+            List<String> fields = (attributes != null) ? new ArrayList<>(dictionary.getAttributes(entityClass))
+                    : new ArrayList<>();
+            if (relationships != null) {
+                fields.addAll(relationships);
+            }
+
+            fieldOpChecks = new ArrayList<>();
+            fieldComChecks = new ArrayList<>();
+            fieldCheckModes = new ArrayList<>();
+
+            for (String field : fields) {
+                annotation = dictionary.getAttributeOrRelationAnnotation(entityClass, annotationClass, field);
+                if (annotation == null) {
+                    continue;
+                }
+                ExtractedChecks extracted = extractChecks(annotationClass, annotation);
+                fieldOpChecks.add(extracted.getOperationChecks());
+                fieldComChecks.add(extracted.getCommitChecks());
+                fieldCheckModes.add(extracted.getCheckMode());
+            }
         }
     }
 }
