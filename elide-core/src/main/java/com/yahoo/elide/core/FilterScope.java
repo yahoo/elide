@@ -5,52 +5,59 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.security.Check;
-import com.yahoo.elide.security.UserCheck.UserPermission;
+import com.yahoo.elide.optimization.UserCheck;
+import com.yahoo.elide.optimization.UserCheck.UserPermission;
+import com.yahoo.elide.security.PermissionManager;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
-import static com.yahoo.elide.security.UserCheck.FILTER;
+import static com.yahoo.elide.optimization.UserCheck.ALLOW;
+import static com.yahoo.elide.optimization.UserCheck.DENY;
+import static com.yahoo.elide.optimization.UserCheck.FILTER;
 
 /**
  * Scope for filter processing.  Contains requestScope and checks.
- * @param <T> Filter type
  */
-public class FilterScope<T> {
+@Slf4j
+public class FilterScope {
 
     @Getter private final RequestScope requestScope;
-    @Getter private final boolean isAny;
-    @Getter private final List<Check<T>> checks;
+    @Getter private final PermissionManager.CheckMode checkMode;
+    @Getter private final List<UserCheck> userChecks;
     private UserPermission filterUserPermission = null;
 
     public FilterScope(RequestScope requestScope) {
         this.requestScope = requestScope;
-        this.isAny = false;
-        checks = Collections.emptyList();
+        this.checkMode = PermissionManager.CheckMode.ALL;
+        userChecks = Collections.emptyList();
     }
 
-    public FilterScope(RequestScope requestScope, boolean isAny, Class<? extends Check>[] checkClasses) {
+    public FilterScope(RequestScope requestScope,
+                       PermissionManager.CheckMode checkMode,
+                       List<UserCheck> userChecks) {
         this.requestScope = requestScope;
-        this.isAny = isAny;
+        this.checkMode = checkMode;
+        this.userChecks = userChecks;
+    }
 
-        List<Check<T>> checks = new ArrayList<>(checkClasses.length);
-        for (Class<? extends Check> checkClass : checkClasses) {
-            try {
-                checks.add(checkClass.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
-                checks.add(null);
-            }
-        }
-        this.checks = checks;
+    /**
+     * Determine whether or not the check mode is any.
+     *
+     * NOTE: This method is often used in transaction implementations.
+     *
+     * @return True if checkmode is any, false if all.
+     */
+    public boolean isAny() {
+        return PermissionManager.CheckMode.ANY == checkMode;
     }
 
     /**
      * Returns true if filters are applied to this query.
+     *
+     * NOTE: This method is often used in transaction implementations.
      *
      * @return true if there are filters
      */
@@ -69,17 +76,17 @@ public class FilterScope<T> {
         }
 
         UserPermission compositeUserPermission = null;
-        for (Check check : checks) {
+        for (UserCheck check : userChecks) {
             UserPermission checkUserPermission = requestScope.getUser().checkUserPermission(check);
 
             // short-cut for ALLOW and ANY
-            if (checkUserPermission == ALLOW && isAny) {
+            if (checkUserPermission == ALLOW && checkMode == PermissionManager.CheckMode.ANY) {
                 compositeUserPermission = ALLOW;
                 break;
             }
 
             // short-cut for DENY and ALL
-            if (checkUserPermission == DENY && !isAny) {
+            if (checkUserPermission == DENY && checkMode == PermissionManager.CheckMode.ALL) {
                 compositeUserPermission = DENY;
                 break;
             }
@@ -87,13 +94,12 @@ public class FilterScope<T> {
             // if FILTER set as found and keep looking
             if (checkUserPermission == FILTER) {
                 compositeUserPermission = FILTER;
-                continue;
             }
         }
 
         // if still null, then all are DENY & ALL or ALLOW & ANY
         if (compositeUserPermission == null) {
-            compositeUserPermission = isAny ? DENY : ALLOW;
+            compositeUserPermission = checkMode == PermissionManager.CheckMode.ANY ? DENY : ALLOW;
         }
         return this.filterUserPermission = compositeUserPermission;
     }

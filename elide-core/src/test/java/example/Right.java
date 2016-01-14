@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -24,7 +24,7 @@ import java.util.Set;
 
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(any = {Access.ALL.class})
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -68,7 +68,7 @@ public class Right {
     }
 
     @UpdatePermission(
-           any = {Role.NONE.class}
+           any = {Access.NONE.class}
     )
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
@@ -77,7 +77,7 @@ public class Right {
     public Left noUpdateOne2One;
 
     @UpdatePermission(
-           any = {Role.NONE.class}
+           any = {Access.NONE.class}
     )
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },

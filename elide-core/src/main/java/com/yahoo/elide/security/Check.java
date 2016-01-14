@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+
+import java.util.Optional;
 
 /**
  * Custom security access that verifies whether a user belongs to a role.
@@ -16,8 +18,11 @@ public interface Check<T> {
 
     /**
      * Determines whether the user can access the resource.
-     * @param record the record
-     * @return true if allowed
+     *
+     * @param object Fully modified object
+     * @param requestScope Request scope object
+     * @param changeSpec Summary of modifications
+     * @return true if security check passed
      */
-    boolean ok(PersistentResource<T> record);
+    boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec);
 }

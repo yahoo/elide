@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 
 import example.FunWithPermissions;
@@ -27,11 +28,13 @@ public class PermissionAnnotationTest {
     private PersistentResource<FunWithPermissions> badRecord;
     private final User badUser;
     private final EntityDictionary dictionary;
+    private final PermissionManager permissionManager;
 
     public PermissionAnnotationTest() {
         goodUser = new User(3);
         badUser = new User(-1);
         dictionary = new EntityDictionary();
+        permissionManager = new PermissionManager();
     }
 
     @BeforeTest
@@ -48,36 +51,36 @@ public class PermissionAnnotationTest {
 
     @Test
     public void testClassAnyOk() {
-        PersistentResource.checkPermission(ReadPermission.class, funRecord);
-        PersistentResource.checkPermission(UpdatePermission.class, funRecord);
-        PersistentResource.checkPermission(CreatePermission.class, funRecord);
+        permissionManager.checkPermission(ReadPermission.class, funRecord);
+        permissionManager.checkPermission(UpdatePermission.class, funRecord);
+        permissionManager.checkPermission(CreatePermission.class, funRecord);
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testClassAllNotOk() {
-        PersistentResource.checkPermission(DeletePermission.class, funRecord);
+        permissionManager.checkPermission(DeletePermission.class, funRecord);
     }
 
     @Test
     public void testFieldPermissionOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, funRecord, "field3");
-        PersistentResource.checkFieldPermission(ReadPermission.class, funRecord, "relation1");
-        PersistentResource.checkFieldPermission(ReadPermission.class, funRecord, "relation2");
+        permissionManager.checkFieldAwarePermissions(funRecord, null, ReadPermission.class, "field3");
+        permissionManager.checkFieldAwarePermissions(funRecord, null, ReadPermission.class, "relation1");
+        permissionManager.checkFieldAwarePermissions(funRecord, null, ReadPermission.class, "relation2");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField3PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "field3");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "field3");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testRelation1PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "relation1");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "relation1");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testRelation2PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "relation2");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "relation2");
     }
 
     /**
@@ -85,7 +88,7 @@ public class PermissionAnnotationTest {
      */
     @Test()
     public void testField5PermissionOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "field5");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "field5");
     }
 
     /**
@@ -93,7 +96,7 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField6PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "field6");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "field6");
     }
 
     /**
@@ -101,7 +104,7 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField7PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "field7");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "field7");
     }
 
     /**
@@ -109,6 +112,6 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField8PermissionNotOk() {
-        PersistentResource.checkFieldPermission(ReadPermission.class, badRecord, "field8");
+        permissionManager.checkFieldAwarePermissions(badRecord, null, ReadPermission.class, "field8");
     }
 }

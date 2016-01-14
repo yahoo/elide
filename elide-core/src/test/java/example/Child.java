@@ -6,14 +6,12 @@
 package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.security.Check;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.Access;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.CommitCheck;
+import com.yahoo.elide.security.OperationCheck;
 import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;
@@ -23,13 +21,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import java.util.Optional;
 import java.util.Set;
 import javax.persistence.OneToOne;
 
 @Entity
 @CreatePermission(any = { InitCheck.class })
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(any = {Access.ALL.class})
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
+@UserPermission(any = {NegativeIntegerUserCheck.class})
 @Include
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -102,7 +102,7 @@ public class Child {
     @OneToOne(
             targetEntity = Child.class
     )
-    @ReadPermission(all = {Role.NONE.class})
+    @ReadPermission(all = {Access.NONE.class})
     public Child getReadNoAccess() {
         return noReadAccess;
     }
@@ -111,10 +111,9 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
-    static public class InitCheck implements Check<Child> {
+    static public class InitCheck implements CommitCheck<Child>, OperationCheck<Child> {
         @Override
-        public boolean ok(PersistentResource<Child> record) {
-            Child child = record.getObject();
+        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }

@@ -3,17 +3,19 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.security;
+package com.yahoo.elide.optimization;
 
-import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.security.User;
 
 /**
  * Custom security access that verifies whether a user belongs to a role.
  * Permissions are assigned as a set of checks that grant access to the permission.
  *
- * @param <T> Type of record for Check
+ * NOTE: These checks are intended to be used for specific optimizations. That is, if the check
+ * only requires user-level information and can cover an entire entity. These only apply to at
+ * the entity-level. Field-level annotating of UserCheck's is not supported.
  */
-public interface UserCheck<T> extends Check<T> {
+public interface UserCheck {
     /**
      * Result of user level check.
      * ALLOW - Access to entire collection of resources
@@ -30,22 +32,10 @@ public interface UserCheck<T> extends Check<T> {
     UserPermission FILTER = UserPermission.FILTER;
 
     /**
-     * Determines whether the user can access the resource.
-     * Must be defined when userPermission == FILTER
-     *
-     * @param record the record
-     * @return true if allowed
-     */
-    @Override
-    default boolean ok(PersistentResource<T> record) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * User level check to bypass need for per-record check.
      *
      * @param user per user check
      * @return FILTER to support ok check
      */
-    UserPermission userPermission(User user);
+    UserPermission ok(User user);
 }

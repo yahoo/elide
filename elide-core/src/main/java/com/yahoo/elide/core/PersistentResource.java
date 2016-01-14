@@ -8,15 +8,7 @@ package com.yahoo.elide.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -31,13 +23,15 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
+
+import static com.yahoo.elide.optimization.UserCheck.DENY;
 
 import javax.persistence.GeneratedValue;
 import java.io.Serializable;
@@ -46,7 +40,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,8 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static com.yahoo.elide.security.UserCheck.DENY;
 
 /**
  * Resource wrapper around Entity bean.
@@ -90,9 +81,6 @@ public class PersistentResource<T> {
         int diff = string1.length() - string2.length();
         return diff == 0 ? string1.compareTo(string2) : diff;
     };
-
-    protected static final boolean ANY = true;
-    protected static final boolean ALL = false;
 
     /**
      * Create a resource in the database.
@@ -273,8 +261,8 @@ public class PersistentResource<T> {
         }
 
         Iterable<T> list;
-        ReadPermission annotation = requestScope.getDictionary().getAnnotation(loadClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
+        UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(loadClass, UserPermission.class);
+        FilterScope filterScope = PermissionManager.loadChecks(userAnnotation, requestScope);
         list = tx.loadObjects(loadClass, filterScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
@@ -746,29 +734,10 @@ public class PersistentResource<T> {
             return false;
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-        ReadPermission annotation = dictionary.getAnnotation(recordClass, ReadPermission.class);
-        FilterScope filterScope = loadChecks(annotation, requestScope);
+        UserPermission userAnnotation = requestScope.getDictionary().getAnnotation(recordClass, UserPermission.class);
+        FilterScope filterScope = PermissionManager.loadChecks(userAnnotation, requestScope);
 
-        if (filterScope.getUserPermission() != DENY) {
-            return false;
-        }
-
-         // Temporary fix for UserLevel checks. This concept will be reworked in Elide 2.0
-         // In short, check all fields.
-        List<String> fields = new ArrayList<>();
-        fields.addAll(dictionary.getAttributes(recordClass));
-        fields.addAll(dictionary.getRelationships(recordClass));
-        for (String field : fields) {
-            Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
-                    ReadPermission.class, field);
-            FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
-            if (fieldFilterScope.getUserPermission() != DENY) {
-                return false;
-            }
-        }
-
-        return true;
+        return filterScope.getUserPermission() == DENY;
     }
 
     /**
@@ -895,8 +864,7 @@ public class PersistentResource<T> {
      */
     protected Map<String, Relationship> getRelationships() {
         final Map<String, Relationship> relationshipMap = new LinkedHashMap<>();
-        final Set<String> relationshipFields =
-                filterFields(ReadPermission.class, this, dictionary.getRelationships(obj));
+        final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
             Set<PersistentResource> relationships = getRelation(field);
@@ -930,7 +898,7 @@ public class PersistentResource<T> {
     protected Map<String, Object> getAttributes() {
         final Map<String, Object> attributes = new LinkedHashMap<>();
 
-        final Set<String> attrFields = filterFields(ReadPermission.class, this, dictionary.getAttributes(obj));
+        final Set<String> attrFields = filterFields(dictionary.getAttributes(obj));
         for (String field : attrFields) {
             Object val = getAttribute(field);
             attributes.put(field, val);
@@ -1223,199 +1191,36 @@ public class PersistentResource<T> {
     /**
      * Filter a set of fields.
      *
-     * @param <A> the type parameter
-     * @param permission the permission
-     * @param resource the resource
      * @param fields the fields
      * @return Filtered set of fields
      */
-    protected static <A extends Annotation> Set<String> filterFields(Class<A> permission,
-            PersistentResource resource,
-            Collection<String> fields) {
+    protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        // Hack: doNotDefer is a special flag to temporarily disable deferred checking. Presumably, this check
-        // should not be running if it needs to be deferred (in which case, deferred checks would also be executing)
-        // We should probably find a cleaner way to do this.
-        boolean save = resource.getRequestScope().isNotDeferred();
-        try {
-            resource.getRequestScope().setNotDeferred(true);
-            for (String field : fields) {
-                try {
-                    if (checkIncludeSparseField(resource.getRequestScope().getSparseFields(), resource.type, field)) {
-                        resource.checkFieldAwarePermissions(permission, field);
-                        filteredSet.add(field);
-                    }
-                } catch (ForbiddenAccessException e) {
-                    // Do nothing. Filter from set.
+        for (String field : fields) {
+            try {
+                if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
+                    checkFieldAwarePermissions(ReadPermission.class, field);
+                    filteredSet.add(field);
                 }
+            } catch (ForbiddenAccessException e) {
+                // Do nothing. Filter from set.
             }
-        } finally {
-            resource.getRequestScope().setNotDeferred(save);
         }
         return filteredSet;
     }
 
-    /**
-     * Check provided access permission.
-     *
-     * @param annotationClass one of Create, Read, Update or Delete permission annotations
-     * @param annotation the instance of the annotation
-     * @param resource given resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    static <A extends Annotation> void checkPermission(
-            Class<A> annotationClass,
-            A annotation,
-            PersistentResource resource) {
-        if (resource.getRequestScope().getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
-            return;
-        }
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
-
-        if (anyChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, anyChecks, ANY, resource);
-        } else if (allChecks.length > 0) {
-            resource.requestScope.checkPermissions(annotationClass, allChecks, ALL, resource);
-        } else {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
-        }
-    }
-
-    static <A extends Annotation> FilterScope loadChecks(A annotation, RequestScope requestScope) {
-        if (annotation == null) {
-            return new FilterScope(requestScope);
-        }
-
-        Class<? extends Check>[] anyChecks;
-        Class<? extends Check>[] allChecks;
-        Class<? extends Annotation> annotationClass = annotation.getClass();
-        try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
-        } catch (ReflectiveOperationException e) {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
-        }
-
-        if (anyChecks.length > 0) {
-            return new FilterScope(requestScope, ANY, anyChecks);
-        } else if (allChecks.length > 0) {
-            return new FilterScope(requestScope, ALL, allChecks);
-        } else {
-            throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName());
-        }
-    }
-
-    /**
-     * Check provided access permission.
-     *
-     * @param annotationClass one of Create, Read, Update or Delete permission annotations
-     * @param resource given resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    static <A extends Annotation> void checkPermission(Class<A> annotationClass,
-            PersistentResource resource) {
-        A annotation = resource.getDictionary().getAnnotation(resource, annotationClass);
-        if (annotation == null) {
-            return;
-        }
-        checkPermission(annotationClass, annotation, resource);
+    private static <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource) {
+        resource.requestScope.getPermissionManager().checkPermission(annotationClass, resource);
     }
 
     private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this);
+        // TODO: Need ChangeSet support
+        requestScope.getPermissionManager().checkFieldAwarePermissions(this, null, annotationClass);
     }
 
     private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass, String fieldName) {
-        requestScope.checkFieldAwarePermissions(annotationClass, this, fieldName);
-    }
-
-    /**
-     * Execute a set of permission checks.
-     * @param checks Array of Check annotations
-     * @param mode true if ANY, else ALL
-     * @param resource provided PersistentResource to check
-     */
-    static void checkPermissions(Class<? extends Check>[] checks, boolean mode, PersistentResource resource) {
-        for (Class<? extends Check> check : checks) {
-            Check checkHandler;
-            try {
-                checkHandler = check.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new InvalidSyntaxException("Illegal permission check " + check.getName(), e);
-            }
-            boolean ok = resource.getRequestScope().getUser().ok(checkHandler, resource);
-
-            if (ok && mode == ANY) {
-                return;
-            }
-
-            if (!ok && mode == ALL) {
-                log.debug("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
-                throw new ForbiddenAccessException();
-            }
-        }
-        if (mode == ANY) {
-            log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
-            throw new ForbiddenAccessException();
-        }
-    }
-
-    /**
-     * Check a permission on a field.
-     * @param <A> the type parameter
-     * @param annotationClass the annotation class
-     * @param resource the resource
-     * @param fieldName the field name
-     */
-    protected static <A extends Annotation> void checkFieldPermission(Class<A> annotationClass,
-            PersistentResource resource,
-            String fieldName) {
-        A annotation = resource.getDictionary().getAttributeOrRelationAnnotation(resource.getResourceClass(),
-                annotationClass,
-                fieldName);
-        if (annotation == null) {
-            return;
-        }
-
-        checkPermission(annotationClass, annotation, resource);
-    }
-
-    /**
-     * Check a field permission if it exists. Otherwise, forbidden.
-     *
-     * @param <A> the type parameter
-     * @param annotationClass the annotation class
-     * @param resource the resource
-     * @param fieldName the field name
-     */
-    protected static <A extends Annotation> void checkFieldPermissionIfExists(Class<A> annotationClass,
-                                                                              PersistentResource resource,
-                                                                              String fieldName) {
-        A annotation = resource.getDictionary().getAttributeOrRelationAnnotation(resource.getResourceClass(),
-                                                                                 annotationClass,
-                                                                                 fieldName);
-        if (annotation == null) {
-            throw new ForbiddenAccessException();
-        }
-
-        checkFieldPermission(annotationClass, resource, fieldName);
+        // TODO: Need ChangeSet support
+        requestScope.getPermissionManager().checkFieldAwarePermissions(this, null, annotationClass, fieldName);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,

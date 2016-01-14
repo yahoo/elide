@@ -89,7 +89,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param filterScope scope for filter processing
      * @return records iterable
      */
-    default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
+    default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
         // default to ignoring criteria
         return loadObjects(entityClass);
     }

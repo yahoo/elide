@@ -8,7 +8,7 @@ package example;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import java.util.Set;
 
@@ -69,7 +69,7 @@ public class Right {
     }
 
     @UpdatePermission(
-           any = {Role.NONE.class}
+           any = {Access.NONE.class}
     )
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
@@ -78,7 +78,7 @@ public class Right {
     public Left noUpdateOne2One;
 
     @UpdatePermission(
-           any = {Role.NONE.class}
+           any = {Access.NONE.class}
     )
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },

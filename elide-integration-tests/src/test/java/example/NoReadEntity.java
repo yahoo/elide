@@ -7,7 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,7 +17,7 @@ import javax.persistence.Table;
 /**
  * No Read test bean.
  */
-@ReadPermission(all = { Role.NONE.class })
+@ReadPermission(all = { Access.NONE.class })
 @Include(rootLevel = true, type = "noread") // optional here because class has this name
 // Hibernate
 @Entity

@@ -20,13 +20,13 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.optimization.Role;
+import com.yahoo.elide.security.PermissionManager;
 import com.yahoo.elide.security.User;
 import example.Child;
 import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Left;
-import example.NegativeIntegerUserCheck;
 import example.NoCreateEntity;
 import example.NoDeleteEntity;
 import example.NoReadEntity;
@@ -40,16 +40,11 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.security.UserCheck.ALLOW;
-import static com.yahoo.elide.security.UserCheck.DENY;
+import static com.yahoo.elide.optimization.UserCheck.ALLOW;
+import static com.yahoo.elide.optimization.UserCheck.DENY;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyObject;
@@ -402,27 +397,22 @@ public class PersistentResourceTest extends PersistentResource {
     }
 
     @Test
-    public void testCheckType() {
-        User goodUser = new User(1);
-        Assert.assertEquals(goodUser.checkUserPermission(new Role.ALL()), ALLOW);
-        Assert.assertEquals(goodUser.checkUserPermission(new Role.NONE()), DENY);
-        Assert.assertEquals(goodUser.checkUserPermission(new NegativeIntegerUserCheck()), ALLOW);
-
-        User badUser = new User(-1);
-        Assert.assertEquals(badUser.checkUserPermission(new NegativeIntegerUserCheck()), DENY);
-    }
-
-    @Test
     public void testFilterScopeChecks() {
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         FilterScope filterScope;
 
-        filterScope = new FilterScope(goodScope, ANY, new Class[] { Role.NONE.class, Role.NONE.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, Arrays.asList(new Role.NONE(), new Role.NONE()));
         Assert.assertEquals(filterScope.getUserPermission(), DENY);
 
-        filterScope = new FilterScope(goodScope, ALL, new Class[] { Role.ALL.class, Role.ALL.class });
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, Arrays.asList(new Role.ALL(), new Role.NONE()));
+        Assert.assertEquals(filterScope.getUserPermission(), DENY);
+
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ANY, Arrays.asList(new Role.NONE(), new Role.ALL()));
+        Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
+
+        filterScope = new FilterScope(goodScope, PermissionManager.CheckMode.ALL, Arrays.asList(new Role.ALL(), new Role.ALL()));
         Assert.assertEquals(filterScope.getUserPermission(), ALLOW);
     }
 
@@ -961,6 +951,8 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
         leftResource.clearRelation("noUpdateOne2One");
+        // Modifications have a deferred check component:
+        leftResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -977,6 +969,8 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
         leftResource.updateRelation("noUpdateOne2One", leftResource.getRelation("noUpdateOne2One"));
+        // Modifications have a deferred check component:
+        leftResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -997,6 +991,8 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
         leftResource.clearRelation("noInverseUpdate");
+        // Modifications have a deferred check component:
+        leftResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
 
@@ -1070,6 +1066,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", badScope);
         funResource.updateAttribute("field4", "foobar");
+        // Updates will defer and wait for the end!
+        funResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -1084,6 +1082,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", badScope);
         funResource.updateAttribute("field4", funResource.getAttribute("field4"));
+        // Updates will defer and wait for the end!
+        funResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test()
@@ -1167,7 +1167,7 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Parent> created = PersistentResource.createObject(Parent.class, goodScope, "uuid");
         parent.setChildren(new HashSet<>());
-        created.getRequestScope().runDeferredPermissionChecks();
+        created.getRequestScope().getPermissionManager().executeCommitChecks();
 
         Assert.assertEquals(created.getObject(), parent,
             "The create function should return the requested parent object"
@@ -1185,7 +1185,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<NoCreateEntity> created = PersistentResource.createObject(NoCreateEntity.class, goodScope, "uuid");
-        created.getRequestScope().runDeferredPermissionChecks();
+        created.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test
@@ -1225,6 +1225,8 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope);
 
         leftResource.updateRelation("noInverseUpdate", ids.toPersistentResources(goodScope));
+        // Modifications have a deferred check component:
+        leftResource.getRequestScope().getPermissionManager().executeCommitChecks();
     }
 
     @Test

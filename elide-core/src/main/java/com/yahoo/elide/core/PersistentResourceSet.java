@@ -11,7 +11,7 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 
 /**
- * Stream interable list as a set of PersistentResource
+ * Stream interable list as a set of PersistentResource.
  * @param <T> type of resource
  */
 public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>> {

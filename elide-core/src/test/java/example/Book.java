@@ -12,7 +12,7 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +28,7 @@ import javax.persistence.Table;
  * Model for books.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(any = {Access.ALL.class})
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,

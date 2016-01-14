@@ -11,7 +11,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -24,10 +24,10 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.Set;
 
-@CreatePermission(any = { Role.ALL.class })
-@ReadPermission(all = { Role.ALL.class })
-@UpdatePermission(any = { Role.NONE.class, Role.ALL.class })
-@DeletePermission(all = { Role.ALL.class, Role.NONE.class })
+@CreatePermission(any = { Access.ALL.class })
+@ReadPermission(all = { Access.ALL.class })
+@UpdatePermission(any = { Access.NONE.class, Access.ALL.class })
+@DeletePermission(all = { Access.ALL.class, Access.NONE.class })
 @Include(rootLevel = true, type = "fun") // optional here because class has this name
 @Entity
 @Table(name = "fun")
@@ -77,7 +77,7 @@ public class FunWithPermissions {
         this.id = id;
     }
 
-    @ReadPermission(any = { Role.NONE.class})
+    @ReadPermission(any = { Access.NONE.class})
     public String getField1() {
         return field1;
     }
@@ -86,7 +86,7 @@ public class FunWithPermissions {
         this.field1 = field1;
     }
 
-    @ReadPermission(all = { Role.ALL.class})
+    @ReadPermission(all = { Access.ALL.class})
     public String getField2() {
         return field2;
     }
@@ -110,18 +110,18 @@ public class FunWithPermissions {
     }
 
     /* Verifies a chain of checks where all can succeed */
-    @ReadPermission(any = { NegativeIntegerUserCheck.class, Role.ALL.class })
+    @ReadPermission(any = { NegativeIntegerUserCheck.class, Access.ALL.class })
     public String field5;
 
     /* Verifies a chain of checks where the first can fail or all succeed */
-    @ReadPermission(all = { NegativeIntegerUserCheck.class, Role.ALL.class })
+    @ReadPermission(all = { NegativeIntegerUserCheck.class, Access.ALL.class })
     public String field6;
 
     /* Verifies a chain of checks where the last can fail. */
-    @ReadPermission(all = { Role.ALL.class, Role.NONE.class })
+    @ReadPermission(all = { Access.ALL.class, Access.NONE.class })
     public String field7;
 
     /* Verifies a chain of checks where all can fail or the last can succeed. */
-    @ReadPermission(any = { Role.NONE.class, NegativeIntegerUserCheck.class })
+    @ReadPermission(any = { Access.NONE.class, NegativeIntegerUserCheck.class })
     public String field8;
 }

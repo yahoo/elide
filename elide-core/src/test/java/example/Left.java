@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.Access;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -73,7 +73,7 @@ public class Left {
     }
 
     @UpdatePermission(
-           any = {Role.NONE.class}
+           any = {Access.NONE.class}
     )
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
