@@ -17,11 +17,21 @@ public class Slf4jLogger extends Logger {
 
     @Override
     public void commit() throws IOException {
-        synchronized (messages) {
-            for (LogMessage message : messages) {
+        RuntimeException cause = null;
+        for (LogMessage message : messages.get()) {
+            try {
                 log.info("{} {} {}", System.currentTimeMillis(), message.getOperationCode(), message.getMessage());
+            } catch (RuntimeException e) {
+                if (cause != null) {
+                    cause.addSuppressed(e);
+                } else {
+                    cause = e;
+                }
             }
-            messages.clear();
+        }
+        messages.get().clear();
+        if (cause != null) {
+            throw cause;
         }
     }
 }

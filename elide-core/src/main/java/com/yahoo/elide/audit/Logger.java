@@ -7,23 +7,22 @@ package com.yahoo.elide.audit;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * Base Audit Logger
  * <p>
- * This class uses synchronized list to be thread safe.
+ * This class uses ThreadLocal list to be thread safe.
  */
 public abstract class Logger {
-    protected final List<LogMessage> messages;
+    protected final ThreadLocal<List<LogMessage>> messages;
 
     public Logger() {
-        messages = Collections.synchronizedList(new ArrayList<>());
+        messages = ThreadLocal.withInitial(() -> { return new ArrayList<>(); });
     }
 
     public void log(LogMessage message) {
-        messages.add(message);
+        messages.get().add(message);
     }
 
     public abstract void commit() throws IOException;

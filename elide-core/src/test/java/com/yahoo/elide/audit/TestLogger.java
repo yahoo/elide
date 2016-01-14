@@ -15,6 +15,6 @@ public class TestLogger extends Logger {
     }
 
     public List<LogMessage> getMessages() {
-        return new ArrayList<>(this.messages);
+        return new ArrayList<>(this.messages.get());
     }
 }
