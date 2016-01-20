@@ -221,6 +221,18 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier) {
+        return getParameterizedType(entityClass, identifier, 0);
+    }
+
+    /**
+     * Retrieve the parameterized type for the given field.
+     *
+     * @param entityClass the entity class
+     * @param identifier the identifier
+     * @param paramIndex the index of the parameterization
+     * @return Entity type for field otherwise null.
+     */
+    public Class<?> getParameterizedType(Class<?> entityClass, String identifier, int paramIndex) {
         ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
@@ -239,7 +251,7 @@ public class EntityDictionary {
         }
 
         if (type instanceof ParameterizedType) {
-            return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+            return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[paramIndex];
         }
 
         return getType(entityClass, identifier);
@@ -254,6 +266,18 @@ public class EntityDictionary {
      */
     public Class<?> getParameterizedType(Object entity, String identifier) {
         return getParameterizedType(entity.getClass(), identifier);
+    }
+
+    /**
+     * Retrieve the parameterized type for the given field.
+     *
+     * @param entity Entity instance
+     * @param identifier Field to lookup
+     * @param paramIndex the index of the parameterization
+     * @return Entity type for field otherwise null.
+     */
+    public Class<?> getParameterizedType(Object entity, String identifier, int paramIndex) {
+        return getParameterizedType(entity.getClass(), identifier, paramIndex);
     }
 
     /**

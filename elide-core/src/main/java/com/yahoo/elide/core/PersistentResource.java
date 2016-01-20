@@ -1063,10 +1063,14 @@ public class PersistentResource<T> {
             return coerceCollection((Collection) value, fieldName, fieldClass);
         }
 
+        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
+            return coerceMap((Map<?, ?>) value, fieldName, fieldClass);
+        }
+
         return CoerceUtil.coerce(value, fieldClass);
     }
 
-    private Collection coerceCollection(Collection values, String fieldName, Class<?> fieldClass) {
+    private Collection coerceCollection(Collection<?> values, String fieldName, Class<?> fieldClass) {
         Class<?> providedType = dictionary.getParameterizedType(obj, fieldName);
 
         // check if collection is of and contains the correct types
@@ -1093,6 +1097,35 @@ public class PersistentResource<T> {
         }
 
         return list;
+    }
+
+    private Map coerceMap(Map<?, ?> values, String fieldName, Class<?> fieldClass) {
+        Class<?> keyType = dictionary.getParameterizedType(obj, fieldName, 0);
+        Class<?> valueType = dictionary.getParameterizedType(obj, fieldName, 1);
+
+        // Verify the existing Map
+        if (isValidParameterizedMap(values, keyType, valueType)) {
+            return values;
+        }
+
+        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
+        }
+
+        return result;
+    }
+
+    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
+                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

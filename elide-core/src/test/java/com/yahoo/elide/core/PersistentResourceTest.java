@@ -15,6 +15,7 @@ import com.yahoo.elide.audit.TestLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -23,9 +24,11 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.Role;
 import com.yahoo.elide.security.User;
 import example.Child;
+import example.Color;
 import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Left;
+import example.MapColorShape;
 import example.NegativeIntegerUserCheck;
 import example.NoCreateEntity;
 import example.NoDeleteEntity;
@@ -34,6 +37,7 @@ import example.NoShareEntity;
 import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
+import example.Shape;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -42,6 +46,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +94,7 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(NoShareEntity.class);
         dictionary.bindEntity(example.User.class);
         dictionary.bindEntity(FirstClassFields.class);
+        dictionary.bindEntity(MapColorShape.class);
     }
 
     @Test
@@ -240,6 +246,43 @@ public class PersistentResourceTest extends PersistentResource {
             return;
         }
         Assert.fail("Setting a bad relation should throw an InvalidAttributeException.");
+    }
+
+    @Test
+    public void testSetMapValue() {
+        MapColorShape mapColorShape = new MapColorShape();
+        this.obj = mapColorShape;
+
+        HashMap<Object, Object> coerceable = new HashMap<>();
+        coerceable.put("Red", "Circle");
+        coerceable.put("Green", "Square");
+        coerceable.put("Violet", "Triangle");
+        setValue("colorShapeMap", coerceable);
+
+        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Red), Shape.Circle);
+        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Green), Shape.Square);
+        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Violet), Shape.Triangle);
+        Assert.assertEquals(mapColorShape.getColorShapeMap().size(), 3);
+    }
+
+    @Test(expectedExceptions = {InvalidValueException.class})
+    public void testSetMapInvalidColorEnum() {
+        MapColorShape mapColorShape = new MapColorShape();
+        this.obj = mapColorShape;
+
+        HashMap<Object, Object> coerceable = new HashMap<>();
+        coerceable.put("InvalidColor", "Circle");
+        setValue("colorShapeMap", coerceable);
+    }
+
+    @Test(expectedExceptions = {InvalidValueException.class})
+    public void testSetMapInvalidShapeEnum() {
+        MapColorShape mapColorShape = new MapColorShape();
+        this.obj = mapColorShape;
+
+        HashMap<Object, Object> coerceable = new HashMap<>();
+        coerceable.put("Red", "InvalidShape");
+        setValue("colorShapeMap", coerceable);
     }
 
     @Test

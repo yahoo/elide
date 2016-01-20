@@ -38,7 +38,6 @@ public class CoerceUtil {
      * @return coerced value
      */
     public static Object coerce(Object value, Class<?> cls) {
-
         if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
             return value;
         }
