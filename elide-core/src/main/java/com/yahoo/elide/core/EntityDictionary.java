@@ -5,14 +5,16 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -29,8 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.persistence.Entity;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -570,7 +570,8 @@ public class EntityDictionary {
             throws NoSuchMethodException {
         for (Method m : entityClass.getMethods()) {
             int modifiers = m.getModifiers();
-            if (!Modifier.isAbstract(modifiers) && !Modifier.isTransient(modifiers) && m.getName().equals(name)) {
+            if ((m.isAnnotationPresent(ComputedAttribute.class) || !m.isAnnotationPresent(Transient.class))
+                    && !Modifier.isAbstract(modifiers) && m.getName().equals(name)) {
                 if (paramClass != null) {
                     Class<?>[] params = m.getParameterTypes();
                     if (params.length == paramClass.length) {
