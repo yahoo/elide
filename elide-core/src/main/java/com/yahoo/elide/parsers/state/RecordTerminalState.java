@@ -37,15 +37,29 @@ import javax.ws.rs.core.MultivaluedMap;
 @ToString
 public class RecordTerminalState extends BaseState {
     private final PersistentResource record;
+    private final Optional<CollectionTerminalState> collectionTerminalState;
 
     public RecordTerminalState(PersistentResource record) {
+        this(record, null);
+    }
+
+    public RecordTerminalState(PersistentResource record, CollectionTerminalState collectionTerminalState) {
         this.record = record;
+        this.collectionTerminalState = Optional.ofNullable(collectionTerminalState);
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         ObjectMapper mapper = state.getRequestScope().getMapper().getObjectMapper();
         return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope(), mapper));
+    }
+
+    @Override
+    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
+        if (collectionTerminalState.isPresent()) {
+            return collectionTerminalState.get().handlePost(state);
+        }
+        throw new IllegalStateException("Cannot POST to a record.");
     }
 
     @Override

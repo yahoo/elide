@@ -1215,6 +1215,57 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(actual, expected);
     }
 
+    @Test(priority = 33)
+    public void testUpdateToOneCollection() {
+        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+
+        // Verify it was actually created
+        String o = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createRoot)
+                .get("/oneToOneRoot/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().asString();
+
+        // Create other object
+        String createChild = jsonParser.getJson("/ResourceIT/updateOneToOneNonRoot.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createChild)
+                .post("/oneToOneRoot/1/otherObject")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        // Verify contents
+        String actualFirst = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createChild)
+                .get("/oneToOneRoot/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+
+        String actualChild = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createChild)
+                .get("/oneToOneRoot/1/otherObject")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+
+        String
+                expectedFirst = jsonParser.getJson("/ResourceIT/oneToOneRootUpdatedRelationship.json");
+        String expectedChild = jsonParser.getJson("/ResourceIT/oneToOneNonRootUpdatedRelationship.json");
+
+        assertEqualDocuments(actualFirst, expectedFirst);
+        assertEqualDocuments(actualChild, expectedChild);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");

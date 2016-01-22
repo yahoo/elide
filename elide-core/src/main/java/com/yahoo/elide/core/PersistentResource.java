@@ -428,14 +428,17 @@ public class PersistentResource<T> {
                 return false;
             }
             checkSharePermission(resourceIdentifiers);
-            addInverseRelation(fieldName, newValue);
-            transaction.save(newValue);
         } else if (oldResource.getObject().equals(newValue)) {
             return false;
         } else {
             checkSharePermission(resourceIdentifiers);
             deleteInverseRelation(fieldName, oldResource.getObject());
             transaction.save(oldResource.getObject());
+        }
+
+        if (newValue != null) {
+            addInverseRelation(fieldName, newValue);
+            transaction.save(newValue);
         }
 
         this.setValueChecked(fieldName, newValue);

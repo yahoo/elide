@@ -48,7 +48,7 @@ public class OneToOneNonRoot {
         this.test = test;
     }
 
-    @OneToOne
+    @OneToOne(mappedBy = "otherObject")
     @PrimaryKeyJoinColumn
     public OneToOneRoot getRoot() {
         return root;
