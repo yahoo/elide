@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -43,6 +44,7 @@ public class RecordTerminalState extends BaseState {
         this(record, null);
     }
 
+    // This constructor is to handle ToOne collection as a Record Terminal State
     public RecordTerminalState(PersistentResource record, CollectionTerminalState collectionTerminalState) {
         this.record = record;
         this.collectionTerminalState = Optional.ofNullable(collectionTerminalState);
@@ -59,7 +61,7 @@ public class RecordTerminalState extends BaseState {
         if (collectionTerminalState.isPresent()) {
             return collectionTerminalState.get().handlePost(state);
         }
-        throw new IllegalStateException("Cannot POST to a record.");
+        throw new InvalidOperationException("Cannot POST to a record.");
     }
 
     @Override

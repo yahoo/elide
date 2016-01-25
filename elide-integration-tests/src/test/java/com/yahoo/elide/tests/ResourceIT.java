@@ -1266,6 +1266,19 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(actualChild, expectedChild);
     }
 
+    @Test(priority = 34)
+    public void testPostToRecord() {
+        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createRoot)
+                .post("/oneToOneRoot/1")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
