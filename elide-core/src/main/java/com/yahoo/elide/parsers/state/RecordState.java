@@ -44,11 +44,13 @@ public class RecordState extends BaseState {
                 throw new IllegalArgumentException("Unknown type " + entityName);
             }
             final BaseState nextState;
+            final CollectionTerminalState collectionTerminalState =
+                    new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = collection.iterator().next();
-                nextState = new RecordTerminalState(record);
+                nextState = new RecordTerminalState(record, collectionTerminalState);
             } else {
-                nextState = new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
+                nextState = collectionTerminalState;
             }
             state.setState(nextState);
         } catch (InvalidAttributeException e) {

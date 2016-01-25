@@ -1,0 +1,9 @@
+{
+    "data":{
+        "type":"OneToOneNonRoot",
+        "id":"2",
+        "attributes":{
+            "test": "Updated object"
+        }
+    }
+}

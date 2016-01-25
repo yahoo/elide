@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -37,15 +38,30 @@ import javax.ws.rs.core.MultivaluedMap;
 @ToString
 public class RecordTerminalState extends BaseState {
     private final PersistentResource record;
+    private final Optional<CollectionTerminalState> collectionTerminalState;
 
     public RecordTerminalState(PersistentResource record) {
+        this(record, null);
+    }
+
+    // This constructor is to handle ToOne collection as a Record Terminal State
+    public RecordTerminalState(PersistentResource record, CollectionTerminalState collectionTerminalState) {
         this.record = record;
+        this.collectionTerminalState = Optional.ofNullable(collectionTerminalState);
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         ObjectMapper mapper = state.getRequestScope().getMapper().getObjectMapper();
         return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope(), mapper));
+    }
+
+    @Override
+    public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
+        if (collectionTerminalState.isPresent()) {
+            return collectionTerminalState.get().handlePost(state);
+        }
+        throw new InvalidOperationException("Cannot POST to a record.");
     }
 
     @Override
