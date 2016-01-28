@@ -273,12 +273,10 @@ public class JsonApiPatch {
      * Turn an exception into a proper error response from patch extension.
      */
     private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e) {
-        if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            return e.getErrorResponse();
-        }
         ObjectNode errorContainer = JsonNodeFactory.instance.objectNode();
         ArrayNode errorNode = JsonNodeFactory.instance.arrayNode();
         errorContainer.set("errors", errorNode);
+
         boolean failed = false;
         for (PatchAction action : actions) {
             if (action.cause != null) {
@@ -290,7 +288,7 @@ public class JsonApiPatch {
                 errorNode.add(DEFAULT_NOTRUN_ERR_NODE);
             }
         }
-        return Pair.of(HttpStatus.SC_BAD_REQUEST, errorContainer);
+        return Pair.of(e.getStatus(), errorContainer);
     }
 
     /**

@@ -113,11 +113,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -170,11 +170,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -236,11 +236,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         }
     }
 
@@ -297,11 +297,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -346,8 +346,8 @@ public class Elide {
         return parser.start();
     }
 
-    protected ElideResponse buildErrorResponse(HttpStatusException error) {
-        return buildResponse(error.getErrorResponse());
+    protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {
+        return buildResponse(error.getErrorResponse(securityMode));
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

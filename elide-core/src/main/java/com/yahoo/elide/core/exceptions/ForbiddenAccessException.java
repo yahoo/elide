@@ -15,6 +15,14 @@ import com.yahoo.elide.core.HttpStatus;
 public class ForbiddenAccessException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
+    public ForbiddenAccessException() {
+        this(null);
+    }
+
+    public ForbiddenAccessException(String message) {
+        super(message);
+    }
+
     @Override
     public int getStatus() {
         return HttpStatus.SC_FORBIDDEN;

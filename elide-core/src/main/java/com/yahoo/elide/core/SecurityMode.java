@@ -10,5 +10,6 @@ package com.yahoo.elide.core;
  */
 public enum SecurityMode {
     BYPASS_SECURITY,
+    VERBOSE_ERRORS,
     ACTIVE
 }

@@ -1403,13 +1403,15 @@ public class PersistentResource<T> {
             }
 
             if (!ok && mode == ALL) {
-                log.debug("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
-                throw new ForbiddenAccessException();
+                String message = String.format("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
+                log.debug(message);
+                throw new ForbiddenAccessException(message);
             }
         }
         if (mode == ANY) {
-            log.debug("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
-            throw new ForbiddenAccessException();
+            String message = String.format("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
+            log.debug(message);
+            throw new ForbiddenAccessException(message);
         }
     }
 
