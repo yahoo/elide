@@ -103,7 +103,7 @@ public class RequestScope {
                         JsonApiMapper mapper,
                         Logger logger,
                         MultivaluedMap<String, String> queryParams) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, queryParams, SecurityMode.ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, queryParams, SecurityMode.SECURITY_ACTIVE);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -112,7 +112,7 @@ public class RequestScope {
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         Logger logger) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, SecurityMode.ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -397,7 +397,7 @@ public class RequestScope {
             }
 
             // No accessible fields and object is not accessible
-            throw new ForbiddenAccessException();
+            throw new ForbiddenAccessException("Cannot access object " + resource.getObject());
         }
     }
 }

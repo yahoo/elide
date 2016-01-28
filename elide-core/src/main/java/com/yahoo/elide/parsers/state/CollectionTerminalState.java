@@ -182,7 +182,7 @@ public class CollectionTerminalState extends BaseState {
                 persistentResource.setId(id);
             } else {
                 //If expecting id to persist and id is not present, throw exception
-                throw new ForbiddenAccessException();
+                throw new ForbiddenAccessException("No id provided, cannot persist " + persistentResource.getObject());
             }
         }
     }

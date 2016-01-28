@@ -133,7 +133,7 @@ public class Elide {
             String path,
             MultivaluedMap<String, String> queryParams,
             Object opaqueUser) {
-        return this.get(path, queryParams, opaqueUser, SecurityMode.ACTIVE);
+        return this.get(path, queryParams, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -190,7 +190,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -260,7 +260,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -317,7 +317,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**

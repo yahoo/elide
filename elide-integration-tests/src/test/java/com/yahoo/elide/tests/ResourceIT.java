@@ -1372,7 +1372,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.BYPASS_SECURITY);
+                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_INACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }
@@ -1380,7 +1380,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.ACTIVE);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

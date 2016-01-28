@@ -565,9 +565,11 @@ public class PersistentResource<T> {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    log.debug("ForbiddenAccess not shared {}#{}",
-                            persistentResource.getType(), persistentResource.getId());
-                    throw new ForbiddenAccessException();
+                    String message = String.format("ForbiddenAccess not shared %s#%s",
+                            persistentResource.getType(),
+                            persistentResource.getId());
+                    log.debug(message);
+                    throw new ForbiddenAccessException(message);
                 }
             }
         }
@@ -745,7 +747,7 @@ public class PersistentResource<T> {
      * @return true DENY check type
      */
     private static boolean isDenyFilter(RequestScope requestScope, Class<?> recordClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
+        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return false;
         }
 
@@ -1306,7 +1308,7 @@ public class PersistentResource<T> {
             Class<A> annotationClass,
             A annotation,
             PersistentResource resource) {
-        if (resource.getRequestScope().getSecurityMode() == SecurityMode.BYPASS_SECURITY) {
+        if (resource.getRequestScope().getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return;
         }
         Class<? extends Check>[] anyChecks;
@@ -1403,13 +1405,19 @@ public class PersistentResource<T> {
             }
 
             if (!ok && mode == ALL) {
-                String message = String.format("ForbiddenAccess {} {}#{}", check, resource.getType(), resource.getId());
+                String message = String.format("ForbiddenAccess %s %s#%s",
+                        check,
+                        resource.getType(),
+                        resource.getId());
                 log.debug(message);
                 throw new ForbiddenAccessException(message);
             }
         }
         if (mode == ANY) {
-            String message = String.format("ForbiddenAccess {} {}#{}", Arrays.asList(checks), resource.getType(), resource.getId());
+            String message = String.format("ForbiddenAccess %s %s#%s",
+                    Arrays.asList(checks),
+                    resource.getType(),
+                    resource.getId());
             log.debug(message);
             throw new ForbiddenAccessException(message);
         }
@@ -1450,7 +1458,7 @@ public class PersistentResource<T> {
                                                                                  annotationClass,
                                                                                  fieldName);
         if (annotation == null) {
-            throw new ForbiddenAccessException();
+            throw new ForbiddenAccessException("Unable to find annotation " + annotationClass);
         }
 
         checkFieldPermission(annotationClass, resource, fieldName);
