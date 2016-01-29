@@ -113,11 +113,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -133,7 +133,7 @@ public class Elide {
             String path,
             MultivaluedMap<String, String> queryParams,
             Object opaqueUser) {
-        return this.get(path, queryParams, opaqueUser, SecurityMode.ACTIVE);
+        return this.get(path, queryParams, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -170,11 +170,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -190,7 +190,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -236,11 +236,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         }
     }
 
@@ -260,7 +260,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -297,11 +297,11 @@ public class Elide {
             requestScope.runCommitTriggers();
             return response;
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e);
+            return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e));
+            return buildErrorResponse(new TransactionException(e), securityMode);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e));
+            return buildErrorResponse(new InvalidURLException(e), securityMode);
         }
     }
 
@@ -317,7 +317,7 @@ public class Elide {
             String path,
             String jsonApiDocument,
             Object opaqueUser) {
-        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.ACTIVE);
+        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -346,8 +346,8 @@ public class Elide {
         return parser.start();
     }
 
-    protected ElideResponse buildErrorResponse(HttpStatusException error) {
-        return buildResponse(error.getErrorResponse());
+    protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {
+        return buildResponse(error.getErrorResponse(securityMode));
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

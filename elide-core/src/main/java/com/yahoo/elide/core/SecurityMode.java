@@ -9,6 +9,7 @@ package com.yahoo.elide.core;
  * Enable or disable security.
  */
 public enum SecurityMode {
-    BYPASS_SECURITY,
-    ACTIVE
+    SECURITY_INACTIVE,
+    SECURITY_ACTIVE_VERBOSE,
+    SECURITY_ACTIVE
 }

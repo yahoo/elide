@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -73,15 +74,17 @@ public class JsonApiPatch {
     private final List<PatchAction> actions;
     private final String rootUri;
 
-    private static final ObjectNode DEFAULT_ERR_NODE;
-    private static final ObjectNode DEFAULT_NOTRUN_ERR_NODE;
+    private static final ObjectNode ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION;
+    private static final ObjectNode ERR_NODE_OPERATION_NOT_RUN;
 
     static {
-        DEFAULT_NOTRUN_ERR_NODE = JsonNodeFactory.instance.objectNode();
-        DEFAULT_NOTRUN_ERR_NODE.set("detail",
+        ERR_NODE_OPERATION_NOT_RUN = JsonNodeFactory.instance.objectNode();
+        ERR_NODE_OPERATION_NOT_RUN.set("detail",
             JsonNodeFactory.instance.textNode("Operation not executed. Terminated by earlier failure."));
-        DEFAULT_ERR_NODE = JsonNodeFactory.instance.objectNode();
-        DEFAULT_ERR_NODE.set("detail", JsonNodeFactory.instance.textNode("Subsequent operation failed."));
+
+        ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION = JsonNodeFactory.instance.objectNode();
+        ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION.set("detail",
+                JsonNodeFactory.instance.textNode("Subsequent operation failed."));
     }
 
     /**
@@ -137,11 +140,11 @@ public class JsonApiPatch {
                 try {
                     return Pair.of(HttpStatus.SC_OK, mergeResponse(results));
                 } catch (HttpStatusException e) {
-                    return buildErrorResponse(e);
+                    return buildErrorResponse(e, requestScope.getSecurityMode());
                 }
             };
         } catch (HttpStatusException e) {
-            return () -> buildErrorResponse(e);
+            return () -> buildErrorResponse(e, requestScope.getSecurityMode());
         }
     }
 
@@ -272,25 +275,40 @@ public class JsonApiPatch {
     /**
      * Turn an exception into a proper error response from patch extension.
      */
-    private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e) {
+    private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e, SecurityMode securityMode) {
         if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            return e.getErrorResponse();
+            return e.getErrorResponse(securityMode);
         }
-        ObjectNode errorContainer = JsonNodeFactory.instance.objectNode();
-        ArrayNode errorNode = JsonNodeFactory.instance.arrayNode();
-        errorContainer.set("errors", errorNode);
+
+        ObjectNode errorContainer = getErrorContainer();
+        ArrayNode errorList = (ArrayNode) errorContainer.get("errors");
+
         boolean failed = false;
         for (PatchAction action : actions) {
-            if (action.cause != null) {
-                errorNode.add(toErrorNode(action.cause.getMessage(), action.cause.getStatus()));
-                failed = true;
-            } else if (!failed) {
-                errorNode.add(DEFAULT_ERR_NODE);
-            } else {
-                errorNode.add(DEFAULT_NOTRUN_ERR_NODE);
-            }
+            failed = processAction(errorList, failed, action);
         }
         return Pair.of(HttpStatus.SC_BAD_REQUEST, errorContainer);
+    }
+
+    private ObjectNode getErrorContainer() {
+        ObjectNode container = JsonNodeFactory.instance.objectNode();
+        container.set("errors", JsonNodeFactory.instance.arrayNode());
+        return container;
+    }
+
+    private boolean processAction(ArrayNode errorList, boolean failed, PatchAction action) {
+        if (action.cause != null) {
+            // this is the failed operation
+            errorList.add(toErrorNode(action.cause.getMessage(), action.cause.getStatus()));
+            failed = true;
+        } else if (!failed) {
+            // this operation succeeded
+            errorList.add(ERR_NODE_ERR_IN_SUBSEQUENT_OPERATION);
+        } else {
+            // this operation never ran
+            errorList.add(ERR_NODE_OPERATION_NOT_RUN);
+        }
+        return failed;
     }
 
     /**
