@@ -1281,14 +1281,30 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test(priority = 35)
     public void testFilterIds() {
-        String expected = "{\"data\":[{\"type\":\"child\",\"id\":\"4\"}]}";
+        String expectedRels = jsonParser.getJson("/ResourceIT/testFilterIdRels.json");
+        String expectedIncl = jsonParser.getJson("/ResourceIT/testFilterIdIncluded.json");
+        String expectedColl = jsonParser.getJson("/ResourceIT/testFilterIdCollection.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .get("/parent/10/relationships/children?filter[child.id]=4")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected));
+                .body(equalTo(expectedRels));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent/10?include=children&filter[child.id]=4,5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedIncl));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?include=children&filter[child.id]=4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedColl));
     }
 
     @Test
