@@ -246,7 +246,7 @@ public class PersistentResource<T> {
             Class<?> idType = dictionary.getIdType(loadClass);
             obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType));
             if (obj == null) {
-                throw new InvalidObjectIdentifierException(id);
+                throw new InvalidObjectIdentifierException(id, loadClass.getSimpleName());
             }
         }
 
@@ -677,7 +677,7 @@ public class PersistentResource<T> {
                 return childResource;
             }
         }
-        throw new InvalidObjectIdentifierException(id);
+        throw new InvalidObjectIdentifierException(id, relation);
     }
 
     /**
@@ -1458,7 +1458,10 @@ public class PersistentResource<T> {
                                                                                  annotationClass,
                                                                                  fieldName);
         if (annotation == null) {
-            throw new ForbiddenAccessException("Unable to find annotation " + annotationClass);
+            throw new ForbiddenAccessException(
+                    "Unable to find annotation " + annotationClass.getSimpleName() + " for "
+                            + resource.getResourceClass().getSimpleName() + "#" + fieldName
+            );
         }
 
         checkFieldPermission(annotationClass, resource, fieldName);
