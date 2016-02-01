@@ -1279,6 +1279,18 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
+    @Test(priority = 35)
+    public void testFilterIds() {
+        String expected = "{\"data\":[{\"type\":\"child\",\"id\":\"4\"}]}";
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent/10/relationships/children?filter[child.id]=4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");

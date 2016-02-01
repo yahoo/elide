@@ -22,7 +22,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
-import org.hibernate.collection.PersistentBag;
+import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
@@ -186,7 +186,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        if (collection instanceof PersistentBag && !predicates.isEmpty()) {
+        if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
             String filterString = hqlFilterOperation.applyAll(predicates);
 
             if (filterString.length() != 0) {
