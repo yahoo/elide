@@ -629,7 +629,7 @@ public class PersistentResource<T> {
      * @param id resource id
      */
     public void setId(String id) {
-        this.setValue("id", id);
+        this.setValue(dictionary.getIdFieldName(getResourceClass()), id);
     }
 
     /**
@@ -668,13 +668,14 @@ public class PersistentResource<T> {
      */
     public PersistentResource getRelation(String relation, String id) {
         Set<Predicate> filters;
-        // TODO: UUID's are troublesome here from Patch Extension. We should consider an alternative approach for this.
+        // Filtering not supported in Patxh extension
         if (requestScope instanceof PatchRequestScope) {
             filters = Collections.emptySet();
         } else {
-            Object idVal = CoerceUtil.coerce(id,
-                    dictionary.getIdType(dictionary.getParameterizedType(getResourceClass(), relation)));
-            Predicate idFilter = new Predicate("id", Operator.IN, Collections.singletonList(idVal));
+            Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+            Object idVal = CoerceUtil.coerce(id, dictionary.getIdType(entityType));
+            String idField = dictionary.getIdFieldName(entityType);
+            Predicate idFilter = new Predicate(idField, Operator.IN, Collections.singletonList(idVal));
             filters = Collections.singleton(idFilter);
         }
 
