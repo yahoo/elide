@@ -98,7 +98,7 @@ public class Left {
     @ManyToMany(
         cascade = { CascadeType.PERSIST, CascadeType.MERGE },
         targetEntity = Right.class,
-        mappedBy = "noDelete"
+        mappedBy = "allowDeleteAtFieldLevel"
     )
-    public Set<Right> noInverseDelete;
+    public Set<Right> fieldLevelDelete;
 }

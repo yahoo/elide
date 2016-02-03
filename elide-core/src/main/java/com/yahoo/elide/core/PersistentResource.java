@@ -476,8 +476,9 @@ public class PersistentResource<T> {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
                     .forEach(toDelete -> {
+                        String inverseRelation = getInverseRelationField(relationName);
                         checkFieldAwarePermissions(UpdatePermission.class, relationName);
-                        checkPermission(UpdatePermission.class, toDelete);
+                        toDelete.checkFieldAwarePermissions(UpdatePermission.class, inverseRelation);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
                     });
@@ -497,9 +498,9 @@ public class PersistentResource<T> {
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-        checkPermission(UpdatePermission.class, removeResource);
-        Object relation = this.getValue(fieldName);
+        removeResource.checkFieldAwarePermissions(UpdatePermission.class, getInverseRelationField(fieldName));
 
+        Object relation = this.getValue(fieldName);
         if (relation instanceof Collection) {
             if (!((Collection) relation).contains(removeResource.getObject())) {
 
@@ -1179,13 +1180,10 @@ public class PersistentResource<T> {
      * If a bidirectional relationship exists, attempts to delete itself from the inverse
      * relationship. Given A to B as the relationship, A corresponds to this and B is the inverse.
      * @param relationName The name of the relationship on this (A) object.
-     * @param relationValue The value (B) which has been deleted from this object.
+     * @param inverseEntity The value (B) which has been deleted from this object.
      */
-    protected void deleteInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-
-        String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
-        Object inverseEntity = relationValue; // Assigned to improve readability.
+    protected void deleteInverseRelation(String relationName, Object inverseEntity) {
+        String inverseRelationName = getInverseRelationField(relationName);
 
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
@@ -1206,6 +1204,11 @@ public class PersistentResource<T> {
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
         }
+    }
+
+    private String getInverseRelationField(String relationName) {
+        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
+        return dictionary.getRelationInverse(entityClass, relationName);
     }
 
     /**
@@ -1468,7 +1471,7 @@ public class PersistentResource<T> {
                                                                                  fieldName);
         if (annotation == null) {
             throw new ForbiddenAccessException(
-                    "Unable to find annotation " + annotationClass.getSimpleName() + " for "
+                    "Unable to find " + annotationClass.getSimpleName() + " annotation for "
                             + resource.getResourceClass().getSimpleName() + "#" + fieldName
             );
         }
