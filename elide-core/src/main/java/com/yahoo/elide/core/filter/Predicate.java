@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -59,7 +60,9 @@ public class Predicate {
                     throw new InvalidPredicateException("Unknown entity in filter: " + type);
                 }
 
-                final Class<?> fieldType = dictionary.getParameterizedType(entityClass, field);
+                final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
+                                           ? dictionary.getIdType(entityClass)
+                                           : dictionary.getParameterizedType(entityClass, field);
                 if (fieldType == null) {
                     throw new InvalidPredicateException("Unknown field in filter: " + field);
                 }

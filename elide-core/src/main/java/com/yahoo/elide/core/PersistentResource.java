@@ -26,6 +26,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -628,7 +629,7 @@ public class PersistentResource<T> {
      * @param id resource id
      */
     public void setId(String id) {
-        this.setValue("id", id);
+        this.setValue(dictionary.getIdFieldName(getResourceClass()), id);
     }
 
     /**
@@ -666,9 +667,17 @@ public class PersistentResource<T> {
      * @return PersistentResource relation
      */
     public PersistentResource getRelation(String relation, String id) {
-
-        Predicate idFilter = new Predicate(relation, Operator.IN, Collections.singletonList(id));
-        Set<Predicate> filters = Collections.singleton(idFilter);
+        Set<Predicate> filters;
+        // Filtering not supported in Patxh extension
+        if (requestScope instanceof PatchRequestScope) {
+            filters = Collections.emptySet();
+        } else {
+            Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+            Object idVal = CoerceUtil.coerce(id, dictionary.getIdType(entityType));
+            String idField = dictionary.getIdFieldName(entityType);
+            Predicate idFilter = new Predicate(idField, Operator.IN, Collections.singletonList(idVal));
+            filters = Collections.singleton(idFilter);
+        }
 
         /* getRelation performs read permission checks */
         Set<PersistentResource> resources = getRelation(relation, filters);

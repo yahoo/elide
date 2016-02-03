@@ -78,6 +78,16 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns the name of the id field.
+     *
+     * @param entityClass Entity class
+     * @return id field name
+     */
+    public String getIdFieldName(Class<?> entityClass) {
+        return entityBinding(entityClass).getIdFieldName();
+    }
+
+    /**
      * Get all bindings.
      *
      * @return the bindings
