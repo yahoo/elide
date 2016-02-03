@@ -1236,17 +1236,19 @@ public class PersistentResourceTest extends PersistentResource {
         Left left = new Left();
         left.setId(1);
         Right right = new Right();
+        right.setId(2);
 
-        left.noInverseDelete = Sets.newHashSet(right);
-        right.noDelete = Sets.newHashSet(left);
+        left.fieldLevelDelete = Sets.newHashSet(right);
+        right.allowDeleteAtFieldLevel = Sets.newHashSet(left);
 
         //Bad User triggers the delete permission failure
         User badUser = new User(-1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope badScope = new RequestScope(null, tx, badUser, dictionary, null, MOCK_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope);
-        Assert.assertTrue(leftResource.clearRelation("noInverseDelete"));
-        Assert.assertEquals(leftResource.getObject().noInverseDelete.size(), 0);
+
+        Assert.assertTrue(leftResource.clearRelation("fieldLevelDelete"));
+        Assert.assertEquals(leftResource.getObject().fieldLevelDelete.size(), 0);
     }
 
 
