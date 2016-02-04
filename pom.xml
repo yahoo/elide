@@ -365,6 +365,7 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
@@ -373,6 +374,7 @@
                     <repoToken>${env.coveralls_repo_token}</repoToken>
                 </configuration>
             </plugin>
+            -->
             <plugin>
                 <groupId>com.versioneye</groupId>
                 <artifactId>versioneye-maven-plugin</artifactId>
