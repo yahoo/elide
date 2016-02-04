@@ -29,10 +29,14 @@ public class JsonApiDocument {
     private final List<Resource> included;
 
     public JsonApiDocument() {
+        this(null);
+    }
+
+    public JsonApiDocument(Data<Resource> data) {
         links = new LinkedHashMap<>();
         included = new ArrayList<>();
         includedRecs = new LinkedHashSet<>();
-        data = null;
+        this.data = data;
     }
 
     public void setData(Data<Resource> data) {
