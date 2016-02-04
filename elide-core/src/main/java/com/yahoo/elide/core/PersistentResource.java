@@ -43,6 +43,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1150,30 +1151,18 @@ public class PersistentResource<T> {
      * @param dictionary the dictionary
      * @return the value
      */
-    protected static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
-        Class<?> targetClass = dictionary.lookupEntityClass(target.getClass());
+    public static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
+        AccessibleObject accessor = dictionary.getAccessibleObject(target, fieldName);
         try {
-            String realName = dictionary.getNameFromAlias(target, fieldName);
-            fieldName = realName != null ? realName : fieldName;
-            Method method;
-            try {
-                String getMethod = "get" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
-            } catch (NoSuchMethodException e) {
-                String getMethod = "is" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
+            if (accessor instanceof Method) {
+                return ((Method) accessor).invoke(target);
+            } else if (accessor instanceof Field) {
+                return ((Field) accessor).get(target);
             }
-            return method.invoke(target);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
-        } catch (NoSuchMethodException e) {
-            try {
-                Field field = targetClass.getDeclaredField(fieldName);
-                return field.get(target);
-            } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
-            }
+            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + target);
         }
+        throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + target);
     }
 
     /**
