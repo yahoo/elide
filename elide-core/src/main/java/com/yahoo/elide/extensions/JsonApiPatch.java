@@ -277,7 +277,9 @@ public class JsonApiPatch {
      */
     private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e, SecurityMode securityMode) {
         if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            return e.getErrorResponse(securityMode);
+            return securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
+                    ? e.getVerboseErrorResponse()
+                    : e.getErrorResponse();
         }
 
         ObjectNode errorContainer = getErrorContainer();
