@@ -347,7 +347,10 @@ public class Elide {
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {
-        return buildResponse(error.getErrorResponse(securityMode));
+        return buildResponse(securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
+                ? error.getVerboseErrorResponse()
+                : error.getErrorResponse()
+        );
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

@@ -7,8 +7,6 @@ package com.yahoo.elide.core.exceptions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.core.SecurityMode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -24,7 +22,9 @@ import java.util.Map;
 public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     public abstract int getStatus();
+    private final String verboseMessage;
 
     public HttpStatusException() {
         this(null);
@@ -34,26 +34,61 @@ public abstract class HttpStatusException extends RuntimeException {
         this(message, null);
     }
 
-    /* fast exceptions */
-    public HttpStatusException(String message, Throwable cause) {
-        super(message, cause, true, log.isTraceEnabled());
+    public HttpStatusException(String message, String verboseMessage) {
+        this(message, verboseMessage, null);
     }
 
-    public Pair<Integer, JsonNode> getErrorResponse(SecurityMode securityMode) {
-        boolean useProvidedMessage = shouldUseProvidedMessage(securityMode);
+    public HttpStatusException(String message, String verboseMessage, Throwable cause) {
+        super(message, cause, true, log.isTraceEnabled());
+        this.verboseMessage = verboseMessage;
+    }
+
+    protected static String formatExceptionCause(Throwable e) {
+        // if the throwable has a cause use that, otherwise the throwable is the cause
+        Throwable error = e.getCause() == null
+                ? e
+                : e.getCause();
+        return error == null
+                ? null : error.getMessage() == null ? error.toString()
+                : error.getMessage();
+    }
+
+    public Pair<Integer, JsonNode> getErrorResponse() {
         Map<String, List<String>> errors = Collections.singletonMap(
-                "errors",
-                Collections.singletonList(useProvidedMessage ? getMessage() : toString())
+                "errors", Collections.singletonList(toString())
         );
+        return buildResponse(errors);
+    }
+
+    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+        Map<String, List<String>> errors = Collections.singletonMap(
+                "errors", Collections.singletonList(getVerboseMessage())
+        );
+        return buildResponse(errors);
+    }
+
+    private Pair<Integer, JsonNode> buildResponse(Map<String, List<String>> errors) {
         JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
         return Pair.of(getStatus(), responseBody);
     }
 
-    private boolean shouldUseProvidedMessage(SecurityMode securityMode) {
-        return getMessage() != null &&                                          // use a message if you have it
-                (
-                        getStatus() != HttpStatus.SC_FORBIDDEN ||               // unless this is a 403
-                        securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE    // except when explicitly allowed
-                );
+    public String getVerboseMessage() {
+        return verboseMessage != null
+                ? verboseMessage
+                : toString();
+    }
+
+    @Override
+    public String toString() {
+        String message = getMessage();
+        String className = getClass().getSimpleName();
+
+        if (message == null) {
+            message = className;
+        } else {
+            message = className + ": " + message;
+        }
+
+        return message;
     }
 }

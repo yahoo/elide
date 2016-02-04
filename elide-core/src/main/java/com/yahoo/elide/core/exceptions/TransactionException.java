@@ -16,11 +16,7 @@ public class TransactionException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public TransactionException(Throwable e) {
-        super(formatMessage(e.getCause() == null ? e : e.getCause()), e);
-    }
-
-    private static String formatMessage(Throwable e) {
-        return e == null ? null : e.getMessage() == null ? e.toString() : e.getMessage();
+        super(formatExceptionCause(e), null, e);
     }
 
     @Override

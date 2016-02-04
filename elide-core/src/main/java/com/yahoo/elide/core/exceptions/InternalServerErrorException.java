@@ -19,7 +19,7 @@ public class InternalServerErrorException extends HttpStatusException {
         super(message);
     }
     public InternalServerErrorException(Exception e) {
-        super(e.toString(), e);
+        super(e.toString(), null, e);
     }
 
     @Override

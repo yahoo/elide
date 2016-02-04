@@ -1,1 +1,1 @@
-{"errors":["Unknown collection 'id'"]}
+{"errors":["InvalidCollectionException: Unknown collection 'id'"]}

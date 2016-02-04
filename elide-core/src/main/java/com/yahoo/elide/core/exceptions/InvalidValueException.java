@@ -18,7 +18,7 @@ public class InvalidValueException extends HttpStatusException {
     }
 
     public InvalidValueException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, null, cause);
     }
 
     @Override

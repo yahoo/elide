@@ -1,1 +1,1 @@
-{"errors":["token recognition error at: '|'"]}
+{"errors":["InvalidURLException: token recognition error at: '|'"]}

@@ -655,7 +655,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @Test
     public void createParentList() {
         String request = jsonParser.getJson("/ResourceIT/createParentList.req.json");
-        String expected = "{\"errors\":[\"Bad Request Body";
+        String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1094,9 +1094,13 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body()
             .asString());
 
-        Assert.assertTrue(result.has("errors"));
-        Assert.assertEquals(result.get("errors").size(), 1);
-        Assert.assertTrue(result.get("errors").get(0).asText().startsWith("Duplicate entry 'duplicate' for key"));
+        JsonNode errors = result.get("errors");
+        Assert.assertNotNull(errors);
+        Assert.assertEquals(errors.size(), 1);
+
+        String error = errors.get(0).asText();
+        String expected = "TransactionException: Duplicate entry 'duplicate' for key";
+        Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "'");
     }
 
     @Test(priority = 29)
