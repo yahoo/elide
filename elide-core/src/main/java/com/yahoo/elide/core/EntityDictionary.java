@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -618,5 +619,47 @@ public class EntityDictionary {
             }
         }
         throw new IllegalArgumentException("Unknown Entity " + objClass);
+    }
+
+    /**
+     * Retrieve the accessible object for a field from a target object.
+     *
+     * @param target the object to get
+     * @param fieldName the field name to get or invoke equivalent get method
+     * @return the value
+     */
+    public AccessibleObject getAccessibleObject(Object target, String fieldName) {
+        Class<?> targetClass = lookupEntityClass(target.getClass());
+        return getAccessibleObject(targetClass, fieldName);
+    }
+
+    /**
+     * Retrieve the accessible object for a field.
+     *
+     * @param targetClass the object to get
+     * @param fieldName the field name to get or invoke equivalent get method
+     * @return the value
+     */
+    public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
+        try {
+            String realName = getNameFromAlias(targetClass, fieldName);
+            fieldName = realName != null ? realName : fieldName;
+            Method method;
+            try {
+                String getMethod = "get" + WordUtils.capitalize(fieldName);
+                method = EntityDictionary.findMethod(targetClass, getMethod);
+            } catch (NoSuchMethodException e) {
+                String getMethod = "is" + WordUtils.capitalize(fieldName);
+                method = EntityDictionary.findMethod(targetClass, getMethod);
+            }
+           return method;
+        } catch (NoSuchMethodException e) {
+            try {
+                Field field = targetClass.getDeclaredField(fieldName);
+                return field;
+            } catch (NoSuchFieldException noField) {
+                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
+            }
+        }
     }
 }
