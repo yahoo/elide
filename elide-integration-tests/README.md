@@ -4,6 +4,15 @@ This package contains integration tests for Elide, and is executed as part of th
 
 ## Executing in IntelliJ
 
+### Database
+
+The integration tests require a local mysql instance running with a database called `root`. It should be accessible by 
+user `root` with password `root`. The maven verify lifecycle uses the jcabi-mysql-maven-plugin to bring up a mysql
+server with these settings. In order to run integration tests in IntelliJ, you will need to bring up your own mysql
+instance with the same configuration.
+
+### DataStoreSupplier
+
 The integration tests must be executed against a concrete data store implementation. The maven lifecycles automatically
 manage this for hibernate3 and hibernate5. If you want to run integration tests in IntelliJ, there are two simple steps
 to follow.
