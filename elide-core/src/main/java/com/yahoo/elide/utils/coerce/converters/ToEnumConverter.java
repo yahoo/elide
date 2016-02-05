@@ -34,7 +34,7 @@ public class ToEnumConverter implements Converter {
             }
         } catch (IndexOutOfBoundsException | ReflectiveOperationException
                 | UnsupportedOperationException | IllegalArgumentException e) {
-            throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value);
+            throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);
         }
     }
 

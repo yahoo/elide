@@ -29,6 +29,8 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1432,5 +1434,25 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected));
+    }
+
+    @Test
+    public void badRoot() {
+        given().when().get("/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void badRootId() {
+        given().when().get("/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void badChildCollection() {
+        given().when().get("/user/1/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void badChildCollectionId() {
+        given().when().get("/user/1/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }

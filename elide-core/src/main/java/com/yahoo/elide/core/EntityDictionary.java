@@ -658,7 +658,7 @@ public class EntityDictionary {
                 Field field = targetClass.getDeclaredField(fieldName);
                 return field;
             } catch (NoSuchFieldException noField) {
-                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
+                throw new InvalidAttributeException(fieldName, getBinding(targetClass));
             }
         }
     }
