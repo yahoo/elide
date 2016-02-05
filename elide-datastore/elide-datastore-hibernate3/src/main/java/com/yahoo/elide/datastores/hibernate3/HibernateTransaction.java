@@ -39,8 +39,8 @@ import java.util.Set;
 public class HibernateTransaction implements DataStoreTransaction {
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation(); //todo for collection filters
-    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation(); // todo for toplevel selects
+    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
+    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
     /**
      * Instantiates a new Hibernate transaction.
