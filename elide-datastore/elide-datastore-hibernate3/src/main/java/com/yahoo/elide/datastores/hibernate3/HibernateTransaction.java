@@ -114,7 +114,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    // important
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
 
@@ -186,7 +185,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    // important
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
             String filterString = hqlFilterOperation.applyAll(predicates);
