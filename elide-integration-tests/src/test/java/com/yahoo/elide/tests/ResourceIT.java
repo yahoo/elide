@@ -655,7 +655,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @Test
     public void createParentList() {
         String request = jsonParser.getJson("/ResourceIT/createParentList.req.json");
-        String expected = "{\"errors\":[\"Bad Request Body";
+        String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1094,9 +1094,13 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body()
             .asString());
 
-        Assert.assertTrue(result.has("errors"));
-        Assert.assertEquals(result.get("errors").size(), 1);
-        Assert.assertTrue(result.get("errors").get(0).asText().startsWith("Duplicate entry 'duplicate' for key"));
+        JsonNode errors = result.get("errors");
+        Assert.assertNotNull(errors);
+        Assert.assertEquals(errors.size(), 1);
+
+        String error = errors.get(0).asText();
+        String expected = "TransactionException: Duplicate entry 'duplicate' for key";
+        Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "'");
     }
 
     @Test(priority = 29)
@@ -1277,6 +1281,34 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .post("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test(priority = 35)
+    public void testFilterIds() {
+        String expectedRels = jsonParser.getJson("/ResourceIT/testFilterIdRels.json");
+        String expectedIncl = jsonParser.getJson("/ResourceIT/testFilterIdIncluded.json");
+        String expectedColl = jsonParser.getJson("/ResourceIT/testFilterIdCollection.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent/10/relationships/children?filter[child.id]=4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedRels));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent/10?include=children&filter[child.id]=4,5")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedIncl));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?include=children&filter[child.id]=4")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expectedColl));
     }
 
     @Test

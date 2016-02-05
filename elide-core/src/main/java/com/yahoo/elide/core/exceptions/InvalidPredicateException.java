@@ -16,7 +16,7 @@ public class InvalidPredicateException extends HttpStatusException {
     }
 
     public InvalidPredicateException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, null, cause);
     }
 
     @Override

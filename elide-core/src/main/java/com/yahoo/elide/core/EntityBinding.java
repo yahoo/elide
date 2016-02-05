@@ -60,6 +60,7 @@ class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
     @Getter private AccessibleObject idField;
+    @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
 
@@ -154,9 +155,10 @@ class EntityBinding {
         //Add id field to type map for the entity
         fieldsToTypes.put(fieldName, fieldType);
 
-        //Set id field & type
+        //Set id field, type, and name
         idField = fieldOrMethod;
         idType  = fieldType;
+        idFieldName = fieldName;
 
         if (idField != null && !fieldOrMethod.equals(idField)) {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + fieldName);

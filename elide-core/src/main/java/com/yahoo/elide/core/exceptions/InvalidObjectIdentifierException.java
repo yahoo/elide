@@ -14,8 +14,8 @@ import com.yahoo.elide.core.HttpStatus;
 public class InvalidObjectIdentifierException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
-    public InvalidObjectIdentifierException(String id) {
-        super("Unknown identifier '" + id + "'");
+    public InvalidObjectIdentifierException(String id, String objectOrFieldName) {
+        super("Unknown identifier '" + id + "' for " + objectOrFieldName);
     }
 
     @Override

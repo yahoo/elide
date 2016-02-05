@@ -25,6 +25,7 @@ import java.util.Set;
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
 @SharePermission(any = {Role.ALL.class})
+@UpdatePermission(any = {Role.NONE.class})
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -36,6 +37,9 @@ public class Right {
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
+    )
+    @UpdatePermission(
+            any = { Role.ALL.class }
     )
     public Left getOne2one() {
         return one2one;
@@ -89,5 +93,8 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    public Set<Left> noDelete;
+    @UpdatePermission(
+            any = {Role.ALL.class}
+    )
+    public Set<Left> allowDeleteAtFieldLevel;
 }

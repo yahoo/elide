@@ -78,7 +78,7 @@ public class RelationshipTerminalState extends BaseState {
         } else if (relationshipType.isToOne()) {
             doc.setData(new Data<>((Resource) null));
         } else {
-            throw new IllegalStateException("Failed to PATCH a relationship");
+            throw new IllegalStateException("Failed to GET a relationship; relationship is neither toMany nor toOne");
         }
         return () -> Pair.of(HttpStatus.SC_OK, mapper.convertValue(doc, JsonNode.class));
     }
@@ -101,15 +101,16 @@ public class RelationshipTerminalState extends BaseState {
     private Supplier<Pair<Integer, JsonNode>> handleRequest(StateContext state,
                                                            BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
         Data<Resource> data = state.getJsonApiDocument().getData();
-        if (data == null) {
-            throw new InvalidEntityBodyException("Expected data but received null");
-        }
         handler.apply(data, state.getRequestScope());
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     private boolean patch(Data<Resource> data, RequestScope requestScope) {
         boolean isUpdated;
+
+        if (relationshipType.isToMany() && data == null) {
+            throw new InvalidEntityBodyException("Expected data but received null");
+        }
 
         if (relationshipType.isToMany()) {
             Collection<Resource> resources = data.get();
@@ -123,11 +124,10 @@ public class RelationshipTerminalState extends BaseState {
                 isUpdated = record.clearRelation(relationshipName);
             }
         } else if (relationshipType.isToOne()) {
-            Resource resource = data.get().iterator().next();
-            if (resource != null) {
-                isUpdated = record.updateRelation(
-                    relationshipName,
-                    new Relationship(null, new Data<>(resource)).toPersistentResources(requestScope));
+            if (data != null) {
+                Resource resource = data.get().iterator().next();
+                Relationship relationship = new Relationship(null, new Data<>(resource));
+                isUpdated = record.updateRelation(relationshipName, relationship.toPersistentResources(requestScope));
             } else {
                 isUpdated = record.clearRelation(relationshipName);
             }
@@ -139,6 +139,10 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     private boolean post(Data<Resource> data, RequestScope requestScope) {
+        if (data == null) {
+            throw new InvalidEntityBodyException("Expected data but received null");
+        }
+
         Collection<Resource> resources = data.get();
         if (resources == null) {
             return false;
@@ -149,6 +153,10 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     private boolean delete(Data<Resource> data, RequestScope requestScope) {
+        if (data == null) {
+            throw new InvalidEntityBodyException("Expected data but received null");
+        }
+
         Collection<Resource> resources = data.get();
         if (resources == null) {
             return false;

@@ -17,7 +17,7 @@ public class InvalidAttributeException extends HttpStatusException {
     }
 
     public InvalidAttributeException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, null, cause);
     }
 
     @Override

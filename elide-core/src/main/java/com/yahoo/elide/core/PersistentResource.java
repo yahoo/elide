@@ -26,6 +26,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -246,7 +248,7 @@ public class PersistentResource<T> {
             Class<?> idType = dictionary.getIdType(loadClass);
             obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType));
             if (obj == null) {
-                throw new InvalidObjectIdentifierException(id);
+                throw new InvalidObjectIdentifierException(id, loadClass.getSimpleName());
             }
         }
 
@@ -475,8 +477,9 @@ public class PersistentResource<T> {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
                     .forEach(toDelete -> {
+                        String inverseRelation = getInverseRelationField(relationName);
                         checkFieldAwarePermissions(UpdatePermission.class, relationName);
-                        checkPermission(UpdatePermission.class, toDelete);
+                        toDelete.checkFieldAwarePermissions(UpdatePermission.class, inverseRelation);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
                     });
@@ -496,9 +499,9 @@ public class PersistentResource<T> {
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-        checkPermission(UpdatePermission.class, removeResource);
-        Object relation = this.getValue(fieldName);
+        removeResource.checkFieldAwarePermissions(UpdatePermission.class, getInverseRelationField(fieldName));
 
+        Object relation = this.getValue(fieldName);
         if (relation instanceof Collection) {
             if (!((Collection) relation).contains(removeResource.getObject())) {
 
@@ -628,7 +631,7 @@ public class PersistentResource<T> {
      * @param id resource id
      */
     public void setId(String id) {
-        this.setValue("id", id);
+        this.setValue(dictionary.getIdFieldName(getResourceClass()), id);
     }
 
     /**
@@ -666,9 +669,17 @@ public class PersistentResource<T> {
      * @return PersistentResource relation
      */
     public PersistentResource getRelation(String relation, String id) {
-
-        Predicate idFilter = new Predicate(relation, Operator.IN, Collections.singletonList(id));
-        Set<Predicate> filters = Collections.singleton(idFilter);
+        Set<Predicate> filters;
+        // Filtering not supported in Patxh extension
+        if (requestScope instanceof PatchRequestScope) {
+            filters = Collections.emptySet();
+        } else {
+            Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+            Object idVal = CoerceUtil.coerce(id, dictionary.getIdType(entityType));
+            String idField = dictionary.getIdFieldName(entityType);
+            Predicate idFilter = new Predicate(idField, Operator.IN, Collections.singletonList(idVal));
+            filters = Collections.singleton(idFilter);
+        }
 
         /* getRelation performs read permission checks */
         Set<PersistentResource> resources = getRelation(relation, filters);
@@ -677,7 +688,7 @@ public class PersistentResource<T> {
                 return childResource;
             }
         }
-        throw new InvalidObjectIdentifierException(id);
+        throw new InvalidObjectIdentifierException(id, relation);
     }
 
     /**
@@ -1140,43 +1151,28 @@ public class PersistentResource<T> {
      * @param dictionary the dictionary
      * @return the value
      */
-    protected static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
-        Class<?> targetClass = dictionary.lookupEntityClass(target.getClass());
+    public static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
+        AccessibleObject accessor = dictionary.getAccessibleObject(target, fieldName);
         try {
-            String realName = dictionary.getNameFromAlias(target, fieldName);
-            fieldName = realName != null ? realName : fieldName;
-            Method method;
-            try {
-                String getMethod = "get" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
-            } catch (NoSuchMethodException e) {
-                String getMethod = "is" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
+            if (accessor instanceof Method) {
+                return ((Method) accessor).invoke(target);
+            } else if (accessor instanceof Field) {
+                return ((Field) accessor).get(target);
             }
-            return method.invoke(target);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
-        } catch (NoSuchMethodException e) {
-            try {
-                Field field = targetClass.getDeclaredField(fieldName);
-                return field.get(target);
-            } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + targetClass);
-            }
+            throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + target);
         }
+        throw new InvalidAttributeException("No attribute or relation '" + fieldName + "' in " + target);
     }
 
     /**
      * If a bidirectional relationship exists, attempts to delete itself from the inverse
      * relationship. Given A to B as the relationship, A corresponds to this and B is the inverse.
      * @param relationName The name of the relationship on this (A) object.
-     * @param relationValue The value (B) which has been deleted from this object.
+     * @param inverseEntity The value (B) which has been deleted from this object.
      */
-    protected void deleteInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-
-        String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
-        Object inverseEntity = relationValue; // Assigned to improve readability.
+    protected void deleteInverseRelation(String relationName, Object inverseEntity) {
+        String inverseRelationName = getInverseRelationField(relationName);
 
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
@@ -1197,6 +1193,11 @@ public class PersistentResource<T> {
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
         }
+    }
+
+    private String getInverseRelationField(String relationName) {
+        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
+        return dictionary.getRelationInverse(entityClass, relationName);
     }
 
     /**
@@ -1458,7 +1459,10 @@ public class PersistentResource<T> {
                                                                                  annotationClass,
                                                                                  fieldName);
         if (annotation == null) {
-            throw new ForbiddenAccessException("Unable to find annotation " + annotationClass);
+            throw new ForbiddenAccessException(
+                    "Unable to find " + annotationClass.getSimpleName() + " annotation for "
+                            + resource.getResourceClass().getSimpleName() + "#" + fieldName
+            );
         }
 
         checkFieldPermission(annotationClass, resource, fieldName);
