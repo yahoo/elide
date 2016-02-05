@@ -30,6 +30,11 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return String.format("%s IS NULL", predicate.getField());
             case NOTNULL:
                 return String.format("%s IS NOT NULL", predicate.getField());
+            case LESSTHAN:
+                return String.format("%s < %s", predicate.getField(), predicate.getValues().get(0));
+            case GREATERTHAN:
+                return String.format("%s > %s", predicate.getField(), predicate.getValues().get(0));
+
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

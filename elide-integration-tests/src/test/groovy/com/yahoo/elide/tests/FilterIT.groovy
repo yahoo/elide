@@ -124,7 +124,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                           "attributes": {
                             "title": "Enders Game",
                             "genre": "Science Fiction",
-                            "language": "English"
+                            "language": "English",
+                            "publishDate": 1454638927412
                           }
                         }
                       }
@@ -691,6 +692,29 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         def result = mapper.readTree(
                 RestAssured.get("/author/${nullNedId}/books?filter[book.genre][notnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+    }
+
+    @Test
+    public void testPublishDateLessThanFilter() {
+        def bookIdsWithNonNullGenre = [] as Set
+
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+
+        def result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.publishDate][lt]=1454639141957").asString())
 
         Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
 

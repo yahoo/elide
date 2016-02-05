@@ -39,8 +39,8 @@ import java.util.Set;
 public class HibernateTransaction implements DataStoreTransaction {
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
-    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
+    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation(); //todo for collection filters
+    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation(); // todo for toplevel selects
 
     /**
      * Instantiates a new Hibernate transaction.
@@ -114,6 +114,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
+    // important
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
 
@@ -185,6 +186,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
+    // important
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if (collection instanceof PersistentBag && !predicates.isEmpty()) {
             String filterString = hqlFilterOperation.applyAll(predicates);
