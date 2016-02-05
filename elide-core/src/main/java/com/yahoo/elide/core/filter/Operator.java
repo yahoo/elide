@@ -21,8 +21,10 @@ public enum Operator {
     INFIX("infix", true),
     ISNULL("isnull", false),
     NOTNULL("notnull", false),
-    LESSTHAN("lt", true),
-    GREATERTHAN("gt", true);
+    LT("lt", true),
+    LE("le", true),
+    GT("gt", true),
+    GE("ge", true);
 
     @Getter private final String string;
     @Getter private final boolean parameterized;

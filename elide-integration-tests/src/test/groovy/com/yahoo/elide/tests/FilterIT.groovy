@@ -702,9 +702,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPublishDateLessThanFilter() {
+    public void testPublishDateGreaterThanFilter() {
         def bookIdsWithNonNullGenre = [] as Set
-
         for (JsonNode book : nullNedBooks.get("data")) {
             if (!book.get("attributes").get("genre").isNull()) {
                 bookIdsWithNonNullGenre.add(book.get("id"))
@@ -712,15 +711,85 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         }
 
         Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
-
         def result = mapper.readTree(
-                RestAssured.get("/author/${nullNedId}/books?filter[book.publishDate][lt]=1454639141957").asString())
-
-        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
-
+                RestAssured.get("/book?filter[book.publishDate][gt]=1").asString())
+        Assert.assertEquals(result.get("data").size(), 1);
         for (JsonNode book : result.get("data")) {
-            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
-            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate > 1L);
+        }
+    }
+
+    @Test
+    public void testPublishDateGreaterThanFilterSubRecord() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+        def result = mapper.readTree(RestAssured.get("/author/2/books?filter[book.publishDate][gt]=1454638927411").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate > 1454638927411L);
+        }
+    }
+
+    @Test
+    public void testPublishDateLessThanOrEqualsFilterSubRecord() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+        def result = mapper.readTree(RestAssured.get("/author/2/books?filter[book.publishDate][le]=1454638927412").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate <= 1454638927412L);
+        }
+    }
+
+    @Test
+    public void testPublishDateLessThanOrEqual() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+        def result = mapper.readTree(RestAssured.get("book?filter[book.publishDate][le]=1454638927412").asString());
+        Assert.assertEquals(result.get("data").size(), 7);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate <= 1454638927412L);
+        }
+    }
+
+    @Test
+    public void testPublishDateLessThanFilter() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+        def result = mapper.readTree(
+                RestAssured.get("/book?filter[book.publishDate][lt]=1454638927411").asString())
+        Assert.assertEquals(result.get("data").size(), 6);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate < 1454638927411L);
         }
     }
 }
