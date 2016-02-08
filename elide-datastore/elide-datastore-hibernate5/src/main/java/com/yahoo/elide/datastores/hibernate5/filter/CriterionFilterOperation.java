@@ -34,6 +34,14 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.isNull(predicate.getField());
             case NOTNULL:
                 return Restrictions.isNotNull(predicate.getField());
+            case LT:
+                return Restrictions.lt(predicate.getField(), predicate.getValues().get(0));
+            case LE:
+                return Restrictions.le(predicate.getField(), predicate.getValues().get(0));
+            case GT:
+                return Restrictions.gt(predicate.getField(), predicate.getValues().get(0));
+            case GE:
+                return Restrictions.ge(predicate.getField(), predicate.getValues().get(0));
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

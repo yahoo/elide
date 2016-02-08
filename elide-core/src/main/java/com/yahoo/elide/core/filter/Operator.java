@@ -20,7 +20,11 @@ public enum Operator {
     POSTFIX("postfix", true),
     INFIX("infix", true),
     ISNULL("isnull", false),
-    NOTNULL("notnull", false);
+    NOTNULL("notnull", false),
+    LT("lt", true),
+    LE("le", true),
+    GT("gt", true),
+    GE("ge", true);
 
     @Getter private final String string;
     @Getter private final boolean parameterized;

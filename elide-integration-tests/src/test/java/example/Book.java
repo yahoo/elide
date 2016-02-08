@@ -35,6 +35,7 @@ public class Book {
     private String title;
     private String genre;
     private String language;
+    private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,6 +69,14 @@ public class Book {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public void setPublishDate(final long publishDate) {
+        this.publishDate = publishDate;
+    }
+
+    public long getPublishDate() {
+        return this.publishDate;
     }
 
     @ManyToMany
