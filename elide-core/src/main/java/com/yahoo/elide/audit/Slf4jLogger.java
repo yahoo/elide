@@ -13,7 +13,7 @@ import java.io.IOException;
  * Logger implementation which logs to SLF4J.
  */
 @Slf4j
-public class Slf4jLogger extends Logger {
+public class Slf4jLogger extends AuditLogger {
 
     @Override
     public void commit() throws IOException {

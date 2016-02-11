@@ -7,7 +7,7 @@ package com.yahoo.elide;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -48,7 +48,7 @@ import java.util.function.Supplier;
  */
 public class Elide {
 
-    private final Logger auditLogger;
+    private final AuditLogger auditLogger;
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
@@ -59,7 +59,7 @@ public class Elide {
      * @param dataStore the dataStore
      * @param dictionary the dictionary
      */
-    public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
+    public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -73,7 +73,7 @@ public class Elide {
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      */
-    public Elide(Logger auditLogger, DataStore dataStore) {
+    public Elide(AuditLogger auditLogger, DataStore dataStore) {
         this(auditLogger, dataStore, new EntityDictionary());
     }
 

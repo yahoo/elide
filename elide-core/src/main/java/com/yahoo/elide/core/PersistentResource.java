@@ -1355,7 +1355,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == Audit.Action.UPDATE) {
                 LogMessage message = new LogMessage(annotation, this);
-                getRequestScope().getLogger().log(message);
+                getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
             }
@@ -1376,7 +1376,7 @@ public class PersistentResource<T> {
         for (Audit annotation : annotations) {
             if (annotation.action() == action) {
                 LogMessage message = new LogMessage(annotation, this);
-                getRequestScope().getLogger().log(message);
+                getRequestScope().getAuditLogger().log(message);
             }
         }
     }

@@ -6,7 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -34,7 +34,7 @@ public class RequestScope {
     @Getter private final User user;
     @Getter private final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
-    @Getter private final Logger logger;
+    @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Map<String, Set<Predicate>> predicates;
@@ -50,7 +50,7 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
-                        Logger logger,
+                        AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode) {
         this.jsonApiDocument = jsonApiDocument;
@@ -58,7 +58,7 @@ public class RequestScope {
         this.user = user;
         this.dictionary = dictionary;
         this.mapper = mapper;
-        this.logger = logger;
+        this.auditLogger = auditLogger;
         this.queryParams = (queryParams == null || (queryParams.size() == 0)
                 ? Optional.empty() : Optional.of(queryParams));
         this.objectEntityCache = new ObjectEntityCache();
@@ -82,9 +82,9 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
-                        Logger logger,
+                        AuditLogger auditLogger,
                         SecurityMode securityMode) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, securityMode);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, securityMode);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -92,9 +92,10 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
-                        Logger logger,
+                        AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, queryParams, SecurityMode.SECURITY_ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, queryParams,
+                SecurityMode.SECURITY_ACTIVE);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -102,8 +103,8 @@ public class RequestScope {
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
-                        Logger logger) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, logger, null, SecurityMode.SECURITY_ACTIVE);
+                        AuditLogger auditLogger) {
+        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**
@@ -113,15 +114,15 @@ public class RequestScope {
      * @param user        the user
      * @param dictionary  the dictionary
      * @param mapper      the mapper
-     * @param logger      the logger
+     * @param auditLogger      the logger
      */
     protected RequestScope(
             DataStoreTransaction transaction,
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,
-            Logger logger) {
-        this(null, transaction, user, dictionary, mapper, logger);
+            AuditLogger auditLogger) {
+        this(null, transaction, user, dictionary, mapper, auditLogger);
     }
 
     /**
@@ -136,7 +137,7 @@ public class RequestScope {
         this.user = outerRequestScope.user;
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
-        this.logger = outerRequestScope.logger;
+        this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.predicates = Collections.emptyMap();

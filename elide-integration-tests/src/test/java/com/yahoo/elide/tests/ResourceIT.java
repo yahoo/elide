@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.audit.TestLogger;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.SecurityMode;
@@ -1404,7 +1404,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void elideBypassSecurity() {
         String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
-        Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response =
                 elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_INACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
@@ -1413,7 +1413,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new TestLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
         ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
