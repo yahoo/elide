@@ -579,32 +579,13 @@ public class EntityDictionary {
      */
     public static Method findMethod(Class<?> entityClass, String name, Class<?>... paramClass)
             throws NoSuchMethodException {
-        for (Method m : entityClass.getMethods()) {
-            int modifiers = m.getModifiers();
-            if ((m.isAnnotationPresent(ComputedAttribute.class) || !m.isAnnotationPresent(Transient.class))
-                    && !Modifier.isAbstract(modifiers) && m.getName().equals(name)) {
-                if (paramClass != null) {
-                    Class<?>[] params = m.getParameterTypes();
-                    if (params.length == paramClass.length) {
-                        boolean validMethod = true;
-                        for (int i = 0; i < params.length; ++i) {
-                            if (paramClass[i] != null) {
-                                validMethod &= params[i].isAssignableFrom(paramClass[i]);
-                            }
-                        }
-                        if (validMethod) {
-                            return m;
-                        }
-                    }
-                } else {
-                    // Finds a method with no arguments matching the specified name.
-                    if (m.getParameterCount() == 0) {
-                        return m;
-                    }
-                }
-            }
+        Method m = entityClass.getMethod(name, paramClass);
+        int modifiers = m.getModifiers();
+        if (Modifier.isAbstract(modifiers)
+                || (m.isAnnotationPresent(Transient.class) && !m.isAnnotationPresent(ComputedAttribute.class))) {
+            throw new NoSuchMethodException(name);
         }
-        throw new NoSuchMethodException(name);
+        return m;
     }
 
     /**
