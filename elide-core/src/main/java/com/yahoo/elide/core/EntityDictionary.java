@@ -10,12 +10,9 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -32,6 +29,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -622,25 +622,7 @@ public class EntityDictionary {
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
-        try {
-            String realName = getNameFromAlias(targetClass, fieldName);
-            fieldName = realName != null ? realName : fieldName;
-            Method method;
-            try {
-                String getMethod = "get" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
-            } catch (NoSuchMethodException e) {
-                String getMethod = "is" + WordUtils.capitalize(fieldName);
-                method = EntityDictionary.findMethod(targetClass, getMethod);
-            }
-           return method;
-        } catch (NoSuchMethodException e) {
-            try {
-                Field field = targetClass.getDeclaredField(fieldName);
-                return field;
-            } catch (NoSuchFieldException noField) {
-                throw new InvalidAttributeException(fieldName, getBinding(targetClass));
-            }
-        }
+        ConcurrentHashMap<String, AccessibleObject> map = entityBinding(targetClass).accessibleObject;
+        return map.get(fieldName);
     }
 }

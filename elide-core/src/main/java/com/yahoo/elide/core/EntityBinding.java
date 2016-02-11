@@ -58,6 +58,7 @@ class EntityBinding {
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes;
     public final ConcurrentHashMap<String, String> aliasesToFields;
+    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
     @Getter private AccessibleObject idField;
     @Getter private String idFieldName;
@@ -81,6 +82,7 @@ class EntityBinding {
         fieldsToTypes = null;
         fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
+        accessibleObject = null;
     }
 
     public EntityBinding(Class<?> cls, String type) {
@@ -99,7 +101,9 @@ class EntityBinding {
         fieldsToTypes = new ConcurrentHashMap<>();
         fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
+        accessibleObject = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
+        bindAccessibleObjects(cls, fieldOrMethodList);
 
         attrs = dequeToList(attrsDeque);
         relationships = dequeToList(relationshipsDeque);
@@ -137,6 +141,15 @@ class EntityBinding {
                     continue; // Field must have Column annotation?
                 }
                 bindAttrOrRelation(cls, fieldOrMethod);
+            }
+        }
+    }
+
+    private void bindAccessibleObjects(Class<?> targetClass, Collection<AccessibleObject> fieldOrMethodList) {
+        for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
+            String fieldName = getFieldName(fieldOrMethod);
+            if (fieldName != null) {
+                this.accessibleObject.put(fieldName, fieldOrMethod);
             }
         }
     }
