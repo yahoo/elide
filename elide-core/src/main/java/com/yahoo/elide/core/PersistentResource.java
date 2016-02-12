@@ -499,7 +499,10 @@ public class PersistentResource<T> {
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-        removeResource.checkFieldAwarePermissions(UpdatePermission.class, getInverseRelationField(fieldName));
+        String inverseField = getInverseRelationField(fieldName);
+        if (inverseField.length() > 0) {
+            removeResource.checkFieldAwarePermissions(UpdatePermission.class, inverseField);
+        }
 
         Object relation = this.getValue(fieldName);
         if (relation instanceof Collection) {
@@ -977,7 +980,10 @@ public class PersistentResource<T> {
         if (oldValue == null) {
             return;
         }
-        checkPermission(UpdatePermission.class, oldValue);
+        String inverseField = getInverseRelationField(fieldName);
+        if (inverseField.length() > 0) {
+            oldValue.checkFieldAwarePermissions(UpdatePermission.class, inverseField);
+        }
         this.setValueChecked(fieldName, null);
     }
 
@@ -1318,10 +1324,10 @@ public class PersistentResource<T> {
         Class<? extends Check>[] anyChecks;
         Class<? extends Check>[] allChecks;
         try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
+            anyChecks = (Class<? extends Check>[]) annotationClass.getMethod("any")
+                                                                  .invoke(annotation, (Object[]) null);
+            allChecks = (Class<? extends Check>[]) annotationClass.getMethod("all")
+                                                                  .invoke(annotation, (Object[]) null);
         } catch (ReflectiveOperationException e) {
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
         }
@@ -1344,10 +1350,10 @@ public class PersistentResource<T> {
         Class<? extends Check>[] allChecks;
         Class<? extends Annotation> annotationClass = annotation.getClass();
         try {
-            anyChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("any").invoke(annotation, (Object[]) null);
-            allChecks = (Class<? extends Check>[]) annotationClass
-                    .getMethod("all").invoke(annotation, (Object[]) null);
+            anyChecks = (Class<? extends Check>[]) annotationClass.getMethod("any")
+                                                                  .invoke(annotation, (Object[]) null);
+            allChecks = (Class<? extends Check>[]) annotationClass.getMethod("all")
+                                                                  .invoke(annotation, (Object[]) null);
         } catch (ReflectiveOperationException e) {
             throw new InvalidSyntaxException("Unknown permission " + annotationClass.getName(), e);
         }
