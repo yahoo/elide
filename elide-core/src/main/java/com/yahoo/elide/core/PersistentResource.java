@@ -383,7 +383,6 @@ public class PersistentResource<T> {
                 .stream()
                 .forEach(toDelete -> {
                     checkFieldAwarePermissions(UpdatePermission.class, fieldName);
-                    checkPermission(UpdatePermission.class, toDelete);
                     delFromCollection(collection, fieldName, toDelete);
                     deleteInverseRelation(fieldName, toDelete.getObject());
                     transaction.save(toDelete.getObject());
