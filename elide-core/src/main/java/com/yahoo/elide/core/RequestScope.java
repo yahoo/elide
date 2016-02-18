@@ -109,6 +109,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             this.sorting = Sorting.getDefaultEmptyInstance();
             this.pagination = Pagination.getDefaultPagination();
         }
+
+        if (transaction instanceof RequestScopedTransaction) {
+            ((RequestScopedTransaction) transaction).setRequestScope(this);
+        }
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,

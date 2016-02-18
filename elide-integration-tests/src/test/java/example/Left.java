@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -42,7 +43,8 @@ public class Left {
             optional = false,
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
-            mappedBy = "one2one"
+            mappedBy = "one2one",
+            fetch = FetchType.LAZY
     )
     public Right getOne2one() {
         return one2one;
@@ -81,7 +83,8 @@ public class Left {
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
-            mappedBy = "noUpdateOne2One"
+            mappedBy = "noUpdateOne2One",
+            fetch = FetchType.LAZY
     )
     public Right noUpdateOne2One;
 
@@ -94,7 +97,8 @@ public class Left {
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = NoDeleteEntity.class
+            targetEntity = NoDeleteEntity.class,
+            fetch = FetchType.LAZY
     )
     public NoDeleteEntity noDeleteOne2One;
 

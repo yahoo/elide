@@ -21,6 +21,7 @@ import example.Child.InitCheck;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -105,9 +106,7 @@ public class Child {
         this.name = name;
     }
 
-    @OneToOne(
-            targetEntity = Child.class
-    )
+    @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
     @ReadPermission(all = {Role.NONE.class})
     public Child getNoReadAccess() {
         return noReadAccess;

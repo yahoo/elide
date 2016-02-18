@@ -15,6 +15,7 @@ import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Common;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -30,7 +31,7 @@ public class SpecialRead {
 
     public String value;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     public Child child;
 
     @Id
