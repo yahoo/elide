@@ -9,6 +9,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -159,7 +160,8 @@ public class RelationshipTerminalState extends BaseState {
 
         Collection<Resource> resources = data.get();
         if (resources == null) {
-            return false;
+            // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
+            throw new ForbiddenAccessException("Unknown update");
         }
         resources.stream().forEachOrdered(resource ->
             record.removeRelation(relationshipName, resource.toPersistentResource(requestScope)));
