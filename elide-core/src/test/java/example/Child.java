@@ -23,6 +23,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.OneToOne;
 
@@ -50,6 +52,13 @@ public class Child {
 
     private Set<Child> friends;
     private Child noReadAccess;
+
+    public ExcludedEntity excludedEntity = new ExcludedEntity(1L, "excluded");
+
+    @OneToOne
+    public ExcludedEntity excludedRelationship = new ExcludedEntity(2L, "excluded2");
+
+    public List<ExcludedEntity> excludedEntityList = new ArrayList<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -179,4 +179,14 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetTypUnknownEntityException() {
         getType(Object.class, "id");
     }
+
+    @Test
+    public void testNoExcludedFieldsReturned() {
+        List<String> attrs = getAttributes(Child.class);
+        List<String> rels = getRelationships(Child.class);
+        Assert.assertTrue(!attrs.contains("excludedEntity") && !attrs.contains("excludedRelationship")
+            && !attrs.contains("excludedEntityList"));
+        Assert.assertTrue(!rels.contains("excludedEntity") && !rels.contains("excludedRelationship")
+            && !rels.contains("excludedEntityList"));
+    }
 }
