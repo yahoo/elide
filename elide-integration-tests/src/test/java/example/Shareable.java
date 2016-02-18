@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -37,7 +38,7 @@ public class Shareable {
         this.id = id;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     public Container getContainer() {
         return container;
     }

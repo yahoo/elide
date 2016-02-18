@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -26,7 +27,7 @@ public class NoReadEntity {
     private long id;
     public String field;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public Child child;
 
     @Id

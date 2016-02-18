@@ -67,4 +67,13 @@ public class HibernateStore implements DataStore {
         session.beginTransaction();
         return new HibernateTransaction(session);
     }
+
+    @Override
+    public DataStoreTransaction beginReadTransaction() {
+        Session session = sessionFactory.getCurrentSession();
+        Preconditions.checkNotNull(session);
+        session.beginTransaction();
+        session.setDefaultReadOnly(true);
+        return new HibernateTransaction(session);
+    }
 }

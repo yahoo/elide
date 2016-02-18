@@ -17,6 +17,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -62,7 +63,7 @@ public class FunWithPermissions {
 
     @ReadPermission(any = { NegativeIntegerUserCheck.class })
     @UpdatePermission(any = { NegativeIntegerUserCheck.class })
-    @OneToOne (cascade = CascadeType.ALL)
+    @OneToOne (cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "child_id")
     public Child getRelation3() {
         return relation3;

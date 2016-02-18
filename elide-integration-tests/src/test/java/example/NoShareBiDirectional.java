@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,7 +32,7 @@ public class NoShareBiDirectional {
         this.id = id;
     }
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public NoShareBiDirectional getOther() {
         return other;
     }

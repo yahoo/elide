@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -47,7 +48,7 @@ public class OneToOneRoot {
         this.name = name;
     }
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public OneToOneNonRoot getOtherObject() {
         return otherObject;
     }

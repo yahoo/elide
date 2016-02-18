@@ -5,9 +5,13 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.yahoo.elide.core.DataStoreTransaction;
+import com.google.common.base.Objects;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.RequestScopedTransaction;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -15,8 +19,12 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
+import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -30,8 +38,11 @@ import org.hibernate.criterion.Restrictions;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -42,7 +53,7 @@ import java.util.stream.Collectors;
 /**
  * Hibernate Transaction implementation.
  */
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction implements RequestScopedTransaction {
     private static final Function<Criterion, Criterion> NOT = Restrictions::not;
     private static final BiFunction<Criterion, Criterion, Criterion> AND = Restrictions::and;
     private static final BiFunction<Criterion, Criterion, Criterion> OR = Restrictions::or;
@@ -50,6 +61,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
+    @Getter(value = AccessLevel.PROTECTED)
+    private RequestScope requestScope = null;
 
     /**
      * Instantiates a new Hibernate transaction.
@@ -105,6 +118,15 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
         try {
+            if (isJoinQuery()) {
+                Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+                if (requestScope != null) {
+                    joinCriteria(criteria, loadClass);
+                }
+                @SuppressWarnings("unchecked")
+                T record = (T) criteria.uniqueResult();
+                return record;
+            }
             @SuppressWarnings("unchecked")
             T record = (T) session.load(loadClass, id);
             Hibernate.initialize(record);
@@ -116,15 +138,14 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass).scroll(ScrollMode.FORWARD_ONLY));
-        return list;
+        throw new IllegalStateException("" + loadClass);
     }
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
+        // Criteria for filtering this object
         CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
 
         return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
@@ -174,7 +195,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return The Iterable for Hibernate.
      */
     public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
-                                       final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         final Criteria sessionCriteria = session.createCriteria(loadClass);
 
         criteriaExplorer.buildCriteria(sessionCriteria, session);
@@ -187,12 +208,139 @@ public class HibernateTransaction implements DataStoreTransaction {
             final Pagination paginationData = pagination.get();
             sessionCriteria.setFirstResult(paginationData.getOffset());
             sessionCriteria.setMaxResults(paginationData.getLimit());
+        } else {
+            Integer queryLimit = getQueryLimit();
+            if (queryLimit != null) {
+                sessionCriteria.setMaxResults(queryLimit);
+            }
         }
 
-        @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
+        if (isJoinQuery()) {
+            joinCriteria(sessionCriteria, loadClass);
+        }
+
+        Iterable<T> list;
+        if (isJoinQuery()) {
+            list = sessionCriteria.list();
+        } else {
+            list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
+        }
 
         return list;
+    }
+
+    /**
+     * Should this transaction use JOINs. By default will be enabled if Sparse fields are available.
+     *
+     * @return true to use join logic
+     */
+    public boolean isJoinQuery() {
+        if (requestScope != null) {
+            if (requestScope.getQueryParams().isPresent()) {
+                List<String> join = requestScope.getQueryParams().get().get("join");
+                if (join != null) {
+                    return Boolean.valueOf(join.get(0));
+                }
+            }
+
+            if (!requestScope.getSparseFields().isEmpty()) {
+                return true;
+            }
+
+            if (requestScope.getQueryParams().isPresent()
+                    && requestScope.getQueryParams().get().get("include") != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private <T> void joinCriteria(Criteria criteria, final Class<T> loadClass) {
+        EntityDictionary dictionary = requestScope.getDictionary();
+        String type = dictionary.getJsonAliasFor(loadClass);
+        Set<String> fields = Objects.firstNonNull(
+                requestScope.getSparseFields().get(type), Collections.<String>emptySet());
+        for (String field : fields) {
+            try {
+                checkFieldReadPermission(loadClass, field);
+                criteria.setFetchMode(field, FetchMode.JOIN);
+            } catch (ForbiddenAccessException e) {
+                // continue
+            }
+        }
+
+        for (String include : getIncludeList()) {
+            criteria.setFetchMode(include, FetchMode.JOIN);
+        }
+    }
+
+    /**
+     * Parse include param into list of include fields.
+     * @return list of include fields
+     */
+    public List<String> getIncludeList() {
+        List<String> includeParam;
+        if (!requestScope.getQueryParams().isPresent()) {
+            return Collections.emptyList();
+        }
+        includeParam = requestScope.getQueryParams().get().get("include");
+        if (includeParam == null || includeParam.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ArrayList<String> list = new ArrayList<>();
+        for (String includeList : includeParam) {
+            for (String includeItem : includeList.split(",")) {
+                for (int idx = 0; idx != -1;) {
+                    idx = includeItem.indexOf('.', idx + 1);
+                    String field = (idx == -1) ? includeItem : includeItem.substring(0, idx);
+                    list.add(field);
+                }
+            }
+        }
+        return list;
+    }
+
+    private <T> void checkFieldReadPermission(final Class<T> loadClass, String field) {
+        // wrap class as PersistentResource in order to check permission
+        PersistentResource<T> resource = new PersistentResource<T>() {
+            @Override
+            public boolean matchesId(String id) {
+                return false;
+            }
+
+            @Override
+            public Optional<String> getUUID() {
+                return Optional.empty();
+            }
+
+            @Override
+            public String getId() {
+                return null;
+            }
+
+            @Override
+            public String getType() {
+                return null;
+            }
+
+            @Override
+            public T getObject() {
+                return null;
+            }
+
+            @Override
+            public Class<T> getResourceClass() {
+                return loadClass;
+            }
+
+            @Override
+            public com.yahoo.elide.security.RequestScope getRequestScope() {
+                return requestScope;
+            }
+        };
+
+        requestScope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
     }
 
     @Override
@@ -250,5 +398,15 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public User accessUser(Object opaqueUser) {
         return new User(opaqueUser);
+    }
+
+    @Override
+    public void setRequestScope(RequestScope requestScope) {
+        this.requestScope = requestScope;
+    }
+
+    public Integer getQueryLimit() {
+        // no limit
+        return null;
     }
 }

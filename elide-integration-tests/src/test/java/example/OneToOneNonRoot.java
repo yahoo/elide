@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -48,7 +49,7 @@ public class OneToOneNonRoot {
         this.test = test;
     }
 
-    @OneToOne(mappedBy = "otherObject")
+    @OneToOne(mappedBy = "otherObject", fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn
     public OneToOneRoot getRoot() {
         return root;
