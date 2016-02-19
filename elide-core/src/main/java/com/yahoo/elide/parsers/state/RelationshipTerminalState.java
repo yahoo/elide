@@ -159,7 +159,7 @@ public class RelationshipTerminalState extends BaseState {
         }
 
         Collection<Resource> resources = data.get();
-        if (resources == null) {
+        if (resources == null || resources.isEmpty()) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
             throw new ForbiddenAccessException("Unknown update");
         }
