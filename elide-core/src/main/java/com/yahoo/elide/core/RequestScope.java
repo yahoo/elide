@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import static lombok.AccessLevel.PACKAGE;
-
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
@@ -16,11 +15,11 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import javax.ws.rs.core.MultivaluedMap;
+import static lombok.AccessLevel.PACKAGE;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
+@Slf4j
 public class RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
@@ -50,6 +51,7 @@ public class RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
+    @Getter private final List<Supplier<String>> failedAuthorizations;
 
     private transient LinkedHashSet<Runnable> deferredChecks = null;
     final private transient LinkedHashSet<Runnable> commitTriggers;
@@ -84,6 +86,7 @@ public class RequestScope {
 
         newResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
+        failedAuthorizations = new ArrayList<>();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -155,6 +158,7 @@ public class RequestScope {
         this.deferredChecks = outerRequestScope.deferredChecks;
         this.newResources = outerRequestScope.newResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
+        this.failedAuthorizations = outerRequestScope.failedAuthorizations;
     }
 
     /**
@@ -397,7 +401,14 @@ public class RequestScope {
             }
 
             // No accessible fields and object is not accessible
-            throw new ForbiddenAccessException("Cannot access object '" + resource.getType() + "'");
+            throw new ForbiddenAccessException("Cannot access object '" + resource.getType() + "'",
+                    resource.getRequestScope());
         }
+    }
+
+    public void logAuthFailure(List<Class<? extends Check>> checks, String type, String id) {
+        failedAuthorizations.add(() -> {
+            return String.format("ForbiddenAccess {} {}#{}", checks, type, id);
+        });
     }
 }
