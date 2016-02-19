@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -413,7 +414,7 @@ public class RequestScope {
     }
 
     public String getAuthFailureReason() {
-        Set<String> uniqueReasons = new LinkedHashSet<>();
+        Set<String> uniqueReasons = new HashSet<>();
         StringBuffer buf = new StringBuffer();
         buf.append("Failed authorization checks:\n");
         for (Supplier<String> authorizationFailure : failedAuthorizations) {
