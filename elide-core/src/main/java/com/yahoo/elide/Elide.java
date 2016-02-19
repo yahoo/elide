@@ -114,6 +114,7 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            logSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug(e.getReason());
@@ -174,6 +175,7 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            logSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug(e.getReason());
@@ -243,6 +245,7 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            logSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug(e.getReason());
@@ -307,6 +310,7 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            logSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug(e.getReason());
@@ -359,6 +363,12 @@ public class Elide {
         CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new BailErrorStrategy());
         return parser.start();
+    }
+
+    protected void logSecurityExceptions(RequestScope scope) {
+        if (log.isTraceEnabled())  {
+            log.trace(scope.getAuthFailureReason());
+        }
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {

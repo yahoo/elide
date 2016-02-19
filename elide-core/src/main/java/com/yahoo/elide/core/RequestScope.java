@@ -408,7 +408,22 @@ public class RequestScope {
 
     public void logAuthFailure(List<Class<? extends Check>> checks, String type, String id) {
         failedAuthorizations.add(() -> {
-            return String.format("ForbiddenAccess {} {}#{}", checks, type, id);
+            return String.format("ForbiddenAccess %s %s#%s", checks, type, id);
         });
+    }
+
+    public String getAuthFailureReason() {
+        Set<String> uniqueReasons = new LinkedHashSet<>();
+        StringBuffer buf = new StringBuffer();
+        buf.append("Failed authorization checks:\n");
+        for (Supplier<String> authorizationFailure : failedAuthorizations) {
+            String reason = authorizationFailure.get();
+            if (!uniqueReasons.contains(reason)) {
+                buf.append(authorizationFailure.get());
+                buf.append("\n");
+                uniqueReasons.add(reason);
+            }
+        }
+        return buf.toString();
     }
 }
