@@ -733,11 +733,15 @@ public class PersistentResource<T> {
 
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
 
+        // check for deny access on relationship to avoid iterating a lazy collection
+        if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
+            checkFieldAwarePermissions(ReadPermission.class, relationName);
+            return (Set) resources;
+        }
+
         RelationshipType type = getRelationshipType(relationName);
         Object val = this.getValue(relationName);
         if (val == null) {
-            return (Set) resources;
-        } else if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
             return (Set) resources;
         } else if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
@@ -783,6 +787,10 @@ public class PersistentResource<T> {
         for (String field : fields) {
             Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
                     ReadPermission.class, field);
+            if (fieldAnnotation == null) {
+                // no attribute to override this field
+                continue;
+            }
             FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
             if (fieldFilterScope.getUserPermission() != DENY) {
                 return false;

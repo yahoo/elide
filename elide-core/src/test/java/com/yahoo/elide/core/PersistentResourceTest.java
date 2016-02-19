@@ -108,10 +108,12 @@ public class PersistentResourceTest extends PersistentResource {
 
         Map<String, Relationship> relationships = funResource.getRelationships();
 
-        Assert.assertEquals(relationships.size(), 3, "All relationships should be returned.");
+        Assert.assertEquals(relationships.size(), 5, "All relationships should be returned.");
         Assert.assertTrue(relationships.containsKey("relation1"), "relation1 should be present");
         Assert.assertTrue(relationships.containsKey("relation2"), "relation2 should be present");
         Assert.assertTrue(relationships.containsKey("relation3"), "relation3 should be present");
+        Assert.assertTrue(relationships.containsKey("relation4"), "relation4 should be present");
+        Assert.assertTrue(relationships.containsKey("relation5"), "relation5 should be present");
 
         PersistentResource<FunWithPermissions> funResourceWithBadScope = new PersistentResource<>(fun, null, "3", badUserScope);
         relationships = funResourceWithBadScope.getRelationships();
@@ -666,6 +668,26 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
         funResource.getRelation("relation2", "-1000");
+    }
+
+    @Test
+    public void testGetRelationsNoEntityAccess() {
+        FunWithPermissions fun = new FunWithPermissions();
+
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
+
+        Set set = funResource.getRelation("relation4");
+        Assert.assertEquals(0,  set.size());
+    }
+
+    @Test
+    public void testGetRelationsNoEntityAccess2() {
+        FunWithPermissions fun = new FunWithPermissions();
+
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
+
+        Set set = funResource.getRelation("relation5");
+        Assert.assertEquals(0,  set.size());
     }
 
     @Test
