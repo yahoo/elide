@@ -24,11 +24,11 @@ Doesn't work with single character names.
 
 expression
     :
-    NOT expression
-    | LPAREN WS? expression WS? RPAREN
-    | expression WS? AND WS? expression
-    | expression WS? OR WS? expression
-    | expressionClass
+    NOT expression                      #NOT
+    | LPAREN WS? expression WS? RPAREN  #PAREN
+    | expression WS? AND WS? expression #AND
+    | expression WS? OR WS? expression  #OR
+    | expressionClass                   #EXPRESSION
     ;
 /*
 No only numeric because class names can't be only numeric.
