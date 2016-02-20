@@ -30,6 +30,7 @@ expression
     | expression WS? OR WS? expression  #OR
     | expressionClass                   #EXPRESSION
     ;
+
 /*
 No only numeric because class names can't be only numeric.
 
