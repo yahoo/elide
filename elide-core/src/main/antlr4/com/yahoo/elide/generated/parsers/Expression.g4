@@ -23,8 +23,7 @@ Doesn't work with single character names.
 */
 
 expression
-    :
-    NOT expression                                  #NOT
+    : NOT expression                                #NOT
     | LPAREN WS? expression WS? RPAREN              #PAREN
     | left=expression WS? AND WS? right=expression  #AND
     | left=expression WS? OR WS?  right=expression  #OR
@@ -36,7 +35,7 @@ No only numeric because class names can't be only numeric.
 
 Do not name this 'class' as that is a keyword.
 */
-expressionClass: ALPHANUMERIC*;
+expressionClass: ALPHANUMERIC;
 
 NOT: [Nn][Oo][Tt];
 AND: [Aa][Nn][Dd];
@@ -44,7 +43,5 @@ OR: [Oo][Rr];
 
 LPAREN : '(' -> channel(HIDDEN);
 RPAREN : ')' -> channel(HIDDEN);
-ALPHA: [a-zA-Z];
-DIGIT: [0-9];
-ALPHANUMERIC: [a-zA-Z0-9]+;
 WS: (' ' | '\t') -> channel(HIDDEN);
+ALPHANUMERIC: [a-zA-Z] [a-zA-Z0-9]*;
