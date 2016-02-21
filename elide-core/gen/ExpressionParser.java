@@ -1,4 +1,4 @@
-// Generated from C:/Users/KiangTeng/elide/elide-core/src/main/antlr4/com/yahoo/elide/generated/parsers\Expression.g4 by ANTLR 4.5.1
+// Generated from /home/alex/IdeaProjects/elide-2.0/elide-core/src/main/antlr4/com/yahoo/elide/generated/parsers/Expression.g4 by ANTLR 4.5.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -16,8 +16,7 @@ public class ExpressionParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		NOT=1, AND=2, OR=3, LPAREN=4, RPAREN=5, ALPHA=6, DIGIT=7, ALPHANUMERIC=8, 
-		WS=9;
+		NOT=1, AND=2, OR=3, LPAREN=4, RPAREN=5, WS=6, ALPHANUMERIC=7;
 	public static final int
 		RULE_start = 0, RULE_expression = 1, RULE_expressionClass = 2;
 	public static final String[] ruleNames = {
@@ -28,8 +27,7 @@ public class ExpressionParser extends Parser {
 		null, null, null, null, "'('", "')'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, "NOT", "AND", "OR", "LPAREN", "RPAREN", "ALPHA", "DIGIT", "ALPHANUMERIC", 
-		"WS"
+		null, "NOT", "AND", "OR", "LPAREN", "RPAREN", "WS", "ALPHANUMERIC"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -275,8 +273,8 @@ public class ExpressionParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(22);
-			switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
-			case 1:
+			switch (_input.LA(1)) {
+			case NOT:
 				{
 				_localctx = new NOTContext(_localctx);
 				_ctx = _localctx;
@@ -288,7 +286,7 @@ public class ExpressionParser extends Parser {
 				expression(5);
 				}
 				break;
-			case 2:
+			case LPAREN:
 				{
 				_localctx = new PARENContext(_localctx);
 				_ctx = _localctx;
@@ -296,14 +294,14 @@ public class ExpressionParser extends Parser {
 				setState(11);
 				match(LPAREN);
 				setState(13);
-				switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
-				case 1:
+				_la = _input.LA(1);
+				if (_la==WS) {
 					{
 					setState(12);
 					match(WS);
 					}
-					break;
 				}
+
 				setState(15);
 				expression(0);
 				setState(17);
@@ -319,7 +317,7 @@ public class ExpressionParser extends Parser {
 				match(RPAREN);
 				}
 				break;
-			case 3:
+			case ALPHANUMERIC:
 				{
 				_localctx = new EXPRESSIONContext(_localctx);
 				_ctx = _localctx;
@@ -328,6 +326,8 @@ public class ExpressionParser extends Parser {
 				expressionClass();
 				}
 				break;
+			default:
+				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
 			setState(44);
@@ -359,14 +359,14 @@ public class ExpressionParser extends Parser {
 						setState(28);
 						match(AND);
 						setState(30);
-						switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
-						case 1:
+						_la = _input.LA(1);
+						if (_la==WS) {
 							{
 							setState(29);
 							match(WS);
 							}
-							break;
 						}
+
 						setState(32);
 						((ANDContext)_localctx).right = expression(4);
 						}
@@ -390,14 +390,14 @@ public class ExpressionParser extends Parser {
 						setState(37);
 						match(OR);
 						setState(39);
-						switch ( getInterpreter().adaptivePredict(_input,6,_ctx) ) {
-						case 1:
+						_la = _input.LA(1);
+						if (_la==WS) {
 							{
 							setState(38);
 							match(WS);
 							}
-							break;
 						}
+
 						setState(41);
 						((ORContext)_localctx).right = expression(3);
 						}
@@ -423,10 +423,7 @@ public class ExpressionParser extends Parser {
 	}
 
 	public static class ExpressionClassContext extends ParserRuleContext {
-		public List<TerminalNode> ALPHANUMERIC() { return getTokens(ExpressionParser.ALPHANUMERIC); }
-		public TerminalNode ALPHANUMERIC(int i) {
-			return getToken(ExpressionParser.ALPHANUMERIC, i);
-		}
+		public TerminalNode ALPHANUMERIC() { return getToken(ExpressionParser.ALPHANUMERIC, 0); }
 		public ExpressionClassContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -450,25 +447,10 @@ public class ExpressionParser extends Parser {
 		ExpressionClassContext _localctx = new ExpressionClassContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_expressionClass);
 		try {
-			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(50);
-			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
-			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
-				if ( _alt==1 ) {
-					{
-					{
-					setState(47);
-					match(ALPHANUMERIC);
-					}
-					} 
-				}
-				setState(52);
-				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
-			}
+			setState(47);
+			match(ALPHANUMERIC);
 			}
 		}
 		catch (RecognitionException re) {
@@ -500,22 +482,21 @@ public class ExpressionParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\138\4\2\t\2\4\3\t"+
-		"\3\4\4\t\4\3\2\3\2\3\3\3\3\3\3\3\3\3\3\5\3\20\n\3\3\3\3\3\5\3\24\n\3\3"+
-		"\3\3\3\3\3\5\3\31\n\3\3\3\3\3\5\3\35\n\3\3\3\3\3\5\3!\n\3\3\3\3\3\3\3"+
-		"\5\3&\n\3\3\3\3\3\5\3*\n\3\3\3\7\3-\n\3\f\3\16\3\60\13\3\3\4\7\4\63\n"+
-		"\4\f\4\16\4\66\13\4\3\4\2\3\4\5\2\4\6\2\2?\2\b\3\2\2\2\4\30\3\2\2\2\6"+
-		"\64\3\2\2\2\b\t\5\4\3\2\t\3\3\2\2\2\n\13\b\3\1\2\13\f\7\3\2\2\f\31\5\4"+
-		"\3\7\r\17\7\6\2\2\16\20\7\13\2\2\17\16\3\2\2\2\17\20\3\2\2\2\20\21\3\2"+
-		"\2\2\21\23\5\4\3\2\22\24\7\13\2\2\23\22\3\2\2\2\23\24\3\2\2\2\24\25\3"+
-		"\2\2\2\25\26\7\7\2\2\26\31\3\2\2\2\27\31\5\6\4\2\30\n\3\2\2\2\30\r\3\2"+
-		"\2\2\30\27\3\2\2\2\31.\3\2\2\2\32\34\f\5\2\2\33\35\7\13\2\2\34\33\3\2"+
-		"\2\2\34\35\3\2\2\2\35\36\3\2\2\2\36 \7\4\2\2\37!\7\13\2\2 \37\3\2\2\2"+
-		" !\3\2\2\2!\"\3\2\2\2\"-\5\4\3\6#%\f\4\2\2$&\7\13\2\2%$\3\2\2\2%&\3\2"+
-		"\2\2&\'\3\2\2\2\')\7\5\2\2(*\7\13\2\2)(\3\2\2\2)*\3\2\2\2*+\3\2\2\2+-"+
-		"\5\4\3\5,\32\3\2\2\2,#\3\2\2\2-\60\3\2\2\2.,\3\2\2\2./\3\2\2\2/\5\3\2"+
-		"\2\2\60.\3\2\2\2\61\63\7\n\2\2\62\61\3\2\2\2\63\66\3\2\2\2\64\62\3\2\2"+
-		"\2\64\65\3\2\2\2\65\7\3\2\2\2\66\64\3\2\2\2\f\17\23\30\34 %),.\64";
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\t\64\4\2\t\2\4\3"+
+		"\t\3\4\4\t\4\3\2\3\2\3\3\3\3\3\3\3\3\3\3\5\3\20\n\3\3\3\3\3\5\3\24\n\3"+
+		"\3\3\3\3\3\3\5\3\31\n\3\3\3\3\3\5\3\35\n\3\3\3\3\3\5\3!\n\3\3\3\3\3\3"+
+		"\3\5\3&\n\3\3\3\3\3\5\3*\n\3\3\3\7\3-\n\3\f\3\16\3\60\13\3\3\4\3\4\3\4"+
+		"\2\3\4\5\2\4\6\2\2:\2\b\3\2\2\2\4\30\3\2\2\2\6\61\3\2\2\2\b\t\5\4\3\2"+
+		"\t\3\3\2\2\2\n\13\b\3\1\2\13\f\7\3\2\2\f\31\5\4\3\7\r\17\7\6\2\2\16\20"+
+		"\7\b\2\2\17\16\3\2\2\2\17\20\3\2\2\2\20\21\3\2\2\2\21\23\5\4\3\2\22\24"+
+		"\7\b\2\2\23\22\3\2\2\2\23\24\3\2\2\2\24\25\3\2\2\2\25\26\7\7\2\2\26\31"+
+		"\3\2\2\2\27\31\5\6\4\2\30\n\3\2\2\2\30\r\3\2\2\2\30\27\3\2\2\2\31.\3\2"+
+		"\2\2\32\34\f\5\2\2\33\35\7\b\2\2\34\33\3\2\2\2\34\35\3\2\2\2\35\36\3\2"+
+		"\2\2\36 \7\4\2\2\37!\7\b\2\2 \37\3\2\2\2 !\3\2\2\2!\"\3\2\2\2\"-\5\4\3"+
+		"\6#%\f\4\2\2$&\7\b\2\2%$\3\2\2\2%&\3\2\2\2&\'\3\2\2\2\')\7\5\2\2(*\7\b"+
+		"\2\2)(\3\2\2\2)*\3\2\2\2*+\3\2\2\2+-\5\4\3\5,\32\3\2\2\2,#\3\2\2\2-\60"+
+		"\3\2\2\2.,\3\2\2\2./\3\2\2\2/\5\3\2\2\2\60.\3\2\2\2\61\62\7\t\2\2\62\7"+
+		"\3\2\2\2\13\17\23\30\34 %),.";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

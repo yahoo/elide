@@ -12,11 +12,9 @@ import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
-import com.yahoo.elide.security.permissions.expressions.AndExpression;
-import com.yahoo.elide.security.permissions.expressions.Expression;
-import com.yahoo.elide.security.permissions.expressions.OrExpression;
-import  com.yahoo.elide.security.permissions.expressions.NotExpression;
+import com.yahoo.elide.security.permissions.expressions.*;
 
 import java.util.Map;
 
@@ -73,9 +71,27 @@ public class ExpressionVisitor extends ExpressionBaseVisitor<Expression> {
 
     @Override
     public Expression visitExpressionClass(ExpressionParser.ExpressionClassContext ctx) {
-        // Get the text
-        //Class current = Class.forName(ctx.getChild(0).getText());
+        try {
+            Class checkClass = Class.forName(ctx.getChild(0).getText());
 
+
+            if (CommitCheck.class.isAssignableFrom(checkClass)) {
+                Class<? extends CommitCheck> changeToCommitCheck = checkClass;
+                return new DeferredCheckExpression(changeToCommitCheck.newInstance(), this.resource, this.requestScope, this.changeSpec, this.cache);
+
+
+            } else {
+                Class<? extends Check> changeToCheck = checkClass;
+                return new ImmediateCheckExpression(changeToCheck.newInstance(), this.resource, this.requestScope, this.changeSpec, this.cache);
+
+            }
+        } catch (ClassNotFoundException e) {
+            // What do I do hmm.
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
         return visitChildren(ctx);
     }
 }

@@ -1,4 +1,4 @@
-// Generated from C:/Users/KiangTeng/elide/elide-core/src/main/antlr4/com/yahoo/elide/generated/parsers\Expression.g4 by ANTLR 4.5.1
+// Generated from /home/alex/IdeaProjects/elide-2.0/elide-core/src/main/antlr4/com/yahoo/elide/generated/parsers/Expression.g4 by ANTLR 4.5.1
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**

@@ -43,4 +43,4 @@ OR: [Oo][Rr];
 LPAREN : '(' -> channel(HIDDEN);
 RPAREN : ')' -> channel(HIDDEN);
 WS: (' ' | '\t') -> channel(HIDDEN);
-ALPHANUMERIC: [a-zA-Z] [a-zA-Z0-9]*;
+ALPHANUMERIC: [a-zA-Z\.] [a-zA-Z0-9\.]*;
