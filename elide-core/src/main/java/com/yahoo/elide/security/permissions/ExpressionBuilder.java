@@ -12,6 +12,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.ExtractedChecks;
+import com.yahoo.elide.parsers.expressions.ExpressionVisitor;
 import com.yahoo.elide.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.DeferredCheckExpression;
@@ -95,6 +96,8 @@ public class ExpressionBuilder {
                                                                        final Class<A> annotationClass,
                                                                        final ChangeSpec changeSpec) {
 
+        EntityDictionary dictionary =  resource.getDictionary();
+
         final Function<Check, Expression> deferredCheckFn =
                 (check) -> new DeferredCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
         final Function<Check, Expression> immediateCheckFn =
@@ -105,7 +108,21 @@ public class ExpressionBuilder {
                         annotationClass,
                         checkFn);
 
-        return new Expressions(expressionFunction.apply(deferredCheckFn), expressionFunction.apply(immediateCheckFn));
+        // If the Class has an annotation with an Expression to be parsed,
+        //  i.e. (@ReadPermission(expression = "(A OR B)")
+        if (dictionary.getEntityParseTree(annotationClass) != null) {
+            ExpressionVisitor ev = new ExpressionVisitor(resource, resource.getRequestScope(), changeSpec, cache);
+
+            Expression operationExpression = ev.visit(dictionary.getEntityParseTree(annotationClass));
+            Expression commitExpression = ev.visit(dictionary.getEntityParseTree(annotationClass));
+
+            return new Expressions(operationExpression,
+                    commitExpression);
+        } else {
+            // Build Expressions using the normal builder
+            return new Expressions(expressionFunction.apply(deferredCheckFn),
+                    expressionFunction.apply(immediateCheckFn));
+        }
     }
 
     /**

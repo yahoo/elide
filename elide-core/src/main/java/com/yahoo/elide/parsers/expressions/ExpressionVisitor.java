@@ -15,8 +15,8 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-import com.yahoo.elide.security.permissions.expressions.NotExpression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
+import  com.yahoo.elide.security.permissions.expressions.NotExpression;
 
 import java.util.Map;
 
