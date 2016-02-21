@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,7 +11,7 @@ import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.checks.Check;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -38,4 +38,10 @@ public @interface UpdatePermission {
      * @return the class [ ]
      */
     Class<? extends Check>[] all() default {};
+
+    /**
+     * An expression of checks that will be parsed via ANTLR.
+     * @return the expression string to be parsed
+     */
+    String expression() default "";
 }

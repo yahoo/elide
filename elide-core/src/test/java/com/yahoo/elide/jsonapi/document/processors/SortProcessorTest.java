@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.yahoo.elide.audit.TestLogger;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -49,7 +49,7 @@ public class SortProcessorTest {
         dictionary.bindEntity(Parent.class);
 
         sortProcessor = new SortProcessor();
-        goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null, new TestLogger());
+        goodUserScope = new RequestScope(new JsonApiDocument(), null, new User(1), dictionary, null, new TestAuditLogger());
 
         //Create objects
         Parent parent1 = newParent(1);

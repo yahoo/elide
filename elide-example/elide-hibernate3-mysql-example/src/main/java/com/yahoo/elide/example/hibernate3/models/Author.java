@@ -1,6 +1,7 @@
 package com.yahoo.elide.example.hibernate3.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

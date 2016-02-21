@@ -1,11 +1,11 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.checks.InlineCheck;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -29,12 +29,18 @@ public @interface SharePermission {
      *
      * @return the class [ ]
      */
-    Class<? extends Check>[] any() default {};
+    Class<? extends InlineCheck>[] any() default {};
 
     /**
      * All of these checks must pass.
      *
      * @return the class [ ]
      */
-    Class<? extends Check>[] all() default {};
+    Class<? extends InlineCheck>[] all() default {};
+
+    /**
+     * An expression of checks that will be parsed via ANTLR.
+     * @return the expression string to be parsed
+     */
+    String expression() default "";
 }
