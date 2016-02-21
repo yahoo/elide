@@ -154,7 +154,9 @@ public class PermissionExecutor {
             return; // Bypass
         }
         Expressions expressions =
-                expressionBuilder.buildUserCheckAnyExpression(resourceClass, annotationClass, requestScope);
+                expressionBuilder.buildUserCheckAnyExpression(resourceClass,
+                        annotationClass,
+                        requestScope);
         executeExpressions(expressions);
     }
 

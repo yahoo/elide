@@ -38,4 +38,10 @@ public @interface ReadPermission {
      * @return the class [ ]
      */
     Class<? extends InlineCheck>[] all() default {};
+
+    /**
+     * An expression of checks that will be parsed via ANTLR.
+     * @return the expression string to be parsed
+     */
+    String expression() default "";
 }

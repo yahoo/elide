@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.lang.annotation.Annotation;
@@ -77,6 +78,10 @@ public class EntityDictionary {
      */
     public String getBinding(Class<?> entityClass) {
         return entityBinding(entityClass).jsonApi;
+    }
+
+    public ParseTree getEntityParseTree(Class<?> entityClass) {
+        return entityBinding(entityClass).entityExpressionParseTree;
     }
 
     /**

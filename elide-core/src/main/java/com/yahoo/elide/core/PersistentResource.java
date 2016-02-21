@@ -796,7 +796,9 @@ public class PersistentResource<T> {
                                                                        Class<A> annotationClass,
                                                                        RequestScope requestScope) {
         try {
-            requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
+            requestScope
+                    .getPermissionExecutor()
+                    .checkUserPermissions(resourceClass, annotationClass);
         } catch (ForbiddenAccessException e) {
             return true;
         }

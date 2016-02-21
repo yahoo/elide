@@ -9,6 +9,7 @@ import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.parsers.expressions.ExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.ExtractedChecks;
@@ -57,11 +58,11 @@ public class ExpressionBuilder {
     /**
      * Build an expression that checks a specific field.
      *
-     * @param resource Resource
+     * @param resource        Resource
      * @param annotationClass Annotation calss
-     * @param field Field
-     * @param changeSpec Change spec
-     * @param <A> Type parameter
+     * @param field           Field
+     * @param changeSpec      Change spec
+     * @param <A>             Type parameter
      * @return Commit and operation expressions
      */
     public <A extends Annotation> Expressions buildSpecificFieldExpressions(final PersistentResource resource,
@@ -69,7 +70,7 @@ public class ExpressionBuilder {
                                                                             final String field,
                                                                             final ChangeSpec changeSpec) {
         final Function<Check, Expression> deferredCheckFn =
-                 (check) -> new DeferredCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
+                (check) -> new DeferredCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
         final Function<Check, Expression> immediateCheckFn =
                 (check) -> new ImmediateCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
         final Function<Function<Check, Expression>, Expression> expressionFunction =
@@ -85,10 +86,10 @@ public class ExpressionBuilder {
     /**
      * Build an expression that checks any field on a bean.
      *
-     * @param resource Resource
+     * @param resource        Resource
      * @param annotationClass annotation class
-     * @param changeSpec change spec
-     * @param <A> type parameter
+     * @param changeSpec      change spec
+     * @param <A>             type parameter
      * @return Commit and operation expressions
      */
     public <A extends Annotation> Expressions buildAnyFieldExpressions(final PersistentResource resource,
@@ -100,9 +101,10 @@ public class ExpressionBuilder {
         final Function<Check, Expression> immediateCheckFn =
                 (check) -> new ImmediateCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
         final Function<Function<Check, Expression>, Expression> expressionFunction =
-                (checkFn) -> buildAnyFieldExpression(resource.getResourceClass(),
+                (checkFn) -> buildAnyFieldExpression(resource,
                         resource.getDictionary(),
                         annotationClass,
+                        changeSpec,
                         checkFn);
 
         return new Expressions(expressionFunction.apply(deferredCheckFn), expressionFunction.apply(immediateCheckFn));
@@ -110,13 +112,13 @@ public class ExpressionBuilder {
 
     /**
      * Build an expression that strictly evaluates UserCheck's and ignores other checks for a specific field.
-     *
+     * <p>
      * NOTE: This method returns _NO_ commit checks.
      *
-     * @param resource Resource
+     * @param resource        Resource
      * @param annotationClass Annotation class
-     * @param field Field to check (if null only check entity-level)
-     * @param <A> type parameter
+     * @param field           Field to check (if null only check entity-level)
+     * @param <A>             type parameter
      * @return User check expression to evaluate
      */
     public <A extends Annotation> Expressions buildUserCheckFieldExpressions(final PersistentResource resource,
@@ -143,13 +145,13 @@ public class ExpressionBuilder {
 
     /**
      * Build an expression that strictly evaluates UserCheck's and ignores other checks for an entity.
-     *
+     * <p>
      * NOTE: This method returns _NO_ commit checks.
      *
-     * @param resourceClass Resource class
+     * @param resourceClass   Resource class
      * @param annotationClass Annotation class
-     * @param requestScope Request scope
-     * @param <A> type parameter
+     * @param requestScope    Request scope
+     * @param <A>             type parameter
      * @return User check expression to evaluate
      */
     public <A extends Annotation> Expressions buildUserCheckAnyExpression(final Class<?> resourceClass,
@@ -165,7 +167,11 @@ public class ExpressionBuilder {
                 );
 
         return new Expressions(
-                buildAnyFieldExpression(resourceClass, requestScope.getDictionary(), annotationClass, userCheckFn),
+                buildAnyFieldExpression(resourceClass,
+                        requestScope.getDictionary(),
+                        annotationClass,
+                        (ChangeSpec) null,
+                        userCheckFn),
                 null
         );
     }
@@ -173,12 +179,12 @@ public class ExpressionBuilder {
     /**
      * Builder for specific field expressions.
      *
-     * @param resourceClass Resource class
-     * @param dictionary Dictionary
+     * @param resourceClass   Resource class
+     * @param dictionary      Dictionary
      * @param annotationClass Annotation class
-     * @param field Field
-     * @param checkFn Operation check function
-     * @param <A> type parameter
+     * @param field           Field
+     * @param checkFn         Operation check function
+     * @param <A>             type parameter
      * @return Expressions representing specific field
      */
     private <A extends Annotation> Expression buildSpecificFieldExpression(final Class<?> resourceClass,
@@ -204,50 +210,56 @@ public class ExpressionBuilder {
     /**
      * Build an expression representing any field on an entity.
      *
-     * @param resourceClass Resource class
-     * @param dictionary Dictionary
+     * @param resourceClass   Resource class
+     * @param dictionary      Dictionary
      * @param annotationClass Annotation class
-     * @param checkFn check function
-     * @param <A> type parameter
+     * @param checkFn         check function
+     * @param <A>             type parameter
      * @return Expressions
      */
-    private <A extends Annotation> Expression buildAnyFieldExpression(final Class<?> resourceClass,
-                                                                       final EntityDictionary dictionary,
-                                                                       final Class<A> annotationClass,
-                                                                       final Function<Check, Expression> checkFn) {
-        final List<String> fields = dictionary.getAllFields(resourceClass);
+    private <A extends Annotation> Expression buildAnyFieldExpression(final PersistentResource resource,
+                                                                      final EntityDictionary dictionary,
+                                                                      final Class<A> annotationClass,
+                                                                      final ChangeSpec changeSpec,
+                                                                      final Function<Check, Expression> checkFn) {
+        if (dictionary.getEntityParseTree(annotationClass) != null) {
+            ExpressionVisitor ev = new ExpressionVisitor(resource, resource.getRequestScope(), changeSpec, cache);
+            ev.visit(dictionary.getEntityParseTree(annotationClass));
+        } else {
+            final List<String> fields = dictionary.getAllFields(resource.getResourceClass());
 
-        final ExtractedChecks entityExtracted = new ExtractedChecks(resourceClass, dictionary, annotationClass);
+            final ExtractedChecks entityExtracted = new ExtractedChecks(resource.getResourceClass(), dictionary, annotationClass);
 
-        final BiFunction<Expression, Expression, Expression> entityJoiner = getJoiner(entityExtracted.getCheckMode());
+            final BiFunction<Expression, Expression, Expression> entityJoiner = getJoiner(entityExtracted.getCheckMode());
 
-        // Initialize first at the entity level
-        final Expression entityExp = buildExpression(arrayToQueue(entityExtracted.getChecks()), checkFn, entityJoiner);
-        OrExpression allFieldsExpression = null;
+            // Initialize first at the entity level
+            final Expression entityExp = buildExpression(arrayToQueue(entityExtracted.getChecks()), checkFn, entityJoiner);
+            OrExpression allFieldsExpression = null;
 
-        // Combine checks for each field as well
-        for (String field : fields) {
-            final ExtractedChecks extracted = new ExtractedChecks(resourceClass, dictionary, annotationClass, field);
-            final BiFunction<Expression, Expression, Expression> fieldJoiner = getJoiner(extracted.getCheckMode());
+            // Combine checks for each field as well
+            for (String field : fields) {
+                final ExtractedChecks extracted = new ExtractedChecks(resource.getResourceClass(), dictionary, annotationClass, field);
+                final BiFunction<Expression, Expression, Expression> fieldJoiner = getJoiner(extracted.getCheckMode());
 
-            Queue<Class<? extends Check>> fieldChecks = arrayToQueue(extracted.getChecks());
+                Queue<Class<? extends Check>> fieldChecks = arrayToQueue(extracted.getChecks());
 
-            Expression fieldExpression = buildExpression(fieldChecks, checkFn, fieldJoiner);
+                Expression fieldExpression = buildExpression(fieldChecks, checkFn, fieldJoiner);
 
-            if (fieldExpression != null) {
-                allFieldsExpression = new OrExpression(fieldExpression, allFieldsExpression);
+                if (fieldExpression != null) {
+                    allFieldsExpression = new OrExpression(fieldExpression, allFieldsExpression);
+                }
             }
-        }
 
-        return new AnyFieldExpression(entityExp, allFieldsExpression);
+            return new AnyFieldExpression(entityExp, allFieldsExpression);
+        }
     }
 
     /**
      * Build a specific expression for a check.
      *
-     * @param checks Checks to build expression for
+     * @param checks            Checks to build expression for
      * @param expressionBuilder Builder method to convert check to an expression
-     * @param expressionJoiner Method to join checks
+     * @param expressionJoiner  Method to join checks
      * @return Expression
      */
     private Expression buildExpression(final Queue<Class<? extends Check>> checks,
@@ -281,7 +293,7 @@ public class ExpressionBuilder {
      * Convert an array to queue.
      *
      * @param array Array to convert
-     * @param <T> Type parameter
+     * @param <T>   Type parameter
      * @return Queue representing array. Empty queue if array is null.
      */
     private static <T> Queue<T> arrayToQueue(final T[] array) {
@@ -293,7 +305,9 @@ public class ExpressionBuilder {
      */
     @AllArgsConstructor
     public static class Expressions {
-        @Getter private final Expression operationExpression;
-        @Getter private final Expression commitExpression;
+        @Getter
+        private final Expression operationExpression;
+        @Getter
+        private final Expression commitExpression;
     }
 }

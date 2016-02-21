@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
+import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.generated.parsers.ExpressionLexer;
+import com.yahoo.elide.generated.parsers.ExpressionParser;
 import lombok.Getter;
 import lombok.Setter;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.lang3.text.WordUtils;
@@ -60,10 +60,19 @@ class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields;
     public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
-    @Getter private AccessibleObject idField;
-    @Getter private String idFieldName;
-    @Getter private Class<?> idType;
-    @Getter @Setter private Initializer initializer;
+
+    public final ConcurrentHashMap<Field, ParseTree> fieldToFieldParseTree;
+    public ParseTree entityExpressionParseTree;
+
+    @Getter
+    private AccessibleObject idField;
+    @Getter
+    private String idFieldName;
+    @Getter
+    private Class<?> idType;
+    @Getter
+    @Setter
+    private Initializer initializer;
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
 
@@ -83,6 +92,8 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
         accessibleObject = null;
+        entityExpressionParseTree = null;
+        fieldToFieldParseTree = null;
     }
 
     public EntityBinding(Class<?> cls, String type) {
@@ -102,18 +113,64 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         accessibleObject = new ConcurrentHashMap<>();
+        fieldToFieldParseTree = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
+        bindAnnotations(cls, fieldOrMethodList);
 
         attrs = dequeToList(attrsDeque);
         relationships = dequeToList(relationshipsDeque);
     }
 
     /**
+     * Parses (using ANTLR) and Binds annotation expressions to the entity binding.
+     */
+    private void bindAnnotations(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
+        // Set the individual parse tree
+        ReadPermission expr = cls.getAnnotation(ReadPermission.class);
+        if (expr != null) {
+            entityExpressionParseTree = parseExpression(expr.expression());
+        }
+        // Set the hash map/fields
+        for (AccessibleObject obj : fieldOrMethodList) {
+            if (obj instanceof Field) {
+                Field f = (Field) obj;
+                ReadPermission r = f.getAnnotation(ReadPermission.class);
+                if (r != null) {
+                    fieldToFieldParseTree.putIfAbsent(f, parseExpression(r.expression()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Parses an expression in an annotation using ANTLR.
+     *
+     * @param annotationMessage
+     * @return
+     */
+    private ParseTree parseExpression(String annotationMessage) {
+        ANTLRInputStream is = new ANTLRInputStream(annotationMessage);
+        ExpressionLexer lexer = new ExpressionLexer(is);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                                    int charPositionInLine, String msg, RecognitionException e) {
+                throw new ParseCancellationException(msg, e);
+            }
+        });
+        ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
+        parser.setErrorHandler(new BailErrorStrategy());
+        return parser.start();
+    }
+
+
+    /**
      * Bind fields of an entity including the Id field, attributes, and relationships.
      *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
+     * @param cls               Class type to bind fields
+     * @param type              JSON API type identifier
      * @param fieldOrMethodList List of fields and methods on entity
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
@@ -157,8 +214,8 @@ class EntityBinding {
     /**
      * Bind an id field to an entity.
      *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
+     * @param cls           Class type to bind fields
+     * @param type          JSON API type identifier
      * @param fieldOrMethod Field or method to bind
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
@@ -170,7 +227,7 @@ class EntityBinding {
 
         //Set id field, type, and name
         idField = fieldOrMethod;
-        idType  = fieldType;
+        idType = fieldType;
         idFieldName = fieldName;
 
         if (idField != null && !fieldOrMethod.equals(idField)) {
@@ -194,7 +251,7 @@ class EntityBinding {
     /**
      * Bind an attribute or relationship.
      *
-     * @param cls Class type to bind fields
+     * @param cls           Class type to bind fields
      * @param fieldOrMethod Field or method to bind
      */
     private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
@@ -207,7 +264,7 @@ class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
 
         if (fieldName == null || fieldName.equals("id")
-                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
+                || fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
             return; // Reserved. Not attributes.
         }
 
@@ -256,7 +313,7 @@ class EntityBinding {
             return ((Field) fieldOrMethod).getName();
         } else {
             Method method = (Method) fieldOrMethod;
-            String name   = method.getName();
+            String name = method.getName();
 
             if (name.startsWith("get") && method.getParameterCount() == 0) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
