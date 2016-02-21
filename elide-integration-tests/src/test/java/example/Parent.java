@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,12 +11,15 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.ChangeSpec;
 
+import com.yahoo.elide.security.checks.CommitCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.ToString;
 
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -31,10 +34,10 @@ import javax.validation.constraints.NotNull;
  * Parent test bean.
  */
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
-@ReadPermission(any = { Parent.InitCheck.class, Role.ALL.class })
+@ReadPermission(any = { Parent.InitCheckOp.class, Role.ALL.class })
 @SharePermission(any = { Role.ALL.class })
 @UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@DeletePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
+@DeletePermission(any = { Parent.InitCheckOp.class, Role.ALL.class, Role.NONE.class })
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 // Hibernate
 @Entity
@@ -94,14 +97,23 @@ public class Parent extends BaseId {
     /**
      * Initialization validation check.
      */
-    static public class InitCheck implements Check<Parent> {
+    static public class InitCheck extends CommitCheck<Parent> {
         @Override
-        public boolean ok(PersistentResource<Parent> record) {
-            Parent parent = record.getObject();
+        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {
                 return true;
             }
-            throw new IllegalStateException("Uninitialized " + parent);
+            return false;
+        }
+    }
+
+    static public class InitCheckOp extends OperationCheck<Parent> {
+        @Override
+        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            if (parent.getChildren() != null && parent.getSpouses() != null) {
+                return true;
+            }
+            return false;
         }
     }
 }

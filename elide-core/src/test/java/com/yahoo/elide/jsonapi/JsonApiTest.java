@@ -9,8 +9,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import com.yahoo.elide.audit.Logger;
-import com.yahoo.elide.audit.TestLogger;
+import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.core.EntityDictionary;
@@ -47,7 +47,7 @@ public class JsonApiTest {
         dictionary.bindEntity(Child.class);
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
-        Logger testLogger = new TestLogger();
+        AuditLogger testLogger = new TestAuditLogger();
         userScope = new RequestScope(new JsonApiDocument(), null, new User(0), dictionary, mapper, testLogger);
     }
 

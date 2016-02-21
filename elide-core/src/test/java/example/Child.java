@@ -1,19 +1,17 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yahoo.elide.annotation.Audit;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.checks.CommitCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
 import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;
@@ -23,15 +21,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.persistence.OneToOne;
 
 @Entity
 @CreatePermission(any = { InitCheck.class })
 @SharePermission(any = {Role.ALL.class})
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, InitCheck.class})
+@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class})
 @Include
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -52,13 +49,6 @@ public class Child {
 
     private Set<Child> friends;
     private Child noReadAccess;
-
-    public ExcludedEntity excludedEntity = new ExcludedEntity(1L, "excluded");
-
-    @OneToOne
-    public ExcludedEntity excludedRelationship = new ExcludedEntity(2L, "excluded2");
-
-    public List<ExcludedEntity> excludedEntityList = new ArrayList<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -120,14 +110,23 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
-    static public class InitCheck implements Check<Child> {
+    static public class InitCheck extends CommitCheck<Child> {
         @Override
-        public boolean ok(PersistentResource<Child> record) {
-            Child child = record.getObject();
+        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }
-            throw new IllegalStateException("Uninitialized " + child);
+            return false;
+        }
+    }
+
+    static public class InitCheckOp extends OperationCheck<Child> {
+        @Override
+        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            if (child.getParents() != null) {
+                return true;
+            }
+            return false;
         }
     }
 }

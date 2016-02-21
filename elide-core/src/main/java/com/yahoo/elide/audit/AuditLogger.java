@@ -14,10 +14,10 @@ import java.util.List;
  * <p>
  * This class uses ThreadLocal list to be thread safe.
  */
-public abstract class Logger {
+public abstract class AuditLogger {
     protected final ThreadLocal<List<LogMessage>> messages;
 
-    public Logger() {
+    public AuditLogger() {
         messages = ThreadLocal.withInitial(() -> { return new ArrayList<>(); });
     }
 

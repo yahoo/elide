@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.hibernate5.security;
 
 import com.yahoo.elide.core.RequestScope;
 
-import com.yahoo.elide.security.Check;
+import com.yahoo.elide.security.checks.Check;
 import org.hibernate.criterion.Criterion;
 
 /**
