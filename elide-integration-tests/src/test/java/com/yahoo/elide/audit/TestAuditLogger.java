@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Example Logger test.
  */
-public class TestLogger extends Logger {
+public class TestAuditLogger extends AuditLogger {
     public int commitCount = 0;
     public int logCount = 0;
 

@@ -5,27 +5,22 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
+import com.yahoo.elide.annotation.*;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.generated.parsers.ExpressionLexer;
+import com.yahoo.elide.generated.parsers.ExpressionParser;
 import lombok.Getter;
 import lombok.Setter;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +36,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.ws.rs.DELETE;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -62,10 +58,19 @@ class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields;
     public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
-    @Getter private AccessibleObject idField;
-    @Getter private String idFieldName;
-    @Getter private Class<?> idType;
-    @Getter @Setter private Initializer initializer;
+
+    public final ConcurrentHashMap<Pair<Class, Field>, ParseTree> fieldAnnotationToParseTree;
+    public final ConcurrentHashMap<Class, ParseTree> annotationToParseTree;
+
+    @Getter
+    private AccessibleObject idField;
+    @Getter
+    private String idFieldName;
+    @Getter
+    private Class<?> idType;
+    @Getter
+    @Setter
+    private Initializer initializer;
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
 
@@ -85,6 +90,8 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
         accessibleObject = null;
+        fieldAnnotationToParseTree = null;
+        annotationToParseTree = null;
     }
 
     public EntityBinding(Class<?> cls, String type) {
@@ -104,18 +111,97 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         accessibleObject = new ConcurrentHashMap<>();
+        annotationToParseTree = new ConcurrentHashMap<>();
+        fieldAnnotationToParseTree = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
+        bindAnnotations(cls, fieldOrMethodList);
 
         attrs = dequeToList(attrsDeque);
         relationships = dequeToList(relationshipsDeque);
     }
 
     /**
+     * Parses (using ANTLR) and Binds annotation expressions to the entity binding.
+     */
+    private void bindAnnotations(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
+        Class[] annotationsToBind = new Class[]{
+                ReadPermission.class,
+                CreatePermission.class,
+                DeletePermission.class,
+                SharePermission.class,
+                UpdatePermission.class
+        };
+
+        for (Class annotationClass : annotationsToBind) {
+            try {
+                Method expression = annotationClass.getMethod("expression", (Class[]) null);
+                if (expression != null){
+                    // Store the ParseTree for the particular entity
+                    try {
+                        try {
+                            String expressionString = (String) expression.invoke(cls.getAnnotation(annotationClass));
+                            annotationToParseTree.putIfAbsent(annotationClass, parseExpression(expressionString));
+                        } catch (NullPointerException e){
+                            // It is ok.
+                        }
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (NoSuchMethodException e) {
+                continue;
+            }
+
+            // Store the ParseTree for each field, if they exist
+            fieldOrMethodList.forEach( obj -> {
+                if (obj instanceof Field) {
+                    Field f = (Field) obj;
+                    ReadPermission r = f.getAnnotation(ReadPermission.class);
+                    if (r != null) {
+                        Pair<Class, Field> key = Pair.of(annotationClass, f);
+
+                        fieldAnnotationToParseTree.putIfAbsent(
+                                key,
+                                parseExpression(r.expression())
+                        );
+                    }
+                }
+            });
+
+        }
+    }
+
+    /**
+     * Parses an expression in an annotation using ANTLR.
+     *
+     * @param annotationMessage
+     * @return
+     */
+    private ParseTree parseExpression(String annotationMessage) {
+        ANTLRInputStream is = new ANTLRInputStream(annotationMessage);
+        ExpressionLexer lexer = new ExpressionLexer(is);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                                    int charPositionInLine, String msg, RecognitionException e) {
+                throw new ParseCancellationException(msg, e);
+            }
+        });
+        ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
+        parser.setErrorHandler(new BailErrorStrategy());
+        return parser.start();
+    }
+
+
+    /**
      * Bind fields of an entity including the Id field, attributes, and relationships.
      *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
+     * @param cls               Class type to bind fields
+     * @param type              JSON API type identifier
      * @param fieldOrMethodList List of fields and methods on entity
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
@@ -159,8 +245,8 @@ class EntityBinding {
     /**
      * Bind an id field to an entity.
      *
-     * @param cls Class type to bind fields
-     * @param type JSON API type identifier
+     * @param cls           Class type to bind fields
+     * @param type          JSON API type identifier
      * @param fieldOrMethod Field or method to bind
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
@@ -172,7 +258,7 @@ class EntityBinding {
 
         //Set id field, type, and name
         idField = fieldOrMethod;
-        idType  = fieldType;
+        idType = fieldType;
         idFieldName = fieldName;
 
         if (idField != null && !fieldOrMethod.equals(idField)) {
@@ -196,7 +282,7 @@ class EntityBinding {
     /**
      * Bind an attribute or relationship.
      *
-     * @param cls Class type to bind fields
+     * @param cls           Class type to bind fields
      * @param fieldOrMethod Field or method to bind
      */
     private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
@@ -209,9 +295,8 @@ class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
 
         if (fieldName == null || fieldName.equals("id")
-                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)
-                || parameterizedFieldContainsAnnotation(fieldOrMethod, Arrays.asList(Exclude.class))) {
-            return; // Reserved. Not attributes. Otherwise, potentially excluded.
+                || fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
+            return; // Reserved. Not attributes.
         }
 
         Class<?> fieldType = getFieldType(fieldOrMethod);
@@ -259,7 +344,7 @@ class EntityBinding {
             return ((Field) fieldOrMethod).getName();
         } else {
             Method method = (Method) fieldOrMethod;
-            String name   = method.getName();
+            String name = method.getName();
 
             if (name.startsWith("get") && method.getParameterCount() == 0) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
@@ -284,33 +369,6 @@ class EntityBinding {
         } else {
             return ((Method) fieldOrMethod).getReturnType();
         }
-    }
-
-    private static boolean parameterizedFieldContainsAnnotation(AccessibleObject fieldOrMethod,
-                                                                List<Class<? extends Annotation>> annotations) {
-        Type type;
-        if (fieldOrMethod instanceof Method) {
-            type = ((Method) fieldOrMethod).getGenericReturnType();
-        } else {
-            type = ((Field) fieldOrMethod).getGenericType();
-        }
-
-        if (type instanceof ParameterizedType) {
-            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            if (types != null) {
-                // NOTE: We look through all types to ensure nothing is exluded as part of complex representations
-                // Consider, for instance, a Map<Relation1, Map<Relation2, ExcludedRelation3>>
-                for (Type paramType : types) {
-                    if (EntityDictionary.getFirstAnnotation((Class<?>) paramType, annotations) != null) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-            return EntityDictionary.getFirstAnnotation(getFieldType(fieldOrMethod), annotations) != null;
-        }
-
-        return false;
     }
 
     private <A extends Annotation> void bindTrigger(Class<A> annotationClass, AccessibleObject fieldOrMethod) {
