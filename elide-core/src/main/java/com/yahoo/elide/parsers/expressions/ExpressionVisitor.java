@@ -75,7 +75,7 @@ public class ExpressionVisitor extends ExpressionBaseVisitor<Expression> {
     public Expression visitExpressionClass(ExpressionParser.ExpressionClassContext ctx) {
         // Get the text
         //Class current = Class.forName(ctx.getChild(0).getText());
-        System.out.println(ctx.getChild(0).getText());
+
         return visitChildren(ctx);
     }
 }

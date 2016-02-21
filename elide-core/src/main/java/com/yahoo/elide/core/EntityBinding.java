@@ -20,10 +20,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +36,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.ws.rs.DELETE;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -61,8 +59,8 @@ class EntityBinding {
     public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
 
-    public final ConcurrentHashMap<Field, ParseTree> fieldToFieldParseTree;
-    public ParseTree entityExpressionParseTree;
+    public final ConcurrentHashMap<Pair<Class, Field>, ParseTree> fieldAnnotationToParseTree;
+    public final ConcurrentHashMap<Class, ParseTree> annotationToParseTree;
 
     @Getter
     private AccessibleObject idField;
@@ -92,8 +90,8 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
         accessibleObject = null;
-        entityExpressionParseTree = null;
-        fieldToFieldParseTree = null;
+        fieldAnnotationToParseTree = null;
+        annotationToParseTree = null;
     }
 
     public EntityBinding(Class<?> cls, String type) {
@@ -113,7 +111,8 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         accessibleObject = new ConcurrentHashMap<>();
-        fieldToFieldParseTree = new ConcurrentHashMap<>();
+        annotationToParseTree = new ConcurrentHashMap<>();
+        fieldAnnotationToParseTree = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
         bindAnnotations(cls, fieldOrMethodList);
@@ -126,20 +125,52 @@ class EntityBinding {
      * Parses (using ANTLR) and Binds annotation expressions to the entity binding.
      */
     private void bindAnnotations(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
-        // Set the individual parse tree
-        ReadPermission expr = cls.getAnnotation(ReadPermission.class);
-        if (expr != null) {
-            entityExpressionParseTree = parseExpression(expr.expression());
-        }
-        // Set the hash map/fields
-        for (AccessibleObject obj : fieldOrMethodList) {
-            if (obj instanceof Field) {
-                Field f = (Field) obj;
-                ReadPermission r = f.getAnnotation(ReadPermission.class);
-                if (r != null) {
-                    fieldToFieldParseTree.putIfAbsent(f, parseExpression(r.expression()));
+        Class[] annotationsToBind = new Class[]{
+                ReadPermission.class,
+                CreatePermission.class,
+                DeletePermission.class,
+                SharePermission.class,
+                UpdatePermission.class
+        };
+
+        for (Class annotationClass : annotationsToBind) {
+            try {
+                Method expression = annotationClass.getMethod("expression", (Class[]) null);
+                if (expression != null){
+                    // Store the ParseTree for the particular entity
+                    try {
+                        try {
+                            String expressionString = (String) expression.invoke(cls.getAnnotation(annotationClass));
+                            annotationToParseTree.putIfAbsent(annotationClass, parseExpression(expressionString));
+                        } catch (NullPointerException e){
+                            // It is ok.
+                        }
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
                 }
+            } catch (NoSuchMethodException e) {
+                continue;
             }
+
+            // Store the ParseTree for each field, if they exist
+            fieldOrMethodList.forEach( obj -> {
+                if (obj instanceof Field) {
+                    Field f = (Field) obj;
+                    ReadPermission r = f.getAnnotation(ReadPermission.class);
+                    if (r != null) {
+                        Pair<Class, Field> key = Pair.of(annotationClass, f);
+
+                        fieldAnnotationToParseTree.putIfAbsent(
+                                key,
+                                parseExpression(r.expression())
+                        );
+                    }
+                }
+            });
+
         }
     }
 
