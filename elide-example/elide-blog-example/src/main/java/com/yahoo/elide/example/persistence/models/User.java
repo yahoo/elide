@@ -23,7 +23,7 @@ import javax.persistence.Table;
 @Table(name = "user")
 @Include(rootLevel = true)
 @SharePermission(any = {com.yahoo.elide.security.Role.ALL.class})
-@ReadPermission(expression = "(com.yahoo.elide.security.checks.UserCheck AND com.yahoo.elide.security.checks.UserCheck)")
+@CreatePermission(expression = "(com.yahoo.elide.security.checks.UserCheck AND com.yahoo.elide.security.checks.UserCheck)")
 public class User {
     private long id;
     private String name;

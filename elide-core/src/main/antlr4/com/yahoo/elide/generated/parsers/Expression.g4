@@ -16,7 +16,7 @@
 
 grammar Expression;
 
-start: expression;
+start: expression EOF;
 
 /*
 Doesn't work with single character names.

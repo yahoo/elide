@@ -36,7 +36,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import javax.ws.rs.DELETE;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -136,13 +135,13 @@ class EntityBinding {
         for (Class annotationClass : annotationsToBind) {
             try {
                 Method expression = annotationClass.getMethod("expression", (Class[]) null);
-                if (expression != null){
+                if (expression != null) {
                     // Store the ParseTree for the particular entity
                     try {
                         try {
                             String expressionString = (String) expression.invoke(cls.getAnnotation(annotationClass));
                             annotationToParseTree.putIfAbsent(annotationClass, parseExpression(expressionString));
-                        } catch (NullPointerException e){
+                        } catch (NullPointerException e) {
                             // It is ok.
                         }
                     } catch (InvocationTargetException e) {
@@ -156,7 +155,7 @@ class EntityBinding {
             }
 
             // Store the ParseTree for each field, if they exist
-            fieldOrMethodList.forEach( obj -> {
+            fieldOrMethodList.forEach(obj -> {
                 if (obj instanceof Field) {
                     Field f = (Field) obj;
                     ReadPermission r = f.getAnnotation(ReadPermission.class);
@@ -181,6 +180,9 @@ class EntityBinding {
      * @return
      */
     private ParseTree parseExpression(String annotationMessage) {
+        if (annotationMessage.length() <= 0){
+            return null;
+        }
         ANTLRInputStream is = new ANTLRInputStream(annotationMessage);
         ExpressionLexer lexer = new ExpressionLexer(is);
         lexer.removeErrorListeners();
@@ -192,7 +194,7 @@ class EntityBinding {
             }
         });
         ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new BailErrorStrategy());
+        lexer.reset();
         return parser.start();
     }
 

@@ -17,6 +17,7 @@ public abstract class UserCheck extends InlineCheck {
     /* NOTE: Operation checks and user checks are intended to be _distinct_ */
     @Override
     public final boolean ok(Object object, RequestScope requestScope, Optional optional) {
+        System.out.print("\n\n\n\n\n\n\n\nsdfdfdsfsdfd");
         return ok(requestScope.getUser());
     }
 }

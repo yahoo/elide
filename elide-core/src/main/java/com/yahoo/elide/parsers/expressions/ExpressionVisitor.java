@@ -19,7 +19,7 @@ import com.yahoo.elide.security.permissions.expressions.*;
 import java.util.Map;
 
 /**
- * Expression Visitor
+ * Expression Visitor.
  */
 public class ExpressionVisitor extends ExpressionBaseVisitor<Expression> {
     private final PersistentResource resource;
@@ -77,12 +77,14 @@ public class ExpressionVisitor extends ExpressionBaseVisitor<Expression> {
 
             if (CommitCheck.class.isAssignableFrom(checkClass)) {
                 Class<? extends CommitCheck> changeToCommitCheck = checkClass;
-                return new DeferredCheckExpression(changeToCommitCheck.newInstance(), this.resource, this.requestScope, this.changeSpec, this.cache);
+                return new DeferredCheckExpression(changeToCommitCheck.newInstance(),
+                        this.resource, this.requestScope, this.changeSpec, this.cache);
 
 
             } else {
                 Class<? extends Check> changeToCheck = checkClass;
-                return new ImmediateCheckExpression(changeToCheck.newInstance(), this.resource, this.requestScope, this.changeSpec, this.cache);
+                return new ImmediateCheckExpression(changeToCheck.newInstance(),
+                        this.resource, this.requestScope, this.changeSpec, this.cache);
 
             }
         } catch (ClassNotFoundException e) {

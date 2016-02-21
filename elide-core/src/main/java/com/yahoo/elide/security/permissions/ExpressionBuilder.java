@@ -124,7 +124,7 @@ public class ExpressionBuilder {
         // If the Class has an annotation with an Expression to be parsed,
         //  i.e. (@ReadPermission(expression = "(A OR B)")
         if (dictionary.getEntityParseTree(resource.getResourceClass(), annotationClass) != null) {
-            ExpressionVisitor ev = new ExpressionVisitor(resource, resource.getRequestScope(), changeSpec ,cache);
+            ExpressionVisitor ev = new ExpressionVisitor(resource, resource.getRequestScope(), changeSpec, cache);
 
             Expression operationExpression = ev.visit(dictionary.getEntityParseTree(
                     resource.getResourceClass(),
@@ -138,7 +138,8 @@ public class ExpressionBuilder {
             return new Expressions(operationExpression, commitExpression);
         } else {
             // Build Expressions using the normal builder
-            return new Expressions(expressionFunction.apply(deferredCheckFn), expressionFunction.apply(immediateCheckFn));
+            return new Expressions(expressionFunction.apply(deferredCheckFn),
+                    expressionFunction.apply(immediateCheckFn));
         }
     }
 
