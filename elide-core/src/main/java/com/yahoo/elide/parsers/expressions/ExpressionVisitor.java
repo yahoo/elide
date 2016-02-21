@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.parsers.expressions;
 
-import com.sun.javafx.collections.MappingChange;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
@@ -18,7 +17,6 @@ import com.yahoo.elide.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import com.yahoo.elide.security.permissions.expressions.NotExpression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
-import com.yahoo.elide.generated.parsers.ExpressionParser.EXPRESSIONContext;
 
 import java.util.Map;
 
@@ -35,7 +33,7 @@ public class ExpressionVisitor extends ExpressionBaseVisitor<Expression> {
     public ExpressionVisitor(PersistentResource resource,
                              RequestScope requestScope,
                              ChangeSpec changeSpec,
-                             Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache){
+                             Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache) {
         this.resource = resource;
         this.requestScope = requestScope;
         this.changeSpec = changeSpec;
