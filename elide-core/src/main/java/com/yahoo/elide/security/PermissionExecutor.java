@@ -177,6 +177,10 @@ public class PermissionExecutor {
      * @param expressions expressions to execute
      */
     private void executeExpressions(final ExpressionBuilder.Expressions expressions) {
+        if (expressions.getOperationExpression() == null){
+            return;
+        }
+
         ExpressionResult result = expressions.getOperationExpression().evaluate();
         if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
