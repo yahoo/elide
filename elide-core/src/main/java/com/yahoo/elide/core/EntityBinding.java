@@ -208,10 +208,14 @@ class EntityBinding {
 
         String fieldName = getFieldName(fieldOrMethod);
 
+        boolean isTransient = fieldOrMethod.isAnnotationPresent(Transient.class)
+                              && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class);
+
         if (fieldName == null || fieldName.equals("id")
-                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)
-                || parameterizedFieldContainsAnnotation(fieldOrMethod, Arrays.asList(Exclude.class))) {
-            return; // Reserved. Not attributes. Otherwise, potentially excluded.
+                || fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)
+                || parameterizedFieldContainsAnnotation(fieldOrMethod, Arrays.asList(Exclude.class))
+                || isTransient) {
+            return; // Reserved. Not attributes. Otherwise, potentially excluded or transient.
         }
 
         Class<?> fieldType = getFieldType(fieldOrMethod);
