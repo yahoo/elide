@@ -570,11 +570,10 @@ public class PersistentResource<T> {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    String message = String.format("ForbiddenAccess not shared %s#%s",
+                    requestScope.logAuthFailure(Arrays.asList(),
                             persistentResource.getType(),
                             persistentResource.getId());
-                    log.debug(message);
-                    throw new ForbiddenAccessException(message);
+                    throw new ForbiddenAccessException("Resource Not Shareable", requestScope);
                 }
             }
         }
@@ -1422,21 +1421,13 @@ public class PersistentResource<T> {
             }
 
             if (!ok && mode == ALL) {
-                String message = String.format("ForbiddenAccess %s %s#%s",
-                        check,
-                        resource.getType(),
-                        resource.getId());
-                log.debug(message);
-                throw new ForbiddenAccessException(message);
+                resource.getRequestScope().logAuthFailure(Arrays.asList(check), resource.getType(), resource.getId());
+                throw new ForbiddenAccessException("Permission Check failed", resource.getRequestScope());
             }
         }
         if (mode == ANY) {
-            String message = String.format("ForbiddenAccess %s %s#%s",
-                    Arrays.asList(checks),
-                    resource.getType(),
-                    resource.getId());
-            log.debug(message);
-            throw new ForbiddenAccessException(message);
+            resource.getRequestScope().logAuthFailure(Arrays.asList(checks), resource.getType(), resource.getId());
+            throw new ForbiddenAccessException("Permission Check failed", resource.getRequestScope());
         }
     }
 
@@ -1477,7 +1468,7 @@ public class PersistentResource<T> {
         if (annotation == null) {
             throw new ForbiddenAccessException(
                     "Unable to find " + annotationClass.getSimpleName() + " annotation for "
-                            + resource.getResourceClass().getSimpleName() + "#" + fieldName
+                            + resource.getResourceClass().getSimpleName() + "#" + fieldName, resource.getRequestScope()
             );
         }
 
