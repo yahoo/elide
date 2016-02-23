@@ -73,6 +73,9 @@ public class Relationship {
         if (resources != null) {
             for (Resource resource : resources) {
                 try {
+                    if (data.isToOne() && resource == null) {
+                        continue;
+                    }
                     res.add(resource.toPersistentResource(requestScope));
                 } catch (ForbiddenAccessException e) {
                     //skip resource

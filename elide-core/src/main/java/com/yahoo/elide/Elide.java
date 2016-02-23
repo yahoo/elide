@@ -63,11 +63,7 @@ public class Elide {
      * @param dictionary the dictionary
      */
     public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
-        this.auditLogger = auditLogger;
-        this.dataStore = dataStore;
-        this.dictionary = dictionary;
-        dataStore.populateEntityDictionary(dictionary);
-        this.mapper = new JsonApiMapper(dictionary);
+        this(auditLogger, dataStore, dictionary, new JsonApiMapper(dictionary));
     }
 
     /**
@@ -78,6 +74,22 @@ public class Elide {
      */
     public Elide(Logger auditLogger, DataStore dataStore) {
         this(auditLogger, dataStore, new EntityDictionary());
+    }
+
+    /**
+     * Instantiates a new Elide.
+     *
+     * @param auditLogger the audit logger
+     * @param dataStore the dataStore
+     * @param dictionary the dictionary
+     * @param mapper Serializer/Deserializer for JSON API
+     */
+    public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
+        this.auditLogger = auditLogger;
+        this.dataStore = dataStore;
+        this.dictionary = dictionary;
+        dataStore.populateEntityDictionary(dictionary);
+        this.mapper = mapper;
     }
 
     /**
