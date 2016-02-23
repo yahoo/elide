@@ -599,6 +599,28 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test(priority = 11)
+    public void testNoDeleteExcludedRelationship() throws Exception {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\":{\"type\":\"excludedRelationship\",\"id\":\"1\"}}")
+                .delete("/parent/4/children/4/relationships/excludedRelationship")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test(priority = 11)
+    public void testForbiddenDeleteEmptyCollectionRelationship() throws Exception {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\":[]}")
+                .delete("/parent/4/children/4/relationships/parents")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test(priority = 11)
     public void testDeleteParent() {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)

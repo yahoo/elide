@@ -13,21 +13,28 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 
+import com.yahoo.elide.security.checks.Check;
 import lombok.Getter;
 
 import javax.ws.rs.core.MultivaluedMap;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
+@Slf4j
 public class RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
@@ -42,6 +49,7 @@ public class RequestScope {
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
     @Getter private final PermissionExecutor permissionExecutor;
+    @Getter private final List<Supplier<String>> failedAuthorizations;
 
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
@@ -75,6 +83,7 @@ public class RequestScope {
         newResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
         permissionExecutor = new PermissionExecutor(this);
+        failedAuthorizations = new ArrayList<>();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -146,6 +155,7 @@ public class RequestScope {
         this.newResources = outerRequestScope.newResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = new PermissionExecutor(this);
+        this.failedAuthorizations = outerRequestScope.failedAuthorizations;
     }
 
     /**
@@ -200,5 +210,26 @@ public class RequestScope {
 
     public void queueCommitTrigger(PersistentResource resource, String fieldName) {
         commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
+    }
+
+    public void logAuthFailure(List<Class<? extends Check>> checks, String type, String id) {
+        failedAuthorizations.add(() -> {
+            return String.format("ForbiddenAccess %s %s#%s", checks, type, id);
+        });
+    }
+
+    public String getAuthFailureReason() {
+        Set<String> uniqueReasons = new HashSet<>();
+        StringBuffer buf = new StringBuffer();
+        buf.append("Failed authorization checks:\n");
+        for (Supplier<String> authorizationFailure : failedAuthorizations) {
+            String reason = authorizationFailure.get();
+            if (!uniqueReasons.contains(reason)) {
+                buf.append(authorizationFailure.get());
+                buf.append("\n");
+                uniqueReasons.add(reason);
+            }
+        }
+        return buf.toString();
     }
 }

@@ -24,6 +24,8 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -207,8 +209,9 @@ class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
 
         if (fieldName == null || fieldName.equals("id")
-                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
-            return; // Reserved. Not attributes.
+                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)
+                || parameterizedFieldContainsAnnotation(fieldOrMethod, Arrays.asList(Exclude.class))) {
+            return; // Reserved. Not attributes. Otherwise, potentially excluded.
         }
 
         Class<?> fieldType = getFieldType(fieldOrMethod);
@@ -281,6 +284,33 @@ class EntityBinding {
         } else {
             return ((Method) fieldOrMethod).getReturnType();
         }
+    }
+
+    private static boolean parameterizedFieldContainsAnnotation(AccessibleObject fieldOrMethod,
+                                                                List<Class<? extends Annotation>> annotations) {
+        Type type;
+        if (fieldOrMethod instanceof Method) {
+            type = ((Method) fieldOrMethod).getGenericReturnType();
+        } else {
+            type = ((Field) fieldOrMethod).getGenericType();
+        }
+
+        if (type instanceof ParameterizedType) {
+            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+            if (types != null) {
+                // NOTE: We look through all types to ensure nothing is exluded as part of complex representations
+                // Consider, for instance, a Map<Relation1, Map<Relation2, ExcludedRelation3>>
+                for (Type paramType : types) {
+                    if (EntityDictionary.getFirstAnnotation((Class<?>) paramType, annotations) != null) {
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return EntityDictionary.getFirstAnnotation(getFieldType(fieldOrMethod), annotations) != null;
+        }
+
+        return false;
     }
 
     private <A extends Annotation> void bindTrigger(Class<A> annotationClass, AccessibleObject fieldOrMethod) {

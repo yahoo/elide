@@ -514,7 +514,8 @@ public class EntityDictionary {
      * @param annotationClassList List of sought annotations
      * @return annotation found
      */
-    public Annotation getFirstAnnotation(Class<?> entityClass, List<Class<? extends Annotation>> annotationClassList) {
+    public static Annotation getFirstAnnotation(Class<?> entityClass,
+                                                List<Class<? extends Annotation>> annotationClassList) {
         Annotation annotation = null;
         for (Class<?> cls = entityClass; annotation == null && cls != null; cls = cls.getSuperclass()) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {

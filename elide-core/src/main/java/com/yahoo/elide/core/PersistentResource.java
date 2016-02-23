@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -483,9 +484,6 @@ public class PersistentResource<T> {
             Collection collection = (Collection) this.getValue(relationName);
             mine.stream()
                     .forEach(toDelete -> {
-//                        String inverseRelation = getInverseRelationField(relationName);
-//                        checkFieldAwarePermissions(UpdatePermission.class, relationName);
-//                        toDelete.checkFieldAwarePermissions(UpdatePermission.class, inverseRelation);
                         delFromCollection(collection, relationName, toDelete);
                         transaction.save(toDelete.getObject());
                     });
@@ -504,7 +502,6 @@ public class PersistentResource<T> {
      * @param removeResource the remove resource
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
-        checkPermission(UpdatePermission.class, removeResource);
         Object relation = this.getValue(fieldName);
         Object original = (relation instanceof Collection) ? copyCollection((Collection) relation) : relation;
         Object modified =
@@ -579,11 +576,10 @@ public class PersistentResource<T> {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    String message = String.format("ForbiddenAccess not shared %s#%s",
+                    requestScope.logAuthFailure(Arrays.asList(),
                             persistentResource.getType(),
                             persistentResource.getId());
-                    log.debug(message);
-                    throw new ForbiddenAccessException(message);
+                    throw new ForbiddenAccessException("Resource Not Shareable", requestScope);
                 }
             }
         }
@@ -740,15 +736,28 @@ public class PersistentResource<T> {
             throw new InvalidAttributeException(relationName, type);
         }
 
-        Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
+
+        // check for deny access on relationship to avoid iterating a lazy collection
+        checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
+        try {
+            // If we cannot read any element of this type, don't try to filter
+            requestScope.getPermissionExecutor().checkUserPermissions(
+                    dictionary.getParameterizedType(obj, relationName),
+                    ReadPermission.class);
+        } catch (ForbiddenAccessException e) {
+            return Collections.emptySet();
+        }
 
         RelationshipType type = getRelationshipType(relationName);
         Object val = this.getValue(relationName);
         if (val == null) {
-            return (Set) resources;
+            return Collections.emptySet();
         } else if (shouldSkipCollection(ReadPermission.class, relationName)) {
-            return (Set) resources;
-        } else if (val instanceof Collection) {
+            return Collections.emptySet();
+        }
+
+        Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
+        if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
 
             if (!filters.isEmpty()) {
@@ -989,7 +998,10 @@ public class PersistentResource<T> {
         if (oldValue == null) {
             return;
         }
-        checkPermission(UpdatePermission.class, oldValue);
+        String inverseField = getInverseRelationField(fieldName);
+        if (inverseField.length() > 0) {
+            oldValue.checkFieldAwarePermissions(UpdatePermission.class, inverseField, null, getObject());
+        }
         this.setValueChecked(fieldName, null);
     }
 

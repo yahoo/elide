@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.RequestScope;
 
 /**
  * Access to the requested resource is.
@@ -15,8 +16,15 @@ import com.yahoo.elide.core.HttpStatus;
 public class ForbiddenAccessException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
-    public ForbiddenAccessException(String verboseMessage) {
+    private RequestScope scope;
+
+    public ForbiddenAccessException(String verboseMessage, RequestScope scope) {
         super(null, verboseMessage);
+        this.scope = scope;
+    }
+
+    public String getReason() {
+        return scope.getAuthFailureReason();
     }
 
     @Override

@@ -164,7 +164,7 @@ public class PermissionExecutor {
     public void executeCommitChecks() {
         commitCheckQueue.forEach((expr) -> {
             if (expr.evaluate() == FAIL) {
-                throw new ForbiddenAccessException("Could not execute commit checks.");
+                throw new ForbiddenAccessException("Could not execute commit checks.", requestScope);
             }
         });
     }
@@ -182,7 +182,7 @@ public class PermissionExecutor {
                 commitCheckQueue.add(commitExpression);
             }
         } else if (result == FAIL) {
-            throw new ForbiddenAccessException("Inline check failed.");
+            throw new ForbiddenAccessException("Inline check failed.", requestScope);
         }
     }
 }
