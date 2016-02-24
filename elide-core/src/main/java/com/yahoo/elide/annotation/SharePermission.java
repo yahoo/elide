@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.security.checks.InlineCheck;
+import com.yahoo.elide.security.checks.Check;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -29,12 +29,12 @@ public @interface SharePermission {
      *
      * @return the class [ ]
      */
-    Class<? extends InlineCheck>[] any() default {};
+    Class<? extends Check>[] any() default {};
 
     /**
      * All of these checks must pass.
      *
      * @return the class [ ]
      */
-    Class<? extends InlineCheck>[] all() default {};
+    Class<? extends Check>[] all() default {};
 }
