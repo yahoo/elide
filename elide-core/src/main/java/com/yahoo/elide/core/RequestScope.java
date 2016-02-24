@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
@@ -47,6 +48,7 @@ public class RequestScope {
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Map<String, Set<Predicate>> predicates;
+    @Getter private final Pagination pagination;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
@@ -77,9 +79,11 @@ public class RequestScope {
         if (this.queryParams.isPresent()) {
             sparseFields = parseSparseFields(this.queryParams.get());
             predicates = Predicate.parseQueryParams(this.dictionary, this.queryParams.get());
+            pagination = Pagination.parseQueryParams(this.queryParams.get());
         } else {
             sparseFields = Collections.emptyMap();
             predicates = Collections.emptyMap();
+            pagination = Pagination.getDefaultPagination();
         }
 
         newResources = new LinkedHashSet<>();
@@ -150,6 +154,7 @@ public class RequestScope {
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.predicates = Collections.emptyMap();
+        this.pagination = Pagination.getDefaultPagination();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
         this.deferredChecks = outerRequestScope.deferredChecks;

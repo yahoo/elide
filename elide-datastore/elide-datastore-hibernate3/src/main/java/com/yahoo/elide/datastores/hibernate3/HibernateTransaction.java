@@ -11,6 +11,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.Check;
@@ -113,6 +114,33 @@ public class HibernateTransaction implements DataStoreTransaction {
         return list;
     }
 
+    /**
+     * Internal loadObjects helper - loads pagination objects
+     * @param loadClass
+     * @param criterion
+     * @param pagination
+     * @param <T>
+     * @return
+     */
+    public <T> Iterable<T> loadObjects(Class<T> loadClass, Criterion criterion, Pagination pagination) {
+        if (criterion != null) {
+            @SuppressWarnings("unchecked")
+            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
+                    .add(criterion)
+                    .setFirstResult(pagination.getPage())
+                    .setMaxResults(pagination.getPageSize())
+                    .scroll(ScrollMode.FORWARD_ONLY));
+            return list;
+        } else {
+            @SuppressWarnings("unchecked")
+            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
+                    .setFirstResult(pagination.getPage())
+                    .setMaxResults(pagination.getPageSize())
+                    .scroll(ScrollMode.FORWARD_ONLY));
+            return list;
+        }
+    }
+
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
@@ -122,16 +150,22 @@ public class HibernateTransaction implements DataStoreTransaction {
         criterion = CriterionFilterOperation.andWithNull(criterion,
                 criterionFilterOperation.applyAll(filteredPredicates));
 
-        // if no criterion then return all objects
-        if (criterion == null) {
+        // if no criterion, and no pagination - then return all objects
+        if (criterion == null && !filterScope.hasPagination()) {
             return loadObjects(loadClass);
         }
 
-        @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                .add(criterion)
-                .scroll(ScrollMode.FORWARD_ONLY));
-        return list;
+        if (!filterScope.hasPagination()) {
+            @SuppressWarnings("unchecked")
+            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
+                    .add(criterion)
+                    .scroll(ScrollMode.FORWARD_ONLY));
+            return list;
+        } else {
+            // sets the criterion, pagination
+            // todo - need to add sorting as well
+            return loadObjects(loadClass, criterion, filterScope.getRequestScope().getPagination());
+        }
     }
 
     /**

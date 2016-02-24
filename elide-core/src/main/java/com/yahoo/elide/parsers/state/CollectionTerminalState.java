@@ -71,8 +71,12 @@ public class CollectionTerminalState extends BaseState {
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
 
-        DocumentProcessor sortProcessor = new SortProcessor();
-        sortProcessor.execute(jsonApiDocument, collection, queryParams);
+        // if we are using pagination, then we are adding sorting directly into the HQL, etc
+        // todo - is this correct?
+        if (!requestScope.getPagination().isDefault()) {
+            DocumentProcessor sortProcessor = new SortProcessor();
+            sortProcessor.execute(jsonApiDocument, collection, queryParams);
+        }
 
         JsonNode responseBody = mapper.convertValue(jsonApiDocument, JsonNode.class);
         return () -> Pair.of(HttpStatus.SC_OK, responseBody);

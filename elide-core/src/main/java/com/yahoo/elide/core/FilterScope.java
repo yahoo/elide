@@ -59,6 +59,13 @@ public class FilterScope<T> {
     }
 
     /**
+     * Returns true if pagination limits were added to this query
+     *
+     * @return true if there is pagination filtering
+     */
+    public boolean hasPagination() { return !requestScope.getPagination().isDefault(); }
+
+    /**
      * Get User Permissions.
      *
      * @return composite UserPermission for this FilterScope
