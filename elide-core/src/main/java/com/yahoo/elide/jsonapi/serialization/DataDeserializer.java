@@ -32,12 +32,12 @@ public class DataDeserializer extends JsonDeserializer<Data<Resource>> {
         if (node.isArray()) {
             List<Resource> resources = new ArrayList<>();
             for (JsonNode n : node) {
-                Resource r = mapper.readValue(n.toString(), Resource.class);
+                Resource r = mapper.convertValue(n, Resource.class);
                 resources.add(r);
             }
             return new Data<>(resources);
         }
-        Resource resource = mapper.readValue(node.toString(), Resource.class);
+        Resource resource = mapper.convertValue(node, Resource.class);
         return new Data<>(resource);
     }
 }

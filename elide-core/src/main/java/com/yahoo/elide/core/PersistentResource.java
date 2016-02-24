@@ -579,7 +579,7 @@ public class PersistentResource<T> {
                     requestScope.logAuthFailure(Arrays.asList(),
                             persistentResource.getType(),
                             persistentResource.getId());
-                    throw new ForbiddenAccessException("Resource Not Shareable", requestScope);
+                    throw new ForbiddenAccessException("Resource Not Shareable");
                 }
             }
         }
