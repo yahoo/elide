@@ -573,7 +573,7 @@ public class PersistentResource<T> {
                     requestScope.logAuthFailure(Arrays.asList(),
                             persistentResource.getType(),
                             persistentResource.getId());
-                    throw new ForbiddenAccessException("Resource Not Shareable", requestScope);
+                    throw new ForbiddenAccessException("Resource Not Shareable");
                 }
             }
         }
@@ -1422,12 +1422,12 @@ public class PersistentResource<T> {
 
             if (!ok && mode == ALL) {
                 resource.getRequestScope().logAuthFailure(Arrays.asList(check), resource.getType(), resource.getId());
-                throw new ForbiddenAccessException("Permission Check failed", resource.getRequestScope());
+                throw new ForbiddenAccessException("Permission Check failed");
             }
         }
         if (mode == ANY) {
             resource.getRequestScope().logAuthFailure(Arrays.asList(checks), resource.getType(), resource.getId());
-            throw new ForbiddenAccessException("Permission Check failed", resource.getRequestScope());
+            throw new ForbiddenAccessException("Permission Check failed");
         }
     }
 
@@ -1468,7 +1468,7 @@ public class PersistentResource<T> {
         if (annotation == null) {
             throw new ForbiddenAccessException(
                     "Unable to find " + annotationClass.getSimpleName() + " annotation for "
-                            + resource.getResourceClass().getSimpleName() + "#" + fieldName, resource.getRequestScope()
+                            + resource.getResourceClass().getSimpleName() + "#" + fieldName
             );
         }
 

@@ -402,8 +402,7 @@ public class RequestScope {
             }
 
             // No accessible fields and object is not accessible
-            throw new ForbiddenAccessException("Cannot access object '" + resource.getType() + "'",
-                    resource.getRequestScope());
+            throw new ForbiddenAccessException("Cannot access object '" + resource.getType() + "'");
         }
     }
 
