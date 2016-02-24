@@ -1,13 +1,18 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import org.testng.Assert;
+import org.testng.Assert
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.testng.annotations.Test
 
 /**
  * Tests for pagination
@@ -22,6 +27,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     private String nullNedId = null
     private JsonNode nullNedBooks = null
     private String orsonCardId = null
+    private Set<Integer> bookIds = new HashSet<>()
+    private Set<Integer> authorIds = new HashSet<>()
 
     @BeforeTest
     public void setup() {
@@ -256,6 +263,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         authors = mapper.readTree(RestAssured.get("/author").asString())
 
         for (JsonNode author : authors.get("data")) {
+            authorIds.add(author.get("id").asInt());
             if (author.get("attributes").get("name").asText() == "Isaac Asimov") {
                 asimovId = author.get("id").asText()
             }
@@ -267,6 +275,10 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
             if (author.get("attributes").get("name").asText() == "Orson Scott Card") {
                 orsonCardId = author.get("id").asText();
             }
+        }
+
+        for (JsonNode book : books.get("data")) {
+            bookIds.add(book.get("id").asInt());
         }
 
         Assert.assertNotNull(asimovId)
@@ -308,6 +320,22 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
             // should clean up in an after test...
             long publishDate = book.get("attributes").get("publishDate").asLong();
             Assert.assertTrue(publishDate < 1454638927411L);
+        }
+    }
+
+    @AfterTest
+    public void cleanUp() {
+        for (int id : authorIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/author/"+id)
+        }
+        for (int id : bookIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/book/"+id)
         }
     }
 }

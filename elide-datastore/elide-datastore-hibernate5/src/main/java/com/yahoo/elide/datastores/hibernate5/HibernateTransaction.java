@@ -117,11 +117,11 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Internal loadObjects helper - loads pagination objects
-     * @param loadClass
-     * @param criterion
-     * @param pagination
-     * @param <T>
-     * @return
+     * @param loadClass The class Type reference
+     * @param criterion The optional Criterion
+     * @param pagination The Pagination object
+     * @param <T> The class type
+     * @return The ScrollableIterator
      */
     public <T> Iterable<T> loadObjects(Class<T> loadClass, Criterion criterion, Pagination pagination) {
         if (criterion != null) {

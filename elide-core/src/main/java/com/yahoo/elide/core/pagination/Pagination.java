@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.core.pagination;
 
 import lombok.AllArgsConstructor;
@@ -9,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Encapsulates the pagination strategy
+ * Encapsulates the pagination strategy.
  */
 
 @AllArgsConstructor
@@ -19,14 +24,14 @@ public class Pagination {
     public static final int DEFAULT_PAGE_SIZE = 500;
     // todo do we ever want to return more than 10000 items? Set Upper Bounds
 
-    private static final Pagination DEFAULT_PAGINATION = new Pagination(0,0);
+    private static final Pagination DEFAULT_PAGINATION = new Pagination(0, 0);
 
-    public static final Map<String,String> pageKeys = new HashMap<>();
+    public static final Map<String, String> PAGE_KEYS = new HashMap<>();
     static {
-        pageKeys.put("page[size]","pageSize");
-        pageKeys.put("page[limit]","pageSize");
-        pageKeys.put("page[number]","page");
-        pageKeys.put("page[offset]","page");
+        PAGE_KEYS.put("page[size]", "pageSize");
+        PAGE_KEYS.put("page[limit]", "pageSize");
+        PAGE_KEYS.put("page[number]", "page");
+        PAGE_KEYS.put("page[offset]", "page");
     }
 
     @Getter
@@ -36,17 +41,17 @@ public class Pagination {
     private int pageSize;
 
     /**
-     * Know if this is the default instance
-     * @return The default pagination values
+     * Know if this is the default instance.
+     * @return The default pagination values.
      */
     public boolean isDefault() {
         return this.page == 0 && this.pageSize == 0;
     }
 
     /**
-     * Given json-api paging params, generate page and pageSize values from query params
-     * @param queryParams The page queryParams (ImmuatableMultiValueMap)
-     * @return The new Page object
+     * Given json-api paging params, generate page and pageSize values from query params.
+     * @param queryParams The page queryParams (ImmuatableMultiValueMap).
+     * @return The new Page object.
      */
     public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams) {
         final Map<String, Integer> pageData = new HashMap<>();
@@ -55,8 +60,8 @@ public class Pagination {
                     // looking for page[size], page[limit]
                     // looking for page[offset], page[number]
                     final String queryParamKey = paramEntry.getKey();
-                    if (pageKeys.containsKey(queryParamKey)) {
-                        final String type = pageKeys.get(queryParamKey);
+                    if (PAGE_KEYS.containsKey(queryParamKey)) {
+                        final String type = PAGE_KEYS.get(queryParamKey);
                         final String value = paramEntry.getValue().get(0); // is this correct...
                         try {
                             pageData.put(type, Integer.parseInt(value, 10));
@@ -79,8 +84,8 @@ public class Pagination {
     }
 
     /**
-     * Default Instance
-     * @return The default instance
+     * Default Instance.
+     * @return The default instance.
      */
     public static Pagination getDefaultPagination() {
         return DEFAULT_PAGINATION;
