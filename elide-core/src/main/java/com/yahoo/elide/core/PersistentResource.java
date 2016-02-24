@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
  */
 @ToString
 @Slf4j
-public class PersistentResource<T> {
+public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
     private final ResourceLineage lineage;
@@ -127,7 +127,7 @@ public class PersistentResource<T> {
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
 
         // Keep track of new resources for non shareable resources
-        requestScope.getNewResources().add(newResource);
+        requestScope.getNewPersistentResources().add(newResource);
 
         return newResource;
     }
@@ -569,7 +569,7 @@ public class PersistentResource<T> {
             return;
         }
 
-        final Set<PersistentResource> newResources = getRequestScope().getNewResources();
+        final Set<PersistentResource> newResources = getRequestScope().getNewPersistentResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
             if (!newResources.contains(persistentResource)) {
@@ -646,7 +646,7 @@ public class PersistentResource<T> {
      *
      * @return Boolean
      */
-    public Boolean isIdGenerated() {
+    public boolean isIdGenerated() {
         return getIdAnnotations().stream().anyMatch(a -> a.annotationType().equals(GeneratedValue.class));
     }
 

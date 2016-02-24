@@ -7,10 +7,8 @@ package com.yahoo.elide.security.permissions;
 
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.PersistentResource;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.ExtractedChecks;
 import com.yahoo.elide.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
@@ -23,11 +21,13 @@ import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.checks.Check;
 
-import static com.yahoo.elide.security.checks.ExtractedChecks.CheckMode.ALL;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -35,11 +35,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.yahoo.elide.security.checks.ExtractedChecks.CheckMode.ALL;
+
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
  */
 @Slf4j
 public class ExpressionBuilder {
+    private final EntityDictionary entityDictionary;
     private final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
 
     private static final BiFunction<Expression, Expression, Expression> ALL_JOINER = AndExpression::new;
@@ -50,8 +53,10 @@ public class ExpressionBuilder {
      *
      * @param cache Cache
      */
-    public ExpressionBuilder(final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache) {
+    public ExpressionBuilder(HashMap<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache,
+                             EntityDictionary dictionary) {
         this.cache = cache;
+        this.entityDictionary = dictionary;
     }
 
     /**
@@ -69,15 +74,25 @@ public class ExpressionBuilder {
                                                                             final String field,
                                                                             final ChangeSpec changeSpec) {
         final Function<Check, Expression> deferredCheckFn =
-                 (check) -> new DeferredCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
+                 (check) -> new DeferredCheckExpression(
+                         check,
+                         resource,
+                         resource.getRequestScope(),
+                         changeSpec,
+                         cache
+                 );
+
         final Function<Check, Expression> immediateCheckFn =
                 (check) -> new ImmediateCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
+
         final Function<Function<Check, Expression>, Expression> expressionFunction =
-                (checkFn) -> buildSpecificFieldExpression(resource.getResourceClass(),
-                        resource.getRequestScope().getDictionary(),
+                (checkFn) -> buildSpecificFieldExpression(
+                        resource.getResourceClass(),
+                        entityDictionary,
                         annotationClass,
                         field,
-                        checkFn);
+                        checkFn
+                );
 
         return new Expressions(expressionFunction.apply(deferredCheckFn), expressionFunction.apply(immediateCheckFn));
     }
@@ -96,16 +111,35 @@ public class ExpressionBuilder {
                                                                        final ChangeSpec changeSpec) {
 
         final Function<Check, Expression> deferredCheckFn =
-                (check) -> new DeferredCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
-        final Function<Check, Expression> immediateCheckFn =
-                (check) -> new ImmediateCheckExpression(check, resource, resource.getRequestScope(), changeSpec, cache);
-        final Function<Function<Check, Expression>, Expression> expressionFunction =
-                (checkFn) -> buildAnyFieldExpression(resource.getResourceClass(),
-                        resource.getDictionary(),
-                        annotationClass,
-                        checkFn);
+                (check) -> new DeferredCheckExpression(
+                        check,
+                        resource,
+                        resource.getRequestScope(),
+                        changeSpec,
+                        cache
+                );
 
-        return new Expressions(expressionFunction.apply(deferredCheckFn), expressionFunction.apply(immediateCheckFn));
+        final Function<Check, Expression> immediateCheckFn =
+                (check) -> new ImmediateCheckExpression(
+                        check,
+                        resource,
+                        resource.getRequestScope(),
+                        changeSpec,
+                        cache
+                );
+
+        final Function<Function<Check, Expression>, Expression> expressionFunction =
+                (checkFn) -> buildAnyFieldExpression(
+                        resource.getResourceClass(),
+                        entityDictionary,
+                        annotationClass,
+                        checkFn
+                );
+
+        return new Expressions(
+                expressionFunction.apply(deferredCheckFn),
+                expressionFunction.apply(immediateCheckFn)
+        );
     }
 
     /**
@@ -133,10 +167,11 @@ public class ExpressionBuilder {
 
         return new Expressions(
                 buildSpecificFieldExpression(resource.getResourceClass(),
-                        resource.getDictionary(),
+                        entityDictionary,
                         annotationClass,
                         field,
-                        userCheckFn),
+                        userCheckFn
+                ),
                 null
         );
     }
@@ -165,7 +200,7 @@ public class ExpressionBuilder {
                 );
 
         return new Expressions(
-                buildAnyFieldExpression(resourceClass, requestScope.getDictionary(), annotationClass, userCheckFn),
+                buildAnyFieldExpression(resourceClass, entityDictionary, annotationClass, userCheckFn),
                 null
         );
     }

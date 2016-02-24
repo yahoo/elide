@@ -15,8 +15,9 @@
     <url>https://github.com/yahoo/elide</url>
 
     <modules>
-        <module>elide-datastore</module>
+        <module>elide-annotations</module>
         <module>elide-core</module>
+        <module>elide-datastore</module>
         <module>elide-integration-tests</module>
         <module>elide-example</module>
     </modules>
@@ -85,6 +86,11 @@
     <!-- Dependency settings -->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-annotations</artifactId>
+                <version>2.0.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

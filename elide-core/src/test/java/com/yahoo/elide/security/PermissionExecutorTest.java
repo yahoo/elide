@@ -358,42 +358,42 @@ public class PermissionExecutorTest {
 
     public static final class SampleOperationCheck extends OperationCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
         }
     }
 
     public static final class SampleCommitCheck extends CommitCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.isPresent();
         }
     }
 
     public static final class SampleOperationCheckCommitInverse extends OperationCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return !changeSpec.isPresent();
         }
     }
 
     public static final class PassingCommitCheck extends CommitCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return true;
         }
     }
 
     public static final class FailingCommitCheck extends CommitCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
     }
 
     private static final class PrivatePermission extends OperationCheck<Object> {
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
     }
@@ -456,7 +456,7 @@ public class PermissionExecutorTest {
     public static class ShouldCache extends OperationCheck<Object> {
         private static AtomicBoolean hasRun = new AtomicBoolean(false);
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return !hasRun.getAndSet(true);
         }
     }

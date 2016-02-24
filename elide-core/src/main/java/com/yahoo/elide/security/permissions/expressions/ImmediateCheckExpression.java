@@ -5,20 +5,21 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.SecurityMode;
+
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.PersistentResource;
+import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
-
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 
 /**
  * Expression for executing all specified checks.

@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;

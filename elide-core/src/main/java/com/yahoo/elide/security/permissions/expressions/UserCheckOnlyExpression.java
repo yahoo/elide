@@ -5,16 +5,16 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.PersistentResource;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
-
 import java.util.Map;
+
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
 
 /**
  * Special expression that only evaluates UserChecks.
