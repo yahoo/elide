@@ -7,9 +7,10 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.PASS;
 
 /**
  * Representation for an "And" expression.
@@ -31,17 +32,23 @@ public class AndExpression implements Expression {
 
     @Override
     public ExpressionResult evaluate() {
-        ExpressionResult leftResult = left.evaluate();
-        ExpressionResult rightResult = (right == null) ? PASS : right.evaluate();
+        final ExpressionResult leftResult = left.evaluate();
 
-        if (leftResult == FAIL || rightResult == FAIL) {
-            return FAIL;
+        // Short-circuit
+        if (leftResult.getStatus() == FAIL) {
+            return leftResult;
         }
 
-        if (leftResult == PASS && rightResult == PASS) {
-            return PASS;
+        final ExpressionResult rightResult = (right == null) ? PASS_RESULT : right.evaluate();
+
+        if (rightResult.getStatus() == FAIL) {
+            return rightResult;
         }
 
-        return DEFERRED;
+        if (leftResult.getStatus() == PASS && rightResult.getStatus() == PASS) {
+            return PASS_RESULT;
+        }
+
+        return DEFERRED_RESULT;
     }
 }

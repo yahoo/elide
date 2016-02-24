@@ -7,13 +7,14 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -92,8 +93,24 @@ public class ImmediateCheckExpression implements Expression {
      */
     private ExpressionResult computeCheck() {
         if (resource == null) {
-            return check.ok(null, requestScope, changeSpec) ? PASS : FAIL;
+            return check.ok(null, requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
         }
-        return check.ok(resource.getObject(), requestScope, changeSpec) ? PASS : FAIL;
+        return check.ok(resource.getObject(), requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
+    }
+
+    /**
+     * Produce a failure result containing informative message.
+     *
+     * @return Expression result representing failure.
+     */
+    private ExpressionResult getFailureResult() {
+        String failure = null;
+        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE) {
+            failure = "Check failed: "
+                        + ((check == null) ? null : check.toString())
+                        + " for object: "
+                        + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
+        }
+        return new ExpressionResult(FAIL, failure);
     }
 }

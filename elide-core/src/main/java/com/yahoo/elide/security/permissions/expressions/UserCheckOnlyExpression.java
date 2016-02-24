@@ -12,7 +12,7 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
 
 import java.util.Map;
 
@@ -43,6 +43,6 @@ public class UserCheckOnlyExpression extends ImmediateCheckExpression {
         if (check instanceof UserCheck) {
             return super.evaluate();
         }
-        return DEFERRED;
+        return DEFERRED_RESULT;
     }
 }

@@ -5,11 +5,69 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import lombok.Getter;
+
 /**
  * Expression results.
  */
-public enum ExpressionResult {
-    PASS,
-    FAIL,
-    DEFERRED
+public class ExpressionResult {
+    @Getter private final Status status;
+    private final StringBuilder failureMessage;
+
+    public static final ExpressionResult PASS_RESULT = new ExpressionResult(Status.PASS);
+    public static final ExpressionResult DEFERRED_RESULT = new ExpressionResult(Status.DEFERRED);
+
+    /**
+     * Result status.
+     */
+    public enum Status {
+        PASS,
+        FAIL,
+        DEFERRED
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param status Status to return
+     * @param failureMessage Message associated with failure
+     */
+    public ExpressionResult(final Status status, final String failureMessage) {
+        this.status = status;
+        this.failureMessage = (failureMessage == null) ? new StringBuilder("") : new StringBuilder(failureMessage);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param status Status to return
+     */
+    public ExpressionResult(final Status status) {
+        this(status, null);
+    }
+
+    /**
+     * Combine two results. If result statuses are not the same, an exception is thrown.
+     *
+     * @param result Result to add
+     * @return Reference to current object after update
+     */
+    public ExpressionResult combineResult(final ExpressionResult result) {
+        if (result.getStatus() != status) {
+            throw new IllegalStateException("Tried to combine results with different statuses!");
+        }
+        if (result.failureMessage.length() > 0) {
+            failureMessage.append("\n\t&&").append(result.failureMessage);
+        }
+        return this;
+    }
+
+    /**
+     * Get the failure message.
+     *
+     * @return Failure message
+     */
+    public String getFailureMessage() {
+        return failureMessage.toString();
+    }
 }

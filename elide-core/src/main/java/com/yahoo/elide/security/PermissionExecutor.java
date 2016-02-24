@@ -16,6 +16,8 @@ import com.yahoo.elide.security.checks.ExtractedChecks;
 import com.yahoo.elide.security.permissions.ExpressionBuilder;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -24,8 +26,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions;
 
 /**
@@ -36,7 +38,7 @@ public class PermissionExecutor {
     private final HashMap<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache =
             new HashMap<>();
     private final ExpressionBuilder expressionBuilder = new ExpressionBuilder(cache);
-    private final Queue<Expression> commitCheckQueue = new LinkedBlockingQueue<>();
+    private final Queue<QueuedCheck> commitCheckQueue = new LinkedBlockingQueue<>();
     private final RequestScope requestScope;
 
     /**
@@ -98,7 +100,7 @@ public class PermissionExecutor {
         }
         Expressions expressions =
                 expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
-        executeExpressions(expressions);
+        executeExpressions(expressions, annotationClass);
     }
 
     /**
@@ -119,7 +121,7 @@ public class PermissionExecutor {
         }
         Expressions expressions =
                 expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
-        executeExpressions(expressions);
+        executeExpressions(expressions, annotationClass);
     }
 
     /**
@@ -138,7 +140,7 @@ public class PermissionExecutor {
         }
         Expressions expressions =
                 expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
-        executeExpressions(expressions);
+        executeExpressions(expressions, annotationClass);
     }
 
     /**
@@ -155,7 +157,7 @@ public class PermissionExecutor {
         }
         Expressions expressions =
                 expressionBuilder.buildUserCheckAnyExpression(resourceClass, annotationClass, requestScope);
-        executeExpressions(expressions);
+        executeExpressions(expressions, annotationClass);
     }
 
     /**
@@ -163,8 +165,10 @@ public class PermissionExecutor {
      */
     public void executeCommitChecks() {
         commitCheckQueue.forEach((expr) -> {
-            if (expr.evaluate() == FAIL) {
-                throw new ForbiddenAccessException("Could not execute commit checks.");
+            ExpressionResult result = expr.getExpression().evaluate();
+            if (result.getStatus() == FAIL) {
+                throw new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName()
+                        + " " + result.getFailureMessage());
             }
         });
     }
@@ -174,15 +178,25 @@ public class PermissionExecutor {
      *
      * @param expressions expressions to execute
      */
-    private void executeExpressions(final ExpressionBuilder.Expressions expressions) {
+    private void executeExpressions(final ExpressionBuilder.Expressions expressions,
+                                    final Class<? extends Annotation> annotationClass) {
         ExpressionResult result = expressions.getOperationExpression().evaluate();
-        if (result == DEFERRED) {
+        if (result.getStatus() == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
-                commitCheckQueue.add(commitExpression);
+                commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
             }
-        } else if (result == FAIL) {
-            throw new ForbiddenAccessException("Inline check failed.");
+        } else if (result.getStatus() == FAIL) {
+            throw new ForbiddenAccessException(annotationClass.getSimpleName() + " " + result.getFailureMessage());
         }
+    }
+
+    /**
+     * Information container about queued checks.
+     */
+    @AllArgsConstructor
+    private static class QueuedCheck {
+        @Getter private final Expression expression;
+        @Getter private final Class<? extends Annotation> annotationClass;
     }
 }

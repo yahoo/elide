@@ -7,7 +7,7 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
 
 import java.util.Optional;
 
@@ -29,7 +29,7 @@ public class SpecificFieldExpression implements Expression {
     @Override
     public ExpressionResult evaluate() {
         if (!fieldExpression.isPresent()) {
-            return (entityExpression == null) ? PASS : entityExpression.evaluate();
+            return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
         }
         return fieldExpression.get().evaluate();
     }

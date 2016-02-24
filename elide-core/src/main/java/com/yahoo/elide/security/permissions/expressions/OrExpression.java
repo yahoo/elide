@@ -7,10 +7,10 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
-
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.PASS;
 /**
  * Representation of an "or" expression.
  */
@@ -32,16 +32,22 @@ public class OrExpression implements Expression {
     @Override
     public ExpressionResult evaluate() {
         ExpressionResult leftResult = left.evaluate();
+
+        // Short-circuit
+        if (leftResult.getStatus() == PASS) {
+            return PASS_RESULT;
+        }
+
         ExpressionResult rightResult = (right == null) ? leftResult : right.evaluate();
 
-        if (leftResult == FAIL && rightResult == FAIL) {
-            return FAIL;
+        if (leftResult.getStatus() == FAIL && rightResult.getStatus() == FAIL) {
+            return leftResult.combineResult(rightResult);
         }
 
-        if (leftResult == PASS || rightResult == PASS) {
-            return PASS;
+        if (rightResult.getStatus() == PASS) {
+            return PASS_RESULT;
         }
 
-        return DEFERRED;
+        return DEFERRED_RESULT;
     }
 }
