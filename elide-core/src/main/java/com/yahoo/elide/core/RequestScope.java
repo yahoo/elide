@@ -360,7 +360,7 @@ public class RequestScope {
             try {
                 resource.checkPermission(annotationClass, resource);
             } catch (ForbiddenAccessException e) {
-                resource.checkFieldPermissionIfExists(annotationClass, resource, theField);
+                resource.checkIfFieldPermissionExists(annotationClass, resource, theField);
             }
             resource.checkFieldPermission(annotationClass, resource, theField);
         }

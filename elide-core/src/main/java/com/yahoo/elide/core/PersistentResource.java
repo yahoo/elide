@@ -1211,8 +1211,7 @@ public class PersistentResource<T> {
     }
 
     private String getInverseRelationField(String relationName) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-        return dictionary.getRelationInverse(entityClass, relationName);
+        return dictionary.getRelationInverse(obj.getClass(), relationName);
     }
 
     /**
@@ -1222,10 +1221,8 @@ public class PersistentResource<T> {
      * @param relationValue The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-
         Object inverseEntity = relationValue; // Assigned to improve readability.
-        String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
+        String inverseRelationName = dictionary.getRelationInverse(obj.getClass(), relationName);
 
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
@@ -1452,14 +1449,14 @@ public class PersistentResource<T> {
     }
 
     /**
-     * Check a field permission if it exists. Otherwise, forbidden.
+     * Check if a field permission exists. Otherwise, forbidden.
      *
      * @param <A> the type parameter
      * @param annotationClass the annotation class
      * @param resource the resource
      * @param fieldName the field name
      */
-    protected static <A extends Annotation> void checkFieldPermissionIfExists(Class<A> annotationClass,
+    protected static <A extends Annotation> void checkIfFieldPermissionExists(Class<A> annotationClass,
                                                                               PersistentResource resource,
                                                                               String fieldName) {
         A annotation = resource.getDictionary().getAttributeOrRelationAnnotation(resource.getResourceClass(),
@@ -1471,8 +1468,6 @@ public class PersistentResource<T> {
                             + resource.getResourceClass().getSimpleName() + "#" + fieldName
             );
         }
-
-        checkFieldPermission(annotationClass, resource, fieldName);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
