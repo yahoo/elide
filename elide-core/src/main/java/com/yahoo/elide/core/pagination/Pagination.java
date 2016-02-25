@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.pagination;
 
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -21,17 +22,22 @@ import java.util.Map;
 @ToString
 public class Pagination {
 
+    /**
+     * Denotes the internal field names for paging
+     */
+    public enum PaginationKey { page, pageSize }
+
     public static final int DEFAULT_PAGE_SIZE = 500;
-    // todo do we ever want to return more than 10000 items? Set Upper Bounds
+    public static final int MAX_PAGE_SIZE = 10000;
 
     private static final Pagination DEFAULT_PAGINATION = new Pagination(0, 0);
 
-    public static final Map<String, String> PAGE_KEYS = new HashMap<>();
+    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
     static {
-        PAGE_KEYS.put("page[size]", "pageSize");
-        PAGE_KEYS.put("page[limit]", "pageSize");
-        PAGE_KEYS.put("page[number]", "page");
-        PAGE_KEYS.put("page[offset]", "page");
+        PAGE_KEYS.put("page[size]", PaginationKey.pageSize);
+        PAGE_KEYS.put("page[limit]", PaginationKey.pageSize);
+        PAGE_KEYS.put("page[number]", PaginationKey.page);
+        PAGE_KEYS.put("page[offset]", PaginationKey.page);
     }
 
     @Getter
@@ -53,34 +59,35 @@ public class Pagination {
      * @param queryParams The page queryParams (ImmuatableMultiValueMap).
      * @return The new Page object.
      */
-    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams) {
-        final Map<String, Integer> pageData = new HashMap<>();
+    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams)
+            throws InvalidValueException {
+        final Map<PaginationKey, Integer> pageData = new HashMap<>();
         queryParams.entrySet()
                 .forEach(paramEntry -> {
-                    // looking for page[size], page[limit]
-                    // looking for page[offset], page[number]
                     final String queryParamKey = paramEntry.getKey();
                     if (PAGE_KEYS.containsKey(queryParamKey)) {
-                        final String type = PAGE_KEYS.get(queryParamKey);
-                        final String value = paramEntry.getValue().get(0); // is this correct...
+                        final String value = paramEntry.getValue().get(0);
                         try {
-                            pageData.put(type, Integer.parseInt(value, 10));
+                            pageData.put(PAGE_KEYS.get(queryParamKey), Integer.parseInt(value, 10));
                         } catch (ClassCastException e) {
-                            // todo - should we log here?
+                            throw new InvalidValueException("page values must be integers");
                         }
+                    } else if (queryParamKey.startsWith("page[")) {
+                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are page[number]"
+                                + ",page[size],page[offset],page[limit]");
                     }
                 });
 
         if (pageData.isEmpty()) {
             return DEFAULT_PAGINATION;
         }
-        if (!pageData.containsKey("page")) {
-            pageData.put("page", 1);
+        if (!pageData.containsKey(PaginationKey.page)) {
+            pageData.put(PaginationKey.page, 1);
         }
-        if (!pageData.containsKey("pageSize")) {
-            pageData.put("pageSize", DEFAULT_PAGE_SIZE);
+        if (!pageData.containsKey(PaginationKey.pageSize)) {
+            pageData.put(PaginationKey.pageSize, DEFAULT_PAGE_SIZE);
         }
-        return new Pagination(pageData.get("page"), pageData.get("pageSize"));
+        return new Pagination(pageData.get(PaginationKey.page), pageData.get(PaginationKey.pageSize));
     }
 
     /**
