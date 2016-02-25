@@ -23,7 +23,7 @@ import java.util.Map;
 public class Pagination {
 
     /**
-     * Denotes the internal field names for paging
+     * Denotes the internal field names for paging.
      */
     public enum PaginationKey { page, pageSize }
 
@@ -52,6 +52,14 @@ public class Pagination {
      */
     public boolean isDefault() {
         return this.page == 0 && this.pageSize == 0;
+    }
+
+    /**
+     * Alias for isDefault
+     * @return true if there are no pagination rules
+     */
+    public boolean isEmpty() {
+        return isDefault();
     }
 
     /**

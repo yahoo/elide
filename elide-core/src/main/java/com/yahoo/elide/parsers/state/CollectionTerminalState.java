@@ -71,9 +71,8 @@ public class CollectionTerminalState extends BaseState {
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
 
-        // if we are using pagination, then we are adding sorting directly into the HQL, etc
-        // todo - is this correct?
-        if (requestScope.getPagination().isDefault()) {
+        // if we are using pagination, then we have also applied sorting rules directly into the HQL, etc
+        if (requestScope.getPagination().isEmpty()) {
             DocumentProcessor sortProcessor = new SortProcessor();
             sortProcessor.execute(jsonApiDocument, collection, queryParams);
         }

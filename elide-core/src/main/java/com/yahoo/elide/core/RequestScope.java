@@ -12,6 +12,7 @@ import com.yahoo.elide.audit.Logger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.Check;
@@ -51,6 +52,7 @@ public class RequestScope {
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Map<String, Set<Predicate>> predicates;
     @Getter private final Pagination pagination;
+    @Getter private final Sorting sorting;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newResources;
@@ -82,10 +84,12 @@ public class RequestScope {
         if (this.queryParams.isPresent()) {
             sparseFields = parseSparseFields(this.queryParams.get());
             predicates = Predicate.parseQueryParams(this.dictionary, this.queryParams.get());
+            sorting = Sorting.parseQueryParams(this.queryParams.get());
             pagination = Pagination.parseQueryParams(this.queryParams.get());
         } else {
             sparseFields = Collections.emptyMap();
             predicates = Collections.emptyMap();
+            sorting = Sorting.getDefaultEmptyInstance();
             pagination = Pagination.getDefaultPagination();
         }
 
@@ -158,6 +162,7 @@ public class RequestScope {
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.predicates = Collections.emptyMap();
+        this.sorting = Sorting.getDefaultEmptyInstance();
         this.pagination = Pagination.getDefaultPagination();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;

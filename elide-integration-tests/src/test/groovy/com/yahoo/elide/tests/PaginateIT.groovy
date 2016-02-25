@@ -289,7 +289,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPaginationNoFilterNoSort() {
+    public void testPaginationNoFilterSortDescPaginationFirstPage() {
         def bookIdsWithNonNullGenre = [] as Set
         for (JsonNode book : nullNedBooks.get("data")) {
             if (!book.get("attributes").get("genre").isNull()) {
@@ -298,8 +298,48 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         }
 
         def result = mapper.readTree(
-                RestAssured.get("/book?page[number]=2&page[size]=3").asString())
-        Assert.assertTrue(result.get("data").size() > 0);
+                RestAssured.get("/book?sort=-title&page[size]=3").asString())
+        Assert.assertTrue(result.get("data").size() == 3);
+
+        final JsonNode books = result.get("data");
+        final String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+    }
+
+    @Test
+    public void testPaginationNoFilterSortDescPagination() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        def result = mapper.readTree(
+                RestAssured.get("/book?sort=-title&page[number]=2&page[size]=3").asString())
+        Assert.assertTrue(result.get("data").size() == 3);
+
+        final JsonNode books = result.get("data");
+        final String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "Life with Null Ned 2");
+    }
+
+    @Test
+    public void testPaginationNoFilterMultiSortPagination() {
+        def bookIdsWithNonNullGenre = [] as Set
+        for (JsonNode book : nullNedBooks.get("data")) {
+            if (!book.get("attributes").get("genre").isNull()) {
+                bookIdsWithNonNullGenre.add(book.get("id"))
+            }
+        }
+
+        def result = mapper.readTree(
+                RestAssured.get("/book?sort=-title,genre&page[size]=3").asString())
+        Assert.assertTrue(result.get("data").size() == 3);
+
+        final JsonNode books = result.get("data");
+        final String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "The Roman Republic");
     }
 
     @Test

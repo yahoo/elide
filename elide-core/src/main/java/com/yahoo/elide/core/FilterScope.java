@@ -63,6 +63,15 @@ public class FilterScope<T> {
      *
      * @return true if there is pagination filtering
      */
+    public boolean hasSortingRules() {
+        return !requestScope.getSorting().isEmpty();
+    }
+
+    /**
+     * Returns true if pagination limits were added to this query
+     *
+     * @return true if there is pagination filtering
+     */
     public boolean hasPagination() {
         return !requestScope.getPagination().isDefault();
     }
