@@ -13,6 +13,10 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.Role;
 
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,7 +26,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.Set;
 
 @CreatePermission(any = { Role.ALL.class })
 @ReadPermission(all = { Role.ALL.class })
@@ -65,6 +68,48 @@ public class FunWithPermissions {
 
     public void setRelation3(Child relation3) {
         this.relation3 = relation3;
+    }
+
+
+    private Set<NoReadEntity> relation4;
+
+    @ReadPermission(any = { NegativeIntegerUserCheck.class })
+    @OneToMany(
+            targetEntity = NoReadEntity.class,
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    public Set<NoReadEntity> getRelation4() {
+        // Permission should block access to this collection
+        return new AbstractSet<NoReadEntity>() {
+            @Override
+            public Iterator<NoReadEntity> iterator() {
+                // do not allow iteration
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public int size() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    public void setRelation4(Set<NoReadEntity> relation4) {
+        this.relation4 = relation4;
+    }
+
+    private NoReadEntity relation5;
+
+    @ReadPermission(any = { NegativeIntegerUserCheck.class })
+    @OneToOne(
+            targetEntity = NoReadEntity.class,
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    public NoReadEntity getRelation5() {
+        // Permission should block access to this collection
+        throw new UnsupportedOperationException();
+    }
+
+    public void setRelation5(NoReadEntity relation5) {
+        this.relation5 = relation5;
     }
 
     @Id

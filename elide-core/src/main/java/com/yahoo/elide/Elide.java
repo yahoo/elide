@@ -14,6 +14,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.SecurityMode;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -28,6 +29,7 @@ import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.generated.parsers.CoreLexer;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.security.User;
+import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -46,6 +48,7 @@ import java.util.function.Supplier;
 /**
  * REST Entry point handler.
  */
+@Slf4j
 public class Elide {
 
     private final Logger auditLogger;
@@ -60,11 +63,7 @@ public class Elide {
      * @param dictionary the dictionary
      */
     public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
-        this.auditLogger = auditLogger;
-        this.dataStore = dataStore;
-        this.dictionary = dictionary;
-        dataStore.populateEntityDictionary(dictionary);
-        this.mapper = new JsonApiMapper(dictionary);
+        this(auditLogger, dataStore, dictionary, new JsonApiMapper(dictionary));
     }
 
     /**
@@ -75,6 +74,22 @@ public class Elide {
      */
     public Elide(Logger auditLogger, DataStore dataStore) {
         this(auditLogger, dataStore, new EntityDictionary());
+    }
+
+    /**
+     * Instantiates a new Elide.
+     *
+     * @param auditLogger the audit logger
+     * @param dataStore the dataStore
+     * @param dictionary the dictionary
+     * @param mapper Serializer/Deserializer for JSON API
+     */
+    public Elide(Logger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
+        this.auditLogger = auditLogger;
+        this.dataStore = dataStore;
+        this.dictionary = dictionary;
+        dataStore.populateEntityDictionary(dictionary);
+        this.mapper = mapper;
     }
 
     /**
@@ -92,9 +107,10 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
 
+        RequestScope requestScope = null;
         try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
             final User user = transaction.accessUser(opaqueUser);
-            RequestScope requestScope = new RequestScope(
+            requestScope = new RequestScope(
                     new JsonApiDocument(),
                     transaction,
                     user,
@@ -111,7 +127,11 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            traceLogSecurityExceptions(requestScope);
             return response;
+        } catch (ForbiddenAccessException e) {
+            debugLogSecurityExceptions(requestScope);
+            return buildErrorResponse(e, securityMode);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
@@ -150,10 +170,11 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
+        RequestScope requestScope = null;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(doc,
+            requestScope = new RequestScope(doc,
                     transaction,
                     user,
                     dictionary,
@@ -168,7 +189,11 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            traceLogSecurityExceptions(requestScope);
             return response;
+        } catch (ForbiddenAccessException e) {
+            debugLogSecurityExceptions(requestScope);
+            return buildErrorResponse(e, securityMode);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
@@ -211,10 +236,10 @@ public class Elide {
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
+        RequestScope requestScope = null;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
 
-            RequestScope requestScope;
             Supplier<Pair<Integer, JsonNode>> responder;
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
@@ -234,7 +259,11 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            traceLogSecurityExceptions(requestScope);
             return response;
+        } catch (ForbiddenAccessException e) {
+            debugLogSecurityExceptions(requestScope);
+            return buildErrorResponse(e, securityMode);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, securityMode);
         } catch (ParseCancellationException e) {
@@ -278,6 +307,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
         JsonApiDocument doc;
+        RequestScope requestScope = null;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             if (jsonApiDocument != null && !jsonApiDocument.equals("")) {
@@ -285,7 +315,7 @@ public class Elide {
             } else {
                 doc = new JsonApiDocument();
             }
-            RequestScope requestScope = new RequestScope(
+            requestScope = new RequestScope(
                     doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -295,7 +325,11 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            traceLogSecurityExceptions(requestScope);
             return response;
+        } catch (ForbiddenAccessException e) {
+            debugLogSecurityExceptions(requestScope);
+            return buildErrorResponse(e, securityMode);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, securityMode);
         } catch (IOException e) {
@@ -344,6 +378,18 @@ public class Elide {
         CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new BailErrorStrategy());
         return parser.start();
+    }
+
+    protected void traceLogSecurityExceptions(RequestScope scope) {
+        if (scope != null && log.isTraceEnabled())  {
+            log.trace(scope.getAuthFailureReason());
+        }
+    }
+
+    protected void debugLogSecurityExceptions(RequestScope scope) {
+        if (scope != null && log.isDebugEnabled())  {
+            log.debug(scope.getAuthFailureReason());
+        }
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {

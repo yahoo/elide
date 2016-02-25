@@ -570,11 +570,10 @@ public class PersistentResource<T> {
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    String message = String.format("ForbiddenAccess not shared %s#%s",
+                    requestScope.logAuthFailure(Arrays.asList(),
                             persistentResource.getType(),
                             persistentResource.getId());
-                    log.debug(message);
-                    throw new ForbiddenAccessException(message);
+                    throw new ForbiddenAccessException("Resource Not Shareable");
                 }
             }
         }
@@ -733,11 +732,15 @@ public class PersistentResource<T> {
 
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
 
+        // check for deny access on relationship to avoid iterating a lazy collection
+        if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
+            checkFieldAwarePermissions(ReadPermission.class, relationName);
+            return (Set) resources;
+        }
+
         RelationshipType type = getRelationshipType(relationName);
         Object val = this.getValue(relationName);
         if (val == null) {
-            return (Set) resources;
-        } else if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
             return (Set) resources;
         } else if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
@@ -783,6 +786,10 @@ public class PersistentResource<T> {
         for (String field : fields) {
             Annotation fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(recordClass,
                     ReadPermission.class, field);
+            if (fieldAnnotation == null) {
+                // no attribute to override this field
+                continue;
+            }
             FilterScope fieldFilterScope = loadChecks(fieldAnnotation, requestScope);
             if (fieldFilterScope.getUserPermission() != DENY) {
                 return false;
@@ -1414,21 +1421,13 @@ public class PersistentResource<T> {
             }
 
             if (!ok && mode == ALL) {
-                String message = String.format("ForbiddenAccess %s %s#%s",
-                        check,
-                        resource.getType(),
-                        resource.getId());
-                log.debug(message);
-                throw new ForbiddenAccessException(message);
+                resource.getRequestScope().logAuthFailure(Arrays.asList(check), resource.getType(), resource.getId());
+                throw new ForbiddenAccessException("Permission Check failed");
             }
         }
         if (mode == ANY) {
-            String message = String.format("ForbiddenAccess %s %s#%s",
-                    Arrays.asList(checks),
-                    resource.getType(),
-                    resource.getId());
-            log.debug(message);
-            throw new ForbiddenAccessException(message);
+            resource.getRequestScope().logAuthFailure(Arrays.asList(checks), resource.getType(), resource.getId());
+            throw new ForbiddenAccessException("Permission Check failed");
         }
     }
 
