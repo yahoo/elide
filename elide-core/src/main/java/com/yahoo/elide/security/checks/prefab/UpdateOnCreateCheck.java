@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.security.checks.prefab;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 
 import java.util.Optional;
@@ -20,6 +20,6 @@ import java.util.Optional;
 public class UpdateOnCreateCheck<T> extends CommitCheck<T> {
     @Override
     public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        return requestScope.getNewResourceObjects().contains(record);
+        return ((com.yahoo.elide.core.RequestScope) requestScope).getNewResourceObjects().contains(record);
     }
 }
