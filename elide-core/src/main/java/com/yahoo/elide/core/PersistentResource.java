@@ -130,6 +130,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
+        requestScope.getNewResourceObjects().add(obj);
 
         return newResource;
     }
@@ -751,10 +752,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (relationName == null || relations == null || !relations.contains(relationName)) {
             throw new InvalidAttributeException(relationName, type);
         }
-        // check for deny access on relationship to avoid iterating a lazy collection
-        
+
         checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
 
+        // check for deny access on relationship to avoid iterating a lazy collection
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
             return Collections.emptySet();
         }
