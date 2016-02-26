@@ -3,8 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.security;
+package com.yahoo.elide.security.checks.prefab;
 
+import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.UserCheck;
 
 /**
