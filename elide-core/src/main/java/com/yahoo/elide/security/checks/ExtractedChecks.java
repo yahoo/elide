@@ -64,19 +64,16 @@ public class ExtractedChecks {
                                                   final Class<A> annotationClass,
                                                   final String field) {
         final A annotation = (field == null) ? dictionary.getAnnotation(cls, annotationClass)
-                                             : dictionary.getAttributeOrRelationAnnotation(
-                                                cls,
-                                                annotationClass,
-                                                field);
+                                             : dictionary.getAttributeOrRelationAnnotation(cls, annotationClass, field);
         // No checks specified
         if (annotation == null) {
             anyChecks = allChecks = null;
         } else {
             try {
-                anyChecks = (Class<? extends Check>[]) annotationClass
-                        .getMethod("any").invoke(annotation, (Object[]) null);
-                allChecks = (Class<? extends Check>[]) annotationClass
-                        .getMethod("all").invoke(annotation, (Object[]) null);
+                anyChecks = (Class<? extends Check>[]) annotationClass.getMethod("any")
+                                                                      .invoke(annotation, (Object[]) null);
+                allChecks = (Class<? extends Check>[]) annotationClass.getMethod("all")
+                                                                      .invoke(annotation, (Object[]) null);
             } catch (ReflectiveOperationException e) {
                 log.warn("Unknown permission: {}, {}", annotationClass.getName(), e);
                 throw new InvalidSyntaxException("Unknown permission '" + annotationClass.getName() + "'", e);

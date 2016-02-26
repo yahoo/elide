@@ -11,8 +11,8 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
-
 import com.yahoo.elide.security.checks.Check;
 import lombok.Getter;
 
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * Request scope object for relaying request-related data to various subsystems.
  */
 @Slf4j
-public class RequestScope {
+public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
@@ -47,7 +47,7 @@ public class RequestScope {
     @Getter private final Map<String, Set<Predicate>> predicates;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
-    @Getter private final Set<PersistentResource> newResources;
+    @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final List<Supplier<String>> failedAuthorizations;
 
@@ -80,7 +80,7 @@ public class RequestScope {
             predicates = Collections.emptyMap();
         }
 
-        newResources = new LinkedHashSet<>();
+        newPersistentResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
         permissionExecutor = new PermissionExecutor(this);
         failedAuthorizations = new ArrayList<>();
@@ -152,10 +152,14 @@ public class RequestScope {
         this.predicates = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
-        this.newResources = outerRequestScope.newResources;
+        this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = new PermissionExecutor(this);
         this.failedAuthorizations = outerRequestScope.failedAuthorizations;
+    }
+
+    public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
+        return (Set<com.yahoo.elide.security.PersistentResource>) (Set) newPersistentResources;
     }
 
     /**

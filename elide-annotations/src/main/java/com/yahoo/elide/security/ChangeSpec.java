@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.core.PersistentResource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

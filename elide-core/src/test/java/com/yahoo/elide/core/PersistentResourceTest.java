@@ -1701,7 +1701,7 @@ public class PersistentResourceTest extends PersistentResource {
     public static final class ChangeSpecCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 ChangeSpec spec = changeSpec.get();
                 if (!(spec.getModified() instanceof Collection)) {
@@ -1716,7 +1716,7 @@ public class PersistentResourceTest extends PersistentResource {
     public static final class ChangeSpecNonCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
             }

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.security.checks;
 
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 
 import java.util.Optional;
 

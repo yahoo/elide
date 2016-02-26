@@ -6,12 +6,8 @@
 package com.yahoo.elide.security;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.PersistentResource;
 
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.SecurityMode;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.ExtractedChecks;
 import com.yahoo.elide.security.permissions.ExpressionBuilder;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -19,6 +15,7 @@ import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import com.yahoo.elide.security.checks.Check;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -35,19 +32,21 @@ import static com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions
  */
 @Slf4j
 public class PermissionExecutor {
-    private final HashMap<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache =
-            new HashMap<>();
-    private final ExpressionBuilder expressionBuilder = new ExpressionBuilder(cache);
     private final Queue<QueuedCheck> commitCheckQueue = new LinkedBlockingQueue<>();
+
     private final RequestScope requestScope;
+    private final ExpressionBuilder expressionBuilder;
 
     /**
      * Constructor.
      *
      * @param requestScope Request scope.
      */
-    public PermissionExecutor(final RequestScope requestScope) {
+    public PermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
+        HashMap<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache = new HashMap<>();
+
         this.requestScope = requestScope;
+        this.expressionBuilder = new ExpressionBuilder(cache, requestScope.getDictionary());
     }
 
     /**
