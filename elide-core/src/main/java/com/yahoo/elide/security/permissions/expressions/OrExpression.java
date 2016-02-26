@@ -41,7 +41,7 @@ public class OrExpression implements Expression {
         ExpressionResult rightResult = (right == null) ? leftResult : right.evaluate();
 
         if (leftResult.getStatus() == FAIL && rightResult.getStatus() == FAIL) {
-            return leftResult.combineResult(rightResult);
+            return leftResult;
         }
 
         if (rightResult.getStatus() == PASS) {

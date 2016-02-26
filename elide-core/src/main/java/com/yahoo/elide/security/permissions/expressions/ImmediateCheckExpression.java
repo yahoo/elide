@@ -108,7 +108,7 @@ public class ImmediateCheckExpression implements Expression {
         String failure = null;
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE) {
             failure = "Check failed: "
-                        + ((check == null) ? null : check.toString())
+                        + ((check == null) ? null : check.getClass().getName())
                         + " for object: "
                         + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
         }

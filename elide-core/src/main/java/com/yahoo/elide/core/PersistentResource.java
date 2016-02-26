@@ -1022,7 +1022,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return;
         }
         String inverseField = getInverseRelationField(fieldName);
-        if (inverseField.length() > 0) {
+        if (!inverseField.isEmpty()) {
             oldValue.checkFieldAwarePermissions(UpdatePermission.class, inverseField, null, getObject());
         }
         this.setValueChecked(fieldName, null);
@@ -1076,15 +1076,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param toDelete the to delete
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
-        checkPermission(UpdatePermission.class, toDelete);
         checkFieldAwarePermissions(UpdatePermission.class,
                 collectionName,
                 CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
                 copyCollection(collection));
 
+        String inverseField = getInverseRelationField(collectionName);
+        if (!inverseField.isEmpty()) {
+            checkPermission(UpdatePermission.class, toDelete);
+        }
+
         if (collection == null) {
             return;
         }
+
 
         collection.remove(toDelete.getObject());
     }
