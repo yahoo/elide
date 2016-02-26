@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -19,6 +20,7 @@ import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.*;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 
@@ -246,6 +248,68 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
 
+        return collection;
+    }
+
+    @Override
+    public <T> Collection filterSortOrPaginateCollection(Collection collection, Class<T> entityClass, EntityDictionary dictionary,
+                                                         Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
+                                                         Optional<Pagination> pagination) {
+        if (((collection instanceof AbstractPersistentCollection)) && filters.isPresent() || sorting.isPresent() || pagination.isPresent()) {
+            String filterString = "";
+            if (filters.isPresent()) {
+                filterString += hqlFilterOperation.applyAll(filters.get());
+            }
+
+            Query query = null;
+
+            String additionalHQL = "";
+
+            // add sorting/pagination string generator
+            if (sorting.isPresent() && !sorting.get().isEmpty()) {
+                final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
+                        entityClass, dictionary
+                );
+                if (!validSortingRules.isEmpty()) {
+                    final List<String> ordering = new ArrayList<>();
+
+
+                    // pass over the sorting rules
+                    validSortingRules.entrySet().stream().forEachOrdered(entry ->
+                            ordering.add(entry.getKey() + " " + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc"))
+                    );
+                    additionalHQL += "order by " + StringUtils.join(ordering, ",");
+                }
+            }
+
+            if (!additionalHQL.isEmpty()) {
+                filterString += additionalHQL;
+            }
+
+            if (filterString.length() != 0) {
+                query = session.createFilter(collection, filterString);
+
+                if (pagination.isPresent() && !pagination.get().isEmpty()) {
+                    final Pagination paginationData = pagination.get();
+                    query.setFirstResult(paginationData.getPage());
+                    query.setMaxResults(paginationData.getPageSize());
+                }
+
+                if (filters.isPresent()) {
+                    for (Predicate predicate : filters.get()) {
+                        if (predicate.getOperator().isParameterized()) {
+                            query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        }
+                    }
+                }
+                return query.list();
+            }
+
+            /*if (query != null) {
+                return query.list();
+            }*/
+
+        }
         return collection;
     }
 

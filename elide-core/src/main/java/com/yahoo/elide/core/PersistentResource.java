@@ -26,6 +26,8 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -702,14 +704,36 @@ public class PersistentResource<T> {
      * @return collection relation
      */
     public Set<PersistentResource> getRelation(String relationName) {
-        if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
-            final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-            final String valType = dictionary.getBinding(entityClass);
-            final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
-            return getRelation(relationName, filters);
+        // if pagination, then sorting with filters...
+        boolean hasFilters = !requestScope.getPredicates().isEmpty();
+        boolean hasPagination = !requestScope.getPagination().isEmpty();
+        boolean hasSorting = !requestScope.getSorting().isEmpty();
+
+        Set<Predicate> filters = null;
+        if (requestScope.getTransaction() != null) {
+            if (hasFilters) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                final String valType = dictionary.getBinding(entityClass);
+                filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
+            }
+            return getRelation(relationName, Optional.ofNullable(filters), Optional.of(requestScope.getSorting()),
+                    Optional.of(requestScope.getPagination()));
+            //return getRelation(relationName, filters);
         } else {
             return getRelation(relationName, Collections.<Predicate>emptySet());
         }
+        /*if (requestScope.getTransaction() != null && (hasFilters || hasPagination || hasSorting)) {
+            Set<Predicate> filters = null;
+            if (hasFilters) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                final String valType = dictionary.getBinding(entityClass);
+                filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
+            }
+            return getRelation(relationName, Optional.ofNullable(filters), Optional.of(requestScope.getSorting()),
+                    Optional.of(requestScope.getPagination()));
+        } else {
+            return getRelation(relationName, Collections.<Predicate>emptySet());
+        }*/
     }
 
     /**
@@ -758,6 +782,55 @@ public class PersistentResource<T> {
         }
 
         return (Set) filter(ReadPermission.class, resources);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Set<PersistentResource> getRelation(String relationName, final Optional<Set<Predicate>> filters,
+                                                  final Optional<Sorting> sorting,
+                                                  final Optional<Pagination> pagination) {
+        List<String> relations = dictionary.getRelationships(obj);
+
+        String realName = dictionary.getNameFromAlias(obj, relationName);
+        relationName = (realName == null) ? relationName : realName;
+
+        if (relationName == null || relations == null || !relations.contains(relationName)) {
+            throw new InvalidAttributeException(relationName, type);
+        }
+
+        Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
+
+        // check for deny access on relationship to avoid iterating a lazy collection
+        if (isDenyFilter(requestScope, dictionary.getParameterizedType(obj, relationName))) {
+            checkFieldAwarePermissions(ReadPermission.class, relationName);
+            return (Set) resources;
+        }
+
+        RelationshipType type = getRelationshipType(relationName);
+        Object val = this.getValue(relationName);
+        if (val == null) {
+            return (Set) resources;
+        } else if (val instanceof Collection) {
+            Collection collectionVal = (Collection) val;
+
+            // preserve old filterCollection
+            /*if (filters.isPresent()) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                collectionVal = requestScope.getTransaction().filterCollection(collectionVal, entityClass, filters.get());
+            }*/
+            if (filters.isPresent() || sorting.isPresent() || pagination.isPresent()) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                collectionVal = requestScope.getTransaction().filterSortOrPaginateCollection(collectionVal, entityClass,
+                        dictionary, filters, sorting, pagination);
+            }
+            resources = new PersistentResourceSet(collectionVal, requestScope);
+        } else if (type.isToOne()) {
+            resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
+        } else {
+            resources.add(new PersistentResource(this, val, getRequestScope()));
+        }
+
+        return (Set) filter(ReadPermission.class, resources);
+
     }
 
     /**

@@ -6,7 +6,8 @@
 package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import org.testng.Assert
@@ -114,6 +115,10 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                                 {
                                   "type": "book",
                                   "id": "12345679-1234-1234-1234-1234567890ac"
+                                },
+                                {
+                                  "type": "book",
+                                  "id": "23451234-1234-1234-1234-1234567890ac"
                                 }
                               ]
                             }
@@ -131,6 +136,20 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                             "genre": "Science Fiction",
                             "language": "English",
                             "publishDate": 1454638927412
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book",
+                        "value": {
+                          "type": "book",
+                          "id": "23451234-1234-1234-1234-1234567890ac",
+                          "attributes": {
+                            "title": "Enders Shadow",
+                            "genre": "Science Fiction",
+                            "language": "English",
+                            "publishDate": 1464638927412
                           }
                         }
                       }
@@ -361,6 +380,15 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
             long publishDate = book.get("attributes").get("publishDate").asLong();
             Assert.assertTrue(publishDate < 1454638927411L);
         }
+    }
+
+    @Test
+    public void testPageAndSortOnSubRecords() {
+        def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?sort=-title,publishDate&page[size]=1").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        JsonNode book = result.get("data").get(0);
+        long publishDate = book.get("attributes").get("publishDate").asLong();
+        Assert.assertEquals(publishDate, 1464638927412L);
     }
 
     @AfterTest
