@@ -289,15 +289,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                     filterString += additionalHQL;
                 }
             }
-
+            Query query = null;
             if (filterString.length() != 0) {
-                Query query = session.createFilter(collection, filterString);
-
-                if (pagination.isPresent() && !pagination.get().isEmpty()) {
-                    final Pagination paginationData = pagination.get();
-                    query.setFirstResult(paginationData.getPage());
-                    query.setMaxResults(paginationData.getPageSize());
-                }
+                query = session.createFilter(collection, filterString);
 
                 if (filters.isPresent()) {
                     for (Predicate predicate : filters.get()) {
@@ -306,6 +300,16 @@ public class HibernateTransaction implements DataStoreTransaction {
                         }
                     }
                 }
+            }
+            if (pagination.isPresent() && !pagination.get().isEmpty()) {
+                final Pagination paginationData = pagination.get();
+                if (query == null) {
+                    query = session.createFilter(collection, "");
+                }
+                query.setFirstResult(paginationData.getPage());
+                query.setMaxResults(paginationData.getPageSize());
+            }
+            if (query != null) {
                 return query.list();
             }
         }

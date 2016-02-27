@@ -391,6 +391,14 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(publishDate, 1464638927412L);
     }
 
+    @Test
+    public void testPageinationOnSubRecords() {
+        def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?page[size]=2").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        JsonNode book = result.get("data").get(0);
+        Assert.assertEquals(book.get("attributes").get("title").asText(), "Enders Shadow");
+    }
+
     @AfterTest
     public void cleanUp() {
         for (int id : authorIds) {
