@@ -110,33 +110,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         return list;
     }
 
-    /**
-     * Internal loadObjects helper - loads pagination objects
-     * @param loadClass The class Type reference
-     * @param criterion The optional Criterion
-     * @param pagination The Pagination object
-     * @param <T> The class type
-     * @return The ScrollableIterator
-     */
-    public <T> Iterable<T> loadObjects(Class<T> loadClass, Criterion criterion, Pagination pagination) {
-        if (criterion != null) {
-            @SuppressWarnings("unchecked")
-            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                    .add(criterion)
-                    .setFirstResult(pagination.getPage())
-                    .setMaxResults(pagination.getPageSize())
-                    .scroll(ScrollMode.FORWARD_ONLY));
-            return list;
-        } else {
-            @SuppressWarnings("unchecked")
-            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                    .setFirstResult(pagination.getPage())
-                    .setMaxResults(pagination.getPageSize())
-                    .scroll(ScrollMode.FORWARD_ONLY));
-            return list;
-        }
-    }
-
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
