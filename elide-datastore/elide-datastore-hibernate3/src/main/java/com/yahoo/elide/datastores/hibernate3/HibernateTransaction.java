@@ -20,14 +20,10 @@ import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
-import org.hibernate.ObjectNotFoundException;
-import org.hibernate.Query;
-import org.hibernate.ScrollMode;
-import org.hibernate.Session;
+import org.hibernate.*;
 import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
 import java.io.IOException;
@@ -89,7 +85,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             T object = entityClass.newInstance();
             deferredTasks.add(() -> session.persist(object));
             return object;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (java.lang.InstantiationException | IllegalAccessException e) {
             return null;
         }
     }
@@ -150,22 +146,62 @@ public class HibernateTransaction implements DataStoreTransaction {
         criterion = CriterionFilterOperation.andWithNull(criterion,
                 criterionFilterOperation.applyAll(filteredPredicates));
 
-        // if no criterion, and no pagination - then return all objects
-        if (criterion == null && !filterScope.hasPagination()) {
-            return loadObjects(loadClass);
+
+        final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
+                : null;
+
+        // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
+        Set<Order> validatedSortingRules = null;
+        if (filterScope.hasSortingRules()) {
+            final Sorting sorting = filterScope.getRequestScope().getSorting();
+            final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(loadClass,
+                    filterScope.getRequestScope().getDictionary());
+            if (!validSortingRules.isEmpty()) {
+                final Set<Order> sortingRules = new LinkedHashSet<>();
+                validSortingRules.entrySet().stream().forEachOrdered(entry ->
+                        sortingRules.add(entry.getValue().equals(Sorting.SortOrder.desc)
+                                ? Order.desc(entry.getKey())
+                                : Order.asc(entry.getKey()))
+                );
+                validatedSortingRules = sortingRules;
+            }
         }
 
-        if (!filterScope.hasPagination()) {
-            @SuppressWarnings("unchecked")
-            Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                    .add(criterion)
-                    .scroll(ScrollMode.FORWARD_ONLY));
-            return list;
-        } else {
-            // sets the criterion, pagination
-            // todo - need to add sorting as well
-            return loadObjects(loadClass, criterion, filterScope.getRequestScope().getPagination());
+        return loadObjects(loadClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
+                Optional.ofNullable(pagination));
+    }
+
+    /**
+     * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     * @param loadClass The hibernate class to build the query off of.
+     * @param criterion The Optional criterion object.
+     * @param sortingRules The possibly empty sorting rules.
+     * @param pagination The Optional pagination object.
+     * @param <T> The return Iterable type.
+     * @return The Iterable for Hibernate.
+     */
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Optional<Criterion> criterion,
+                                       final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+        final Criteria sessionCriteria = session.createCriteria(loadClass);
+
+        if (criterion.isPresent()) {
+            sessionCriteria.add(criterion.get());
         }
+
+        if (sortingRules.isPresent()) {
+            sortingRules.get().forEach(sessionCriteria::addOrder);
+        }
+
+        if (pagination.isPresent()) {
+            final Pagination paginationData = pagination.get();
+            sessionCriteria.setFirstResult(paginationData.getPage());
+            sessionCriteria.setMaxResults(paginationData.getPageSize());
+        }
+
+        @SuppressWarnings("unchecked")
+        Iterable<T> list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
+
+        return list;
     }
 
     /**
