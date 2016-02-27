@@ -301,7 +301,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             if (pagination.isPresent() && !pagination.get().isEmpty()) {
                 final Pagination paginationData = pagination.get();
                 if (query == null) {
-                    query = session.createQuery("");
+                    query = session.createFilter(collection, "");
                 }
                 query.setFirstResult(paginationData.getPage());
                 query.setMaxResults(paginationData.getPageSize());
