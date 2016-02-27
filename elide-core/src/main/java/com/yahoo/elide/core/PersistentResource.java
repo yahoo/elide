@@ -715,7 +715,6 @@ public class PersistentResource<T> {
             }
             return getRelation(relationName, Optional.ofNullable(filters), Optional.of(requestScope.getSorting()),
                     Optional.of(requestScope.getPagination()));
-            //return getRelation(relationName, filters);
         } else {
             return getRelation(relationName, Collections.<Predicate>emptySet());
         }
