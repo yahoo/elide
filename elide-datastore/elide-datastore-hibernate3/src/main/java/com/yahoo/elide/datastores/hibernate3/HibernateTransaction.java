@@ -264,7 +264,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 filterString += hqlFilterOperation.applyAll(filters.get());
             }
 
-            // add sorting/pagination string generator
+            // add sorting into HQL string query generation
             if (sorting.isPresent() && !sorting.get().isEmpty()) {
 
                 final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
