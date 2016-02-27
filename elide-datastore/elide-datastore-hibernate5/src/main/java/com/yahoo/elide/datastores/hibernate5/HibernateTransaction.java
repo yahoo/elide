@@ -252,42 +252,46 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Collection filterSortOrPaginateCollection(Collection collection, Class<T> entityClass, EntityDictionary dictionary,
-                                                         Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-                                                         Optional<Pagination> pagination) {
-        if (((collection instanceof AbstractPersistentCollection)) && filters.isPresent() || sorting.isPresent() || pagination.isPresent()) {
+    public <T> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
+                                                         final EntityDictionary dictionary,
+                                                         final Optional<Set<Predicate>> filters,
+                                                         final Optional<Sorting> sorting,
+                                                         final Optional<Pagination> pagination) {
+        if (((collection instanceof AbstractPersistentCollection))
+                && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
+
             String filterString = "";
+
+            // apply filtering - eg where clause's
             if (filters.isPresent()) {
                 filterString += hqlFilterOperation.applyAll(filters.get());
             }
 
-            Query query = null;
-
-            String additionalHQL = "";
-
             // add sorting/pagination string generator
             if (sorting.isPresent() && !sorting.get().isEmpty()) {
+
                 final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
                         entityClass, dictionary
                 );
+                String additionalHQL = "";
                 if (!validSortingRules.isEmpty()) {
+
                     final List<String> ordering = new ArrayList<>();
-
-
                     // pass over the sorting rules
                     validSortingRules.entrySet().stream().forEachOrdered(entry ->
-                            ordering.add(entry.getKey() + " " + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc"))
+                            ordering.add(entry.getKey() + " " + (entry.getValue().equals(Sorting.SortOrder.desc)
+                                    ? "desc"
+                                    : "asc"))
                     );
                     additionalHQL += "order by " + StringUtils.join(ordering, ",");
                 }
-            }
-
-            if (!additionalHQL.isEmpty()) {
-                filterString += additionalHQL;
+                if (!additionalHQL.isEmpty()) {
+                    filterString += additionalHQL;
+                }
             }
 
             if (filterString.length() != 0) {
-                query = session.createFilter(collection, filterString);
+                Query query = session.createFilter(collection, filterString);
 
                 if (pagination.isPresent() && !pagination.get().isEmpty()) {
                     final Pagination paginationData = pagination.get();
@@ -304,11 +308,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                 }
                 return query.list();
             }
-
-            /*if (query != null) {
-                return query.list();
-            }*/
-
         }
         return collection;
     }

@@ -6,17 +6,20 @@
 package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -29,10 +32,7 @@ import org.hibernate.criterion.Restrictions;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Hibernate Transaction implementation.
@@ -236,6 +236,67 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
 
+        return collection;
+    }
+
+    @Override
+    public <T> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
+                                                         final EntityDictionary dictionary,
+                                                         final Optional<Set<Predicate>> filters,
+                                                         final Optional<Sorting> sorting,
+                                                         final Optional<Pagination> pagination) {
+        if (((collection instanceof AbstractPersistentCollection))
+                && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
+
+            String filterString = "";
+
+            // apply filtering - eg where clause's
+            if (filters.isPresent()) {
+                filterString += hqlFilterOperation.applyAll(filters.get());
+            }
+
+            // add sorting/pagination string generator
+            if (sorting.isPresent() && !sorting.get().isEmpty()) {
+
+                final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
+                        entityClass, dictionary
+                );
+                String additionalHQL = "";
+                if (!validSortingRules.isEmpty()) {
+
+                    final List<String> ordering = new ArrayList<>();
+                    // pass over the sorting rules
+                    validSortingRules.entrySet().stream().forEachOrdered(entry ->
+                            ordering.add(entry.getKey() + " " + (entry.getValue().equals(Sorting.SortOrder.desc)
+                                    ? "desc"
+                                    : "asc"))
+                    );
+                    additionalHQL += "order by " + StringUtils.join(ordering, ",");
+                }
+                if (!additionalHQL.isEmpty()) {
+                    filterString += additionalHQL;
+                }
+            }
+
+            if (filterString.length() != 0) {
+                Query query = session.createFilter(collection, filterString);
+
+                if (pagination.isPresent() && !pagination.get().isEmpty()) {
+                    final Pagination paginationData = pagination.get();
+                    query.setFirstResult(paginationData.getPage());
+                    query.setMaxResults(paginationData.getPageSize());
+                }
+
+                if (filters.isPresent()) {
+                    for (Predicate predicate : filters.get()) {
+                        if (predicate.getOperator().isParameterized()) {
+                            query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        }
+                    }
+                }
+                return query.list();
+            }
+        }
         return collection;
     }
 

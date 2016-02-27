@@ -55,7 +55,7 @@ public class Pagination {
     }
 
     /**
-     * Alias for isDefault
+     * Alias for isDefault.
      * @return true if there are no pagination rules
      */
     public boolean isEmpty() {
