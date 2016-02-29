@@ -40,10 +40,6 @@ public class Sorting {
         }
     }
 
-    public Map<String, SortOrder> getSortRules() {
-        return this.sortRules;
-    }
-
     /**
      * Checks to see if the sorting rules are valid for the given JPA class
      * @param entityClass The target jpa entity
@@ -86,6 +82,13 @@ public class Sorting {
             return validSortRules;
         }
         return Collections.emptyMap();
+    }
+
+    /**
+     * @return Fetches the base rules, ignoring validation against an entity class
+     */
+    public Map<String, SortOrder> getSortingRules() {
+        return this.sortRules;
     }
 
     /**
