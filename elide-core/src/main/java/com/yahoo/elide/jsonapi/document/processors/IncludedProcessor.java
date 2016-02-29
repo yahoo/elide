@@ -78,7 +78,7 @@ public class IncludedProcessor implements DocumentProcessor {
         //Pop off a relation of relation path
         String relation = relationPath.remove(0);
 
-        rec.getRelation(relation).forEach(resource -> {
+        rec.getRelationCheckedFiltered(relation).forEach(resource -> {
             jsonApiDocument.addIncluded(resource.toResource());
 
             //If more relations left in the path, process a level deeper

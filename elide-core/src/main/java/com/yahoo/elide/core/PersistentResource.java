@@ -122,8 +122,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
-                .filter(relationName -> newResource.getRelationshipType(relationName).isToMany()
-                && newResource.getValueNoCheck(relationName) == null)
+                .filter(relationName -> {
+                    return newResource.getRelationshipType(relationName).isToMany()
+                            && newResource.getValueUnchecked(relationName) == null;
+                })
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
 
         // Keep track of new resources for non shareable resources
@@ -290,7 +292,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
-        Object val = getValueNoCheck(fieldName);
+        Object val = getValueUnchecked(fieldName);
         checkFieldAwarePermissions(UpdatePermission.class, fieldName, newVal, val);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
@@ -323,7 +325,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
-        Set<PersistentResource> resources = filter(ReadPermission.class, (Set) getRelationUnchecked(fieldName));
+        Set<PersistentResource> resources =
+                filter(ReadPermission.class, (Set) getRelationUncheckedUnfiltered(fieldName));
         if (type.isToMany()) {
             checkFieldAwarePermissions(
                     UpdatePermission.class,
@@ -383,7 +386,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         checkSharePermission(added);
 
-        Collection collection = (Collection) this.getValueNoCheck(fieldName);
+        Collection collection = (Collection) this.getValueUnchecked(fieldName);
 
         if (collection == null) {
             this.setValue(fieldName, mine);
@@ -465,7 +468,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        Set<PersistentResource> mine = filter(ReadPermission.class, (Set) getRelationUnchecked(relationName));
+        Set<PersistentResource> mine = filter(ReadPermission.class, (Set) getRelationUncheckedUnfiltered(relationName));
         checkFieldAwarePermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
@@ -483,7 +486,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             this.nullValue(relationName, oldValue);
             transaction.save(oldValue.getObject());
         } else {
-            Collection collection = (Collection) getValueNoCheck(relationName);
+            Collection collection = (Collection) getValueUnchecked(relationName);
             mine.stream()
                     .forEach(toDelete -> {
                         delFromCollection(collection, relationName, toDelete);
@@ -504,7 +507,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param removeResource the remove resource
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
-        Object relation = getValueNoCheck(fieldName);
+        Object relation = getValueUnchecked(fieldName);
         Object original = (relation instanceof Collection) ? copyCollection((Collection) relation) : relation;
         Object modified =
                 (relation instanceof Collection && removeResource != null)
@@ -543,7 +546,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
         checkSharePermission(Collections.singleton(newRelation));
-        Object relation = this.getValueNoCheck(fieldName);
+        Object relation = this.getValueUnchecked(fieldName);
 
         if (relation instanceof Collection) {
             addToCollection((Collection) relation, fieldName, newRelation);
@@ -611,7 +614,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             String relationName = entry.getKey();
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!inverseRelationName.equals("")) {
-                for (PersistentResource inverseResource : getRelation(relationName)) {
+                for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
                     deleteInverseRelation(relationName, inverseResource.getObject());
                     transaction.save(inverseResource.getObject());
                 }
@@ -691,8 +694,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             filters = Collections.singleton(idFilter);
         }
 
-        /* getRelation performs read permission checks */
-        Set<PersistentResource> resources = getRelation(relation, filters);
+        Set<PersistentResource> resources = filter(ReadPermission.class, (Set) getRelationChecked(relation, filters));
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
                 return childResource;
@@ -707,11 +709,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param relationName field
      * @return collection relation
      */
-    public Set<PersistentResource> getRelation(String relationName) {
-        return getRelation(relationName, true);
+    public Set<PersistentResource> getRelationCheckedFiltered(String relationName) {
+        return filter(ReadPermission.class, (Set) getRelation(relationName, true));
     }
 
-    private Set<PersistentResource> getRelationUnchecked(String relationName) {
+    private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
         return getRelation(relationName, false);
     }
 
@@ -721,12 +723,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             final String valType = dictionary.getBinding(entityClass);
             final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
             if (checked) {
-                return getRelation(relationName, filters);
+                return getRelationChecked(relationName, filters);
             }
             return getRelationUnchecked(relationName, filters);
         } else {
             if (checked) {
-                return getRelation(relationName, Collections.<Predicate>emptySet());
+                return getRelationChecked(relationName, Collections.<Predicate>emptySet());
             }
             return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
         }
@@ -740,7 +742,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *                the returned collection.
      * @return collection relation
      */
-    protected Set<PersistentResource> getRelation(String relationName, Set<Predicate> filters) {
+    protected Set<PersistentResource> getRelationChecked(String relationName, Set<Predicate> filters) {
         List<String> relations = dictionary.getRelationships(obj);
 
         String realName = dictionary.getNameFromAlias(obj, relationName);
@@ -772,7 +774,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
-        Object val = getValueNoCheck(relationName);
+        Object val = getValueUnchecked(relationName);
         if (val == null) {
             return Collections.emptySet();
         } else if (shouldSkipCollection(ReadPermission.class, relationName)) {
@@ -851,7 +853,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Object value for attribute
      */
     public Object getAttribute(String attr) {
-        return this.getValue(attr);
+        return this.getValueChecked(attr);
     }
 
     /**
@@ -962,7 +964,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
-            Set<PersistentResource> relationships = getRelation(field);
+            Set<PersistentResource> relationships = getRelationCheckedFiltered(field);
             TreeMap<String, Resource> orderedById = new TreeMap<>(comparator);
             for (PersistentResource relationship : relationships) {
                 orderedById.put(relationship.getId(),
@@ -1007,7 +1009,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newValue, getValueNoCheck(fieldName));
+        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
         setValue(fieldName, newValue);
     }
 
@@ -1033,7 +1035,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param fieldName the field name
      * @return value value
      */
-    protected Object getValue(String fieldName) {
+    protected Object getValueChecked(String fieldName) {
         checkFieldAwarePermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, dictionary);
     }
@@ -1044,7 +1046,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param fieldName the field name
      * @return Value
      */
-    protected Object getValueNoCheck(String fieldName) {
+    protected Object getValueUnchecked(String fieldName) {
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -1251,7 +1253,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
 
             PersistentResource inverseResource = new PersistentResource(this, inverseEntity, getRequestScope());
-            Object inverseRelation = inverseResource.getValueNoCheck(inverseRelationName);
+            Object inverseRelation = inverseResource.getValueUnchecked(inverseRelationName);
 
             if (inverseRelation == null) {
                 return;
@@ -1288,7 +1290,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
 
             PersistentResource inverseResource = new PersistentResource(this, inverseEntity, getRequestScope());
-            Object inverseRelation = inverseResource.getValueNoCheck(inverseRelationName);
+            Object inverseRelation = inverseResource.getValueUnchecked(inverseRelationName);
 
             if (Collection.class.isAssignableFrom(inverseRelationType)) {
                 if (inverseRelation != null) {

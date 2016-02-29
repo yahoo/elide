@@ -511,7 +511,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set<PersistentResource> results = funResource.getRelation("relation2");
+        Set<PersistentResource> results = funResource.getRelationCheckedFiltered("relation2");
 
         Assert.assertEquals(results.size(), 3, "All of relation elements should be returned.");
     }
@@ -526,7 +526,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set<PersistentResource> results = funResource.getRelation("relation2");
+        Set<PersistentResource> results = funResource.getRelationCheckedFiltered("relation2");
 
         Assert.assertEquals(results.size(), 2, "Only filtered relation elements should be returned.");
     }
@@ -549,7 +549,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
-        Set<PersistentResource> results = parentResource.getRelation("children");
+        Set<PersistentResource> results = parentResource.getRelationCheckedFiltered("children");
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
@@ -560,7 +560,7 @@ public class PersistentResourceTest extends PersistentResource {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", goodUserScope);
-        noreadResource.getRelation("child");
+        noreadResource.getRelationCheckedFiltered("child");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -569,7 +569,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
 
-        funResource.getRelation("relation1");
+        funResource.getRelationCheckedFiltered("relation1");
     }
 
     @Test
@@ -578,7 +578,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        fcResource.getRelation("public2");
+        fcResource.getRelationCheckedFiltered("public2");
     }
 
     @Test
@@ -596,7 +596,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        fcResource.getRelation("private2");
+        fcResource.getRelationCheckedFiltered("private2");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -615,7 +615,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        funResource.getRelation("invalid");
+        funResource.getRelationCheckedFiltered("invalid");
     }
 
     @Test
@@ -664,7 +664,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set set = funResource.getRelation("relation4");
+        Set set = funResource.getRelationCheckedFiltered("relation4");
         Assert.assertEquals(0,  set.size());
     }
 
@@ -674,7 +674,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set set = funResource.getRelation("relation5");
+        Set set = funResource.getRelationCheckedFiltered("relation5");
         Assert.assertEquals(0,  set.size());
     }
 
@@ -1031,7 +1031,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        leftResource.updateRelation("noUpdateOne2One", leftResource.getRelation("noUpdateOne2One"));
+        leftResource.updateRelation("noUpdateOne2One", leftResource.getRelationCheckedFiltered("noUpdateOne2One"));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
