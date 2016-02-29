@@ -130,7 +130,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
-        requestScope.getNewResourceObjects().add(obj);
 
         return newResource;
     }
