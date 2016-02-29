@@ -74,7 +74,7 @@ public class StartState extends BaseState {
 
         String relationName = ctx.relationship().term().getText();
         try {
-            record.getRelation(relationName);
+            record.getRelationCheckedFiltered(relationName);
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }

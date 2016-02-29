@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.filter.Predicate;
@@ -80,7 +81,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             predicates = Collections.emptyMap();
         }
 
-        newPersistentResources = new LinkedHashSet<>();
+        newPersistentResources = Sets.newIdentityHashSet();
         commitTriggers = new LinkedHashSet<>();
         permissionExecutor = new PermissionExecutor(this);
         failedAuthorizations = new ArrayList<>();
