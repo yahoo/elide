@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestLogger extends Logger {
+public class TestAuditLogger extends AuditLogger {
     @Override
     public void commit() throws IOException {
     }

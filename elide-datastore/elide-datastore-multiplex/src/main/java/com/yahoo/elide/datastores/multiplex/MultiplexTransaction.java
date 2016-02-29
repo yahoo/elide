@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -72,7 +72,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
+    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
         return getTransaction(entityClass).loadObjects(entityClass, filterScope);
     }
 

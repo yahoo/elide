@@ -100,7 +100,7 @@ public class CollectionTerminalState extends BaseState {
         final Set<PersistentResource> collection;
 
         if (parent.isPresent()) {
-            collection = parent.get().getRelation(relationName.get());
+            collection = parent.get().getRelationCheckedFiltered(relationName.get());
         } else {
             collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
         }

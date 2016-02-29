@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015, Yahoo Inc.
+  ~ Copyright 2016, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -8,15 +8,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>1.0.0.26-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
     <url>https://github.com/yahoo/elide</url>
 
     <modules>
-        <module>elide-datastore</module>
+        <module>elide-annotations</module>
         <module>elide-core</module>
+        <module>elide-datastore</module>
         <module>elide-integration-tests</module>
         <module>elide-example</module>
     </modules>
@@ -85,6 +86,11 @@
     <!-- Dependency settings -->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.yahoo.elide</groupId>
+                <artifactId>elide-annotations</artifactId>
+                <version>2.0.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -365,7 +371,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
@@ -374,7 +379,6 @@
                     <repoToken>${env.coveralls_repo_token}</repoToken>
                 </configuration>
             </plugin>
-            -->
             <plugin>
                 <groupId>com.versioneye</groupId>
                 <artifactId>versioneye-maven-plugin</artifactId>

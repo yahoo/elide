@@ -36,7 +36,7 @@ public class RecordState extends BaseState {
         String subCollection = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         try {
-            Set<PersistentResource> collection = resource.getRelation(subCollection); // Check if exists.
+            Set<PersistentResource> collection = resource.getRelationCheckedFiltered(subCollection); // Check if exists.
             String entityName =
                     dictionary.getBinding(dictionary.getParameterizedType(resource.getObject(), subCollection));
             Class<?> entityClass = dictionary.getBinding(entityName);
@@ -96,7 +96,7 @@ public class RecordState extends BaseState {
 
         String relationName = ctx.relationship().term().getText();
         try {
-            childRecord.getRelation(relationName);
+            childRecord.getRelationCheckedFiltered(relationName);
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.extensions;
 
-import com.yahoo.elide.audit.Logger;
+import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
@@ -25,15 +25,15 @@ public class PatchRequestScope extends RequestScope {
      * @param user        request user
      * @param dictionary  entity dictionary
      * @param mapper      Json API mapper
-     * @param logger      the logger
+     * @param auditLogger      the logger
      */
     public PatchRequestScope(
             DataStoreTransaction transaction,
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,
-            Logger logger) {
-        super(transaction, user, dictionary, mapper, logger);
+            AuditLogger auditLogger) {
+        super(transaction, user, dictionary, mapper, auditLogger);
     }
 
     /**

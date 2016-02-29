@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015, Yahoo Inc.
+  ~ Copyright 2016, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -20,11 +20,6 @@
     <test name="com.yahoo.elide.core.PermissionAnnotationTest">
         <classes>
             <class name="com.yahoo.elide.core.PermissionAnnotationTest" />
-        </classes>
-    </test> <!-- Test -->
-    <test name="com.yahoo.elide.security.UserTest">
-        <classes>
-            <class name="com.yahoo.elide.security.UserTest" />
         </classes>
     </test> <!-- Test -->
     <test name="com.yahoo.elide.audit.LogMessageTest">

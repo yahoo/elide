@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -89,7 +89,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param filterScope scope for filter processing
      * @return records iterable
      */
-    default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope<T> filterScope) {
+    default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
         // default to ignoring criteria
         return loadObjects(entityClass);
     }
