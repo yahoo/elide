@@ -194,7 +194,8 @@ public class EntityDictionary {
      * @return relation inverse
      */
     public String getRelationInverse(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, String> mappings = entityBinding(cls).relationshipToInverse;
+        final EntityBinding clsBinding = entityBinding(cls);
+        final ConcurrentHashMap<String, String> mappings = clsBinding.relationshipToInverse;
         if (mappings != null) {
             final String mapping = mappings.get(relation);
 
@@ -216,7 +217,7 @@ public class EntityDictionary {
             String inverseMappedBy = inverseMapping.getValue();
 
             if (relation.equals(inverseMappedBy)
-                    && getParameterizedType(inverseType, inverseRelationName).equals(lookupEntityClass(cls))) {
+                    && getParameterizedType(inverseType, inverseRelationName).equals(clsBinding.entityClass)) {
                 return inverseRelationName;
             }
 
@@ -385,8 +386,7 @@ public class EntityDictionary {
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        SharePermission share = (SharePermission) getFirstAnnotation(entityClass,
-                Collections.singletonList(SharePermission.class));
+        SharePermission share = getAnnotation(entityClass, SharePermission.class);
         return share != null;
     }
 
@@ -446,15 +446,7 @@ public class EntityDictionary {
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(Class<?> recordClass, Class<A> annotationClass) {
-        A annotation = null;
-        for (Class<?> cls = recordClass; annotation == null && cls != null; cls = cls.getSuperclass()) {
-            annotation = cls.getAnnotation(annotationClass);
-        }
-        // no class annotation, try packages
-        for (Package pkg = recordClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
-            annotation = pkg.getAnnotation(annotationClass);
-        }
-        return annotation;
+        return entityBinding(recordClass).getAnnotation(annotationClass);
     }
 
     public <A extends Annotation> Collection<Method> getTriggers(Class<?> cls,
@@ -463,7 +455,7 @@ public class EntityDictionary {
         return entityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
-    private static Package getParentPackage(Package pkg) {
+    static Package getParentPackage(Package pkg) {
         String name = pkg.getName();
         int idx = name.lastIndexOf('.');
         return idx == -1 ? null : Package.getPackage(name.substring(0, idx));
@@ -630,7 +622,7 @@ public class EntityDictionary {
      */
     public Class<?> lookupEntityClass(Class<?> objClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
-            if (cls.isAnnotationPresent(Entity.class)) {
+            if (entityBindings.containsKey(cls) || cls.isAnnotationPresent(Entity.class)) {
                 return cls;
             }
         }
@@ -645,8 +637,7 @@ public class EntityDictionary {
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Object target, String fieldName) {
-        Class<?> targetClass = lookupEntityClass(target.getClass());
-        return getAccessibleObject(targetClass, fieldName);
+        return getAccessibleObject(target.getClass(), fieldName);
     }
 
     /**

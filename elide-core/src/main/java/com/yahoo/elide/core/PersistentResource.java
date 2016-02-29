@@ -1272,8 +1272,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private String getInverseRelationField(String relationName) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-        return dictionary.getRelationInverse(entityClass, relationName);
+        return dictionary.getRelationInverse(obj.getClass(), relationName);
     }
 
     /**
@@ -1283,10 +1282,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param relationValue The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object relationValue) {
-        Class<?> entityClass = dictionary.lookupEntityClass(obj.getClass());
-
         Object inverseEntity = relationValue; // Assigned to improve readability.
-        String inverseRelationName = dictionary.getRelationInverse(entityClass, relationName);
+        String inverseRelationName = dictionary.getRelationInverse(obj.getClass(), relationName);
 
         if (!inverseRelationName.equals("")) {
             Class<?> inverseRelationType = dictionary.getType(inverseEntity.getClass(), inverseRelationName);
