@@ -268,7 +268,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
 
             // add sorting into HQL string query generation
-            if (sorting.isPresent() && !sorting.get().isEmpty()) {
+            if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
 
                 final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
                         entityClass, dictionary

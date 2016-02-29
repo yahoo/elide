@@ -64,7 +64,7 @@ public class FilterScope<T> {
      * @return true if there is pagination filtering
      */
     public boolean hasSortingRules() {
-        return !requestScope.getSorting().isEmpty();
+        return !requestScope.getSorting().isDefaultInstance();
     }
 
     /**
