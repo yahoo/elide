@@ -751,10 +751,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (relationName == null || relations == null || !relations.contains(relationName)) {
             throw new InvalidAttributeException(relationName, type);
         }
-
-
         // check for deny access on relationship to avoid iterating a lazy collection
+        
         checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
+
+        if (shouldSkipCollection(ReadPermission.class, relationName)) {
+            return Collections.emptySet();
+        }
+
         try {
             // If we cannot read any element of this type, don't try to filter
             requestScope.getPermissionExecutor().checkUserPermissions(
@@ -776,8 +780,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         RelationshipType type = getRelationshipType(relationName);
         Object val = getValueUnchecked(relationName);
         if (val == null) {
-            return Collections.emptySet();
-        } else if (shouldSkipCollection(ReadPermission.class, relationName)) {
             return Collections.emptySet();
         }
 
