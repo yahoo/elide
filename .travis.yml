@@ -17,7 +17,7 @@
   branches:
     only:
       - master
-      - "/^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/"
+      - "/^[0-9]+\\.[0-9]+\\.[0-9]+/"
   # build steps
   install: true
   script: mvn clean verify # coveralls:report

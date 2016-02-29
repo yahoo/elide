@@ -24,6 +24,13 @@
       "includePattern": "elide-core\/target\/(elide-core-${TRAVIS_TAG}\\.jar)",
       "uploadPattern": "elide-core/${TRAVIS_TAG}/$1"},
     {
+      "includePattern": "elide-annotations\/pom.xml",
+      "uploadPattern": "elide-annotations/${TRAVIS_TAG}/elide-annotations-${TRAVIS_TAG}.pom"
+    },
+    {
+      "includePattern": "elide-annotations\/target\/(elide-annotations-${TRAVIS_TAG}\\.jar)",
+      "uploadPattern": "elide-annotations/${TRAVIS_TAG}/$1"},
+    {
       "includePattern": "elide-datastore\/(elide-datastore-[^\/]*)/pom.xml",
       "uploadPattern": "$1/${TRAVIS_TAG}/$1.pom"
     },
