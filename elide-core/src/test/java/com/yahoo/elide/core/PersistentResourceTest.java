@@ -28,7 +28,7 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
 import example.Child;

@@ -11,7 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.ChangeSpec;
 
 import com.yahoo.elide.security.checks.CommitCheck;

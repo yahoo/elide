@@ -12,7 +12,7 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -55,18 +55,18 @@ public class ImmediateCheckExpression implements Expression {
 
     @Override
     public ExpressionResult evaluate() {
-        log.debug("Evaluating check: {}", check);
+        log.trace("Evaluating check: {}", check);
 
         // If we have a valid change spec, do not cache the result or look for a cached result.
         if (changeSpec.isPresent()) {
-            log.debug("-- Check has changespec: {}", changeSpec);
+            log.trace("-- Check has changespec: {}", changeSpec);
             ExpressionResult result = computeCheck();
-            log.debug("-- Check returned with result: {}", result);
+            log.trace("-- Check returned with result: {}", result);
             return result;
         }
 
         // Otherwise, search the cache and use value if found. Otherwise, evaluate and add it to the cache.
-        log.debug("-- Check does NOT have changespec");
+        log.trace("-- Check does NOT have changespec");
         Class<? extends Check> checkClass = check.getClass();
         Map<PersistentResource, ExpressionResult> resourceCache = cache.get(checkClass);
         if (resourceCache == null) {
@@ -82,7 +82,7 @@ public class ImmediateCheckExpression implements Expression {
             result = resourceCache.get(resource);
         }
 
-        log.debug("-- Check returned with result: {}", result);
+        log.trace("-- Check returned with result: {}", result);
 
         return result;
     }

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.filter.Predicate;
@@ -49,7 +48,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newPersistentResources;
-    @Getter private final Set<Object> newResourceObjects;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final List<Supplier<String>> failedAuthorizations;
 
@@ -83,7 +81,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
 
         newPersistentResources = new LinkedHashSet<>();
-        newResourceObjects = Sets.newIdentityHashSet();
         commitTriggers = new LinkedHashSet<>();
         permissionExecutor = new PermissionExecutor(this);
         failedAuthorizations = new ArrayList<>();
@@ -156,7 +153,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.securityMode = outerRequestScope.securityMode;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
-        this.newResourceObjects = outerRequestScope.newResourceObjects;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = new PermissionExecutor(this);
         this.failedAuthorizations = outerRequestScope.failedAuthorizations;
