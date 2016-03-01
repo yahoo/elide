@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter;
+package com.yahoo.elide.core;
 
 import com.yahoo.elide.core.pagination.Pagination;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
@@ -15,7 +15,7 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * Tests parsing the page params for json-api pagination.
  */
-public class PageTest {
+public class PaginationLogicTest {
 
     @Test
     public void shouldParseQueryParamsForCurrentPageAndPageSize() {
