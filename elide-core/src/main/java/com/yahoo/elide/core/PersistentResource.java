@@ -76,6 +76,7 @@ import java.util.stream.Collectors;
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
+    private boolean predicatesSortingPaginationSupported = true;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
     private final User user;
@@ -715,14 +716,25 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return filter(ReadPermission.class, (Set) getRelation(relationName, true));
     }
 
+    /**
+     * Get collection of resources from relation field.
+     *
+     * @param relationName field
+     * @return collection relation
+     */
+    public Set<PersistentResource> getRelationCheckedFilteredNoSortOrPagination(String relationName) {
+        this.predicatesSortingPaginationSupported = false;
+        return filter(ReadPermission.class, (Set) getRelation(relationName, true));
+    }
+
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
         return getRelation(relationName, false);
     }
 
     private Set<PersistentResource> getRelation(String relationName, boolean checked) {
         boolean hasPredicates = !requestScope.getPredicates().isEmpty();
-        if (hasPredicates || !requestScope.getSorting().isDefaultInstance()
-                || requestScope.getPagination().isDefault()) {
+        if (predicatesSortingPaginationSupported && (hasPredicates || !requestScope.getSorting().isDefaultInstance()
+                || !requestScope.getPagination().isDefault())) {
             Set<Predicate> filters = Sets.newLinkedHashSet();
             if (hasPredicates) {
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
@@ -799,16 +811,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
             if (!filters.isEmpty() || hasSortRules || isPaginated) {
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(requestScope.getSorting())
+                final Optional<Sorting> sortingRules = predicatesSortingPaginationSupported && hasSortRules
+                        ? Optional.of(requestScope.getSorting())
                         : Optional.empty();
-                final Optional<Pagination> pagination = isPaginated ? Optional.of(requestScope.getPagination())
+                final Optional<Pagination> pagination = predicatesSortingPaginationSupported && isPaginated
+                        ? Optional.of(requestScope.getPagination())
                         : Optional.empty();
-                if (!filters.isEmpty()) {
-                    filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
-                } else {
-                    filteredVal = requestScope.getTransaction().filterSortOrPaginateCollection(filteredVal, entityClass,
-                            dictionary, Optional.of(filters), sortingRules, pagination);
-                }
+                filteredVal = requestScope.getTransaction().filterSortOrPaginateCollection(filteredVal, entityClass,
+                            dictionary, Optional.of(filters), sortingRules, pagination, this.obj.getClass());
             }
             resources = new PersistentResourceSet(filteredVal, requestScope);
         } else if (type.isToOne()) {
@@ -984,7 +994,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
-            Set<PersistentResource> relationships = getRelationCheckedFiltered(field);
+            Set<PersistentResource> relationships = getRelationCheckedFilteredNoSortOrPagination(field);
             TreeMap<String, Resource> orderedById = new TreeMap<>(comparator);
             for (PersistentResource relationship : relationships) {
                 orderedById.put(relationship.getId(),

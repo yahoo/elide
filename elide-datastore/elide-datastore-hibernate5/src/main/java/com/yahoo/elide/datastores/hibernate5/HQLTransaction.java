@@ -126,9 +126,12 @@ public class HQLTransaction {
                 if (query == null) {
                     query = session.createFilter(collection, "");
                 }
-                query.setFirstResult(pagination.getPage());
-                query.setMaxResults(pagination.getPageSize());
+                query.setFirstResult(pagination.getOffset());
+                query.setMaxResults(pagination.getLimit());
             }
+            /*if (query == null) {
+                query = session.createFilter(collection, "");
+            }*/
             return Optional.ofNullable(query);
         }
     }

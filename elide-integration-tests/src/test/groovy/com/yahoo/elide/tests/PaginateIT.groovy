@@ -381,6 +381,19 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
     }
 
+    @Test
+    public void testPageAndSortOnSubRecordsPageTwo() {
+        def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?sort=-title&page[number]=2&page[size]=1").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        JsonNode book = result.get("data").get(0);
+        long publishDate = book.get("attributes").get("publishDate").asLong();
+        Assert.assertEquals(publishDate, 1454638927412L);
+        String title = book.get("attributes").get("title").asText();
+        Assert.assertEquals(title, "Enders Game");
+        int authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asInt();
+        Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
+    }
+
     @AfterTest
     public void cleanUp() {
         for (int id : authorIds) {

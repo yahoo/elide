@@ -101,7 +101,7 @@ public class Sorting {
     }
 
     /**
-     * Given an entity dictionary and some query params, collect sorting rules.
+     * Given the query params on the GET request, collect possible sorting rules.
      * @param queryParams The query params on the request.
      * @return The Sorting instance (default or specific).
      */

@@ -171,8 +171,8 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
-            sessionCriteria.setFirstResult(paginationData.getPage());
-            sessionCriteria.setMaxResults(paginationData.getPageSize());
+            sessionCriteria.setFirstResult(paginationData.getOffset());
+            sessionCriteria.setMaxResults(paginationData.getLimit());
         }
 
         @SuppressWarnings("unchecked")
@@ -231,11 +231,12 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
+    public <T,R> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
                                                          final EntityDictionary dictionary,
                                                          final Optional<Set<Predicate>> filters,
                                                          final Optional<Sorting> sorting,
-                                                         final Optional<Pagination> pagination) {
+                                                         final Optional<Pagination> pagination,
+                                                         final Class<R> relationalEntityClass) {
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
             @SuppressWarnings("unchecked")

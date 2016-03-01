@@ -17,6 +17,11 @@
 <module name="Checker">
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
+    <module name="AvoidStarImport">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Removes wildcard imports."/>
+      <property name="allowClassImports" value="false"/>
+      <property name="allowStaticMemberImports" value="false"/>
+    </module>
     <module name="FileContentsHolder"/>
     <module name="ConstantName">
       <metadata name="net.sf.eclipsecs.core.comment" value="Constants (static finals) must be uppercase letters/digits/underscore."/>

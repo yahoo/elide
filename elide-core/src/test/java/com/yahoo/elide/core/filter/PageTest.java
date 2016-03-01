@@ -25,8 +25,8 @@ public class PageTest {
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getPage(), 1);
-        Assert.assertEquals(pageData.getPageSize(), 10);
+        Assert.assertEquals(pageData.getOffset(), 1);
+        Assert.assertEquals(pageData.getLimit(), 10);
     }
 
     @Test
@@ -37,8 +37,8 @@ public class PageTest {
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getPage(), 2);
-        Assert.assertEquals(pageData.getPageSize(), 10);
+        Assert.assertEquals(pageData.getOffset(), 2);
+        Assert.assertEquals(pageData.getLimit(), 10);
     }
 
     @Test
@@ -48,7 +48,7 @@ public class PageTest {
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getPage(), 1);
-        Assert.assertEquals(pageData.getPageSize(), 10);
+        Assert.assertEquals(pageData.getOffset(), 1);
+        Assert.assertEquals(pageData.getLimit(), 10);
     }
 }

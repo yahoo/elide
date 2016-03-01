@@ -27,7 +27,12 @@ import com.yahoo.elide.security.User;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -58,7 +63,7 @@ public class CollectionTerminalState extends BaseState {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection = getResourceCollection(requestScope);
-
+        // at this point - no longer want to filter, sort or paginate on the relationships
         // Set data
         jsonApiDocument.setData(getData(requestScope, collection));
 

@@ -7,7 +7,9 @@ package example;
 
 import com.yahoo.elide.annotation.*;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 
 @Include(rootLevel = true, type = "stringForId")
 @Entity
