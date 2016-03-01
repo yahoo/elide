@@ -394,6 +394,18 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
     }
 
+    @Test
+    public void testPageAndSortShouldFailOnBadSortFields() {
+        def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?sort=-title,publishDate,onion&page[size]=1").asString());
+        Assert.assertEquals(result.get("errors").size(), 1);
+        JsonNode errors = result.get("errors").get(0);
+
+        String errorMsg = errors.asText();
+
+        Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: Book only contains the sort fields [publishDate, title]");
+
+    }
+
     @AfterTest
     public void cleanUp() {
         for (int id : authorIds) {

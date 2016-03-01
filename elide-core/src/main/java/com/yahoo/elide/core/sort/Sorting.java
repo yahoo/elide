@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
@@ -49,7 +51,7 @@ public class Sorting {
      * @return The validity of the sorting rules on the target class
      */
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
-                                        final EntityDictionary dictionary) {
+                                        final EntityDictionary dictionary) throws InvalidValueException {
         if (validSortRules == null) {
             validSortRules = new LinkedHashMap<>();
         }
@@ -58,11 +60,16 @@ public class Sorting {
         if (entities != null) {
             entities.stream()
                     .filter(sortRules::containsKey)
-                    .forEachOrdered(entity ->
-                            validSortingRules.put(entity, sortRules.get(entity))
-                    );
+                    .forEachOrdered(entity -> validSortingRules.put(entity, sortRules.get(entity)));
         }
         // lazy check and set
+        if (validSortingRules.isEmpty()) {
+            throw new InvalidValueException(entityClass.getSimpleName()
+                        + " doesn't contain the fields " + sortRules.keySet());
+        } else if (validSortingRules.size() != sortRules.size()) {
+            throw new InvalidValueException(entityClass.getSimpleName() + " only contains the sort fields "
+                    + validSortingRules.keySet());
+        }
         if (!validSortingRules.isEmpty() && !validSortRules.containsKey(entityClass)) {
             validSortRules.put(entityClass, validSortingRules);
         }
@@ -129,8 +136,13 @@ public class Sorting {
      */
     private static void parseSortingRule(String sortingRule, final Map<String, SortOrder> sortingRules) {
         boolean isDesc = false;
-        if (sortingRule.charAt(0) == '-') {
+        char firstCharacter = sortingRule.charAt(0);
+        if (firstCharacter == '-') {
             isDesc = true;
+            sortingRule = sortingRule.substring(1);
+        }
+        if (firstCharacter == '+') {
+            // json-api spec supports asc by default, there is no need to explicitly support +
             sortingRule = sortingRule.substring(1);
         }
         sortingRules.put(sortingRule, isDesc ? SortOrder.desc : SortOrder.asc);
