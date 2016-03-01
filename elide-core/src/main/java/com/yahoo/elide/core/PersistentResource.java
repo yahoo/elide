@@ -64,6 +64,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +78,6 @@ import java.util.stream.Collectors;
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
-    private boolean predicatesSortingPaginationSupported = true;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
     private final User user;
@@ -279,6 +280,33 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable<T> list;
         FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjects(loadClass, filterScope);
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
+        resources = filter(ReadPermission.class, resources);
+        for (PersistentResource<T> resource : resources) {
+            requestScope.queueCommitTrigger(resource);
+        }
+        return resources;
+    }
+
+    /**
+     * Load a collection from the datastore.
+     *
+     * @param <T> the type parameter
+     * @param loadClass the load class
+     * @param requestScope the request scope
+     * @return a filtered collection of resources loaded from the datastore.
+     */
+    @NonNull public static <T> Set<PersistentResource<T>> loadRecordsWithSortingAndPagination(
+            Class<T> loadClass, RequestScope requestScope) {
+        DataStoreTransaction tx = requestScope.getTransaction();
+
+        if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
+            return Collections.emptySet();
+        }
+
+        Iterable<T> list;
+        FilterScope filterScope = new FilterScope(requestScope, loadClass);
+        list = tx.loadObjectsWithSortingAndPagination(loadClass, filterScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
@@ -722,9 +750,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param relationName field
      * @return collection relation
      */
-    public Set<PersistentResource> getRelationCheckedFilteredNoSortOrPagination(String relationName) {
-        this.predicatesSortingPaginationSupported = false;
-        return filter(ReadPermission.class, (Set) getRelation(relationName, true));
+    public Set<PersistentResource> getRelationCheckedFilteredWithSortingAndPagination(String relationName) {
+        return filter(ReadPermission.class, (Set) getRelationWithSortingAndPagination(relationName, true));
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
@@ -732,15 +759,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName, boolean checked) {
-        boolean hasPredicates = !requestScope.getPredicates().isEmpty();
-        if (predicatesSortingPaginationSupported && (hasPredicates || !requestScope.getSorting().isDefaultInstance()
-                || !requestScope.getPagination().isDefault())) {
-            Set<Predicate> filters = Sets.newLinkedHashSet();
-            if (hasPredicates) {
-                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-                final String valType = dictionary.getBinding(entityClass);
-                filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
-            }
+        if (!requestScope.getPredicates().isEmpty()) {
+            final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+            final String valType = dictionary.getBinding(entityClass);
+            final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
             if (checked) {
                 return getRelationChecked(relationName, filters);
             }
@@ -751,6 +773,59 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
         }
+    }
+
+    /**
+     * Gets the relational entities to a entity (author/1/books) - books would be fetched here
+     * @param relationName The relationship name - eg. books
+     * @param checked The flag to denote if we are doing security checks on this relationship
+     * @return The resulting records from underlying data store
+     */
+    private Set<PersistentResource> getRelationWithSortingAndPagination(String relationName, boolean checked) {
+        boolean hasPredicates = !requestScope.getPredicates().isEmpty();
+        boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
+        final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
+        if (hasPredicates || hasSortingRules || hasPagination) {
+            final Set<Predicate> filters = Sets.newLinkedHashSet();
+            if (hasPredicates) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                final String valType = dictionary.getBinding(entityClass);
+                filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
+            }
+            if (checked && checkRelation(relationName)) {
+                return getRelationUncheckedWithSortingAndPagination(relationName, filters);
+            }
+        } else {
+            if (checked) {
+                return getRelationChecked(relationName, Collections.<Predicate>emptySet());
+            }
+            return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
+        }
+        return Collections.emptySet();
+    }
+
+    /**
+     * Check the permissions of the relationship, and return true or false.
+     * @param relationName The relationship to the entity
+     * @return True if the relationship to the entity has valid permissions for the user
+     */
+    protected boolean checkRelation(String relationName) {
+        List<String> relations = dictionary.getRelationships(obj);
+
+        String realName = dictionary.getNameFromAlias(obj, relationName);
+        relationName = (realName == null) ? relationName : realName;
+
+        if (relationName == null || relations == null || !relations.contains(relationName)) {
+            throw new InvalidAttributeException(relationName, type);
+        }
+
+        checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
+
+        // check for deny access on relationship to avoid iterating a lazy collection
+        if (shouldSkipCollection(ReadPermission.class, relationName)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -805,20 +880,50 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
+
+            if (!filters.isEmpty()) {
+                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
+            }
+            resources = new PersistentResourceSet(filteredVal, requestScope);
+        } else if (type.isToOne()) {
+            resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
+        } else {
+            resources.add(new PersistentResource(this, val, getRequestScope()));
+        }
+
+        return (Set) resources;
+    }
+
+    /**
+     * Fetches the relationship entities with sorting and pagination support via HQLTransaction.
+     * @param relationName The entity whose relationships we want to fetch
+     * @param filters The set of possible filters (where clauses)
+     * @return The persistent resources
+     */
+    private Set<PersistentResource> getRelationUncheckedWithSortingAndPagination(String relationName,
+                                                                                 Set<Predicate> filters) {
+        RelationshipType type = getRelationshipType(relationName);
+        Object val = getValueUnchecked(relationName);
+        if (val == null) {
+            return Collections.emptySet();
+        }
+
+        Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
             // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
             final boolean hasSortRules = !requestScope.getSorting().isDefaultInstance();
-            final boolean isPaginated = !requestScope.getPagination().isDefault();
+            final boolean isPaginated = !requestScope.getPagination().isDefaultInstance();
 
             if (!filters.isEmpty() || hasSortRules || isPaginated) {
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-                final Optional<Sorting> sortingRules = predicatesSortingPaginationSupported && hasSortRules
-                        ? Optional.of(requestScope.getSorting())
+                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(requestScope.getSorting())
                         : Optional.empty();
-                final Optional<Pagination> pagination = predicatesSortingPaginationSupported && isPaginated
-                        ? Optional.of(requestScope.getPagination())
+                final Optional<Pagination> pagination = isPaginated ? Optional.of(requestScope.getPagination())
                         : Optional.empty();
-                filteredVal = requestScope.getTransaction().filterSortOrPaginateCollection(filteredVal, entityClass,
-                            dictionary, Optional.of(filters), sortingRules, pagination, this.obj.getClass());
+                filteredVal = requestScope.getTransaction().filterCollectionWithSortingAndPagination(filteredVal,
+                        entityClass, dictionary, Optional.of(filters), sortingRules, pagination);
             }
             resources = new PersistentResourceSet(filteredVal, requestScope);
         } else if (type.isToOne()) {
@@ -975,12 +1080,30 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return a resource
      */
     public Resource toResource() {
+        return toResource(this::getRelationships, this::getAttributes);
+    }
+
+    /**
+     * Fetch a resource with support for lambda function for getting relationships and attributes
+     * @return The Resource
+     */
+    public Resource toResourceWithSortingAndPagination() {
+        return toResource(this::getRelationshipsWithSortingAndPagination, this::getAttributes);
+    }
+
+    /**
+     * Fetch a resource with support for lambda function for getting relationships and attributes
+     * @param relationshipSupplier The relationship supplier (getRelationships())
+     * @return The Resource
+     */
+    public Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
+                               final Supplier<Map<String, Object>> attributeSupplier) {
         final Resource resource = new Resource(type, (obj == null)
                 ? uuid.orElseThrow(
                 () -> new InvalidEntityBodyException("No id found on object"))
                 : dictionary.getId(obj));
-        resource.setRelationships(getRelationships());
-        resource.setAttributes(getAttributes());
+        resource.setRelationships(relationshipSupplier.get());
+        resource.setAttributes(attributeSupplier.get());
         return resource;
     }
 
@@ -990,13 +1113,31 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationships() {
+        return getRelationshipsWithRelationshipFunction(this::getRelationCheckedFiltered);
+    }
+
+    /**
+     * Get relationship mappings.
+     *
+     * @return Relationship mapping
+     */
+    protected Map<String, Relationship> getRelationshipsWithSortingAndPagination() {
+        return getRelationshipsWithRelationshipFunction(this::getRelationCheckedFilteredWithSortingAndPagination);
+    }
+
+    /**
+     * Get relationship mappings.
+     *
+     * @return Relationship mapping
+     */
+    protected Map<String, Relationship> getRelationshipsWithRelationshipFunction(
+            final Function<String, Set<PersistentResource>> relationshipFunction) {
         final Map<String, Relationship> relationshipMap = new LinkedHashMap<>();
         final Set<String> relationshipFields = filterFields(dictionary.getRelationships(obj));
 
         for (String field : relationshipFields) {
-            Set<PersistentResource> relationships = getRelationCheckedFilteredNoSortOrPagination(field);
             TreeMap<String, Resource> orderedById = new TreeMap<>(comparator);
-            for (PersistentResource relationship : relationships) {
+            for (PersistentResource relationship : relationshipFunction.apply(field)) {
                 orderedById.put(relationship.getId(),
                         new ResourceIdentifier(relationship.getType(), relationship.getId()).castToResource());
 

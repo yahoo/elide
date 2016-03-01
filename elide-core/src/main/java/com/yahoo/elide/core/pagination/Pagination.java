@@ -54,7 +54,7 @@ public class Pagination {
      * Know if this is the default instance.
      * @return The default pagination values.
      */
-    public boolean isDefault() {
+    public boolean isDefaultInstance() {
         return this.offset == 0 && this.limit == 0;
     }
 
@@ -63,7 +63,7 @@ public class Pagination {
      * @return true if there are no pagination rules
      */
     public boolean isEmpty() {
-        return isDefault();
+        return isDefaultInstance();
     }
 
     /**

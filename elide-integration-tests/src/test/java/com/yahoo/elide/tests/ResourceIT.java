@@ -1307,7 +1307,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
-    @Test(priority = 1)
+    @Test(priority = 34)
     public void testFilterIds() {
         String expectedRels = jsonParser.getJson("/ResourceIT/testFilterIdRels.json");
         String expectedIncl = jsonParser.getJson("/ResourceIT/testFilterIdIncluded.json");

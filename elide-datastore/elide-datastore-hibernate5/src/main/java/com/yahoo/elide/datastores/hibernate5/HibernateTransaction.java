@@ -120,6 +120,19 @@ public class HibernateTransaction implements DataStoreTransaction {
         criterion = CriterionFilterOperation.andWithNull(criterion,
                 criterionFilterOperation.applyAll(filteredPredicates));
 
+        return loadObjects(loadClass, Optional.ofNullable(criterion), Optional.empty(),
+                Optional.empty());
+    }
+
+    @Override
+    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
+        Criterion criterion = buildCheckCriterion(filterScope);
+
+        String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
+        Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
+        criterion = CriterionFilterOperation.andWithNull(criterion,
+                criterionFilterOperation.applyAll(filteredPredicates));
+
 
         final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
                 : null;
@@ -129,8 +142,8 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (filterScope.hasSortingRules()) {
             final Sorting sorting = filterScope.getRequestScope().getSorting();
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
-            if (sorting.hasValidSortingRules(loadClass, dictionary)) {
-                final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(loadClass,
+            if (sorting.hasValidSortingRules(entityClass, dictionary)) {
+                final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(entityClass,
                         dictionary);
                 if (!validSortingRules.isEmpty()) {
                     final Set<Order> sortingRules = new LinkedHashSet<>();
@@ -144,7 +157,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
 
-        return loadObjects(loadClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
+        return loadObjects(entityClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
                 Optional.ofNullable(pagination));
     }
 
@@ -231,12 +244,12 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
-                                                         final EntityDictionary dictionary,
-                                                         final Optional<Set<Predicate>> filters,
-                                                         final Optional<Sorting> sorting,
-                                                         final Optional<Pagination> pagination,
-                                                         final Class<R> relationalEntityClass) {
+    public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
+                                                                      final Class<T> entityClass,
+                                                                      final EntityDictionary dictionary,
+                                                                      final Optional<Set<Predicate>> filters,
+                                                                      final Optional<Sorting> sorting,
+                                                                      final Optional<Pagination> pagination) {
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
             @SuppressWarnings("unchecked")

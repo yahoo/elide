@@ -63,7 +63,6 @@ public class CollectionTerminalState extends BaseState {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection = getResourceCollection(requestScope);
-        // at this point - no longer want to filter, sort or paginate on the relationships
         // Set data
         jsonApiDocument.setData(getData(requestScope, collection));
 
@@ -94,11 +93,20 @@ public class CollectionTerminalState extends BaseState {
 
     private Set<PersistentResource> getResourceCollection(RequestScope requestScope) {
         final Set<PersistentResource> collection;
-
+        final boolean hasSortingOrPagination = !requestScope.getPagination().isDefaultInstance()
+                || !requestScope.getSorting().isDefaultInstance();
         if (parent.isPresent()) {
-            collection = parent.get().getRelationCheckedFiltered(relationName.get());
+            if (hasSortingOrPagination) {
+                collection = parent.get().getRelationCheckedFilteredWithSortingAndPagination(relationName.get());
+            } else {
+                collection = parent.get().getRelationCheckedFiltered(relationName.get());
+            }
         } else {
-            collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+            if (hasSortingOrPagination) {
+                collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
+            } else {
+                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+            }
         }
 
         return collection;

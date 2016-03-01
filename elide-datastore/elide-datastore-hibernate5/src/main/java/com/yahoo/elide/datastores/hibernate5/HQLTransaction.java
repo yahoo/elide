@@ -89,7 +89,7 @@ public class HQLTransaction {
         }
 
         public Builder withPagination(final Pagination pagination) {
-            if (pagination != null && !pagination.isDefault()) {
+            if (pagination != null && !pagination.isDefaultInstance()) {
                 this.pagination = pagination;
             }
             return this;

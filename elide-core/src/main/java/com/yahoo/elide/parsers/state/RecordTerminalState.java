@@ -100,7 +100,7 @@ public class RecordTerminalState extends BaseState {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         //TODO Make this a document processor
-        Data<Resource> data = rec == null ? null : new Data<>(rec.toResource());
+        Data<Resource> data = rec == null ? null : new Data<>(rec.toResourceWithSortingAndPagination());
         jsonApiDocument.setData(data);
 
         //TODO Iterate over set of document processors

@@ -230,12 +230,12 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
-                                                         final EntityDictionary dictionary,
-                                                         final Optional<Set<Predicate>> filters,
-                                                         final Optional<Sorting> sorting,
-                                                         final Optional<Pagination> pagination,
-                                                         final Class<R> relationalEntityClass) {
+    public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
+                                                                   final Class<T> entityClass,
+                                                                   final EntityDictionary dictionary,
+                                                                   final Optional<Set<Predicate>> filters,
+                                                                   final Optional<Sorting> sorting,
+                                                                   final Optional<Pagination> pagination) {
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
             @SuppressWarnings("unchecked")
