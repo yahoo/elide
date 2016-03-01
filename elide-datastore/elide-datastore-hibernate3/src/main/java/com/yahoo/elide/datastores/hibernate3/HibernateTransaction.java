@@ -18,8 +18,6 @@ import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
 
-
-import org.apache.commons.lang3.StringUtils;
 import com.yahoo.elide.security.checks.InlineCheck;
 import org.hibernate.*;
 
@@ -236,58 +234,15 @@ public class HibernateTransaction implements DataStoreTransaction {
                                                          final Optional<Pagination> pagination) {
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
-
-            String filterString = "";
-
-            // apply filtering - eg where clause's
-            if (filters.isPresent()) {
-                filterString += hqlFilterOperation.applyAll(filters.get());
-            }
-
-            // add sorting into HQL string query generation
-            if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-
-                final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
-                        entityClass, dictionary
-                );
-                String additionalHQL = "";
-                if (!validSortingRules.isEmpty()) {
-
-                    final List<String> ordering = new ArrayList<>();
-                    // pass over the sorting rules
-                    validSortingRules.entrySet().stream().forEachOrdered(entry ->
-                            ordering.add(entry.getKey() + " " + (entry.getValue().equals(Sorting.SortOrder.desc)
-                                    ? "desc"
-                                    : "asc"))
-                    );
-                    additionalHQL += "order by " + StringUtils.join(ordering, ",");
-                }
-                if (!additionalHQL.isEmpty()) {
-                    filterString += additionalHQL;
-                }
-            }
-            Query query = null;
-            if (filterString.length() != 0) {
-                query = session.createFilter(collection, filterString);
-
-                if (filters.isPresent()) {
-                    for (Predicate predicate : filters.get()) {
-                        if (predicate.getOperator().isParameterized()) {
-                            query = query.setParameterList(predicate.getField(), predicate.getValues());
-                        }
-                    }
-                }
-            }
-            if (pagination.isPresent() && !pagination.get().isEmpty()) {
-                final Pagination paginationData = pagination.get();
-                if (query == null) {
-                    query = session.createFilter(collection, "");
-                }
-                query.setFirstResult(paginationData.getPage());
-                query.setMaxResults(paginationData.getPageSize());
-            }
-            if (query != null) {
-                return query.list();
+            @SuppressWarnings("unchecked")
+            final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, collection, entityClass,
+                    dictionary)
+                    .withPossibleFilters(filters)
+                    .withPossibleSorting(sorting)
+                    .withPossiblePagination(pagination)
+                    .build();
+            if (possibleQuery.isPresent()) {
+                return possibleQuery.get().list();
             }
         }
         return collection;
