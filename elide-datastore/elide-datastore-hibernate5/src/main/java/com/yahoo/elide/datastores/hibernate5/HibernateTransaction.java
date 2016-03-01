@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -21,7 +20,14 @@ import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.InlineCheck;
 
-import org.hibernate.*;
+
+import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
+import org.hibernate.ScrollMode;
+import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 
 import org.hibernate.criterion.Criterion;
@@ -31,7 +37,13 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 
 /**
  * Hibernate Transaction implementation.
