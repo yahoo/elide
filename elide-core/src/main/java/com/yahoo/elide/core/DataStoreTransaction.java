@@ -121,7 +121,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> The type parameter
      * @return The optionally filtered, sorted and paginated collection
      */
-    default <T,R> Collection filterSortOrPaginateCollection(Collection collection, Class<T> entityClass,
+    default <T, R> Collection filterSortOrPaginateCollection(Collection collection, Class<T> entityClass,
                                                           EntityDictionary dictionary, Optional<Set<Predicate>> filters,
                                                           Optional<Sorting> sorting, Optional<Pagination> pagination,
                                                             Class<R> targetEntityClass) {

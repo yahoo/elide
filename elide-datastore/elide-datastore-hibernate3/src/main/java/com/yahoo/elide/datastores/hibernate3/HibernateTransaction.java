@@ -230,7 +230,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T,R> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
+    public <T, R> Collection filterSortOrPaginateCollection(final Collection collection, final Class<T> entityClass,
                                                          final EntityDictionary dictionary,
                                                          final Optional<Set<Predicate>> filters,
                                                          final Optional<Sorting> sorting,

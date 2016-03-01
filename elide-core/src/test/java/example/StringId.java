@@ -5,7 +5,7 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
