@@ -776,7 +776,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Gets the relational entities to a entity (author/1/books) - books would be fetched here
+     * Gets the relational entities to a entity (author/1/books) - books would be fetched here.
      * @param relationName The relationship name - eg. books
      * @param checked The flag to denote if we are doing security checks on this relationship
      * @return The resulting records from underlying data store
@@ -868,7 +868,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Retrieve an uncheck/unfiltered set of relations.
      *
-     * @return
+     * @return the set of PersistentResource
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
@@ -1084,7 +1084,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Fetch a resource with support for lambda function for getting relationships and attributes
+     * Fetch a resource with support for lambda function for getting relationships and attributes.
      * @return The Resource
      */
     public Resource toResourceWithSortingAndPagination() {
@@ -1092,7 +1092,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Fetch a resource with support for lambda function for getting relationships and attributes
+     * Fetch a resource with support for lambda function for getting relationships and attributes.
      * @param relationshipSupplier The relationship supplier (getRelationships())
      * @return The Resource
      */

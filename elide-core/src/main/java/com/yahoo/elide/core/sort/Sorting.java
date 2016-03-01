@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
@@ -34,7 +33,7 @@ public class Sorting {
 
 
     /**
-     * Constructs a new Sorting instance
+     * Constructs a new Sorting instance.
      * @param sortingRules The map of sorting rules
      */
     public Sorting(final Map<String, SortOrder> sortingRules) {
@@ -44,7 +43,7 @@ public class Sorting {
     }
 
     /**
-     * Checks to see if the sorting rules are valid for the given JPA class
+     * Checks to see if the sorting rules are valid for the given JPA class.
      * @param entityClass The target jpa entity
      * @param dictionary The elide entity dictionary
      * @param <T> The Type of the target entity
@@ -78,7 +77,7 @@ public class Sorting {
     }
 
     /**
-     * Given the sorting rules validate sorting rules against the entities bound to the entityClass
+     * Given the sorting rules validate sorting rules against the entities bound to the entityClass.
      * @param entityClass  The root class for sorting (eg. /book?sort=-title this would be package.Book)
      * @param dictionary The elide entity dictionary
      * @param <T> The entityClass
@@ -93,7 +92,7 @@ public class Sorting {
     }
 
     /**
-     * @return Fetches the base rules, ignoring validation against an entity class
+     * @return Fetches the base rules, ignoring validation against an entity class.
      */
     public Map<String, SortOrder> getSortingRules() {
         return this.sortRules;
@@ -130,7 +129,7 @@ public class Sorting {
     }
 
     /**
-     * Internal helper method to parse sorting rule strings
+     * Internal helper method to parse sorting rule strings.
      * @param sortingRule The string from the queryParams
      * @param sortingRules The final shared reference to the sortingRules map
      */

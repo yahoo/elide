@@ -58,7 +58,7 @@ public class FilterScope {
 
     /**
 
-     * Returns true if pagination limits were added to this query
+     * Returns true if pagination limits were added to this query.
      *
      * NOTE: This method is often used in GET transaction implementations
      *
@@ -69,7 +69,7 @@ public class FilterScope {
     }
 
     /**
-     * Returns true if pagination limits were added to this query
+     * Returns true if pagination limits were added to this query.
      *
      * NOTE: This method is often used in GET transaction implementations
      *
