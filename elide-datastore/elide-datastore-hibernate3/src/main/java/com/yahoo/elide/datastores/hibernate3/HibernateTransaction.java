@@ -127,16 +127,19 @@ public class HibernateTransaction implements DataStoreTransaction {
         Set<Order> validatedSortingRules = null;
         if (filterScope.hasSortingRules()) {
             final Sorting sorting = filterScope.getRequestScope().getSorting();
-            final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(loadClass,
-                    filterScope.getRequestScope().getDictionary());
-            if (!validSortingRules.isEmpty()) {
-                final Set<Order> sortingRules = new LinkedHashSet<>();
-                validSortingRules.entrySet().stream().forEachOrdered(entry ->
-                        sortingRules.add(entry.getValue().equals(Sorting.SortOrder.desc)
-                                ? Order.desc(entry.getKey())
-                                : Order.asc(entry.getKey()))
-                );
-                validatedSortingRules = sortingRules;
+            final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
+            if (sorting.hasValidSortingRules(loadClass, dictionary)) {
+                final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(loadClass,
+                        dictionary);
+                if (!validSortingRules.isEmpty()) {
+                    final Set<Order> sortingRules = new LinkedHashSet<>();
+                    validSortingRules.entrySet().stream().forEachOrdered(entry ->
+                            sortingRules.add(entry.getValue().equals(Sorting.SortOrder.desc)
+                                    ? Order.desc(entry.getKey())
+                                    : Order.asc(entry.getKey()))
+                    );
+                    validatedSortingRules = sortingRules;
+                }
             }
         }
 

@@ -20,7 +20,10 @@ import java.util.*;
  * Generates an HQL Transaction.
  */
 public class HQLTransaction {
-
+    /**
+     * HQLTransaction Builder. Can build an HQL Query taking optional filters, sorting and pagination rules.
+     * @param <T> The Builder Type
+     */
     public static class Builder<T> {
         private final Session session;
         private final Collection collection;

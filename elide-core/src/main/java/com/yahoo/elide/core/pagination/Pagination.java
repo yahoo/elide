@@ -47,8 +47,7 @@ public class Pagination {
     private int pageSize;
 
     public int getPage() {
-        // maps to start which is page*pageSize; start 10, limit 10 for 10-20
-        return (page > 0 ? page-1 : 0) * pageSize;
+        return (page > 0 ? page - 1 : 0) * pageSize;
     }
 
     /**
