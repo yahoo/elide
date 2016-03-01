@@ -21,11 +21,11 @@ public class PageTest {
     public void shouldParseQueryParamsForCurrentPageAndPageSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[size]", "10");
-        queryParams.add("page[number]", "1");
+        queryParams.add("page[number]", "2");
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getOffset(), 1);
+        Assert.assertEquals(pageData.getOffset(), 10);
         Assert.assertEquals(pageData.getLimit(), 10);
     }
 
@@ -37,7 +37,7 @@ public class PageTest {
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getOffset(), 2);
+        Assert.assertEquals(pageData.getOffset(), 10);
         Assert.assertEquals(pageData.getLimit(), 10);
     }
 
@@ -48,7 +48,7 @@ public class PageTest {
 
         Pagination pageData = Pagination.parseQueryParams(queryParams);
 
-        Assert.assertEquals(pageData.getOffset(), 1);
+        Assert.assertEquals(pageData.getOffset(), 0);
         Assert.assertEquals(pageData.getLimit(), 10);
     }
 }
