@@ -322,56 +322,44 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+        Assert.assertEquals(firstBookName, "The Roman Republic");
+    }
+
+    @Test
+    public void testPageinationOnSubRecords() {
+        final String httpResult = RestAssured.get("/author/${orsonCardId}/books?sort=-title&page[size]=1").asString();
+        def result = mapper.readTree(httpResult);
+        Assert.assertEquals(result.get("data").size(), 1);
+        JsonNode book = result.get("data").get(0);
+        Assert.assertEquals(book.get("attributes").get("title").asText(), "Enders Shadow");
     }
 
     @Test
     public void testPaginationNoFilterSortDescPagination() {
-        def bookIdsWithNonNullGenre = [] as Set
-        for (JsonNode book : nullNedBooks.get("data")) {
-            if (!book.get("attributes").get("genre").isNull()) {
-                bookIdsWithNonNullGenre.add(book.get("id"))
-            }
-        }
-
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title&page[number]=2&page[size]=3").asString())
         Assert.assertTrue(result.get("data").size() == 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "Life with Null Ned 2");
+        Assert.assertEquals(firstBookName, "Life with Null Ned");
     }
 
     @Test
     public void testPaginationNoFilterMultiSortPagination() {
-        def bookIdsWithNonNullGenre = [] as Set
-        for (JsonNode book : nullNedBooks.get("data")) {
-            if (!book.get("attributes").get("genre").isNull()) {
-                bookIdsWithNonNullGenre.add(book.get("id"))
-            }
-        }
-
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title,genre&page[size]=3").asString())
         Assert.assertTrue(result.get("data").size() == 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Roman Republic");
+        Assert.assertEquals(firstBookName, "Life with Null Ned"); // has a null genre, should be first.
     }
 
     @Test
     public void testPublishDateLessThanFilter() {
-        def bookIdsWithNonNullGenre = [] as Set
-        for (JsonNode book : nullNedBooks.get("data")) {
-            if (!book.get("attributes").get("genre").isNull()) {
-                bookIdsWithNonNullGenre.add(book.get("id"))
-            }
-        }
-
         def result = mapper.readTree(
-                RestAssured.get("/book?filter[book.publishDate][lt]=1454638927411&page[number]=2&page[size]=3").asString())
+                RestAssured.get("/book?filter[book.publishDate][lt]=1454638927411&page[size]=2").asString())
         Assert.assertTrue(result.get("data").size() > 0);
         for (JsonNode book : result.get("data")) {
             // we should be starting off at index 4 here - this is true. However due to limitations of the test environment
@@ -388,15 +376,9 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(result.get("data").size(), 1);
         JsonNode book = result.get("data").get(0);
         long publishDate = book.get("attributes").get("publishDate").asLong();
-        Assert.assertEquals(publishDate, 1464638927412L);
-    }
-
-    @Test
-    public void testPageinationOnSubRecords() {
-        def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?page[size]=2").asString());
-        Assert.assertEquals(result.get("data").size(), 1);
-        JsonNode book = result.get("data").get(0);
-        Assert.assertEquals(book.get("attributes").get("title").asText(), "Enders Shadow");
+        Assert.assertEquals(publishDate, 1454638927412L);
+        int authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asInt();
+        Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
     }
 
     @AfterTest

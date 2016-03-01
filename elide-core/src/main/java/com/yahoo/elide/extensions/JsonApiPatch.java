@@ -9,7 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.SecurityMode;
+import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.jsonapi.models.Data;

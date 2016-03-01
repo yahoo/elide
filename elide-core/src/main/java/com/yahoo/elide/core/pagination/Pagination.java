@@ -40,11 +40,16 @@ public class Pagination {
         PAGE_KEYS.put("page[offset]", PaginationKey.page);
     }
 
-    @Getter
+
     private int page;
 
     @Getter
     private int pageSize;
+
+    public int getPage() {
+        // maps to start which is page*pageSize; start 10, limit 10 for 10-20
+        return (page > 0 ? page-1 : 0) * pageSize;
+    }
 
     /**
      * Know if this is the default instance.

@@ -39,7 +39,7 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, new TestLogger());
+        final RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, new TestAuditLogger());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);
@@ -76,7 +76,7 @@ public class LogMessageTest {
     public static class TestLoggerException extends RuntimeException {
     }
 
-    private Logger testLogger = new Slf4jLogger();
+    private AuditLogger testAuditLogger = new Slf4jLogger();
 
     @Test(threadPoolSize = 10, invocationCount = 10)
     public void threadSafeLogger() throws IOException, InterruptedException {
@@ -88,9 +88,9 @@ public class LogMessageTest {
             }
         };
         try {
-            testLogger.log(failMessage);
+            testAuditLogger.log(failMessage);
             Thread.sleep(Math.floorMod(new Random().nextInt(), 100));
-            testLogger.commit();
+            testAuditLogger.commit();
             Assert.fail("Exception expected");
         } catch (TestLoggerException e) {
             Assert.assertSame(e, testException);
@@ -98,7 +98,7 @@ public class LogMessageTest {
 
         // should not cause another exception
         try {
-            testLogger.commit();
+            testAuditLogger.commit();
         } catch (TestLoggerException e) {
             Assert.fail("Exception not cleared from previous logger commit");
         }

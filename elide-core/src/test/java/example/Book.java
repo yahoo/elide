@@ -12,7 +12,7 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +40,7 @@ public class Book {
     private String title;
     private String genre;
     private String language;
+    private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private boolean onCreateBookCalled = false;
 
@@ -74,6 +75,14 @@ public class Book {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public void setPublishDate(final long publishDate) {
+        this.publishDate = publishDate;
+    }
+
+    public long getPublishDate() {
+        return this.publishDate;
     }
 
     @ManyToMany

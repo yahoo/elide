@@ -50,6 +50,7 @@ import javax.persistence.Transient;
 class EntityBinding {
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
+    public final Class<?> entityClass;
     public final String jsonApi;
     public final ConcurrentLinkedDeque<String> attrsDeque;
     public final List<String> attrs;
@@ -62,6 +63,7 @@ class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields;
     public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
     public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
+    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations;
     @Getter private AccessibleObject idField;
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
@@ -85,6 +87,8 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap();
         aliasesToFields = null;
         accessibleObject = null;
+        entityClass = null;
+        annotations = null;
     }
 
     public EntityBinding(Class<?> cls, String type) {
@@ -93,6 +97,7 @@ class EntityBinding {
                 Arrays.asList(cls.getFields()),
                 Arrays.asList(cls.getMethods()));
 
+        entityClass = cls;
         jsonApi = type;
         // Initialize our maps for this entity. Duplicates are checked above.
         attrsDeque = new ConcurrentLinkedDeque<>();
@@ -104,6 +109,7 @@ class EntityBinding {
         fieldsToTriggers = new MultiValueMap<>();
         aliasesToFields = new ConcurrentHashMap<>();
         accessibleObject = new ConcurrentHashMap<>();
+        annotations = new ConcurrentHashMap<>();
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
 
@@ -329,5 +335,34 @@ class EntityBinding {
     public <A extends Annotation> Collection<Method> getTriggers(Class<A> annotationClass, String fieldName) {
         Collection<Method> methods = fieldsToTriggers.getCollection(Pair.of(annotationClass, fieldName));
         return methods == null ? Collections.emptyList() : methods;
+    }
+
+    /**
+     * Cache placeholder for no annotation.
+     */
+    private static final Annotation NO_ANNOTATION = new Annotation() {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return null;
+        }
+    };
+
+    /**
+     * Return annotation from class, parents or package.
+     *
+     * @param annotationClass the annotation class
+     * @param <A> annotation type
+     * @return the annotation
+     */
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        Annotation annotation = annotations.get(annotationClass);
+        if (annotation == null) {
+            annotation = EntityDictionary.getFirstAnnotation(entityClass, Collections.singletonList(annotationClass));
+            if (annotation == null) {
+                annotation = NO_ANNOTATION;
+            }
+            annotations.putIfAbsent(annotationClass, annotation);
+        }
+        return annotation == NO_ANNOTATION ? null : (A) annotation;
     }
 }

@@ -2,7 +2,7 @@ package com.yahoo.elide.example.persistence.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.Role;
+import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

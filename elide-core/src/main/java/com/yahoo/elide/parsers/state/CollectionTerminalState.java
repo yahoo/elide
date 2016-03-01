@@ -19,7 +19,6 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
-import com.yahoo.elide.jsonapi.document.processors.SortProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -28,11 +27,7 @@ import com.yahoo.elide.security.User;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -70,13 +65,6 @@ public class CollectionTerminalState extends BaseState {
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
-
-        // if we are using pagination, then we have also applied sorting rules directly into the HQL, etc
-        if (requestScope.getPagination().isEmpty()) {
-            DocumentProcessor sortProcessor = new SortProcessor();
-            sortProcessor.execute(jsonApiDocument, collection, queryParams);
-        }
-
         JsonNode responseBody = mapper.convertValue(jsonApiDocument, JsonNode.class);
         return () -> Pair.of(HttpStatus.SC_OK, responseBody);
     }
@@ -103,7 +91,7 @@ public class CollectionTerminalState extends BaseState {
         final Set<PersistentResource> collection;
 
         if (parent.isPresent()) {
-            collection = parent.get().getRelation(relationName.get());
+            collection = parent.get().getRelationCheckedFiltered(relationName.get());
         } else {
             collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
         }
@@ -117,6 +105,7 @@ public class CollectionTerminalState extends BaseState {
         Preconditions.checkNotNull(user);
 
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
+
         return new Data<>(resources);
     }
 

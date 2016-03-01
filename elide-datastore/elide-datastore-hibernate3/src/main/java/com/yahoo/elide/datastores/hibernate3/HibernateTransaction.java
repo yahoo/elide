@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -16,11 +16,13 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
-import com.yahoo.elide.security.Check;
 import com.yahoo.elide.security.User;
 
+
 import org.apache.commons.lang3.StringUtils;
+import com.yahoo.elide.security.checks.InlineCheck;
 import org.hibernate.*;
+
 import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
@@ -111,7 +113,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope<T> filterScope) {
+    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
 
         String type = filterScope.getRequestScope().getDictionary().getBinding(loadClass);
@@ -183,39 +185,17 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param filterScope the filterScope
      * @return the criterion
      */
-    public <T> Criterion buildCheckCriterion(FilterScope<T> filterScope) {
+    public Criterion buildCheckCriterion(FilterScope filterScope) {
         Criterion compositeCriterion = null;
-        List<Check<T>> checks = filterScope.getChecks();
+        List<InlineCheck> checks = filterScope.getInlineChecks();
         RequestScope requestScope = filterScope.getRequestScope();
-        for (Check check : checks) {
-            Criterion criterion;
+        for (InlineCheck check : checks) {
+            Criterion criterion = null;
             if (check instanceof CriteriaCheck) {
                 criterion = ((CriteriaCheck) check).getCriterion(requestScope);
-            } else {
-                criterion = null;
             }
 
-            // if no criterion, examine userPermission and ANY state
-            if (criterion == null) {
-                switch (filterScope.getRequestScope().getUser().checkUserPermission(check)) {
-                    // ALLOW and ALL try more criteria
-                    case ALLOW:
-                        if (!filterScope.isAny()) {
-                            continue;
-                        }
-                        break;
-
-                    // DENY and ANY check try more criteria
-                    case DENY:
-                        if (filterScope.isAny()) {
-                            continue;
-                        }
-                        break;
-                }
-
-                // Otherwise no criteria filtering possible
-                return null;
-            } else if (compositeCriterion == null) {
+            if (compositeCriterion == null) {
                 compositeCriterion = criterion;
             } else if (filterScope.isAny()) {
                 compositeCriterion = Restrictions.or(compositeCriterion, criterion);
