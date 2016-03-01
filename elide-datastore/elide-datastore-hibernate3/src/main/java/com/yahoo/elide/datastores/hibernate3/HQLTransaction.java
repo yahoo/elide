@@ -22,6 +22,7 @@ import java.util.*;
 public class HQLTransaction {
     /**
      * HQLTransaction Builder. Can build an HQL Query taking optional filters, sorting and pagination rules.
+     *
      * @param <T> The Builder Type
      */
     public static class Builder<T> {
@@ -89,7 +90,7 @@ public class HQLTransaction {
         }
 
         public Builder withPagination(final Pagination pagination) {
-            if (pagination != null && !pagination.isDefault()) {
+            if (pagination != null && !pagination.isDefaultInstance()) {
                 this.pagination = pagination;
             }
             return this;
@@ -126,8 +127,8 @@ public class HQLTransaction {
                 if (query == null) {
                     query = session.createFilter(collection, "");
                 }
-                query.setFirstResult(pagination.getPage());
-                query.setMaxResults(pagination.getPageSize());
+                query.setFirstResult(pagination.getOffset());
+                query.setMaxResults(pagination.getLimit());
             }
             return Optional.ofNullable(query);
         }
