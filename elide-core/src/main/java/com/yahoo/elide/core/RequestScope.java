@@ -13,13 +13,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
 import lombok.Getter;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import lombok.extern.slf4j.Slf4j;
-
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +32,6 @@ import java.util.function.Supplier;
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
-@Slf4j
 public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
@@ -216,11 +213,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
     }
 
-    public void logAuthFailure(List<Class<? extends Check>> checks, String type, String id) {
-        failedAuthorizations.add(() -> {
-            return String.format("ForbiddenAccess %s %s#%s", checks, type, id);
-        });
+    public void logAuthFailure(String type, String id) {
+        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s#%s", type, id));
     }
+
+    public void logAuthFailure(Class<? extends Annotation> annotationClass, String failureMessage) {
+        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s:%s", annotationClass, failureMessage));
+    };
 
     public String getAuthFailureReason() {
         Set<String> uniqueReasons = new HashSet<>();
