@@ -25,7 +25,7 @@ public class Pagination {
     /**
      * Denotes the internal field names for paging.
      */
-    public enum PaginationKey { offset, limit }
+    public enum PaginationKey { offset, limit, page }
 
     public static final int DEFAULT_PAGE_SIZE = 500;
     public static final int MAX_PAGE_SIZE = 10000;
@@ -36,19 +36,15 @@ public class Pagination {
     static {
         PAGE_KEYS.put("page[size]", PaginationKey.limit);
         PAGE_KEYS.put("page[limit]", PaginationKey.limit);
-        PAGE_KEYS.put("page[number]", PaginationKey.offset);
+        PAGE_KEYS.put("page[number]", PaginationKey.page);
         PAGE_KEYS.put("page[offset]", PaginationKey.offset);
     }
 
-
+    @Getter
     private int offset;
 
     @Getter
     private int limit;
-
-    public int getOffset() {
-        return (offset > 0 ? offset - 1 : 0) * limit;
-    }
 
     /**
      * Know if this is the default instance.
@@ -93,13 +89,22 @@ public class Pagination {
         if (pageData.isEmpty()) {
             return DEFAULT_PAGINATION;
         }
+
+        boolean isPageBased = pageData.containsKey(PaginationKey.page);
+        int limit = !pageData.containsKey(PaginationKey.limit) ? DEFAULT_PAGE_SIZE : pageData.get(PaginationKey.limit);
+        if (limit < 0) {
+            throw new InvalidValueException("page[size] and page[limit] must contain positive values.");
+        }
+
+        if (isPageBased && !pageData.containsKey(PaginationKey.offset)) {
+            int page = pageData.get(PaginationKey.page);
+            pageData.put(PaginationKey.offset, (page > 0 ? page - 1 : 0) * limit);
+        }
         if (!pageData.containsKey(PaginationKey.offset)) {
-            pageData.put(PaginationKey.offset, 1);
+            pageData.put(PaginationKey.offset, 0);
         }
-        if (!pageData.containsKey(PaginationKey.limit)) {
-            pageData.put(PaginationKey.limit, DEFAULT_PAGE_SIZE);
-        }
-        return new Pagination(pageData.get(PaginationKey.offset), pageData.get(PaginationKey.limit));
+        // offset, page, limit
+        return new Pagination(pageData.get(PaginationKey.offset), limit);
     }
 
     /**
