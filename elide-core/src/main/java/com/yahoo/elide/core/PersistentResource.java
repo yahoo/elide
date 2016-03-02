@@ -763,11 +763,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        final Set<Predicate> filters = Collections.emptySet();
+        Set<Predicate> filters = Collections.emptySet();
         if (!requestScope.getPredicates().isEmpty()) {
             final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
             final String valType = dictionary.getBinding(entityClass);
-            filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
+            filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
         }
         return getRelationUnchecked(relationName, filters);
     }
@@ -786,12 +786,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final boolean hasPredicates = !requestScope.getPredicates().isEmpty();
         final boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
         final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
-        final Set<Predicate> filters = Collections.emptySet();
+        Set<Predicate> filters = Collections.emptySet();
         if (hasPredicates) {
             final String valType = dictionary.getBinding(
                     dictionary.getParameterizedType(obj, relationName)
             );
-            filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
+            filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
         }
         return (hasPredicates || hasSortingRules || hasPagination)
                 ? getRelationUncheckedWithSortingAndPagination(relationName, filters)
