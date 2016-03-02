@@ -711,7 +711,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public PersistentResource getRelation(String relation, String id) {
         Set<Predicate> filters;
-        // Filtering not supported in Patxh extension
+        // Filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
             filters = Collections.emptySet();
         } else {
@@ -759,20 +759,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName, boolean checked) {
+        if (checked && !checkRelation(relationName)) {
+            return Collections.emptySet();
+        }
+
+        final Set<Predicate> filters = Collections.emptySet();
         if (!requestScope.getPredicates().isEmpty()) {
             final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
             final String valType = dictionary.getBinding(entityClass);
-            final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
-            if (checked) {
-                return getRelationChecked(relationName, filters);
-            }
-            return getRelationUnchecked(relationName, filters);
-        } else {
-            if (checked) {
-                return getRelationChecked(relationName, Collections.<Predicate>emptySet());
-            }
-            return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
+            filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
         }
+        return getRelationUnchecked(relationName, filters);
     }
 
     /**
@@ -782,26 +779,23 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return The resulting records from underlying data store
      */
     private Set<PersistentResource> getRelationWithSortingAndPagination(String relationName, boolean checked) {
-        boolean hasPredicates = !requestScope.getPredicates().isEmpty();
-        boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
-        final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
-        if (hasPredicates || hasSortingRules || hasPagination) {
-            final Set<Predicate> filters = Sets.newLinkedHashSet();
-            if (hasPredicates) {
-                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-                final String valType = dictionary.getBinding(entityClass);
-                filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
-            }
-            if (checked && checkRelation(relationName)) {
-                return getRelationUncheckedWithSortingAndPagination(relationName, filters);
-            }
-        } else {
-            if (checked) {
-                return getRelationChecked(relationName, Collections.<Predicate>emptySet());
-            }
-            return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
+        if (checked && !checkRelation(relationName)) {
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
+
+        final boolean hasPredicates = !requestScope.getPredicates().isEmpty();
+        final boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
+        final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
+        final Set<Predicate> filters = Collections.emptySet();
+        if (hasPredicates) {
+            final String valType = dictionary.getBinding(
+                    dictionary.getParameterizedType(obj, relationName)
+            );
+            filters.addAll(new HashSet<>(requestScope.getPredicatesOfType(valType)));
+        }
+        return (hasPredicates || hasSortingRules || hasPagination)
+                ? getRelationUncheckedWithSortingAndPagination(relationName, filters)
+                : getRelationUnchecked(relationName, filters);
     }
 
     /**
