@@ -10,7 +10,6 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,7 @@ public class Sorting {
     public enum SortOrder { asc, desc }
 
     private static final Sorting DEFAULT_EMPTY_INSTANCE = new Sorting(null);
-
     private final Map<String, SortOrder> sortRules = new LinkedHashMap<>();
-    private volatile Map<Class<?>, Map<String, SortOrder>> validSortRules = null;
-
 
     /**
      * Constructs a new Sorting instance.
@@ -48,32 +44,19 @@ public class Sorting {
      * @param dictionary The elide entity dictionary
      * @param <T> The Type of the target entity
      * @return The validity of the sorting rules on the target class
+     * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
                                         final EntityDictionary dictionary) throws InvalidValueException {
-        if (validSortRules == null) {
-            validSortRules = new LinkedHashMap<>();
-        }
-        final Map<String, SortOrder> validSortingRules = new LinkedHashMap<>();
-        final List<String> entities = dictionary.getAttributes(entityClass);
-        if (entities != null) {
-            entities.stream()
-                    .filter(sortRules::containsKey)
-                    .forEachOrdered(entity -> validSortingRules.put(entity, sortRules.get(entity)));
-        }
-        // lazy check and set
-        if (validSortingRules.isEmpty()) {
-            throw new InvalidValueException(entityClass.getSimpleName()
-                        + " doesn't contain the fields " + sortRules.keySet());
-        } else if (validSortingRules.size() != sortRules.size()) {
-            throw new InvalidValueException(entityClass.getSimpleName() + " only contains the sort fields "
-                    + validSortingRules.keySet());
-        }
-        if (!validSortingRules.isEmpty() && !validSortRules.containsKey(entityClass)) {
-            validSortRules.put(entityClass, validSortingRules);
-        }
 
-        return validSortRules.containsKey(entityClass);
+        final List<String> entities = dictionary.getAttributes(entityClass);
+        sortRules.keySet().stream().forEachOrdered(sortRule -> {
+            if (!entities.contains(sortRule)) {
+                throw new InvalidValueException(entityClass.getSimpleName()
+                        + " doesn't contain the field " + sortRule);
+            }
+        });
+        return true;
     }
 
     /**
@@ -82,13 +65,13 @@ public class Sorting {
      * @param dictionary The elide entity dictionary
      * @param <T> The entityClass
      * @return The valid sorting rules - validated through the entity dictionary, or empty dictionary
+     * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
     public <T> Map<String, SortOrder> getValidSortingRules(final Class<T> entityClass,
-                                                           final EntityDictionary dictionary) {
-        if (hasValidSortingRules(entityClass, dictionary)) {
-            return validSortRules.get(entityClass);
-        }
-        return Collections.emptyMap();
+                                                           final EntityDictionary dictionary)
+            throws InvalidValueException {
+        hasValidSortingRules(entityClass, dictionary);
+        return sortRules;
     }
 
     /**

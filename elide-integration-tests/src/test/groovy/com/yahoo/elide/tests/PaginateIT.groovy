@@ -347,13 +347,14 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testPaginationNoFilterMultiSortPagination() {
+        //select * from book order by title desc, genre asc;
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title,genre&page[size]=3").asString())
         Assert.assertTrue(result.get("data").size() == 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "Life with Null Ned"); // has a null genre, should be first.
+        Assert.assertEquals(firstBookName, "The Roman Republic"); // has a null genre, should be first.
     }
 
     @Test
@@ -373,10 +374,11 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testPageAndSortOnSubRecords() {
         def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?sort=-title,publishDate&page[size]=1").asString());
+        //select * from book join book_author on book.`id` = book_author.`books_id` where book_author.`authors_id` = 2 order by book.`title` desc, book.`publishDate` asc limit 1;
         Assert.assertEquals(result.get("data").size(), 1);
         JsonNode book = result.get("data").get(0);
         long publishDate = book.get("attributes").get("publishDate").asLong();
-        Assert.assertEquals(publishDate, 1454638927412L);
+        Assert.assertEquals(publishDate, 1464638927412L);
         int authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asInt();
         Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
     }
@@ -402,7 +404,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         String errorMsg = errors.asText();
 
-        Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: Book only contains the sort fields [publishDate, title]");
+        Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: Book doesn't contain the field onion");
 
     }
 
