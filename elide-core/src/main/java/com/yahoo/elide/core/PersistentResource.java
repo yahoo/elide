@@ -763,7 +763,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        Set<Predicate> filters = Collections.emptySet();
+        Set<Predicate> filters = new HashSet<>();
         if (!requestScope.getPredicates().isEmpty()) {
             final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
             final String valType = dictionary.getBinding(entityClass);
@@ -819,6 +819,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
             return false;
         }
+
+        try {
+            // If we cannot read any element of this type, don't try to filter
+            requestScope.getPermissionExecutor().checkUserPermissions(
+                    dictionary.getParameterizedType(obj, relationName),
+                    ReadPermission.class);
+        } catch (ForbiddenAccessException e) {
+            return false;
+        }
+
         return true;
     }
 
