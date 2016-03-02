@@ -22,6 +22,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     private JsonNode authors = null
     private String asimovId = null
     private JsonNode asimovBooks = null
+    private String thomasHarrisId = null
+    private JsonNode thomasHarrisBooks = null
     private String nullNedId = null
     private JsonNode nullNedBooks = null
     private String orsonCardId = null
@@ -81,6 +83,50 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                           "attributes": {
                             "title": "For Whom the Bell Tolls",
                             "genre": "Literary Fiction",
+                            "language": "English"
+                          }
+                        }
+                      }
+                    ]
+                    ''')
+                .patch("/")
+
+        RestAssured
+                .given()
+                .contentType("application/vnd.api+json; ext=jsonpatch")
+                .accept("application/vnd.api+json; ext=jsonpatch")
+                .body('''
+                    [
+                      {
+                        "op": "add",
+                        "path": "/author",
+                        "value": {
+                          "id": "12345678-1234-1234-1234-1234567890ab",
+                          "type": "author",
+                          "attributes": {
+                            "name": "Thomas Harris"
+                          },
+                          "relationships": {
+                            "books": {
+                              "data": [
+                                {
+                                  "type": "book",
+                                  "id": "12345678-1234-1234-1234-1234567890ac"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book",
+                        "value": {
+                          "type": "book",
+                          "id": "12345678-1234-1234-1234-1234567890ac",
+                          "attributes": {
+                            "title": "I'm OK - You're OK",
+                            "genre": "Psychology & Counseling",
                             "language": "English"
                           }
                         }
@@ -270,13 +316,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             if (author.get("attributes").get("name").asText() == "Orson Scott Card") {
                 orsonCardId = author.get("id").asText();
             }
+
+            if (author.get("attributes").get("name").asText() == "Thomas Harris") {
+                thomasHarrisId = author.get("id").asText();
+            }
         }
 
         Assert.assertNotNull(asimovId)
         Assert.assertNotNull(nullNedId)
+        Assert.assertNotNull(thomasHarrisId)
 
         asimovBooks = mapper.readTree(RestAssured.get("/author/${asimovId}/books").asString())
         nullNedBooks = mapper.readTree(RestAssured.get("/author/${nullNedId}/books").asString())
+        thomasHarrisBooks = mapper.readTree(RestAssured.get("/author/${thomasHarrisId}/books").asString())
     }
 
     @Test
@@ -451,6 +503,23 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testRootFilterPrefixWithSpecialChars() {
+        int titleStartsWithTheBookCount = 0
+        for (JsonNode node : books.get("data")) {
+            if (node.get("attributes").get("title").asText().startsWith("I'm")) {
+                titleStartsWithTheBookCount += 1
+            }
+        }
+
+        Assert.assertTrue(titleStartsWithTheBookCount > 0)
+
+        def titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book.title][prefix]=I'm").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+    }
+
+    @Test
     public void testRootFilterInfix() {
         int titleContainsTheBookCount = 0
         for (JsonNode node : books.get("data")) {
@@ -617,6 +686,23 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         def titleStartsWithTheBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.title][prefix]=The").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+    }
+
+    @Test
+    public void testNonRootFilterPrefixWithSpecialChars() {
+        int titleStartsWithTheBookCount = 0
+        for (JsonNode node : thomasHarrisBooks.get("data")) {
+            if (node.get("attributes").get("title").asText().startsWith("I'm")) {
+                titleStartsWithTheBookCount += 1
+            }
+        }
+
+        Assert.assertTrue(titleStartsWithTheBookCount > 0)
+
+        def titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/author/${thomasHarrisId}/books?filter[book.title][prefix]=I'm").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
