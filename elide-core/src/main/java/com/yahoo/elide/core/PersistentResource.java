@@ -576,7 +576,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    requestScope.logAuthFailure(persistentResource.getType(), persistentResource.getId());
+                    requestScope.logAuthFailure(
+                            null,
+                            persistentResource.getType(),
+                            persistentResource.getId());
                     throw new ForbiddenAccessException("Resource Not Shareable");
                 }
             }
