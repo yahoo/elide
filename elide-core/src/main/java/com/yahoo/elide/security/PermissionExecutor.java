@@ -164,7 +164,6 @@ public class PermissionExecutor {
         commitCheckQueue.forEach((expr) -> {
             ExpressionResult result = expr.getExpression().evaluate();
             if (result.getStatus() == FAIL) {
-                requestScope.logAuthFailure(expr.getAnnotationClass(), result.getFailureMessage());
                 throw new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName()
                         + " " + result.getFailureMessage());
             }
@@ -185,7 +184,6 @@ public class PermissionExecutor {
                 commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
             }
         } else if (result.getStatus() == FAIL) {
-            requestScope.logAuthFailure(annotationClass, result.getFailureMessage());
             throw new ForbiddenAccessException(annotationClass.getSimpleName() + " " + result.getFailureMessage());
         }
     }

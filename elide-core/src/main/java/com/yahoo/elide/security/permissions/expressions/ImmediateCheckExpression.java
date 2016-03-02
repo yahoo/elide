@@ -112,6 +112,12 @@ public class ImmediateCheckExpression implements Expression {
                         + " for object: "
                         + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
         }
+        if (resource == null) {
+            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(check.getClass());
+        } else {
+            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(
+                    check.getClass(), resource.getType(), resource.getId());
+        }
         return new ExpressionResult(FAIL, failure);
     }
 }
