@@ -27,8 +27,8 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 @Slf4j
 public class ImmediateCheckExpression implements Expression {
     protected final Check check;
-    private final PersistentResource resource;
-    private final RequestScope requestScope;
+    protected final PersistentResource resource;
+    protected final RequestScope requestScope;
     private final Optional<ChangeSpec> changeSpec;
     private final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
 

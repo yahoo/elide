@@ -22,7 +22,6 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RES
  */
 @Slf4j
 public class DeferredCheckExpression extends ImmediateCheckExpression {
-
     /**
      * Constructor.
      *
@@ -42,10 +41,14 @@ public class DeferredCheckExpression extends ImmediateCheckExpression {
 
     @Override
     public ExpressionResult evaluate() {
-        if (check instanceof CommitCheck) {
+        if (check instanceof CommitCheck || isNewlyCreated()) {
             log.debug("Deferring check: {}", check);
             return DEFERRED_RESULT;
         }
         return super.evaluate();
+    }
+
+    private boolean isNewlyCreated() {
+        return requestScope.getNewResources().contains(resource);
     }
 }
