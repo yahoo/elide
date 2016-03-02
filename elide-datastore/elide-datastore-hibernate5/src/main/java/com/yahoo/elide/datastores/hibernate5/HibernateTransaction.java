@@ -40,9 +40,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -155,19 +155,12 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (filterScope.hasSortingRules()) {
             final Sorting sorting = filterScope.getRequestScope().getSorting();
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
-            if (sorting.hasValidSortingRules(entityClass, dictionary)) {
-                final Map<String, Sorting.SortOrder> validSortingRules = sorting.getValidSortingRules(entityClass,
-                        dictionary);
-                if (!validSortingRules.isEmpty()) {
-                    final Set<Order> sortingRules = new LinkedHashSet<>();
-                    validSortingRules.entrySet().stream().forEachOrdered(entry ->
-                            sortingRules.add(entry.getValue().equals(Sorting.SortOrder.desc)
-                                    ? Order.desc(entry.getKey())
-                                    : Order.asc(entry.getKey()))
-                    );
-                    validatedSortingRules = sortingRules;
-                }
-            }
+            validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
+                    .stream()
+                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc) ? Order.desc(entry.getKey())
+                            : Order.asc(entry.getKey())
+                    )
+                    .collect(Collectors.toSet());
         }
 
         return loadObjects(entityClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
