@@ -736,6 +736,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     /**
      * Get collection of resources from relation field.
+     * NOTE: This will return an UNFILITERED collection.
      *
      * @param relationName field
      * @param filters A set of filters (possibly empty) to attempt to push down to the data store to filter
@@ -768,7 +769,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        return (Set) filter(ReadPermission.class, (Set) getRelationUnchecked(relationName, filters));
+        return getRelationUnchecked(relationName, filters);
     }
 
     /**
