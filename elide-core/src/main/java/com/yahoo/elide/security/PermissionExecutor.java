@@ -5,17 +5,20 @@
  */
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.ExtractedChecks;
 import com.yahoo.elide.security.permissions.ExpressionBuilder;
+import com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import com.yahoo.elide.security.checks.Check;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -23,14 +26,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions;
-
 /**
  * Class responsible for managing the life-cycle and execution of checks.
  */
-@Slf4j
 public class PermissionExecutor {
     private final Queue<QueuedCheck> commitCheckQueue = new LinkedBlockingQueue<>();
 

@@ -39,7 +39,6 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -51,7 +50,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -74,7 +72,6 @@ import java.util.stream.Collectors;
  * @param <T> type of resource
  */
 @ToString
-@Slf4j
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
@@ -610,7 +607,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 if (persistentResource.isShareable()) {
                     checkPermission(SharePermission.class, persistentResource);
                 } else if (!lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
-                    requestScope.logAuthFailure(Arrays.asList(),
+                    requestScope.logAuthFailure(
+                            null,
                             persistentResource.getType(),
                             persistentResource.getId());
                     throw new ForbiddenAccessException("Resource Not Shareable");
@@ -828,7 +826,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } catch (ForbiddenAccessException e) {
             return false;
         }
-
         return true;
     }
 
@@ -844,7 +841,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
-        return (Set) filter(ReadPermission.class, (Set) getRelationUnchecked(relationName, filters));
+        return getRelationUnchecked(relationName, filters);
+
     }
 
     /**

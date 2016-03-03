@@ -27,8 +27,8 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 @Slf4j
 public class ImmediateCheckExpression implements Expression {
     protected final Check check;
-    private final PersistentResource resource;
-    private final RequestScope requestScope;
+    protected final PersistentResource resource;
+    protected final RequestScope requestScope;
     private final Optional<ChangeSpec> changeSpec;
     private final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
 
@@ -111,6 +111,12 @@ public class ImmediateCheckExpression implements Expression {
                         + ((check == null) ? null : check.getClass().getName())
                         + " for object: "
                         + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
+        }
+        if (resource == null) {
+            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(check.getClass());
+        } else {
+            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(
+                    check.getClass(), resource.getType(), resource.getId());
         }
         return new ExpressionResult(FAIL, failure);
     }

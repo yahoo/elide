@@ -45,4 +45,14 @@ public class ExpressionResult {
     public ExpressionResult(final Status status) {
         this(status, null);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(status);
+        if (failureMessage != null) {
+            sb.append(": ").append(failureMessage);
+        }
+        return sb.toString();
+    }
 }

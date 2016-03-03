@@ -18,10 +18,6 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import lombok.Getter;
 
-import javax.ws.rs.core.MultivaluedMap;
-
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,10 +29,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
-@Slf4j
 public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
@@ -226,10 +223,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
     }
 
-    public void logAuthFailure(List<Class<? extends Check>> checks, String type, String id) {
-        failedAuthorizations.add(() -> {
-            return String.format("ForbiddenAccess %s %s#%s", checks, type, id);
-        });
+    public void logAuthFailure(Class<? extends Check> check, String type, String id) {
+        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s %s#%s",
+                check == null ? "" : check.getName(), type, id));
+    }
+
+    public void logAuthFailure(Class<? extends Check> check) {
+        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s",
+                check == null ? "" : check.getName()));
     }
 
     public String getAuthFailureReason() {
