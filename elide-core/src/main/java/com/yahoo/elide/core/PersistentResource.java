@@ -33,6 +33,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
@@ -716,20 +717,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName, boolean checked) {
+        Set<Predicate> filters = Collections.emptySet();
         if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
-            final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-            final String valType = dictionary.getBinding(entityClass);
-            final Set<Predicate> filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
-            if (checked) {
-                return getRelationChecked(relationName, filters);
-            }
-            return getRelationUnchecked(relationName, filters);
-        } else {
-            if (checked) {
-                return getRelationChecked(relationName, Collections.<Predicate>emptySet());
-            }
-            return getRelationUnchecked(relationName, Collections.<Predicate>emptySet());
+            filters = getPredicatesForRelation(relationName);
         }
+
+        return checked
+                ? getRelationChecked(relationName, filters)
+                : getRelationUnchecked(relationName, filters);
+    }
+
+    private Set<Predicate> getPredicatesForRelation(String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        final String valType = dictionary.getBinding(entityClass);
+        return new HashSet<>(requestScope.getPredicatesOfType(valType));
     }
 
     /**
@@ -753,17 +754,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
 
-        // check for deny access on relationship to avoid iterating a lazy collection
+        // Check for permission to the relationship and to the underlying type to avoid iterating a lazy collection
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
-            return Collections.emptySet();
-        }
-
-        try {
-            // If we cannot read any element of this type, don't try to filter
-            requestScope.getPermissionExecutor().checkUserPermissions(
-                    dictionary.getParameterizedType(obj, relationName),
-                    ReadPermission.class);
-        } catch (ForbiddenAccessException e) {
             return Collections.emptySet();
         }
 
@@ -773,7 +765,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Retrieve an uncheck/unfiltered set of relations.
      *
-     * @return
+     * @return the resources in the relationship
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
@@ -802,16 +794,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Determine whether or not a lazy collection should be read.
+     * Determine whether the user has permissions to a collection. Prevents lazy collections from
+     * being instantiated for no reason.
      *
      * @param annotationClass Annotation class
-     * @param field Field
+     * @param relationName Field
      * @param <A> type parameter
      * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
-    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String field) {
+    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String relationName) {
+        final PermissionExecutor executor = requestScope.getPermissionExecutor();
         try {
-            requestScope.getPermissionExecutor().checkUserPermissions(this, annotationClass, field);
+            executor.checkUserPermissions(this, annotationClass, relationName);
+            executor.checkUserPermissions(dictionary.getParameterizedType(obj, relationName), ReadPermission.class);
         } catch (ForbiddenAccessException e) {
             return true;
         }
