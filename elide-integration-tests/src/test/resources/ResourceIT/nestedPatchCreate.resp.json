@@ -1,0 +1,72 @@
+[
+  {
+    "data": {
+      "type": "parent",
+      "id": "17",
+      "attributes": {
+        "firstName": "Parent1"
+      },
+      "relationships": {
+        "children": {
+          "data": [
+            {
+              "type": "child",
+              "id": "13"
+            }
+          ]
+        },
+        "spouses": {
+          "data": []
+        }
+      }
+    }
+  },
+  {
+    "data": {
+      "type": "child",
+      "id": "13",
+      "attributes": {
+        "name": null
+      },
+      "relationships": {
+        "friends": {
+          "data": []
+        },
+        "parents": {
+          "data": [
+            {
+              "type": "parent",
+              "id": "17"
+            },
+            {
+              "type": "parent",
+              "id": "18"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "data": {
+      "type": "parent",
+      "id": "18",
+      "attributes": {
+        "firstName": "Parent2"
+      },
+      "relationships": {
+        "children": {
+          "data": [
+            {
+              "type": "child",
+              "id": "13"
+            }
+          ]
+        },
+        "spouses": {
+          "data": []
+        }
+      }
+    }
+  }
+]

@@ -1335,6 +1335,20 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(equalTo(expectedColl));
     }
 
+    @Test(priority = 36)
+    public void testNestedPatch() {
+        String req = jsonParser.getJson("/ResourceIT/nestedPatchCreate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/nestedPatchCreate.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");

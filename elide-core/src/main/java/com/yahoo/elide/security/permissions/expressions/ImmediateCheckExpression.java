@@ -29,8 +29,9 @@ public class ImmediateCheckExpression implements Expression {
     protected final Check check;
     protected final PersistentResource resource;
     protected final RequestScope requestScope;
+    protected final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
+
     private final Optional<ChangeSpec> changeSpec;
-    private final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
 
     /**
      * Constructor.
