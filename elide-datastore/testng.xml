@@ -36,4 +36,9 @@
             <class name="com.yahoo.elide.tests.ShareableIT" />
         </classes>
     </test>
+    <test name="com.yahoo.elide.tests.DataStoreIT">
+        <classes>
+            <class name="com.yahoo.elide.tests.DataStoreIT" />
+        </classes>
+    </test>
 </suite>
