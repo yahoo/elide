@@ -899,14 +899,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     @Override
     public int hashCode() {
-        return 1;
-//        final int prime = 31;
-//        int result = 1;
-//        String id = dictionary.getId(getObject());
-//        result = prime * result + (uuid.isPresent() ? uuid.hashCode() : 0);
-//        result = prime * result + (id == null ? 0 : id.hashCode());
-//        result = prime * result + (type == null ? 0 : type.hashCode());
-//        return result;
+        if (getType() == null) {
+            return -1;
+        }
+        return getType().hashCode();
     }
 
     @Override

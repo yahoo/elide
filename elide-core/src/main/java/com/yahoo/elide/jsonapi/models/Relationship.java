@@ -107,6 +107,6 @@ public class Relationship {
 
     @Override
     public int hashCode() {
-        return 1;
+        return (idData == null) ? -1 : idData.hashCode();
     }
 }
