@@ -47,7 +47,7 @@ public class RecordState extends BaseState {
             final CollectionTerminalState collectionTerminalState =
                     new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
             if (collection instanceof SingleElementSet) {
-                PersistentResource record = collection.iterator().next();
+                PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
                 nextState = new RecordTerminalState(record, collectionTerminalState);
             } else {
                 nextState = collectionTerminalState;

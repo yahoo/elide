@@ -37,11 +37,14 @@ public class Relationship {
         this.data = data;
         if (data != null) {
             if (data.isToOne()) {
-                Resource resource = data.get().iterator().next();
+                Resource resource = data.getSingleValue();
                 this.idData = new Data<>(resource != null ? resource.toResourceIdentifier() : null);
             } else {
                 this.idData = new Data<>(
-                    data.get().stream().map(Resource::toResourceIdentifier).collect(Collectors.toList()));
+                        data.get().stream()
+                            .map(Resource::toResourceIdentifier)
+                            .collect(Collectors.toList())
+                );
             }
         } else {
             this.idData = null;
