@@ -237,7 +237,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
         Data<Resource> data = doc.getData();
-        Resource resource = data.get().iterator().next();
+        Resource resource = data.getSingleValue();
 
         assertEquals(resource.getAttributes().get("firstName"), "syzygy");
         assertEquals(resource.getRelationships().size(), 2);
@@ -293,7 +293,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
         Data<Resource> data = doc.getData();
-        Resource resource = data.get().iterator().next();
+        Resource resource = data.getSingleValue();
         Iterator<Resource> itr = resource.getRelationships().get("children").getData().get().iterator();
         String rel1 = itr.next().getId();
         String rel2 = itr.next().getId();
@@ -725,7 +725,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         JsonApiDocument parentJsonApiDocument = jsonApiMapper.readJsonApiDocument(parentActual);
         boolean hasIdentifier = false;
 
-        resource = parentJsonApiDocument.getData().get().iterator().next();
+        resource = parentJsonApiDocument.getData().getSingleValue();
         resourceIdentifiers = resource.getRelationships().get("children").getResourceIdentifierData().get();
         for (ResourceIdentifier resourceIdentifier : resourceIdentifiers) {
             hasIdentifier |= resourceIdentifier.getId().equals("6");
