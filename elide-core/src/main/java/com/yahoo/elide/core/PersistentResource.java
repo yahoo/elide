@@ -35,6 +35,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
@@ -215,7 +216,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return true;
         }
         String id = getId();
-        return checkId.equals(id);
+        return !id.equals("0") && checkId.equals(id);
     }
 
     /**
@@ -709,9 +710,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public PersistentResource getRelation(String relation, String id) {
         Set<Predicate> filters;
-        // Filtering not supported in Patch extension
+        boolean skipNew = false;
+        // Criteria filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
             filters = Collections.emptySet();
+            skipNew = true;
         } else {
             Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
             if (entityType == null) {
@@ -723,7 +726,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             filters = Collections.singleton(idFilter);
         }
 
-        Set<PersistentResource> resources = filter(ReadPermission.class, (Set) getRelationChecked(relation, filters));
+        Set<PersistentResource> resources =
+                filter(ReadPermission.class,
+                (Set) getRelationChecked(relation, filters),
+                skipNew);
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
                 return childResource;
@@ -757,17 +763,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     private Set<PersistentResource> getRelation(String relationName, boolean checked) {
+
         if (checked && !checkRelation(relationName)) {
             return Collections.emptySet();
         }
 
-        Set<Predicate> filters = new HashSet<>();
-        if (!requestScope.getPredicates().isEmpty()) {
-            final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-            final String valType = dictionary.getBinding(entityClass);
-            filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
+        Set<Predicate> filters = Collections.emptySet();
+        if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
+            filters = getPredicatesForRelation(relationName);
         }
         return getRelationUnchecked(relationName, filters);
+    }
+
+    private Set<Predicate> getPredicatesForRelation(String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        final String valType = dictionary.getBinding(entityClass);
+        return new HashSet<>(requestScope.getPredicatesOfType(valType));
     }
 
     /**
@@ -813,7 +824,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
 
-        // check for deny access on relationship to avoid iterating a lazy collection
+        // Check for permission to the relationship and to the underlying type to avoid iterating a lazy collection
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
             return false;
         }
@@ -848,7 +859,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Retrieve an uncheck/unfiltered set of relations.
      *
-     * @return the set of PersistentResource
+     * @return the resources in the relationship
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
@@ -916,16 +927,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Determine whether or not a lazy collection should be read.
+     * Determine whether the user has permissions to a collection. Prevents lazy collections from
+     * being instantiated for no reason.
      *
      * @param annotationClass Annotation class
-     * @param field Field
+     * @param relationName Field
      * @param <A> type parameter
      * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
-    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String field) {
+    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String relationName) {
+        final PermissionExecutor executor = requestScope.getPermissionExecutor();
         try {
-            requestScope.getPermissionExecutor().checkUserPermissions(this, annotationClass, field);
+            executor.checkUserPermissions(this, annotationClass, relationName);
+            executor.checkUserPermissions(dictionary.getParameterizedType(obj, relationName), ReadPermission.class);
         } catch (ForbiddenAccessException e) {
             return true;
         }
@@ -1008,22 +1022,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        String id = dictionary.getId(getObject());
-        result = prime * result + (uuid.isPresent() ? uuid.hashCode() : 0);
-        result = prime * result + (id == null ? 0 : id.hashCode());
-        result = prime * result + (type == null ? 0 : type.hashCode());
-        return result;
+        if (getType() == null) {
+            return -1;
+        }
+        return getType().hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
         if (obj instanceof PersistentResource) {
             PersistentResource that = (PersistentResource) obj;
+            if (this.getObject() == that.getObject()) {
+                return true;
+            }
             String theirId = dictionary.getId(that.getObject());
             return this.matchesId(theirId) && Objects.equals(this.type, that.type);
         }
@@ -1465,10 +1476,28 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected static <A extends Annotation, T> Set<PersistentResource<T>> filter(Class<A> permission,
                                                                                  Set<PersistentResource<T>> resources) {
+        return filter(permission, resources, false);
+    }
+
+    /**
+     * Filter a set of PersistentResources.
+     *
+     * @param <A> the type parameter
+     * @param <T> the type parameter
+     * @param permission the permission
+     * @param resources  the resources
+     * @param skipNew
+     * @return Filtered set of resources
+     */
+    protected static <A extends Annotation, T> Set<PersistentResource<T>> filter(Class<A> permission,
+                                                                                 Set<PersistentResource<T>> resources,
+                                                                                 boolean skipNew) {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
             try {
-                resource.checkFieldAwarePermissions(permission);
+                if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
+                    resource.checkFieldAwarePermissions(permission);
+                }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
                 // Do nothing. Filter from set.

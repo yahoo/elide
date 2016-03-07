@@ -14,31 +14,32 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * Single object treated as List.
+ * Single object treated as a Set.
  *
- * @param <T>  the type parameter
+ * @param <T>  the type of element to treat as a set
  */
 @JsonSerialize(using = SingletonSerializer.class)
 public class SingleElementSet<T> extends AbstractSet<T> {
 
     private final T value;
 
-    /**
-     * Instantiates a new Single element list.
-     *
-     * @param v the v
-     */
     public SingleElementSet(T v) {
         value = v;
     }
 
+    public T getValue() {
+        return value;
+    }
+
     @Override
     public int size() {
-        return 1;
+        return value == null ? 0 : 1;
     }
 
     @Override
     public Iterator<T> iterator() {
-        return Collections.singleton(value).iterator();
+        return value == null
+                ? Collections.emptyIterator()
+                : Collections.singleton(value).iterator();
     }
 }

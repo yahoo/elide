@@ -103,8 +103,14 @@ public class ExtractedChecks {
             return result;
         }
         for (Class<? extends Check> checkClass : array) {
-            if (checkClass.isAssignableFrom(cls)) {
-                result.add(cls.cast(checkClass));
+            if (cls.isAssignableFrom(checkClass)) {
+                try {
+                    Check instance = checkClass.newInstance();
+                    result.add(cls.cast(instance));
+                } catch (InstantiationException | IllegalAccessException e) {
+                    log.error("Could not access check. Exception: {}", e);
+                    throw new InvalidSyntaxException("Could not instantiate specified check.");
+                }
             }
         }
         return result;

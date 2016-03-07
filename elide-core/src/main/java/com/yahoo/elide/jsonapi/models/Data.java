@@ -81,13 +81,24 @@ public class Data<T> {
         return relationshipType.isToOne();
     }
 
+    /**
+     * Fetch the item if the data is toOne
+     *
+     * @return T if toOne
+     * @throws IllegalAccessError when the data is not toOne
+     */
+    public T getSingleValue() {
+        if (isToOne()) {
+            return ((SingleElementSet<T>) values).getValue();
+        }
+
+        throw new IllegalAccessError("Data is not toOne");
+    }
+
     @SuppressWarnings("unchecked")
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
-        return ((Collection<Resource>) get()).stream().map(object -> {
-            if (object != null) {
-                return object.toResourceIdentifier();
-            }
-            return null;
-        }).collect(Collectors.toList());
+        return ((Collection<Resource>) get()).stream()
+                                             .map(object -> object != null ? object.toResourceIdentifier() : null)
+                                             .collect(Collectors.toList());
     }
 }

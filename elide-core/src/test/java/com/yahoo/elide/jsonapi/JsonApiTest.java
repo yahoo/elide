@@ -5,14 +5,10 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.audit.TestAuditLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
+import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -33,6 +29,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * JSON API testing.
@@ -201,15 +201,15 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
 
         Data<Resource> dataObj = jsonApiDocument.getData();
-        Resource data = dataObj.get().iterator().next();
+        Resource data = dataObj.getSingleValue();
         Map<String, Object> attributes = data.getAttributes();
         Map<String, Relationship> relations = data.getRelationships();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(relations.get("children").getData().get().iterator().next().getType(), "child");
-        assertEquals(relations.get("children").getData().get().iterator().next().getId(), "2");
+        assertEquals(relations.get("children").getData().getSingleValue().getType(), "child");
+        assertEquals(relations.get("children").getData().getSingleValue().getId(), "2");
     }
 
     @Test
@@ -219,12 +219,13 @@ public class JsonApiTest {
         JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
 
         Data<Resource> dataObj = jsonApiDocument.getData();
-        Resource data = dataObj.get().iterator().next();
+        Resource data = dataObj.getSingleValue();
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
         Resource includedChild = included.iterator().next();
-        ResourceIdentifier
-            parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().get().iterator().next();
+        ResourceIdentifier parent = includedChild.getRelationships()
+                                                 .get("parents")
+                                                 .getResourceIdentifierData().getSingleValue();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
@@ -248,7 +249,7 @@ public class JsonApiTest {
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(data.getRelationships().get("children").getData().get().iterator().next().getId(), "2");
+        assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
         assertNull(included);
     }
 
@@ -263,7 +264,7 @@ public class JsonApiTest {
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
         Resource includedChild = included.iterator().next();
-        ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().get().iterator().next();
+        ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().getSingleValue();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
