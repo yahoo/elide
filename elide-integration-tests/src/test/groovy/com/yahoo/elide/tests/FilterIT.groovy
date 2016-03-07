@@ -89,7 +89,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                       }
                     ]
                     ''')
-                .patch("/")
+                .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         RestAssured
                 .given()
@@ -133,7 +133,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                       }
                     ]
                     ''')
-                .patch("/")
+                .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         RestAssured
                 .given()
@@ -178,7 +178,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                       }
                     ]
                     ''')
-                .patch("/")
+                .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         RestAssured
                 .given()
@@ -239,7 +239,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                       }
                     ]
                     ''')
-                .patch("/")
+                .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         RestAssured
                 .given()
@@ -299,7 +299,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                       }
                     ]
                     ''')
-                .patch("/")
+                .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         books = mapper.readTree(RestAssured.get("/book").asString())
         authors = mapper.readTree(RestAssured.get("/author").asString())

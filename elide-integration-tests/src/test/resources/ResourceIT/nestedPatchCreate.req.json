@@ -1,0 +1,37 @@
+[
+  {
+    "op": "add",
+    "path": "/-",
+    "value": {
+      "type": "parent",
+      "id": "12345678-1234-1234-1234-123456789ab1",
+      "attributes": {
+        "firstName": "Parent1"
+      },
+      "relationships": {
+        "children": {
+          "data": [{"type": "child", "id": "12345678-1234-1234-1234-123456789ab2"}]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/12345678-1234-1234-1234-123456789ab1/children",
+    "value": {
+      "type": "child",
+      "id": "12345678-1234-1234-1234-123456789ab2"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/12345678-1234-1234-1234-123456789ab1/children/12345678-1234-1234-1234-123456789ab2/parents",
+    "value": {
+      "type": "parent",
+      "id": "12345678-1234-1234-1234-123456789ab3",
+      "attributes": {
+        "firstName": "Parent2"
+      }
+    }
+  }
+]

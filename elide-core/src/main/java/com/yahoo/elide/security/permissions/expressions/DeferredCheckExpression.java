@@ -41,14 +41,10 @@ public class DeferredCheckExpression extends ImmediateCheckExpression {
 
     @Override
     public ExpressionResult evaluate() {
-        if (check instanceof CommitCheck || isNewlyCreated()) {
+        if (check instanceof CommitCheck) {
             log.debug("Deferring check: {}", check);
             return DEFERRED_RESULT;
         }
         return super.evaluate();
-    }
-
-    private boolean isNewlyCreated() {
-        return requestScope.getNewResources().contains(resource);
     }
 }

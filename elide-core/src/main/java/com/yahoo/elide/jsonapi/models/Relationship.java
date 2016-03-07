@@ -14,8 +14,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -112,8 +110,6 @@ public class Relationship {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-            .append(data)
-            .toHashCode();
+        return (idData == null) ? -1 : idData.hashCode();
     }
 }

@@ -212,7 +212,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return true;
         }
         String id = getId();
-        return checkId.equals(id);
+        return !id.equals("0") && checkId.equals(id);
     }
 
     /**
@@ -679,9 +679,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public PersistentResource getRelation(String relation, String id) {
         Set<Predicate> filters;
-        // Filtering not supported in Patxh extension
+        boolean skipNew = false;
+        // Criteria filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
             filters = Collections.emptySet();
+            skipNew = true;
         } else {
             Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
             if (entityType == null) {
@@ -693,7 +695,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             filters = Collections.singleton(idFilter);
         }
 
-        Set<PersistentResource> resources = filter(ReadPermission.class, (Set) getRelationChecked(relation, filters));
+        Set<PersistentResource> resources =
+                filter(ReadPermission.class,
+                (Set) getRelationChecked(relation, filters),
+                skipNew);
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
                 return childResource;
@@ -889,22 +894,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        String id = dictionary.getId(getObject());
-        result = prime * result + (uuid.isPresent() ? uuid.hashCode() : 0);
-        result = prime * result + (id == null ? 0 : id.hashCode());
-        result = prime * result + (type == null ? 0 : type.hashCode());
-        return result;
+        if (getType() == null) {
+            return -1;
+        }
+        return getType().hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
         if (obj instanceof PersistentResource) {
             PersistentResource that = (PersistentResource) obj;
+            if (this.getObject() == that.getObject()) {
+                return true;
+            }
             String theirId = dictionary.getId(that.getObject());
             return this.matchesId(theirId) && Objects.equals(this.type, that.type);
         }
@@ -1310,10 +1312,28 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected static <A extends Annotation, T> Set<PersistentResource<T>> filter(Class<A> permission,
             Set<PersistentResource<T>> resources) {
+        return filter(permission, resources, false);
+    }
+
+    /**
+     * Filter a set of PersistentResources.
+     *
+     * @param <A> the type parameter
+     * @param <T> the type parameter
+     * @param permission the permission
+     * @param resources  the resources
+     * @param skipNew
+     * @return Filtered set of resources
+     */
+    protected static <A extends Annotation, T> Set<PersistentResource<T>> filter(Class<A> permission,
+                                                                                 Set<PersistentResource<T>> resources,
+                                                                                 boolean skipNew) {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
             try {
-                resource.checkFieldAwarePermissions(permission);
+                if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
+                    resource.checkFieldAwarePermissions(permission);
+                }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
                 // Do nothing. Filter from set.

@@ -168,6 +168,7 @@ public class PermissionExecutor {
                         + " " + result.getFailureMessage());
             }
         });
+        commitCheckQueue.clear();
     }
 
     /**
