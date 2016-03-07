@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * A check designed to look at the changeSpec to determine whether a value was added to a Collection
+ * A check designed to look at the changeSpec to determine whether a value was removed from a Collection
  *
  * @param <T> type parameter
  */
