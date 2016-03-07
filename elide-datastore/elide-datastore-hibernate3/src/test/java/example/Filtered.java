@@ -31,7 +31,7 @@ import java.util.Optional;
  * Filtered permission check.
  */
 @CreatePermission(any = { FilterCheck.class })
-@ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class })
+@ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class, NegativeIntegerUserCheck.class })
 @UpdatePermission(any = { FilterCheck.class })
 @DeletePermission(any = { FilterCheck.class })
 @Include(rootLevel = true)

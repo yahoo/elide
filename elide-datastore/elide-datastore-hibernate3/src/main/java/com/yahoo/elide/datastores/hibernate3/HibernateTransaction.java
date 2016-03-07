@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
-
 import com.yahoo.elide.security.checks.InlineCheck;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -150,7 +149,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                 criterion = ((CriteriaCheck) check).getCriterion(requestScope);
             }
 
-            if (compositeCriterion == null) {
+            if (criterion == null) {
+                continue;
+            } else if (compositeCriterion == null) {
                 compositeCriterion = criterion;
             } else if (filterScope.isAny()) {
                 compositeCriterion = Restrictions.or(compositeCriterion, criterion);
