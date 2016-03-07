@@ -705,7 +705,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .extract().body().asString();
 
         JsonApiDocument childJsonApiDocument = jsonApiMapper.readJsonApiDocument(childActual);
-        Resource resource = childJsonApiDocument.getData().get().iterator().next();
+        Resource resource = childJsonApiDocument.getData().getSingleValue();
         Collection<ResourceIdentifier> resourceIdentifiers = resource.getRelationships().get("parents").getResourceIdentifierData().get();
         ResourceIdentifier rId1 = resourceIdentifiers.iterator().next();
         assertEquals(resource.getId(), "6");

@@ -208,8 +208,8 @@ public class JsonApiTest {
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(relations.get("children").getData().get().iterator().next().getType(), "child");
-        assertEquals(relations.get("children").getData().get().iterator().next().getId(), "2");
+        assertEquals(relations.get("children").getData().getSingleValue().getType(), "child");
+        assertEquals(relations.get("children").getData().getSingleValue().getId(), "2");
     }
 
     @Test
@@ -225,7 +225,7 @@ public class JsonApiTest {
         Resource includedChild = included.iterator().next();
         ResourceIdentifier parent = includedChild.getRelationships()
                                                  .get("parents")
-                                                 .getResourceIdentifierData().get().iterator().next();
+                                                 .getResourceIdentifierData().getSingleValue();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
@@ -249,7 +249,7 @@ public class JsonApiTest {
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(data.getRelationships().get("children").getData().get().iterator().next().getId(), "2");
+        assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
         assertNull(included);
     }
 
@@ -264,7 +264,7 @@ public class JsonApiTest {
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
         Resource includedChild = included.iterator().next();
-        ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().get().iterator().next();
+        ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().getSingleValue();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
