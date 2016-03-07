@@ -51,7 +51,7 @@ public class RelationshipTerminalState extends BaseState {
         ObjectMapper mapper = requestScope.getMapper().getObjectMapper();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Map<String, Relationship> relationships = record.toResource().getRelationships();
+        Map<String, Relationship> relationships = record.toResourceWithSortingAndPagination().getRelationships();
         Relationship relationship = null;
         if (relationships != null) {
             relationship = relationships.get(relationshipName);

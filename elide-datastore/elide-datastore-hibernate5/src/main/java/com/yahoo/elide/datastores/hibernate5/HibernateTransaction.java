@@ -6,16 +6,22 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.pagination.Pagination;
+
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.InlineCheck;
 
+
+import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -23,7 +29,9 @@ import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
+
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
@@ -32,7 +40,10 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 /**
  * Hibernate Transaction implementation.
@@ -40,7 +51,6 @@ import java.util.Set;
 public class HibernateTransaction implements DataStoreTransaction {
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
 
@@ -90,7 +100,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             T object = entityClass.newInstance();
             deferredTasks.add(() -> session.persist(object));
             return object;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (java.lang.InstantiationException | IllegalAccessException e) {
             return null;
         }
     }
@@ -123,15 +133,70 @@ public class HibernateTransaction implements DataStoreTransaction {
         criterion = CriterionFilterOperation.andWithNull(criterion,
                 criterionFilterOperation.applyAll(filteredPredicates));
 
-        // if no criterion then return all objects
-        if (criterion == null) {
-            return loadObjects(loadClass);
+        return loadObjects(loadClass, Optional.ofNullable(criterion), Optional.empty(),
+                Optional.empty());
+    }
+
+    @Override
+    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
+        Criterion criterion = buildCheckCriterion(filterScope);
+
+        String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
+        Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
+        criterion = CriterionFilterOperation.andWithNull(criterion,
+                criterionFilterOperation.applyAll(filteredPredicates));
+
+
+        final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
+                : null;
+
+        // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
+        Set<Order> validatedSortingRules = null;
+        if (filterScope.hasSortingRules()) {
+            final Sorting sorting = filterScope.getRequestScope().getSorting();
+            final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
+            validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
+                    .stream()
+                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc) ? Order.desc(entry.getKey())
+                            : Order.asc(entry.getKey())
+                    )
+                    .collect(Collectors.toSet());
+        }
+
+        return loadObjects(entityClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
+                Optional.ofNullable(pagination));
+    }
+
+    /**
+     * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     * @param loadClass The hibernate class to build the query off of.
+     * @param criterion The Optional criterion object.
+     * @param sortingRules The possibly empty sorting rules.
+     * @param pagination The Optional pagination object.
+     * @param <T> The return Iterable type.
+     * @return The Iterable for Hibernate.
+     */
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Optional<Criterion> criterion,
+                                       final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+        final Criteria sessionCriteria = session.createCriteria(loadClass);
+
+        if (criterion.isPresent()) {
+            sessionCriteria.add(criterion.get());
+        }
+
+        if (sortingRules.isPresent()) {
+            sortingRules.get().forEach(sessionCriteria::addOrder);
+        }
+
+        if (pagination.isPresent()) {
+            final Pagination paginationData = pagination.get();
+            sessionCriteria.setFirstResult(paginationData.getOffset());
+            sessionCriteria.setMaxResults(paginationData.getLimit());
         }
 
         @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                .add(criterion)
-                .scroll(ScrollMode.FORWARD_ONLY));
+        Iterable<T> list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
+
         return list;
     }
 
@@ -166,7 +231,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if (((collection instanceof AbstractPersistentCollection)) && !predicates.isEmpty()) {
-            String filterString = hqlFilterOperation.applyAll(predicates);
+            String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
                 Query query = session.createFilter(collection, filterString);
@@ -181,6 +246,29 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
 
+        return collection;
+    }
+
+    @Override
+    public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
+                                                                      final Class<T> entityClass,
+                                                                      final EntityDictionary dictionary,
+                                                                      final Optional<Set<Predicate>> filters,
+                                                                      final Optional<Sorting> sorting,
+                                                                      final Optional<Pagination> pagination) {
+        if (((collection instanceof AbstractPersistentCollection))
+                && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
+            @SuppressWarnings("unchecked")
+            final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, collection, entityClass,
+                    dictionary)
+                    .withPossibleFilters(filters)
+                    .withPossibleSorting(sorting)
+                    .withPossiblePagination(pagination)
+                    .build();
+            if (possibleQuery.isPresent()) {
+                return possibleQuery.get().list();
+            }
+        }
         return collection;
     }
 

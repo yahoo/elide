@@ -10,6 +10,7 @@ import com.jayway.restassured.RestAssured
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.Assert
+import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeTest
 import org.testng.annotations.Test
 /**
@@ -27,6 +28,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     private String nullNedId = null
     private JsonNode nullNedBooks = null
     private String orsonCardId = null
+    private Set<Integer> bookIds = new HashSet<>()
+    private Set<Integer> authorIds = new HashSet<>()
 
     @BeforeTest
     public void setup() {
@@ -305,6 +308,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         authors = mapper.readTree(RestAssured.get("/author").asString())
 
         for (JsonNode author : authors.get("data")) {
+            authorIds.add(author.get("id").asInt());
             if (author.get("attributes").get("name").asText() == "Isaac Asimov") {
                 asimovId = author.get("id").asText()
             }
@@ -320,6 +324,10 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             if (author.get("attributes").get("name").asText() == "Thomas Harris") {
                 thomasHarrisId = author.get("id").asText();
             }
+        }
+
+        for (JsonNode book : books.get("data")) {
+            bookIds.add(book.get("id").asInt());
         }
 
         Assert.assertNotNull(asimovId)
@@ -856,6 +864,22 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
             Assert.assertTrue(publishDate < 1454638927411L);
+        }
+    }
+
+    @AfterTest
+    public void cleanUp() {
+        for (int id : authorIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/author/"+id)
+        }
+        for (int id : bookIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/book/"+id)
         }
     }
 }

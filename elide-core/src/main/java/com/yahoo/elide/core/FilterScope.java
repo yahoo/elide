@@ -57,6 +57,29 @@ public class FilterScope {
     }
 
     /**
+
+     * Returns true if pagination limits were added to this query.
+     *
+     * NOTE: This method is often used in GET transaction implementations
+     *
+     * @return true if there is pagination filtering
+     */
+    public boolean hasSortingRules() {
+        return !requestScope.getSorting().isDefaultInstance();
+    }
+
+    /**
+     * Returns true if pagination limits were added to this query.
+     *
+     * NOTE: This method is often used in GET transaction implementations
+     *
+     * @return true if there is pagination filtering
+     */
+    public boolean hasPagination() {
+        return !requestScope.getPagination().isDefaultInstance();
+    }
+
+    /**
      * Returns true if filters are applied to this query.
      *
      * NOTE: This method is often used in transaction implementations.

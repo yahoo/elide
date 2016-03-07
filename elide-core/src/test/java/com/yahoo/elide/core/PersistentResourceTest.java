@@ -74,7 +74,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -540,7 +544,8 @@ public class PersistentResourceTest extends PersistentResource {
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.filterCollection(anyCollection(), any(), any()))
+                .thenReturn(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -604,7 +609,7 @@ public class PersistentResourceTest extends PersistentResource {
         FirstClassFields firstClassFields = new FirstClassFields();
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields,
-                                                                                    null, "3", goodUserScope);
+                null, "3", goodUserScope);
 
         fcResource.getAttribute("private1");
     }
@@ -629,7 +634,8 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        when(tx.filterCollection(anyCollection(), any(), any()))
+                .thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -1161,7 +1167,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         when(tx.loadObjects(eq(Child.class), anyObject()))
-            .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
+                .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         Set<PersistentResource<Child>> loaded = PersistentResource.loadRecords(Child.class, goodScope);
@@ -1233,7 +1239,7 @@ public class PersistentResourceTest extends PersistentResource {
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         Assert.assertEquals(created.getObject(), parent,
-            "The create function should return the requested parent object"
+                "The create function should return the requested parent object"
         );
     }
 
@@ -1522,12 +1528,12 @@ public class PersistentResourceTest extends PersistentResource {
     public void testCollectionChangeSpecType() {
         Function<String, BiFunction<ChangeSpec, BiFunction<Collection, Collection, Boolean>, Boolean>> collectionCheck =
                 (fieldName) ->
-                    (spec, condFn) -> {
-                        if (!fieldName.equals(spec.getFieldName())) {
-                            throw new IllegalStateException("Wrong field name: '" + spec.getFieldName() + "'. Expected: '" + fieldName + "'");
-                        }
-                        return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
-                    };
+                        (spec, condFn) -> {
+                            if (!fieldName.equals(spec.getFieldName())) {
+                                throw new IllegalStateException("Wrong field name: '" + spec.getFieldName() + "'. Expected: '" + fieldName + "'");
+                            }
+                            return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
+                        };
         // Ensure that change specs coming from collections work properly
         PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> collectionCheck.apply("testColl").apply(spec, (original, modified) -> original == null && modified.equals(Arrays.asList("a", "b", "c")))));
 
@@ -1619,13 +1625,13 @@ public class PersistentResourceTest extends PersistentResource {
     }
 
     // Testing constructor, setId and non-null empty sets
-                private static Parent newParent(int id) {
-                    Parent parent = new Parent();
-                    parent.setId(id);
-                    parent.setChildren(new HashSet<>());
-                    parent.setSpouses(new HashSet<>());
-                    return parent;
-                }
+    private static Parent newParent(int id) {
+        Parent parent = new Parent();
+        parent.setId(id);
+        parent.setChildren(new HashSet<>());
+        parent.setSpouses(new HashSet<>());
+        return parent;
+    }
 
     private Parent newParent(int id, Child child) {
         Parent parent = new Parent();

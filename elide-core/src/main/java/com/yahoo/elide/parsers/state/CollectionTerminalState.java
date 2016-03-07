@@ -19,7 +19,6 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
-import com.yahoo.elide.jsonapi.document.processors.SortProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -27,6 +26,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
+
 
 import java.util.Collection;
 import java.util.List;
@@ -63,17 +63,12 @@ public class CollectionTerminalState extends BaseState {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection = getResourceCollection(requestScope);
-
         // Set data
         jsonApiDocument.setData(getData(requestScope, collection));
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
-
-        DocumentProcessor sortProcessor = new SortProcessor();
-        sortProcessor.execute(jsonApiDocument, collection, queryParams);
-
         JsonNode responseBody = mapper.convertValue(jsonApiDocument, JsonNode.class);
         return () -> Pair.of(HttpStatus.SC_OK, responseBody);
     }
@@ -98,11 +93,20 @@ public class CollectionTerminalState extends BaseState {
 
     private Set<PersistentResource> getResourceCollection(RequestScope requestScope) {
         final Set<PersistentResource> collection;
-
+        final boolean hasSortingOrPagination = !requestScope.getPagination().isDefaultInstance()
+                || !requestScope.getSorting().isDefaultInstance();
         if (parent.isPresent()) {
-            collection = parent.get().getRelationCheckedFiltered(relationName.get());
+            if (hasSortingOrPagination) {
+                collection = parent.get().getRelationCheckedFilteredWithSortingAndPagination(relationName.get());
+            } else {
+                collection = parent.get().getRelationCheckedFiltered(relationName.get());
+            }
         } else {
-            collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+            if (hasSortingOrPagination) {
+                collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
+            } else {
+                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+            }
         }
 
         return collection;
@@ -114,6 +118,7 @@ public class CollectionTerminalState extends BaseState {
         Preconditions.checkNotNull(user);
 
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
+
         return new Data<>(resources);
     }
 
