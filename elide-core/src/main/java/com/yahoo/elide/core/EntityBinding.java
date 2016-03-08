@@ -19,6 +19,13 @@ import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -34,13 +41,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -220,24 +220,32 @@ class EntityBinding {
             return; // Reserved. Not attributes. Otherwise, potentially excluded.
         }
 
-        Class<?> fieldType = getFieldType(fieldOrMethod);
-
+        Class<?> fieldType = void.class;
         ConcurrentLinkedDeque<String> fieldList;
         if (isRelation) {
             fieldList = relationshipsDeque;
+
             RelationshipType type;
             String mappedBy;
             if (oneToMany) {
+                OneToMany annotation = fieldOrMethod.getAnnotation(OneToMany.class);
                 type = RelationshipType.ONE_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
+                fieldType = annotation.targetEntity();
+                mappedBy = annotation.mappedBy();
             } else if (oneToOne) {
+                OneToOne annotation = fieldOrMethod.getAnnotation(OneToOne.class);
                 type = RelationshipType.ONE_TO_ONE;
-                mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
+                fieldType = annotation.targetEntity();
+                mappedBy = annotation.mappedBy();
             } else if (manyToMany) {
+                ManyToMany annotation = fieldOrMethod.getAnnotation(ManyToMany.class);
                 type = RelationshipType.MANY_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
+                fieldType = annotation.targetEntity();
+                mappedBy = annotation.mappedBy();
             } else if (manyToOne) {
+                ManyToOne annotation = fieldOrMethod.getAnnotation(ManyToOne.class);
                 type = RelationshipType.MANY_TO_ONE;
+                fieldType = annotation.targetEntity();
                 mappedBy = "";
             } else {
                 type = RelationshipType.NONE;
@@ -245,8 +253,13 @@ class EntityBinding {
             }
             relationshipTypes.put(fieldName, type);
             relationshipToInverse.put(fieldName, mappedBy);
+
         } else {
             fieldList = attrsDeque;
+        }
+
+        if (fieldType == void.class) {
+            fieldType = getFieldType(fieldOrMethod);
         }
 
         fieldList.push(fieldName);
