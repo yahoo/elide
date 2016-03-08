@@ -122,6 +122,30 @@ public class PermissionExecutor {
     }
 
     /**
+     * Check for permissions on a specific field deferring all checks.
+     *
+     * @param resource resource
+     * @param changeSpec changepsec
+     * @param annotationClass annotation class
+     * @param field field to check
+     * @param <A> type parameter
+     */
+    public <A extends Annotation> void checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
+                                                                            ChangeSpec changeSpec,
+                                                                            Class<A> annotationClass,
+                                                                            String field) {
+        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
+            return; // Bypass
+        }
+        Expressions expressions =
+                expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+        Expression commitExpression = expressions.getCommitExpression();
+        if (commitExpression != null) {
+            commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
+        }
+    }
+
+    /**
      * Check strictly user permissions on a specific field and entity.
      *
      * @param resource Resource

@@ -46,6 +46,7 @@ public class Parent extends BaseId {
     private Set<Child> children;
     private Set<Parent> spouses;
     private String firstName;
+    private String specialAttribute;
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
     public void doInit() {
@@ -93,6 +94,16 @@ public class Parent extends BaseId {
     public void setFirstName(String name) {
         this.firstName = name;
     }
+    // Special attribute is to catch a corner case for patch extension
+    @ReadPermission(all = {Role.NONE.class})
+    @UpdatePermission(all = {SpecialValue.class})
+    public String getSpecialAttribute() {
+        return specialAttribute;
+    }
+
+    public void setSpecialAttribute(String specialAttribute) {
+        this.specialAttribute = specialAttribute;
+    }
 
     /**
      * Initialization validation check.
@@ -112,6 +123,18 @@ public class Parent extends BaseId {
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {
                 return true;
+            }
+            return false;
+        }
+    }
+
+    static public class SpecialValue extends OperationCheck<Parent> {
+        @Override
+        public boolean ok(Parent object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            String fieldName = changeSpec.get().getFieldName();
+            switch (fieldName) {
+                case "specialAttribute":
+                    return object.getSpecialAttribute().equals("this should succeed!");
             }
             return false;
         }

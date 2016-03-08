@@ -256,6 +256,14 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            if (response.getResponseCode() >= 300) {
+                try {
+                    transaction.close();
+                } catch (IOException e) {
+                    // ignore any rollback exception
+                }
+                return response;
+            }
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();

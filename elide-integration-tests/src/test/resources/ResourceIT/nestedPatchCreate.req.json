@@ -30,7 +30,8 @@
       "type": "parent",
       "id": "12345678-1234-1234-1234-123456789ab3",
       "attributes": {
-        "firstName": "Parent2"
+        "firstName": "Parent2",
+        "specialAttribute": "this should succeed!"
       }
     }
   }

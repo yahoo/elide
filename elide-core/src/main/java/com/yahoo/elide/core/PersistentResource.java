@@ -322,7 +322,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Object val = getValueUnchecked(fieldName);
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newVal, val);
+        checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, newVal, val);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             transaction.save(obj);
@@ -357,7 +357,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources =
                 filter(ReadPermission.class, (Set) getRelationUncheckedUnfiltered(fieldName));
         if (type.isToMany()) {
-            checkFieldAwarePermissions(
+            checkFieldAwareDeferPatchExt(
                     UpdatePermission.class,
                     fieldName,
                     resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
@@ -370,7 +370,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) ? null
                             : resourceIdentifiers.iterator().next();
             Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
-            checkFieldAwarePermissions(UpdatePermission.class, fieldName, modified, original);
+            checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, modified, original);
             return updateToOneRelation(fieldName, resourceIdentifiers, resources);
         }
     }
@@ -714,6 +714,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // Criteria filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
             filters = Collections.emptySet();
+            // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
+            // NEWLY created objects. We assume a user can READ their object in the midst of creation.
+            // Imposing a constraint to the contrary-- at this moment-- seems arbitrary and does not
+            // reflect reality (i.e. if a user is creating an object with values, he/she knows those values
+            // already).
             skipNew = true;
         } else {
             Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
@@ -822,7 +827,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, type);
         }
 
-        checkFieldAwarePermissions(ReadPermission.class, relationName, null, null);
+        checkFieldAwareDeferPatchExt(ReadPermission.class, relationName, null, null);
 
         // Check for permission to the relationship and to the underlying type to avoid iterating a lazy collection
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
@@ -1171,7 +1176,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
+        checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
         setValue(fieldName, newValue);
     }
 
@@ -1220,7 +1225,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
         Collection singleton = Collections.singleton(toAdd.getObject());
-        checkFieldAwarePermissions(
+        checkFieldAwareDeferPatchExt(
                 UpdatePermission.class,
                 collectionName,
                 CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
@@ -1546,6 +1551,25 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
+        requestScope
+                .getPermissionExecutor()
+                .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
+    }
+
+    private <A extends Annotation> void checkFieldAwareDeferPatchExt(Class<A> annotationClass,
+                                                                     String fieldName,
+                                                                     Object modified,
+                                                                     Object original) {
+        ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
+                ? new ChangeSpec(this, fieldName, original, modified)
+                : null;
+        if (requestScope.getNewResources().contains(this) && (requestScope instanceof PatchRequestScope)) {
+            // Defer checks on creation of new objects in patch extension
+            requestScope
+                    .getPermissionExecutor()
+                    .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
+            return;
+        }
         requestScope
                 .getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
