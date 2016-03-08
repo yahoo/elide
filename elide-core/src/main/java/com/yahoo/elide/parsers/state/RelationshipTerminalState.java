@@ -33,15 +33,18 @@ import java.util.function.Supplier;
  * State to handle relationships.
  */
 public class RelationshipTerminalState extends BaseState {
-    private final PersistentResource record;
+    private final PersistentResource resource;
     private final RelationshipType relationshipType;
     private final String relationshipName;
 
-    public RelationshipTerminalState(PersistentResource record, String relationshipName) {
-        this.record = record;
+    public RelationshipTerminalState(PersistentResource resource, String relationshipName) {
+        this.resource = resource;
 
-        this.relationshipType = record.getRelationshipType(relationshipName);
         this.relationshipName = relationshipName;
+        this.relationshipType = resource.getRelationshipType(relationshipName);
+        if (relationshipType == RelationshipType.NONE) {
+            throw new ForbiddenAccessException("Not a relationship: '" + relationshipName + "'");
+        }
     }
 
     @Override
@@ -51,7 +54,7 @@ public class RelationshipTerminalState extends BaseState {
         ObjectMapper mapper = requestScope.getMapper().getObjectMapper();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Map<String, Relationship> relationships = record.toResource().getRelationships();
+        Map<String, Relationship> relationships = resource.toResource().getRelationships();
         Relationship relationship = null;
         if (relationships != null) {
             relationship = relationships.get(relationshipName);
@@ -66,7 +69,7 @@ public class RelationshipTerminalState extends BaseState {
 
             // Run include processor
             DocumentProcessor includedProcessor = new IncludedProcessor();
-            includedProcessor.execute(doc, record, queryParams);
+            includedProcessor.execute(doc, resource, queryParams);
 
             return () -> Pair.of(HttpStatus.SC_OK, mapper.convertValue(doc, JsonNode.class));
         }
@@ -98,71 +101,73 @@ public class RelationshipTerminalState extends BaseState {
     }
 
     private Supplier<Pair<Integer, JsonNode>> handleRequest(StateContext state,
-                                                           BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
+                                                            BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.apply(data, state.getRequestScope());
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     private boolean patch(Data<Resource> data, RequestScope requestScope) {
-        boolean isUpdated;
-
-        if (relationshipType.isToMany() && data == null) {
-            throw new InvalidEntityBodyException("Expected data but received null");
-        }
-
         if (relationshipType.isToMany()) {
+            disallowNullData(data);
             Collection<Resource> resources = data.get();
             if (resources == null) {
                 return false;
             }
             if (!resources.isEmpty()) {
-                isUpdated = record.updateRelation(relationshipName,
-                        new Relationship(null, new Data<>(resources)).toPersistentResources(requestScope));
+                return resource.updateRelation(
+                        relationshipName,
+                        new Relationship(null, new Data<>(resources)).toPersistentResources(requestScope)
+                );
             } else {
-                isUpdated = record.clearRelation(relationshipName);
+                return resource.clearRelation(relationshipName);
             }
         } else if (relationshipType.isToOne()) {
             if (data != null) {
                 Resource resource = data.getSingleValue();
                 Relationship relationship = new Relationship(null, new Data<>(resource));
-                isUpdated = record.updateRelation(relationshipName, relationship.toPersistentResources(requestScope));
+                return this.resource.updateRelation(
+                        relationshipName,
+                        relationship.toPersistentResources(requestScope)
+                );
             } else {
-                isUpdated = record.clearRelation(relationshipName);
+                return resource.clearRelation(relationshipName);
             }
         } else {
             throw new IllegalStateException("Bad relationship type");
         }
+    }
 
-        return isUpdated;
+    private void disallowNullData(Data<Resource> data) {
+        if (data == null) {
+            throw new InvalidEntityBodyException("expected data but received null");
+        }
     }
 
     private boolean post(Data<Resource> data, RequestScope requestScope) {
-        if (data == null) {
-            throw new InvalidEntityBodyException("Expected data but received null");
-        }
+        disallowNullData(data);
 
         Collection<Resource> resources = data.get();
         if (resources == null) {
             return false;
         }
-        resources.stream().forEachOrdered(resource ->
-            record.addRelation(relationshipName, resource.toPersistentResource(requestScope)));
+        resources.stream().forEachOrdered(
+                resource -> this.resource.addRelation(relationshipName, resource.toPersistentResource(requestScope))
+        );
         return true;
     }
 
     private boolean delete(Data<Resource> data, RequestScope requestScope) {
-        if (data == null) {
-            throw new InvalidEntityBodyException("Expected data but received null");
-        }
+        disallowNullData(data);
 
         Collection<Resource> resources = data.get();
         if (resources == null || resources.isEmpty()) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
             throw new ForbiddenAccessException("Unknown update");
         }
-        resources.stream().forEachOrdered(resource ->
-            record.removeRelation(relationshipName, resource.toPersistentResource(requestScope)));
+        resources.stream().forEachOrdered(
+                resource -> this.resource.removeRelation(relationshipName, resource.toPersistentResource(requestScope))
+        );
         return true;
     }
 }

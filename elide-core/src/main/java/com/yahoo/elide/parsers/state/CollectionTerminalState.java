@@ -28,6 +28,7 @@ import com.yahoo.elide.security.User;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Collection State.

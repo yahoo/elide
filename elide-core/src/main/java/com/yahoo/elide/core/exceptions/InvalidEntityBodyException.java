@@ -15,7 +15,7 @@ public class InvalidEntityBodyException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InvalidEntityBodyException(String body) {
-        super("Bad Request Body'" + body + "'");
+        super("Bad Request Body: '" + body + "'");
     }
 
     @Override
