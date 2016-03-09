@@ -1472,6 +1472,45 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(equalTo(expected));
     }
 
+    // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.
+    @Test
+    public void testUpdateDeferredOnCreate() {
+        String expected = "";
+        String badRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.bad.req.json");
+        String request = jsonParser.getJson("/ResourceIT/createButNoUpdate.req.json");
+        String updateRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.update.req.json");
+
+        // First ensure we cannot update fields that are explicitly disallowed
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(badRequest)
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+
+        // Now check that updating allowed fields enables us to create the object
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .post("/createButNoUpdate")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+
+        // Ensure we cannot update that newly created object
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(updateRequest)
+                .patch("/createButNoUpdate/1")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    // TODO: Test that user checks still apply at commit time
+
     @Test
     public void badRoot() {
         given().when().get("/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
