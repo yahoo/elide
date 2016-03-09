@@ -26,9 +26,19 @@ import javax.persistence.Id;
 @ReadPermission(any = {Role.ALL.class})
 @UpdatePermission(any = {UpdateOnCreateCheck.class, Role.NONE.class})
 public class CreateButNoUpdate {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) public Long id;
+    public Long id;
     public String textValue;
 
     @UpdatePermission(all = {Role.NONE.class})
     public String cannotModify = "unmodified";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

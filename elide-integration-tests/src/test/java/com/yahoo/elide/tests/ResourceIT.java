@@ -1475,7 +1475,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.
     @Test
     public void testUpdateDeferredOnCreate() {
-        String expected = "";
+        String expected = jsonParser.getJson("/ResourceIT/createButNoUpdate.resp.json");
         String badRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.bad.req.json");
         String request = jsonParser.getJson("/ResourceIT/createButNoUpdate.req.json");
         String updateRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.update.req.json");
@@ -1496,7 +1496,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(request)
                 .post("/createButNoUpdate")
                 .then()
-                .statusCode(HttpStatus.SC_OK)
+                .statusCode(HttpStatus.SC_CREATED)
                 .body(equalTo(expected));
 
         // Ensure we cannot update that newly created object

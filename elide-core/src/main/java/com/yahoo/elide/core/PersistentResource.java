@@ -322,7 +322,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Object val = getValueUnchecked(fieldName);
-        checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, newVal, val);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             transaction.save(obj);
@@ -357,7 +357,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources =
                 filter(ReadPermission.class, (Set) getRelationUncheckedUnfiltered(fieldName));
         if (type.isToMany()) {
-            checkFieldAwareDeferPatchExt(
+            checkFieldAwareDeferPermissions(
                     UpdatePermission.class,
                     fieldName,
                     resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
@@ -370,7 +370,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) ? null
                             : resourceIdentifiers.iterator().next();
             Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
-            checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, modified, original);
+            checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
             return updateToOneRelation(fieldName, resourceIdentifiers, resources);
         }
     }
@@ -827,7 +827,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, type);
         }
 
-        checkFieldAwareDeferPatchExt(ReadPermission.class, relationName, null, null);
+        checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
         // Check for permission to the relationship and to the underlying type to avoid iterating a lazy collection
         if (shouldSkipCollection(ReadPermission.class, relationName)) {
@@ -1176,7 +1176,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        checkFieldAwareDeferPatchExt(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
         setValue(fieldName, newValue);
     }
 
@@ -1203,7 +1203,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return value value
      */
     protected Object getValueChecked(String fieldName) {
-        checkFieldAwarePermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
+        checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -1225,7 +1225,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
         Collection singleton = Collections.singleton(toAdd.getObject());
-        checkFieldAwareDeferPatchExt(
+        checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
                 collectionName,
                 CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
@@ -1245,7 +1245,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param toDelete the to delete
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
-        checkFieldAwarePermissions(UpdatePermission.class,
+        checkFieldAwareDeferPermissions(UpdatePermission.class,
                 collectionName,
                 CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
                 copyCollection(collection));
@@ -1556,15 +1556,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
-    private <A extends Annotation> void checkFieldAwareDeferPatchExt(Class<A> annotationClass,
-                                                                     String fieldName,
-                                                                     Object modified,
-                                                                     Object original) {
+    private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
+                                                                        String fieldName,
+                                                                        Object modified,
+                                                                        Object original) {
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
-        if (requestScope.getNewResources().contains(this) && (requestScope instanceof PatchRequestScope)) {
-            // Defer checks on creation of new objects in patch extension
+        // Defer checks for newly created objects if:
+        //   1. This is a patch extension request
+        //   2. This is an update request (note: changeSpec != null is a faster change check than rechecking permission)
+        if (requestScope.getNewResources().contains(this)
+                && ((requestScope instanceof PatchRequestScope)
+                || changeSpec != null)) {
             requestScope
                     .getPermissionExecutor()
                     .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
