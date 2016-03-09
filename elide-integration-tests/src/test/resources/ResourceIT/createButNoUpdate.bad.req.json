@@ -1,0 +1,10 @@
+{
+  "data":{
+    "type":"createButNoUpdate",
+    "id":"1",
+    "attributes":{
+      "textValue": "test",
+      "cannotModify": "This should fail this whole create"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "data":{
+    "type":"createButNoUpdate",
+    "id":"1",
+    "attributes":{
+      "cannotModify": "unmodified",
+      "textValue": "test"
+    }
+  }
+}
