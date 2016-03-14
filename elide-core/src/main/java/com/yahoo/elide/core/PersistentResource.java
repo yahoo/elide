@@ -325,7 +325,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
-            transaction.save(obj);
+            this.markDirty();
             audit(fieldName);
             return true;
         }
@@ -426,7 +426,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .forEach(toDelete -> {
                     delFromCollection(collection, fieldName, toDelete);
                     deleteInverseRelation(fieldName, toDelete.getObject());
-                    transaction.save(toDelete.getObject());
                 });
 
         added
@@ -434,11 +433,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .forEach(toAdd -> {
                     addToCollection(collection, fieldName, toAdd);
                     addInverseRelation(fieldName, toAdd.getObject());
-                    transaction.save(toAdd.getObject());
                 });
 
 
-        transaction.save(getObject());
+        if (!updated.isEmpty()) {
+            this.markDirty();
+        }
         audit(fieldName);
 
         return !updated.isEmpty();
@@ -455,11 +455,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     protected boolean updateToOneRelation(String fieldName,
                                           Set<PersistentResource> resourceIdentifiers,
                                           Set<PersistentResource> mine) {
-        Object newValue;
-        if (resourceIdentifiers == null || resourceIdentifiers.isEmpty()) {
-            newValue = null;
-        } else {
-            PersistentResource newResource = resourceIdentifiers.iterator().next();
+        Object newValue = null;
+        PersistentResource newResource = null;
+        if (resourceIdentifiers != null && !resourceIdentifiers.isEmpty()) {
+            newResource = resourceIdentifiers.iterator().next();
             newValue = newResource.getObject();
         }
 
@@ -474,18 +473,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return false;
         } else {
             checkSharePermission(resourceIdentifiers);
-            deleteInverseRelation(fieldName, oldResource.getObject());
-            transaction.save(oldResource.getObject());
+            if (hasInverseRelation(fieldName)) {
+                deleteInverseRelation(fieldName, oldResource.getObject());
+                oldResource.markDirty();
+            }
         }
 
         if (newValue != null) {
-            addInverseRelation(fieldName, newValue);
-            transaction.save(newValue);
+            if (hasInverseRelation(fieldName)) {
+                addInverseRelation(fieldName, newValue);
+                newResource.markDirty();
+            }
         }
 
         this.setValueChecked(fieldName, newValue);
 
-        transaction.save(obj);
+        this.markDirty();
         audit(fieldName);
         return true;
     }
@@ -508,22 +511,33 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         RelationshipType type = getRelationshipType(relationName);
 
         mine.stream()
-                .forEach(toDelete -> deleteInverseRelation(relationName, toDelete.getObject()));
+                .forEach(toDelete -> {
+                    if (hasInverseRelation(relationName)) {
+                        deleteInverseRelation(relationName, toDelete.getObject());
+                        toDelete.markDirty();
+                    }
+                });
 
         if (type.isToOne()) {
             PersistentResource oldValue = mine.iterator().next();
-            this.nullValue(relationName, oldValue);
-            transaction.save(oldValue.getObject());
+            if (oldValue != null && oldValue.getObject() != null) {
+                this.nullValue(relationName, oldValue);
+                oldValue.markDirty();
+                this.markDirty();
+            }
         } else {
             Collection collection = (Collection) getValueUnchecked(relationName);
-            mine.stream()
-                    .forEach(toDelete -> {
-                        delFromCollection(collection, relationName, toDelete);
-                        transaction.save(toDelete.getObject());
-                    });
+            if (collection != null && !collection.isEmpty()) {
+                mine.stream()
+                        .forEach(toDelete -> {
+                            delFromCollection(collection, relationName, toDelete);
+                            if (hasInverseRelation(relationName)) {
+                                toDelete.markDirty();
+                            }
+                        });
+                this.markDirty();
+            }
         }
-
-        transaction.save(obj);
 
         audit(relationName);
         return true;
@@ -560,10 +574,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             this.nullValue(fieldName, removeResource);
         }
 
-        deleteInverseRelation(fieldName, removeResource.getObject());
+        if (hasInverseRelation(fieldName)) {
+            deleteInverseRelation(fieldName, removeResource.getObject());
+            removeResource.markDirty();
+        }
 
-        transaction.save(removeResource.getObject());
-        transaction.save(obj);
+        if (original != modified && original != null && !original.equals(modified)) {
+            this.markDirty();
+        }
+
         audit(fieldName);
     }
 
@@ -578,16 +597,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Object relation = this.getValueUnchecked(fieldName);
 
         if (relation instanceof Collection) {
-            addToCollection((Collection) relation, fieldName, newRelation);
+            if (addToCollection((Collection) relation, fieldName, newRelation)) {
+                this.markDirty();
+            }
             addInverseRelation(fieldName, newRelation.getObject());
         } else {
             // Not a collection, but may be trying to create a ToOne relationship.
+            // NOTE: updateRelation marks dirty.
             updateRelation(fieldName, Collections.singleton(newRelation));
             return;
         }
 
-        transaction.save(newRelation.getObject());
-        transaction.save(obj);
         audit(fieldName);
     }
 
@@ -645,8 +665,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!inverseRelationName.equals("")) {
                 for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
-                    deleteInverseRelation(relationName, inverseResource.getObject());
-                    transaction.save(inverseResource.getObject());
+                    if (hasInverseRelation(relationName)) {
+                        deleteInverseRelation(relationName, inverseResource.getObject());
+                        inverseResource.markDirty();
+                    }
                 }
             }
         }
@@ -1222,8 +1244,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param collection the collection
      * @param collectionName the collection name
      * @param toAdd the to add
+     * @return True if added to collection false otherwise (i.e. element already in collection)
      */
-    protected void addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
+    protected boolean addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
         Collection singleton = Collections.singleton(toAdd.getObject());
         checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
@@ -1232,10 +1255,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 copyCollection(collection));
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
-            this.setValueChecked(collectionName, collection);
+            Object value = getValueUnchecked(collectionName);
+            if ((value == null && toAdd.getObject() != null) || (value != null && !value.equals(toAdd.getObject()))) {
+                this.setValueChecked(collectionName, collection);
+                return true;
+            }
         } else {
-            collection.add(toAdd.getObject());
+            if (!collection.contains(toAdd.getObject())) {
+                collection.add(toAdd.getObject());
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -1433,7 +1464,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
+            inverseResource.markDirty();
         }
+    }
+
+    private boolean hasInverseRelation(String relationName) {
+        String inverseField = getInverseRelationField(relationName);
+        return inverseField != null && !inverseField.isEmpty();
     }
 
     private String getInverseRelationField(String relationName) {
@@ -1467,6 +1504,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
+            inverseResource.markDirty();
         }
     }
 
@@ -1649,5 +1687,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         collection.iterator().forEachRemaining(newCollection::add);
         return newCollection;
+    }
+
+    /**
+     * Mark this object as dirty.
+     */
+    private void markDirty() {
+        requestScope.getDirtyResources().add(this);
     }
 }
