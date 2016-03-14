@@ -1684,6 +1684,32 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertTrue(model.updateRelation("child", null));
     }
 
+    @Test
+    public void testEqualsAndHashcode() {
+        Child childWithId = newChild(1);
+        Child childWithoutId = newChild(0);
+
+        PersistentResource resourceWithId = new PersistentResource<>(childWithId, goodUserScope);
+        PersistentResource resourceWithDifferentId = new PersistentResource<>(childWithoutId, goodUserScope);
+        PersistentResource resourceWithUUID = new PersistentResource<>(childWithoutId, null, "abc", goodUserScope);
+        PersistentResource resourceWithIdAndUUID = new PersistentResource<>(childWithId, null, "abc", goodUserScope);
+
+        Assert.assertNotEquals(resourceWithId, resourceWithUUID);
+        Assert.assertNotEquals(resourceWithUUID, resourceWithId);
+        Assert.assertNotEquals(resourceWithId.hashCode(), resourceWithUUID.hashCode(), "Hashcodes were equal...");
+
+        Assert.assertEquals(resourceWithId, resourceWithIdAndUUID);
+        Assert.assertEquals(resourceWithIdAndUUID, resourceWithId);
+        Assert.assertEquals(resourceWithId.hashCode(), resourceWithIdAndUUID.hashCode());
+
+        // Hashcode's should only ever look at UUID's if no real ID is present (i.e. object id is null or 0)
+        Assert.assertNotEquals(resourceWithUUID.hashCode(), resourceWithIdAndUUID.hashCode());
+
+        Assert.assertNotEquals(resourceWithId.hashCode(), resourceWithDifferentId.hashCode());
+        Assert.assertNotEquals(resourceWithId, resourceWithDifferentId);
+        Assert.assertNotEquals(resourceWithDifferentId, resourceWithId);
+    }
+
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);

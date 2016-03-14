@@ -83,6 +83,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final DataStoreTransaction transaction;
     @NonNull private final RequestScope requestScope;
     private final Optional<PersistentResource<?>> parent;
+    private int hashCode = 0;
 
     /**
      * The Dictionary.
@@ -1049,10 +1050,30 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     @Override
     public int hashCode() {
-        if (getType() == null) {
-            return -1;
+        if (hashCode == 0) {
+            final int prime = 31;
+            int result = 1;
+            // NOTE: UUID's are only present in the case of newly created objects.
+            // Consequently, a known ID will never be present during processing (only after commit
+            // assigned by the DB) and so we can assume that any newly created object can be fully
+            // addressed by its UUID. It is possible for UUID and id to be unset upon a POST or PATCH
+            // ext request, but it is safe to ignore these edge cases.
+            //     (1) In a POST request, you would not be referencing this newly created object in any way
+            //         so this is not an issue.
+            //     (2) In a PATCH ext request, this is also acceptable (assuming request is accepted) in the way
+            //         that it is acceptable in a POST. If you do not specify a UUID, there is no way to reference
+            //         that newly created object within the context of the request. Thus, if any such action was
+            //         required, the user would be forced to provide a UUID anyway.
+            String id = dictionary.getId(getObject());
+            if (uuid.isPresent() && "0".equals(id)) {
+                result = prime * result + uuid.hashCode();
+            } else {
+                result = prime * result + (id == null ? 0 : id.hashCode());
+            }
+            result = prime * result + (type == null ? 0 : type.hashCode());
+            hashCode = result;
         }
-        return getType().hashCode();
+        return hashCode;
     }
 
     @Override
