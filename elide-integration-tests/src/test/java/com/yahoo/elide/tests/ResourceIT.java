@@ -1349,6 +1349,36 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(equalTo(expected));
     }
 
+    @Test(priority = 37)
+    public void testCreatedRootNoReadPermRequired() {
+        String req = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.req.json");
+        String badReq = "[{\n"
+                 + "    \"op\": \"add\",\n"
+                 + "    \"path\": \"/1/child\",\n"
+                 + "    \"value\": {\n"
+                 + "      \"type\": \"child\",\n"
+                 + "      \"id\": \"12345678-1234-1234-1234-123456789ab2\"\n"
+                 + "    }\n"
+                 + "  }]";
+        String expected = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/specialread")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(badReq)
+                .patch("/specialread")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
