@@ -867,6 +867,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         }
     }
 
+    @Test
+    public void testGetBadRelationshipNameWithNestedFieldFilter() {
+        def result = mapper.readTree(RestAssured.get("book?filter[book.author12.name]=Null%20Ned").asString());
+        Assert.assertEquals(result.get("errors").get(0), "\"InvalidPredicateException: Unknown field in filter: author12\"");
+    }
+
+    @Test
+    public void testGetBooksByAuthors() {
+        def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null%20Ned").asString());
+        for (JsonNode book : result.get("data")) {
+            String authorName = book.get("attributes").get("authors").get(0).asText();
+            Assert.assertEquals(authorName, "Null Ned");
+        }
+    }
+
     @AfterTest
     public void cleanUp() {
         for (int id : authorIds) {

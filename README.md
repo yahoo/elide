@@ -4,7 +4,7 @@
 
 ##What Is Elide?
 
-Elide is a Java library that let's you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a JPA annotated data model. 
+Elide is a Java library that lets you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a JPA annotated data model. 
 Elide is designed to quickly build and deploy **production quality** web services that expose databases as services.  Beyond the basics, elide provides:
   1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
   2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.

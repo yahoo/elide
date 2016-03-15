@@ -45,27 +45,18 @@ public class Predicate {
             if (matcher.find()) {
                 final String[] keyParts = matcher.group(1).split("\\.");
 
-                if (keyParts.length != 2) {
+                if (keyParts.length < 2) {
                     throw new InvalidPredicateException("Invalid filter format: " + queryParameter.getKey());
                 }
 
-                final String type = keyParts[0];
-                final String field = keyParts[1];
 
                 final Operator operator = (matcher.group(3) == null) ? Operator.IN
                         : Operator.fromString(matcher.group(3));
 
-                final Class<?> entityClass = dictionary.getBinding(type);
-                if (entityClass == null) {
-                    throw new InvalidPredicateException("Unknown entity in filter: " + type);
-                }
-
-                final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
-                                           ? dictionary.getIdType(entityClass)
-                                           : dictionary.getParameterizedType(entityClass, field);
-                if (fieldType == null) {
-                    throw new InvalidPredicateException("Unknown field in filter: " + field);
-                }
+                final Class<?>[] types = getTypes(keyParts, dictionary);
+                final String type = getType(types);
+                final String field = getField(keyParts);
+                final Class<?> fieldType = getFieldType(types);
 
                 final List<Object> values = new ArrayList<>();
                 for (String valueParams : queryParameter.getValue()) {
@@ -82,5 +73,79 @@ public class Predicate {
         });
 
         return predicates;
+    }
+
+    /**
+     * Retrieve the type of the object to be filtered.
+     *
+     * @param types Array of types
+     * @return Type of object to be filtered. Empty string if nothing found.
+     */
+    private static String getType(final Class<?>[] types) {
+        if (types == null || types.length <= 1) {
+            return "";
+        }
+        return types[types.length - 2].getSimpleName().toLowerCase(Locale.ENGLISH);
+    }
+
+    /**
+     * Retrieve the type of the field being accessed.
+     *
+     * @param types Array of types
+     * @return Type of the field
+     */
+    private static Class<?> getFieldType(final Class<?>[] types) {
+        if (types == null || types.length <= 1) {
+            throw new InvalidPredicateException("Unknown type for field");
+        }
+        return types[types.length - 1];
+    }
+
+    /**
+     * Get the classes of each field contained within the key part.
+     *
+     * NOTE: This method checks that the specified traversal path to a particular type
+     *       is valid. In the case of an invalid field, it will throw an "InvalidPredicateException."
+     *
+     * @param keyParts Key components
+     * @param dictionary Entity dictionary
+     * @return An array containing types for each of the key parts (in order). Empty array if none found.
+     */
+    private static Class<?>[] getTypes(final String[] keyParts, final EntityDictionary dictionary) {
+        if (keyParts == null || keyParts.length <= 0) {
+            return new Class[0];
+        }
+        Class<?>[] types = new Class[keyParts.length];
+        String type = keyParts[0];
+        types[0] = dictionary.getBinding(type);
+        for (int i = 1 ; i < keyParts.length ; ++i) {
+            final String field = keyParts[i];
+            final Class<?> entityClass = types[i - 1];
+            if (entityClass == null) {
+                throw new InvalidPredicateException("Unknown entity in filter: " + type);
+            }
+
+            final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
+                    ? dictionary.getIdType(entityClass)
+                    : dictionary.getParameterizedType(entityClass, field);
+            if (fieldType == null) {
+                throw new InvalidPredicateException("Unknown field in filter: " + field);
+            }
+            types[i] = fieldType;
+        }
+        return types;
+    }
+
+    /**
+     * Retrieve the string name for the final field being accessed in a list of keyParts.
+     *
+     * @param keyParts Key components
+     * @return Final field being accessed or empty string if no key parts
+     */
+    private static String getField(final String[] keyParts) {
+        if (keyParts != null && keyParts.length > 0) {
+            return keyParts[keyParts.length - 1];
+        }
+        return "";
     }
 }
