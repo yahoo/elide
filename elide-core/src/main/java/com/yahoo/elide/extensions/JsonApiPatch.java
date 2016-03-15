@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
@@ -140,11 +141,15 @@ public class JsonApiPatch {
                 try {
                     return Pair.of(HttpStatus.SC_OK, mergeResponse(results));
                 } catch (HttpStatusException e) {
-                    return buildErrorResponse(e, requestScope.getSecurityMode());
+                    throwErrorResponse(e, requestScope.getSecurityMode());
+                    // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
+                    return null;
                 }
             };
         } catch (HttpStatusException e) {
-            return () -> buildErrorResponse(e, requestScope.getSecurityMode());
+            throwErrorResponse(e, requestScope.getSecurityMode());
+            // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
+            return () -> null;
         }
     }
 
@@ -275,11 +280,12 @@ public class JsonApiPatch {
     /**
      * Turn an exception into a proper error response from patch extension.
      */
-    private Pair<Integer, JsonNode> buildErrorResponse(HttpStatusException e, SecurityMode securityMode) {
+    private void throwErrorResponse(HttpStatusException e, SecurityMode securityMode) {
         if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            return securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
+            throw new JsonPatchExtensionException(
+                    securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
                     ? e.getVerboseErrorResponse()
-                    : e.getErrorResponse();
+                    : e.getErrorResponse());
         }
 
         ObjectNode errorContainer = getErrorContainer();
@@ -289,7 +295,7 @@ public class JsonApiPatch {
         for (PatchAction action : actions) {
             failed = processAction(errorList, failed, action);
         }
-        return Pair.of(HttpStatus.SC_BAD_REQUEST, errorContainer);
+        throw new JsonPatchExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
     }
 
     private ObjectNode getErrorContainer() {

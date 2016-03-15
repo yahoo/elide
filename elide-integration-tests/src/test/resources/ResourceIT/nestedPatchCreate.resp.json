@@ -2,7 +2,7 @@
   {
     "data": {
       "type": "parent",
-      "id": "17",
+      "id": "13",
       "attributes": {
         "firstName": "Parent1"
       },
@@ -11,7 +11,7 @@
           "data": [
             {
               "type": "child",
-              "id": "13"
+              "id": "10"
             }
           ]
         },
@@ -24,7 +24,7 @@
   {
     "data": {
       "type": "child",
-      "id": "13",
+      "id": "10",
       "attributes": {
         "name": null
       },
@@ -36,11 +36,11 @@
           "data": [
             {
               "type": "parent",
-              "id": "17"
+              "id": "13"
             },
             {
               "type": "parent",
-              "id": "18"
+              "id": "14"
             }
           ]
         }
@@ -50,7 +50,7 @@
   {
     "data": {
       "type": "parent",
-      "id": "18",
+      "id": "14",
       "attributes": {
         "firstName": "Parent2"
       },
@@ -59,7 +59,7 @@
           "data": [
             {
               "type": "child",
-              "id": "13"
+              "id": "10"
             }
           ]
         },

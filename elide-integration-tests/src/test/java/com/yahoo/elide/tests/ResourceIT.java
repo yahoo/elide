@@ -1113,18 +1113,19 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .patch("/")
             .then()
-            .statusCode(HttpStatus.SC_LOCKED)
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
             .extract()
             .body()
             .asString());
 
         JsonNode errors = result.get("errors");
         Assert.assertNotNull(errors);
-        Assert.assertEquals(errors.size(), 1);
+        Assert.assertEquals(errors.size(), 3);
 
-        String error = errors.get(0).asText();
-        String expected = "TransactionException: Duplicate entry 'duplicate' for key";
+        String error = errors.get(2).get("detail").asText();
+        String expected = "Unknown identifier '2d1b";
         Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "'");
+        Assert.assertEquals(errors.get(2).get("status").asInt(), 404);
     }
 
     @Test(priority = 29)

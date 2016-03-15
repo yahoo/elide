@@ -14,6 +14,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
@@ -258,14 +259,6 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
-            if (response.getResponseCode() >= 300) {
-                try {
-                    transaction.close();
-                } catch (IOException e) {
-                    // ignore any rollback exception
-                }
-                return response;
-            }
             auditLogger.commit();
             transaction.commit();
             requestScope.saveObjects();
@@ -275,6 +268,8 @@ public class Elide {
         } catch (ForbiddenAccessException e) {
             debugLogSecurityExceptions(requestScope);
             return buildErrorResponse(e, securityMode);
+        } catch (JsonPatchExtensionException e) {
+            return buildResponse(e.getResponse());
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, securityMode);
         } catch (ParseCancellationException e) {
