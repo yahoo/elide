@@ -1113,18 +1113,19 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .patch("/")
             .then()
-            .statusCode(HttpStatus.SC_LOCKED)
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
             .extract()
             .body()
             .asString());
 
         JsonNode errors = result.get("errors");
         Assert.assertNotNull(errors);
-        Assert.assertEquals(errors.size(), 1);
+        Assert.assertEquals(errors.size(), 3);
 
-        String error = errors.get(0).asText();
-        String expected = "TransactionException: Duplicate entry 'duplicate' for key";
+        String error = errors.get(2).get("detail").asText();
+        String expected = "Unknown identifier '2d1b";
         Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "'");
+        Assert.assertEquals(errors.get(2).get("status").asInt(), 404);
     }
 
     @Test(priority = 29)
@@ -1347,6 +1348,36 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
+    }
+
+    @Test(priority = 37)
+    public void testCreatedRootNoReadPermRequired() {
+        String req = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.req.json");
+        String badReq = "[{\n"
+                 + "    \"op\": \"add\",\n"
+                 + "    \"path\": \"/1/child\",\n"
+                 + "    \"value\": {\n"
+                 + "      \"type\": \"child\",\n"
+                 + "      \"id\": \"12345678-1234-1234-1234-123456789ab2\"\n"
+                 + "    }\n"
+                 + "  }]";
+        String expected = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/specialread")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(badReq)
+                .patch("/specialread")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
     }
 
     @Test

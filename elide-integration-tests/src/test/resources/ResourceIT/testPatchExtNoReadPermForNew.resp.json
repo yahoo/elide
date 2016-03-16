@@ -1,0 +1,36 @@
+[
+  {
+    "data": {
+      "type": "specialread",
+      "id": "1",
+      "attributes": {
+        "value": "special value"
+      },
+      "relationships": {
+        "child": {
+          "data": {
+            "type": "child",
+            "id": "11"
+          }
+        }
+      }
+    }
+  },
+  {
+    "data": {
+      "type": "child",
+      "id": "11",
+      "attributes": {
+        "name": null
+      },
+      "relationships": {
+        "friends": {
+          "data": []
+        },
+        "parents": {
+          "data": []
+        }
+      }
+    }
+  }
+]

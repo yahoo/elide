@@ -255,7 +255,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         PersistentResource<T> resource = new PersistentResource<>(obj, requestScope);
-        resource.checkFieldAwarePermissions(ReadPermission.class);
+        // No need to have read access for a newly created object
+        if (!requestScope.getNewResources().contains(resource)) {
+            resource.checkFieldAwarePermissions(ReadPermission.class);
+        }
         requestScope.queueCommitTrigger(resource);
 
         return resource;
