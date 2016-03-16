@@ -22,8 +22,12 @@ public class AddToCollectionCheck<T> extends CommitCheck<T> {
 
     @Override
     public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        return (changeSpec.isPresent() && changeSpec.get().getModified() instanceof Collection)
-                && ((Collection) changeSpec.get().getModified()).containsAll(
-                (Collection) changeSpec.get().getOriginal());
+        if (changeSpec.isPresent() && changeSpec.get().getModified() instanceof Collection) {
+            Collection originalCollection = (Collection) changeSpec.get().getOriginal();
+            Collection modifiedCollection = (Collection) changeSpec.get().getModified();
+            return (modifiedCollection.size() > originalCollection.size())
+                    && (modifiedCollection.containsAll(originalCollection));
+        }
+        return false;
     }
 }

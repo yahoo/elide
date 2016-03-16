@@ -22,8 +22,12 @@ public class RemoveFromCollectionCheck<T> extends CommitCheck<T> {
 
     @Override
     public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        return (changeSpec.isPresent() && changeSpec.get().getModified() instanceof Collection)
-                && ((Collection) changeSpec.get().getOriginal()).containsAll(
-                    (Collection) changeSpec.get().getModified());
+        if (changeSpec.isPresent() && changeSpec.get().getModified() instanceof Collection) {
+            Collection originalCollection = (Collection) changeSpec.get().getOriginal();
+            Collection modifiedCollection = (Collection) changeSpec.get().getModified();
+            return (originalCollection.size() > modifiedCollection.size())
+                    && (originalCollection.containsAll(modifiedCollection));
+        }
+        return false;
     }
 }
