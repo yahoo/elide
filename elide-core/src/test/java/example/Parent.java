@@ -10,16 +10,12 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.ChangeSpec;
-
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.ToString;
-
-import java.util.Optional;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -29,6 +25,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
+import java.util.Set;
 
 @CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
 @ReadPermission(any = { Parent.InitCheckOp.class, Role.ALL.class })

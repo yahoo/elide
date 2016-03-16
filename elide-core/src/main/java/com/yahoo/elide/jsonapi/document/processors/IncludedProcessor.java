@@ -61,8 +61,7 @@ public class IncludedProcessor implements DocumentProcessor {
             List<String> pathList = Arrays.asList(pathParam.split(RELATION_PATH_SEPARATOR));
 
             pathList.forEach(requestedRelationPath -> {
-                List<String> relationPath =
-                        Lists.newArrayList(requestedRelationPath.split(RELATION_PATH_DELIMITER));
+                List<String> relationPath = Lists.newArrayList(requestedRelationPath.split(RELATION_PATH_DELIMITER));
                 addResourcesForPath(jsonApiDocument, rec, relationPath);
             });
         });

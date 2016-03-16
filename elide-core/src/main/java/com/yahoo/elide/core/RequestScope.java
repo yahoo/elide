@@ -19,6 +19,7 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,8 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.

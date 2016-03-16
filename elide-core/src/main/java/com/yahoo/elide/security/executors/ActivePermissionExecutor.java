@@ -12,16 +12,15 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.SecurityMode;
-import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.ExpressionBuilder;
+import com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -44,7 +43,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param requestScope Request scope.
      */
     public ActivePermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
-        HashMap<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache = new HashMap<>();
+        ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
         this.expressionBuilder = new ExpressionBuilder(cache, requestScope.getDictionary());
@@ -86,8 +85,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return; // Bypass
         }
         checkIsValidSharePermission(annotationClass, resource);
-        ExpressionBuilder.Expressions expressions =
-                expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
+        Expressions expressions = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         executeExpressions(expressions, annotationClass);
     }
 
@@ -109,8 +107,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return; // Bypass
         }
         checkIsValidSharePermission(annotationClass, resource);
-        ExpressionBuilder.Expressions expressions =
-                expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+        Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
+                resource,
+                annotationClass,
+                field,
+                changeSpec
+        );
         executeExpressions(expressions, annotationClass);
     }
 
@@ -132,8 +134,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return; // Bypass
         }
         checkIsValidSharePermission(annotationClass, resource);
-        ExpressionBuilder.Expressions expressions =
-                expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+        Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
+                resource,
+                annotationClass,
+                field,
+                changeSpec
+        );
         Expression commitExpression = expressions.getCommitExpression();
         if (commitExpression != null) {
             commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
@@ -156,8 +162,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return; // Bypass
         }
         checkIsValidSharePermission(annotationClass, resource);
-        ExpressionBuilder.Expressions expressions =
-                expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
+        Expressions expressions = expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
         executeExpressions(expressions, annotationClass);
     }
 
@@ -175,8 +180,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return; // Bypass
         }
         checkIsValidSharePermission(annotationClass, resourceClass);
-        ExpressionBuilder.Expressions expressions =
-                expressionBuilder.buildUserCheckAnyExpression(resourceClass, annotationClass, requestScope);
+        Expressions expressions = expressionBuilder.buildUserCheckAnyExpression(
+                resourceClass,
+                annotationClass,
+                requestScope
+        );
         executeExpressions(expressions, annotationClass);
     }
 
@@ -200,7 +208,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      *
      * @param expressions expressions to execute
      */
-    private void executeExpressions(final ExpressionBuilder.Expressions expressions,
+    private void executeExpressions(final Expressions expressions,
                                     final Class<? extends Annotation> annotationClass) {
         ExpressionResult result = expressions.getOperationExpression().evaluate();
         if (result.getStatus() == DEFERRED) {

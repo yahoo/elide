@@ -16,7 +16,6 @@ import java.lang.annotation.Annotation;
  * Checks are expected to throw exceptions upon failures.
  */
 public interface PermissionExecutor {
-
     /**
      * Load checks from an entity.
      *

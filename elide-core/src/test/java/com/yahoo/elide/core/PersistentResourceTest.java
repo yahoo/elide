@@ -28,9 +28,9 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.Color;
 import example.FirstClassFields;
@@ -1399,9 +1399,14 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
         TestAuditLogger logger = new TestAuditLogger();
         PersistentResource<Parent> parentResource = new PersistentResource<>(
-                parent, getUserScope(goodUser, logger));
+                parent,
+                getUserScope(goodUser, logger)
+        );
         PersistentResource<Child> childResource = new PersistentResource<>(
-                parentResource, child, getUserScope(goodUser, logger));
+                parentResource,
+                child,
+                getUserScope(goodUser, logger)
+        );
 
         childResource.audit(Audit.Action.CREATE);
 

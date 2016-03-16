@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.annotation;
 
-import static java.lang.annotation.ElementType.PACKAGE;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import com.yahoo.elide.security.checks.InlineCheck;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Assign custom Delete permission checks.
@@ -36,4 +36,10 @@ public @interface DeletePermission {
      * @return the class [ ]
      */
     Class<? extends InlineCheck>[] all() default {};
+
+    /**
+     * An expression of checks that will be parsed via ANTLR.
+     * @return the expression string to be parsed
+     */
+    String expression() default "";
 }

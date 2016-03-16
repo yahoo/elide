@@ -365,7 +365,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     UpdatePermission.class,
                     fieldName,
                     resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
-                    resources.stream().map(PersistentResource::getObject).collect(Collectors.toList()));
+                    resources.stream().map(PersistentResource::getObject).collect(Collectors.toList())
+            );
             return updateToManyRelation(fieldName, resourceIdentifiers, resources);
         } else { // To One Relationship
             PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
@@ -555,12 +556,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
         Object relation = getValueUnchecked(fieldName);
-        Object original = (relation instanceof Collection) ? copyCollection((Collection) relation) : relation;
-        Object modified =
-                (relation instanceof Collection && removeResource != null)
-                        ? CollectionUtils.disjunction((Collection) relation,
-                        Collections.singleton(removeResource.getObject()))
-                        : null;
+        Object original = relation;
+        Object modified = null;
+
+        if (relation instanceof Collection) {
+            original = copyCollection((Collection) relation);
+        }
+
+        if (relation instanceof Collection && removeResource != null) {
+            modified = CollectionUtils.disjunction(
+                    (Collection) relation,
+                    Collections.singleton(removeResource.getObject())
+            );
+        }
+
         checkFieldAwarePermissions(UpdatePermission.class, fieldName, modified, original);
 
         if (relation instanceof Collection) {

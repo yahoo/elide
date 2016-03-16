@@ -6,17 +6,16 @@
 package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;
@@ -26,11 +25,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import java.util.Optional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import javax.persistence.OneToOne;
+import java.util.Optional;
+import java.util.Set;
 
 @Entity
 @CreatePermission(any = { InitCheck.class })
@@ -56,13 +53,6 @@ public class Child {
 
     private Set<Child> friends;
     private Child noReadAccess;
-
-    public ExcludedEntity excludedEntity = new ExcludedEntity(1L, "excluded");
-
-    @OneToOne
-    public ExcludedEntity excludedRelationship = new ExcludedEntity(2L, "excluded2");
-
-    public List<ExcludedEntity> excludedEntityList = new ArrayList<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -32,8 +32,11 @@ public class FilterScope {
     }
 
     public FilterScope(RequestScope requestScope, Class<?> resourceClass) {
-        ExtractedChecks checks =
-                PermissionExecutor.loadEntityChecks(ReadPermission.class, resourceClass, requestScope.getDictionary());
+        ExtractedChecks checks = PermissionExecutor.loadEntityChecks(
+                ReadPermission.class,
+                resourceClass,
+                requestScope.getDictionary()
+        );
         this.requestScope = requestScope;
         this.checkMode = checks.getCheckMode();
         this.inlineChecks = checks.getInlineChecks();
@@ -57,7 +60,6 @@ public class FilterScope {
     }
 
     /**
-
      * Returns true if pagination limits were added to this query.
      *
      * NOTE: This method is often used in GET transaction implementations

@@ -11,8 +11,7 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
-
-import java.util.Map;
+import com.yahoo.elide.security.permissions.ExpressionResultCache;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
 
@@ -34,7 +33,7 @@ public class UserCheckOnlyExpression extends ImmediateCheckExpression {
                                    final PersistentResource resource,
                                    final RequestScope requestScope,
                                    final ChangeSpec changeSpec,
-                                   final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache) {
+                                   final ExpressionResultCache cache) {
         super(check, resource, requestScope, changeSpec, cache);
     }
 

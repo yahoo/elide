@@ -64,7 +64,7 @@ public class ExtractedChecks {
                                                   final Class<A> annotationClass,
                                                   final String field) {
         final A annotation = (field == null) ? dictionary.getAnnotation(cls, annotationClass)
-                                             : dictionary.getAttributeOrRelationAnnotation(cls, annotationClass, field);
+                : dictionary.getAttributeOrRelationAnnotation(cls, annotationClass, field);
         // No checks specified
         if (annotation == null) {
             anyChecks = allChecks = null;
