@@ -239,6 +239,17 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                             "language": "English"
                           }
                         }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book/12345680-1234-1234-1234-1234567890ad/chapters",
+                        "value": {
+                          "type": "chapter",
+                          "id": "12345680-1234-1234-1234-1234567890ae",
+                          "attributes": {
+                            "title": "Viva la Roma!"
+                          }
+                        }
                       }
                     ]
                     ''')
@@ -297,6 +308,17 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                             "title": "Life with Null Ned 2",
                             "genre": "Not Null",
                             "language": "English"
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book/12345681-1234-1234-1234-1234567890ad/chapters",
+                        "value": {
+                          "type": "chapter",
+                          "id": "12345680-1234-1234-1234-1234567890ae",
+                          "attributes": {
+                            "title": "Mamma mia I wantz some pizza!"
                           }
                         }
                       }
@@ -870,15 +892,35 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testGetBadRelationshipNameWithNestedFieldFilter() {
         def result = mapper.readTree(RestAssured.get("book?filter[book.author12.name]=Null%20Ned").asString());
-        Assert.assertEquals(result.get("errors").get(0), "\"InvalidPredicateException: Unknown field in filter: author12\"");
+        Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown field in filter: author12");
     }
 
     @Test
-    public void testGetBooksByAuthors() {
-        def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null%20Ned").asString());
+    public void testGetBooksFilteredByAuthors() {
+        def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null Ned").asString());
+        Assert.assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
         for (JsonNode book : result.get("data")) {
-            String authorName = book.get("attributes").get("authors").get(0).asText();
-            Assert.assertEquals(authorName, "Null Ned");
+            String authorId = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+            Assert.assertEquals(authorId, nullNedId);
+        }
+    }
+
+    @Test
+    public void testGetBooksFilteredByAuthorAndTitle() {
+        def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(), "Life with Null Ned");
+        Assert.assertEquals(result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(), nullNedId);
+    }
+
+    @Test
+    public void testFilterAuthorsByBookChapterTitle() {
+        def result = mapper.readTree(RestAssured.get("author?filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
+        Assert.assertEquals(result.get("data").size(), 2);
+        String last = null;
+        for (JsonNode author : result.get("data")) {
+            String name = author.get("attributes").get("name").asText();
+            Assert.assertTrue(("Isaac Asimov".equals(name) || "Null Ned".equals(name)) && !name.equals(last));
         }
     }
 

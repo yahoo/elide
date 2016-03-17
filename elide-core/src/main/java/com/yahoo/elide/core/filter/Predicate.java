@@ -54,7 +54,7 @@ public class Predicate {
                         : Operator.fromString(matcher.group(3));
 
                 final Class<?>[] types = getTypes(keyParts, dictionary);
-                final String type = getType(types);
+                final String type = getType(keyParts);
                 final String field = getField(keyParts);
                 final Class<?> fieldType = getFieldType(types);
 
@@ -78,14 +78,23 @@ public class Predicate {
     /**
      * Retrieve the type of the object to be filtered.
      *
+     * NOTE: Types are now fully qualified by (ROOT_TYPE.FIELD1.FIELD2..FIELD(N-1)).ACCESSED_FIELD
+     *
      * @param types Array of types
      * @return Type of object to be filtered. Empty string if nothing found.
      */
-    private static String getType(final Class<?>[] types) {
+    private static String getType(final String[] types) {
         if (types == null || types.length <= 1) {
             return "";
         }
-        return types[types.length - 2].getSimpleName().toLowerCase(Locale.ENGLISH);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0 ; i < types.length - 1 ; ++i) {
+            sb.append(types[i]);
+            if (i != types.length - 2) {
+                sb.append(".");
+            }
+        }
+        return sb.toString();
     }
 
     /**

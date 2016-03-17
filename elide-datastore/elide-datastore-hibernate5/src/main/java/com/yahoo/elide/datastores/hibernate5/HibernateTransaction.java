@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
 
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.datastores.hibernate5.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
@@ -128,24 +129,14 @@ public class HibernateTransaction implements DataStoreTransaction {
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
 
-        String type = filterScope.getRequestScope().getDictionary().getBinding(loadClass);
-        Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
-        criterion = CriterionFilterOperation.andWithNull(criterion,
-                criterionFilterOperation.applyAll(filteredPredicates));
+        CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
 
-        return loadObjects(loadClass, Optional.ofNullable(criterion), Optional.empty(),
-                Optional.empty());
+        return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
     }
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
         Criterion criterion = buildCheckCriterion(filterScope);
-
-        String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
-        Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
-        criterion = CriterionFilterOperation.andWithNull(criterion,
-                criterionFilterOperation.applyAll(filteredPredicates));
-
 
         final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
                 : null;
@@ -163,26 +154,24 @@ public class HibernateTransaction implements DataStoreTransaction {
                     .collect(Collectors.toSet());
         }
 
-        return loadObjects(entityClass, Optional.ofNullable(criterion), Optional.ofNullable(validatedSortingRules),
-                Optional.ofNullable(pagination));
+        return loadObjects(entityClass, new CriteriaExplorer(entityClass, filterScope.getRequestScope(), criterion),
+                Optional.ofNullable(validatedSortingRules), Optional.ofNullable(pagination));
     }
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criterion The Optional criterion object.
+     * @param criteriaExplorer Criteria explorer to explore and construct criterion
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Optional<Criterion> criterion,
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
                                        final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         final Criteria sessionCriteria = session.createCriteria(loadClass);
 
-        if (criterion.isPresent()) {
-            sessionCriteria.add(criterion.get());
-        }
+        criteriaExplorer.buildCriteria(sessionCriteria, session);
 
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(sessionCriteria::addOrder);
