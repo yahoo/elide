@@ -15,6 +15,7 @@ import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -87,14 +88,7 @@ public class Predicate {
         if (types == null || types.length <= 1) {
             return "";
         }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0 ; i < types.length - 1 ; ++i) {
-            sb.append(types[i]);
-            if (i != types.length - 2) {
-                sb.append(".");
-            }
-        }
-        return sb.toString();
+        return String.join(".", Arrays.copyOf(types, types.length - 1));
     }
 
     /**
@@ -127,13 +121,12 @@ public class Predicate {
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
         types[0] = dictionary.getBinding(type);
+        if (types[0] == null) {
+            throw new InvalidPredicateException("Unknown entity in filter: " + type);
+        }
         for (int i = 1 ; i < keyParts.length ; ++i) {
             final String field = keyParts[i];
             final Class<?> entityClass = types[i - 1];
-            if (entityClass == null) {
-                throw new InvalidPredicateException("Unknown entity in filter: " + type);
-            }
-
             final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
                     ? dictionary.getIdType(entityClass)
                     : dictionary.getParameterizedType(entityClass, field);
