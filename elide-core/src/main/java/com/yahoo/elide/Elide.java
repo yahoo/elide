@@ -127,7 +127,6 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -190,7 +189,6 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -261,7 +259,6 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -330,7 +327,6 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;

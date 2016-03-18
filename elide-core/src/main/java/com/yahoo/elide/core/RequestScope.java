@@ -51,7 +51,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final List<Supplier<String>> failedAuthorizations;
-    @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
 
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
@@ -90,7 +89,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         commitTriggers = new LinkedHashSet<>();
         permissionExecutor = new PermissionExecutor(this);
         failedAuthorizations = new ArrayList<>();
-        dirtyResources = new LinkedHashSet<>();
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -165,7 +163,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = new PermissionExecutor(this);
         this.failedAuthorizations = outerRequestScope.failedAuthorizations;
-        this.dirtyResources = outerRequestScope.dirtyResources;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
@@ -249,9 +246,5 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             }
         }
         return buf.toString();
-    }
-
-    public void saveObjects() {
-        dirtyResources.stream().map(PersistentResource::getObject).forEach(transaction::save);
     }
 }
