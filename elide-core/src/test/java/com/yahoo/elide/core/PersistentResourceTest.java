@@ -74,7 +74,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -370,9 +374,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         when(tx.loadObject(Right.class, 3L)).thenReturn(right);
         boolean updated = leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(left);
-        verify(tx, times(1)).save(right);
+        verify(tx).save(left);
+        verify(tx).save(right);
 
         Assert.assertEquals(updated, true, "The one-2-one relationship should be added.");
         Assert.assertEquals(left.getOne2one().getId(), 3, "The correct object was set in the one-2-one relationship");
@@ -442,11 +445,10 @@ public class PersistentResourceTest extends PersistentResource {
 
         boolean updated = parentResource.updateRelation("children", ids.toPersistentResources(goodScope));
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(parent);
-        verify(tx, times(1)).save(child1);
-        verify(tx, times(1)).save(child2);
-        verify(tx, times(1)).save(child6);
+        verify(tx).save(parent);
+        verify(tx).save(child1);
+        verify(tx).save(child2);
+        verify(tx).save(child6);
         verify(tx, never()).save(child4);
         verify(tx, never()).save(child5);
         verify(tx, never()).save(child3);
@@ -716,9 +718,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         childResource.deleteResource();
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).delete(child);
-        verify(tx, times(1)).save(parent);
+        verify(tx).delete(child);
+        verify(tx).save(parent);
         verify(tx, never()).delete(parent);
         Assert.assertTrue(parent.getChildren().isEmpty());
     }
@@ -756,9 +757,8 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation1", childResource);
 
-        goodScope.saveObjects();
-        verify(tx, never()).save(child); // Child wasn't modified
-        verify(tx, times(1)).save(fun);
+        verify(tx).save(child);
+        verify(tx).save(fun);
 
         Assert.assertTrue(fun.getRelation1().contains(child), "The correct element should be added to the relation");
     }
@@ -831,9 +831,8 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
         Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(child);
-        verify(tx, times(1)).save(parent1);
+        verify(tx).save(child);
+        verify(tx).save(parent1);
         verify(tx, never()).save(parent2);
         verify(tx, never()).save(parent3);
     }
@@ -855,71 +854,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         Assert.assertEquals(fun.getRelation3(), null, "The one-2-one relationship should be cleared");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(fun);
-        verify(tx, never()).save(child);
-    }
-
-    // Test to ensure that save() is not called on unmodified objects
-    @Test
-    public void testNoSaveNonModifications() {
-        FunWithPermissions fun = new FunWithPermissions();
-        Child child = newChild(1);
-        Child secret = newChild(2);
-        Parent parent = new Parent();
-
-        fun.setRelation3(child);
-        fun.setRelation1(Sets.newHashSet(child));
-
-        parent.setChildren(Sets.newHashSet(child));
-        parent.setFirstName("Leeroy");
-
-        child.setReadNoAccess(secret);
-
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        User goodUser = new User(1);
-        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
-
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
-        PersistentResource<Child> secretResource = new PersistentResource<>(secret, null, "1", goodScope);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
-
-        // Add an existing to-one relationship
-        funResource.addRelation("relation3", childResource);
-
-        // Add an exising to-many relationship
-        funResource.addRelation("relation1", childResource);
-
-        // Update set with same data
-        funResource.updateRelation("relation1", Sets.newHashSet(childResource));
-
-        // Update to-one relation with same relation with same data
-        funResource.updateRelation("relation3", Sets.newHashSet(childResource));
-
-        // Update to-many with bi-directional relationship
-        parentResource.updateRelation("children", Sets.newHashSet(childResource));
-
-        // Update to-one with bi-directional relation with same data
-        childResource.updateRelation("readNoAccess", Sets.newHashSet(secretResource));
-
-        // Update an attribute with the same value
-        parentResource.updateAttribute("firstName", "Leeroy");
-
-        // Remove non-existing to-many relation
-        childResource.removeRelation("friends", secretResource);
-
-        // Clear empty to-many relation
-        childResource.clearRelation("parents");
-
-        // Clear empty to-one relation
-        secretResource.clearRelation("readNoAccess");
-
-        goodScope.saveObjects();
-        verify(tx, never()).save(fun);
-        verify(tx, never()).save(child);
-        verify(tx, never()).save(parent);
-        verify(tx, never()).save(secret);
+        verify(tx).save(fun);
+        verify(tx).save(child);
     }
 
     @Test()
@@ -993,11 +929,10 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertEquals(parent3.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
         Assert.assertEquals(parent3.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(child);
-        verify(tx, times(1)).save(parent1);
-        verify(tx, times(1)).save(parent2);
-        verify(tx, times(1)).save(parent3);
+        verify(tx).save(child);
+        verify(tx).save(parent1);
+        verify(tx).save(parent2);
+        verify(tx).save(parent3);
     }
 
     @Test()
@@ -1014,9 +949,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         Assert.assertEquals(fun.getRelation3(), null, "The one-2-one relationship should be cleared");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(fun);
-        verify(tx, times(1)).save(child);
+        verify(tx).save(fun);
+        verify(tx).save(child);
     }
 
     @Test()
@@ -1055,11 +989,10 @@ public class PersistentResourceTest extends PersistentResource {
 
         boolean updated = parentResource.clearRelation("children");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(parent);
-        verify(tx, times(1)).save(child1);
-        verify(tx, times(1)).save(child2);
-        verify(tx, times(1)).save(child3);
+        verify(tx).save(parent);
+        verify(tx).save(child1);
+        verify(tx).save(child2);
+        verify(tx).save(child3);
         verify(tx, never()).save(child4);
         verify(tx, never()).save(child5);
 
@@ -1174,8 +1107,7 @@ public class PersistentResourceTest extends PersistentResource {
         parentResource.updateAttribute("firstName", "foobar");
 
         Assert.assertEquals(parent.getFirstName(), "foobar", "The attribute was updated successfully");
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(parent);
+        verify(tx).save(parent);
     }
 
     @Test(expectedExceptions = InvalidAttributeException.class)
@@ -1427,10 +1359,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         parentResource.addRelation("children", childResource);
 
-        goodScope.saveObjects();
-        goodScope.getDirtyResources().clear();
-        verify(tx, times(1)).save(parent);
-        verify(tx, times(1)).save(child);
+        verify(tx).save(parent);
+        verify(tx).save(child);
 
         Assert.assertEquals(parent.getChildren().size(), 1, "The owning relationship should be updated");
         Assert.assertTrue(parent.getChildren().contains(child), "The owning relationship should be updated");
@@ -1441,9 +1371,8 @@ public class PersistentResourceTest extends PersistentResource {
         reset(tx);
         parentResource.clearRelation("children");
 
-        goodScope.saveObjects();
-        verify(tx, times(1)).save(parent);
-        verify(tx, times(1)).save(child);
+        verify(tx).save(parent);
+        verify(tx).save(child);
 
         Assert.assertEquals(parent.getChildren().size(), 0, "The owning relationship should be updated");
         Assert.assertEquals(child.getParents().size(), 0, "The non-owning relationship should also be updated");
