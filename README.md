@@ -29,7 +29,7 @@ To integrate Elide into your project, simply include elide-core into your projec
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-core</artifactId>
-    <version>2.0.7</version>
+    <version>2.0.8</version>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ Additionally, if you do not plan to write your own data store, select the approp
 <dependency>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-datastore-inmemorydb</artifactId>
-    <version>2.0.7</version>
+    <version>2.0.8</version>
 </dependency>
 ```
 
