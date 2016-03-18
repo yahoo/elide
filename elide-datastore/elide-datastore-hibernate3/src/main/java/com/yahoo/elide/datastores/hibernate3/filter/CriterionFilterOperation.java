@@ -14,7 +14,7 @@ import org.hibernate.criterion.Restrictions;
 import java.util.Set;
 
 /**
- * FilterOperation that creates Hibernate Criterions from Predicates.
+ * FilterOperation that creates Hibernate Criteria from Predicates.
  */
 public class CriterionFilterOperation implements FilterOperation<Criterion> {
     @Override

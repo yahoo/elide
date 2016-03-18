@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -650,5 +651,22 @@ public class EntityDictionary {
     public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
         ConcurrentHashMap<String, AccessibleObject> map = entityBinding(targetClass).accessibleObject;
         return map.get(fieldName);
+    }
+
+    /**
+     * Retrieve fields from an object containing a particular type.
+     *
+     * @param targetClass Class to search for fields
+     * @param targetType Type of fields to find
+     * @return Set containing field names
+     */
+    public Set<String> getFieldsOfType(Class<?> targetClass, Class<?> targetType) {
+        HashSet<String> fields = new HashSet<>();
+        for (String field : getAllFields(targetClass)) {
+            if (getParameterizedType(targetClass, field).equals(targetType)) {
+                fields.add(field);
+            }
+        }
+        return fields;
     }
 }
