@@ -125,9 +125,9 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -188,9 +188,9 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -259,9 +259,9 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
@@ -328,9 +328,9 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
+            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
-            requestScope.saveObjects();
             requestScope.runCommitTriggers();
             traceLogSecurityExceptions(requestScope);
             return response;
