@@ -125,7 +125,6 @@ public class Elide {
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
-            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
@@ -186,9 +185,9 @@ public class Elide {
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.saveObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
-            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
@@ -257,9 +256,9 @@ public class Elide {
                 responder = visitor.visit(parse(path));
             }
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.saveObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
-            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
@@ -326,9 +325,9 @@ public class Elide {
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
+            requestScope.saveObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
-            requestScope.saveObjects();
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
