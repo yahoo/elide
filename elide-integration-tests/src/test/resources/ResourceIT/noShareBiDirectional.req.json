@@ -1,0 +1,15 @@
+{
+  "data":{
+    "type":"noShareBid",
+    "id":"2",
+    "relationships":{
+      "other":{
+        "data":
+          {
+            "type":"noShareBid",
+            "id":"1"
+          }
+      }
+    }
+  }
+}
