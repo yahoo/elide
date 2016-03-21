@@ -1380,6 +1380,33 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
     }
 
+    @Test(priority = 38)
+    public void testUserNoShare() {
+        String initialCreate = "{\n"
+                + "  \"data\":{\n"
+                + "    \"type\":\"noShareBid\",\n"
+                + "    \"id\":\"1\"\n"
+                + "  }\n"
+                + "}\n";
+        String req = jsonParser.getJson("/ResourceIT/noShareBiDirectional.req.json");
+        String expected = "{\"data\":{\"type\":\"noShareBid\",\"id\":\"2\",\"relationships\":{\"other\":{\"data\":{\"type\":\"noShareBid\",\"id\":\"1\"}}}}}";
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(initialCreate)
+                .post("/noShareBid")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(req)
+                .post("/noShareBid/1/other")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(expected));
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
