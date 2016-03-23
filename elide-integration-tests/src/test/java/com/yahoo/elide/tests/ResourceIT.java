@@ -1407,6 +1407,19 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(equalTo(expected));
     }
 
+    @Test(priority = 39)
+    public void testPatchExtNoCommit() {
+        String req = jsonParser.getJson("/ResourceIT/testPatchExtNoCommit.req.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .body(req)
+                .patch("/")
+                .then()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");

@@ -163,7 +163,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.securityMode = outerRequestScope.securityMode;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
-        this.permissionExecutor = new PermissionExecutor(this);
+        this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.failedAuthorizations = outerRequestScope.failedAuthorizations;
         this.dirtyResources = outerRequestScope.dirtyResources;
     }
