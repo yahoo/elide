@@ -66,6 +66,8 @@ public class Elide {
     /**
      * Instantiates a new Elide.
      *
+     * <i>deprecated since 2.0.11</i>
+     *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      * @param dictionary the dictionary
@@ -78,6 +80,8 @@ public class Elide {
     /**
      * Instantiates a new Elide.
      *
+     * <i>deprecated since 2.0.11</i>
+     *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      */
@@ -88,6 +92,8 @@ public class Elide {
 
     /**
      * Instantiates a new Elide.
+     *
+     * <i>deprecated since 2.0.11</i>
      *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
@@ -199,6 +205,7 @@ public class Elide {
      * @param securityMode only for test mode
      * @return Elide response object
      */
+    @Deprecated
     public ElideResponse get(
             String path,
             MultivaluedMap<String, String> queryParams,
@@ -206,6 +213,7 @@ public class Elide {
             SecurityMode securityMode) {
 
         RequestScope requestScope = null;
+        boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
             final User user = transaction.accessUser(opaqueUser);
             requestScope = new RequestScope(
@@ -218,6 +226,7 @@ public class Elide {
                     queryParams,
                     securityMode,
                     permissionExecutor);
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -230,13 +239,13 @@ public class Elide {
             return response;
         } catch (ForbiddenAccessException e) {
             debugLogSecurityExceptions(requestScope);
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), securityMode);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), securityMode);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
         }
     }
 
@@ -264,12 +273,14 @@ public class Elide {
      * @param securityMode only for test mode
      * @return Elide response object
      */
+    @Deprecated
     public ElideResponse post(
             String path,
             String jsonApiDocument,
             Object opaqueUser,
             SecurityMode securityMode) {
         RequestScope requestScope = null;
+        boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
@@ -281,6 +292,7 @@ public class Elide {
                     auditLogger,
                     securityMode,
                     permissionExecutor);
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -294,13 +306,13 @@ public class Elide {
             return response;
         } catch (ForbiddenAccessException e) {
             debugLogSecurityExceptions(requestScope);
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), securityMode);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), securityMode);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
         }
     }
 
@@ -330,6 +342,7 @@ public class Elide {
      * @param securityMode only for test mode
      * @return Elide response object
      */
+    @Deprecated
     public ElideResponse patch(
             String contentType,
             String accept,
@@ -338,6 +351,7 @@ public class Elide {
             Object opaqueUser,
             SecurityMode securityMode) {
         RequestScope requestScope = null;
+        boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
 
@@ -347,11 +361,13 @@ public class Elide {
                 PatchRequestScope patchRequestScope = new PatchRequestScope(
                         transaction, user, dictionary, mapper, auditLogger);
                 requestScope = patchRequestScope;
+                isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
                 requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode,
                         permissionExecutor);
+                isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
             }
@@ -366,15 +382,15 @@ public class Elide {
             return response;
         } catch (ForbiddenAccessException e) {
             debugLogSecurityExceptions(requestScope);
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (JsonPatchExtensionException e) {
             return buildResponse(e.getResponse());
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), securityMode);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), securityMode);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
         }
     }
 
@@ -406,6 +422,7 @@ public class Elide {
      * @param securityMode only for test mode
      * @return Elide response object
      */
+    @Deprecated
     public ElideResponse delete(
             String path,
             String jsonApiDocument,
@@ -413,6 +430,7 @@ public class Elide {
             SecurityMode securityMode) {
         JsonApiDocument doc;
         RequestScope requestScope = null;
+        boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             if (jsonApiDocument != null && !jsonApiDocument.equals("")) {
@@ -422,6 +440,7 @@ public class Elide {
             }
             requestScope = new RequestScope(
                     doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -435,13 +454,13 @@ public class Elide {
             return response;
         } catch (ForbiddenAccessException e) {
             debugLogSecurityExceptions(requestScope);
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
-            return buildErrorResponse(e, securityMode);
+            return buildErrorResponse(e, isVerbose);
         } catch (IOException e) {
-            return buildErrorResponse(new TransactionException(e), securityMode);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
-            return buildErrorResponse(new InvalidURLException(e), securityMode);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
         }
     }
 
@@ -498,11 +517,8 @@ public class Elide {
         }
     }
 
-    protected ElideResponse buildErrorResponse(HttpStatusException error, SecurityMode securityMode) {
-        return buildResponse(securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
-                ? error.getVerboseErrorResponse()
-                : error.getErrorResponse()
-        );
+    protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

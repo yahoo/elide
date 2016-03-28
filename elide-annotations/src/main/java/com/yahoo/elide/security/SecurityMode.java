@@ -7,6 +7,12 @@ package com.yahoo.elide.security;
 
 /**
  * Enable or disable security.
+ *
+ * This functionality is deprecated and will soon be unavailable. At time of writing, SecurityMode's
+ * are almost entirely non-functional within Elide with few exceptions that will remain until this enum
+ * is removed.
+ *
+ * <i>deprecated since 2.0.11</i>
  */
 @Deprecated
 public enum SecurityMode {

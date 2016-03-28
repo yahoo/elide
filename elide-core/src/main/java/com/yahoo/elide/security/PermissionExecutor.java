@@ -114,4 +114,14 @@ public interface PermissionExecutor {
      * Execute commmit checks.
      */
     void executeCommitChecks();
+
+
+    /**
+     * Whether or not the permission executor will return verbose logging to the requesting user in the response.
+     *
+     * @return True if verbose, false otherwise.
+     */
+    default boolean isVerbose() {
+        return false;
+    }
 }
