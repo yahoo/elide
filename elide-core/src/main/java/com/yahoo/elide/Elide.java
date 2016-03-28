@@ -15,6 +15,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
+import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
@@ -30,6 +31,8 @@ import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.generated.parsers.CoreLexer;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.security.User;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -56,6 +59,8 @@ public class Elide {
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
+    private final Class<? extends PermissionExecutor> permissionExecutor;
+
     /**
      * Instantiates a new Elide.
      *
@@ -63,6 +68,7 @@ public class Elide {
      * @param dataStore the dataStore
      * @param dictionary the dictionary
      */
+    @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
         this(auditLogger, dataStore, dictionary, new JsonApiMapper(dictionary));
     }
@@ -73,6 +79,7 @@ public class Elide {
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      */
+    @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore) {
         this(auditLogger, dataStore, new EntityDictionary());
     }
@@ -85,12 +92,60 @@ public class Elide {
      * @param dictionary the dictionary
      * @param mapper Serializer/Deserializer for JSON API
      */
+    @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
+        this(auditLogger, dataStore, dictionary, mapper, PermissionExecutor.class);
+    }
+
+    /**
+     * Instantiates a new Elide.
+     *
+     * @param auditLogger the audit logger
+     * @param dataStore the dataStore
+     * @param dictionary the dictionary
+     * @param mapper Serializer/Deserializer for JSON API
+     * @param permissionExecutor Custom permission executor implementation
+     */
+    private Elide(AuditLogger auditLogger,
+                  DataStore dataStore,
+                  EntityDictionary dictionary,
+                  JsonApiMapper mapper,
+                  Class<? extends PermissionExecutor> permissionExecutor) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
         dataStore.populateEntityDictionary(dictionary);
         this.mapper = mapper;
+        this.permissionExecutor = permissionExecutor;
+    }
+
+    /**
+     * Elide Builder for constructing an Elide instance.
+     */
+    public static class Builder {
+        private final AuditLogger auditLogger;
+        private final DataStore dataStore;
+        @Getter @Setter private EntityDictionary entityDictionary;
+        @Getter @Setter private JsonApiMapper jsonApiMapper;
+        @Getter @Setter private Class<? extends PermissionExecutor> permissionExecutor;
+
+        /**
+         * Constructor.
+         *
+         * @param auditLogger
+         * @param dataStore
+         */
+        public Builder(AuditLogger auditLogger, DataStore dataStore) {
+            this.auditLogger = auditLogger;
+            this.dataStore = dataStore;
+            this.entityDictionary = new EntityDictionary();
+            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+            this.permissionExecutor = PermissionExecutor.class;
+        }
+
+        public Elide build() {
+            return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutor);
+        }
     }
 
     /**
@@ -119,7 +174,8 @@ public class Elide {
                     mapper,
                     auditLogger,
                     queryParams,
-                    securityMode);
+                    securityMode,
+                    permissionExecutor);
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -181,7 +237,8 @@ public class Elide {
                     dictionary,
                     mapper,
                     auditLogger,
-                    securityMode);
+                    securityMode,
+                    permissionExecutor);
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -251,7 +308,8 @@ public class Elide {
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-                requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
+                requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode,
+                        permissionExecutor);
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
             }
@@ -321,7 +379,7 @@ public class Elide {
                 doc = new JsonApiDocument();
             }
             requestScope = new RequestScope(
-                    doc, transaction, user, dictionary, mapper, auditLogger, securityMode);
+                    doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             requestScope.getPermissionExecutor().executeCommitChecks();

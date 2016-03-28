@@ -18,6 +18,8 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import lombok.Getter;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,9 +51,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
     @Getter private final Set<PersistentResource> newPersistentResources;
-    @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final List<Supplier<String>> failedAuthorizations;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
+    @Getter private final PermissionExecutor permissionExecutor;
 
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
@@ -62,7 +64,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
-                        SecurityMode securityMode) {
+                        SecurityMode securityMode,
+                        Class<? extends PermissionExecutor> permissionExecutor) {
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
@@ -88,7 +91,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         newPersistentResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
-        permissionExecutor = new PermissionExecutor(this);
+        if (permissionExecutor == null) {
+            this.permissionExecutor = new PermissionExecutor(this);
+        } else {
+            try {
+                Constructor<? extends PermissionExecutor> ctor = permissionExecutor.getConstructor(RequestScope.class);
+                this.permissionExecutor = ctor.newInstance(this);
+            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                    | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
         failedAuthorizations = new ArrayList<>();
         dirtyResources = new LinkedHashSet<>();
     }
@@ -99,8 +112,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
-                        SecurityMode securityMode) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, securityMode);
+                        SecurityMode securityMode,
+                        Class<? extends PermissionExecutor> permissionExecutor) {
+        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, securityMode,
+                permissionExecutor);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -111,7 +126,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams) {
         this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, queryParams,
-                SecurityMode.SECURITY_ACTIVE);
+                SecurityMode.SECURITY_ACTIVE, null);
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -120,7 +135,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         AuditLogger auditLogger) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, SecurityMode.SECURITY_ACTIVE);
+        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, SecurityMode.SECURITY_ACTIVE,
+                null);
     }
 
     /**
