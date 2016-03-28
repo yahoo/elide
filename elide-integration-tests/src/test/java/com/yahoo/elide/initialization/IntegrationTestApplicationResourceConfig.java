@@ -7,7 +7,6 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -25,7 +24,7 @@ public class IntegrationTestApplicationResourceConfig extends ResourceConfig {
                 bindFactory(new Factory<Elide>() {
                     @Override
                     public Elide provide() {
-                        return new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+                        return new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
                     }
 
                     @Override
