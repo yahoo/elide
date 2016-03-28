@@ -31,8 +31,7 @@ import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.generated.parsers.CoreLexer;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.security.User;
-import lombok.Getter;
-import lombok.Setter;
+import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -46,7 +45,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -59,7 +61,7 @@ public class Elide {
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
-    private final Class<? extends PermissionExecutor> permissionExecutor;
+    private final Function<RequestScope, PermissionExecutor> permissionExecutor;
 
     /**
      * Instantiates a new Elide.
@@ -94,7 +96,7 @@ public class Elide {
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
-        this(auditLogger, dataStore, dictionary, mapper, PermissionExecutor.class);
+        this(auditLogger, dataStore, dictionary, mapper, ActivePermissionExecutor::new);
     }
 
     /**
@@ -110,7 +112,7 @@ public class Elide {
                   DataStore dataStore,
                   EntityDictionary dictionary,
                   JsonApiMapper mapper,
-                  Class<? extends PermissionExecutor> permissionExecutor) {
+                  Function<RequestScope, PermissionExecutor> permissionExecutor) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -125,9 +127,9 @@ public class Elide {
     public static class Builder {
         private final AuditLogger auditLogger;
         private final DataStore dataStore;
-        @Getter @Setter private EntityDictionary entityDictionary;
-        @Getter @Setter private JsonApiMapper jsonApiMapper;
-        @Getter @Setter private Class<? extends PermissionExecutor> permissionExecutor;
+        private EntityDictionary entityDictionary;
+        private JsonApiMapper jsonApiMapper;
+        private Function<RequestScope, PermissionExecutor> permissionExecutorFunction;
 
         /**
          * Constructor.
@@ -140,11 +142,51 @@ public class Elide {
             this.dataStore = dataStore;
             this.entityDictionary = new EntityDictionary();
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.permissionExecutor = PermissionExecutor.class;
+            this.permissionExecutorFunction = null;
         }
 
         public Elide build() {
-            return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutor);
+            if (permissionExecutorFunction == null) {
+                // If nothing is set, provide default
+                permissionExecutorFunction = ActivePermissionExecutor::new;
+            }
+            return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutorFunction);
+        }
+
+        public Builder entityDictionary(final EntityDictionary entityDictionary) {
+            this.entityDictionary = entityDictionary;
+            return this;
+        }
+
+        public Builder jsonApiMapper(final JsonApiMapper jsonApiMapper) {
+            this.jsonApiMapper = jsonApiMapper;
+            return this;
+        }
+
+        public Builder permissionExecutor(final Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+            this.permissionExecutorFunction = permissionExecutorFunction;
+            return this;
+        }
+
+        public Builder permissionExecutor(final Class<? extends PermissionExecutor> permissionExecutorClass) {
+            permissionExecutorFunction = (requestScope) -> {
+                try {
+                    try {
+                        // Try to find a constructor with request scope
+                        Constructor<? extends PermissionExecutor> ctor =
+                                permissionExecutorClass.getDeclaredConstructor(RequestScope.class);
+                        return ctor.newInstance(requestScope);
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
+                            | InstantiationException e) {
+                        // If that fails, try blank constructor
+                        return permissionExecutorClass.newInstance();
+                    }
+                } catch (IllegalAccessException | InstantiationException e) {
+                    // Everything failed. Throw hands up, not sure how to proceed.
+                    throw new RuntimeException(e);
+                }
+            };
+            return this;
         }
     }
 

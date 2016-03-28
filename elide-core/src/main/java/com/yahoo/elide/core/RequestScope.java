@@ -16,10 +16,9 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -65,7 +65,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode,
-                        Class<? extends PermissionExecutor> permissionExecutor) {
+                        Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
@@ -91,17 +91,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         newPersistentResources = new LinkedHashSet<>();
         commitTriggers = new LinkedHashSet<>();
-        if (permissionExecutor == null) {
-            this.permissionExecutor = new PermissionExecutor(this);
-        } else {
-            try {
-                Constructor<? extends PermissionExecutor> ctor = permissionExecutor.getConstructor(RequestScope.class);
-                this.permissionExecutor = ctor.newInstance(this);
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
-                    | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        this.permissionExecutor = (permissionExecutorFunction == null) ? new ActivePermissionExecutor(this)
+                                                                       : permissionExecutorFunction.apply(this);
         failedAuthorizations = new ArrayList<>();
         dirtyResources = new LinkedHashSet<>();
     }
@@ -113,7 +104,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
                         SecurityMode securityMode,
-                        Class<? extends PermissionExecutor> permissionExecutor) {
+                        Function<RequestScope, PermissionExecutor> permissionExecutor) {
         this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, securityMode,
                 permissionExecutor);
     }

@@ -8,6 +8,7 @@ package com.yahoo.elide.security;
 /**
  * Enable or disable security.
  */
+@Deprecated
 public enum SecurityMode {
     SECURITY_INACTIVE,
     SECURITY_ACTIVE_VERBOSE,
