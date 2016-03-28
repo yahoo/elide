@@ -72,15 +72,17 @@ public class RecordTerminalState extends BaseState {
             throw new InvalidEntityBodyException("Expected data but found null");
         }
 
-        if (data.isToOne()) {
-            Resource resource = data.getSingleValue();
-            if (record.matchesId(resource.getId())) {
-                patch(resource, state.getRequestScope());
-                return () -> Pair.of(HttpStatus.SC_NO_CONTENT, empty);
-            }
+        if (!data.isToOne()) {
+            throw new InvalidEntityBodyException("Expected single element but found list");
         }
 
-        throw new InvalidEntityBodyException("Expected single element but found list");
+        Resource resource = data.getSingleValue();
+        if (!record.matchesId(resource.getId())) {
+            throw new InvalidEntityBodyException("Id in response body does not match requested id to update from path");
+        }
+
+        patch(resource, state.getRequestScope());
+        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, empty);
     }
 
     @Override
