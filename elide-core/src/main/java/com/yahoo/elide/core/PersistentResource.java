@@ -628,28 +628,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Set<PersistentResource> newResources = getRequestScope().getNewPersistentResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
-            if (!newResources.contains(persistentResource)) {
-                boolean isInLineage = lineage.getRecord(persistentResource.getType()).contains(persistentResource);
-                if (!isInLineage && persistentResource.isShareable()) {
-                    checkPermission(SharePermission.class, persistentResource);
-                } else if (!isInLineage) {
-                    requestScope.logAuthFailure(
-                            null,
-                            persistentResource.getType(),
-                            persistentResource.getId());
-                    throw new ForbiddenAccessException("Resource Not Shareable");
-                }
+            if (!newResources.contains(persistentResource)
+                    && !lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
+                checkPermission(SharePermission.class, persistentResource);
             }
         }
-    }
-
-    /**
-     * Checks if this persistent resource's underlying entity is shareable.
-     *
-     * @return true if this persistent resource's entity is shareable.
-     */
-    private boolean isShareable() {
-        return getRequestScope().getDictionary().isShareable(obj.getClass());
     }
 
     /**
