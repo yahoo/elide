@@ -10,7 +10,6 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -141,13 +140,13 @@ public class JsonApiPatch {
                 try {
                     return Pair.of(HttpStatus.SC_OK, mergeResponse(results));
                 } catch (HttpStatusException e) {
-                    throwErrorResponse(e, requestScope.getSecurityMode());
+                    throwErrorResponse(e, requestScope.getPermissionExecutor().isVerbose());
                     // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
                     return null;
                 }
             };
         } catch (HttpStatusException e) {
-            throwErrorResponse(e, requestScope.getSecurityMode());
+            throwErrorResponse(e, requestScope.getPermissionExecutor().isVerbose());
             // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
             return () -> null;
         }
@@ -280,12 +279,9 @@ public class JsonApiPatch {
     /**
      * Turn an exception into a proper error response from patch extension.
      */
-    private void throwErrorResponse(HttpStatusException e, SecurityMode securityMode) {
+    private void throwErrorResponse(HttpStatusException e, boolean isVerbose) {
         if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            throw new JsonPatchExtensionException(
-                    securityMode == SecurityMode.SECURITY_ACTIVE_VERBOSE
-                    ? e.getVerboseErrorResponse()
-                    : e.getErrorResponse());
+            throw new JsonPatchExtensionException(isVerbose ? e.getVerboseErrorResponse() : e.getErrorResponse());
         }
 
         ObjectNode errorContainer = getErrorContainer();

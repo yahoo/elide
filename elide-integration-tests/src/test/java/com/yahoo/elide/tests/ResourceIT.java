@@ -11,13 +11,13 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 import example.Child;
 import example.FunWithPermissions;
@@ -1511,16 +1511,18 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void elideBypassSecurity() {
         String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
-        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager())
+                .permissionExecutor(BypassPermissionExecutor.class)
+                .build();
         ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_INACTIVE);
+                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
         ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");

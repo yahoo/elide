@@ -15,6 +15,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 
+import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import example.FunWithPermissions;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -49,7 +50,7 @@ public class PermissionAnnotationTest {
 
     @Test
     public void testClassAnyOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(funRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(funRecord.getRequestScope());
         permissionExecutor.checkPermission(ReadPermission.class, funRecord);
         permissionExecutor.checkPermission(UpdatePermission.class, funRecord);
         permissionExecutor.checkPermission(CreatePermission.class, funRecord);
@@ -57,13 +58,13 @@ public class PermissionAnnotationTest {
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testClassAllNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkPermission(DeletePermission.class, funRecord);
     }
 
     @Test
     public void testFieldPermissionOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(funRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(funRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(funRecord, null, ReadPermission.class, "field3");
         permissionExecutor.checkSpecificFieldPermissions(funRecord, null, ReadPermission.class, "relation1");
         permissionExecutor.checkSpecificFieldPermissions(funRecord, null, ReadPermission.class, "relation2");
@@ -71,19 +72,19 @@ public class PermissionAnnotationTest {
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField3PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "field3");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testRelation1PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "relation1");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testRelation2PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "relation2");
     }
 
@@ -92,7 +93,7 @@ public class PermissionAnnotationTest {
      */
     @Test()
     public void testField5PermissionOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "field5");
     }
 
@@ -101,7 +102,7 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField6PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "field6");
     }
 
@@ -110,7 +111,7 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField7PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "field7");
     }
 
@@ -119,7 +120,7 @@ public class PermissionAnnotationTest {
      */
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testField8PermissionNotOk() {
-        final PermissionExecutor permissionExecutor = new PermissionExecutor(badRecord.getRequestScope());
+        final PermissionExecutor permissionExecutor = new ActivePermissionExecutor(badRecord.getRequestScope());
         permissionExecutor.checkSpecificFieldPermissions(badRecord, null, ReadPermission.class, "field8");
     }
 }

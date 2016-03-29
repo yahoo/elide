@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.utils.JsonParser;
@@ -40,7 +39,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithPassingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
 
-        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -50,7 +49,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithFailingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
 
-        Elide elide = new Elide(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager(), new EntityDictionary());
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
