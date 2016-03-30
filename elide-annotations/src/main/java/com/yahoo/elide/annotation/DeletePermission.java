@@ -26,19 +26,29 @@ public @interface DeletePermission {
     /**
      * Any one of these checks must pass.
      *
-     * @return the class [ ]
+     * @return the array of check classes
+     * @deprecated as of 2.2, use {@link #expression()} instead.
      */
+    @Deprecated
     Class<? extends InlineCheck>[] any() default {};
 
     /**
      * All of these checks must pass.
      *
-     * @return the class [ ]
+     * @return the array of check classes
+     * @deprecated as of 2.2, use {@link #expression()} instead.
      */
+    @Deprecated
     Class<? extends InlineCheck>[] all() default {};
 
     /**
-     * An expression of checks that will be parsed via ANTLR.
+     * An expression of checks that will be parsed via ANTLR. For example:
+     * {@code @DeletePermission(expression="Prefab.Role.All")} or
+     * {@code @DeletePermission(expression="Prefab.Role.All and Prefab.Role.UpdateOnCreate")}
+     *
+     * All of {@linkplain com.yahoo.elide.security.checks.prefab the built-in checks} are name-spaced as
+     * {@code Prefab.CHECK} without the {@code Check} suffix
+     *
      * @return the expression string to be parsed
      */
     String expression() default "";
