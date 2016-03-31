@@ -565,13 +565,12 @@ public class EntityDictionary {
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(Class<?> recordClass, Class<A> annotationClass) {
-        return entityBinding(recordClass).getAnnotation(annotationClass);
+        return getEntityBinding(recordClass).getAnnotation(annotationClass);
     }
 
     public <A extends Annotation> Collection<Method> getTriggers(Class<?> cls,
                                                                  Class<A> annotationClass,
                                                                  String fieldName) {
-        return entityBinding(cls).getTriggers(annotationClass, fieldName);
         return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
@@ -587,7 +586,6 @@ public class EntityDictionary {
     public <A extends Annotation> A getAttributeOrRelationAnnotation(Class<?> entityClass,
                                                                      Class<A> annotationClass,
                                                                      String identifier) {
-        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
         AccessibleObject fieldOrMethod = getEntityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;

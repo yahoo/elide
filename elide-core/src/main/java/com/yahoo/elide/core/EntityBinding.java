@@ -105,8 +105,8 @@ class EntityBinding {
     /**
      * Bind fields of an entity including the Id field, attributes, and relationships.
      *
-     * @param cls               Class type to bind fields
-     * @param type              JSON API type identifier
+     * @param cls Class type to bind fields
+     * @param type JSON API type identifier
      * @param fieldOrMethodList List of fields and methods on entity
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
@@ -150,8 +150,8 @@ class EntityBinding {
     /**
      * Bind an id field to an entity.
      *
-     * @param cls           Class type to bind fields
-     * @param type          JSON API type identifier
+     * @param cls Class type to bind fields
+     * @param type JSON API type identifier
      * @param fieldOrMethod Field or method to bind
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
@@ -187,7 +187,7 @@ class EntityBinding {
     /**
      * Bind an attribute or relationship.
      *
-     * @param cls           Class type to bind fields
+     * @param cls Class type to bind fields
      * @param fieldOrMethod Field or method to bind
      */
     private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
@@ -290,7 +290,7 @@ class EntityBinding {
     }
 
     public <A extends Annotation> Collection<Method> getTriggers(Class<A> annotationClass, String fieldName) {
-        Collection<Method> methods = fieldsToTriggers.getCollection(Pair.of(annotationClass, fieldName));
+        Collection<Method> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
         return methods == null ? Collections.emptyList() : methods;
     }
 
