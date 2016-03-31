@@ -7,12 +7,15 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.checks.Check;
 import example.Author;
 import example.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.Matchers.eq;
@@ -27,6 +30,9 @@ import static org.mockito.Mockito.when;
  */
 public class LifeCycleTest {
     public class TestEntityDictionary extends EntityDictionary {
+        public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
+            super(checks);
+        }
 
         @Override
         public Class<?> lookupEntityClass(Class<?> objClass) {
@@ -42,7 +48,7 @@ public class LifeCycleTest {
     private EntityDictionary dictionary;
 
     LifeCycleTest() {
-        dictionary = new TestEntityDictionary();
+        dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
     }

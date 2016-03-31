@@ -11,7 +11,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -30,7 +29,6 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,7 +36,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -1515,7 +1515,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .permissionExecutor(BypassPermissionExecutor.class)
                 .build();
         ElideResponse response =
-                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
+                elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }
@@ -1523,7 +1523,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
-        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
+        ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }

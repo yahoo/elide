@@ -10,7 +10,6 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.utils.JsonParser;
 import example.Filtered;
 import org.apache.http.HttpStatus;
@@ -40,7 +39,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
 
         Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
-        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1, SecurityMode.SECURITY_ACTIVE);
+        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }
@@ -50,7 +49,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
 
         Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
-        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1, SecurityMode.SECURITY_ACTIVE);
+        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
     }

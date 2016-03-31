@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -85,7 +86,7 @@ public class Elide {
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore) {
-        this(auditLogger, dataStore, new EntityDictionary());
+        this(auditLogger, dataStore, new EntityDictionary(new HashMap<>()));
     }
 
     /**
@@ -143,7 +144,7 @@ public class Elide {
         public Builder(AuditLogger auditLogger, DataStore dataStore) {
             this.auditLogger = auditLogger;
             this.dataStore = dataStore;
-            this.entityDictionary = new EntityDictionary();
+            this.entityDictionary = new EntityDictionary(new HashMap<>());
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
             this.permissionExecutorFunction = null;
         }

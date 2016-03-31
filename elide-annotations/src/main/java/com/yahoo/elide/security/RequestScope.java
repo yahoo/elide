@@ -14,6 +14,5 @@ public interface RequestScope {
     User getUser();
     Set<PersistentResource> getNewResources();
 
-    @Deprecated
-    SecurityMode getSecurityMode();
+    @Deprecated SecurityMode getSecurityMode();
 }

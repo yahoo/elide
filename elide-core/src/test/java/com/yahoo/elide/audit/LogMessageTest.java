@@ -17,6 +17,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Random;
 
 public class LogMessageTest {
@@ -25,7 +26,7 @@ public class LogMessageTest {
 
     @BeforeTest
     public void setup() {
-        final EntityDictionary dictionary = new EntityDictionary();
+        final EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 

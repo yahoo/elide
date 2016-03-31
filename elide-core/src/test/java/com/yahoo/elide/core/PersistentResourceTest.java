@@ -86,7 +86,11 @@ public class PersistentResourceTest extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
 
     public PersistentResourceTest() {
-        super(new Child(), null, new RequestScope(null, null, null, new EntityDictionary(), null, MOCK_AUDIT_LOGGER));
+        super(
+                new Child(),
+                null,
+                new RequestScope(null, null, null, new EntityDictionary(new HashMap<>()), null, MOCK_AUDIT_LOGGER)
+        );
         goodUserScope = new RequestScope(null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         badUserScope = new RequestScope(null, null, new User(-1), dictionary, null, MOCK_AUDIT_LOGGER);
     }

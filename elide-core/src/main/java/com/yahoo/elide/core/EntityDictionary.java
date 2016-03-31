@@ -206,6 +206,14 @@ public class EntityDictionary {
     }
 
     /**
+     * Get the check mappings.
+     * @return a map of check mappings this dictionary knows about
+     */
+    public Map<String, Class<? extends Check>> getCheckMappings() {
+        return checkNames;
+    }
+
+    /**
      * Get the list of attribute names for an entity.
      *
      * @param entityClass entity name

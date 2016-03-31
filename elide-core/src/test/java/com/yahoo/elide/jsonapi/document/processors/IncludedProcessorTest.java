@@ -23,6 +23,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class IncludedProcessorTest {
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        EntityDictionary dictionary = new EntityDictionary();
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 

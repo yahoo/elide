@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -344,14 +345,14 @@ public class PermissionExecutorTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        EntityDictionary dictionary = new EntityDictionary();
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
-        EntityDictionary dictionary = new EntityDictionary();
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
         try {

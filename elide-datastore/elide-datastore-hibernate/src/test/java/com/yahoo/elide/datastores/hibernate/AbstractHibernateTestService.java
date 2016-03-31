@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import org.testng.annotations.BeforeTest;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.function.Supplier;
 
 import static org.testng.Assert.assertEquals;
@@ -23,7 +24,7 @@ public abstract class AbstractHibernateTestService {
     public static DataStore dataStore = null;
 
     /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
-    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary());
+    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
 
     public static DataStore getDatabaseManager() {
         if (dataStore == null) {
