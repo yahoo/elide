@@ -47,15 +47,26 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Map<String, Set<Predicate>> predicates;
     @Getter private final Pagination pagination;
     @Getter private final Sorting sorting;
-    @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final SecurityMode securityMode;
+    @Getter private final PermissionExecutor permissionExecutor;
+    @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final List<Supplier<String>> failedAuthorizations;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
-    @Getter private final PermissionExecutor permissionExecutor;
-
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
+    /**
+     * Create a new RequestScope.
+     * @param jsonApiDocument the document for this request
+     * @param transaction the transaction for this request
+     * @param user the user making this request
+     * @param dictionary the entity dictionary
+     * @param mapper converts JsonApiDocuments to raw JSON
+     * @param auditLogger logger for this request
+     * @param queryParams the query parameters
+     * @param securityMode the current security mode
+     * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
+     */
     public RequestScope(JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
@@ -64,36 +75,40 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode,
-                        Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
         this.dictionary = dictionary;
         this.mapper = mapper;
         this.auditLogger = auditLogger;
-        this.queryParams = (queryParams == null || (queryParams.size() == 0)
-                ? Optional.empty() : Optional.of(queryParams));
-        this.objectEntityCache = new ObjectEntityCache();
         this.securityMode = securityMode;
 
-        if (this.queryParams.isPresent()) {
-            sparseFields = parseSparseFields(this.queryParams.get());
-            predicates = Predicate.parseQueryParams(this.dictionary, this.queryParams.get());
-            sorting = Sorting.parseQueryParams(this.queryParams.get());
-            pagination = Pagination.parseQueryParams(this.queryParams.get());
-        } else {
-            sparseFields = Collections.emptyMap();
-            predicates = Collections.emptyMap();
-            sorting = Sorting.getDefaultEmptyInstance();
-            pagination = Pagination.getDefaultPagination();
-        }
+        this.objectEntityCache = new ObjectEntityCache();
+        this.newPersistentResources = new LinkedHashSet<>();
+        this.failedAuthorizations = new ArrayList<>();
+        this.dirtyResources = new LinkedHashSet<>();
+        this.commitTriggers = new LinkedHashSet<>();
 
-        newPersistentResources = new LinkedHashSet<>();
-        commitTriggers = new LinkedHashSet<>();
-        this.permissionExecutor = (permissionExecutorFunction == null) ? new ActivePermissionExecutor(this)
-                                                                       : permissionExecutorFunction.apply(this);
-        failedAuthorizations = new ArrayList<>();
-        dirtyResources = new LinkedHashSet<>();
+        this.permissionExecutor = (permissionExecutorGenerator == null)
+                ? new ActivePermissionExecutor(this)
+                : permissionExecutorGenerator.apply(this);
+
+        this.queryParams = (queryParams == null || queryParams.size() == 0)
+                ? Optional.empty()
+                : Optional.of(queryParams);
+
+        if (this.queryParams.isPresent()) {
+            this.sparseFields = parseSparseFields(queryParams);
+            this.predicates = Predicate.parseQueryParams(this.dictionary, queryParams);
+            this.sorting = Sorting.parseQueryParams(queryParams);
+            this.pagination = Pagination.parseQueryParams(queryParams);
+        } else {
+            this.sparseFields = Collections.emptyMap();
+            this.predicates = Collections.emptyMap();
+            this.sorting = Sorting.getDefaultEmptyInstance();
+            this.pagination = Pagination.getDefaultPagination();
+        }
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -104,8 +119,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutor) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, securityMode,
-                permissionExecutor);
+        this(
+                jsonApiDocument,
+                transaction,
+                user,
+                dictionary,
+                mapper,
+                auditLogger,
+                null,
+                securityMode,
+                permissionExecutor
+        );
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -115,8 +139,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, queryParams,
-                SecurityMode.SECURITY_ACTIVE, null);
+        this(
+                jsonApiDocument,
+                transaction,
+                user,
+                dictionary,
+                mapper,
+                auditLogger,
+                queryParams,
+                SecurityMode.SECURITY_ACTIVE,
+                null
+        );
     }
 
     public RequestScope(JsonApiDocument jsonApiDocument,
@@ -125,8 +158,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         AuditLogger auditLogger) {
-        this(jsonApiDocument, transaction, user, dictionary, mapper, auditLogger, null, SecurityMode.SECURITY_ACTIVE,
-                null);
+        this(
+                jsonApiDocument,
+                transaction,
+                user,
+                dictionary,
+                mapper,
+                auditLogger,
+                null,
+                SecurityMode.SECURITY_ACTIVE,
+                null
+        );
     }
 
     /**
@@ -138,12 +180,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param mapper      the mapper
      * @param auditLogger      the logger
      */
-    protected RequestScope(
-            DataStoreTransaction transaction,
-            User user,
-            EntityDictionary dictionary,
-            JsonApiMapper mapper,
-            AuditLogger auditLogger) {
+    protected RequestScope(DataStoreTransaction transaction,
+                           User user,
+                           EntityDictionary dictionary,
+                           JsonApiMapper mapper,
+                           AuditLogger auditLogger) {
         this(null, transaction, user, dictionary, mapper, auditLogger);
     }
 

@@ -248,7 +248,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         Expression entityExpression = expressionFromParseTree(classPermissions, checkFn);
 
-        Expression allFieldsExpression = new OrExpression(FAILURE, null);
+        OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         for (String field : fields) {
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);

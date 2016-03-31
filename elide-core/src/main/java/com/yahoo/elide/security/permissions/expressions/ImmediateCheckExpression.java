@@ -34,11 +34,11 @@ public class ImmediateCheckExpression implements Expression {
     /**
      * Constructor.
      *
-     * @param check Check
-     * @param resource Persistent resource
-     * @param requestScope Request scope
-     * @param changeSpec ChangeSpec
-     * @param cache Cache
+     * @param check The check to be evaluated by this expression
+     * @param resource The resource to pass to the check
+     * @param requestScope The requestScope to pass to the check
+     * @param changeSpec The changeSpec to pass to the check
+     * @param cache The cache of previous expression results
      */
     public ImmediateCheckExpression(final Check check,
                                     final PersistentResource resource,

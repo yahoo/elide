@@ -31,6 +31,7 @@ public class SpecificFieldExpression implements Expression {
         if (!fieldExpression.isPresent()) {
             return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
         }
+
         return fieldExpression.get().evaluate();
     }
 }

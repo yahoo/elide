@@ -358,8 +358,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
-        Set<PersistentResource> resources =
-                filter(ReadPermission.class, (Set) getRelationUncheckedUnfiltered(fieldName));
+        Set<PersistentResource> resources = filter(
+                ReadPermission.class,
+                (Set) getRelationUncheckedUnfiltered(fieldName)
+        );
         if (type.isToMany()) {
             checkFieldAwareDeferPermissions(
                     UpdatePermission.class,

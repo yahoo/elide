@@ -52,7 +52,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
-
     /**
      * Instantiates a new Hibernate transaction.
      *
@@ -118,8 +117,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                .scroll(ScrollMode.FORWARD_ONLY));
+        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass).scroll(ScrollMode.FORWARD_ONLY));
         return list;
     }
 
@@ -136,7 +134,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
-        final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
+        final Pagination pagination = filterScope.hasPagination()
+                ? filterScope.getRequestScope().getPagination()
                 : null;
 
         // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
@@ -146,7 +145,8 @@ public class HibernateTransaction implements DataStoreTransaction {
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
             validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
                     .stream()
-                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc) ? Order.desc(entry.getKey())
+                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+                            ? Order.desc(entry.getKey())
                             : Order.asc(entry.getKey())
                     )
                     .collect(Collectors.toSet());
@@ -189,7 +189,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        if (((collection instanceof AbstractPersistentCollection)) && !predicates.isEmpty()) {
+        if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
             String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
@@ -210,11 +210,11 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
-                                                                      final Class<T> entityClass,
-                                                                      final EntityDictionary dictionary,
-                                                                      final Optional<Set<Predicate>> filters,
-                                                                      final Optional<Sorting> sorting,
-                                                                      final Optional<Pagination> pagination) {
+                                                                   final Class<T> entityClass,
+                                                                   final EntityDictionary dictionary,
+                                                                   final Optional<Set<Predicate>> filters,
+                                                                   final Optional<Sorting> sorting,
+                                                                   final Optional<Pagination> pagination) {
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
             @SuppressWarnings("unchecked")

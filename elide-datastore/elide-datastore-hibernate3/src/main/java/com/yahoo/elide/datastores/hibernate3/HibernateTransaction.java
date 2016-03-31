@@ -49,7 +49,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
     /**
@@ -118,8 +117,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                .scroll(ScrollMode.FORWARD_ONLY));
+        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass).scroll(ScrollMode.FORWARD_ONLY));
         return list;
     }
 
@@ -138,11 +136,14 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         String type = filterScope.getRequestScope().getDictionary().getJsonAliasFor(entityClass);
         Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
-        criterion = CriterionFilterOperation.andWithNull(criterion,
-                criterionFilterOperation.applyAll(filteredPredicates));
+        criterion = CriterionFilterOperation.andWithNull(
+                criterion,
+                criterionFilterOperation.applyAll(filteredPredicates)
+        );
 
 
-        final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
+        final Pagination pagination = filterScope.hasPagination()
+                ? filterScope.getRequestScope().getPagination()
                 : null;
 
         // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
@@ -152,7 +153,8 @@ public class HibernateTransaction implements DataStoreTransaction {
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
             validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
                     .stream()
-                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc) ? Order.desc(entry.getKey())
+                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+                            ? Order.desc(entry.getKey())
                             : Order.asc(entry.getKey())
                     )
                     .collect(Collectors.toSet());
@@ -165,17 +167,17 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteria Set of criteria to apply
+     * @param criteriaExplorer Criteria explorer to explore and construct criterion
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteria,
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
                                        final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         final Criteria sessionCriteria = session.createCriteria(loadClass);
 
-        criteria.buildCriteria(sessionCriteria, session);
+        criteriaExplorer.buildCriteria(sessionCriteria, session);
 
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(sessionCriteria::addOrder);
@@ -196,7 +198,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
-            String filterString = hqlFilterOperation.applyAll(predicates);
+            String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
                 Query query = session.createFilter(collection, filterString);
