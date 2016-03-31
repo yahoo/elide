@@ -1,7 +1,7 @@
 /*
- * Copyright 20[0-1][0-9], Yahoo Inc\.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
- * See LICENSE file in project root for terms\.
+ * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.example.persistence;
 
@@ -11,8 +11,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Example backend using Elide library.
