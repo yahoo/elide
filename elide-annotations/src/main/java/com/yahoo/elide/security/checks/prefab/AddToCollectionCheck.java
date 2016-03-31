@@ -16,8 +16,9 @@ import java.util.Optional;
  * A check designed to look at the changeSpec to determine whether a value was added to a Collection
  *
  * @param <T> type parameter
+ * @deprecated As of 2.2, use {@link Collections.RemoveOnly}
  */
-
+@Deprecated
 public class AddToCollectionCheck<T> extends CommitCheck<T> {
 
     @Override

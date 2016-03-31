@@ -6,30 +6,17 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
-import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import com.yahoo.elide.generated.parsers.ExpressionLexer;
-import com.yahoo.elide.generated.parsers.ExpressionParser;
 import lombok.Getter;
 import lombok.Setter;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -43,7 +30,6 @@ import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -64,180 +50,57 @@ class EntityBinding {
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
     public final Class<?> entityClass;
-    public final String jsonApi;
-    public final ConcurrentLinkedDeque<String> attrsDeque;
-    public final List<String> attrs;
-    public final ConcurrentLinkedDeque<String> relationshipsDeque;
-    public final List<String> relationships;
-    public final ConcurrentHashMap<String, RelationshipType> relationshipTypes;
-    public final ConcurrentHashMap<String, String> relationshipToInverse;
-    public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
-    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes;
-    public final ConcurrentHashMap<String, String> aliasesToFields;
-    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
-    public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
-    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations;
-    public final ConcurrentHashMap<Pair<Class, String>, ParseTree> fieldAnnotationToParseTree;
-    public final ConcurrentHashMap<Class, ParseTree> annotationToParseTree;
+    public final String jsonApiType;
     @Getter private AccessibleObject idField;
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
+    public final EntityPermissions entityPermissions;
+
+    public final List<String> attributes;
+    public final List<String> relationships;
+    public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
+    public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
+
+    public final ConcurrentHashMap<String, RelationshipType> relationshipTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
+    public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
+    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject = new ConcurrentHashMap<>();
+
+    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
 
     /* empty binding constructor */
     private EntityBinding() {
-        jsonApi = null;
+        jsonApiType = null;
         idField = null;
         idType = null;
-        attrsDeque = null;
-        attrs = null;
-        relationshipsDeque = null;
+        attributes = null;
         relationships = null;
-        relationshipTypes = null;
-        relationshipToInverse = null;
-        fieldsToValues = null;
-        fieldsToTypes = null;
-        fieldsToTriggers = new MultiValueMap();
-        aliasesToFields = null;
-        accessibleObject = null;
         entityClass = null;
-        annotations = null;
-        fieldAnnotationToParseTree = null;
-        annotationToParseTree = null;
+        entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
     public EntityBinding(Class<?> cls, String type) {
+        entityClass = cls;
+        jsonApiType = type;
+
         // Map id's, attributes, and relationships
         Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
                 Arrays.asList(cls.getFields()),
-                Arrays.asList(cls.getMethods()));
-
-        entityClass = cls;
-        jsonApi = type;
-        // Initialize our maps for this entity. Duplicates are checked above.
-        attrsDeque = new ConcurrentLinkedDeque<>();
-        relationshipsDeque = new ConcurrentLinkedDeque<>();
-        relationshipTypes = new ConcurrentHashMap<>();
-        relationshipToInverse = new ConcurrentHashMap<>();
-        fieldsToValues = new ConcurrentHashMap<>();
-        fieldsToTypes = new ConcurrentHashMap<>();
-        fieldsToTriggers = new MultiValueMap<>();
-        aliasesToFields = new ConcurrentHashMap<>();
-        accessibleObject = new ConcurrentHashMap<>();
-        annotations = new ConcurrentHashMap<>();
-        annotationToParseTree = new ConcurrentHashMap<>();
-        fieldAnnotationToParseTree = new ConcurrentHashMap<>();
+                Arrays.asList(cls.getMethods())
+        );
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
-        bindAnnotations(cls, fieldOrMethodList);
 
-        attrs = dequeToList(attrsDeque);
+        attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
+        entityPermissions = new EntityPermissions(cls, fieldOrMethodList);
     }
-
-    /**
-     * Parses (using ANTLR) and Binds annotation expressions to the entity binding.
-     */
-    private void bindAnnotations(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
-        Class[] annotationsToBind = new Class[]{
-                ReadPermission.class,
-                CreatePermission.class,
-                DeletePermission.class,
-                SharePermission.class,
-                UpdatePermission.class
-        };
-
-        for (Class annotationClass : annotationsToBind) {
-            try {
-                Method expressionMethod = annotationClass.getMethod("expression", (Class[]) null);
-                if (expressionMethod != null) {
-                    bindEntityAnnotation(cls, annotationClass, expressionMethod);
-
-                    fieldOrMethodList.forEach(obj -> {
-                        if (obj instanceof Field) {
-                            bindFieldAnnotation((Field) obj, annotationClass, expressionMethod);
-                        }
-                    });
-                }
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Obtains the value of a annotation, parse it and store it in a hashmap
-     *
-     * @param cls             The class of the entity
-     * @param annotationClass The type of annotation you are binding (i.e. ReadPermission)
-     */
-    private void bindEntityAnnotation(Class<?> cls, Class annotationClass, Method expressionMethod) {
-        try {
-            // Store the ParseTree for the particular entity
-            String expressionString = (String) expressionMethod.invoke(cls.getAnnotation(annotationClass));
-            annotationToParseTree.putIfAbsent(
-                    annotationClass,
-                    parseExpression(expressionString)
-            );
-        } catch (NullPointerException e) {
-            // It is ok.
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Obtains the value of a field annotation, parses it and stores in it's respective hashmap
-     *
-     * @param field
-     * @param annotationClass
-     */
-    private void bindFieldAnnotation(Field field, Class annotationClass, Method expressionMethod) {
-        try {
-            String expressionString = (String) expressionMethod.invoke(field.getAnnotation(annotationClass));
-
-            Pair<Class, String> key = Pair.of(annotationClass, field.toString());
-
-            fieldAnnotationToParseTree.putIfAbsent(key, parseExpression(expressionString));
-
-        } catch (NullPointerException e) {
-            // It is ok.
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Parses an expression in an annotation using ANTLR.
-     *
-     * @param annotationMessage
-     * @return
-     */
-    private ParseTree parseExpression(String annotationMessage) {
-        if (annotationMessage.length() <= 0) {
-            return null;
-        }
-        ANTLRInputStream is = new ANTLRInputStream(annotationMessage);
-        ExpressionLexer lexer = new ExpressionLexer(is);
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-                                    int charPositionInLine, String msg, RecognitionException e) {
-                throw new ParseCancellationException(msg, e);
-            }
-        });
-        ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
-        lexer.reset();
-        return parser.start();
-    }
-
 
     /**
      * Bind fields of an entity including the Id field, attributes, and relationships.
@@ -367,7 +230,7 @@ class EntityBinding {
             relationshipTypes.put(fieldName, type);
             relationshipToInverse.put(fieldName, mappedBy);
         } else {
-            fieldList = attrsDeque;
+            fieldList = attributesDeque;
         }
 
         fieldList.push(fieldName);
@@ -381,7 +244,7 @@ class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field or method name
      */
-    private static String getFieldName(AccessibleObject fieldOrMethod) {
+    public static String getFieldName(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getName();
         } else {

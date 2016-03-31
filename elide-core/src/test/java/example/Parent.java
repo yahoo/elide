@@ -122,10 +122,12 @@ public class Parent extends BaseId {
     static public class SpecialValue extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            String fieldName = changeSpec.get().getFieldName();
-            switch (fieldName) {
-                case "specialAttribute":
-                    return object.getSpecialAttribute().equals("this should succeed!");
+            if (changeSpec.isPresent()) {
+                String fieldName = changeSpec.get().getFieldName();
+                switch (fieldName) {
+                    case "specialAttribute":
+                        return object.getSpecialAttribute().equals("this should succeed!");
+                }
             }
             return false;
         }

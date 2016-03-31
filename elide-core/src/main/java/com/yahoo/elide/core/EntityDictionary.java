@@ -10,10 +10,14 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
+import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
+import com.yahoo.elide.security.checks.prefab.Common;
+import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -48,12 +52,36 @@ public class EntityDictionary {
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
+    protected final ConcurrentHashMap<String, Class<? extends Check>> checkNames;
 
     /**
      * Instantiates a new Entity dictionary.
+     * @deprecated As of 2.2, {@link #EntityDictionary(Map)} is preferred.
      */
+    @Deprecated
     public EntityDictionary() {
-        // Do nothing
+        this(new ConcurrentHashMap<>());
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
+     * in {@link com.yahoo.elide.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
+     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks) {
+        checkNames = new ConcurrentHashMap<>(checks);
+        addPrefabChecks();
+    }
+
+    private void addPrefabChecks() {
+        checkNames.putIfAbsent("Prefab.Role.All", Role.ALL.class);
+        checkNames.putIfAbsent("Prefab.Role.None", Role.NONE.class);
+        checkNames.putIfAbsent("Prefab.Collections.AppendOnly", AppendOnly.class);
+        checkNames.putIfAbsent("Prefab.Collections.RemoveOnly", RemoveOnly.class);
+        checkNames.putIfAbsent("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
     }
 
     private static Package getParentPackage(Package pkg) {
@@ -107,23 +135,56 @@ public class EntityDictionary {
         return entityBinding(entityClass).jsonApi;
     }
 
-    public ParseTree getEntityParseTree(Class<?> entityClass, Class annotationClass) {
-        EntityBinding e = entityBinding(entityClass);
-        if (e.annotationToParseTree != null) {
-            return e.annotationToParseTree.get(annotationClass);
-        } else {
-            return null;
-        }
+    /**
+     * Determine if a given (entity class, permission) pair have any permissions defined.
+     *
+     * @param resourceClass the entity class
+     * @param annotationClass the permission annotation
+     * @return {@code true} if that permission is defined anywhere within the class
+     */
+    public boolean entityHasChecksForPermission(Class<?> resourceClass, Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.hasChecksForPermission(annotationClass);
     }
 
-    public ParseTree getEntityFieldParseTree(Class<?> entityClass, Class annotationClass, String field) {
-        EntityBinding e = entityBinding(entityClass);
-        if (e.fieldAnnotationToParseTree != null) {
-            Pair<Class, String> key = Pair.of(annotationClass, field);
-            return e.fieldAnnotationToParseTree.get(key);
-        } else {
-            return null;
-        }
+    /**
+     * Gets the specified permission definition (if any) at the class level.
+     *
+     * @param resourceClass the entity to check
+     * @param annotationClass the permission to look for
+     * @return a {@code ParseTree} expressing the permissions, if one exists
+     *         or {@code null} if the permission is not specified at a class level
+     */
+    public ParseTree getPermissionsForClass(Class<?> resourceClass,
+                                                       Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.getClassChecksForPermission(annotationClass);
+    }
+
+    /**
+     * Gets the specified permission definition (if any) at the class level.
+     *
+     * @param resourceClass the entity to check
+     * @param field the field to inspect
+     * @param annotationClass the permission to look for
+     * @return a {@code ParseTree} expressing the permissions, if one exists
+     *         or {@code null} if the permission is not specified on that field
+     */
+    public ParseTree getPermissionsForField(Class<?> resourceClass,
+                                                       String field,
+                                                       Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
+    }
+
+    /**
+     * Returns the check mapped to a particular identifier.
+     *
+     * @param checkIdentifier the name from the expression string
+     * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
+     */
+    public Class<? extends Check> getCheck(String checkIdentifier) {
+        return checkNames.get(checkIdentifier);
     }
 
     /**

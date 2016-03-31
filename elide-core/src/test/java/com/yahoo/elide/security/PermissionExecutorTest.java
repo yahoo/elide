@@ -8,7 +8,6 @@ package com.yahoo.elide.security;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -29,6 +28,7 @@ public class PermissionExecutorTest {
     @Test
     public void testSuccessfulOperationCheck() throws Exception {
         @Entity
+        @Include
         @UpdatePermission(all = {SampleOperationCheck.class})
         class Model { }
 
@@ -42,6 +42,7 @@ public class PermissionExecutorTest {
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailOperationCheckAll() throws Exception {
         @Entity
+        @Include
         @UpdatePermission(all = {SampleOperationCheck.class, Role.NONE.class})
         class Model { }
 
@@ -54,6 +55,7 @@ public class PermissionExecutorTest {
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailOperationCheckAny() throws Exception {
         @Entity
+        @Include
         @UpdatePermission(any = {SampleOperationCheck.class, SampleCommitCheck.class})
         class Model { }
 
@@ -67,6 +69,7 @@ public class PermissionExecutorTest {
     @Test
     public void testSuccessfulCommitChecks() throws Exception {
         @Entity
+        @Include
         @UpdatePermission(all = {SampleCommitCheck.class})
         class Model { }
 
@@ -81,6 +84,7 @@ public class PermissionExecutorTest {
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testFailCommitChecks() throws Exception {
         @Entity
+        @Include
         @UpdatePermission(all = {SampleCommitCheck.class})
         class Model { }
 
@@ -279,9 +283,10 @@ public class PermissionExecutorTest {
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = {InvalidSyntaxException.class})
+    @Test(expectedExceptions = {IllegalArgumentException.class})
     public void testBadInstance() {
         @Entity
+        @Include
         @UpdatePermission(all = {PrivatePermission.class})
         class Model { }
 
@@ -462,6 +467,7 @@ public class PermissionExecutorTest {
     }
 
     @Entity
+    @Include
     @ReadPermission(any = { ShouldCache.class })
     @UpdatePermission(any = { ShouldCache.class })
     public static class AnnotationOnlyRecord {
@@ -478,6 +484,7 @@ public class PermissionExecutorTest {
     }
 
     @Entity
+    @Include
     @ReadPermission(any = {UserCheckTest.class})
     @UpdatePermission(any = {UserCheckTest.class})
     public static class UserCheckCacheRecord {

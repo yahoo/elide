@@ -23,24 +23,25 @@ Doesn't work with single character names.
 */
 
 expression
-    : NOT expression                                #NOT
+    : NOT WS expression                             #NOT
     | LPAREN WS? expression WS? RPAREN              #PAREN
-    | left=expression WS? AND WS? right=expression  #AND
-    | left=expression WS? OR WS?  right=expression  #OR
-    | expressionClass                               #EXPRESSION
+    | left=expression WS AND WS right=expression    #AND
+    | left=expression WS  OR WS right=expression    #OR
+    | permissionClass                               #PERMISSION
     ;
 
 /*
-No only numeric because class names can't be only numeric.
-Do not name this 'class' as that is a keyword.
+This should be a (potentially fully qualified) class name.
 */
-expressionClass: ALPHANUMERIC;
+permissionClass: LEGAL_NAME;
 
-NOT: [Nn][Oo][Tt];
-AND: [Aa][Nn][Dd];
-OR: [Oo][Rr];
+NOT         : [Nn][Oo][Tt];
+AND         : [Aa][Nn][Dd];
+OR          :     [Oo][Rr];
 
-LPAREN : '(' -> channel(HIDDEN);
-RPAREN : ')' -> channel(HIDDEN);
-WS: (' ' | '\t') -> channel(HIDDEN);
-ALPHANUMERIC: [a-zA-Z\.] [a-zA-Z0-9\.]*;
+LPAREN      : '(';
+RPAREN      : ')';
+WS          : ' ' | '\t';
+LEGAL_NAME  : ALPHA LEGAL_CHAR*;
+ALPHA       : [a-zA-Z];
+LEGAL_CHAR  : ALPHA | '.' | [0-9] | '$';

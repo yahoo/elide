@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.hibernate3;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -16,9 +15,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
-import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.InlineCheck;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -35,9 +32,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -45,6 +43,10 @@ import java.util.stream.Collectors;
  * Hibernate Transaction implementation.
  */
 public class HibernateTransaction implements DataStoreTransaction {
+    private static final Function<Criterion, Criterion> NOT = Restrictions::not;
+    private static final BiFunction<Criterion, Criterion, Criterion> AND = Restrictions::and;
+    private static final BiFunction<Criterion, Criterion, Criterion> OR = Restrictions::or;
+
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
@@ -123,19 +125,16 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        Criterion criterion = buildCheckCriterion(filterScope);
+        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
-        final RequestScope requestScope = filterScope.getRequestScope();
+        CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
 
-        // Criteria for filtering this object
-        CriteriaExplorer criteria = new CriteriaExplorer(loadClass, requestScope, criterion);
-
-        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
+        return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
     }
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        Criterion criterion = buildCheckCriterion(filterScope);
+        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
         String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
         Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
@@ -192,36 +191,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         Iterable<T> list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
 
         return list;
-    }
-
-    /**
-     * builds criterion if all checks implement CriteriaCheck.
-     *
-     * @param filterScope the filterScope
-     * @return the criterion
-     */
-    public Criterion buildCheckCriterion(FilterScope filterScope) {
-        Criterion compositeCriterion = null;
-        List<InlineCheck> checks = filterScope.getInlineChecks();
-        RequestScope requestScope = filterScope.getRequestScope();
-        for (InlineCheck check : checks) {
-            Criterion criterion = null;
-            if (check instanceof CriteriaCheck) {
-                criterion = ((CriteriaCheck) check).getCriterion(requestScope);
-            }
-
-            if (criterion == null) {
-                continue;
-            } else if (compositeCriterion == null) {
-                compositeCriterion = criterion;
-            } else if (filterScope.isAny()) {
-                compositeCriterion = Restrictions.or(compositeCriterion, criterion);
-            } else {
-                compositeCriterion = Restrictions.and(compositeCriterion, criterion);
-            }
-        }
-
-        return compositeCriterion;
     }
 
     @Override

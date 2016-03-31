@@ -18,6 +18,8 @@ public class OrExpression implements Expression {
     private final Expression left;
     private final Expression right;
 
+    public static final OrExpression SUCCESSFUL_EXPRESSION = new OrExpression(Results.SUCCESS, null);
+
     /**
      * Constructor.
      *

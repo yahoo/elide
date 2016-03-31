@@ -12,8 +12,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.SecurityMode;
-import com.yahoo.elide.security.permissions.ExpressionBuilder;
-import com.yahoo.elide.security.permissions.ExpressionBuilder.Expressions;
+import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
+import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.expressions.Expression;
@@ -35,7 +35,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private final Queue<QueuedCheck> commitCheckQueue = new LinkedBlockingQueue<>();
 
     private final RequestScope requestScope;
-    private final ExpressionBuilder expressionBuilder;
+    private final PermissionExpressionBuilder expressionBuilder;
 
     /**
      * Constructor.
@@ -46,7 +46,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
-        this.expressionBuilder = new ExpressionBuilder(cache, requestScope.getDictionary());
+        this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
     }
 
     /**
