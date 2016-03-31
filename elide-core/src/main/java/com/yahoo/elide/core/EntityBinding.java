@@ -111,10 +111,10 @@ class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            bindTrigger(OnCreate.class, fieldOrMethod);
-            bindTrigger(OnDelete.class, fieldOrMethod);
-            bindTrigger(OnUpdate.class, fieldOrMethod);
-            bindTrigger(OnCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreate.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDelete.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdate.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCommit.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
@@ -276,16 +276,16 @@ class EntityBinding {
         }
     }
 
-    private <A extends Annotation> void bindTrigger(Class<A> annotationClass, AccessibleObject fieldOrMethod) {
+    private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Method && fieldOrMethod.isAnnotationPresent(annotationClass)) {
-            A onTrigger = fieldOrMethod.getAnnotation(annotationClass);
+            Annotation trigger = fieldOrMethod.getAnnotation(annotationClass);
             String value;
             try {
-                value = (String) annotationClass.getMethod("value").invoke(onTrigger);
+                value = (String) annotationClass.getMethod("value").invoke(trigger);
             } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
                 value = "";
             }
-            fieldsToTriggers.put(Pair.of(annotationClass, value), fieldOrMethod);
+            fieldsToTriggers.put(Pair.of(annotationClass, value), (Method) fieldOrMethod);
         }
     }
 

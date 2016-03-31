@@ -136,7 +136,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
-        String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
+        String type = filterScope.getRequestScope().getDictionary().getJsonAliasFor(entityClass);
         Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
         criterion = CriterionFilterOperation.andWithNull(criterion,
                 criterionFilterOperation.applyAll(filteredPredicates));

@@ -110,9 +110,8 @@ public class EntityDictionary {
         return m;
     }
 
-    protected EntityBinding entityBinding(Class<?> entityClass) {
-        EntityBinding entityBinding = entityBindings.get(lookupEntityClass(entityClass));
-        return entityBinding == null ? EntityBinding.EMPTY_BINDING : entityBinding;
+    protected EntityBinding getEntityBinding(Class<?> entityClass) {
+        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EntityBinding.EMPTY_BINDING);
     }
 
     /**
@@ -121,7 +120,7 @@ public class EntityDictionary {
      * @param entityName entity name
      * @return binding class
      */
-    public Class<?> getBinding(String entityName) {
+    public Class<?> getEntityClass(String entityName) {
         return bindJsonApiToEntity.get(entityName);
     }
 
@@ -131,8 +130,8 @@ public class EntityDictionary {
      * @param entityClass the entity class
      * @return binding class
      */
-    public String getBinding(Class<?> entityClass) {
-        return entityBinding(entityClass).jsonApi;
+    public String getJsonAliasFor(Class<?> entityClass) {
+        return getEntityBinding(entityClass).jsonApiType;
     }
 
     /**
@@ -194,7 +193,7 @@ public class EntityDictionary {
      * @return id field name
      */
     public String getIdFieldName(Class<?> entityClass) {
-        return entityBinding(entityClass).getIdFieldName();
+        return getEntityBinding(entityClass).getIdFieldName();
     }
 
     /**
@@ -213,7 +212,7 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return entityBinding(entityClass).attrs;
+        return getEntityBinding(entityClass).attributes;
     }
 
     /**
@@ -233,7 +232,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Class<?> entityClass) {
-        return entityBinding(entityClass).relationships;
+        return getEntityBinding(entityClass).relationships;
     }
 
     /**
@@ -287,7 +286,7 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, RelationshipType> types = entityBinding(cls).relationshipTypes;
+        final ConcurrentHashMap<String, RelationshipType> types = getEntityBinding(cls).relationshipTypes;
         if (types == null) {
             return RelationshipType.NONE;
         }
@@ -303,7 +302,7 @@ public class EntityDictionary {
      * @return relation inverse
      */
     public String getRelationInverse(Class<?> cls, String relation) {
-        final EntityBinding clsBinding = entityBinding(cls);
+        final EntityBinding clsBinding = getEntityBinding(cls);
         final ConcurrentHashMap<String, String> mappings = clsBinding.relationshipToInverse;
         if (mappings != null) {
             final String mapping = mappings.get(relation);
@@ -319,7 +318,7 @@ public class EntityDictionary {
          */
         final Class<?> inverseType = getParameterizedType(cls, relation);
         final ConcurrentHashMap<String, String> inverseMappings =
-                entityBinding(inverseType).relationshipToInverse;
+                getEntityBinding(inverseType).relationshipToInverse;
 
         for (Map.Entry<String, String> inverseMapping : inverseMappings.entrySet()) {
             String inverseRelationName = inverseMapping.getKey();
@@ -353,7 +352,7 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        ConcurrentHashMap<String, Class<?>> fieldTypes = entityBinding(entityClass).fieldsToTypes;
+        ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
 
@@ -388,7 +387,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier, int paramIndex) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
+        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
         }
@@ -443,7 +442,7 @@ public class EntityDictionary {
      * @return Real field/method name as a string. null if not found.
      */
     public String getNameFromAlias(Class<?> entityClass, String alias) {
-        ConcurrentHashMap<String, String> map = entityBinding(entityClass).aliasesToFields;
+        ConcurrentHashMap<String, String> map = getEntityBinding(entityClass).aliasesToFields;
         if (map != null) {
             return map.get(alias);
         }
@@ -470,7 +469,7 @@ public class EntityDictionary {
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
             @SuppressWarnings("unchecked")
-            Initializer<T> initializer = entityBinding(entity.getClass()).getInitializer();
+            Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
             if (initializer != null) {
                 initializer.initialize(entity);
             }
@@ -485,7 +484,7 @@ public class EntityDictionary {
      * @param cls         Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        entityBinding(cls).setInitializer(initializer);
+        getEntityBinding(cls).setInitializer(initializer);
     }
 
     /**
@@ -495,8 +494,7 @@ public class EntityDictionary {
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        SharePermission share = getAnnotation(entityClass, SharePermission.class);
-        return share != null;
+        return getAnnotation(entityClass, SharePermission.class) != null;
     }
 
     /**
@@ -508,20 +506,24 @@ public class EntityDictionary {
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+
         if (exclude != null) {
             log.trace("Exclude {}", cls.getName());
             return;
         }
+
         if (include == null) {
             log.trace("Missing include {}", cls.getName());
             return;
         }
+
         String type;
         if ("".equals(include.type())) {
             type = WordUtils.uncapitalize(cls.getSimpleName());
         } else {
             type = include.type();
         }
+
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
@@ -562,6 +564,7 @@ public class EntityDictionary {
                                                                  Class<A> annotationClass,
                                                                  String fieldName) {
         return entityBinding(cls).getTriggers(annotationClass, fieldName);
+        return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
     /**
@@ -577,6 +580,7 @@ public class EntityDictionary {
                                                                      Class<A> annotationClass,
                                                                      String identifier) {
         AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
+        AccessibleObject fieldOrMethod = getEntityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -595,7 +599,7 @@ public class EntityDictionary {
     public <A extends Annotation> A[] getAttributeOrRelationAnnotations(Class<?> entityClass,
                                                                         Class<A> annotationClass,
                                                                         String identifier) {
-        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
+        AccessibleObject fieldOrMethod = getEntityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -655,7 +659,7 @@ public class EntityDictionary {
         try {
             AccessibleObject idField = null;
             for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-                idField = entityBinding(cls).getIdField();
+                idField = getEntityBinding(cls).getIdField();
             }
             if (idField instanceof Field) {
                 return String.valueOf(((Field) idField).get(value));
@@ -676,7 +680,7 @@ public class EntityDictionary {
      * @return ID type
      */
     public Class<?> getIdType(Class<?> entityClass) {
-        return entityBinding(entityClass).getIdType();
+        return getEntityBinding(entityClass).getIdType();
     }
 
     /**
@@ -690,7 +694,7 @@ public class EntityDictionary {
             return null;
         }
 
-        AccessibleObject idField = entityBinding(value.getClass()).getIdField();
+        AccessibleObject idField = getEntityBinding(value.getClass()).getIdField();
         if (idField != null) {
             return Arrays.asList(idField.getDeclaredAnnotations());
         }
@@ -732,7 +736,7 @@ public class EntityDictionary {
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
-        ConcurrentHashMap<String, AccessibleObject> map = entityBinding(targetClass).accessibleObject;
+        ConcurrentHashMap<String, AccessibleObject> map = getEntityBinding(targetClass).accessibleObject;
         return map.get(fieldName);
     }
 

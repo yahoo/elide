@@ -62,7 +62,7 @@ public class CriteriaExplorer {
             String[] objects = criteriaPath.split("\\.");
 
             Criteria criteria;
-            Class filterClass = dictionary.getBinding(objects[0]);
+            Class filterClass = dictionary.getEntityClass(objects[0]);
             if (loadClass.equals(filterClass)) {
                 criteria = sessionCriteria;
             } else {
@@ -84,7 +84,7 @@ public class CriteriaExplorer {
      * @return Criterion for root class
      */
     private Criterion buildRootCriterion(final Class<?> loadClass, final Criterion existing) {
-        String type = dictionary.getBinding(loadClass);
+        String type = dictionary.getJsonAliasFor(loadClass);
         return CriterionFilterOperation.andWithNull(existing,
                 filterOperation.applyAll(requestScope.getPredicatesOfType(type)));
     }

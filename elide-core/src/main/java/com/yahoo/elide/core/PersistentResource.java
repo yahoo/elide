@@ -185,7 +185,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.parent = Optional.ofNullable(parent);
         this.lineage = this.parent.isPresent() ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
         this.dictionary = requestScope.getDictionary();
-        this.type = dictionary.getBinding(obj.getClass());
+        this.type = dictionary.getJsonAliasFor(obj.getClass());
         this.user = requestScope.getUser();
         this.entityCache = requestScope.getObjectEntityCache();
         this.transaction = requestScope.getTransaction();
@@ -244,7 +244,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Check the resource cache if exists
         @SuppressWarnings("unchecked")
-        T obj = (T) cache.get(dictionary.getBinding(loadClass), id);
+        T obj = (T) cache.get(dictionary.getJsonAliasFor(loadClass), id);
         if (obj == null) {
             // try to load object
             Class<?> idType = dictionary.getIdType(loadClass);
@@ -801,7 +801,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     private Set<Predicate> getPredicatesForRelation(String relationName) {
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-        final String valType = dictionary.getBinding(entityClass);
+        final String valType = dictionary.getJsonAliasFor(entityClass);
         return new HashSet<>(requestScope.getPredicatesOfType(valType));
     }
 
@@ -821,7 +821,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
         Set<Predicate> filters = Collections.emptySet();
         if (hasPredicates) {
-            final String valType = dictionary.getBinding(
+            final String valType = dictionary.getJsonAliasFor(
                     dictionary.getParameterizedType(obj, relationName)
             );
             filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
@@ -1450,9 +1450,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException(fieldName, dictionary.getBinding(target.getClass()));
+            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
         }
-        throw new InvalidAttributeException(fieldName, dictionary.getBinding(target.getClass()));
+        throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
     }
 
     /**
@@ -1606,8 +1606,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
-        requestScope
-                .getPermissionExecutor()
+
+        requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 

@@ -137,7 +137,7 @@ public class Resource {
 
     public PersistentResource toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
-        Class<?> cls = requestScope.getDictionary().getBinding(type);
+        Class<?> cls = requestScope.getDictionary().getEntityClass(type);
         return PersistentResource.loadRecord(cls, id, requestScope);
     }
 }

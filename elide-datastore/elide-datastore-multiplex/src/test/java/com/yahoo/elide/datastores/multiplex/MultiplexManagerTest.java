@@ -43,8 +43,8 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getBinding(FirstBean.class));
-        assertNotNull(entityDictionary.getBinding(OtherBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(OtherBean.class));
     }
 
     @Test

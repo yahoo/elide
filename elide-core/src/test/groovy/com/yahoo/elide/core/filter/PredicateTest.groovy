@@ -25,9 +25,9 @@ public class PredicateTest {
     @BeforeSuite
     public void setup() {
         entityDictionary = mock(EntityDictionary.class)
-        when(entityDictionary.getBinding(String.class)).thenReturn("string")
-        when(entityDictionary.getBinding("type1")).thenReturn(String.class)
-        when(entityDictionary.getBinding("type2")).thenReturn(String.class)
+        when(entityDictionary.getJsonAliasFor(String.class)).thenReturn("string")
+        when(entityDictionary.getEntityClass("type1")).thenReturn(String.class)
+        when(entityDictionary.getEntityClass("type2")).thenReturn(String.class)
         when(entityDictionary.getParameterizedType(String.class, "field1")).thenReturn(String.class)
         when(entityDictionary.getParameterizedType(String.class, "field2")).thenReturn(String.class)
         when(entityDictionary.getParameterizedType(String.class, "intField")).thenReturn(Integer.class)

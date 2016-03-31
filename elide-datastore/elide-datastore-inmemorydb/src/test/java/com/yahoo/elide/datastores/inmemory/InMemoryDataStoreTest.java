@@ -35,10 +35,10 @@ public class InMemoryDataStoreTest {
     @Test(expectedExceptions = {IllegalArgumentException.class})
     public void checkLoading() {
         final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
-        assertNotNull(entityDictionary.getBinding(FirstBean.class));
-        assertNotNull(entityDictionary.getBinding(SecondBean.class));
-        assertNull(entityDictionary.getBinding(ExcludedBean.class));
-        assertNull(entityDictionary.getBinding(NonEntity.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
+        assertNull(entityDictionary.getJsonAliasFor(ExcludedBean.class));
+        assertNull(entityDictionary.getJsonAliasFor(NonEntity.class));
     }
 
     @Test
