@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.hibernate3;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -16,11 +15,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
-import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.InlineCheck;
-
-
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -37,9 +32,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -47,9 +43,12 @@ import java.util.stream.Collectors;
  * Hibernate Transaction implementation.
  */
 public class HibernateTransaction implements DataStoreTransaction {
+    private static final Function<Criterion, Criterion> NOT = Restrictions::not;
+    private static final BiFunction<Criterion, Criterion, Criterion> AND = Restrictions::and;
+    private static final BiFunction<Criterion, Criterion, Criterion> OR = Restrictions::or;
+
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final HQLFilterOperation hqlFilterOperation = new HQLFilterOperation();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
 
     /**
@@ -118,34 +117,33 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass)
-                .scroll(ScrollMode.FORWARD_ONLY));
+        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass).scroll(ScrollMode.FORWARD_ONLY));
         return list;
     }
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        Criterion criterion = buildCheckCriterion(filterScope);
+        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
-        final RequestScope requestScope = filterScope.getRequestScope();
+        CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
 
-        // Criteria for filtering this object
-        CriteriaExplorer criteria = new CriteriaExplorer(loadClass, requestScope, criterion);
-
-        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
+        return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
     }
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        Criterion criterion = buildCheckCriterion(filterScope);
+        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
-        String type = filterScope.getRequestScope().getDictionary().getBinding(entityClass);
+        String type = filterScope.getRequestScope().getDictionary().getJsonAliasFor(entityClass);
         Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
-        criterion = CriterionFilterOperation.andWithNull(criterion,
-                criterionFilterOperation.applyAll(filteredPredicates));
+        criterion = CriterionFilterOperation.andWithNull(
+                criterion,
+                criterionFilterOperation.applyAll(filteredPredicates)
+        );
 
 
-        final Pagination pagination = filterScope.hasPagination() ? filterScope.getRequestScope().getPagination()
+        final Pagination pagination = filterScope.hasPagination()
+                ? filterScope.getRequestScope().getPagination()
                 : null;
 
         // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
@@ -155,7 +153,8 @@ public class HibernateTransaction implements DataStoreTransaction {
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
             validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
                     .stream()
-                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc) ? Order.desc(entry.getKey())
+                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+                            ? Order.desc(entry.getKey())
                             : Order.asc(entry.getKey())
                     )
                     .collect(Collectors.toSet());
@@ -168,17 +167,17 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteria Set of criteria to apply
+     * @param criteriaExplorer Criteria explorer to explore and construct criterion
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteria,
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
                                        final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         final Criteria sessionCriteria = session.createCriteria(loadClass);
 
-        criteria.buildCriteria(sessionCriteria, session);
+        criteriaExplorer.buildCriteria(sessionCriteria, session);
 
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(sessionCriteria::addOrder);
@@ -196,40 +195,10 @@ public class HibernateTransaction implements DataStoreTransaction {
         return list;
     }
 
-    /**
-     * builds criterion if all checks implement CriteriaCheck.
-     *
-     * @param filterScope the filterScope
-     * @return the criterion
-     */
-    public Criterion buildCheckCriterion(FilterScope filterScope) {
-        Criterion compositeCriterion = null;
-        List<InlineCheck> checks = filterScope.getInlineChecks();
-        RequestScope requestScope = filterScope.getRequestScope();
-        for (InlineCheck check : checks) {
-            Criterion criterion = null;
-            if (check instanceof CriteriaCheck) {
-                criterion = ((CriteriaCheck) check).getCriterion(requestScope);
-            }
-
-            if (criterion == null) {
-                continue;
-            } else if (compositeCriterion == null) {
-                compositeCriterion = criterion;
-            } else if (filterScope.isAny()) {
-                compositeCriterion = Restrictions.or(compositeCriterion, criterion);
-            } else {
-                compositeCriterion = Restrictions.and(compositeCriterion, criterion);
-            }
-        }
-
-        return compositeCriterion;
-    }
-
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
-            String filterString = hqlFilterOperation.applyAll(predicates);
+            String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
                 Query query = session.createFilter(collection, filterString);

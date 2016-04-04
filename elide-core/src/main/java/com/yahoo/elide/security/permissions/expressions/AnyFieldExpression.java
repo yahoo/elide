@@ -11,15 +11,15 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
 import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 
 /**
- * Implementation of joining expression results by any field success or entity success.
+ * This check determines if an entity is accessible to the current user.
  *
- * Specifically, this expression determines whether a permission is available at _any_ level of annotation
- * for an object. That is, if the object has sufficient privilege at the package-, entity-, or field-level
- * then this check will return PASS.
+ * An entity is considered to be accessible if there exists an annotation at _any_ level of the object that
+ * Grants access. This means that if access is permitted to any field of the object then the object
+ * is accessible, regardless of what any class or package level permissions would permit.
  */
 public class AnyFieldExpression implements Expression {
     private final Expression entityExpression;
-    private final OrExpression fieldExpression;
+    private final Expression fieldExpression;
 
     public AnyFieldExpression(final Expression entityExpression, final OrExpression fieldExpression) {
         this.entityExpression = entityExpression;
@@ -28,11 +28,12 @@ public class AnyFieldExpression implements Expression {
 
     @Override
     public ExpressionResult evaluate() {
-        ExpressionResult fieldResult = (fieldExpression == null) ? new ExpressionResult(FAIL, "Invalid expression")
-                                                                 : fieldExpression.evaluate();
+        ExpressionResult fieldResult = fieldExpression.evaluate();
+
         if (fieldResult.getStatus() != FAIL) {
             return fieldResult;
         }
+
         return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
     }
 }

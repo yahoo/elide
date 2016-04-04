@@ -10,12 +10,11 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.security.CriteriaCheck;
-
-import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
@@ -28,7 +27,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
 import java.util.Optional;
 
 /**

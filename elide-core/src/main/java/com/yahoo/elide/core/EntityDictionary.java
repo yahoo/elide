@@ -10,9 +10,17 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
+import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
+import com.yahoo.elide.security.checks.prefab.Common;
+import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.text.WordUtils;
 
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -32,9 +40,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
-
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
@@ -46,18 +51,67 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
-    protected final CopyOnWriteArrayList<Class<?>>  bindEntityRoots = new CopyOnWriteArrayList<>();
+    protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
+    protected final ConcurrentHashMap<String, Class<? extends Check>> checkNames;
 
     /**
      * Instantiates a new Entity dictionary.
+     * @deprecated As of 2.2, {@link #EntityDictionary(Map)} is preferred.
      */
+    @Deprecated
     public EntityDictionary() {
-        // Do nothing
+        this(new ConcurrentHashMap<>());
     }
 
-    protected EntityBinding entityBinding(Class<?> entityClass) {
-        EntityBinding entityBinding = entityBindings.get(lookupEntityClass(entityClass));
-        return entityBinding == null ? EntityBinding.EMPTY_BINDING : entityBinding;
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
+     * in {@link com.yahoo.elide.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
+     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks) {
+        checkNames = new ConcurrentHashMap<>(checks);
+        addPrefabChecks();
+    }
+
+    private void addPrefabChecks() {
+        checkNames.putIfAbsent("Prefab.Role.All", Role.ALL.class);
+        checkNames.putIfAbsent("Prefab.Role.None", Role.NONE.class);
+        checkNames.putIfAbsent("Prefab.Collections.AppendOnly", AppendOnly.class);
+        checkNames.putIfAbsent("Prefab.Collections.RemoveOnly", RemoveOnly.class);
+        checkNames.putIfAbsent("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
+    }
+
+    private static Package getParentPackage(Package pkg) {
+        String name = pkg.getName();
+        int idx = name.lastIndexOf('.');
+        return idx == -1 ? null : Package.getPackage(name.substring(0, idx));
+    }
+
+    /**
+     * Find an arbitrary method.
+     *
+     * @param entityClass the entity class
+     * @param name        the name
+     * @param paramClass  the param class
+     * @return method method
+     * @throws NoSuchMethodException the no such method exception
+     */
+    public static Method findMethod(Class<?> entityClass, String name, Class<?>... paramClass)
+            throws NoSuchMethodException {
+        Method m = entityClass.getMethod(name, paramClass);
+        int modifiers = m.getModifiers();
+        if (Modifier.isAbstract(modifiers)
+                || (m.isAnnotationPresent(Transient.class) && !m.isAnnotationPresent(ComputedAttribute.class))) {
+            throw new NoSuchMethodException(name);
+        }
+        return m;
+    }
+
+    protected EntityBinding getEntityBinding(Class<?> entityClass) {
+        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EntityBinding.EMPTY_BINDING);
     }
 
     /**
@@ -66,7 +120,7 @@ public class EntityDictionary {
      * @param entityName entity name
      * @return binding class
      */
-    public Class<?> getBinding(String entityName) {
+    public Class<?> getEntityClass(String entityName) {
         return bindJsonApiToEntity.get(entityName);
     }
 
@@ -76,8 +130,60 @@ public class EntityDictionary {
      * @param entityClass the entity class
      * @return binding class
      */
-    public String getBinding(Class<?> entityClass) {
-        return entityBinding(entityClass).jsonApi;
+    public String getJsonAliasFor(Class<?> entityClass) {
+        return getEntityBinding(entityClass).jsonApiType;
+    }
+
+    /**
+     * Determine if a given (entity class, permission) pair have any permissions defined.
+     *
+     * @param resourceClass the entity class
+     * @param annotationClass the permission annotation
+     * @return {@code true} if that permission is defined anywhere within the class
+     */
+    public boolean entityHasChecksForPermission(Class<?> resourceClass, Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.hasChecksForPermission(annotationClass);
+    }
+
+    /**
+     * Gets the specified permission definition (if any) at the class level.
+     *
+     * @param resourceClass the entity to check
+     * @param annotationClass the permission to look for
+     * @return a {@code ParseTree} expressing the permissions, if one exists
+     *         or {@code null} if the permission is not specified at a class level
+     */
+    public ParseTree getPermissionsForClass(Class<?> resourceClass,
+                                                       Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.getClassChecksForPermission(annotationClass);
+    }
+
+    /**
+     * Gets the specified permission definition (if any) at the class level.
+     *
+     * @param resourceClass the entity to check
+     * @param field the field to inspect
+     * @param annotationClass the permission to look for
+     * @return a {@code ParseTree} expressing the permissions, if one exists
+     *         or {@code null} if the permission is not specified on that field
+     */
+    public ParseTree getPermissionsForField(Class<?> resourceClass,
+                                                       String field,
+                                                       Class<? extends Annotation> annotationClass) {
+        EntityBinding binding = getEntityBinding(resourceClass);
+        return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
+    }
+
+    /**
+     * Returns the check mapped to a particular identifier.
+     *
+     * @param checkIdentifier the name from the expression string
+     * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
+     */
+    public Class<? extends Check> getCheck(String checkIdentifier) {
+        return checkNames.get(checkIdentifier);
     }
 
     /**
@@ -87,7 +193,7 @@ public class EntityDictionary {
      * @return id field name
      */
     public String getIdFieldName(Class<?> entityClass) {
-        return entityBinding(entityClass).getIdFieldName();
+        return getEntityBinding(entityClass).getIdFieldName();
     }
 
     /**
@@ -100,13 +206,21 @@ public class EntityDictionary {
     }
 
     /**
+     * Get the check mappings.
+     * @return a map of check mappings this dictionary knows about
+     */
+    public Map<String, Class<? extends Check>> getCheckMappings() {
+        return checkNames;
+    }
+
+    /**
      * Get the list of attribute names for an entity.
      *
      * @param entityClass entity name
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return entityBinding(entityClass).attrs;
+        return getEntityBinding(entityClass).attributes;
     }
 
     /**
@@ -126,7 +240,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Class<?> entityClass) {
-        return entityBinding(entityClass).relationships;
+        return getEntityBinding(entityClass).relationships;
     }
 
     /**
@@ -175,12 +289,12 @@ public class EntityDictionary {
     /**
      * Get the type of relationship from a relation.
      *
-     * @param cls Entity class
+     * @param cls      Entity class
      * @param relation Name of relationship field
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Class<?> cls, String relation) {
-        final ConcurrentHashMap<String, RelationshipType> types = entityBinding(cls).relationshipTypes;
+        final ConcurrentHashMap<String, RelationshipType> types = getEntityBinding(cls).relationshipTypes;
         if (types == null) {
             return RelationshipType.NONE;
         }
@@ -190,12 +304,13 @@ public class EntityDictionary {
 
     /**
      * If a relationship is bidirectional, returns the name of the peer relationship in the peer entity.
-     * @param cls the cls
+     *
+     * @param cls      the cls
      * @param relation the relation
      * @return relation inverse
      */
     public String getRelationInverse(Class<?> cls, String relation) {
-        final EntityBinding clsBinding = entityBinding(cls);
+        final EntityBinding clsBinding = getEntityBinding(cls);
         final ConcurrentHashMap<String, String> mappings = clsBinding.relationshipToInverse;
         if (mappings != null) {
             final String mapping = mappings.get(relation);
@@ -211,9 +326,9 @@ public class EntityDictionary {
          */
         final Class<?> inverseType = getParameterizedType(cls, relation);
         final ConcurrentHashMap<String, String> inverseMappings =
-                entityBinding(inverseType).relationshipToInverse;
+                getEntityBinding(inverseType).relationshipToInverse;
 
-        for (Map.Entry<String, String> inverseMapping: inverseMappings.entrySet()) {
+        for (Map.Entry<String, String> inverseMapping : inverseMappings.entrySet()) {
             String inverseRelationName = inverseMapping.getKey();
             String inverseMappedBy = inverseMapping.getValue();
 
@@ -229,7 +344,7 @@ public class EntityDictionary {
     /**
      * Get the type of relationship from a relation.
      *
-     * @param entity Entity instance
+     * @param entity   Entity instance
      * @param relation Name of relationship field
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
@@ -241,18 +356,18 @@ public class EntityDictionary {
      * Get a type for a field on an entity.
      *
      * @param entityClass Entity class
-     * @param identifier Field to lookup type
+     * @param identifier  Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        ConcurrentHashMap<String, Class<?>> fieldTypes = entityBinding(entityClass).fieldsToTypes;
+        ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
 
     /**
      * Get a type for a field on an entity.
      *
-     * @param entity Entity instance
+     * @param entity     Entity instance
      * @param identifier Field to lookup type
      * @return Type of entity
      */
@@ -264,7 +379,7 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier the identifier
+     * @param identifier  the identifier
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier) {
@@ -275,12 +390,12 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier the identifier
-     * @param paramIndex the index of the parameterization
+     * @param identifier  the identifier
+     * @param paramIndex  the index of the parameterization
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier, int paramIndex) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = entityBinding(entityClass).fieldsToValues;
+        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
         }
@@ -307,7 +422,7 @@ public class EntityDictionary {
     /**
      * Retrieve the parameterized type for the given field.
      *
-     * @param entity Entity instance
+     * @param entity     Entity instance
      * @param identifier Field to lookup
      * @return Entity type for field otherwise null.
      */
@@ -318,7 +433,7 @@ public class EntityDictionary {
     /**
      * Retrieve the parameterized type for the given field.
      *
-     * @param entity Entity instance
+     * @param entity     Entity instance
      * @param identifier Field to lookup
      * @param paramIndex the index of the parameterization
      * @return Entity type for field otherwise null.
@@ -331,11 +446,11 @@ public class EntityDictionary {
      * Get the true field/method name from an alias.
      *
      * @param entityClass Entity name
-     * @param alias Alias to convert
+     * @param alias       Alias to convert
      * @return Real field/method name as a string. null if not found.
      */
     public String getNameFromAlias(Class<?> entityClass, String alias) {
-        ConcurrentHashMap<String, String> map = entityBinding(entityClass).aliasesToFields;
+        ConcurrentHashMap<String, String> map = getEntityBinding(entityClass).aliasesToFields;
         if (map != null) {
             return map.get(alias);
         }
@@ -346,7 +461,7 @@ public class EntityDictionary {
      * Get the true field/method name from an alias.
      *
      * @param entity Entity instance
-     * @param alias Alias to convert
+     * @param alias  Alias to convert
      * @return Real field/method name as a string. null if not found.
      */
     public String getNameFromAlias(Object entity, String alias) {
@@ -356,13 +471,13 @@ public class EntityDictionary {
     /**
      * Initialize an entity.
      *
-     * @param <T>   the type parameter
+     * @param <T>    the type parameter
      * @param entity Entity to initialize
      */
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
             @SuppressWarnings("unchecked")
-            Initializer<T> initializer = entityBinding(entity.getClass()).getInitializer();
+            Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
             if (initializer != null) {
                 initializer.initialize(entity);
             }
@@ -372,12 +487,12 @@ public class EntityDictionary {
     /**
      * Bind a particular initializer to a class.
      *
-     * @param <T>   the type parameter
+     * @param <T>         the type parameter
      * @param initializer Initializer to use for class
-     * @param cls Class to bind initialization
+     * @param cls         Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        entityBinding(cls).setInitializer(initializer);
+        getEntityBinding(cls).setInitializer(initializer);
     }
 
     /**
@@ -387,8 +502,7 @@ public class EntityDictionary {
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        SharePermission share = getAnnotation(entityClass, SharePermission.class);
-        return share != null;
+        return getAnnotation(entityClass, SharePermission.class) != null;
     }
 
     /**
@@ -400,20 +514,24 @@ public class EntityDictionary {
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+
         if (exclude != null) {
             log.trace("Exclude {}", cls.getName());
             return;
         }
+
         if (include == null) {
             log.trace("Missing include {}", cls.getName());
             return;
         }
+
         String type;
         if ("".equals(include.type())) {
             type = WordUtils.uncapitalize(cls.getSimpleName());
         } else {
             type = include.type();
         }
+
         Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
@@ -429,9 +547,9 @@ public class EntityDictionary {
     /**
      * Return annotation from class, parents or package.
      *
-     * @param record the record
+     * @param record          the record
      * @param annotationClass the annotation class
-     * @param <A> genericClass
+     * @param <A>             genericClass
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(PersistentResource record, Class<A> annotationClass) {
@@ -441,40 +559,34 @@ public class EntityDictionary {
     /**
      * Return annotation from class, parents or package.
      *
-     * @param recordClass the record class
+     * @param recordClass     the record class
      * @param annotationClass the annotation class
-     * @param <A> genericClass
+     * @param <A>             genericClass
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(Class<?> recordClass, Class<A> annotationClass) {
-        return entityBinding(recordClass).getAnnotation(annotationClass);
+        return getEntityBinding(recordClass).getAnnotation(annotationClass);
     }
 
     public <A extends Annotation> Collection<Method> getTriggers(Class<?> cls,
-            Class<A> annotationClass,
-            String fieldName) {
-        return entityBinding(cls).getTriggers(annotationClass, fieldName);
-    }
-
-    static Package getParentPackage(Package pkg) {
-        String name = pkg.getName();
-        int idx = name.lastIndexOf('.');
-        return idx == -1 ? null : Package.getPackage(name.substring(0, idx));
+                                                                 Class<A> annotationClass,
+                                                                 String fieldName) {
+        return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
     /**
      * Return a single annotation from field or accessor method.
      *
-     * @param entityClass the entity class
+     * @param entityClass     the entity class
      * @param annotationClass given annotation type
-     * @param identifier the identifier
-     * @param <A> genericClass
+     * @param identifier      the identifier
+     * @param <A>             genericClass
      * @return annotation found
      */
     public <A extends Annotation> A getAttributeOrRelationAnnotation(Class<?> entityClass,
                                                                      Class<A> annotationClass,
                                                                      String identifier) {
-        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
+        AccessibleObject fieldOrMethod = getEntityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -484,16 +596,16 @@ public class EntityDictionary {
     /**
      * Return multiple annotations from field or accessor method.
      *
-     * @param <A>   the type parameter
-     * @param entityClass the entity class
+     * @param <A>             the type parameter
+     * @param entityClass     the entity class
      * @param annotationClass given annotation type
-     * @param identifier the identifier
+     * @param identifier      the identifier
      * @return annotation found or null if none found
      */
     public <A extends Annotation> A[] getAttributeOrRelationAnnotations(Class<?> entityClass,
                                                                         Class<A> annotationClass,
                                                                         String identifier) {
-        AccessibleObject fieldOrMethod = entityBinding(entityClass).fieldsToValues.get(identifier);
+        AccessibleObject fieldOrMethod = getEntityBinding(entityClass).fieldsToValues.get(identifier);
         if (fieldOrMethod == null) {
             return null;
         }
@@ -503,7 +615,7 @@ public class EntityDictionary {
     /**
      * Return first matching annotation from class, parents or package.
      *
-     * @param entityClass Entity class type
+     * @param entityClass         Entity class type
      * @param annotationClassList List of sought annotations
      * @return annotation found
      */
@@ -553,7 +665,7 @@ public class EntityDictionary {
         try {
             AccessibleObject idField = null;
             for (Class<?> cls = value.getClass(); idField == null && cls != null; cls = cls.getSuperclass()) {
-                idField = entityBinding(cls).getIdField();
+                idField = getEntityBinding(cls).getIdField();
             }
             if (idField instanceof Field) {
                 return String.valueOf(((Field) idField).get(value));
@@ -574,7 +686,7 @@ public class EntityDictionary {
      * @return ID type
      */
     public Class<?> getIdType(Class<?> entityClass) {
-        return entityBinding(entityClass).getIdType();
+        return getEntityBinding(entityClass).getIdType();
     }
 
     /**
@@ -588,7 +700,7 @@ public class EntityDictionary {
             return null;
         }
 
-        AccessibleObject idField = entityBinding(value.getClass()).getIdField();
+        AccessibleObject idField = getEntityBinding(value.getClass()).getIdField();
         if (idField != null) {
             return Arrays.asList(idField.getDeclaredAnnotations());
         }
@@ -597,27 +709,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Find an arbitrary method.
-     *
-     * @param entityClass the entity class
-     * @param name the name
-     * @param paramClass the param class
-     * @return method method
-     * @throws NoSuchMethodException the no such method exception
-     */
-    public static Method findMethod(Class<?> entityClass, String name, Class<?>... paramClass)
-            throws NoSuchMethodException {
-        Method m = entityClass.getMethod(name, paramClass);
-        int modifiers = m.getModifiers();
-        if (Modifier.isAbstract(modifiers)
-                || (m.isAnnotationPresent(Transient.class) && !m.isAnnotationPresent(ComputedAttribute.class))) {
-            throw new NoSuchMethodException(name);
-        }
-        return m;
-    }
-
-    /**
      * Follow for this class or super-class for Entity annotation.
+     *
      * @param objClass provided class
      * @return class with Entity annotation
      */
@@ -633,7 +726,7 @@ public class EntityDictionary {
     /**
      * Retrieve the accessible object for a field from a target object.
      *
-     * @param target the object to get
+     * @param target    the object to get
      * @param fieldName the field name to get or invoke equivalent get method
      * @return the value
      */
@@ -645,11 +738,11 @@ public class EntityDictionary {
      * Retrieve the accessible object for a field.
      *
      * @param targetClass the object to get
-     * @param fieldName the field name to get or invoke equivalent get method
+     * @param fieldName   the field name to get or invoke equivalent get method
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
-        ConcurrentHashMap<String, AccessibleObject> map = entityBinding(targetClass).accessibleObject;
+        ConcurrentHashMap<String, AccessibleObject> map = getEntityBinding(targetClass).accessibleObject;
         return map.get(fieldName);
     }
 

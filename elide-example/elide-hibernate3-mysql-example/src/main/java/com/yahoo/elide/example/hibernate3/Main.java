@@ -1,19 +1,22 @@
+/*
+ * Copyright 2016, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.example.hibernate3;
 
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Example backend using Elide library
+ * Example backend using Elide library.
  */
+@Slf4j
 public class Main {
-    private static final Logger log = LoggerFactory.getLogger(Main.class);
-
     public static void main(String[] args) throws Exception {
         final Server server = new Server(4080);
         final ServletContextHandler servletContextHandler = new ServletContextHandler();

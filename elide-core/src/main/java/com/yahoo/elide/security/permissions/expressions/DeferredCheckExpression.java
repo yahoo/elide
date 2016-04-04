@@ -5,15 +5,14 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Map;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
 
@@ -35,7 +34,7 @@ public class DeferredCheckExpression extends ImmediateCheckExpression {
                                    final PersistentResource resource,
                                    final RequestScope requestScope,
                                    final ChangeSpec changeSpec,
-                                   final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache) {
+                                   final ExpressionResultCache cache) {
         super(check, resource, requestScope, changeSpec, cache);
     }
 

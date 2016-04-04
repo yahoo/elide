@@ -35,4 +35,8 @@ public interface Check<T> {
      * @return True if user check passes, false otherwise
      */
     boolean ok(User user);
+
+    default String checkIdentifier() {
+        return this.getClass().getName();
+    }
 }

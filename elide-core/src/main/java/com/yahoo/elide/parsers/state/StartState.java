@@ -24,7 +24,7 @@ public class StartState extends BaseState {
     public void handle(StateContext state, RootCollectionLoadEntitiesContext ctx) {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getBinding(entityName);
+        Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
@@ -36,7 +36,7 @@ public class StartState extends BaseState {
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         String entityName = ctx.entity().term().getText();
         String id = ctx.entity().id().getText();
-        Class<?> entityClass = dictionary.getBinding(entityName);
+        Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
@@ -51,7 +51,7 @@ public class StartState extends BaseState {
         String entityName = ctx.entity().term().getText();
         String id = ctx.entity().id().getText();
 
-        Class<?> entityClass = dictionary.getBinding(entityName);
+        Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
@@ -65,7 +65,7 @@ public class StartState extends BaseState {
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         String entityName = ctx.entity().term().getText();
         String id = ctx.entity().id().getText();
-        Class<?> entityClass = dictionary.getBinding(entityName);
+        Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2016, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.example.persistence;
 
 import com.yahoo.elide.Elide;
@@ -25,7 +30,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 EntityManagerFactory entityManagerFactory =
                         Persistence.createEntityManagerFactory("com.yahoo.elide.example");
-                bind(new Elide(new Slf4jLogger(), new PersistenceStore(entityManagerFactory)))
+                bind(new Elide.Builder(new Slf4jLogger(), new PersistenceStore(entityManagerFactory)).build())
                         .to(Elide.class).named("elide");
             }
         });

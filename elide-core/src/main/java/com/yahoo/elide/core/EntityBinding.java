@@ -15,17 +15,23 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,13 +40,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -51,70 +50,56 @@ class EntityBinding {
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
     public final Class<?> entityClass;
-    public final String jsonApi;
-    public final ConcurrentLinkedDeque<String> attrsDeque;
-    public final List<String> attrs;
-    public final ConcurrentLinkedDeque<String> relationshipsDeque;
-    public final List<String> relationships;
-    public final ConcurrentHashMap<String, RelationshipType> relationshipTypes;
-    public final ConcurrentHashMap<String, String> relationshipToInverse;
-    public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues;
-    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes;
-    public final ConcurrentHashMap<String, String> aliasesToFields;
-    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject;
-    public final MultiValueMap<Pair<Class, String>, Method> fieldsToTriggers;
-    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations;
+    public final String jsonApiType;
     @Getter private AccessibleObject idField;
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
+    public final EntityPermissions entityPermissions;
+
+    public final List<String> attributes;
+    public final List<String> relationships;
+    public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
+    public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
+
+    public final ConcurrentHashMap<String, RelationshipType> relationshipTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
+    public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
+    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject = new ConcurrentHashMap<>();
+
+    public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
 
     /* empty binding constructor */
     private EntityBinding() {
-        jsonApi = null;
+        jsonApiType = null;
         idField = null;
         idType = null;
-        attrsDeque = null;
-        attrs = null;
-        relationshipsDeque = null;
+        attributes = null;
         relationships = null;
-        relationshipTypes = null;
-        relationshipToInverse = null;
-        fieldsToValues = null;
-        fieldsToTypes = null;
-        fieldsToTriggers = new MultiValueMap();
-        aliasesToFields = null;
-        accessibleObject = null;
         entityClass = null;
-        annotations = null;
+        entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
     public EntityBinding(Class<?> cls, String type) {
+        entityClass = cls;
+        jsonApiType = type;
+
         // Map id's, attributes, and relationships
         Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
                 Arrays.asList(cls.getFields()),
-                Arrays.asList(cls.getMethods()));
-
-        entityClass = cls;
-        jsonApi = type;
-        // Initialize our maps for this entity. Duplicates are checked above.
-        attrsDeque = new ConcurrentLinkedDeque<>();
-        relationshipsDeque = new ConcurrentLinkedDeque<>();
-        relationshipTypes = new ConcurrentHashMap<>();
-        relationshipToInverse = new ConcurrentHashMap<>();
-        fieldsToValues = new ConcurrentHashMap<>();
-        fieldsToTypes = new ConcurrentHashMap<>();
-        fieldsToTriggers = new MultiValueMap<>();
-        aliasesToFields = new ConcurrentHashMap<>();
-        accessibleObject = new ConcurrentHashMap<>();
-        annotations = new ConcurrentHashMap<>();
+                Arrays.asList(cls.getMethods())
+        );
         bindEntityFields(cls, type, fieldOrMethodList);
         bindAccessibleObjects(cls, fieldOrMethodList);
 
-        attrs = dequeToList(attrsDeque);
+        attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
+        entityPermissions = new EntityPermissions(cls, fieldOrMethodList);
     }
 
     /**
@@ -126,10 +111,10 @@ class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            bindTrigger(OnCreate.class, fieldOrMethod);
-            bindTrigger(OnDelete.class, fieldOrMethod);
-            bindTrigger(OnUpdate.class, fieldOrMethod);
-            bindTrigger(OnCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreate.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDelete.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdate.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCommit.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
@@ -178,7 +163,7 @@ class EntityBinding {
 
         //Set id field, type, and name
         idField = fieldOrMethod;
-        idType  = fieldType;
+        idType = fieldType;
         idFieldName = fieldName;
 
         if (idField != null && !fieldOrMethod.equals(idField)) {
@@ -215,9 +200,8 @@ class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
 
         if (fieldName == null || fieldName.equals("id")
-                ||  fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)
-                || parameterizedFieldContainsAnnotation(fieldOrMethod, Arrays.asList(Exclude.class))) {
-            return; // Reserved. Not attributes. Otherwise, potentially excluded.
+                || fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
+            return; // Reserved. Not attributes.
         }
 
         Class<?> fieldType = getFieldType(fieldOrMethod);
@@ -246,7 +230,7 @@ class EntityBinding {
             relationshipTypes.put(fieldName, type);
             relationshipToInverse.put(fieldName, mappedBy);
         } else {
-            fieldList = attrsDeque;
+            fieldList = attributesDeque;
         }
 
         fieldList.push(fieldName);
@@ -260,12 +244,12 @@ class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field or method name
      */
-    private static String getFieldName(AccessibleObject fieldOrMethod) {
+    public static String getFieldName(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getName();
         } else {
             Method method = (Method) fieldOrMethod;
-            String name   = method.getName();
+            String name = method.getName();
 
             if (name.startsWith("get") && method.getParameterCount() == 0) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
@@ -292,48 +276,21 @@ class EntityBinding {
         }
     }
 
-    private static boolean parameterizedFieldContainsAnnotation(AccessibleObject fieldOrMethod,
-                                                                List<Class<? extends Annotation>> annotations) {
-        Type type;
-        if (fieldOrMethod instanceof Method) {
-            type = ((Method) fieldOrMethod).getGenericReturnType();
-        } else {
-            type = ((Field) fieldOrMethod).getGenericType();
-        }
-
-        if (type instanceof ParameterizedType) {
-            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            if (types != null) {
-                // NOTE: We look through all types to ensure nothing is exluded as part of complex representations
-                // Consider, for instance, a Map<Relation1, Map<Relation2, ExcludedRelation3>>
-                for (Type paramType : types) {
-                    if (EntityDictionary.getFirstAnnotation((Class<?>) paramType, annotations) != null) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-            return EntityDictionary.getFirstAnnotation(getFieldType(fieldOrMethod), annotations) != null;
-        }
-
-        return false;
-    }
-
-    private <A extends Annotation> void bindTrigger(Class<A> annotationClass, AccessibleObject fieldOrMethod) {
+    private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Method && fieldOrMethod.isAnnotationPresent(annotationClass)) {
-            A onTrigger = fieldOrMethod.getAnnotation(annotationClass);
+            Annotation trigger = fieldOrMethod.getAnnotation(annotationClass);
             String value;
             try {
-                value = (String) annotationClass.getMethod("value").invoke(onTrigger);
+                value = (String) annotationClass.getMethod("value").invoke(trigger);
             } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
                 value = "";
             }
-            fieldsToTriggers.put(Pair.of(annotationClass, value), fieldOrMethod);
+            fieldsToTriggers.put(Pair.of(annotationClass, value), (Method) fieldOrMethod);
         }
     }
 
     public <A extends Annotation> Collection<Method> getTriggers(Class<A> annotationClass, String fieldName) {
-        Collection<Method> methods = fieldsToTriggers.getCollection(Pair.of(annotationClass, fieldName));
+        Collection<Method> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
         return methods == null ? Collections.emptyList() : methods;
     }
 

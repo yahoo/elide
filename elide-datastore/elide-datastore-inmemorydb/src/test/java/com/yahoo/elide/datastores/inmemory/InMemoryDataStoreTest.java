@@ -14,6 +14,8 @@ import com.yahoo.elide.example.beans.SecondBean;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -27,7 +29,7 @@ public class InMemoryDataStoreTest {
 
     @BeforeTest
     public void setup() {
-        final EntityDictionary entityDictionary = new EntityDictionary();
+        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
         inMemoryDataStore.populateEntityDictionary(entityDictionary);
     }
@@ -35,10 +37,10 @@ public class InMemoryDataStoreTest {
     @Test(expectedExceptions = {IllegalArgumentException.class})
     public void checkLoading() {
         final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
-        assertNotNull(entityDictionary.getBinding(FirstBean.class));
-        assertNotNull(entityDictionary.getBinding(SecondBean.class));
-        assertNull(entityDictionary.getBinding(ExcludedBean.class));
-        assertNull(entityDictionary.getBinding(NonEntity.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
+        assertNull(entityDictionary.getJsonAliasFor(ExcludedBean.class));
+        assertNull(entityDictionary.getJsonAliasFor(NonEntity.class));
     }
 
     @Test

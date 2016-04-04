@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.security.checks.ExtractedChecks;
-
 import java.lang.annotation.Annotation;
 
 /**
@@ -16,22 +13,6 @@ import java.lang.annotation.Annotation;
  * Checks are expected to throw exceptions upon failures.
  */
 public interface PermissionExecutor {
-
-    /**
-     * Load checks from an entity.
-     *
-     * @param annotationClass Annotation class
-     * @param resourceClass Resource claSS
-     * @param dictionary Dictionary
-     * @param <A> type parameter
-     * @return Set of extracted checks
-     */
-    static <A extends Annotation> ExtractedChecks loadEntityChecks(Class<A> annotationClass,
-                                                                   Class<?> resourceClass,
-                                                                   EntityDictionary dictionary) {
-        return new ExtractedChecks(resourceClass, dictionary, annotationClass);
-    }
-
     /**
      * Check permission on class.
      *

@@ -48,22 +48,19 @@ public abstract class BaseVisitor extends CoreBaseVisitor<Supplier<Pair<Integer,
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitRootCollectionLoadEntities(RootCollectionLoadEntitiesContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitRootCollectionLoadEntities(RootCollectionLoadEntitiesContext ctx) {
         state.handle(ctx);
         return super.visitRootCollectionLoadEntities(ctx);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitRootCollectionLoadEntity(RootCollectionLoadEntityContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitRootCollectionLoadEntity(RootCollectionLoadEntityContext ctx) {
         state.handle(ctx);
         return super.visitRootCollectionLoadEntity(ctx);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitRootCollectionSubCollection(RootCollectionSubCollectionContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitRootCollectionSubCollection(RootCollectionSubCollectionContext ctx) {
         state.handle(ctx);
         return super.visitRootCollectionSubCollection(ctx);
     }
@@ -81,29 +78,25 @@ public abstract class BaseVisitor extends CoreBaseVisitor<Supplier<Pair<Integer,
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitSubCollectionReadCollection(SubCollectionReadCollectionContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitSubCollectionReadCollection(SubCollectionReadCollectionContext ctx) {
         state.handle(ctx);
         return super.visitSubCollectionReadCollection(ctx);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitSubCollectionReadEntity(SubCollectionReadEntityContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitSubCollectionReadEntity(SubCollectionReadEntityContext ctx) {
         state.handle(ctx);
         return super.visitSubCollectionReadEntity(ctx);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitSubCollectionSubCollection(SubCollectionSubCollectionContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitSubCollectionSubCollection(SubCollectionSubCollectionContext ctx) {
         state.handle(ctx);
         return super.visitSubCollectionSubCollection(ctx);
     }
 
     @Override
-    public Supplier<Pair<Integer, JsonNode>>
-    visitSubCollectionRelationship(SubCollectionRelationshipContext ctx) {
+    public Supplier<Pair<Integer, JsonNode>> visitSubCollectionRelationship(SubCollectionRelationshipContext ctx) {
         state.handle(ctx);
         return super.visitSubCollectionRelationship(ctx);
     }

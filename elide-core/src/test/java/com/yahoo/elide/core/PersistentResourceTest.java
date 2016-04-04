@@ -28,9 +28,9 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.Color;
 import example.FirstClassFields;
@@ -86,7 +86,11 @@ public class PersistentResourceTest extends PersistentResource {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
 
     public PersistentResourceTest() {
-        super(new Child(), null, new RequestScope(null, null, null, new EntityDictionary(), null, MOCK_AUDIT_LOGGER));
+        super(
+                new Child(),
+                null,
+                new RequestScope(null, null, null, new EntityDictionary(new HashMap<>()), null, MOCK_AUDIT_LOGGER)
+        );
         goodUserScope = new RequestScope(null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         badUserScope = new RequestScope(null, null, new User(-1), dictionary, null, MOCK_AUDIT_LOGGER);
     }
@@ -188,7 +192,7 @@ public class PersistentResourceTest extends PersistentResource {
             Set<PersistentResource<Child>> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
-            Set<PersistentResource<Child>> results = filter(ReadPermission.class, resources);
+            Set<PersistentResource<Child>> results = PersistentResource.filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 2, "Only a subset of the children are readable");
             Assert.assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
             Assert.assertTrue(results.contains(child3Resource), "Readable children includes children with positive IDs");
@@ -203,7 +207,7 @@ public class PersistentResourceTest extends PersistentResource {
             Set<PersistentResource<Child>> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
-            Set<PersistentResource<Child>> results = filter(ReadPermission.class, resources);
+            Set<PersistentResource<Child>> results = PersistentResource.filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 0, "No children are readable by an invalid user");
         }
     }
@@ -1131,7 +1135,6 @@ public class PersistentResourceTest extends PersistentResource {
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-
     @Test
     public void testClearRelationInvalidToOneDeletePermission() {
         Left left = new Left();
@@ -1264,9 +1267,7 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(Child.class, "1", goodScope);
 
-        Assert.assertEquals(loaded.getObject(), child1,
-                "The load function should return the requested child object"
-        );
+        Assert.assertEquals(loaded.getObject(), child1, "The load function should return the requested child object");
     }
 
     @Test(expectedExceptions = InvalidObjectIdentifierException.class)
@@ -1399,9 +1400,14 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
         TestAuditLogger logger = new TestAuditLogger();
         PersistentResource<Parent> parentResource = new PersistentResource<>(
-                parent, getUserScope(goodUser, logger));
+                parent,
+                getUserScope(goodUser, logger)
+        );
         PersistentResource<Child> childResource = new PersistentResource<>(
-                parentResource, child, getUserScope(goodUser, logger));
+                parentResource,
+                child,
+                getUserScope(goodUser, logger)
+        );
 
         childResource.audit(Audit.Action.CREATE);
 

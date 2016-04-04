@@ -13,11 +13,13 @@ import com.yahoo.elide.security.checks.CommitCheck;
 import java.util.Optional;
 
 /**
- * A check designed to enable functionality during a create. In general, this is used when wanting users
- * to be able to update values upon object creation, but not after.
+ * A check that enables users to update objects or fields during a create operation. This check allows
+ * users to be able to set values during object creation which are normally unmodifiable.
  *
- * @param <T> type parameter
+ * @param <T> the type of object that this check guards
+ * @deprecated As of 2.2, use {@link com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate} instead.
  */
+@Deprecated
 public class UpdateOnCreateCheck<T> extends CommitCheck<T> {
     @Override
     public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {

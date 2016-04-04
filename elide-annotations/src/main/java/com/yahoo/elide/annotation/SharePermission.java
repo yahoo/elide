@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.InlineCheck;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -27,14 +27,30 @@ public @interface SharePermission {
     /**
      * Any one of these checks must pass.
      *
-     * @return the class [ ]
+     * @return the array of check classes
+     * @deprecated as of 2.2, use {@link #expression()} instead.
      */
-    Class<? extends Check>[] any() default {};
+    @Deprecated
+    Class<? extends InlineCheck>[] any() default {};
 
     /**
      * All of these checks must pass.
      *
-     * @return the class [ ]
+     * @return the array of check classes
+     * @deprecated as of 2.2, use {@link #expression()} instead.
      */
-    Class<? extends Check>[] all() default {};
+    @Deprecated
+    Class<? extends InlineCheck>[] all() default {};
+
+    /**
+     * An expression of checks that will be parsed via ANTLR. For example:
+     * {@code @SharePermission(expression="Prefab.Role.All")} or
+     * {@code @SharePermission(expression="Prefab.Role.All and Prefab.Role.UpdateOnCreate")}
+     *
+     * All of {@linkplain com.yahoo.elide.security.checks.prefab the built-in checks} are name-spaced as
+     * {@code Prefab.CHECK} without the {@code Check} suffix
+     *
+     * @return the expression string to be parsed
+     */
+    String expression() default "";
 }

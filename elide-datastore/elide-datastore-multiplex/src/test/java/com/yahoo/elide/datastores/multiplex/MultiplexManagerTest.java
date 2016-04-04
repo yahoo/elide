@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -33,7 +34,7 @@ public class MultiplexManagerTest {
 
     @BeforeTest
     public void setup() {
-        final EntityDictionary entityDictionary = new EntityDictionary();
+        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         final InMemoryDataStore inMemoryDataStore1 = new InMemoryDataStore(FirstBean.class.getPackage());
         final InMemoryDataStore inMemoryDataStore2 = new InMemoryDataStore(OtherBean.class.getPackage());
         multiplexManager = new MultiplexManager(inMemoryDataStore1, inMemoryDataStore2);
@@ -43,8 +44,8 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getBinding(FirstBean.class));
-        assertNotNull(entityDictionary.getBinding(OtherBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(OtherBean.class));
     }
 
     @Test
@@ -69,7 +70,7 @@ public class MultiplexManagerTest {
 
     @Test(priority = 3)
     public void partialCommitFailure() throws IOException {
-        final EntityDictionary entityDictionary = new EntityDictionary();
+        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         final InMemoryDataStore ds1 = new InMemoryDataStore(FirstBean.class.getPackage());
         final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);

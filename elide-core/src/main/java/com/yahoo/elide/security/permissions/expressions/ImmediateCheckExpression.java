@@ -5,17 +5,15 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
@@ -29,24 +27,24 @@ public class ImmediateCheckExpression implements Expression {
     protected final Check check;
     protected final PersistentResource resource;
     protected final RequestScope requestScope;
-    protected final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache;
+    protected final ExpressionResultCache cache;
 
     private final Optional<ChangeSpec> changeSpec;
 
     /**
      * Constructor.
      *
-     * @param check Check
-     * @param resource Persistent resource
-     * @param requestScope Request scope
-     * @param changeSpec ChangeSpec
-     * @param cache Cache
+     * @param check The check to be evaluated by this expression
+     * @param resource The resource to pass to the check
+     * @param requestScope The requestScope to pass to the check
+     * @param changeSpec The changeSpec to pass to the check
+     * @param cache The cache of previous expression results
      */
     public ImmediateCheckExpression(final Check check,
                                     final PersistentResource resource,
                                     final RequestScope requestScope,
                                     final ChangeSpec changeSpec,
-                                   final Map<Class<? extends Check>, Map<PersistentResource, ExpressionResult>> cache) {
+                                    final ExpressionResultCache cache) {
         this.check = check;
         this.resource = resource;
         this.requestScope = requestScope;
@@ -69,18 +67,13 @@ public class ImmediateCheckExpression implements Expression {
         // Otherwise, search the cache and use value if found. Otherwise, evaluate and add it to the cache.
         log.trace("-- Check does NOT have changespec");
         Class<? extends Check> checkClass = check.getClass();
-        Map<PersistentResource, ExpressionResult> resourceCache = cache.get(checkClass);
-        if (resourceCache == null) {
-            resourceCache = new IdentityHashMap<>();
-            cache.put(checkClass, resourceCache);
-        }
 
         final ExpressionResult result;
-        if (!resourceCache.containsKey(resource)) {
+        if (!cache.hasStoredResultFor(checkClass, resource)) {
             result = computeCheck();
-            resourceCache.put(resource, result);
+            cache.putResultFor(checkClass, resource, result);
         } else {
-            result = resourceCache.get(resource);
+            result = cache.getResultFor(checkClass, resource);
         }
 
         log.trace("-- Check returned with result: {}", result);
@@ -113,12 +106,14 @@ public class ImmediateCheckExpression implements Expression {
                         + " for object: "
                         + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
         }
+
+        com.yahoo.elide.core.RequestScope internalScope = (com.yahoo.elide.core.RequestScope) requestScope;
         if (resource == null) {
-            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(check.getClass());
+            internalScope.logAuthFailure(check.getClass());
         } else {
-            ((com.yahoo.elide.core.RequestScope) requestScope).logAuthFailure(
-                    check.getClass(), resource.getType(), resource.getId());
+            internalScope.logAuthFailure(check.getClass(), resource.getType(), resource.getId());
         }
+
         return new ExpressionResult(FAIL, failure);
     }
 }

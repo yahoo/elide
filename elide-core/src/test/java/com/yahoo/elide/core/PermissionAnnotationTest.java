@@ -20,6 +20,8 @@ import example.FunWithPermissions;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+
 /**
  * Tests audit functions inside RecordDao.
  */
@@ -33,7 +35,7 @@ public class PermissionAnnotationTest {
     public PermissionAnnotationTest() {
         goodUser = new User(3);
         badUser = new User(-1);
-        dictionary = new EntityDictionary();
+        dictionary = new EntityDictionary(new HashMap<>());
     }
 
     @BeforeTest

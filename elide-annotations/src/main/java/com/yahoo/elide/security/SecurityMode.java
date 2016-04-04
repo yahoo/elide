@@ -12,7 +12,7 @@ package com.yahoo.elide.security;
  * are almost entirely non-functional within Elide with few exceptions that will remain until this enum
  * is removed.
  *
- * <i>deprecated since 2.1.0</i>
+ * @deprecated Since 2.1, instead use the {@code Elide.Builder} with an appropriate {@code PermissionExecutor}
  */
 @Deprecated
 public enum SecurityMode {

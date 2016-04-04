@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -66,11 +67,10 @@ public class Elide {
     /**
      * Instantiates a new Elide.
      *
-     * <i>deprecated since 2.0.11</i>
-     *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      * @param dictionary the dictionary
+     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
@@ -80,25 +80,23 @@ public class Elide {
     /**
      * Instantiates a new Elide.
      *
-     * <i>deprecated since 2.0.11</i>
-     *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
+     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore) {
-        this(auditLogger, dataStore, new EntityDictionary());
+        this(auditLogger, dataStore, new EntityDictionary(new HashMap<>()));
     }
 
     /**
      * Instantiates a new Elide.
      *
-     * <i>deprecated since 2.0.11</i>
-     *
      * @param auditLogger the audit logger
      * @param dataStore the dataStore
      * @param dictionary the dictionary
      * @param mapper Serializer/Deserializer for JSON API
+     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
@@ -146,7 +144,7 @@ public class Elide {
         public Builder(AuditLogger auditLogger, DataStore dataStore) {
             this.auditLogger = auditLogger;
             this.dataStore = dataStore;
-            this.entityDictionary = new EntityDictionary();
+            this.entityDictionary = new EntityDictionary(new HashMap<>());
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
             this.permissionExecutorFunction = null;
         }
@@ -204,6 +202,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @param securityMode only for test mode
      * @return Elide response object
+     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
     @Deprecated
     public ElideResponse get(
@@ -272,6 +271,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @param securityMode only for test mode
      * @return Elide response object
+     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
     @Deprecated
     public ElideResponse post(
@@ -341,6 +341,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @param securityMode only for test mode
      * @return Elide response object
+     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
     @Deprecated
     public ElideResponse patch(
@@ -421,6 +422,7 @@ public class Elide {
      * @param opaqueUser the opaque user
      * @param securityMode only for test mode
      * @return Elide response object
+     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
     @Deprecated
     public ElideResponse delete(

@@ -38,8 +38,8 @@ public class RecordState extends BaseState {
         try {
             Set<PersistentResource> collection = resource.getRelationCheckedFiltered(subCollection); // Check if exists.
             String entityName =
-                    dictionary.getBinding(dictionary.getParameterizedType(resource.getObject(), subCollection));
-            Class<?> entityClass = dictionary.getBinding(entityName);
+                    dictionary.getJsonAliasFor(dictionary.getParameterizedType(resource.getObject(), subCollection));
+            Class<?> entityClass = dictionary.getEntityClass(entityName);
             if (entityClass == null) {
                 throw new IllegalArgumentException("Unknown type " + entityName);
             }

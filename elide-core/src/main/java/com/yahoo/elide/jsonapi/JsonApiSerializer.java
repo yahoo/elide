@@ -31,7 +31,7 @@ public class JsonApiSerializer<T> extends StdSerializer<T> {
     }
 
     public static Module getModule(EntityDictionary dictionary) {
-        SimpleModule jsonApiModule = new SimpleModule("JsonApiModule", new Version(1, 0, 0, null));
+        SimpleModule jsonApiModule = new SimpleModule("JsonApiModule", new Version(1, 0, 0, null, null, null));
         jsonApiModule.addSerializer(new JsonApiSerializer<>(Set.class, dictionary));
         return jsonApiModule;
     }

@@ -9,8 +9,8 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
-import com.yahoo.elide.security.checks.prefab.UpdateOnCreateCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,7 +24,7 @@ import javax.persistence.Id;
 @Entity
 @CreatePermission(any = {Role.ALL.class})
 @ReadPermission(any = {Role.ALL.class})
-@UpdatePermission(any = {UpdateOnCreateCheck.class, Role.NONE.class})
+@UpdatePermission(any = {Common.UpdateOnCreate.class, Role.NONE.class})
 public class CreateButNoUpdate {
     public Long id;
     public String textValue;

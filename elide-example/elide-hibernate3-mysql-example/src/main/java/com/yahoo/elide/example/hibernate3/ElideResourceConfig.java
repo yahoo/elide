@@ -1,3 +1,8 @@
+/*
+ * Copyright 2016, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.example.hibernate3;
 
 import com.yahoo.elide.Elide;
@@ -21,7 +26,7 @@ public class ElideResourceConfig extends ResourceConfig {
                 bind(noUserFn).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
 
                 SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
-                Elide elide = new Elide(new Slf4jLogger(), new HibernateStore(sessionFactory));
+                Elide elide = new Elide.Builder(new Slf4jLogger(), new HibernateStore(sessionFactory)).build();
                 bind(elide).to(Elide.class).named("elide");
             }
         });

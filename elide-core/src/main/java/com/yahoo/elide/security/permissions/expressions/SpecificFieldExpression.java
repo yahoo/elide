@@ -7,9 +7,9 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-
 import java.util.Optional;
+
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
 
 /**
  * Expression for joining specific fields.
@@ -31,6 +31,7 @@ public class SpecificFieldExpression implements Expression {
         if (!fieldExpression.isPresent()) {
             return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
         }
+
         return fieldExpression.get().evaluate();
     }
 }

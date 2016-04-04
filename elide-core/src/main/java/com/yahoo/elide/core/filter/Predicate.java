@@ -120,7 +120,7 @@ public class Predicate {
         }
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
-        types[0] = dictionary.getBinding(type);
+        types[0] = dictionary.getEntityClass(type);
         if (types[0] == null) {
             throw new InvalidPredicateException("Unknown entity in filter: " + type);
         }

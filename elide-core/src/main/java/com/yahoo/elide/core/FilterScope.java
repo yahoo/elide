@@ -6,14 +6,13 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.checks.ExtractedChecks;
-import com.yahoo.elide.security.checks.InlineCheck;
+import com.yahoo.elide.parsers.expression.CriterionExpressionVisitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Scope for filter processing.  Contains requestScope and checks.
@@ -22,42 +21,31 @@ import java.util.List;
 public class FilterScope {
 
     @Getter private final RequestScope requestScope;
-    @Getter private final ExtractedChecks.CheckMode checkMode;
-    @Getter private final List<InlineCheck> inlineChecks;
-
-    public FilterScope(RequestScope requestScope) {
-        this.requestScope = requestScope;
-        this.checkMode = ExtractedChecks.CheckMode.ALL;
-        inlineChecks = Collections.emptyList();
-    }
+    @Getter private final ParseTree permissions;
 
     public FilterScope(RequestScope requestScope, Class<?> resourceClass) {
-        ExtractedChecks checks =
-                PermissionExecutor.loadEntityChecks(ReadPermission.class, resourceClass, requestScope.getDictionary());
         this.requestScope = requestScope;
-        this.checkMode = checks.getCheckMode();
-        this.inlineChecks = checks.getInlineChecks();
+        this.permissions = requestScope.getDictionary().getPermissionsForClass(resourceClass, ReadPermission.class);
     }
 
-    public FilterScope(RequestScope requestScope, ExtractedChecks.CheckMode checkMode, List<InlineCheck> inlineChecks) {
-        this.requestScope = requestScope;
-        this.checkMode = checkMode;
-        this.inlineChecks = inlineChecks;
+    public <T> T getCriterion(Function<T, T> criterionNegater,
+                              BiFunction<T, T, T> andCriterionJoiner,
+                              BiFunction<T, T, T> orCriterionJoiner) {
+        if (permissions == null) {
+            return null;
+        }
+
+        CriterionExpressionVisitor<T> visitor = new CriterionExpressionVisitor<>(
+                requestScope,
+                requestScope.getDictionary(),
+                criterionNegater,
+                orCriterionJoiner,
+                andCriterionJoiner
+        );
+        return visitor.visit(permissions);
     }
 
     /**
-     * Determine whether or not the check mode is any.
-     *
-     * NOTE: This method is often used in transaction implementations.
-     *
-     * @return True if checkmode is any, false if all.
-     */
-    public boolean isAny() {
-        return ExtractedChecks.CheckMode.ANY == checkMode;
-    }
-
-    /**
-
      * Returns true if pagination limits were added to this query.
      *
      * NOTE: This method is often used in GET transaction implementations

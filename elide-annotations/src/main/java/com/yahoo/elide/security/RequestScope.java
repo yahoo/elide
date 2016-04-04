@@ -12,6 +12,7 @@ import java.util.Set;
  */
 public interface RequestScope {
     User getUser();
-    SecurityMode getSecurityMode();
     Set<PersistentResource> getNewResources();
+
+    @Deprecated SecurityMode getSecurityMode();
 }
