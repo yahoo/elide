@@ -34,7 +34,7 @@ public class Collections {
             Collection originalCollection = (Collection) changeSpec.get().getOriginal();
             Collection modifiedCollection = (Collection) changeSpec.get().getModified();
 
-            return collectionIsStrictSuperset(originalCollection, modifiedCollection);
+            return collectionIsSuperset(originalCollection, modifiedCollection);
         }
     }
 
@@ -54,13 +54,13 @@ public class Collections {
             Collection originalCollection = (Collection) changeSpec.get().getOriginal();
             Collection modifiedCollection = (Collection) changeSpec.get().getModified();
 
-            return collectionIsStrictSuperset(modifiedCollection, originalCollection);
+            return collectionIsSuperset(modifiedCollection, originalCollection);
         }
 
     }
 
-    private static boolean collectionIsStrictSuperset(Collection baseCollection, Collection potentialSuperset) {
-        return (potentialSuperset.size() > baseCollection.size())
+    private static boolean collectionIsSuperset(Collection baseCollection, Collection potentialSuperset) {
+        return (potentialSuperset.size() >= baseCollection.size())
                 && (potentialSuperset.containsAll(baseCollection));
     }
 
