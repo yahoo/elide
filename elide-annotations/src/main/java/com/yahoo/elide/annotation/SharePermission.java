@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.security.checks.InlineCheck;
+import com.yahoo.elide.security.checks.Check;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -31,7 +31,7 @@ public @interface SharePermission {
      * @deprecated as of 2.2, use {@link #expression()} instead.
      */
     @Deprecated
-    Class<? extends InlineCheck>[] any() default {};
+    Class<? extends Check>[] any() default {};
 
     /**
      * All of these checks must pass.
@@ -40,7 +40,7 @@ public @interface SharePermission {
      * @deprecated as of 2.2, use {@link #expression()} instead.
      */
     @Deprecated
-    Class<? extends InlineCheck>[] all() default {};
+    Class<? extends Check>[] all() default {};
 
     /**
      * An expression of checks that will be parsed via ANTLR. For example:
