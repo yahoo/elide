@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.security.executors;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
+
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -14,10 +17,10 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.SecurityMode;
-import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
-import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
+import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
+import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,9 +28,6 @@ import lombok.Getter;
 import java.lang.annotation.Annotation;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 
 /**
  * Default permission executor.
@@ -294,5 +294,10 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         @Getter
         private final Expression expression;
         @Getter private final Class<? extends Annotation> annotationClass;
+    }
+
+    @Override
+    public boolean isVerbose() {
+        return requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE;
     }
 }
