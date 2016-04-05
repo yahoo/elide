@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.security.executors;
 
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -214,11 +216,31 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (result.getStatus() == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
-                commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
+                if (isInlineOnlyCheck(annotationClass)) {
+                    // Force evaluation of checks that can only be executed inline.
+                    result = commitExpression.evaluate();
+                    if (result.getStatus() == FAIL) {
+                        throw new ForbiddenAccessException(annotationClass.getSimpleName()
+                                + " " + result.getFailureMessage());
+                    }
+                } else {
+                    commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
+                }
             }
         } else if (result.getStatus() == FAIL) {
             throw new ForbiddenAccessException(annotationClass.getSimpleName() + " " + result.getFailureMessage());
         }
+    }
+
+    /**
+     * Check whether or not this check can only be run inline or not.
+     *
+     * @param annotationClass annotation class
+     * @return True if check can only be run inline, false otherwise.
+     */
+    private boolean isInlineOnlyCheck(final Class<? extends Annotation> annotationClass) {
+        return ReadPermission.class.isAssignableFrom(annotationClass)
+                || DeletePermission.class.isAssignableFrom(annotationClass);
     }
 
     /**

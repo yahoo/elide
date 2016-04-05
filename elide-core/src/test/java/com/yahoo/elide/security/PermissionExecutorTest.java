@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -315,6 +316,36 @@ public class PermissionExecutorTest {
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testReadCheckExpressionAlwaysInline() {
+        @Entity
+        @Include
+        @ReadPermission(expression = "FailAtCommit")
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getDictionary().bindEntity(Model.class);
+        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
+        // NOTE: This check should throw a ForbiddenAccess since commit-time checks should be converted
+        //       to inline checks. As a result, DO NOT call executeCommitChecks() in this test.
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testDeleteCheckExpressionAlwaysInline() {
+        @Entity
+        @Include
+        @DeletePermission(expression = "FailAtCommit")
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+        RequestScope requestScope = resource.getRequestScope();
+        requestScope.getDictionary().bindEntity(Model.class);
+        requestScope.getPermissionExecutor().checkPermission(DeletePermission.class, resource);
+        // NOTE: This check should throw a ForbiddenAccess since commit-time checks should be converted
+        //       to inline checks. As a result, DO NOT call executeCommitChecks() in this test.
+    }
+
     @Test
     public void testCache() {
         PersistentResource resource = newResource(AnnotationOnlyRecord.class);
@@ -347,6 +378,7 @@ public class PermissionExecutorTest {
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(cls);
+        dictionary.getCheckMappings().put("FailAtCommit", FailingCommitCheck.class);
         RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }
@@ -394,6 +426,11 @@ public class PermissionExecutorTest {
         @Override
         public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
+        }
+
+        @Override
+        public String checkIdentifier() {
+            return "FailAtCommit";
         }
     }
 
