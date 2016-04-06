@@ -5,6 +5,17 @@
  */
 package com.yahoo.elide.core;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -37,7 +48,6 @@ import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Left;
 import example.MapColorShape;
-import example.NoCreateEntity;
 import example.NoDeleteEntity;
 import example.NoReadEntity;
 import example.NoShareEntity;
@@ -47,16 +57,11 @@ import example.Right;
 import example.Shape;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import nocreate.NoCreateEntity;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,11 +75,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 
 /**
@@ -136,6 +142,19 @@ public class PersistentResourceTest extends PersistentResource {
         relationships = funResourceWithBadScope.getRelationships();
 
         Assert.assertEquals(relationships.size(), 0, "All relationships should be filtered out");
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testNoCreate() {
+        Assert.assertNotNull(dictionary);
+        NoCreateEntity noCreate = new NoCreateEntity();
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        User goodUser = new User(1);
+
+        when(tx.createObject(NoCreateEntity.class)).thenReturn(noCreate);
+
+        RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(NoCreateEntity.class, goodScope, "uuid");
     }
 
     @Test
