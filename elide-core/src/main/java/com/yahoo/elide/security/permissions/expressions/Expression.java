@@ -27,11 +27,21 @@ public interface Expression {
             public ExpressionResult evaluate() {
                 return ExpressionResult.PASS_RESULT;
             }
+
+            @Override
+            public String toString() {
+                return "SUCCESS";
+            }
         };
         public static final Expression FAILURE = new Expression() {
             @Override
             public ExpressionResult evaluate() {
                 return new ExpressionResult(ExpressionResult.Status.FAIL);
+            }
+
+            @Override
+            public String toString() {
+                return "FAILURE";
             }
         };
     }

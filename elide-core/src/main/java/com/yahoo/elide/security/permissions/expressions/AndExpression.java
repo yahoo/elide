@@ -51,4 +51,9 @@ public class AndExpression implements Expression {
 
         return DEFERRED_RESULT;
     }
+
+    @Override
+    public String toString() {
+        return "(" + left + ") AND (" + right + ")";
+    }
 }

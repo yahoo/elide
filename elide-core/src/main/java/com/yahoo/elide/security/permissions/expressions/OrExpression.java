@@ -52,4 +52,9 @@ public class OrExpression implements Expression {
 
         return DEFERRED_RESULT;
     }
+
+    @Override
+    public String toString() {
+        return "(" + left + ") OR (" + right + ")";
+    }
 }

@@ -73,8 +73,8 @@ public class EntityPermissions implements CheckInstantiator {
                 });
     }
 
-    private void bindClassPermissions(Class<?> cls, Class annotationClass) {
-        Annotation annotation = cls.getAnnotation(annotationClass);
+    private void bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
+        Annotation annotation = EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass));
         if (annotation != null) {
             ParseTree permissions = getPermissionExpressionTree(annotationClass, annotation);
             classPermissions.put(annotationClass, permissions);
