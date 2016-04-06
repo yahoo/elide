@@ -15,46 +15,98 @@
 4. Launch the example webservice
 
         ~/elide $ mvn install
-        ~/elide $ cd elide-example/elide-persistence-mysql-example
-        ~/elide/elide-example/elide-persistence-mysql-example $ mvn exec:java -Dexec.mainClass="com.yahoo.elide.example.persistence.Main"
+        ~/elide $ cd elide-example/elide-blog-example
+        ~/elide/elide-example/elide-blog-example $ mvn exec:java -Dexec.mainClass="com.yahoo.elide.example.persistence.Main"
 
-5. Create an author
+5. Create an admin user
 
-        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' --data '{
-          "data": {
-            "id": "-",
-            "type": "author",
-            "attributes": {
-              "name": "Ernest Hemingway"
+        $ curl -H'Content-Type: application/vnd.api+json' \
+               -H'Accept: application/vnd.api+json' --data '
+          {
+            "data": {
+              "type": "user",
+              "attributes": {
+                "name": "Michael Admin",
+                "role": "Admin"
+              }
             }
           }
-        }' -X POST http://localhost:4080/author
+          ' -X POST http://localhost:4080/user
 
-6. Create a book
+6. Create a registered user
 
-        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' --data '{
-          "data": {
-            "id": "-",
-            "type": "book",
-            "attributes": {
-              "title": "The Old Man and the Sea",
-              "genre": "Literary Fiction",
-              "language": "English"
+        $ curl -H'Content-Type: application/vnd.api+json' \
+               -H'Accept: application/vnd.api+json' --data '
+          {
+            "data": {
+              "type": "user",
+              "attributes": {
+                "name": "Ken Registered",
+                "role": "Registered"
+              }
             }
           }
-        }' -X POST http://localhost:4080/book
+          ' -X POST http://localhost:4080/user
 
-7. Associate the author and book
+7. Create an unregistered user
 
-        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' --data '{
-          "data": {
-            "id": "1",
-            "type": "author"
+        $ curl -H'Content-Type: application/vnd.api+json' \
+               -H'Accept: application/vnd.api+json' --data '
+          {
+            "data": {
+              "type": "user",
+              "attributes": {
+                "name": "Shad Unreg",
+                "role": "Unregistered"
+              }
+            }
           }
-        }' -X PATCH http://localhost:4080/book/1/relationships/authors
+          ' -X POST http://localhost:4080/user
 
-8. Get books
+8. Create a post as an admin:
 
-        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' http://localhost:4080/book/
+        $ curl -H'Content-Type: application/vnd.api+json' \
+               -H'Accept: application/vnd.api+json' --data '
+          {
+            "data": {
+              "type": "post",
+              "attributes": {
+                "content": "The greatest thing ever by Michael",
+                "me": "1"
+              },
+              "relationships": {
+                "author": {
+                  "data": {
+                    "type": "user",
+                    "id": "1"
+                  }
+                }
+              }
+            }
+          }
+          ' -X POST http://localhost:4080/post
 
-You can also load some pre-configured authors and books using `load_elide.sh` in `src/main/scripts/`
+9. Create a post as a registered user:
+
+        $ curl -H'Content-Type: application/vnd.api+json' \
+               -H'Accept: application/vnd.api+json' --data '
+          {
+            "data": {
+              "type": "post",
+              "attributes": {
+                "content": "The 2nd best thing ever by Ken",
+                "me": "2"
+              },
+              "relationships": {
+                "author": {
+                  "data": {
+                    "type": "user",
+                    "id": "2"
+                  }
+                }
+              }
+            }
+          }
+          ' -X POST http://localhost:4080/post
+
+You can also load some data using `load_blog.sh` in `src/main/scripts/`

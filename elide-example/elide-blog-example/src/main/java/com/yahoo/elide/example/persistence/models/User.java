@@ -23,10 +23,7 @@ import javax.persistence.Table;
 @Table(name = "user")
 @Include(rootLevel = true)
 @SharePermission(any = { com.yahoo.elide.security.checks.prefab.Role.ALL.class})
-//@CreatePermission(
-// expression = "(com.yahoo.elide.security.checks.UserCheck OR NOT com.yahoo.elide.security.checks.UserCheck)"
-// )
-@CreatePermission(expression = "(com.yahoo.elide.security.roles.All OR com.yahoo.elide.security.roles.None)")
+//@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;
     private String name;
@@ -34,7 +31,6 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ReadPermission(expression = "com.yahoo.elide.security.roles.None")
     public long getId() {
         return id;
     }
