@@ -8,6 +8,7 @@ package com.yahoo.elide;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -129,31 +130,39 @@ public class Elide {
      * Elide Builder for constructing an Elide instance.
      */
     public static class Builder {
-        private final AuditLogger auditLogger;
         private final DataStore dataStore;
-        private EntityDictionary entityDictionary;
+        private AuditLogger auditLogger;
         private JsonApiMapper jsonApiMapper;
-        private Function<RequestScope, PermissionExecutor> permissionExecutorFunction;
+        private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+        private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
 
         /**
-         * Constructor.
+         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
+         * providing a mapping of security checks.
          *
-         * @param auditLogger
-         * @param dataStore
+         * @param auditLogger the logger to use for audit annotations
+         * @param dataStore the datastore used to communicate with the persistence layer
+         * @deprecated 2.3 use {@link #Builder(DataStore)}
          */
         public Builder(AuditLogger auditLogger, DataStore dataStore) {
             this.auditLogger = auditLogger;
             this.dataStore = dataStore;
-            this.entityDictionary = new EntityDictionary(new HashMap<>());
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.permissionExecutorFunction = null;
+        }
+
+        /**
+         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
+         * providing a mapping of security checks and uses the provided {@link Slf4jLogger} for audit.
+         *
+         * @param dataStore the datastore used to communicate with the persistence layer
+         */
+        public Builder(DataStore dataStore) {
+            this.dataStore = dataStore;
+            this.auditLogger = new Slf4jLogger();
+            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
         }
 
         public Elide build() {
-            if (permissionExecutorFunction == null) {
-                // If nothing is set, provide default
-                permissionExecutorFunction = ActivePermissionExecutor::new;
-            }
             return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutorFunction);
         }
 
