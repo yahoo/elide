@@ -14,6 +14,8 @@ import java.util.Date;
 
 /**
  * Custom serializer for Serializing Map Keys.
+ * Change from StdKeySerializer - In cases of enum value it uses
+ * name() instead of defaulting to toString() since that may be overridden
  */
 public class KeySerializer extends StdKeySerializer {
     @Override
@@ -35,5 +37,6 @@ public class KeySerializer extends StdKeySerializer {
         else {
             str = value.toString();
         }
-        jgen.writeFieldName(str);    }
+        jgen.writeFieldName(str);
+    }
 }
