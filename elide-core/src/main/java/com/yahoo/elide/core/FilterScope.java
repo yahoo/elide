@@ -6,7 +6,6 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.parsers.expression.CriterionExpressionVisitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -31,18 +30,11 @@ public class FilterScope {
     public <T> T getCriterion(Function<T, T> criterionNegater,
                               BiFunction<T, T, T> andCriterionJoiner,
                               BiFunction<T, T, T> orCriterionJoiner) {
-        if (permissions == null) {
-            return null;
-        }
-
-        CriterionExpressionVisitor<T> visitor = new CriterionExpressionVisitor<>(
-                requestScope,
-                requestScope.getDictionary(),
+        return requestScope.getPermissionExecutor().getCriterion(
+                permissions,
                 criterionNegater,
-                orCriterionJoiner,
-                andCriterionJoiner
-        );
-        return visitor.visit(permissions);
+                andCriterionJoiner,
+                orCriterionJoiner);
     }
 
     /**
