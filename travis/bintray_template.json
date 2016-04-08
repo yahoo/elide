@@ -37,6 +37,10 @@
     {
       "includePattern": "elide-datastore\/(elide-datastore-[^\/]*)\/target\/(elide-datastore.*\\.jar)",
       "uploadPattern": "$1/${TRAVIS_TAG}/$2"
+    },
+    {
+      "includePattern": "elide-contrib\/dropwizard-elide\/target\/(dropwizard-elide-${TRAVIS_TAG}\\.jar)",
+      "uploadPattern": "elide-contrib/${TRAVIS_TAG}/$1"
     }
   ],
   "publish": true
