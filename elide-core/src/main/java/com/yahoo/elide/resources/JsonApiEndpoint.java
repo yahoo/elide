@@ -43,7 +43,7 @@ public class JsonApiEndpoint {
     public JsonApiEndpoint(@Named("elide") Elide elide,
                            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         this.elide = elide;
-        this.getUser = getUser;
+        this.getUser = getUser == null ? v -> null : getUser;
     }
 
     /**
