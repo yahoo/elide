@@ -20,6 +20,7 @@
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
         <module>elide-example</module>
+        <module>elide-contrib</module>
     </modules>
 
     <issueManagement>
