@@ -166,6 +166,11 @@ public class Elide {
             return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutorFunction);
         }
 
+        public Builder auditLogger(final AuditLogger auditLogger) {
+            this.auditLogger = auditLogger;
+            return this;
+        }
+
         public Builder entityDictionary(final EntityDictionary entityDictionary) {
             this.entityDictionary = entityDictionary;
             return this;
