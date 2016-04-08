@@ -16,7 +16,7 @@ This example demonstrates how to use the dropwizard-elide bundle.
 4. Launch the example webservice
 
         ~/elide $ mvn install
-        ~/elide $ cd elide-example/elide-blog-example
+        ~/elide $ cd elide-example/dropwizard-elide-example
         ~/elide/elide-example/dropwizard-elide-example $ java -jar target/dropwizard-elide-example-2.3.0-SNAPSHOT.jar server example.yml
 
 5. Create an author

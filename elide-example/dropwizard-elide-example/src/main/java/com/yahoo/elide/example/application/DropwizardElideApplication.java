@@ -21,15 +21,19 @@ import io.dropwizard.setup.Environment;
 public class DropwizardElideApplication extends Application<DropwizardElideConfiguration> {
     private final String name = "dropwizard-elide-example";
 
-    private final ElideBundle<DropwizardElideConfiguration> elideBundle = new ElideBundle<DropwizardElideConfiguration>(
-            Author.class,
-            Book.class
-    ) {
-        @Override
-        public DataSourceFactory getDataSourceFactory(DropwizardElideConfiguration configuration) {
-            return configuration.getDataSourceFactory();
-        }
-    };
+    private final ElideBundle<DropwizardElideConfiguration> elideBundle;
+
+    public DropwizardElideApplication() {
+        this.elideBundle = new ElideBundle<DropwizardElideConfiguration>(
+                Author.class,
+                Book.class
+        ) {
+            @Override
+            public DataSourceFactory getDataSourceFactory(DropwizardElideConfiguration configuration) {
+                return configuration.getDataSourceFactory();
+            }
+        };
+    }
 
     @Override
     public void initialize(Bootstrap<DropwizardElideConfiguration> bootstrap) {
