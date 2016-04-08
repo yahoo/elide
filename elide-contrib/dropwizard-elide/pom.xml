@@ -76,6 +76,18 @@
             <artifactId>hibernate-entitymanager</artifactId>
             <version>5.0.2.Final</version>
         </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,10 +103,6 @@
             <plugin>
                 <groupId>com.jcabi</groupId>
                 <artifactId>jcabi-mysql-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
