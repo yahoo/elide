@@ -166,27 +166,52 @@ public class Elide {
             return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutorFunction);
         }
 
+        @Deprecated
         public Builder auditLogger(final AuditLogger auditLogger) {
+            return withAuditLogger(auditLogger);
+        }
+
+        @Deprecated
+        public Builder entityDictionary(final EntityDictionary entityDictionary) {
+            return withEntityDictionary(entityDictionary);
+        }
+
+        @Deprecated
+        public Builder jsonApiMapper(final JsonApiMapper jsonApiMapper) {
+            return withJsonApiMapper(jsonApiMapper);
+        }
+
+        @Deprecated
+        public Builder permissionExecutor(final Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+            return withPermissionExecutor(permissionExecutorFunction);
+        }
+
+        @Deprecated
+        public Builder permissionExecutor(final Class<? extends PermissionExecutor> permissionExecutorClass) {
+            return withPermissionExecutor(permissionExecutorClass);
+        }
+
+        public Builder withAuditLogger(AuditLogger auditLogger) {
             this.auditLogger = auditLogger;
             return this;
         }
 
-        public Builder entityDictionary(final EntityDictionary entityDictionary) {
+        public Builder withEntityDictionary(EntityDictionary entityDictionary) {
             this.entityDictionary = entityDictionary;
             return this;
         }
 
-        public Builder jsonApiMapper(final JsonApiMapper jsonApiMapper) {
+        public Builder withJsonApiMapper(JsonApiMapper jsonApiMapper) {
             this.jsonApiMapper = jsonApiMapper;
             return this;
         }
 
-        public Builder permissionExecutor(final Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+        public Builder withPermissionExecutor(Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
             this.permissionExecutorFunction = permissionExecutorFunction;
             return this;
         }
 
-        public Builder permissionExecutor(final Class<? extends PermissionExecutor> permissionExecutorClass) {
+        public Builder withPermissionExecutor(Class<? extends PermissionExecutor> permissionExecutorClass) {
             permissionExecutorFunction = (requestScope) -> {
                 try {
                     try {
