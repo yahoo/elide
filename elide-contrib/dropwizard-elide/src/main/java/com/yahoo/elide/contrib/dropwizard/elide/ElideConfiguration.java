@@ -7,11 +7,16 @@
 package com.yahoo.elide.contrib.dropwizard.elide;
 
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.security.PermissionExecutor;
 import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
+
+import java.util.function.Function;
 
 /**
  * Elide Configuration
@@ -29,7 +34,7 @@ public interface ElideConfiguration<T extends Configuration> {
      * @return auditLogger to be used in Elide
      */
     default AuditLogger getAuditLogger(T configuration, Environment environment) {
-        return new Slf4jLogger();
+        return null;
     }
 
     /**
@@ -55,4 +60,37 @@ public interface ElideConfiguration<T extends Configuration> {
      * @return dataStore to be used in Elide
      */
     DataStore getDataStore(T configuration, Environment environment);
+
+    /**
+     * Get the EntityDictionary for Elide
+     *
+     * Override this method to plug in your own EntityDictionary
+     *
+     * @param configuration Dropwizard Configuration
+     * @param environment Dropwizard Environment
+     * @return entityDictionary to be used in Elide
+     */
+    default EntityDictionary getEntityDictionary(T configuration, Environment environment) {
+        return null;
+    }
+
+    /**
+     *
+     * @param configuration Dropwizard Configuration
+     * @param environment Dropwizard Environment
+     * @return jsonApiMapper to be used in Elide
+     */
+    default JsonApiMapper getJsonApiMapper(T configuration, Environment environment) {
+        return null;
+    }
+
+    /**
+     *
+     * @param configuration Dropwizard Configuration
+     * @param environment Dropwizard Environment
+     * @return permissionExecutor function to be used in Elide
+     */
+    default Function<RequestScope, PermissionExecutor> getPermissionExecutor(T configuration, Environment environment) {
+        return null;
+    }
 }
