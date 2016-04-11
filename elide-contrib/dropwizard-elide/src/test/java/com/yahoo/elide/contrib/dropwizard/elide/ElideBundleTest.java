@@ -8,7 +8,6 @@ package com.yahoo.elide.contrib.dropwizard.elide;
 
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
-import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
@@ -71,7 +70,7 @@ public class ElideBundleTest {
 
     @Test
     public void defaultAuditLoggerIsSlf4jLogger() throws Exception {
-        Assert.assertTrue(bundle.getAuditLogger(configuration, environment) instanceof Slf4jLogger);
+        Assert.assertNull(bundle.getAuditLogger(configuration, environment));
     }
 
     @Test

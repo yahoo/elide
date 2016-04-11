@@ -10,8 +10,12 @@ import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.HibernateStore;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.security.PermissionExecutor;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.db.DatabaseConfiguration;
@@ -26,6 +30,7 @@ import org.hibernate.SessionFactory;
 import javax.persistence.Entity;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Function;
 
 /**
  * Elide Bundle
@@ -77,9 +82,14 @@ public abstract class ElideBundle<T extends Configuration>
 
     @Override
     public void run(T configuration, Environment environment) throws Exception {
-        final AuditLogger auditLogger = getAuditLogger(configuration, environment);
-        final DataStore dataStore = getDataStore(configuration, environment);
         final JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
+        final DataStore dataStore = getDataStore(configuration, environment);
+
+        final AuditLogger auditLogger = getAuditLogger(configuration, environment);
+        final EntityDictionary entityDictionary = getEntityDictionary(configuration, environment);
+        final JsonApiMapper jsonApiMapper = getJsonApiMapper(configuration, environment);
+        final Function<RequestScope, PermissionExecutor> permissionExecutor
+                = getPermissionExecutor(configuration, environment);
 
         environment.jersey().register(new AbstractBinder() {
             @Override
@@ -87,7 +97,24 @@ public abstract class ElideBundle<T extends Configuration>
                 bind(getUserFn)
                         .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
                         .named("elideUserExtractionFunction");
-                bind(new Elide.Builder(dataStore).auditLogger(auditLogger).build()).to(Elide.class).named("elide");
+
+                Elide.Builder builder = new Elide.Builder(dataStore);
+                if (auditLogger != null) {
+                    builder = builder.auditLogger(auditLogger);
+                }
+
+                if (entityDictionary != null) {
+                    builder = builder.entityDictionary(entityDictionary);
+                }
+
+                if (jsonApiMapper != null) {
+                    builder = builder.jsonApiMapper(jsonApiMapper);
+                }
+
+                if (permissionExecutor != null) {
+                    builder = builder.permissionExecutor(permissionExecutor);
+                }
+                bind(builder.build()).to(Elide.class).named("elide");
             }
         });
     }
