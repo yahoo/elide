@@ -69,11 +69,6 @@ public class ElideBundleTest {
     }
 
     @Test
-    public void defaultAuditLoggerIsSlf4jLogger() throws Exception {
-        Assert.assertNull(bundle.getAuditLogger(configuration, environment));
-    }
-
-    @Test
     public void hasADataStore() throws Exception {
         Assert.assertTrue(bundle.getDataStore(configuration, environment) instanceof HibernateStore);
     }
