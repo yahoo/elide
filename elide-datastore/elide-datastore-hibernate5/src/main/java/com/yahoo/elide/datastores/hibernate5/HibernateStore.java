@@ -11,6 +11,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import org.hibernate.HibernateException;
+import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
@@ -20,6 +21,8 @@ import org.hibernate.metadata.ClassMetadata;
  */
 public class HibernateStore implements DataStore {
     private final SessionFactory sessionFactory;
+    private final boolean isScrollEnabled;
+    private final ScrollMode scrollMode;
 
     /**
      * Initialize HibernateStore and dictionaries.
@@ -28,6 +31,50 @@ public class HibernateStore implements DataStore {
      */
     public HibernateStore(SessionFactory aSessionFactory) {
         this.sessionFactory = aSessionFactory;
+        this.isScrollEnabled = true;
+        this.scrollMode = ScrollMode.FORWARD_ONLY;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param aSessionFactory Session factory
+     * @param isScrollEnabled Whether or not scrolling is enabled on driver
+     * @param scrollMode Scroll mode to use for scrolling driver
+     */
+    private HibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
+        this.sessionFactory = aSessionFactory;
+        this.isScrollEnabled = isScrollEnabled;
+        this.scrollMode = scrollMode;
+    }
+
+    /**
+     * Builder object to configuration hibernate store.
+     */
+    public static class Builder {
+        private final SessionFactory sessionFactory;
+        private boolean isScrollEnabled;
+        private ScrollMode scrollMode;
+
+        public Builder(final SessionFactory sessionFactory) {
+            this.sessionFactory = sessionFactory;
+            this.isScrollEnabled = true;
+            this.scrollMode = ScrollMode.FORWARD_ONLY;
+        }
+
+        public Builder withScrollEnabled(final boolean isScrollEnabled) {
+            this.isScrollEnabled = isScrollEnabled;
+            return this;
+        }
+
+        public Builder withScrollMode(final ScrollMode scrollMode) {
+            this.scrollMode = scrollMode;
+            return this;
+        }
+
+        public HibernateStore build() {
+            return new HibernateStore(sessionFactory, isScrollEnabled, scrollMode);
+        }
     }
 
     @Override
@@ -64,6 +111,6 @@ public class HibernateStore implements DataStore {
         Session session = sessionFactory.getCurrentSession();
         Preconditions.checkNotNull(session);
         session.beginTransaction();
-        return new HibernateTransaction(session);
+        return new HibernateTransaction(session, isScrollEnabled, scrollMode);
     }
 }

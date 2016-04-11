@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriteriaExplorer;
-import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.User;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
@@ -50,15 +49,33 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
+    private final boolean isScrollEnabled;
+    private final ScrollMode scrollMode;
 
     /**
      * Instantiates a new Hibernate transaction.
      *
      * @param session the session
+     * @deprecated since Elide 2.3.2. Will be removed no later than the release of Elide 3.0.
      */
+    @Deprecated
     public HibernateTransaction(Session session) {
         this.session = session;
+        this.isScrollEnabled = true;
+        this.scrollMode = ScrollMode.FORWARD_ONLY;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param session Hibernate session
+     * @param isScrollEnabled Whether or not scrolling is enabled
+     * @param scrollMode Scroll mode to use if scrolling enabled
+     */
+    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
+        this.session = session;
+        this.isScrollEnabled = isScrollEnabled;
+        this.scrollMode = scrollMode;
     }
 
     @Override
@@ -116,9 +133,11 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(session.createCriteria(loadClass).scroll(ScrollMode.FORWARD_ONLY));
-        return list;
+        final Criteria sessionCriteria = session.createCriteria(loadClass);
+        if (isScrollEnabled) {
+            return new ScrollableIterator(sessionCriteria.scroll(scrollMode));
+        }
+        return sessionCriteria.list();
     }
 
     @Override
@@ -181,10 +200,10 @@ public class HibernateTransaction implements DataStoreTransaction {
             sessionCriteria.setMaxResults(paginationData.getLimit());
         }
 
-        @SuppressWarnings("unchecked")
-        Iterable<T> list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
-
-        return list;
+        if (isScrollEnabled) {
+            return new ScrollableIterator(sessionCriteria.scroll(scrollMode));
+        }
+        return sessionCriteria.list();
     }
 
     @Override

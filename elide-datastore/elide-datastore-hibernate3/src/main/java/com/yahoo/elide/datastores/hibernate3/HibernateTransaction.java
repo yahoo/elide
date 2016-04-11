@@ -61,6 +61,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
+    private final boolean isScrollEnabled;
+    private final ScrollMode scrollMode;
     @Getter(value = AccessLevel.PROTECTED)
     private RequestScope requestScope = null;
 
@@ -68,9 +70,26 @@ public class HibernateTransaction implements RequestScopedTransaction {
      * Instantiates a new Hibernate transaction.
      *
      * @param session the session
+     * @deprecated since 2.3.2. Will be removed no later than the release of Elide 3.0.
      */
+    @Deprecated
     public HibernateTransaction(Session session) {
         this.session = session;
+        this.isScrollEnabled = true;
+        this.scrollMode = ScrollMode.FORWARD_ONLY;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param session Hibernate session
+     * @param isScrollEnabled Whether or not scrolling is enabled
+     * @param scrollMode Scroll mode to use if scrolling enabled
+     */
+    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
+        this.session = session;
+        this.isScrollEnabled = isScrollEnabled;
+        this.scrollMode = scrollMode;
     }
 
     @Override
@@ -219,14 +238,10 @@ public class HibernateTransaction implements RequestScopedTransaction {
             joinCriteria(sessionCriteria, loadClass);
         }
 
-        Iterable<T> list;
-        if (isJoinQuery()) {
-            list = sessionCriteria.list();
-        } else {
-            list = new ScrollableIterator(sessionCriteria.scroll(ScrollMode.FORWARD_ONLY));
+        if (!isScrollEnabled || isJoinQuery()) {
+            return sessionCriteria.list();
         }
-
-        return list;
+        return new ScrollableIterator(sessionCriteria.scroll(scrollMode));
     }
 
     /**
