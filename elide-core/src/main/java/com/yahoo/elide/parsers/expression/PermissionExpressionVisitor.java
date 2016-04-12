@@ -51,6 +51,11 @@ public class PermissionExpressionVisitor extends ExpressionBaseVisitor<Expressio
     }
 
     @Override
+    public Expression visitPAREN(ExpressionParser.PARENContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    @Override
     public Expression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
         Check check = getCheck(dictionary, ctx.getText());
 

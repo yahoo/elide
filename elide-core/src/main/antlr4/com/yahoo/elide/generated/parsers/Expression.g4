@@ -23,11 +23,11 @@ Doesn't work with single character names.
 */
 
 expression
-    : NOT WS expression                             #NOT
-    | LPAREN WS? expression WS? RPAREN              #PAREN
-    | left=expression WS AND WS right=expression    #AND
-    | left=expression WS  OR WS right=expression    #OR
-    | permissionClass                               #PERMISSION
+    : NOT WS+ expression                              #NOT
+    | LPAREN WS* expression WS* RPAREN                #PAREN
+    | left=expression WS+ AND WS+ right=expression    #AND
+    | left=expression WS+  OR WS+ right=expression    #OR
+    | permissionClass                                 #PERMISSION
     ;
 
 /*
