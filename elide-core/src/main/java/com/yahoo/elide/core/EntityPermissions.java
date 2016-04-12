@@ -26,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -172,8 +173,7 @@ public class EntityPermissions implements CheckInstantiator {
         return classPermissions.get(annotationClass);
     }
 
-    private static final Map<Class<? extends Annotation>, ParseTree> EMPTY_MAP = new ConcurrentHashMap<>();
     public ParseTree getFieldChecksForPermission(String field, Class<? extends Annotation> annotationClass) {
-        return fieldPermissions.getOrDefault(field, EMPTY_MAP).get(annotationClass);
+        return fieldPermissions.getOrDefault(field, Collections.emptyMap()).get(annotationClass);
     }
 }
