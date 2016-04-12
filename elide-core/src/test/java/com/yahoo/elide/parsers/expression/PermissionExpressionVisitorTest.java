@@ -49,6 +49,7 @@ public class PermissionExpressionVisitorTest {
 
         dictionary = new EntityDictionary(checks);
         dictionary.bindEntity(Model.class);
+        dictionary.bindEntity(ComplexEntity.class);
     }
 
     @Test
@@ -75,9 +76,19 @@ public class PermissionExpressionVisitorTest {
         Assert.assertEquals(expression.evaluate(), PASS_RESULT);
     }
 
+    @Test
+    public void testComplexModelCreate() {
+        Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
+        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+    }
+
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
+        return getExpressionForPermission(permission, Model.class);
+    }
+
+    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Class model) {
         PermissionExpressionVisitor v = new PermissionExpressionVisitor(dictionary, DummyExpression::new);
-        ParseTree permissions = dictionary.getPermissionsForClass(Model.class, permission);
+        ParseTree permissions = dictionary.getPermissionsForClass(model, permission);
 
         return v.visit(permissions);
     }
@@ -105,6 +116,12 @@ public class PermissionExpressionVisitorTest {
                 return false;
             }
         }
+    }
+
+    @Entity
+    @Include
+    @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
+    static class ComplexEntity {
     }
 
     @AllArgsConstructor
