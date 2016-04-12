@@ -183,7 +183,19 @@ public class EntityDictionary {
      * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
      */
     public Class<? extends Check> getCheck(String checkIdentifier) {
-        return checkNames.get(checkIdentifier);
+        Class<? extends Check> checkCls = checkNames.get(checkIdentifier);
+
+        if (checkCls == null) {
+            try {
+                checkCls = (Class<? extends Check>) Class.forName(checkIdentifier);
+                checkNames.putIfAbsent(checkIdentifier, checkCls);
+            } catch (ClassNotFoundException | ClassCastException e) {
+                throw new IllegalArgumentException(
+                        "Could not instantiate specified check '" + checkIdentifier + "'.", e);
+            }
+        }
+
+        return checkCls;
     }
 
     /**

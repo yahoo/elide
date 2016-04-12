@@ -23,15 +23,6 @@ public interface CheckInstantiator {
      */
     default Check getCheck(EntityDictionary dictionary, String checkName) {
         Class<? extends Check> checkCls = dictionary.getCheck(checkName);
-
-        if (checkCls == null) {
-            try {
-                checkCls = (Class<? extends Check>) Class.forName(checkName);
-            } catch (ClassNotFoundException | ClassCastException e) {
-                throw new IllegalArgumentException("Could not instantiate specified check '" + checkName + "'.", e);
-            }
-        }
-
         return instantiateCheck(checkCls);
     }
 
