@@ -113,7 +113,7 @@ public class Elide {
      * @param mapper Serializer/Deserializer for JSON API
      * @param permissionExecutor Custom permission executor implementation
      */
-    private Elide(AuditLogger auditLogger,
+    protected Elide(AuditLogger auditLogger,
                   DataStore dataStore,
                   EntityDictionary dictionary,
                   JsonApiMapper mapper,
