@@ -82,39 +82,39 @@ public abstract class ElideBundle<T extends Configuration>
 
     @Override
     public void run(T configuration, Environment environment) throws Exception {
-        final JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
         final DataStore dataStore = getDataStore(configuration, environment);
-
         final AuditLogger auditLogger = getAuditLogger(configuration, environment);
         final EntityDictionary entityDictionary = getEntityDictionary(configuration, environment);
         final JsonApiMapper jsonApiMapper = getJsonApiMapper(configuration, environment);
         final Function<RequestScope, PermissionExecutor> permissionExecutor
                 = getPermissionExecutor(configuration, environment);
 
+        final JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
+
         environment.jersey().register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bind(getUserFn)
-                        .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
-                        .named("elideUserExtractionFunction");
-
                 Elide.Builder builder = new Elide.Builder(dataStore);
                 if (auditLogger != null) {
-                    builder = builder.auditLogger(auditLogger);
+                    builder = builder.withAuditLogger(auditLogger);
                 }
 
                 if (entityDictionary != null) {
-                    builder = builder.entityDictionary(entityDictionary);
+                    builder = builder.withEntityDictionary(entityDictionary);
                 }
 
                 if (jsonApiMapper != null) {
-                    builder = builder.jsonApiMapper(jsonApiMapper);
+                    builder = builder.withJsonApiMapper(jsonApiMapper);
                 }
 
                 if (permissionExecutor != null) {
-                    builder = builder.permissionExecutor(permissionExecutor);
+                    builder = builder.withPermissionExecutor(permissionExecutor);
                 }
                 bind(builder.build()).to(Elide.class).named("elide");
+
+                bind(getUserFn)
+                        .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
+                        .named("elideUserExtractionFunction");
             }
         });
     }
@@ -122,12 +122,27 @@ public abstract class ElideBundle<T extends Configuration>
     protected void configure(org.hibernate.cfg.Configuration configuration) {
     }
 
+    /**
+     * By default created a HibernateStore
+     *
+     * @param configuration Dropwizard configuration
+     * @param environment Dropwizard environment
+     * @return a HibernateStore
+     */
     @Override
     public DataStore getDataStore(T configuration, Environment environment) {
         final PooledDataSourceFactory dbConfig = getDataSourceFactory(configuration);
         SessionFactory sessionFactory = sessionFactoryFactory.build(this, environment, dbConfig, entities, name());
 
         return new HibernateStore(sessionFactory);
+    }
+
+    public ImmutableList<Class<?>> getEntities() {
+        return entities;
+    }
+
+    public SessionFactoryFactory getSessionFactoryFactory() {
+        return sessionFactoryFactory;
     }
 
     /**
