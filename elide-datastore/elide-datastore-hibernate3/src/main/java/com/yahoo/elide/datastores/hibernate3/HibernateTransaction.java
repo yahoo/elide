@@ -238,6 +238,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             joinCriteria(sessionCriteria, loadClass);
         }
 
+        sessionCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         if (!isScrollEnabled || isJoinQuery()) {
             return sessionCriteria.list();
         }
@@ -245,28 +246,11 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     /**
-     * Should this transaction use JOINs. By default will be enabled if Sparse fields are available.
+     * Should this transaction use JOINs. Override to force joins.
      *
      * @return true to use join logic
      */
     public boolean isJoinQuery() {
-        if (requestScope != null) {
-            if (requestScope.getQueryParams().isPresent()) {
-                List<String> join = requestScope.getQueryParams().get().get("join");
-                if (join != null) {
-                    return Boolean.valueOf(join.get(0));
-                }
-            }
-
-            if (!requestScope.getSparseFields().isEmpty()) {
-                return true;
-            }
-
-            if (requestScope.getQueryParams().isPresent()
-                    && requestScope.getQueryParams().get().get("include") != null) {
-                return true;
-            }
-        }
         return false;
     }
 
@@ -372,7 +356,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                     }
                 }
 
-                return query.list();
+                return query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
             }
         }
 

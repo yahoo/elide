@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -95,7 +94,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             assertFalse(tx.isJoinQuery());
 
             params.add("join", "true");
-            assertTrue(tx.isJoinQuery());
+            assertFalse(tx.isJoinQuery());
 
             params.remove("join");
             params.add("join", "false");
@@ -103,7 +102,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
 
             params.remove("join");
             params.add("include", "foo,bar");
-            assertTrue(tx.isJoinQuery());
+            assertFalse(tx.isJoinQuery());
 
             params.add("join", "false");
             assertFalse(tx.isJoinQuery());
