@@ -46,7 +46,7 @@ public class CoerceUtil {
             return ConvertUtils.convert(value, cls);
 
         } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
-            throw new InvalidValueException(value);
+            throw new InvalidValueException(value, e.getMessage());
         }
     }
 

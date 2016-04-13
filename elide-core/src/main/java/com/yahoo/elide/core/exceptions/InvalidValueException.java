@@ -17,6 +17,10 @@ public class InvalidValueException extends HttpStatusException {
         super("Invalid value: " + value.toString());
     }
 
+    public InvalidValueException(Object value, String verboseMessage) {
+        super("Invalid value: " + value.toString(), verboseMessage);
+    }
+
     public InvalidValueException(String message, Throwable cause) {
         super(message, null, cause);
     }
