@@ -141,6 +141,10 @@ public abstract class ElideBundle<T extends Configuration>
         return entities;
     }
 
+    public SessionFactoryFactory getSessionFactoryFactory() {
+        return sessionFactoryFactory;
+    }
+
     /**
      * Method scanning given directory for classes containing Hibernate @Entity annotation
      *
