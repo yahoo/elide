@@ -10,6 +10,7 @@ import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +47,12 @@ public class ImmediateCheckExpression implements Expression {
                                     final ChangeSpec changeSpec,
                                     final ExpressionResultCache cache) {
         this.check = check;
-        this.resource = resource;
         this.requestScope = requestScope;
         this.changeSpec = Optional.ofNullable(changeSpec);
         this.cache = cache;
+
+        // UserCheck does not use resource
+        this.resource = (check instanceof UserCheck) ? null : resource;
     }
 
     @Override
@@ -69,11 +72,12 @@ public class ImmediateCheckExpression implements Expression {
         Class<? extends Check> checkClass = check.getClass();
 
         final ExpressionResult result;
-        if (!cache.hasStoredResultFor(checkClass, resource)) {
+        if (cache.hasStoredResultFor(checkClass, resource)) {
+            result = cache.getResultFor(checkClass, resource);
+        } else {
             result = computeCheck();
             cache.putResultFor(checkClass, resource, result);
-        } else {
-            result = cache.getResultFor(checkClass, resource);
+            log.trace("-- Check computed result: {}", result);
         }
 
         log.trace("-- Check returned with result: {}", result);
@@ -87,10 +91,8 @@ public class ImmediateCheckExpression implements Expression {
      * @return Expression result from the check.
      */
     private ExpressionResult computeCheck() {
-        if (resource == null) {
-            return check.ok(null, requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
-        }
-        return check.ok(resource.getObject(), requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
+        Object entity = (resource == null) ? null : resource.getObject();
+        return check.ok(entity, requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
     }
 
     /**

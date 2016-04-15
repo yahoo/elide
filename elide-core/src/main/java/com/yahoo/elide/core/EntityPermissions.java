@@ -27,8 +27,8 @@ import java.lang.reflect.AccessibleObject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Extract permissions related annotation data for a model.
@@ -45,49 +45,46 @@ public class EntityPermissions implements CheckInstantiator {
 
     public static final EntityPermissions EMPTY_PERMISSIONS = new EntityPermissions();
 
-    //CHECKSTYLE.OFF: LineLength
-    private final ConcurrentHashMap<Class<? extends Annotation>, ParseTree> classPermissions = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Map<Class<? extends Annotation>, ParseTree>> fieldPermissions = new ConcurrentHashMap<>();
-    //CHECKSTYLE.ON: LineLength
+    private static final AnnotationBinding EMPTY_BINDING = new AnnotationBinding(null, Collections.emptyMap());
+    private final HashMap<Class<? extends Annotation>, AnnotationBinding> bindings = new HashMap<>();
+
+    private static class AnnotationBinding {
+        final ParseTree classPermission;
+        Map<String, ParseTree> fieldPermissions;
+
+        public AnnotationBinding(ParseTree classPermission, Map<String, ParseTree> fieldPermissions) {
+            this.classPermission = classPermission;
+            this.fieldPermissions = fieldPermissions.isEmpty() ? Collections.emptyMap() : fieldPermissions;
+        }
+    }
+
 
     private EntityPermissions() {
     }
 
     public EntityPermissions(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
-        initFieldPermissionsMap(fieldOrMethodList);
-
         for (Class annotationClass : PERMISSION_ANNOTATIONS) {
-            bindClassPermissions(cls, annotationClass);
-
+            ParseTree classPermission = bindClassPermissions(cls, annotationClass);
+            final Map<String, ParseTree> fieldPermissions = new HashMap<>();
             fieldOrMethodList.stream()
-                             .forEach(member -> bindMemberPermissions(member, annotationClass));
+                    .forEach(member -> bindMemberPermissions(fieldPermissions, member, annotationClass));
+            if (classPermission != null || !fieldPermissions.isEmpty()) {
+                bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));
+            }
         }
     }
 
-    private void initFieldPermissionsMap(Collection<AccessibleObject> fieldOrMethodList) {
-        fieldOrMethodList.stream()
-                .forEach(member -> {
-                    String fieldName = EntityBinding.getFieldName(member);
-                    if (fieldName != null) {
-                        fieldPermissions.putIfAbsent(fieldName, new ConcurrentHashMap<>());
-                    }
-                });
-    }
-
-    private void bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
+    private ParseTree bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
         Annotation annotation = EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass));
-        if (annotation != null) {
-            ParseTree permissions = getPermissionExpressionTree(annotationClass, annotation);
-            classPermissions.put(annotationClass, permissions);
-        }
+        return (annotation == null) ? null : getPermissionExpressionTree(annotationClass, annotation);
     }
 
-    private void bindMemberPermissions(AccessibleObject accessibleObject, Class annotationClass) {
-        Annotation annotation = accessibleObject.getAnnotation(annotationClass);
+    private void bindMemberPermissions(
+            Map<String, ParseTree> fieldPermissions, AccessibleObject field, Class annotationClass) {
+        Annotation annotation = field.getAnnotation(annotationClass);
         if (annotation != null) {
             ParseTree permissions = getPermissionExpressionTree(annotationClass, annotation);
-            fieldPermissions.get(EntityBinding.getFieldName(accessibleObject))
-                            .putIfAbsent(annotationClass, permissions);
+            fieldPermissions.put(EntityBinding.getFieldName(field), permissions);
         }
     }
 
@@ -156,24 +153,14 @@ public class EntityPermissions implements CheckInstantiator {
     }
 
     public boolean hasChecksForPermission(Class<? extends Annotation> annotationClass) {
-        if (classPermissions.containsKey(annotationClass)) {
-            return true;
-        }
-
-        for (Map<Class<? extends Annotation>, ParseTree> value : fieldPermissions.values()) {
-            if (value.containsKey(annotationClass)) {
-                return true;
-            }
-        }
-
-        return false;
+        return bindings.containsKey(annotationClass);
     }
 
     public ParseTree getClassChecksForPermission(Class<? extends Annotation> annotationClass) {
-        return classPermissions.get(annotationClass);
+        return bindings.getOrDefault(annotationClass, EMPTY_BINDING).classPermission;
     }
 
     public ParseTree getFieldChecksForPermission(String field, Class<? extends Annotation> annotationClass) {
-        return fieldPermissions.getOrDefault(field, Collections.emptyMap()).get(annotationClass);
+        return bindings.getOrDefault(annotationClass, EMPTY_BINDING).fieldPermissions.get(field);
     }
 }
