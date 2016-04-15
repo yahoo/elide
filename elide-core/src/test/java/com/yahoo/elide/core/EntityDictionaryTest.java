@@ -89,6 +89,13 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testExcludedAttributeIsNotExposed() {
+        List<String> attributes = getAttributes(User.class);
+        Assert.assertFalse(attributes.contains("reversedPassword"));
+    }
+
+
+    @Test
     public void testGetIdAnnotations() throws Exception {
 
         Collection<Class> expectedAnnotationClasses = Arrays.asList(new Class[]{Id.class, GeneratedValue.class});
