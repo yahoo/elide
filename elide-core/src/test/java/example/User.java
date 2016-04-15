@@ -7,6 +7,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
@@ -77,6 +78,7 @@ public class User {
      *
      * @return the 'encrypted' password
      */
+    @Exclude
     public String getReversedPassword() {
         return reversedPassword;
     }
