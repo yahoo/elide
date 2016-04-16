@@ -21,7 +21,6 @@ import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +32,6 @@ import static com.yahoo.elide.security.permissions.expressions.Expression.Result
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
  */
-@Slf4j
 public class PermissionExpressionBuilder implements CheckInstantiator {
     private final EntityDictionary entityDictionary;
     private final ExpressionResultCache cache;
@@ -47,6 +45,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * Constructor.
      *
      * @param cache Cache
+     * @param dictionary EntityDictionary
      */
     public PermissionExpressionBuilder(ExpressionResultCache cache, EntityDictionary dictionary) {
         this.cache = cache;
