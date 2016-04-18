@@ -36,7 +36,7 @@ public interface CheckInstantiator {
         try {
             return checkCls.newInstance();
         } catch (InstantiationException | IllegalAccessException | NullPointerException e) {
-            String checkName = (checkCls != null) ? checkCls.getSimpleName() : "null";
+            String checkName = (checkCls != null) ? checkCls.getName() : "null";
             throw new IllegalArgumentException("Could not instantiate specified check '" + checkName + "'.", e);
         }
     }
