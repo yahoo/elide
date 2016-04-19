@@ -1665,7 +1665,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return;
         }
         for (Audit annotation : annotations) {
-            if (annotation.action() == Audit.Action.UPDATE) {
+            if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
                 LogMessage message = new LogMessage(annotation, this);
                 getRequestScope().getAuditLogger().log(message);
             } else {
@@ -1686,9 +1686,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return;
         }
         for (Audit annotation : annotations) {
-            if (annotation.action() == action) {
-                LogMessage message = new LogMessage(annotation, this);
-                getRequestScope().getAuditLogger().log(message);
+            for (Audit.Action auditAction : annotation.action()) {
+                if (auditAction == action) {
+                    LogMessage message = new LogMessage(annotation, this);
+                    getRequestScope().getAuditLogger().log(message);
+                }
             }
         }
     }
