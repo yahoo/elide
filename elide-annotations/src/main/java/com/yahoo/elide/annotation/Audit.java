@@ -46,33 +46,33 @@ public @interface Audit {
     /**
      * Action performed.
      *
-     * @return the action
+     * @return the action (default = Action.UPDATE)
      */
-    Action action();
+    Action action() default Action.UPDATE;
 
     /**
      * Regular expression applied to the path segments of the URI.  The audit only occurs if the expression
      * is empty or it matches the request URI
-     * @return the string
+     * @return the string (default = "")
      */
     String path() default "";
 
     /**
      * Operation code.
      *
-     * @return the int
+     * @return the int (default = -1)
      */
-    int operation();
+    int operation() default -1;
 
     /**
      * Logging string template.
-     * @return the string
+     * @return the string (default = "")
      */
-    String logStatement();
+    String logStatement() default "";
 
     /**
      * Unified expression language expressions that will be evaluated and substituted into the logging template.
-     * @return the string [ ]
+     * @return the string [ ] (default = "")
      */
-    String [] logExpressions();
+    String [] logExpressions() default "";
 }
