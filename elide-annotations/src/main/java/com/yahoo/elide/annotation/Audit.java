@@ -46,9 +46,9 @@ public @interface Audit {
     /**
      * Action performed.
      *
-     * @return the action (default = Action.UPDATE)
+     * @return the action (default = {Action.CREATE, Action.UPDATE, Action.DELETE})
      */
-    Action action() default Action.UPDATE;
+    Action[] action() default {Action.CREATE, Action.UPDATE, Action.DELETE};
 
     /**
      * Regular expression applied to the path segments of the URI.  The audit only occurs if the expression
