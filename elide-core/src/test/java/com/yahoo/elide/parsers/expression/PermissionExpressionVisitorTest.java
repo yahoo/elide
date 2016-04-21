@@ -16,6 +16,7 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
+import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResult.Status;
 import com.yahoo.elide.security.permissions.expressions.Expression;
@@ -46,6 +47,8 @@ public class PermissionExpressionVisitorTest {
         checks.put("A", Permissions.Succeeds.class);
         checks.put("Deny", Permissions.Fails.class);
         checks.put("d", Permissions.Fails.class);
+        checks.put("user has all access", Role.ALL.class);
+        checks.put("user has no access", Role.NONE.class);
 
         dictionary = new EntityDictionary(checks);
         dictionary.bindEntity(Model.class);
@@ -80,6 +83,14 @@ public class PermissionExpressionVisitorTest {
     public void testComplexModelCreate() {
         Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
         Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+    }
+
+    @Test
+    public void testNamesWithSpaces() {
+        Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
+        Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
+        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression2.evaluate(), PASS_RESULT);
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
@@ -121,6 +132,8 @@ public class PermissionExpressionVisitorTest {
     @Entity
     @Include
     @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
+    @DeletePermission(expression = "user has all access or user has no access")
+    @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")
     static class ComplexEntity {
     }
 
