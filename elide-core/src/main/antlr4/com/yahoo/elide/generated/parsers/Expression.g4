@@ -33,7 +33,7 @@ expression
 /*
 This should be a (potentially fully qualified) class name.
 */
-permissionClass: LEGAL_NAME;
+permissionClass: LEGAL_NAME (WS+ LEGAL_NAME)*;
 
 NOT         : [Nn][Oo][Tt];
 AND         : [Aa][Nn][Dd];
