@@ -7,7 +7,6 @@ package com.yahoo.elide.annotation;
 
 import com.yahoo.elide.security.checks.Check;
 
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -21,7 +20,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)
-@Inherited
 public @interface SharePermission {
 
     /**

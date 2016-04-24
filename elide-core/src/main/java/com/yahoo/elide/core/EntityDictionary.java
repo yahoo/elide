@@ -550,7 +550,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type));
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type, include.inheritPermissions()));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
@@ -624,17 +624,14 @@ public class EntityDictionary {
         return fieldOrMethod.getAnnotationsByType(annotationClass);
     }
 
-    /**
-     * Return first matching annotation from class, parents or package.
-     *
-     * @param entityClass         Entity class type
-     * @param annotationClassList List of sought annotations
-     * @return annotation found
-     */
     public static Annotation getFirstAnnotation(Class<?> entityClass,
-                                                List<Class<? extends Annotation>> annotationClassList) {
+                                                List<Class<? extends Annotation>> annotationClassList,
+                                                boolean skipClassHierarchy) {
         Annotation annotation = null;
         for (Class<?> cls = entityClass; annotation == null && cls != null; cls = cls.getSuperclass()) {
+            if (!cls.equals(entityClass) && skipClassHierarchy) {
+                continue;
+            }
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
                 annotation = cls.getAnnotation(annotationClass);
                 if (annotation != null) {
@@ -652,6 +649,18 @@ public class EntityDictionary {
             }
         }
         return annotation;
+    }
+
+    /**
+     * Return first matching annotation from class, parents or package.
+     *
+     * @param entityClass         Entity class type
+     * @param annotationClassList List of sought annotations
+     * @return annotation found
+     */
+    public static Annotation getFirstAnnotation(Class<?> entityClass,
+                                                List<Class<? extends Annotation>> annotationClassList) {
+        return getFirstAnnotation(entityClass, annotationClassList, false);
     }
 
     /**

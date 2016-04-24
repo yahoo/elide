@@ -55,6 +55,7 @@ class EntityBinding {
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
+    @Getter private boolean inheritPermissions;
     public final EntityPermissions entityPermissions;
 
     public final List<String> attributes;
@@ -82,12 +83,14 @@ class EntityBinding {
         attributes = null;
         relationships = null;
         entityClass = null;
+        inheritPermissions = true;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
-    public EntityBinding(Class<?> cls, String type) {
+    public EntityBinding(Class<?> cls, String type, boolean inheritPermissions) {
         entityClass = cls;
         jsonApiType = type;
+        this.inheritPermissions = inheritPermissions;
 
         // Map id's, attributes, and relationships
         Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
@@ -99,7 +102,7 @@ class EntityBinding {
 
         attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
-        entityPermissions = new EntityPermissions(cls, fieldOrMethodList);
+        entityPermissions = new EntityPermissions(cls, fieldOrMethodList, inheritPermissions);
     }
 
     /**

@@ -32,4 +32,10 @@ public @interface Include {
      * @return the string
      */
     String type() default "";
+
+    /**
+     * (Optional) Whether or not this class inherits permissions from a super class.
+     * @return
+     */
+    boolean inheritPermissions() default true;
 }
