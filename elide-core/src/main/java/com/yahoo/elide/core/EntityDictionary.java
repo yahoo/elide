@@ -624,6 +624,14 @@ public class EntityDictionary {
         return fieldOrMethod.getAnnotationsByType(annotationClass);
     }
 
+    /**
+     * Return first matching annotation from class, parents or package.
+     *
+     * @param entityClass         Entity class type
+     * @param annotationClassList List of sought annotations
+     * @param skipClassHierarchy Whether or not to include the class hierarchy in the search
+     * @return annotation found
+     */
     public static Annotation getFirstAnnotation(Class<?> entityClass,
                                                 List<Class<? extends Annotation>> annotationClassList,
                                                 boolean skipClassHierarchy) {
