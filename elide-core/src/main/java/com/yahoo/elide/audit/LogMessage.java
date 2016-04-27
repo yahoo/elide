@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
+import com.yahoo.elide.security.ChangeSpec;
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
 
@@ -17,6 +18,7 @@ import javax.el.ExpressionFactory;
 import javax.el.ValueExpression;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -37,6 +39,7 @@ public class LogMessage {
     private final PersistentResource record;
     private final String[] expressions;
     private final int operationCode;
+    private final Optional<ChangeSpec> changeSpec;
 
     /**
      * Construct a log message that does not involve any templating.
@@ -44,17 +47,19 @@ public class LogMessage {
      * @param code - The operation code of the auditable action.
      */
     public LogMessage(String template, int code) {
-        this(template, null, EMPTY_STRING_ARRAY, code);
+        this(template, null, EMPTY_STRING_ARRAY, code, Optional.empty());
     }
 
     /**
      * Construct a log message from an Audit annotation and the record that was updated in some way.
      * @param audit - The annotation containing the type of operation (UPDATE, DELETE, CREATE)
      * @param record - The modified record
+     * @param changeSpec - Change spec of modified elements (if logging object change). empty otherwise
      * @throws InvalidSyntaxException if the Audit annotation has invalid syntax.
      */
-    public LogMessage(Audit audit, PersistentResource record) throws InvalidSyntaxException {
-        this(audit.logStatement(), record, audit.logExpressions(), audit.operation());
+    public LogMessage(Audit audit, PersistentResource record, Optional<ChangeSpec> changeSpec)
+            throws InvalidSyntaxException {
+        this(audit.logStatement(), record, audit.logExpressions(), audit.operation(), changeSpec);
     }
 
     /**
@@ -68,11 +73,13 @@ public class LogMessage {
     public LogMessage(String template,
             PersistentResource record,
             String[] expressions,
-            int code) throws InvalidSyntaxException {
+            int code,
+            Optional<ChangeSpec> changeSpec) throws InvalidSyntaxException {
         this.template = template;
         this.record = record;
         this.expressions = expressions;
         this.operationCode = code;
+        this.changeSpec = changeSpec;
     }
 
     /**
@@ -137,6 +144,10 @@ public class LogMessage {
             return record.getRequestScope();
         }
         return null;
+    }
+
+    public Optional<ChangeSpec> getChangeSpec() {
+        return changeSpec;
     }
 
     @Override

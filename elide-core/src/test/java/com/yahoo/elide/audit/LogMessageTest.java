@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Random;
 
 public class LogMessageTest {
@@ -50,28 +51,30 @@ public class LogMessageTest {
     @Test
     public void verifyObjectExpressions() {
         final String[] expressions = { "${child.id}", "${parent.getId()}" };
-        final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1);
+        final LogMessage message = new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty());
         Assert.assertEquals("5 7", message.getMessage(), "JEXL substitution evaluates correctly.");
+        Assert.assertEquals(message.getChangeSpec(), Optional.empty());
     }
 
     @Test
     public void verifyListExpressions() {
         final String[] expressions = { "${child[0].id}", "${child[1].id}", "${parent.getId()}" };
-        final LogMessage message = new LogMessage("{0} {1} {2}", friendRecord, expressions, 1);
+        final LogMessage message = new LogMessage("{0} {1} {2}", friendRecord, expressions, 1, Optional.empty());
         Assert.assertEquals("5 9 7", message.getMessage(), "JEXL substitution evaluates correctly.");
+        Assert.assertEquals(message.getChangeSpec(), Optional.empty());
     }
 
 
     @Test(expectedExceptions = InvalidSyntaxException.class)
     public void invalidExpression() {
         final String[] expressions = { "${child.id}, ${%%%}" };
-        new LogMessage("{0} {1}", childRecord, expressions, 1).getMessage();
+        new LogMessage("{0} {1}", childRecord, expressions, 1, Optional.empty()).getMessage();
     }
 
     @Test(expectedExceptions = InvalidSyntaxException.class)
     public void invalidTemplate() {
         final String[] expressions = { "${child.id}" };
-        new LogMessage("{}", childRecord, expressions, 1).getMessage();
+        new LogMessage("{}", childRecord, expressions, 1, Optional.empty()).getMessage();
     }
 
     public static class TestLoggerException extends RuntimeException {
