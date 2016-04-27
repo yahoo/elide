@@ -5,9 +5,14 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import example.Child;
 import example.FieldAnnotations;
+import example.FosterParent;
 import example.FunWithPermissions;
 import example.Left;
 import example.Parent;
@@ -38,6 +43,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void init() {
         this.bindEntity(FunWithPermissions.class);
         this.bindEntity(Parent.class);
+        this.bindEntity(FosterParent.class);
         this.bindEntity(Child.class);
         this.bindEntity(User.class);
         this.bindEntity(Left.class);
@@ -86,6 +92,18 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testComputedAttributeIsExposed() {
         List<String> attributes = getAttributes(User.class);
         Assert.assertTrue(attributes.contains("password"));
+    }
+
+    @Test
+    public void testDisablingPermissionInheritance() {
+        /* FosterParent disables permissions inheritance from Parent */
+        EntityBinding binding = getEntityBinding(FosterParent.class);
+
+        Assert.assertTrue(binding.entityPermissions.hasChecksForPermission(ReadPermission.class));
+        Assert.assertFalse(binding.entityPermissions.hasChecksForPermission(UpdatePermission.class));
+        Assert.assertFalse(binding.entityPermissions.hasChecksForPermission(CreatePermission.class));
+        Assert.assertFalse(binding.entityPermissions.hasChecksForPermission(DeletePermission.class));
+        Assert.assertFalse(binding.entityPermissions.hasChecksForPermission(SharePermission.class));
     }
 
     @Test

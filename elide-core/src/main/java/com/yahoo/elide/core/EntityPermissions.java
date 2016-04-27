@@ -24,6 +24,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,6 +50,7 @@ public class EntityPermissions implements CheckInstantiator {
 
     private static final AnnotationBinding EMPTY_BINDING = new AnnotationBinding(null, Collections.emptyMap());
     private final HashMap<Class<? extends Annotation>, AnnotationBinding> bindings = new HashMap<>();
+    private boolean inheritPermissions = true;
 
     private static class AnnotationBinding {
         final ParseTree classPermission;
@@ -68,11 +71,18 @@ public class EntityPermissions implements CheckInstantiator {
      * @param cls entity class
      * @param fieldOrMethodList list of fields/methods
      */
-    public EntityPermissions(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
+    public EntityPermissions(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList, boolean inheritPermissions) {
+        this.inheritPermissions = inheritPermissions;
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
             ParseTree classPermission = bindClassPermissions(cls, annotationClass);
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
+
             fieldOrMethodList.stream()
+                    .filter(member ->  {
+                        return (inheritPermissions
+                            || (member instanceof Field && ((Field) member).getDeclaringClass().equals(cls))
+                            || (member instanceof Method && ((Method) member).getDeclaringClass().equals(cls)));
+                    })
                     .forEach(member -> bindMemberPermissions(fieldPermissions, member, annotationClass));
             if (classPermission != null || !fieldPermissions.isEmpty()) {
                 bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));
@@ -81,7 +91,11 @@ public class EntityPermissions implements CheckInstantiator {
     }
 
     private ParseTree bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
-        Annotation annotation = EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass));
+        boolean skipInheritance = !inheritPermissions;
+        Annotation annotation = EntityDictionary.getFirstAnnotation(
+                cls,
+                Arrays.asList(annotationClass),
+                skipInheritance);
         return (annotation == null) ? null : getPermissionExpressionTree(annotationClass, annotation);
     }
 
