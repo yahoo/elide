@@ -282,7 +282,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable<T> list;
         FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjects(loadClass, filterScope);
-        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(null, list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
             requestScope.queueCommitTrigger(resource);
@@ -309,7 +309,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable<T> list;
         FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjectsWithSortingAndPagination(loadClass, filterScope);
-        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(null, list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
             requestScope.queueCommitTrigger(resource);
@@ -902,7 +902,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
                 filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
             }
-            resources = new PersistentResourceSet(filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
         } else {
@@ -942,7 +942,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filteredVal = requestScope.getTransaction().filterCollectionWithSortingAndPagination(filteredVal,
                         entityClass, dictionary, Optional.of(filters), sortingRules, pagination);
             }
-            resources = new PersistentResourceSet(filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
         } else {

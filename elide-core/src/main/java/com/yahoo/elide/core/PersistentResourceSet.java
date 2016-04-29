@@ -16,10 +16,12 @@ import java.util.Iterator;
  */
 public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>> {
 
+    final private PersistentResource<?> parent;
     final private Iterable<T> list;
     final private RequestScope requestScope;
 
-    public PersistentResourceSet(Iterable<T> list, RequestScope requestScope) {
+    public PersistentResourceSet(PersistentResource<?> parent, Iterable<T> list, RequestScope requestScope) {
+        this.parent = parent;
         this.list = list;
         this.requestScope = requestScope;
     }
@@ -35,7 +37,10 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
 
             @Override
             public PersistentResource<T> next() {
-                return new PersistentResource<>(iterator.next(), requestScope);
+                if (parent == null) {
+                    return new PersistentResource<>(iterator.next(), requestScope);
+                }
+                return new PersistentResource<>(parent, iterator.next(), requestScope);
             }
         };
     }
