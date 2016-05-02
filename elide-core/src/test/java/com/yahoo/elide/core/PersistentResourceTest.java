@@ -1428,7 +1428,7 @@ public class PersistentResourceTest extends PersistentResource {
                 getUserScope(goodUser, logger)
         );
 
-        childResource.audit(Audit.Action.CREATE);
+        childResource.audit(Audit.Action.CREATE, new ChangeSpec(childResource, null, null, childResource.getObject()));
 
         Assert.assertEquals(logger.getMessages().size(), 1, "One message should be logged");
 

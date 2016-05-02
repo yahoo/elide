@@ -1,0 +1,17 @@
+{
+  "data":{
+    "type":"auditEntity",
+    "id":"2",
+    "attributes":{
+      "value": "test def"
+    },
+    "relationships": {
+      "otherEntity": {
+        "data": {
+          "type": "auditEntity",
+          "id": "1"
+        }
+      }
+    }
+  }
+}

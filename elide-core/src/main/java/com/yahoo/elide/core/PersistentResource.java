@@ -116,7 +116,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         T obj = tx.createObject(entityClass);
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
-        newResource.audit(Audit.Action.CREATE);
+        newResource.audit(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
         newResource.runTriggers(OnCreate.class);
         requestScope.queueCommitTrigger(newResource);
 
@@ -673,7 +673,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         transaction.delete(getObject());
-        audit(Audit.Action.DELETE);
+        audit(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
         runTriggers(OnDelete.class);
     }
 
@@ -902,7 +902,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
                 filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
             }
-            resources = new PersistentResourceSet(filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
         } else {
@@ -942,7 +942,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filteredVal = requestScope.getTransaction().filterCollectionWithSortingAndPagination(filteredVal,
                         entityClass, dictionary, Optional.of(filters), sortingRules, pagination);
             }
-            resources = new PersistentResourceSet(filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
         } else {
@@ -1217,8 +1217,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
+        final Object original = getValueUnchecked(fieldName);
+        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, newValue);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, changeSpec);
         setValue(fieldName, newValue);
+        audit(fieldName, changeSpec);
     }
 
     /**
@@ -1613,6 +1616,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
+    private <A extends Annotation> void checkFieldAwareDeferPermissions(final Class<A> annotationClass,
+                                                                        final ChangeSpec changeSpec) {
+        checkFieldAwareDeferPermissions(annotationClass,
+                changeSpec.getFieldName(),
+                changeSpec.getModified(),
+                changeSpec.getOriginal());
+    }
+
     private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
                                                                         String fieldName,
                                                                         Object modified,
@@ -1656,6 +1667,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param fieldName the field name
      */
     protected void audit(String fieldName) {
+        audit(fieldName, null);
+    }
+
+    /**
+     * Audit an action on field.
+     *
+     * @param fieldName field name being audited
+     * @param changeSpec Change spec for audit
+     */
+    protected void audit(String fieldName, ChangeSpec changeSpec) {
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
@@ -1666,7 +1687,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         for (Audit annotation : annotations) {
             if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
-                LogMessage message = new LogMessage(annotation, this);
+                LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
                 getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
@@ -1679,7 +1700,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param action the action
      */
-    protected void audit(Audit.Action action) {
+    protected void audit(Audit.Action action, ChangeSpec changeSpec) {
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {
@@ -1688,7 +1709,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (Audit annotation : annotations) {
             for (Audit.Action auditAction : annotation.action()) {
                 if (auditAction == action) {
-                    LogMessage message = new LogMessage(annotation, this);
+                    LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
                     getRequestScope().getAuditLogger().log(message);
                 }
             }

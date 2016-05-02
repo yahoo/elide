@@ -9,7 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import lombok.NoArgsConstructor;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.testng.annotations.BeforeTest;
 
 import java.io.IOException;
@@ -23,7 +23,6 @@ import static org.testng.Assert.fail;
  * Integration test initializer.
  *
  */
-@NoArgsConstructor
 public abstract class AbstractIntegrationTestInitializer extends AbstractApiResourceInitializer {
     /**
      * The constant dataStore.
@@ -34,6 +33,14 @@ public abstract class AbstractIntegrationTestInitializer extends AbstractApiReso
      * Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only
      */
     protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
+
+    public AbstractIntegrationTestInitializer() {
+        super();
+    }
+
+    protected AbstractIntegrationTestInitializer(final Class<? extends ResourceConfig> resourceConfig) {
+        super(resourceConfig);
+    }
 
     /**
      * Gets database manager.

@@ -9,14 +9,17 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
+import com.yahoo.elide.security.ChangeSpec;
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
 
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
+import javax.el.PropertyNotFoundException;
 import javax.el.ValueExpression;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -37,6 +40,7 @@ public class LogMessage {
     private final PersistentResource record;
     private final String[] expressions;
     private final int operationCode;
+    private final Optional<ChangeSpec> changeSpec;
 
     /**
      * Construct a log message that does not involve any templating.
@@ -44,17 +48,19 @@ public class LogMessage {
      * @param code - The operation code of the auditable action.
      */
     public LogMessage(String template, int code) {
-        this(template, null, EMPTY_STRING_ARRAY, code);
+        this(template, null, EMPTY_STRING_ARRAY, code, Optional.empty());
     }
 
     /**
      * Construct a log message from an Audit annotation and the record that was updated in some way.
      * @param audit - The annotation containing the type of operation (UPDATE, DELETE, CREATE)
      * @param record - The modified record
+     * @param changeSpec - Change spec of modified elements (if logging object change). empty otherwise
      * @throws InvalidSyntaxException if the Audit annotation has invalid syntax.
      */
-    public LogMessage(Audit audit, PersistentResource record) throws InvalidSyntaxException {
-        this(audit.logStatement(), record, audit.logExpressions(), audit.operation());
+    public LogMessage(Audit audit, PersistentResource record, Optional<ChangeSpec> changeSpec)
+            throws InvalidSyntaxException {
+        this(audit.logStatement(), record, audit.logExpressions(), audit.operation(), changeSpec);
     }
 
     /**
@@ -68,11 +74,13 @@ public class LogMessage {
     public LogMessage(String template,
             PersistentResource record,
             String[] expressions,
-            int code) throws InvalidSyntaxException {
+            int code,
+            Optional<ChangeSpec> changeSpec) throws InvalidSyntaxException {
         this.template = template;
         this.record = record;
         this.expressions = expressions;
         this.operationCode = code;
+        this.changeSpec = changeSpec;
     }
 
     /**
@@ -90,7 +98,8 @@ public class LogMessage {
      * @return the message
      */
     public String getMessage() {
-        SimpleContext ctx = new SimpleContext();
+        final SimpleContext ctx = new SimpleContext();
+        final SimpleContext singleElementContext = new SimpleContext();
 
         if (record != null) {
             /* Create a new lineage which includes the passed in record */
@@ -99,15 +108,20 @@ public class LogMessage {
             for (String name : lineage.getKeys()) {
                 List<PersistentResource> values = lineage.getRecord(name);
 
-                ValueExpression expression;
+                final ValueExpression expression;
+                final ValueExpression singleElementExpression;
                 if (values.size() == 1) {
                     expression = EXPRESSION_FACTORY.createValueExpression(values.get(0).getObject(), Object.class);
+                    singleElementExpression = expression;
                 } else {
                     List<Object> objects = values.stream().map(PersistentResource::getObject)
                             .collect(Collectors.toList());
                     expression = EXPRESSION_FACTORY.createValueExpression(objects, List.class);
+                    singleElementExpression = EXPRESSION_FACTORY.createValueExpression(values.get(values.size() - 1)
+                            .getObject(), Object.class);
                 }
                 ctx.setVariable(name, expression);
+                singleElementContext.setVariable(name, singleElementExpression);
             }
         }
 
@@ -115,13 +129,29 @@ public class LogMessage {
         for (int idx = 0; idx < results.length; idx++) {
             String expressionText = expressions[idx];
 
-            ValueExpression expression;
+            final ValueExpression expression;
+            final ValueExpression singleElementExpression;
             try {
                 expression = EXPRESSION_FACTORY.createValueExpression(ctx, expressionText, Object.class);
+                singleElementExpression =
+                        EXPRESSION_FACTORY.createValueExpression(singleElementContext, expressionText, Object.class);
             } catch (ELException e) {
                 throw new InvalidSyntaxException(e);
             }
-            Object result = expression.getValue(ctx);
+
+            Object result;
+            try {
+                // Single element expressions are intended to allow for access to ${entityType.field} when there are
+                // multiple "entityType" types listed in the lineage. Without this, any access to an entityType
+                // without an explicit list index would otherwise result in a 500. Similarly, since we already
+                // supported lists (i.e. the ${entityType[idx].field} syntax), this also continues to support that.
+                // It should be noted, however, that list indexing is somewhat brittle unless properly accounted for
+                // from all possible paths.
+                result = singleElementExpression.getValue(singleElementContext);
+            } catch (PropertyNotFoundException e) {
+                // Try list syntax if not single element
+                result = expression.getValue(ctx);
+            }
             results[idx] = result;
         }
 
@@ -137,6 +167,10 @@ public class LogMessage {
             return record.getRequestScope();
         }
         return null;
+    }
+
+    public Optional<ChangeSpec> getChangeSpec() {
+        return changeSpec;
     }
 
     @Override
