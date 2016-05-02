@@ -1,0 +1,26 @@
+[
+    {
+        "op":"add",
+        "path":"createButNoRead",
+        "value":{
+            "type":"createButNoRead",
+            "id":"gh202bcd3-8103-4166-a5b0-abccaa07322d"
+        }
+    },
+    {
+        "op":"add",
+        "path":"/createButNoRead/gh202bcd3-8103-4166-a5b0-abccaa07322d/otherObjects",
+        "value":{
+            "type":"createButNoReadChild",
+            "id":"r7712424-b52a-44c2-b0fd-e654a38bbf8a",
+            "relationships":{
+                "otherObject":{
+                    "data":{
+                        "type":"createButNoRead",
+                        "id":"gh202bcd3-8103-4166-a5b0-abccaa07322d"
+                    }
+                }
+            }
+        }
+    }
+]

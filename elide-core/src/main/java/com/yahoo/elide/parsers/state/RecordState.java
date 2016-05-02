@@ -7,6 +7,7 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
@@ -36,7 +37,10 @@ public class RecordState extends BaseState {
         String subCollection = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         try {
-            Set<PersistentResource> collection = resource.getRelationCheckedFiltered(subCollection); // Check if exists.
+            RelationshipType type = dictionary.getRelationshipType(resource.getObject(), subCollection);
+            if (type == RelationshipType.NONE) {
+                throw new InvalidCollectionException(subCollection);
+            }
             String entityName =
                     dictionary.getJsonAliasFor(dictionary.getParameterizedType(resource.getObject(), subCollection));
             Class<?> entityClass = dictionary.getEntityClass(entityName);
@@ -46,6 +50,10 @@ public class RecordState extends BaseState {
             final BaseState nextState;
             final CollectionTerminalState collectionTerminalState =
                     new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
+            Set<PersistentResource> collection = null;
+            if (type.isToOne()) {
+                collection = resource.getRelationCheckedFiltered(subCollection);
+            }
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
                 nextState = new RecordTerminalState(record, collectionTerminalState);

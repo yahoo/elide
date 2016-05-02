@@ -11,7 +11,11 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
+
+import java.util.function.Function;
 
 /**
  * Special request scope for Patch Extension.
@@ -32,8 +36,10 @@ public class PatchRequestScope extends RequestScope {
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,
-            AuditLogger auditLogger) {
-        super(transaction, user, dictionary, mapper, auditLogger);
+            AuditLogger auditLogger,
+            Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
+        super(null, transaction, user, dictionary, mapper, auditLogger, SecurityMode.SECURITY_ACTIVE,
+                permissionExecutorGenerator);
     }
 
     /**
