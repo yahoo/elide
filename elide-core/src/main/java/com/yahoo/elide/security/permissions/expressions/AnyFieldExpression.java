@@ -36,4 +36,9 @@ public class AnyFieldExpression implements Expression {
 
         return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
     }
+
+    @Override
+    public String toString() {
+        return "ANY (" + entityExpression + " : " + fieldExpression + ")";
+    }
 }

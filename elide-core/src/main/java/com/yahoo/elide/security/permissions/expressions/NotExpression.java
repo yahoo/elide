@@ -43,4 +43,9 @@ public class NotExpression implements Expression {
 
         return DEFERRED_RESULT;
     }
+
+    @Override
+    public String toString() {
+        return "NOT (" + logical + ")";
+    }
 }

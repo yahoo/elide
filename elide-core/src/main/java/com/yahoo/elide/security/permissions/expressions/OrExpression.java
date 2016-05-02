@@ -55,6 +55,9 @@ public class OrExpression implements Expression {
 
     @Override
     public String toString() {
+        if (right == null) {
+            return String.valueOf(left);
+        }
         return "(" + left + ") OR (" + right + ")";
     }
 }

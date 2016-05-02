@@ -118,4 +118,9 @@ public class ImmediateCheckExpression implements Expression {
 
         return new ExpressionResult(FAIL, failure);
     }
+
+    @Override
+    public String toString() {
+        return "(" + check.checkIdentifier() + ")";
+    }
 }
