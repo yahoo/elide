@@ -26,6 +26,10 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
         this.requestScope = requestScope;
     }
 
+    public PersistentResourceSet(Iterable<T> list, RequestScope requestScope) {
+        this(null, list, requestScope);
+    }
+
     @Override
     public Iterator<PersistentResource<T>> iterator() {
         final Iterator<T> iterator = list.iterator();

@@ -141,6 +141,12 @@ public class LogMessage {
 
             Object result;
             try {
+                // Single element expressions are intended to allow for access to ${entityType.field} when there are
+                // multiple "entityType" types listed in the lineage. Without this, any access to an entityType
+                // without an explicit list index would otherwise result in a 500. Similarly, since we already
+                // supported lists (i.e. the ${entityType[idx].field} syntax), this also continues to support that.
+                // It should be noted, however, that list indexing is somewhat brittle unless properly accounted for
+                // from all possible paths.
                 result = singleElementExpression.getValue(singleElementContext);
             } catch (PropertyNotFoundException e) {
                 // Try list syntax if not single element

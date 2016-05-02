@@ -282,7 +282,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable<T> list;
         FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjects(loadClass, filterScope);
-        Set<PersistentResource<T>> resources = new PersistentResourceSet(null, list, requestScope);
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
             requestScope.queueCommitTrigger(resource);
@@ -309,7 +309,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable<T> list;
         FilterScope filterScope = new FilterScope(requestScope, loadClass);
         list = tx.loadObjectsWithSortingAndPagination(loadClass, filterScope);
-        Set<PersistentResource<T>> resources = new PersistentResourceSet(null, list, requestScope);
+        Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
             requestScope.queueCommitTrigger(resource);
@@ -1218,9 +1218,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValueChecked(String fieldName, Object newValue) {
         final Object original = getValueUnchecked(fieldName);
-        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, original);
+        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, newValue);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, changeSpec);
         setValue(fieldName, newValue);
-        audit(fieldName, new ChangeSpec(this, fieldName, original, newValue));
+        audit(fieldName, changeSpec);
     }
 
     /**
@@ -1613,6 +1614,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
+    }
+
+    private <A extends Annotation> void checkFieldAwareDeferPermissions(final Class<A> annotationClass,
+                                                                        final ChangeSpec changeSpec) {
+        checkFieldAwareDeferPermissions(annotationClass,
+                changeSpec.getFieldName(),
+                changeSpec.getModified(),
+                changeSpec.getOriginal());
     }
 
     private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
