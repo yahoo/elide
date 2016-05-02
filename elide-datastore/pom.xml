@@ -191,6 +191,7 @@
                         </systemPropertyVariables>
                         <suiteXmlFiles>
                             <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
+                            <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
                         </suiteXmlFiles>
                     </configuration>
                     <executions>

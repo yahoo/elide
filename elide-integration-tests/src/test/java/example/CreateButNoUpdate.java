@@ -18,7 +18,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
- * A model intended to be ONLY created and read, but never updated
+ * A model intended to be ONLY created and read, but never updated.
  */
 @Include(rootLevel = true)
 @Entity

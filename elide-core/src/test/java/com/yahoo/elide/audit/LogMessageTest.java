@@ -59,8 +59,11 @@ public class LogMessageTest {
     @Test
     public void verifyListExpressions() {
         final String[] expressions = { "${child[0].id}", "${child[1].id}", "${parent.getId()}" };
+        final String[] expressionForDefault = { "${child.id}" };
         final LogMessage message = new LogMessage("{0} {1} {2}", friendRecord, expressions, 1, Optional.empty());
-        Assert.assertEquals("5 9 7", message.getMessage(), "JEXL substitution evaluates correctly.");
+        final LogMessage defaultMessage = new LogMessage("{0}", friendRecord, expressionForDefault, 1, Optional.empty());
+        Assert.assertEquals(message.getMessage(), "5 9 7", "JEXL substitution evaluates correctly.");
+        Assert.assertEquals(defaultMessage.getMessage(), "9", "JEXL substitution evaluates correctly.");
         Assert.assertEquals(message.getChangeSpec(), Optional.empty());
     }
 

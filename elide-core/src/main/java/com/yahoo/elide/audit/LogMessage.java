@@ -15,6 +15,7 @@ import de.odysseus.el.util.SimpleContext;
 
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
+import javax.el.PropertyNotFoundException;
 import javax.el.ValueExpression;
 import java.text.MessageFormat;
 import java.util.List;
@@ -97,7 +98,8 @@ public class LogMessage {
      * @return the message
      */
     public String getMessage() {
-        SimpleContext ctx = new SimpleContext();
+        final SimpleContext ctx = new SimpleContext();
+        final SimpleContext singleElementContext = new SimpleContext();
 
         if (record != null) {
             /* Create a new lineage which includes the passed in record */
@@ -106,15 +108,20 @@ public class LogMessage {
             for (String name : lineage.getKeys()) {
                 List<PersistentResource> values = lineage.getRecord(name);
 
-                ValueExpression expression;
+                final ValueExpression expression;
+                final ValueExpression singleElementExpression;
                 if (values.size() == 1) {
                     expression = EXPRESSION_FACTORY.createValueExpression(values.get(0).getObject(), Object.class);
+                    singleElementExpression = expression;
                 } else {
                     List<Object> objects = values.stream().map(PersistentResource::getObject)
                             .collect(Collectors.toList());
                     expression = EXPRESSION_FACTORY.createValueExpression(objects, List.class);
+                    singleElementExpression = EXPRESSION_FACTORY.createValueExpression(values.get(values.size() - 1)
+                            .getObject(), Object.class);
                 }
                 ctx.setVariable(name, expression);
+                singleElementContext.setVariable(name, singleElementExpression);
             }
         }
 
@@ -122,13 +129,23 @@ public class LogMessage {
         for (int idx = 0; idx < results.length; idx++) {
             String expressionText = expressions[idx];
 
-            ValueExpression expression;
+            final ValueExpression expression;
+            final ValueExpression singleElementExpression;
             try {
                 expression = EXPRESSION_FACTORY.createValueExpression(ctx, expressionText, Object.class);
+                singleElementExpression =
+                        EXPRESSION_FACTORY.createValueExpression(singleElementContext, expressionText, Object.class);
             } catch (ELException e) {
                 throw new InvalidSyntaxException(e);
             }
-            Object result = expression.getValue(ctx);
+
+            Object result;
+            try {
+                result = singleElementExpression.getValue(singleElementContext);
+            } catch (PropertyNotFoundException e) {
+                // Try list syntax if not single element
+                result = expression.getValue(ctx);
+            }
             results[idx] = result;
         }
 

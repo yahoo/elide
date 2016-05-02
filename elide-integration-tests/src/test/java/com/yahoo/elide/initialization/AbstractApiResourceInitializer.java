@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
@@ -24,7 +25,11 @@ public abstract class AbstractApiResourceInitializer {
     private final String resourceConfig;
 
     public AbstractApiResourceInitializer() {
-        this.resourceConfig = IntegrationTestApplicationResourceConfig.class.getCanonicalName();
+        this(IntegrationTestApplicationResourceConfig.class);
+    }
+
+    protected AbstractApiResourceInitializer(final Class<? extends ResourceConfig> resourceConfig) {
+        this.resourceConfig = resourceConfig.getCanonicalName();
     }
 
     @BeforeSuite
