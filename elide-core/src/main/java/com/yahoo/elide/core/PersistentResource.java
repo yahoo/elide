@@ -330,7 +330,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             this.markDirty();
-            audit(fieldName);
             return true;
         }
         return false;
@@ -446,7 +445,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!updated.isEmpty()) {
             this.markDirty();
         }
-        audit(fieldName);
 
         return !updated.isEmpty();
     }
@@ -496,7 +494,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.setValueChecked(fieldName, newValue);
 
         this.markDirty();
-        audit(fieldName);
         return true;
     }
 
@@ -546,7 +543,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        audit(relationName);
         return true;
     }
 
@@ -597,8 +593,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (original != modified && original != null && !original.equals(modified)) {
             this.markDirty();
         }
-
-        audit(fieldName);
     }
 
     /**
@@ -622,8 +616,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             updateRelation(fieldName, Collections.singleton(newRelation));
             return;
         }
-
-        audit(fieldName);
     }
 
     /**
@@ -1283,7 +1275,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
-                audit(collectionName, new ChangeSpec(this, collectionName, original, collection));
+                audit(new ChangeSpec(this, collectionName, original, collection));
                 return true;
             }
         }
@@ -1313,7 +1305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         collection.remove(toDelete.getObject());
-        audit(collectionName, new ChangeSpec(this, collectionName, original, collection));
+        audit(new ChangeSpec(this, collectionName, original, collection));
     }
 
     /**
@@ -1344,8 +1336,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         runTriggers(OnUpdate.class, fieldName);
         this.requestScope.queueCommitTrigger(this, fieldName);
-        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
-        audit(fieldName, changeSpec);
+        audit(new ChangeSpec(this, fieldName, original, value));
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass) {
@@ -1658,20 +1649,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Audit an action on a field.
-     * @param fieldName the field name
-     */
-    protected void audit(String fieldName) {
-        audit(fieldName, null);
-    }
-
-    /**
      * Audit an action on field.
      *
-     * @param fieldName field name being audited
      * @param changeSpec Change spec for audit
      */
-    protected void audit(String fieldName, ChangeSpec changeSpec) {
+    protected void audit(ChangeSpec changeSpec) {
+        final String fieldName = changeSpec.getFieldName();
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
@@ -1682,7 +1665,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         for (Audit annotation : annotations) {
             if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
-                LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
+                LogMessage message = new LogMessage(annotation, this, Optional.of(changeSpec));
                 getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
