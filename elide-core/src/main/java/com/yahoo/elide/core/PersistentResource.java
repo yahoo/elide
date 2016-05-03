@@ -1217,11 +1217,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        final Object original = getValueUnchecked(fieldName);
-        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, newValue);
-        checkFieldAwareDeferPermissions(UpdatePermission.class, changeSpec);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
         setValue(fieldName, newValue);
-        audit(fieldName, changeSpec);
     }
 
     /**
@@ -1323,6 +1320,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValue(String fieldName, Object value) {
         Class<?> targetClass = obj.getClass();
+        final Object original = getValueUnchecked(fieldName);
         try {
             Class<?> fieldClass = dictionary.getType(targetClass, fieldName);
             String realName = dictionary.getNameFromAlias(obj, fieldName);
@@ -1343,6 +1341,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         runTriggers(OnUpdate.class, fieldName);
         this.requestScope.queueCommitTrigger(this, fieldName);
+        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
+        audit(fieldName, changeSpec);
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass) {
@@ -1614,14 +1614,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
-    }
-
-    private <A extends Annotation> void checkFieldAwareDeferPermissions(final Class<A> annotationClass,
-                                                                        final ChangeSpec changeSpec) {
-        checkFieldAwareDeferPermissions(annotationClass,
-                changeSpec.getFieldName(),
-                changeSpec.getModified(),
-                changeSpec.getOriginal());
     }
 
     private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
