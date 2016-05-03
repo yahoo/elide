@@ -1266,12 +1266,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if added to collection false otherwise (i.e. element already in collection)
      */
     protected boolean addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
-        Collection singleton = Collections.singleton(toAdd.getObject());
+        final Collection singleton = Collections.singleton(toAdd.getObject());
+        final Collection original = copyCollection(collection);
         checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
                 collectionName,
                 CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
-                copyCollection(collection));
+                original);
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
             Object value = getValueUnchecked(collectionName);
@@ -1282,6 +1283,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
+                audit(collectionName, new ChangeSpec(this, collectionName, original, collection));
                 return true;
             }
         }
@@ -1295,10 +1297,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param toDelete the to delete
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
+        final Collection original = copyCollection(collection);
         checkFieldAwareDeferPermissions(UpdatePermission.class,
                 collectionName,
                 CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
-                copyCollection(collection));
+                original);
 
         String inverseField = getInverseRelationField(collectionName);
         if (!inverseField.isEmpty()) {
@@ -1309,8 +1312,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return;
         }
 
-
         collection.remove(toDelete.getObject());
+        audit(collectionName, new ChangeSpec(this, collectionName, original, collection));
     }
 
     /**

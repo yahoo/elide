@@ -92,4 +92,39 @@ public class AuditIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(logger.logMessages.contains("Updated value (for id: 1): update id 1 through id 2"));
     }
+
+    @Test(priority = 3)
+    public void testAuditUpdateOnInverseCollection() {
+        String request = jsonParser.getJson("/AuditIT/createAuditEntityInverse.req.json");
+
+        Assert.assertFalse(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .post("/auditEntityInverse")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        Assert.assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list [AuditEntityInverse{id=1, entities=[Value: update id 1 through id 2 relationship: 2]}]"));
+        Assert.assertTrue(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+
+        // This message may have been added on create. Remove it so we don't get a false positive.
+        // NOTE: Our internal audit loggers handle this behavior by ignoring update messages associated with
+        //       creations, but this is the default behavior to provide flexibility for any use case.
+        logger.logMessages.remove("Entity with id 1 now has inverse list []");
+        logger.logMessages.remove("Inverse entities: []");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\":[]}")
+                .patch("/auditEntity/1/relationships/inverses")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        Assert.assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list []"));
+        Assert.assertTrue(logger.logMessages.contains("Inverse entities: []"));
+    }
 }
