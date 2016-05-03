@@ -116,7 +116,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         T obj = tx.createObject(entityClass);
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
-        newResource.audit(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
+        newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
         newResource.runTriggers(OnCreate.class);
         requestScope.queueCommitTrigger(newResource);
 
@@ -665,7 +665,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         transaction.delete(getObject());
-        audit(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
+        auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
         runTriggers(OnDelete.class);
     }
 
@@ -1275,7 +1275,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
-                audit(new ChangeSpec(this, collectionName, original, collection));
+                auditField(new ChangeSpec(this, collectionName, original, collection));
                 return true;
             }
         }
@@ -1305,7 +1305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         collection.remove(toDelete.getObject());
-        audit(new ChangeSpec(this, collectionName, original, collection));
+        auditField(new ChangeSpec(this, collectionName, original, collection));
     }
 
     /**
@@ -1336,7 +1336,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         runTriggers(OnUpdate.class, fieldName);
         this.requestScope.queueCommitTrigger(this, fieldName);
-        audit(new ChangeSpec(this, fieldName, original, value));
+        auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass) {
@@ -1653,14 +1653,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param changeSpec Change spec for audit
      */
-    protected void audit(ChangeSpec changeSpec) {
+    protected void auditField(final ChangeSpec changeSpec) {
         final String fieldName = changeSpec.getFieldName();
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
         );
 
-        if (annotations == null) {
+        if (annotations == null || annotations.length == 0) {
+            // Default to class-level annotation for action
+            auditClass(Audit.Action.UPDATE, changeSpec);
             return;
         }
         for (Audit annotation : annotations) {
@@ -1678,7 +1680,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param action the action
      */
-    protected void audit(Audit.Action action, ChangeSpec changeSpec) {
+    protected void auditClass(Audit.Action action, ChangeSpec changeSpec) {
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {
