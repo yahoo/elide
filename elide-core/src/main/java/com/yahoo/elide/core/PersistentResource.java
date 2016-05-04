@@ -116,7 +116,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         T obj = tx.createObject(entityClass);
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
-        newResource.audit(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
+        newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
         newResource.runTriggers(OnCreate.class);
         requestScope.queueCommitTrigger(newResource);
 
@@ -330,7 +330,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             this.markDirty();
-            audit(fieldName);
             return true;
         }
         return false;
@@ -446,7 +445,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!updated.isEmpty()) {
             this.markDirty();
         }
-        audit(fieldName);
 
         return !updated.isEmpty();
     }
@@ -496,7 +494,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.setValueChecked(fieldName, newValue);
 
         this.markDirty();
-        audit(fieldName);
         return true;
     }
 
@@ -546,7 +543,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        audit(relationName);
         return true;
     }
 
@@ -597,8 +593,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (original != modified && original != null && !original.equals(modified)) {
             this.markDirty();
         }
-
-        audit(fieldName);
     }
 
     /**
@@ -622,8 +616,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             updateRelation(fieldName, Collections.singleton(newRelation));
             return;
         }
-
-        audit(fieldName);
     }
 
     /**
@@ -673,7 +665,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         transaction.delete(getObject());
-        audit(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
+        auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
         runTriggers(OnDelete.class);
     }
 
@@ -1217,11 +1209,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param newValue the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
-        final Object original = getValueUnchecked(fieldName);
-        final ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, newValue);
-        checkFieldAwareDeferPermissions(UpdatePermission.class, changeSpec);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, getValueUnchecked(fieldName));
         setValue(fieldName, newValue);
-        audit(fieldName, changeSpec);
     }
 
     /**
@@ -1269,12 +1258,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if added to collection false otherwise (i.e. element already in collection)
      */
     protected boolean addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
-        Collection singleton = Collections.singleton(toAdd.getObject());
+        final Collection singleton = Collections.singleton(toAdd.getObject());
+        final Collection original = copyCollection(collection);
         checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
                 collectionName,
                 CollectionUtils.union(CollectionUtils.emptyIfNull(collection), singleton),
-                copyCollection(collection));
+                original);
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
             Object value = getValueUnchecked(collectionName);
@@ -1285,6 +1275,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
+                auditField(new ChangeSpec(this, collectionName, original, collection));
                 return true;
             }
         }
@@ -1298,10 +1289,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param toDelete the to delete
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
+        final Collection original = copyCollection(collection);
         checkFieldAwareDeferPermissions(UpdatePermission.class,
                 collectionName,
                 CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
-                copyCollection(collection));
+                original);
 
         String inverseField = getInverseRelationField(collectionName);
         if (!inverseField.isEmpty()) {
@@ -1312,8 +1304,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return;
         }
 
-
         collection.remove(toDelete.getObject());
+        auditField(new ChangeSpec(this, collectionName, original, collection));
     }
 
     /**
@@ -1323,6 +1315,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void setValue(String fieldName, Object value) {
         Class<?> targetClass = obj.getClass();
+        final Object original = getValueUnchecked(fieldName);
         try {
             Class<?> fieldClass = dictionary.getType(targetClass, fieldName);
             String realName = dictionary.getNameFromAlias(obj, fieldName);
@@ -1343,6 +1336,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         runTriggers(OnUpdate.class, fieldName);
         this.requestScope.queueCommitTrigger(this, fieldName);
+        auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass) {
@@ -1616,14 +1610,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
-    private <A extends Annotation> void checkFieldAwareDeferPermissions(final Class<A> annotationClass,
-                                                                        final ChangeSpec changeSpec) {
-        checkFieldAwareDeferPermissions(annotationClass,
-                changeSpec.getFieldName(),
-                changeSpec.getModified(),
-                changeSpec.getOriginal());
-    }
-
     private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
                                                                         String fieldName,
                                                                         Object modified,
@@ -1663,31 +1649,25 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Audit an action on a field.
-     * @param fieldName the field name
-     */
-    protected void audit(String fieldName) {
-        audit(fieldName, null);
-    }
-
-    /**
      * Audit an action on field.
      *
-     * @param fieldName field name being audited
      * @param changeSpec Change spec for audit
      */
-    protected void audit(String fieldName, ChangeSpec changeSpec) {
+    protected void auditField(final ChangeSpec changeSpec) {
+        final String fieldName = changeSpec.getFieldName();
         Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
                 Audit.class,
                 fieldName
         );
 
-        if (annotations == null) {
+        if (annotations == null || annotations.length == 0) {
+            // Default to class-level annotation for action
+            auditClass(Audit.Action.UPDATE, changeSpec);
             return;
         }
         for (Audit annotation : annotations) {
             if (annotation.action().length == 1 && annotation.action()[0] == Audit.Action.UPDATE) {
-                LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
+                LogMessage message = new LogMessage(annotation, this, Optional.of(changeSpec));
                 getRequestScope().getAuditLogger().log(message);
             } else {
                 throw new InvalidSyntaxException("Only Audit.Action.UPDATE is allowed on fields.");
@@ -1700,7 +1680,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param action the action
      */
-    protected void audit(Audit.Action action, ChangeSpec changeSpec) {
+    protected void auditClass(Audit.Action action, ChangeSpec changeSpec) {
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {

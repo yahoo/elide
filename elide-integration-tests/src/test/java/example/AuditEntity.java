@@ -18,7 +18,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import java.util.List;
 
 @Entity
 @Audit(action = Audit.Action.CREATE,
@@ -34,6 +36,7 @@ public class AuditEntity {
     private Long id;
     private AuditEntity otherEntity;
     private String value;
+    private List<AuditEntityInverse> inverses;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,6 +69,18 @@ public class AuditEntity {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @ManyToMany(mappedBy = "entities")
+    @Audit(action = Audit.Action.UPDATE,
+            logStatement = "Entity with id {0} now has inverse list {1}",
+            logExpressions = {"${auditEntity.id}", "${auditEntity.inverses}"})
+    public List<AuditEntityInverse> getInverses() {
+        return inverses;
+    }
+
+    public void setInverses(List<AuditEntityInverse> inverses) {
+        this.inverses = inverses;
     }
 
     @Override

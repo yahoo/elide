@@ -1401,7 +1401,7 @@ public class PersistentResourceTest extends PersistentResource {
         PersistentResource<Child> childResource = new PersistentResource<>(
                 parentResource, child, getUserScope(goodUser, logger));
 
-        childResource.audit("name");
+        childResource.auditField(new ChangeSpec(childResource, "name", parent, null));
 
         Assert.assertEquals(logger.getMessages().size(), 1, "One message should be logged");
 
@@ -1410,6 +1410,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         Assert.assertEquals(message.getOperationCode(), 1, "Operation code should match");
     }
+
     @Test
     public void testClassLevelAudit() throws Exception {
         Child child = newChild(5);
@@ -1428,7 +1429,7 @@ public class PersistentResourceTest extends PersistentResource {
                 getUserScope(goodUser, logger)
         );
 
-        childResource.audit(Audit.Action.CREATE, new ChangeSpec(childResource, null, null, childResource.getObject()));
+        childResource.auditClass(Audit.Action.CREATE, new ChangeSpec(childResource, null, null, childResource.getObject()));
 
         Assert.assertEquals(logger.getMessages().size(), 1, "One message should be logged");
 

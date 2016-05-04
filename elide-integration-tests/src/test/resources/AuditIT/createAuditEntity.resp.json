@@ -8,6 +8,9 @@
     "relationships": {
       "otherEntity": {
         "data": null
+      },
+      "inverses": {
+        "data": []
       }
     }
   }
