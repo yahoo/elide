@@ -32,7 +32,7 @@ public class JsonApiMapper {
     public JsonApiMapper(EntityDictionary dictionary) {
         mapper = new ObjectMapper();
         mapper.registerModule(JsonApiSerializer.getModule(dictionary));
-        DateFormat myDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        DateFormat myDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
         mapper.setDateFormat(myDateFormat);
     }
 
