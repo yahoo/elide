@@ -1582,6 +1582,20 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
+    @Test
+    public void testPatchDeferredOnCreate() {
+        String request = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/testPatchDeferredOnCreate.json");
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .body(request)
+            .patch("/")
+            .then()
+            .statusCode(HttpStatus.SC_FORBIDDEN)
+            .body(equalTo(expected));
+    }
+
     // TODO: Test that user checks still apply at commit time
 
     @Test

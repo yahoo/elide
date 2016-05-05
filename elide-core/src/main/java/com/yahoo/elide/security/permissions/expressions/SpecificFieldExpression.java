@@ -34,4 +34,10 @@ public class SpecificFieldExpression implements Expression {
 
         return fieldExpression.get().evaluate();
     }
+
+
+    @Override
+    public String toString() {
+        return "FIELD (" + entityExpression + " : " + fieldExpression + ")";
+    }
 }

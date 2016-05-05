@@ -399,7 +399,7 @@ public class Elide {
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
                 PatchRequestScope patchRequestScope = new PatchRequestScope(
-                        transaction, user, dictionary, mapper, auditLogger);
+                        transaction, user, dictionary, mapper, auditLogger, permissionExecutor);
                 requestScope = patchRequestScope;
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
