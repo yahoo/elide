@@ -1,32 +1,5 @@
-[
-    {
-        "data":{
-            "type":"createButNoRead",
-            "id":"1",
-            "relationships":{
-                "otherObjects":{
-                    "data":[
-                        {
-                            "type":"createButNoReadChild",
-                            "id":"1"
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    {
-        "data":{
-            "type":"createButNoReadChild",
-            "id":"1",
-            "relationships":{
-                "otherObject":{
-                    "data":{
-                        "type":"createButNoRead",
-                        "id":"1"
-                    }
-                }
-            }
-        }
-    }
-]
+{
+  "errors": [
+    "ForbiddenAccessException"
+  ]
+}

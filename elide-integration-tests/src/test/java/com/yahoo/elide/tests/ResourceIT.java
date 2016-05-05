@@ -1592,7 +1592,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .patch("/")
             .then()
-            .statusCode(HttpStatus.SC_OK)
+            .statusCode(HttpStatus.SC_FORBIDDEN)
             .body(equalTo(expected));
     }
 
