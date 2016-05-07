@@ -17,7 +17,15 @@ This example demonstrates how to use the dropwizard-elide bundle.
 
         ~/elide $ mvn install
         ~/elide $ cd elide-example/dropwizard-elide-example
-        ~/elide/elide-example/dropwizard-elide-example $ java -jar target/dropwizard-elide-example-2.3.0-SNAPSHOT.jar server example.yml
+        ~/elide/elide-example/dropwizard-elide-example $ java -jar target/dropwizard-elide-example-{version}-SNAPSHOT.jar server example.yml
+
+   Replace {version} with appropriate value, which can be found under ./target
+
+   The output of the last command will have a line at the very bottom like this
+
+        INFO  [2016-05-07 21:25:09,453] org.eclipse.jetty.server.ServerConnector: Started application@***{HTTP/1.1}{0.0.0.0:{port}}
+
+   The application starts listening at prot {port}. This port number varies in different machines. You will need to use the right port number according to your output for our following examples. Let's take {port}=8080 for an example.
 
 5. Create an author
 
