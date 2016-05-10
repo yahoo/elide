@@ -49,6 +49,7 @@
         <module>elide-datastore-hibernate3</module>
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
+        <module>elide-datastore-kundera</module>
     </modules>
 
     <dependencyManagement>
