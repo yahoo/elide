@@ -17,7 +17,15 @@ This example demonstrates how to use the dropwizard-elide bundle.
 
         ~/elide $ mvn install
         ~/elide $ cd elide-example/dropwizard-elide-example
-        ~/elide/elide-example/dropwizard-elide-example $ java -jar target/dropwizard-elide-example-2.3.0-SNAPSHOT.jar server example.yml
+        ~/elide/elide-example/dropwizard-elide-example $ java -jar target/dropwizard-elide-example-{version}-SNAPSHOT.jar server example.yml
+
+   Replace {version} with appropriate value, which can be found under ./target
+
+   The output of the last command will have a line at the very bottom like this
+
+        INFO  [2016-05-07 21:25:09,453] org.eclipse.jetty.server.ServerConnector: Started application@***{HTTP/1.1}{0.0.0.0:{port}}
+
+   The application starts listening at port {port}. This port number is specified in [configuration file](https://github.com/yahoo/elide/blob/master/elide-example/dropwizard-elide-example/example.yml). Let's take {port}=4080 for an example.
 
 5. Create an author
 
@@ -29,7 +37,7 @@ This example demonstrates how to use the dropwizard-elide bundle.
               "name": "Ernest Hemingway"
             }
           }
-        }' -X POST http://localhost:8080/author
+        }' -X POST http://localhost:4080/author
 
 6. Create a book
 
@@ -43,7 +51,7 @@ This example demonstrates how to use the dropwizard-elide bundle.
               "language": "English"
             }
           }
-        }' -X POST http://localhost:8080/book
+        }' -X POST http://localhost:4080/book
 
 7. Associate the author and book
 
@@ -52,10 +60,10 @@ This example demonstrates how to use the dropwizard-elide bundle.
             "id": "1",
             "type": "author"
           }
-        }' -X PATCH http://localhost:8080/book/1/relationships/authors
+        }' -X PATCH http://localhost:4080/book/1/relationships/authors
 
 8. Get books
 
-        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' http://localhost:8080/book/
+        $ curl -H'Content-Type: application/vnd.api+json' -H'Accept: application/vnd.api+json' http://localhost:4080/book/
 
 You can also load some pre-configured authors and books using `load_elide.sh` in `/scripts`
