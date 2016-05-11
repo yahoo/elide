@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.security.executors;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -25,6 +22,7 @@ import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressi
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -33,10 +31,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+
 /**
  * Default permission executor.
  * This executor executes all security checks as outlined in the documentation.
  */
+@Slf4j
 public class ActivePermissionExecutor implements PermissionExecutor {
     private final Queue<QueuedCheck> commitCheckQueue = new LinkedBlockingQueue<>();
 
@@ -200,10 +202,13 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public void executeCommitChecks() {
         commitCheckQueue.forEach((expr) -> {
-            ExpressionResult result = expr.getExpression().evaluate();
-            if (result.getStatus() == FAIL) {
-                throw new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName()
-                        + " " + result.getFailureMessage());
+            Expression expression = expr.getExpression();
+            ExpressionResult result = expression.evaluate();
+            if (result == FAIL) {
+                ForbiddenAccessException e = new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName(),
+                        expression);
+                log.trace("{}", e.getLoggedMessage());
+                throw e;
             }
         });
         commitCheckQueue.clear();
@@ -246,23 +251,29 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     private void executeExpressions(final Expressions expressions,
                                     final Class<? extends Annotation> annotationClass) {
-        ExpressionResult result = expressions.getOperationExpression().evaluate();
-        if (result.getStatus() == DEFERRED) {
+        Expression expression = expressions.getOperationExpression();
+        ExpressionResult result = expression.evaluate();
+        if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
                 if (isInlineOnlyCheck(annotationClass)) {
                     // Force evaluation of checks that can only be executed inline.
                     result = commitExpression.evaluate();
-                    if (result.getStatus() == FAIL) {
-                        throw new ForbiddenAccessException(annotationClass.getSimpleName()
-                                + " " + result.getFailureMessage());
+                    if (result == FAIL) {
+                        ForbiddenAccessException e = new ForbiddenAccessException(
+                                annotationClass.getSimpleName(),
+                                commitExpression);
+                        log.trace("{}", e.getLoggedMessage());
+                        throw e;
                     }
                 } else {
                     commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
                 }
             }
-        } else if (result.getStatus() == FAIL) {
-            throw new ForbiddenAccessException(annotationClass.getSimpleName() + " " + result.getFailureMessage());
+        } else if (result == FAIL) {
+            ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(), expression);
+            log.trace("{}", e.getLoggedMessage());
+            throw e;
         }
     }
 
@@ -294,8 +305,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                     PersistentResource resource) {
         if (SharePermission.class == annotationClass
                 && !requestScope.getDictionary().isShareable(resource.getResourceClass())) {
-            requestScope.logAuthFailure(null, resource.getType(), resource.getId());
-            throw new ForbiddenAccessException("Resource Not Shareable");
+            ForbiddenAccessException e = new ForbiddenAccessException("Resource Not Shareable");
+            log.debug("{}", e.getLoggedMessage());
+            throw e;
         }
     }
 
@@ -315,8 +327,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private <A extends Annotation> void checkIsValidSharePermission(Class<A> annotationClass,
                                                                     Class<?> resourceClass) {
         if (SharePermission.class == annotationClass && !requestScope.getDictionary().isShareable(resourceClass)) {
-            requestScope.logAuthFailure(null, resourceClass.toString(), "unknown");
-            throw new ForbiddenAccessException("Resource Not Shareable");
+            ForbiddenAccessException e = new ForbiddenAccessException("Resource Not Shareable");
+            log.debug("{}", e.getLoggedMessage());
+            throw e;
         }
     }
 

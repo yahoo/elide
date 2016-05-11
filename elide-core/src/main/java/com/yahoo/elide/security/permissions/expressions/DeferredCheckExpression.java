@@ -14,7 +14,7 @@ import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 
 /**
  * Expression for only executing operation checks and skipping commit checks.
@@ -41,8 +41,9 @@ public class DeferredCheckExpression extends ImmediateCheckExpression {
     @Override
     public ExpressionResult evaluate() {
         if (check instanceof CommitCheck) {
+            result = DEFERRED;
             log.debug("Deferring check: {}", check);
-            return DEFERRED_RESULT;
+            return result;
         }
         return super.evaluate();
     }

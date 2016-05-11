@@ -117,6 +117,7 @@ public class PermissionExecutorTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "allVisible");
+        //requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, ReadPermission.class, "allVisible");
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
@@ -377,8 +378,8 @@ public class PermissionExecutorTest {
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(cls);
         dictionary.getCheckMappings().put("FailAtCommit", FailingCommitCheck.class);
+        dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }

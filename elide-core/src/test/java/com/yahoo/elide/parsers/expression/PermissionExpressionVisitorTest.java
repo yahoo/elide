@@ -18,7 +18,6 @@ import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
-import com.yahoo.elide.security.permissions.ExpressionResult.Status;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import lombok.AllArgsConstructor;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -32,8 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-
 /**
  * Test the expression language.
  */
@@ -44,9 +41,7 @@ public class PermissionExpressionVisitorTest {
     public void setupEntityDictionary() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("Allow", Permissions.Succeeds.class);
-        checks.put("A", Permissions.Succeeds.class);
         checks.put("Deny", Permissions.Fails.class);
-        checks.put("d", Permissions.Fails.class);
         checks.put("user has all access", Role.ALL.class);
         checks.put("user has no access", Role.NONE.class);
 
@@ -58,39 +53,39 @@ public class PermissionExpressionVisitorTest {
     @Test
     public void testAndExpression() {
         Expression expression = getExpressionForPermission(ReadPermission.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
     }
 
     @Test
     public void testOrExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
     }
 
     @Test
     public void testNotExpression() {
         Expression expression = getExpressionForPermission(DeletePermission.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
     }
 
     @Test
     public void testComplexExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
     }
 
     @Test
     public void testComplexModelCreate() {
         Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
     }
 
     @Test
     public void testNamesWithSpaces() {
         Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
         Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), PASS_RESULT);
-        Assert.assertEquals(expression2.evaluate(), PASS_RESULT);
+        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression2.evaluate(), ExpressionResult.PASS);
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
@@ -106,9 +101,9 @@ public class PermissionExpressionVisitorTest {
 
     @Entity
     @Include
-    @ReadPermission(expression = "Prefab.Role.All AND Allow")
-    @UpdatePermission(expression = "A or Deny")
-    @DeletePermission(expression = "Not d")
+    @ReadPermission(expression = "user has all access AND Allow")
+    @UpdatePermission(expression = "Allow or Deny")
+    @DeletePermission(expression = "Not Deny")
     @CreatePermission(expression = "not Allow or not (Deny and Allow)")
     static class Model {
     }
@@ -151,9 +146,9 @@ public class PermissionExpressionVisitorTest {
             }
 
             if (result) {
-                return PASS_RESULT;
+                return ExpressionResult.PASS;
             } else {
-                return new ExpressionResult(Status.FAIL, "Check returned false");
+                return ExpressionResult.FAIL;
             }
         }
     }

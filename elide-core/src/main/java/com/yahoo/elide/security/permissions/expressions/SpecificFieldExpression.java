@@ -6,10 +6,12 @@
 package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.PermissionCondition;
+import lombok.Getter;
 
 import java.util.Optional;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 /**
  * Expression for joining specific fields.
@@ -20,8 +22,12 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
 public class SpecificFieldExpression implements Expression {
     private final Expression entityExpression;
     private final Optional<Expression> fieldExpression;
+    @Getter private final PermissionCondition condition;
 
-    public SpecificFieldExpression(final Expression entityExpression, final Expression fieldExpression) {
+    public SpecificFieldExpression(final PermissionCondition condition,
+                                   final Expression entityExpression,
+                                   final Expression fieldExpression) {
+        this.condition = condition;
         this.entityExpression = entityExpression;
         this.fieldExpression = Optional.ofNullable(fieldExpression);
     }
@@ -29,15 +35,31 @@ public class SpecificFieldExpression implements Expression {
     @Override
     public ExpressionResult evaluate() {
         if (!fieldExpression.isPresent()) {
-            return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
+            ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate();
+            return entityResult;
+        } else {
+            ExpressionResult fieldResult = fieldExpression.get().evaluate();
+            return fieldResult;
         }
-
-        return fieldExpression.get().evaluate();
     }
 
 
     @Override
     public String toString() {
-        return "FIELD (" + entityExpression + " : " + fieldExpression + ")";
+        if (entityExpression == null && !fieldExpression.isPresent()) {
+            return String.format("%s FOR EXPRESSION []", condition);
+        }
+
+        if (!fieldExpression.isPresent()) {
+             return String.format(
+                    "%s FOR EXPRESSION [ENTITY(%s)]",
+                    condition,
+                    entityExpression);
+        }
+
+        return String.format(
+                    "%s FOR EXPRESSION [FIELD(%s)]",
+                    condition,
+                    fieldExpression.get());
     }
 }

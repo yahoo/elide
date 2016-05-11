@@ -25,7 +25,7 @@ public interface Expression {
         public static final Expression SUCCESS = new Expression() {
             @Override
             public ExpressionResult evaluate() {
-                return ExpressionResult.PASS_RESULT;
+                return ExpressionResult.PASS;
             }
 
             @Override
@@ -36,7 +36,7 @@ public interface Expression {
         public static final Expression FAILURE = new Expression() {
             @Override
             public ExpressionResult evaluate() {
-                return new ExpressionResult(ExpressionResult.Status.FAIL);
+                return ExpressionResult.FAIL;
             }
 
             @Override

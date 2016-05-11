@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
@@ -17,8 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 /**
  * Expression for executing all specified checks.
@@ -29,6 +30,7 @@ public class ImmediateCheckExpression implements Expression {
     protected final PersistentResource resource;
     protected final RequestScope requestScope;
     protected final ExpressionResultCache cache;
+    protected ExpressionResult result;
 
     private final Optional<ChangeSpec> changeSpec;
 
@@ -50,6 +52,7 @@ public class ImmediateCheckExpression implements Expression {
         this.requestScope = requestScope;
         this.changeSpec = Optional.ofNullable(changeSpec);
         this.cache = cache;
+        this.result = UNEVALUATED;
 
         // UserCheck does not use resource
         this.resource = (check instanceof UserCheck) ? null : resource;
@@ -92,35 +95,13 @@ public class ImmediateCheckExpression implements Expression {
      */
     private ExpressionResult computeCheck() {
         Object entity = (resource == null) ? null : resource.getObject();
-        return check.ok(entity, requestScope, changeSpec) ? PASS_RESULT : getFailureResult();
-    }
-
-    /**
-     * Produce a failure result containing informative message.
-     *
-     * @return Expression result representing failure.
-     */
-    private ExpressionResult getFailureResult() {
-        String failure = null;
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE) {
-            failure = "Check failed: "
-                        + ((check == null) ? null : check.getClass().getName())
-                        + " for object: "
-                        + ((resource == null) ? "[resource was null-- user check?]" : resource.getObject());
-        }
-
-        com.yahoo.elide.core.RequestScope internalScope = (com.yahoo.elide.core.RequestScope) requestScope;
-        if (resource == null) {
-            internalScope.logAuthFailure(check.getClass());
-        } else {
-            internalScope.logAuthFailure(check.getClass(), resource.getType(), resource.getId());
-        }
-
-        return new ExpressionResult(FAIL, failure);
+        result = check.ok(entity, requestScope, changeSpec) ? PASS : FAIL;
+        return result;
     }
 
     @Override
     public String toString() {
-        return "(" + check.checkIdentifier() + ")";
+        EntityDictionary dictionary = ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary();
+        return String.format("(%s %s)", dictionary.getCheckIdentifier(check.getClass()), result);
     }
 }

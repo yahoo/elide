@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -52,7 +55,7 @@ public class EntityDictionary {
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
-    protected final ConcurrentHashMap<String, Class<? extends Check>> checkNames;
+    protected final BiMap<String, Class<? extends Check>> checkNames;
 
     /**
      * Instantiates a new Entity dictionary.
@@ -72,16 +75,21 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        checkNames = new ConcurrentHashMap<>(checks);
-        addPrefabChecks();
+        checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+
+        addPrefabCheck("Prefab.Role.All", Role.ALL.class);
+        addPrefabCheck("Prefab.Role.None", Role.NONE.class);
+        addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
+        addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
+        addPrefabCheck("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
     }
 
-    private void addPrefabChecks() {
-        checkNames.putIfAbsent("Prefab.Role.All", Role.ALL.class);
-        checkNames.putIfAbsent("Prefab.Role.None", Role.NONE.class);
-        checkNames.putIfAbsent("Prefab.Collections.AppendOnly", AppendOnly.class);
-        checkNames.putIfAbsent("Prefab.Collections.RemoveOnly", RemoveOnly.class);
-        checkNames.putIfAbsent("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
+    private void addPrefabCheck(String alias, Class<? extends Check> checkClass) {
+        if (checkNames.containsKey(alias) || checkNames.inverse().containsKey(checkClass)) {
+            return;
+        }
+
+        checkNames.put(alias, checkClass);
     }
 
     private static Package getParentPackage(Package pkg) {
@@ -188,7 +196,12 @@ public class EntityDictionary {
         if (checkCls == null) {
             try {
                 checkCls = (Class<? extends Check>) Class.forName(checkIdentifier);
-                checkNames.putIfAbsent(checkIdentifier, checkCls);
+                try {
+                    checkNames.putIfAbsent(checkIdentifier, checkCls);
+                } catch (IllegalArgumentException e) {
+                    log.error("HELP! {} {} {}", checkIdentifier, checkCls, checkNames.inverse().get(checkCls));
+                    throw e;
+                }
             } catch (ClassNotFoundException | ClassCastException e) {
                 throw new IllegalArgumentException(
                         "Could not instantiate specified check '" + checkIdentifier + "'.", e);
@@ -196,6 +209,20 @@ public class EntityDictionary {
         }
 
         return checkCls;
+    }
+
+    /**
+     * Returns the friendly named mapped to this given check.
+     * @param checkClass The class to lookup
+     * @return the friendly name of the check.
+     */
+    public String getCheckIdentifier(Class<? extends Check> checkClass) {
+        String identifier = checkNames.inverse().get(checkClass);
+
+        if (identifier == null) {
+            return checkClass.getName();
+        }
+        return identifier;
     }
 
     /**
@@ -550,7 +577,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(cls, type));
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }

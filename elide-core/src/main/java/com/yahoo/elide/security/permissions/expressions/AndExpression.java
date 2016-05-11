@@ -7,11 +7,9 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.PASS;
-
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 /**
  * Representation for an "And" expression.
  */
@@ -32,28 +30,32 @@ public class AndExpression implements Expression {
 
     @Override
     public ExpressionResult evaluate() {
-        final ExpressionResult leftResult = left.evaluate();
+        ExpressionResult leftStatus = left.evaluate();
 
         // Short-circuit
-        if (leftResult.getStatus() == FAIL) {
-            return leftResult;
+        if (leftStatus == FAIL) {
+            return leftStatus;
         }
 
-        final ExpressionResult rightResult = (right == null) ? PASS_RESULT : right.evaluate();
+        ExpressionResult rightStatus = (right == null) ? PASS : right.evaluate();
 
-        if (rightResult.getStatus() == FAIL) {
-            return rightResult;
+        if (rightStatus == FAIL) {
+            return rightStatus;
         }
 
-        if (leftResult.getStatus() == PASS && rightResult.getStatus() == PASS) {
-            return PASS_RESULT;
+        if (leftStatus == PASS && rightStatus == PASS) {
+            return PASS;
         }
 
-        return DEFERRED_RESULT;
+        return DEFERRED;
     }
 
     @Override
     public String toString() {
-        return "(" + left + ") AND (" + right + ")";
+        if (right == null) {
+            return String.format("%s", left);
+
+        }
+        return String.format("(%s) AND (%s)", left, right);
     }
 }

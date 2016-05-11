@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
@@ -34,6 +35,10 @@ public class EntityDictionaryTest extends EntityDictionary {
     //Test class to validate inheritance logic
     private class Friend extends Child { }
 
+    public EntityDictionaryTest() {
+        super(Collections.EMPTY_MAP);
+    }
+
     @BeforeTest
     public void init() {
         this.bindEntity(FunWithPermissions.class);
@@ -45,6 +50,14 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(StringId.class);
         this.bindEntity(Friend.class);
         this.bindEntity(FieldAnnotations.class);
+
+        checkNames.forcePut("user has all access", Role.ALL.class);
+    }
+
+    @Test
+    public void testFindCheckByExpression() {
+        Assert.assertEquals(getCheckIdentifier(Role.ALL.class), "user has all access");
+        Assert.assertEquals(getCheckIdentifier(Role.NONE.class), "Prefab.Role.None");
     }
 
     @Test
