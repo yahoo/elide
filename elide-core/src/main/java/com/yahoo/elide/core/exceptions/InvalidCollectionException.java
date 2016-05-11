@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -17,11 +17,6 @@ public class InvalidCollectionException extends HttpStatusException {
     }
 
     public InvalidCollectionException(String format, String collection) {
-        super(String.format(format,  collection));
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_NOT_FOUND;
+        super(HttpStatus.SC_NOT_FOUND, String.format(format,  collection));
     }
 }

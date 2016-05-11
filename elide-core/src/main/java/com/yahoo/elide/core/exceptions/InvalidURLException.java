@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -15,11 +15,6 @@ public class InvalidURLException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InvalidURLException(Exception e) {
-        super(e.getMessage());
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_NOT_FOUND;
+        super(HttpStatus.SC_NOT_FOUND, e.getMessage());
     }
 }
