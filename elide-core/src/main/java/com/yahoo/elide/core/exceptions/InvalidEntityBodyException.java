@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -15,11 +15,6 @@ public class InvalidEntityBodyException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InvalidEntityBodyException(String body) {
-        super("Bad Request Body'" + body + "'");
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_BAD_REQUEST;
+        super(HttpStatus.SC_BAD_REQUEST, "Bad Request Body'" + body + "'");
     }
 }

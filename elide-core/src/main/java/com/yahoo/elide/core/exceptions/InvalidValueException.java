@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -14,19 +14,14 @@ import com.yahoo.elide.core.HttpStatus;
 public class InvalidValueException extends HttpStatusException {
 
     public InvalidValueException(Object value) {
-        super("Invalid value: " + value.toString());
+        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value.toString());
     }
 
     public InvalidValueException(Object value, String verboseMessage) {
-        super("Invalid value: " + value.toString(), verboseMessage);
+        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value.toString(), verboseMessage);
     }
 
     public InvalidValueException(String message, Throwable cause) {
-        super(message, null, cause);
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_BAD_REQUEST;
+        super(HttpStatus.SC_BAD_REQUEST, message, null, cause);
     }
 }

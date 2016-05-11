@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -16,14 +16,9 @@ public class InternalServerErrorException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InternalServerErrorException(String message) {
-        super(message);
+        super(HttpStatus.SC_INTERNAL_SERVER_ERROR, message);
     }
     public InternalServerErrorException(Exception e) {
-        super(e.toString(), null, e);
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_INTERNAL_SERVER_ERROR;
+        super(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString(), null, e);
     }
 }

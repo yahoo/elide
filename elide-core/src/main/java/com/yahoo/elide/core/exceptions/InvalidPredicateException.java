@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -12,15 +12,10 @@ import com.yahoo.elide.core.HttpStatus;
  */
 public class InvalidPredicateException extends HttpStatusException {
     public InvalidPredicateException(String message) {
-        super(message);
+        super(HttpStatus.SC_BAD_REQUEST, message);
     }
 
     public InvalidPredicateException(String message, Throwable cause) {
-        super(message, null, cause);
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_BAD_REQUEST;
+        super(HttpStatus.SC_BAD_REQUEST, message, null, cause);
     }
 }

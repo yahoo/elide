@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -19,27 +19,32 @@ import java.util.Map;
  * Creates fast exceptions without stack traces since filter checks can throw many of these.
  */
 @Slf4j
-public abstract class HttpStatusException extends RuntimeException {
+public class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    protected final int status;
 
-    public abstract int getStatus();
+    public int getStatus() {
+        return status;
+    }
+
     private final String verboseMessage;
 
-    public HttpStatusException() {
-        this(null);
+    public HttpStatusException(int status) {
+        this(status, null);
     }
 
-    public HttpStatusException(String message) {
-        this(message, null);
+    public HttpStatusException(int status, String message) {
+        this(status, message, null);
     }
 
-    public HttpStatusException(String message, String verboseMessage) {
-        this(message, verboseMessage, null);
+    public HttpStatusException(int status, String message, String verboseMessage) {
+        this(status, message, verboseMessage, null);
     }
 
-    public HttpStatusException(String message, String verboseMessage, Throwable cause) {
+    public HttpStatusException(int status, String message, String verboseMessage, Throwable cause) {
         super(message, cause, true, log.isTraceEnabled());
+        this.status = status;
         this.verboseMessage = verboseMessage;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -15,11 +15,6 @@ public class InvalidObjectIdentifierException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public InvalidObjectIdentifierException(String id, String objectOrFieldName) {
-        super("Unknown identifier '" + id + "' for " + objectOrFieldName);
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_NOT_FOUND;
+        super(HttpStatus.SC_NOT_FOUND, "Unknown identifier '" + id + "' for " + objectOrFieldName);
     }
 }

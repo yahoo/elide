@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -13,15 +13,10 @@ import com.yahoo.elide.core.HttpStatus;
  */
 public class InvalidAttributeException extends HttpStatusException {
     public InvalidAttributeException(String attributeName, String type) {
-        super("Unknown attribute '" + attributeName + "' in " + "'" + type + "'");
+        super(HttpStatus.SC_NOT_FOUND, "Unknown attribute '" + attributeName + "' in " + "'" + type + "'");
     }
 
     public InvalidAttributeException(String message, Throwable cause) {
-        super(message, null, cause);
-    }
-
-    @Override
-    public int getStatus() {
-        return HttpStatus.SC_NOT_FOUND;
+        super(HttpStatus.SC_NOT_FOUND, message, null, cause);
     }
 }
