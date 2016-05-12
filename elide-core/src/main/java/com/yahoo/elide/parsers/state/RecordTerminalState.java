@@ -7,7 +7,6 @@ package com.yahoo.elide.parsers.state;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -63,7 +62,6 @@ public class RecordTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) {
-        final JsonNode empty = JsonNodeFactory.instance.nullNode();
         JsonApiDocument jsonApiDocument = state.getJsonApiDocument();
 
         Data<Resource> data = jsonApiDocument.getData();
@@ -82,7 +80,7 @@ public class RecordTerminalState extends BaseState {
         }
 
         patch(resource, state.getRequestScope());
-        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, empty);
+        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     @Override
