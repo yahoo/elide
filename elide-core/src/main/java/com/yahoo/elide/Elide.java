@@ -566,7 +566,7 @@ public class Elide {
         try {
             JsonNode responseNode = response.getRight();
             Integer responseCode = response.getLeft();
-            String body = mapper.writeJsonApiDocument(responseNode);
+            String body = responseNode == null ? null : mapper.writeJsonApiDocument(responseNode);
             return new ElideResponse(responseCode, body);
         } catch (JsonProcessingException e) {
             return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
