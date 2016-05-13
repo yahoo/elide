@@ -273,10 +273,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
-            traceLogSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
-            debugLogSecurityExceptions(requestScope);
+            log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, isVerbose);
@@ -341,10 +340,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
-            traceLogSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
-            debugLogSecurityExceptions(requestScope);
+            log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, isVerbose);
@@ -418,10 +416,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
-            traceLogSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
-            debugLogSecurityExceptions(requestScope);
+            log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
         } catch (JsonPatchExtensionException e) {
             return buildResponse(e.getResponse());
@@ -491,10 +488,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
-            traceLogSecurityExceptions(requestScope);
             return response;
         } catch (ForbiddenAccessException e) {
-            debugLogSecurityExceptions(requestScope);
+            log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, isVerbose);
@@ -544,18 +540,6 @@ public class Elide {
         CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
         parser.setErrorHandler(new BailErrorStrategy());
         return parser.start();
-    }
-
-    protected void traceLogSecurityExceptions(RequestScope scope) {
-        if (scope != null && log.isTraceEnabled())  {
-            log.trace(scope.getAuthFailureReason());
-        }
-    }
-
-    protected void debugLogSecurityExceptions(RequestScope scope) {
-        if (scope != null && log.isDebugEnabled())  {
-            log.debug(scope.getAuthFailureReason());
-        }
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {

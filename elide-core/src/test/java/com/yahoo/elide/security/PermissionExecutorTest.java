@@ -377,8 +377,8 @@ public class PermissionExecutorTest {
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(cls);
         dictionary.getCheckMappings().put("FailAtCommit", FailingCommitCheck.class);
+        dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }

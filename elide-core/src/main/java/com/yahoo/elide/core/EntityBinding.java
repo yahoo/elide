@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @see com.yahoo.elide.annotation.Include#type
  */
 class EntityBinding {
+
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
 
     public final Class<?> entityClass;
@@ -55,8 +56,8 @@ class EntityBinding {
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
-    public final EntityPermissions entityPermissions;
 
+    public final EntityPermissions entityPermissions;
     public final List<String> attributes;
     public final List<String> relationships;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
@@ -85,7 +86,7 @@ class EntityBinding {
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
-    public EntityBinding(Class<?> cls, String type) {
+    public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type) {
         entityClass = cls;
         jsonApiType = type;
 
@@ -99,7 +100,7 @@ class EntityBinding {
 
         attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
-        entityPermissions = new EntityPermissions(cls, fieldOrMethodList);
+        entityPermissions = new EntityPermissions(dictionary, cls, fieldOrMethodList);
     }
 
     /**

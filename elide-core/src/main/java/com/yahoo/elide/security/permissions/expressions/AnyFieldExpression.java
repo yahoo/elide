@@ -6,9 +6,10 @@
 package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.PermissionCondition;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 /**
  * This check determines if an entity is accessible to the current user.
@@ -20,8 +21,12 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
 public class AnyFieldExpression implements Expression {
     private final Expression entityExpression;
     private final Expression fieldExpression;
+    private final PermissionCondition condition;
 
-    public AnyFieldExpression(final Expression entityExpression, final OrExpression fieldExpression) {
+    public AnyFieldExpression(final PermissionCondition condition,
+                              final Expression entityExpression,
+                              final OrExpression fieldExpression) {
+        this.condition = condition;
         this.entityExpression = entityExpression;
         this.fieldExpression = fieldExpression;
     }
@@ -30,15 +35,17 @@ public class AnyFieldExpression implements Expression {
     public ExpressionResult evaluate() {
         ExpressionResult fieldResult = fieldExpression.evaluate();
 
-        if (fieldResult.getStatus() != FAIL) {
+        if (fieldResult != FAIL) {
             return fieldResult;
         }
 
-        return (entityExpression == null) ? PASS_RESULT : entityExpression.evaluate();
+        ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate();
+        return entityResult;
     }
 
     @Override
     public String toString() {
-        return "ANY (" + entityExpression + " : " + fieldExpression + ")";
+        return String.format("%s FOR EXPRESSION [FIELDS(%s) OR ENTITY(%s)]",
+                condition, fieldExpression, entityExpression);
     }
 }

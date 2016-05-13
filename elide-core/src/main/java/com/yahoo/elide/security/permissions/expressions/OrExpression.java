@@ -7,10 +7,10 @@ package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS_RESULT;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.Status.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+
 /**
  * Representation of an "or" expression.
  */
@@ -36,28 +36,28 @@ public class OrExpression implements Expression {
         ExpressionResult leftResult = left.evaluate();
 
         // Short-circuit
-        if (leftResult.getStatus() == PASS) {
-            return PASS_RESULT;
+        if (leftResult == PASS) {
+            return PASS;
         }
 
         ExpressionResult rightResult = (right == null) ? leftResult : right.evaluate();
 
-        if (leftResult.getStatus() == FAIL && rightResult.getStatus() == FAIL) {
+        if (leftResult == FAIL && rightResult == FAIL) {
             return leftResult;
         }
 
-        if (rightResult.getStatus() == PASS) {
-            return PASS_RESULT;
+        if (rightResult == PASS) {
+            return PASS;
         }
 
-        return DEFERRED_RESULT;
+        return DEFERRED;
     }
 
     @Override
     public String toString() {
-        if (right == null) {
-            return String.valueOf(left);
+        if (right == null || right.equals(Results.FAILURE)) {
+            return String.format("%s", left);
         }
-        return "(" + left + ") OR (" + right + ")";
+        return String.format("(%s) OR (%s)", left, right);
     }
 }

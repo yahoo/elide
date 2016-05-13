@@ -13,7 +13,7 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED_RESULT;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 
 /**
  * Special expression that only evaluates UserChecks.
@@ -42,6 +42,7 @@ public class UserCheckOnlyExpression extends ImmediateCheckExpression {
         if (check instanceof UserCheck) {
             return super.evaluate();
         }
-        return DEFERRED_RESULT;
+        result = DEFERRED;
+        return result;
     }
 }

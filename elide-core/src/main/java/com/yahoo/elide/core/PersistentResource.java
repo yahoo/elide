@@ -80,6 +80,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final Optional<String> uuid;
     private final User user;
     private final ObjectEntityCache entityCache;
+
+    @Override
+    public String toString() {
+        String id = (uuid.isPresent()) ? uuid.get() : getId();
+        return String.format("PersistentResource { type=%s, id=%s }", type, id);
+    }
+
     private final DataStoreTransaction transaction;
     @NonNull private final RequestScope requestScope;
     private final Optional<PersistentResource<?>> parent;

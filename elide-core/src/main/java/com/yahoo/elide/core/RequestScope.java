@@ -15,7 +15,6 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
 
@@ -23,14 +22,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -51,7 +48,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
-    @Getter private final List<Supplier<String>> failedAuthorizations;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
@@ -86,7 +82,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
-        this.failedAuthorizations = new ArrayList<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.commitTriggers = new LinkedHashSet<>();
 
@@ -215,7 +210,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
-        this.failedAuthorizations = outerRequestScope.failedAuthorizations;
         this.dirtyResources = outerRequestScope.dirtyResources;
     }
 
@@ -275,31 +269,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     public void queueCommitTrigger(PersistentResource resource, String fieldName) {
         commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
-    }
-
-    public void logAuthFailure(Class<? extends Check> check, String type, String id) {
-        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s %s#%s",
-                check == null ? "" : check.getName(), type, id));
-    }
-
-    public void logAuthFailure(Class<? extends Check> check) {
-        failedAuthorizations.add(() -> String.format("ForbiddenAccess %s",
-                check == null ? "" : check.getName()));
-    }
-
-    public String getAuthFailureReason() {
-        Set<String> uniqueReasons = new HashSet<>();
-        StringBuffer buf = new StringBuffer();
-        buf.append("Failed authorization checks:\n");
-        for (Supplier<String> authorizationFailure : failedAuthorizations) {
-            String reason = authorizationFailure.get();
-            if (!uniqueReasons.contains(reason)) {
-                buf.append(authorizationFailure.get());
-                buf.append("\n");
-                uniqueReasons.add(reason);
-            }
-        }
-        return buf.toString();
     }
 
     public void saveObjects() {

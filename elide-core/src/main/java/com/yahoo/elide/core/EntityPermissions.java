@@ -36,6 +36,7 @@ import java.util.Map;
  */
 @Slf4j
 public class EntityPermissions implements CheckInstantiator {
+    private EntityDictionary dictionary;
     private static final List<Class<? extends Annotation>> PERMISSION_ANNOTATIONS = Arrays.asList(
             ReadPermission.class,
             CreatePermission.class,
@@ -68,7 +69,10 @@ public class EntityPermissions implements CheckInstantiator {
      * @param cls entity class
      * @param fieldOrMethodList list of fields/methods
      */
-    public EntityPermissions(Class<?> cls, Collection<AccessibleObject> fieldOrMethodList) {
+    public EntityPermissions(EntityDictionary dictionary,
+                             Class<?> cls,
+                             Collection<AccessibleObject> fieldOrMethodList)  {
+        this.dictionary = dictionary;
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
             ParseTree classPermission = bindClassPermissions(cls, annotationClass);
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
@@ -133,7 +137,7 @@ public class EntityPermissions implements CheckInstantiator {
         expression = Arrays.asList(allChecks)
                            .stream()
                            .map(this::instantiateCheck)
-                           .map(Check::checkIdentifier)
+                           .map(check -> dictionary.getCheckIdentifier((Class<? extends Check>) check.getClass()))
                            .reduce("",
                                    (current, next) -> current.isEmpty()
                                            ? next
