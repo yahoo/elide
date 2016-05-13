@@ -117,7 +117,6 @@ public class PermissionExecutorTest {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
         requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, new ChangeSpec(null, null, null, null), ReadPermission.class, "allVisible");
-        //requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, ReadPermission.class, "allVisible");
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 

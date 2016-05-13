@@ -58,8 +58,6 @@ class EntityBinding {
     @Getter @Setter private Initializer initializer;
 
     public final EntityPermissions entityPermissions;
-    private final EntityDictionary dictionary;
-
     public final List<String> attributes;
     public final List<String> relationships;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
@@ -86,11 +84,9 @@ class EntityBinding {
         relationships = null;
         entityClass = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
-        dictionary = null;
     }
 
     public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type) {
-        this.dictionary = dictionary;
         entityClass = cls;
         jsonApiType = type;
 
