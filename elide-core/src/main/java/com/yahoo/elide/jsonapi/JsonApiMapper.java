@@ -15,8 +15,6 @@ import com.yahoo.elide.jsonapi.models.Patch;
 
 import java.io.IOException;
 import java.util.List;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * Serializer/Deserializer for JSON API.
@@ -32,8 +30,6 @@ public class JsonApiMapper {
     public JsonApiMapper(EntityDictionary dictionary) {
         mapper = new ObjectMapper();
         mapper.registerModule(JsonApiSerializer.getModule(dictionary));
-        DateFormat myDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
-        mapper.setDateFormat(myDateFormat);
     }
 
     /**

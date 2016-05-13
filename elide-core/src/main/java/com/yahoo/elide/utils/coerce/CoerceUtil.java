@@ -14,10 +14,7 @@ import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.beanutils.converters.DateTimeConverter;
 
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -57,7 +54,6 @@ public class CoerceUtil {
      * Perform CoerceUtil setup.
      */
     private static void setup() {
-
         BeanUtilsBean.setInstance(new BeanUtilsBean(new ConvertUtilsBean() {
 
             @Override
@@ -75,9 +71,5 @@ public class CoerceUtil {
                 }
             }
         }));
-
-        DateTimeConverter dateTimeConverter = new DateConverter();
-        dateTimeConverter.setPattern("yyyy-MM-dd'T'HH:mm:ssX");
-        BeanUtilsBean.getInstance().getConvertUtils().register(dateTimeConverter, Date.class);
     }
 }
