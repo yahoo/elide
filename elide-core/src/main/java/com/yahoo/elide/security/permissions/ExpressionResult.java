@@ -5,23 +5,29 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import org.fusesource.jansi.Ansi;
+
+import static org.fusesource.jansi.Ansi.ansi;
+
 /**
  * Expression results.
  */
 public enum ExpressionResult {
-        PASS("PASSED"),
-        FAIL("FAILED"),
-        DEFERRED("WAS DEFERRED"),
-        UNEVALUATED("WAS UNEVALUATED");
+        PASS("PASSED", Ansi.Color.GREEN),
+        FAIL("FAILED", Ansi.Color.RED),
+        DEFERRED("WAS DEFERRED", Ansi.Color.YELLOW),
+        UNEVALUATED("WAS UNEVALUATED", Ansi.Color.BLUE);
 
-    private String name;
+    private final String name;
+    private final Ansi.Color color;
 
-    ExpressionResult(String name) {
+    ExpressionResult(String name, Ansi.Color color) {
         this.name = name;
+        this.color = color;
     }
 
     @Override
     public String toString() {
-        return name;
+        return ansi().fg(color).a(name).reset().toString();
     }
 }

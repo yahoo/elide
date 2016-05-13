@@ -56,15 +56,17 @@ public class PermissionExpressionBuilderTest {
 
         Assert.assertEquals(expressions.getCommitExpression().toString(),
                 "READ PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  "
-                        + "FOR EXPRESSION [FIELDS(FAILURE) OR ENTITY(((user has all access WAS UNEVALUATED)) "
-                        + "AND ((user has no access WAS UNEVALUATED)))]");
+                        + "FOR EXPRESSION [FIELDS(\u001B[31mFAILURE\u001B[m) OR ENTITY(((user has all access "
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)) AND ((user has no access "
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
         expressions.getCommitExpression().evaluate();
 
         Assert.assertEquals(expressions.getCommitExpression().toString(),
                 "READ PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  "
-                        + "FOR EXPRESSION [FIELDS(FAILURE) OR ENTITY(((user has all access PASSED)) "
-                        + "AND ((user has no access FAILED)))]");
+                        + "FOR EXPRESSION [FIELDS(\u001B[31mFAILURE\u001B[m) OR ENTITY(((user has all access "
+                        + "\u001B[32mPASSED\u001B[m)) AND ((user has no access "
+                        + "\u001B[31mFAILED\u001B[m)))]");
 
     }
 
@@ -90,18 +92,20 @@ public class PermissionExpressionBuilderTest {
                 changes);
 
         Assert.assertEquals(expressions.getCommitExpression().toString(),
-                "UPDATE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null } WITH CHANGES ChangeSpec "
-                        + "{ resource=PersistentResource { type=model, id=null }, field=foo, original=1, "
-                        + "modified=2} FOR EXPRESSION [FIELD(((user has all access WAS UNEVALUATED)) OR ((user has no "
-                        + "access WAS UNEVALUATED)))]");
+                "UPDATE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null } WITH CHANGES ChangeSpec { "
+                        + "resource=PersistentResource { type=model, id=null }, field=foo, original=1, modified=2} "
+                        + "FOR EXPRESSION [FIELD(((user has all access "
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)) OR ((user has no access "
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
         expressions.getCommitExpression().evaluate();
 
         Assert.assertEquals(expressions.getCommitExpression().toString(),
-                "UPDATE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null } WITH CHANGES ChangeSpec "
-                        + "{ resource=PersistentResource { type=model, id=null }, field=foo, original=1, modified=2} "
-                        + "FOR EXPRESSION [FIELD(((user has all access PASSED)) OR ((user has no "
-                        + "access WAS UNEVALUATED)))]");
+                "UPDATE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null } WITH CHANGES ChangeSpec { "
+                        + "resource=PersistentResource { type=model, id=null }, field=foo, original=1, modified=2} "
+                        + "FOR EXPRESSION [FIELD(((user has all access "
+                        + "\u001B[32mPASSED\u001B[m)) OR ((user has no access "
+                        + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
     }
 

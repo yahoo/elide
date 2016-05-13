@@ -6,6 +6,9 @@
 package com.yahoo.elide.security.permissions.expressions;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
+import org.fusesource.jansi.Ansi;
+
+import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * Interface describing an expression.
@@ -30,7 +33,7 @@ public interface Expression {
 
             @Override
             public String toString() {
-                return "SUCCESS";
+                return ansi().fg(Ansi.Color.GREEN).a("SUCCESS").reset().toString();
             }
         };
         public static final Expression FAILURE = new Expression() {
@@ -41,7 +44,7 @@ public interface Expression {
 
             @Override
             public String toString() {
-                return "FAILURE";
+                return ansi().fg(Ansi.Color.RED).a("FAILURE").reset().toString();
             }
         };
     }
