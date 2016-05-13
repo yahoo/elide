@@ -77,7 +77,7 @@ public class CoerceUtil {
         }));
 
         DateTimeConverter dateTimeConverter = new DateConverter();
-        dateTimeConverter.setPattern("yyyy-MM-dd'T'HH:mm:ssX");
+        dateTimeConverter.setPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
         BeanUtilsBean.getInstance().getConvertUtils().register(dateTimeConverter, Date.class);
     }
 }

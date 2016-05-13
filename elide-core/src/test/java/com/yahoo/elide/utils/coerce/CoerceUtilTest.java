@@ -11,10 +11,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.testng.annotations.Test;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 public class CoerceUtilTest {
 
@@ -91,22 +91,5 @@ public class CoerceUtilTest {
         testMap.put("baz", "qaz");
 
         CoerceUtil.coerce(testMap, TestClass.class);
-    }
-
-    @Test
-    public void testDateConversion() throws Exception {
-
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Chicago"));
-        cal.set(Calendar.YEAR, 2016);
-        cal.set(Calendar.MONTH, Calendar.MAY);
-        cal.set(Calendar.DAY_OF_MONTH, 4);
-        cal.set(Calendar.HOUR_OF_DAY, 13);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date date = cal.getTime();
-
-        assertTrue(CoerceUtil.coerce("2016-05-04T13:00:00-05", Date.class).equals(date),
-                "coerce converts String to Date");
     }
 }
