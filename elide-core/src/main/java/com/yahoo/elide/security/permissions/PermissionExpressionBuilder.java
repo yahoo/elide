@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
@@ -17,6 +18,7 @@ import com.yahoo.elide.security.permissions.expressions.DeferredCheckExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import com.yahoo.elide.security.permissions.expressions.ImmediateCheckExpression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
+import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
 import lombok.AllArgsConstructor;
@@ -88,6 +90,39 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 buildExpressionFn.apply(immediateCheckFn)
         );
 
+    }
+
+    /**
+     * Build an expression that checks share permissions on a bean.
+     *
+     * @param resource        Resource
+     * @return Commit and operation expressions
+     */
+    public <A extends Annotation> Expressions buildSharePermissionExpressions(final PersistentResource resource) {
+
+        PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);
+
+        Class<?> resourceClass = resource.getResourceClass();
+        if (!entityDictionary.entityHasChecksForPermission(resourceClass, SharePermission.class)) {
+            SharePermissionExpression unshared = new SharePermissionExpression(condition);
+            return new Expressions(unshared, unshared);
+        }
+
+        final Function<Check, Expression> deferredCheckFn = getDeferredExpressionFor(resource, null);
+        final Function<Check, Expression> immediateCheckFn = getImmediateExpressionFor(resource, null);
+
+        final Function<Function<Check, Expression>, Expression> expressionFunction =
+                (checkFn) -> {
+                    ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass,
+                            SharePermission.class);
+                    Expression entityExpression = expressionFromParseTree(classPermissions, checkFn);
+                    return new SharePermissionExpression(condition, entityExpression);
+                };
+
+        return new Expressions(
+                expressionFunction.apply(deferredCheckFn),
+                expressionFunction.apply(immediateCheckFn)
+        );
     }
 
     /**
