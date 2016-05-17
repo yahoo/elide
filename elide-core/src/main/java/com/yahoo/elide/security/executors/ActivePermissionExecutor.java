@@ -92,8 +92,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return; // Bypass
         }
-        checkIsValidSharePermission(annotationClass, resource);
-        Expressions expressions = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
+        Expressions expressions;
+        if (SharePermission.class == annotationClass) {
+            expressions = expressionBuilder.buildSharePermissionExpressions(resource);
+        } else {
+            expressions = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
+        }
         executeExpressions(expressions, annotationClass);
     }
 
@@ -114,7 +118,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return; // Bypass
         }
-        checkIsValidSharePermission(annotationClass, resource);
         Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
                 resource,
                 annotationClass,
@@ -141,7 +144,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return; // Bypass
         }
-        checkIsValidSharePermission(annotationClass, resource);
         Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
                 resource,
                 annotationClass,
@@ -169,7 +171,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return; // Bypass
         }
-        checkIsValidSharePermission(annotationClass, resource);
         Expressions expressions = expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
         executeExpressions(expressions, annotationClass);
     }
@@ -187,7 +188,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return; // Bypass
         }
-        checkIsValidSharePermission(annotationClass, resourceClass);
         Expressions expressions = expressionBuilder.buildUserCheckAnyExpression(
                 resourceClass,
                 annotationClass,
@@ -286,51 +286,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private boolean isInlineOnlyCheck(final Class<? extends Annotation> annotationClass) {
         return ReadPermission.class.isAssignableFrom(annotationClass)
                 || DeletePermission.class.isAssignableFrom(annotationClass);
-    }
-
-    /**
-     * Check whether or not a permission is a share permission.
-     *   (1) If the check is SharePermission, then ensure that the resource is shareable
-     *       (a) If resource is shareable, return from method and run checks as expected
-     *       (b) If resource is not shareable, throw forbidden access exception
-     *   (2) If the check is not SharePermission, return from method and run checks as expected
-     *
-     * NOTE: This method exists because the default behavior for SharePermission is to FAIL for security concerns.
-     *
-     * @param annotationClass Annotation class
-     * @param resource persistent resource
-     * @param <A> type parameter
-     */
-    private <A extends Annotation> void checkIsValidSharePermission(Class<A> annotationClass,
-                                                                    PersistentResource resource) {
-        if (SharePermission.class == annotationClass
-                && !requestScope.getDictionary().isShareable(resource.getResourceClass())) {
-            ForbiddenAccessException e = new ForbiddenAccessException("Resource Not Shareable");
-            log.debug("{}", e.getLoggedMessage());
-            throw e;
-        }
-    }
-
-    /**
-     * Check whether or not a permission is a share permission.
-     *   (1) If the check is SharePermission, then ensure that the resource is shareable
-     *       (a) If resource is shareable, return from method and run checks as expected
-     *       (b) If resource is not shareable, throw forbidden access exception
-     *   (2) If the check is not SharePermission, return from method and run checks as expected
-     *
-     * NOTE: This method exists because the default behavior for SharePermission is to FAIL for security concerns.
-     *
-     * @param annotationClass Annotation class
-     * @param resourceClass resource class
-     * @param <A> type parameter
-     */
-    private <A extends Annotation> void checkIsValidSharePermission(Class<A> annotationClass,
-                                                                    Class<?> resourceClass) {
-        if (SharePermission.class == annotationClass && !requestScope.getDictionary().isShareable(resourceClass)) {
-            ForbiddenAccessException e = new ForbiddenAccessException("Resource Not Shareable");
-            log.debug("{}", e.getLoggedMessage());
-            throw e;
-        }
     }
 
     /**

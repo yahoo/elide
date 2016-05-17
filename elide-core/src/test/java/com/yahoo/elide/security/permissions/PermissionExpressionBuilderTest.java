@@ -7,6 +7,7 @@ package com.yahoo.elide.security.permissions;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
@@ -107,6 +108,58 @@ public class PermissionExpressionBuilderTest {
                         + "\u001B[32mPASSED\u001B[m)) OR ((user has no access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
+     }
+
+    @Test
+    public void testSharePermissionExpressionText() {
+        @Entity
+        @Include
+        @SharePermission(expression = "user has no access")
+        class Model {
+        }
+
+        dictionary.bindEntity(Model.class);
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+
+        PermissionExpressionBuilder.Expressions expressions = builder.buildSharePermissionExpressions(resource);
+
+
+        Assert.assertEquals(expressions.getCommitExpression().toString(),
+                "SHARE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  FOR EXPRESSION [SHARE "
+                        + "ENTITY((user has no access \u001B[34mWAS UNEVALUATED\u001B[m))]");
+
+        expressions.getCommitExpression().evaluate();
+
+        Assert.assertEquals(expressions.getCommitExpression().toString(),
+                "SHARE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  FOR EXPRESSION [SHARE "
+                        + "ENTITY((user has no access \u001B[31mFAILED\u001B[m))]");
+
+    }
+
+    @Test
+    public void testMissingSharePermissionExpressionText() {
+        @Entity
+        @Include
+        class Model {
+        }
+
+        dictionary.bindEntity(Model.class);
+
+        PersistentResource resource = newResource(new Model(), Model.class);
+
+        PermissionExpressionBuilder.Expressions expressions = builder.buildSharePermissionExpressions(resource);
+
+
+        Assert.assertEquals(expressions.getCommitExpression().toString(),
+                "SHARE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  FOR EXPRESSION "
+                        + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
+
+        expressions.getCommitExpression().evaluate();
+
+        Assert.assertEquals(expressions.getCommitExpression().toString(),
+                "SHARE PERMISSION WAS INVOKED ON PersistentResource { type=model, id=null }  FOR EXPRESSION "
+                        + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
