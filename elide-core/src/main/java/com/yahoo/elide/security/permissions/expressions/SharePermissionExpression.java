@@ -46,6 +46,7 @@ public class SharePermissionExpression implements Expression {
 
     @Override
     public String toString() {
-        return String.format("%s FOR EXPRESSION [SHARE ENTITY(%s)]", condition, entityExpression);
+        String entityText = entityExpression.isPresent() ? entityExpression.get().toString() : "NOT MARKED SHAREABLE";
+        return String.format("%s FOR EXPRESSION [SHARE ENTITY(%s)]", condition, entityText);
     }
 }
