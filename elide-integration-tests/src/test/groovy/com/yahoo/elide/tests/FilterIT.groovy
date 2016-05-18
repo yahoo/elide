@@ -942,6 +942,12 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown field in filter: idontexist");
     }
 
+    @Test
+    public void testSearchBooks() {
+        def result = mapper.readTree(RestAssured.get("book?filter[book.title][search]=Bell").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+    }
+
     @AfterTest
     public void cleanUp() {
         for (int id : authorIds) {

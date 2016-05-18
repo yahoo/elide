@@ -33,6 +33,8 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
                                 "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
                         .applySetting(Environment.USER, "root")
                         .applySetting(Environment.PASS, "root")
+                        .applySetting("hibernate.search.default.directory_provider", "filesystem")
+                        .applySetting("hibernate.search.default.indexBase", "/tmp/lucene/indexes")
                         .build());
 
         try {

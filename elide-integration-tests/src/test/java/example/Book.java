@@ -9,6 +9,11 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.Indexed;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,6 +28,7 @@ import java.util.Collection;
  * Model for books.
  */
 @Entity
+@Indexed
 @SharePermission(any = {Role.ALL.class})
 @Table(name = "book")
 @Include(rootLevel = true)
@@ -48,6 +54,7 @@ public class Book {
         this.id = id;
     }
 
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.YES)
     public String getTitle() {
         return title;
     }
