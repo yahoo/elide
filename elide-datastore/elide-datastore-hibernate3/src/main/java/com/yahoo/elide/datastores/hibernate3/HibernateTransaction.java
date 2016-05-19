@@ -14,7 +14,6 @@ import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
-import com.yahoo.elide.core.filter.LuceneFilter;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -163,10 +162,6 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        if (LuceneFilter.isSearch(filterScope)) {
-            return LuceneFilter.runSearch(loadClass, filterScope, session);
-        }
-
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
         // Criteria for filtering this object
@@ -177,10 +172,6 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        if (LuceneFilter.isSearch(filterScope)) {
-            return LuceneFilter.runSearch(entityClass, filterScope, session);
-        }
-
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
         String type = filterScope.getRequestScope().getDictionary().getJsonAliasFor(entityClass);

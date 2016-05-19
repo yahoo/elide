@@ -1,16 +1,20 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter;
+package com.yahoo.elide.datastores.hibernatesearch;
 
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.datastores.hibernate5.HibernateTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.hibernate.Query;
+import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -18,11 +22,41 @@ import org.hibernate.search.Search;
 import java.util.Set;
 
 /**
- * Created by cwilliamson on 5/10/16.
+ * Hibernate Transaction implementation.
  */
-public class LuceneFilter {
+public class HibernateSearchTransaction extends HibernateTransaction {
 
-    public static <T> Iterable<T> runSearch(Class<T> loadClass,
+    private final Session session;
+
+    /**
+     * Constructor.
+     *
+     * @param session Hibernate session
+     * @param isScrollEnabled Whether or not scrolling is enabled
+     * @param scrollMode Scroll mode to use if scrolling enabled
+     */
+    protected HibernateSearchTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
+        super(session, isScrollEnabled, scrollMode);
+        this.session = session;
+    }
+
+    @Override
+    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
+        if (isSearch(filterScope)) {
+            return runSearch(loadClass, filterScope, session);
+        }
+        return super.loadObjects(loadClass, filterScope);
+    }
+
+    @Override
+    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
+        if (isSearch(filterScope)) {
+            return runSearch(entityClass, filterScope, session);
+        }
+        return super.loadObjectsWithSortingAndPagination(entityClass, filterScope);
+    }
+
+    public <T> Iterable<T> runSearch(Class<T> loadClass,
                                             FilterScope filterScope,
                                             Session session) {
 
@@ -52,24 +86,24 @@ public class LuceneFilter {
         }
     }
 
-    public static boolean isSearch(FilterScope filterScope) {
+    public boolean isSearch(FilterScope filterScope) {
         if (filterScope != null
-            && filterScope.getRequestScope() != null
-            && filterScope.getRequestScope().getPredicates() != null
-            && filterScope.getRequestScope().getPredicates().size() == 1) {
+                && filterScope.getRequestScope() != null
+                && filterScope.getRequestScope().getPredicates() != null
+                && filterScope.getRequestScope().getPredicates().size() == 1) {
             return isSearch(filterScope.getRequestScope().getPredicates().values().iterator().next());
         }
         return false;
     }
 
-    public static boolean isSearch(Set<Predicate> predicates) {
+    public boolean isSearch(Set<Predicate> predicates) {
         if (predicates != null && predicates.size() == 1) {
             return isSearch(predicates.iterator().next());
         }
         return false;
     }
 
-    public static boolean isSearch(Predicate predicate) {
+    public boolean isSearch(Predicate predicate) {
         return (predicate != null && predicate.getOperator().getString().equalsIgnoreCase(Operator.SEARCH.getString()));
     }
 }

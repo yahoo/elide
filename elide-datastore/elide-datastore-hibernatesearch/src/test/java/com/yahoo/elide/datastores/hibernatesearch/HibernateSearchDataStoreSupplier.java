@@ -1,9 +1,9 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.hibernate5;
+package com.yahoo.elide.datastores.hibernatesearch;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.utils.ClassScanner;
@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 /**
  * Supplier of Hibernate 5 Data Store.
  */
-public class HibernateDataStoreSupplier implements Supplier<DataStore> {
+public class HibernateSearchDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
         // method to force class initialization
@@ -33,6 +33,8 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
                                 "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
                         .applySetting(Environment.USER, "root")
                         .applySetting(Environment.PASS, "root")
+                        .applySetting("hibernate.search.default.directory_provider", "filesystem")
+                        .applySetting("hibernate.search.default.indexBase", "/tmp/lucene/indexes")
                         .build());
 
         try {
@@ -53,6 +55,6 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
-        return new HibernateStore(metadataImplementor.buildSessionFactory());
+        return new HibernateSearchStore(metadataImplementor.buildSessionFactory());
     }
 }

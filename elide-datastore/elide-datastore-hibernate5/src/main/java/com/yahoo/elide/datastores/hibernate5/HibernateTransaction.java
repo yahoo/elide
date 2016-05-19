@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriteriaExplorer;
-import com.yahoo.elide.core.filter.LuceneFilter;
 import com.yahoo.elide.security.User;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
@@ -31,7 +30,10 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,7 +63,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         this.session = session;
         this.isScrollEnabled = true;
         this.scrollMode = ScrollMode.FORWARD_ONLY;
-
     }
 
     /**
@@ -141,10 +142,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        if (LuceneFilter.isSearch(filterScope)) {
-            return LuceneFilter.runSearch(loadClass, filterScope, session);
-        }
-
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
         CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
@@ -154,10 +151,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        if (LuceneFilter.isSearch(filterScope)) {
-            return LuceneFilter.runSearch(entityClass, filterScope, session);
-        }
-
         Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
 
         final Pagination pagination = filterScope.hasPagination()
@@ -215,7 +208,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
             String filterString = new HQLFilterOperation().applyAll(predicates);
 
@@ -231,6 +223,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 return query.list();
             }
         }
+
         return collection;
     }
 
@@ -241,7 +234,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                                                                    final Optional<Set<Predicate>> filters,
                                                                    final Optional<Sorting> sorting,
                                                                    final Optional<Pagination> pagination) {
-
         if (((collection instanceof AbstractPersistentCollection))
                 && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
             @SuppressWarnings("unchecked")

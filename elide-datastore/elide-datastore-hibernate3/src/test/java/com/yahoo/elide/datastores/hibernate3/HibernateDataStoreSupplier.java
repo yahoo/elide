@@ -38,8 +38,6 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
                         "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
                 .setProperty(Environment.USER, "root")
                 .setProperty(Environment.PASS, "root")
-                .setProperty("hibernate.search.default.directory_provider", "filesystem")
-                .setProperty("hibernate.search.default.indexBase", "/tmp/lucene/indexes")
                 .buildSessionFactory();
 
         // create example tables from beans
