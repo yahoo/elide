@@ -29,7 +29,6 @@ Then the HBase entity bean should look like:
 ```
 @Entity
 @Table(name = "person")
-@DataStore(cls = HBaseStore.class)
 public class Person {
   // This map can be injected, doesn't have to be static
   private final Map<String, Object> columnMap = ImmutableMap.of(
@@ -47,7 +46,6 @@ public class Person {
   private byte[] value;
 
   @OneToOne/@OneToMany/@ManyToOne/@ManyToMany
-  @DataStore(cls = HibernateStore.class)
   public Set<HobbyGroup> getHobbyGroups() { return Collections.emptySet(); }
 }
 ```
@@ -62,7 +60,6 @@ public class HobbyGroup {
   private Set<Person> persons;
 
   @OneToOne/@OneToMany/@ManyToOne/@ManyToMany
-  @DataStore(cls = HBaseStore.class)
   @RowKeyFn(cls = RowKeyComputer.class)
   public Set<Person> getPersons() { return Collections.emptySet(); }
 
@@ -79,17 +76,6 @@ public class HobbyGroup {
 ### Bridging DataStores
 1. Must use a `MultiplexDataStore`
 1. `PersistenceResource` will still be responsible for holding security check logics. `DataStoreTransaction` will have more to do with getting/setting attr, relations, etc. Methods in `DataStoreTransaction` aren't aware of securities at all
-1. Have a custom annotation `@DataStore(cls)`. This will be used to annotate relations of a different data store type in an entity bean.
-```
-@DataStore(cls=HBaseStore.class)
-public Collection<HBaseEntity> getHBaseEntities() { return Collections.emptySet(); }
-```
-1. Add a field `parentTransaction` to `DataStoreTransaction`, so that when using a `MultiplexTransaction`, a detail data store transaction object can get access to its parent(the MultiplexTransaction) and get to its peer(a transaction of a different data store type):
-```
-class DataStoreTransaction {
-  default DataStoreTransaction getParentTransaction() { return null; }
-}
-```
 1. Define `getRelation(Object entity, String relationName)` in `DataStoreTransaction`:
 ```
 class DataStoreTransaction {
