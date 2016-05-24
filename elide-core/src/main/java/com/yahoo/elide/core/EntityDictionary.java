@@ -5,10 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Maps;
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
@@ -18,12 +16,16 @@ import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
-import lombok.extern.slf4j.Slf4j;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -42,6 +44,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -112,7 +117,9 @@ public class EntityDictionary {
         Method m = entityClass.getMethod(name, paramClass);
         int modifiers = m.getModifiers();
         if (Modifier.isAbstract(modifiers)
-                || (m.isAnnotationPresent(Transient.class) && !m.isAnnotationPresent(ComputedAttribute.class))) {
+                || m.isAnnotationPresent(Transient.class)
+                && !m.isAnnotationPresent(ComputedAttribute.class)
+                && !m.isAnnotationPresent(ComputedRelationship.class)) {
             throw new NoSuchMethodException(name);
         }
         return m;

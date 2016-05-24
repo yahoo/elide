@@ -6,27 +6,23 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -40,6 +36,14 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -120,7 +124,8 @@ class EntityBinding {
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
-                    && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)) {
+                    && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
+                    && !fieldOrMethod.isAnnotationPresent(ComputedRelationship.class)) {
                 continue; // Transient. Don't serialize
             } else if (!fieldOrMethod.isAnnotationPresent(Exclude.class)) {
                 if (fieldOrMethod instanceof Field && Modifier.isTransient(((Field) fieldOrMethod).getModifiers())) {
@@ -196,7 +201,8 @@ class EntityBinding {
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
         boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
-        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne;
+        boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
+        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne || computedRelationship;
 
         String fieldName = getFieldName(fieldOrMethod);
 
