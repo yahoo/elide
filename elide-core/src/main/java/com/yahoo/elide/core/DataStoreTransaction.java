@@ -139,4 +139,28 @@ public interface DataStoreTransaction extends Closeable {
                                                           Optional<Sorting> sorting, Optional<Pagination> pagination) {
         return collection;
     }
+
+    default <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters
+    ) {
+        return PersistentResource.getValue(entity, relationName, dictionary);
+    }
+
+    default <T> Object getRelationWithSortingAndPagination(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Optional<Set<Predicate>> filters,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination
+    ) {
+        return PersistentResource.getValue(entity, relationName, dictionary);
+    }
 }

@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -38,12 +35,17 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import lombok.NonNull;
-import lombok.ToString;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.GeneratedValue;
+import lombok.NonNull;
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -66,6 +68,8 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.persistence.GeneratedValue;
 
 /**
  * Resource wrapper around Entity bean.
@@ -888,7 +892,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
-        Object val = getValueUnchecked(relationName);
+        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        Object val = requestScope.getTransaction()
+                .getRelation(obj, type, relationName, entityClass, dictionary, filters);
+
         if (val == null) {
             return Collections.emptySet();
         }
@@ -898,7 +905,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Collection filteredVal = (Collection) val;
 
             if (!filters.isEmpty()) {
-                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
                 filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
             }
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
@@ -920,7 +926,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private Set<PersistentResource> getRelationUncheckedWithSortingAndPagination(String relationName,
                                                                                  Set<Predicate> filters) {
         RelationshipType type = getRelationshipType(relationName);
-        Object val = getValueUnchecked(relationName);
+        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        Object val = requestScope.getTransaction()
+                .getRelation(obj, type, relationName, entityClass, dictionary, filters);
         if (val == null) {
             return Collections.emptySet();
         }
@@ -933,7 +941,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             final boolean isPaginated = !requestScope.getPagination().isDefaultInstance();
 
             if (!filters.isEmpty() || hasSortRules || isPaginated) {
-                final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
                 final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(requestScope.getSorting())
                         : Optional.empty();
                 final Optional<Pagination> pagination = isPaginated ? Optional.of(requestScope.getPagination())

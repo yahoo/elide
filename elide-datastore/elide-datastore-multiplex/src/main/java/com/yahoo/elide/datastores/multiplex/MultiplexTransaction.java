@@ -7,7 +7,9 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.User;
@@ -127,5 +129,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             throw new InvalidCollectionException(entityClass == null ? cls.getName() : entityClass.getName());
         }
         return transaction;
+    }
+
+    @Override
+    public <T> Object getRelation(Object entity, RelationshipType relationshipType, String relationName, Class<T> relationClass, EntityDictionary dictionary, Set<Predicate> filters) {
+        DataStoreTransaction transaction = this.getTransaction(relationClass);
+        return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
     }
 }
