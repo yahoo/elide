@@ -23,8 +23,6 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -903,15 +901,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-
-            if (!filters.isEmpty()) {
-                filteredVal = requestScope.getTransaction().filterCollection(filteredVal, entityClass, filters);
-            }
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
-            resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
+            resources = new SingleElementSet(new PersistentResource(this, val, requestScope));
         } else {
-            resources.add(new PersistentResource(this, val, getRequestScope()));
+            resources.add(new PersistentResource(this, val, requestScope));
         }
 
         return (Set) resources;
@@ -928,7 +922,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
         Object val = requestScope.getTransaction()
-                .getRelation(obj, type, relationName, entityClass, dictionary, filters);
+                .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary, filters,
+                        requestScope.getSorting(), requestScope.getPagination());
         if (val == null) {
             return Collections.emptySet();
         }
@@ -936,23 +931,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource<Object>> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
-            final boolean hasSortRules = !requestScope.getSorting().isDefaultInstance();
-            final boolean isPaginated = !requestScope.getPagination().isDefaultInstance();
-
-            if (!filters.isEmpty() || hasSortRules || isPaginated) {
-                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(requestScope.getSorting())
-                        : Optional.empty();
-                final Optional<Pagination> pagination = isPaginated ? Optional.of(requestScope.getPagination())
-                        : Optional.empty();
-                filteredVal = requestScope.getTransaction().filterCollectionWithSortingAndPagination(filteredVal,
-                        entityClass, dictionary, Optional.of(filters), sortingRules, pagination);
-            }
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
-            resources = new SingleElementSet(new PersistentResource(this, val, getRequestScope()));
+            resources = new SingleElementSet(new PersistentResource(this, val, requestScope));
         } else {
-            resources.add(new PersistentResource(this, val, getRequestScope()));
+            resources.add(new PersistentResource(this, val, requestScope));
         }
 
         return (Set) resources;
