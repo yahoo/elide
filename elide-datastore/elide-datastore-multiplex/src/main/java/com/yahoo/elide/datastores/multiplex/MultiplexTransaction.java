@@ -132,8 +132,15 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Object getRelation(Object entity, RelationshipType relationshipType, String relationName, Class<T> relationClass, EntityDictionary dictionary, Set<Predicate> filters) {
-        DataStoreTransaction transaction = this.getTransaction(relationClass);
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters
+    ) {
+        DataStoreTransaction transaction = getTransaction(relationClass);
         return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
     }
 }
