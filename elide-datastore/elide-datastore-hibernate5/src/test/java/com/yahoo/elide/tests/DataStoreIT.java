@@ -5,16 +5,33 @@
  */
 package com.yahoo.elide.tests;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static com.jayway.restassured.RestAssured.given;
+
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.datastores.hibernate5.PersistenceTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
+
 import example.Filtered;
+
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import javax.ws.rs.core.MultivaluedHashMap;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public class DataStoreIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
@@ -36,5 +53,25 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
 
         given().when().get("/filtered").then().statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
+    }
+
+    @Test
+    public void testFilteredWithPassingCheck() {
+        String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
+
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
+        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
+        assertEquals(response.getBody(), expected);
+    }
+
+    @Test
+    public void testFilteredWithFailingCheck() {
+        String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
+
+        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
+        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
+        assertEquals(response.getBody(), expected);
     }
 }

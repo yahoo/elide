@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * JsonType serializes an object to json string and vice versa
+ * JsonType serializes an object to json string and vice versa.
  */
 
 public class JsonType implements UserType, ParameterizedType {
@@ -158,7 +158,7 @@ public class JsonType implements UserType, ParameterizedType {
     }
 
     /**
-     * Setter used to set the class to serialize/deserialize
+     * Setter used to set the class to serialize/deserialize.
      * @param properties properties object
      */
     @Override
