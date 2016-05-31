@@ -6,8 +6,8 @@
 package com.yahoo.elide.core;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -69,7 +69,6 @@ import nocreate.NoCreateEntity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -570,9 +569,8 @@ public class PersistentResourceTest extends PersistentResource {
         Child child3 = newChild(3, "chris smith");
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
-        when(tx.filterCollection(anyCollection(), any(), any()))
-                .thenReturn(Sets.newHashSet(child1));
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -660,9 +658,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
-        when(tx.filterCollection(anyCollection(), any(), any()))
-                .thenReturn(Sets.newHashSet(child1));
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -682,8 +679,8 @@ public class PersistentResourceTest extends PersistentResource {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
-        when(tx.filterCollection(anyCollection(), any(), any())).thenReturn(Collections.emptySet());
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);

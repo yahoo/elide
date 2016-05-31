@@ -81,6 +81,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
+    @Deprecated
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
     }

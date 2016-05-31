@@ -118,7 +118,9 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass the class of the entities in the collection
      * @param predicates  the set of Predicate's to filter by
      * @return the filtered collection
+     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
      */
+    @Deprecated
     default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         return collection;
     }
@@ -133,7 +135,9 @@ public interface DataStoreTransaction extends Closeable {
      * @param pagination The optional Pagination object
      * @param <T> The type parameter
      * @return The optionally filtered, sorted and paginated collection
+     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
      */
+    @Deprecated
     default <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
                                                           EntityDictionary dictionary, Optional<Set<Predicate>> filters,
                                                           Optional<Sorting> sorting, Optional<Pagination> pagination) {
@@ -148,17 +152,8 @@ public interface DataStoreTransaction extends Closeable {
             EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-
-            if (!filters.isEmpty()) {
-                filteredVal = filterCollection(filteredVal, relationClass, filters);
-            }
-            return filteredVal;
-        }
-
-        return val;
+        // Default implementation ignores filters
+        return PersistentResource.getValue(entity, relationName, dictionary);
     }
 
     default <T> Object getRelationWithSortingAndPagination(
@@ -171,22 +166,7 @@ public interface DataStoreTransaction extends Closeable {
             Sorting sorting,
             Pagination pagination
     ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
-            final boolean hasSortRules = sorting.isDefaultInstance();
-            final boolean isPaginated = pagination.isDefaultInstance();
-
-            if (!filters.isEmpty() || hasSortRules || isPaginated) {
-                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(sorting) : Optional.empty();
-                final Optional<Pagination> paginationRules = isPaginated ? Optional.of(pagination) : Optional.empty();
-                filteredVal = filterCollectionWithSortingAndPagination(filteredVal,
-                        relationClass, dictionary, Optional.of(filters), sortingRules, paginationRules);
-            }
-            return filteredVal;
-        }
-
-        return val;
+        // Default implementation ignores filters, sorting and pagination
+        return PersistentResource.getValue(entity, relationName, dictionary);
     }
 }
