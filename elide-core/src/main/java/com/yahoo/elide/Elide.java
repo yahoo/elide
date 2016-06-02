@@ -267,6 +267,7 @@ public class Elide {
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+            transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
@@ -333,6 +334,7 @@ public class Elide {
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+            transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveObjects();
             transaction.flush();
@@ -409,6 +411,7 @@ public class Elide {
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
             }
+            transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveObjects();
             transaction.flush();
@@ -481,6 +484,7 @@ public class Elide {
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+            transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveObjects();
             transaction.flush();
