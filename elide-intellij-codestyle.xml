@@ -1,0 +1,47 @@
+<code_scheme name="Elide Code Style">
+  <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
+  <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
+  <option name="IMPORT_LAYOUT_TABLE">
+    <value>
+      <emptyLine />
+      <package name="" withSubpackages="true" static="true" />
+      <emptyLine />
+      <package name="com.yahoo" withSubpackages="true" static="false" />
+      <emptyLine />
+      <package name="com" withSubpackages="true" static="false" />
+      <emptyLine />
+      <package name="org" withSubpackages="true" static="false" />
+      <emptyLine />
+      <package name="" withSubpackages="true" static="false" />
+      <emptyLine />
+      <package name="java" withSubpackages="true" static="false" />
+      <emptyLine />
+      <package name="javax" withSubpackages="true" static="false" />
+      <emptyLine />
+    </value>
+  </option>
+  <option name="FORMATTER_TAGS_ENABLED" value="true" />
+  <GroovyCodeStyleSettings>
+    <option name="IMPORT_LAYOUT_TABLE">
+      <value>
+        <emptyLine />
+        <package name="com.yahoo" withSubpackages="true" static="false" />
+        <emptyLine />
+        <package name="com" withSubpackages="true" static="false" />
+        <emptyLine />
+        <package name="org" withSubpackages="true" static="false" />
+        <emptyLine />
+        <package name="" withSubpackages="true" static="false" />
+        <emptyLine />
+        <package name="java" withSubpackages="true" static="false" />
+        <emptyLine />
+        <package name="javax" withSubpackages="true" static="false" />
+        <emptyLine />
+      </value>
+    </option>
+    <option name="LAYOUT_STATIC_IMPORTS_SEPARATELY" value="false" />
+  </GroovyCodeStyleSettings>
+  <XML>
+    <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
+  </XML>
+</code_scheme>
