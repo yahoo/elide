@@ -32,7 +32,8 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
-     * Save entity to database table.
+     * Save entity to database table.  Save is called after commit checks have evaluated but before the final
+     * transaction commit.
      *
      * @param entity record to save
      */
@@ -55,6 +56,19 @@ public interface DataStoreTransaction extends Closeable {
      * End the current transaction.
      */
     void commit();
+
+    /**
+     * Called before commit checks are evaluated and before save, flush, and commit are called.
+     * The sequence goes:
+     * 1. transaction.preCommit();
+     * 2. Invoke security checks evaluated at commit time
+     * 3. transaction.save(...); - Invoked for every object which changed in the transaction.
+     * 4. transaction.flush();
+     * 5. transaction.commit();
+     */
+    default void preCommit() {
+
+    }
 
     /**
      * Create new entity record.

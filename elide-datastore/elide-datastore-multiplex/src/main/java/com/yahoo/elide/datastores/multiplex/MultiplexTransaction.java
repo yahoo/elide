@@ -87,6 +87,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
+    public void preCommit() {
+        transactions.values().forEach(DataStoreTransaction::preCommit);
+    }
+
+    @Override
     public void commit() {
         // flush all before commit
         flush();
