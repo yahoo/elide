@@ -76,8 +76,7 @@ public class LifeCycleTest {
         verify(tx).accessUser(null);
         verify(tx).preCommit();
 
-        // This is wrong below.  It should be called once and not twice.
-        verify(tx, times(2)).save(book);
+        verify(tx, times(1)).save(book);
         verify(tx).flush();
         verify(tx).commit();
         verify(tx).close();
