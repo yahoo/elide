@@ -202,7 +202,7 @@ class EntityBinding {
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
         boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
         boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
-        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne || computedRelationship;
+        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne;
 
         String fieldName = getFieldName(fieldOrMethod);
 
@@ -219,19 +219,19 @@ class EntityBinding {
             RelationshipType type;
             String mappedBy;
             if (oneToMany) {
-                type = RelationshipType.ONE_TO_MANY;
+                type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_MANY : RelationshipType.ONE_TO_MANY;
                 mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
             } else if (oneToOne) {
-                type = RelationshipType.ONE_TO_ONE;
+                type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_ONE : RelationshipType.ONE_TO_ONE;
                 mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
             } else if (manyToMany) {
-                type = RelationshipType.MANY_TO_MANY;
+                type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_MANY : RelationshipType.MANY_TO_MANY;
                 mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
             } else if (manyToOne) {
-                type = RelationshipType.MANY_TO_ONE;
+                type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
                 mappedBy = "";
             } else {
-                type = RelationshipType.NONE;
+                type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE;
                 mappedBy = "";
             }
             relationshipTypes.put(fieldName, type);

@@ -9,18 +9,25 @@ package com.yahoo.elide.core;
  * Relationship types.
  */
 public enum RelationshipType {
-    NONE(false, false),
-    ONE_TO_ONE(false, true),
-    ONE_TO_MANY(true, false),
-    MANY_TO_ONE(false, true),
-    MANY_TO_MANY(true, false);
+    NONE(false, false, false),
+    ONE_TO_ONE(false, true, false),
+    ONE_TO_MANY(true, false, false),
+    MANY_TO_ONE(false, true, false),
+    MANY_TO_MANY(true, false, false),
+    COMPUTED_NONE(false, false, true),
+    COMPUTED_ONE_TO_ONE(false, true, true),
+    COMPUTED_ONE_TO_MANY(true, false, true),
+    COMPUTED_MANY_TO_ONE(false, true, true),
+    COMPUTED_MANY_TO_MANY(true, false, true);
 
     private final boolean toMany;
     private final boolean toOne;
+    private final boolean isComputed;
 
-    RelationshipType(boolean toMany, boolean toOne) {
+    RelationshipType(boolean toMany, boolean toOne, boolean isComputed) {
         this.toMany = toMany;
         this.toOne = toOne;
+        this.isComputed = isComputed;
     }
 
     public boolean isToMany() {
@@ -29,5 +36,9 @@ public enum RelationshipType {
 
     public boolean isToOne() {
         return toOne;
+    }
+
+    public boolean isComputed() {
+        return isComputed;
     }
 }

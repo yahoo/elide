@@ -7,7 +7,12 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 
 import com.google.common.collect.Lists;
 
@@ -20,6 +25,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -79,17 +85,17 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      */
     private void reverseTransactions(ArrayList<DataStore> restoreList, Throwable cause) {
         for (DataStore dataStore : restoreList) {
-            try (DataStoreTransaction tx = dataStore.beginTransaction()) {
+            try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
                 List<Object> list = dirtyObjects.get(dataStore);
                 for (Object dirtyObject : list == null ? Collections.emptyList() : list) {
                     Object cloned = clonedObjects.get(dirtyObject);
                     if (cloned == NEWLY_CREATED_OBJECT) {
-                        tx.delete(dirtyObject);
+                        transaction.delete(dirtyObject);
                     } else {
-                        tx.save(cloned);
+                        transaction.save(cloned);
                     }
                 }
-                tx.commit();
+                transaction.commit();
             } catch (RuntimeException | IOException e) {
                 cause.addSuppressed(e);
             }
@@ -169,5 +175,47 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         DataStoreTransaction transaction = getTransaction(loadClass);
         return hold(transaction, transaction.loadObjects(loadClass));
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters
+    ) {
+        DataStoreTransaction transaction = getTransaction(relationClass);
+        Object relation = transaction
+                .getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
+
+        if (relation instanceof Iterable) {
+            return hold(transaction, (Iterable) relation);
+        }
+
+        return hold(transaction, relation);
+    }
+
+    @Override
+    public <T> Object getRelationWithSortingAndPagination(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        DataStoreTransaction transaction = getTransaction(relationClass);
+        Object relation = transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
+                relationClass, dictionary, filters, sorting, pagination);
+
+        if (relation instanceof Iterable) {
+            return hold(transaction, (Iterable) relation);
+        }
+
+        return hold(transaction, relation);
     }
 }

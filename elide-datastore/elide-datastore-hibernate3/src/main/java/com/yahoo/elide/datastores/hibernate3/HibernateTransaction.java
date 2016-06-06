@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.google.common.base.Objects;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -21,8 +21,9 @@ import com.yahoo.elide.datastores.hibernate3.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
-import lombok.AccessLevel;
-import lombok.Getter;
+
+import com.google.common.base.Objects;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Hibernate;
@@ -35,6 +36,9 @@ import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+
+import lombok.AccessLevel;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -343,6 +347,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
+    @Deprecated
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
             String filterString = new HQLFilterOperation().applyAll(predicates);
@@ -364,6 +369,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
+    @Deprecated
     public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
                                                                    final Class<T> entityClass,
                                                                    final EntityDictionary dictionary,
@@ -407,5 +413,73 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public Integer getQueryLimit() {
         // no limit
         return null;
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters
+    ) {
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+
+        if ((val instanceof Collection) && (val instanceof AbstractPersistentCollection) && !filters.isEmpty()) {
+            Collection filteredVal = (Collection) val;
+            String filterString = new HQLFilterOperation().applyAll(filters);
+
+            if (filterString.length() != 0) {
+                Query query = session.createFilter(filteredVal, filterString);
+
+                for (Predicate predicate : filters) {
+                    if (predicate.getOperator().isParameterized()) {
+                        query = query.setParameterList(predicate.getField(), predicate.getValues());
+                    }
+                }
+
+                filteredVal = query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
+            }
+            return filteredVal;
+        }
+
+        return val;
+    }
+
+    @Override
+    public <T> Object getRelationWithSortingAndPagination(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+
+        // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
+        final boolean hasSortRules = sorting.isDefaultInstance();
+        final boolean isPaginated = pagination.isDefaultInstance();
+        if ((val instanceof Collection) && (val instanceof AbstractPersistentCollection)
+                && (!filters.isEmpty() || hasSortRules || isPaginated)) {
+            Collection filteredVal = (Collection) val;
+            @SuppressWarnings("unchecked")
+            final Optional<Query> possibleQuery = new HQLTransaction
+                    .Builder<>(session, filteredVal, relationClass, dictionary)
+                    .withPossibleFilters(Optional.of(filters))
+                    .withPossibleSorting(hasSortRules ? Optional.of(sorting) : Optional.empty())
+                    .withPossiblePagination(isPaginated ? Optional.of(pagination) : Optional.empty())
+                    .build();
+            if (possibleQuery.isPresent()) {
+                filteredVal = possibleQuery.get().list();
+            }
+
+            return filteredVal;
+        }
+
+        return val;
     }
 }

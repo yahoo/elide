@@ -5,10 +5,14 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -18,10 +22,16 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.User;
-import example.Child;
-import example.Parent;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Sets;
+
+import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import example.Child;
+import example.Parent;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,10 +40,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * JSON API testing.
@@ -49,7 +55,9 @@ public class JsonApiTest {
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
-        userScope = new RequestScope(new JsonApiDocument(), null, new User(0), dictionary, mapper, testLogger);
+        userScope = new RequestScope(new JsonApiDocument(),
+                mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
+                new User(0), dictionary, mapper, testLogger);
     }
 
     @Test

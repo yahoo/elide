@@ -132,7 +132,9 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass the class of the entities in the collection
      * @param predicates  the set of Predicate's to filter by
      * @return the filtered collection
+     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
      */
+    @Deprecated
     default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         return collection;
     }
@@ -147,10 +149,38 @@ public interface DataStoreTransaction extends Closeable {
      * @param pagination The optional Pagination object
      * @param <T> The type parameter
      * @return The optionally filtered, sorted and paginated collection
+     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
      */
+    @Deprecated
     default <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
                                                           EntityDictionary dictionary, Optional<Set<Predicate>> filters,
                                                           Optional<Sorting> sorting, Optional<Pagination> pagination) {
         return collection;
+    }
+
+    default <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters
+    ) {
+        // Default implementation ignores filters
+        return PersistentResource.getValue(entity, relationName, dictionary);
+    }
+
+    default <T> Object getRelationWithSortingAndPagination(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Set<Predicate> filters,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        // Default implementation ignores filters, sorting and pagination
+        return PersistentResource.getValue(entity, relationName, dictionary);
     }
 }

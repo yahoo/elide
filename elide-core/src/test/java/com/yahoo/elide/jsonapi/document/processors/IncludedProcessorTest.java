@@ -5,22 +5,27 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
-import example.Child;
-import example.Parent;
+
+import com.google.common.collect.Sets;
+
+import org.mockito.Answers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import example.Child;
+import example.Parent;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +33,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 
 public class IncludedProcessorTest {
@@ -53,7 +61,8 @@ public class IncludedProcessorTest {
         dictionary.bindEntity(Parent.class);
 
         RequestScope goodUserScope = new RequestScope(
-                new JsonApiDocument(), null, new User(1), dictionary, null, new TestAuditLogger());
+                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
+                new User(1), dictionary, null, new TestAuditLogger());
 
         //Create objects
         Parent parent1 = newParent(1);
