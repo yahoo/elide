@@ -166,8 +166,17 @@ public interface DataStoreTransaction extends Closeable {
             EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
-        // Default implementation ignores filters
-        return PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+
+            if (!filters.isEmpty()) {
+                filteredVal = filterCollection(filteredVal, relationClass, filters);
+            }
+            return filteredVal;
+        }
+
+        return val;
     }
 
     default <T> Object getRelationWithSortingAndPagination(
@@ -180,7 +189,22 @@ public interface DataStoreTransaction extends Closeable {
             Sorting sorting,
             Pagination pagination
     ) {
-        // Default implementation ignores filters, sorting and pagination
-        return PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
+            final boolean hasSortRules = sorting.isDefaultInstance();
+            final boolean isPaginated = pagination.isDefaultInstance();
+
+            if (!filters.isEmpty() || hasSortRules || isPaginated) {
+                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(sorting) : Optional.empty();
+                final Optional<Pagination> paginationRules = isPaginated ? Optional.of(pagination) : Optional.empty();
+                filteredVal = filterCollectionWithSortingAndPagination(filteredVal,
+                        relationClass, dictionary, Optional.of(filters), sortingRules, paginationRules);
+            }
+            return filteredVal;
+        }
+
+        return val;
     }
 }
