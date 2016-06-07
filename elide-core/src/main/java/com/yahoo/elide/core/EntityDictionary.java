@@ -788,8 +788,7 @@ public class EntityDictionary {
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Class<?> targetClass, String fieldName) {
-        ConcurrentHashMap<String, AccessibleObject> map = getEntityBinding(targetClass).accessibleObject;
-        return map.get(fieldName);
+        return getEntityBinding(targetClass).fieldsToValues.get(fieldName);
     }
 
     /**

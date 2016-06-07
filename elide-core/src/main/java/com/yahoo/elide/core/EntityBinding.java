@@ -14,7 +14,6 @@ import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.text.WordUtils;
@@ -73,7 +72,6 @@ class EntityBinding {
     public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
-    public final ConcurrentHashMap<String, AccessibleObject> accessibleObject = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
@@ -95,12 +93,11 @@ class EntityBinding {
         jsonApiType = type;
 
         // Map id's, attributes, and relationships
-        Collection<AccessibleObject> fieldOrMethodList = CollectionUtils.union(
-                Arrays.asList(cls.getFields()),
-                Arrays.asList(cls.getMethods())
-        );
+        List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
+        fieldOrMethodList.addAll(Arrays.asList(cls.getFields()));
+        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods()));
+
         bindEntityFields(cls, type, fieldOrMethodList);
-        bindAccessibleObjects(cls, fieldOrMethodList);
 
         attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
@@ -144,15 +141,6 @@ class EntityBinding {
         }
     }
 
-    private void bindAccessibleObjects(Class<?> targetClass, Collection<AccessibleObject> fieldOrMethodList) {
-        for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            String fieldName = getFieldName(fieldOrMethod);
-            if (fieldName != null) {
-                this.accessibleObject.put(fieldName, fieldOrMethod);
-            }
-        }
-    }
-
     /**
      * Bind an id field to an entity.
      *
@@ -171,6 +159,8 @@ class EntityBinding {
         idField = fieldOrMethod;
         idType = fieldType;
         idFieldName = fieldName;
+
+        fieldsToValues.put(fieldName, fieldOrMethod);
 
         if (idField != null && !fieldOrMethod.equals(idField)) {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + fieldName);
