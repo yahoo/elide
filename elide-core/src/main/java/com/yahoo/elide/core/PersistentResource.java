@@ -1287,14 +1287,35 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
         final Collection original = copyCollection(collection);
-        checkFieldAwareDeferPermissions(UpdatePermission.class,
+        checkFieldAwareDeferPermissions(
+                UpdatePermission.class,
                 collectionName,
                 CollectionUtils.disjunction(collection, Collections.singleton(toDelete.getObject())),
-                original);
+                original
+        );
 
         String inverseField = getInverseRelationField(collectionName);
         if (!inverseField.isEmpty()) {
-            checkPermission(UpdatePermission.class, toDelete);
+            // Compute the ChangeSpec for the inverse relation and check whether or not we have access
+            // to apply this change to that field.
+            final Object originalValue = toDelete.getValueUnchecked(inverseField);
+            final Collection originalBidirectional;
+
+            if (originalValue instanceof Collection) {
+                originalBidirectional = copyCollection((Collection) originalValue);
+            } else {
+                originalBidirectional = Collections.singleton(originalValue);
+            }
+
+            final Collection removedBidrectional = CollectionUtils
+                    .disjunction(Collections.singleton(this.getObject()), originalBidirectional);
+
+            toDelete.checkFieldAwareDeferPermissions(
+                    UpdatePermission.class,
+                    inverseField,
+                    removedBidrectional,
+                    originalBidirectional
+            );
         }
 
         if (collection == null) {
