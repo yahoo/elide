@@ -126,11 +126,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         }
     }
 
-    protected DataStoreTransaction getTransaction(Object object) {
+    public DataStoreTransaction getTransaction(Object object) {
         return getTransaction(object.getClass());
     }
 
-    protected DataStoreTransaction getTransaction(Class<?> cls) {
+    public DataStoreTransaction getTransaction(Class<?> cls) {
         DataStoreTransaction transaction = transactions.get(this.multiplexManager.getSubManager(cls));
         if (transaction == null) {
             Class entityClass = multiplexManager.getDictionary().lookupEntityClass(cls);
@@ -148,7 +148,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
     }
 
@@ -163,7 +163,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             Sorting sorting,
             Pagination pagination
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
     }
