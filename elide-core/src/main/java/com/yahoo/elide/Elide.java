@@ -45,6 +45,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
+
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -527,7 +529,7 @@ public class Elide {
      * @return AST parse tree
      */
     public static ParseTree parse(String path) {
-        path = Paths.get(path).normalize().toString();
+        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
