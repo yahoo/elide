@@ -1,11 +1,16 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.filter.expression.AndExpression;
+import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.NotExpression;
+import com.yahoo.elide.core.filter.expression.OrExpression;
+import com.yahoo.elide.core.filter.expression.Visitor;
 
 import java.util.Set;
 
@@ -59,5 +64,48 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
 
         return filterString.toString();
+    }
+
+    public String apply(Expression filterExpression) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor();
+        return "WHERE " + filterExpression.accept(visitor);
+
+    }
+
+    /**
+     * Filter expression visitor which builds an HQL query.
+     */
+    public class HQLQueryVisitor implements Visitor<String> {
+
+        private String query;
+
+        @Override
+        public String visitPredicate(Predicate predicate) {
+            query = apply(predicate);
+            return query;
+        }
+
+        @Override
+        public String visitAndExpression(AndExpression expression) {
+            String left = expression.getLeft().accept(this);
+            String right = expression.getRight().accept(this);
+            query = "(" + left + " AND " + right + ")";
+            return query;
+        }
+
+        @Override
+        public String visitOrExpression(OrExpression expression) {
+            String left = expression.getLeft().accept(this);
+            String right = expression.getRight().accept(this);
+            query = "(" + left + " OR " + right + ")";
+            return query;
+        }
+
+        @Override
+        public String visitNotExpression(NotExpression expression) {
+            String negated = expression.getNegated().accept(this);
+            query = "NOT (" + negated + ")";
+            return query;
+        }
     }
 }

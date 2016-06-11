@@ -10,6 +10,7 @@ import com.yahoo.elide.security.permissions.ExpressionResult;
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+
 /**
  * Representation for an "And" expression.
  */

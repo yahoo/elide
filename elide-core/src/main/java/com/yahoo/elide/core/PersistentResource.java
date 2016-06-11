@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -23,6 +27,8 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -33,17 +39,12 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-
+import lombok.NonNull;
+import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
-import lombok.NonNull;
-import lombok.ToString;
-
+import javax.persistence.GeneratedValue;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -54,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,8 +66,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import javax.persistence.GeneratedValue;
 
 /**
  * Resource wrapper around Entity bean.
@@ -731,11 +729,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return PersistentResource relation
      */
     public PersistentResource getRelation(String relation, String id) {
-        Set<Predicate> filters;
+
+        Optional<Expression> filterExpression;
         boolean skipNew = false;
         // Criteria filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
-            filters = Collections.emptySet();
+            filterExpression = Optional.empty();
             // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
             // NEWLY created objects. We assume a user can READ their object in the midst of creation.
             // Imposing a constraint to the contrary-- at this moment-- seems arbitrary and does not
@@ -747,16 +746,36 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (entityType == null) {
                 throw new InvalidAttributeException(relation, type);
             }
-            Object idVal = CoerceUtil.coerce(id, dictionary.getIdType(entityType));
+            Class<?> idType = dictionary.getIdType(entityType);
+            Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
-            Predicate idFilter = new Predicate(idField, Operator.IN, Collections.singletonList(idVal));
-            filters = Collections.singleton(idFilter);
+
+            List<Predicate.PathElement> path = Lists.newArrayList(
+                new Predicate.PathElement(
+                    getResourceClass(),
+                    getType(),
+                    entityType,
+                    relation
+                ),
+                new Predicate.PathElement(
+                    entityType,
+                    relation,
+                    idType,
+                    idField
+                )
+            );
+
+            filterExpression = Optional.of(new Predicate(
+                    path,
+                    Operator.IN,
+                    Collections.singletonList(idVal)));
         }
 
         Set<PersistentResource> resources =
                 filter(ReadPermission.class,
-                (Set) getRelationChecked(relation, filters),
+                (Set) getRelationChecked(relation, filterExpression),
                 skipNew);
+
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
                 return childResource;
@@ -795,17 +814,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        Set<Predicate> filters = Collections.emptySet();
-        if (requestScope.getTransaction() != null && !requestScope.getPredicates().isEmpty()) {
-            filters = getPredicatesForRelation(relationName);
-        }
-        return getRelationUnchecked(relationName, filters);
+        Optional<Expression> expression = getExpressionForRelation(relationName);
+
+        return getRelationUnchecked(relationName, expression);
     }
 
-    private Set<Predicate> getPredicatesForRelation(String relationName) {
+    private Optional<Expression> getExpressionForRelation(String relationName) {
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        if (entityClass == null) {
+            throw new InvalidAttributeException(relationName, type);
+        }
         final String valType = dictionary.getJsonAliasFor(entityClass);
-        return new HashSet<>(requestScope.getPredicatesOfType(valType));
+        return requestScope.getFilterExpressionByType(valType);
     }
 
     /**
@@ -819,19 +839,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        final boolean hasPredicates = !requestScope.getPredicates().isEmpty();
+        Optional<Expression> filterExpression = getExpressionForRelation(relationName);
         final boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
         final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
-        Set<Predicate> filters = Collections.emptySet();
-        if (hasPredicates) {
-            final String valType = dictionary.getJsonAliasFor(
-                    dictionary.getParameterizedType(obj, relationName)
-            );
-            filters = new HashSet<>(requestScope.getPredicatesOfType(valType));
-        }
-        return (hasPredicates || hasSortingRules || hasPagination)
-                ? getRelationUncheckedWithSortingAndPagination(relationName, filters)
-                : getRelationUnchecked(relationName, filters);
+        return (hasSortingRules || hasPagination)
+                ? getRelationUncheckedWithSortingAndPagination(relationName, filterExpression)
+                : getRelationUnchecked(relationName, filterExpression);
     }
 
     /**
@@ -871,28 +884,49 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Get collection of resources from relation field.
      *
      * @param relationName field
-     * @param filters A set of filters (possibly empty) to attempt to push down to the data store to filter
-     *                the returned collection.
+     * @param filterExpression An optional filter expression
      * @return collection relation
      */
-    protected Set<PersistentResource> getRelationChecked(String relationName, Set<Predicate> filters) {
+    protected Set<PersistentResource> getRelationChecked(String relationName, Optional<Expression> filterExpression) {
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
-        return getRelationUnchecked(relationName, filters);
+        return getRelationUnchecked(relationName, filterExpression);
 
     }
 
     /**
-     * Retrieve an uncheck/unfiltered set of relations.
+     * Retrieve an uncheck set of relations.
      *
+     * @param relationName field
+     * @param filterExpression An optional filter expression
      * @return the resources in the relationship
      */
-    private Set<PersistentResource> getRelationUnchecked(String relationName, Set<Predicate> filters) {
+    private Set<PersistentResource> getRelationUnchecked(String relationName, Optional<Expression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-        Object val = requestScope.getTransaction()
-                .getRelation(obj, type, relationName, entityClass, dictionary, filters);
+
+        Object val;
+
+        /* If elide was configured for Elide 3.0 data store interface */
+        if (requestScope.useFilterExpressions()) {
+            val = requestScope.getTransaction()
+                    .getRelation(obj, type, relationName, entityClass, dictionary, filterExpression);
+
+        /* Otherwise use the Elide 2.0 interface */
+        } else {
+
+            /* Convert the expression to a set of predicates */
+            Set<Predicate> filters;
+            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+            if (filterExpression.isPresent()) {
+                filters = filterExpression.get().accept(visitor);
+            } else {
+                filters = Collections.emptySet();
+            }
+            val = requestScope.getTransaction()
+                    .getRelation(obj, type, relationName, entityClass, dictionary, filters);
+        }
 
         if (val == null) {
             return Collections.emptySet();
@@ -914,16 +948,38 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Fetches the relationship entities with sorting and pagination support via HQLTransaction.
      * @param relationName The entity whose relationships we want to fetch
-     * @param filters The set of possible filters (where clauses)
+     * @param filterExpression An optional filter expression
      * @return The persistent resources
      */
-    private Set<PersistentResource> getRelationUncheckedWithSortingAndPagination(String relationName,
-                                                                                 Set<Predicate> filters) {
+    private Set<PersistentResource> getRelationUncheckedWithSortingAndPagination(
+            String relationName,
+            Optional<Expression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-        Object val = requestScope.getTransaction()
-                .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary, filters,
-                        requestScope.getSorting(), requestScope.getPagination());
+
+        Object val;
+
+        /* If elide was configured for Elide 3.0 data store interface */
+        if (requestScope.useFilterExpressions()) {
+            val = requestScope.getTransaction()
+                    .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary,
+                            filterExpression, requestScope.getSorting(), requestScope.getPagination());
+
+        /* Otherwise use the Elide 2.0 interface */
+        } else {
+            /* Convert the expression to a set of predicates */
+            Set<Predicate> filters;
+            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+            if (filterExpression.isPresent()) {
+                filters = filterExpression.get().accept(visitor);
+            } else {
+                filters = Collections.emptySet();
+            }
+            val = requestScope.getTransaction()
+                    .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary, filters,
+                            requestScope.getSorting(), requestScope.getPagination());
+        }
+
         if (val == null) {
             return Collections.emptySet();
         }

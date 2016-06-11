@@ -7,7 +7,10 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
+import com.yahoo.elide.core.filter.strategy.ParseException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -18,6 +21,7 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +45,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
-    @Getter private final Map<String, Set<Predicate>> predicates;
     @Getter private final Pagination pagination;
     @Getter private final Sorting sorting;
     @Getter private final SecurityMode securityMode;
@@ -49,10 +52,19 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
+    @Getter private final String path;
+    private final boolean useFilterExpressions;
+    private final MultipleFilterStrategy filterStrategy;
+    private final Map<String, Expression> expressionsByType;
+
+    /* Used to filter across heterogeneous types during the first load */
+    private Expression globalFilterExpression;
+
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
     /**
      * Create a new RequestScope.
+     * @param path the URL path
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
      * @param user the user making this request
@@ -63,7 +75,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param securityMode the current security mode
      * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
      */
-    public RequestScope(JsonApiDocument jsonApiDocument,
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
@@ -71,7 +84,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode,
-                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
+                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+                        MultipleFilterStrategy filterStrategy,
+                        boolean useFilterExpressions) {
+        this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
@@ -79,11 +95,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.mapper = mapper;
         this.auditLogger = auditLogger;
         this.securityMode = securityMode;
+        this.filterStrategy = filterStrategy;
 
+        this.expressionsByType = new HashMap<>();
+        this.globalFilterExpression = null;
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.commitTriggers = new LinkedHashSet<>();
+        this.useFilterExpressions = useFilterExpressions;
 
         this.permissionExecutor = (permissionExecutorGenerator == null)
                 ? new ActivePermissionExecutor(this)
@@ -94,13 +114,36 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 : Optional.of(queryParams);
 
         if (this.queryParams.isPresent()) {
+
+            /* Extract any query param that starts with 'filter' */
+            MultivaluedMap filterParams = getFilterParams(queryParams);
+
+            if (! filterParams.isEmpty()) {
+
+                /* First check to see if there is a global, cross-type filter */
+                try {
+                    globalFilterExpression = filterStrategy.parseGlobalExpression(path, filterParams);
+                } catch (ParseException e) {
+                    //TODO - perhaps aggregate this error message with any subsequent filter parsing error */
+                }
+
+                /* Next check to see if there is are type specific filters */
+                try {
+                    expressionsByType.putAll(filterStrategy.parseTypedExpression(path, filterParams));
+                } catch (ParseException e) {
+
+                    /* If neither strategy parsed, report the last error found */
+                    if (globalFilterExpression == null) {
+                        throw new InvalidPredicateException(e.getMessage());
+                    }
+                }
+            }
+
             this.sparseFields = parseSparseFields(queryParams);
-            this.predicates = Predicate.parseQueryParams(this.dictionary, queryParams);
             this.sorting = Sorting.parseQueryParams(queryParams);
             this.pagination = Pagination.parseQueryParams(queryParams);
         } else {
             this.sparseFields = Collections.emptyMap();
-            this.predicates = Collections.emptyMap();
             this.sorting = Sorting.getDefaultEmptyInstance();
             this.pagination = Pagination.getDefaultPagination();
         }
@@ -110,7 +153,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
     }
 
-    public RequestScope(JsonApiDocument jsonApiDocument,
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
@@ -119,6 +163,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutor) {
         this(
+                path,
                 jsonApiDocument,
                 transaction,
                 user,
@@ -127,11 +172,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 auditLogger,
                 null,
                 securityMode,
-                permissionExecutor
+                permissionExecutor,
+                new MultipleFilterStrategy(dictionary),
+                false
         );
     }
 
-    public RequestScope(JsonApiDocument jsonApiDocument,
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
@@ -139,6 +187,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams) {
         this(
+                path,
                 jsonApiDocument,
                 transaction,
                 user,
@@ -147,17 +196,21 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 auditLogger,
                 queryParams,
                 SecurityMode.SECURITY_ACTIVE,
-                null
+                null,
+                new MultipleFilterStrategy(dictionary),
+                false
         );
     }
 
-    public RequestScope(JsonApiDocument jsonApiDocument,
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         AuditLogger auditLogger) {
         this(
+                path,
                 jsonApiDocument,
                 transaction,
                 user,
@@ -166,7 +219,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 auditLogger,
                 null,
                 SecurityMode.SECURITY_ACTIVE,
-                null
+                null,
+                new MultipleFilterStrategy(dictionary),
+                false
         );
     }
 
@@ -184,7 +239,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                            EntityDictionary dictionary,
                            JsonApiMapper mapper,
                            AuditLogger auditLogger) {
-        this(null, transaction, user, dictionary, mapper, auditLogger);
+        this(null, null, transaction, user, dictionary, mapper, auditLogger);
     }
 
     /**
@@ -193,8 +248,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param jsonApiDocument   the json api document
      * @param outerRequestScope the outer request scope
      */
-    protected RequestScope(JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
+    protected RequestScope(String path, JsonApiDocument jsonApiDocument, RequestScope outerRequestScope) {
         this.jsonApiDocument = jsonApiDocument;
+        this.path = path;
         this.transaction = outerRequestScope.transaction;
         this.user = outerRequestScope.user;
         this.dictionary = outerRequestScope.dictionary;
@@ -202,7 +258,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
-        this.predicates = Collections.emptyMap();
         this.sorting = Sorting.getDefaultEmptyInstance();
         this.pagination = Pagination.getDefaultPagination();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
@@ -211,6 +266,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.dirtyResources = outerRequestScope.dirtyResources;
+        this.filterStrategy = outerRequestScope.filterStrategy;
+        this.expressionsByType = outerRequestScope.expressionsByType;
+        this.useFilterExpressions = outerRequestScope.useFilterExpressions;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
@@ -245,12 +303,42 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Get predicates for a specific collection type.
+     * Get filter expression for a specific collection type.
      * @param type The name of the type
-     * @return The set of predicates for the given type
+     * @return The filter expression for the given type
      */
-    public Set<Predicate> getPredicatesOfType(String type) {
-        return predicates.getOrDefault(type, Collections.emptySet());
+    public Optional<Expression> getFilterExpressionByType(String type) {
+        return Optional.ofNullable(expressionsByType.get(type));
+    }
+
+    /**
+     * Get the global/cross-type filter expression.
+     * @param loadClass
+     * @return The global filter expression evaluated at the first load
+     */
+    public Optional<Expression> getLoadFilterExpression(Class<?> loadClass) {
+        if (globalFilterExpression == null) {
+            String typeName = dictionary.getJsonAliasFor(loadClass);
+            return getFilterExpressionByType(typeName);
+        }
+        return Optional.of(globalFilterExpression);
+    }
+
+    /**
+     * Extracts any query params that start with 'filter'.
+     * @param queryParams
+     * @return extracted filter params
+     */
+    private static MultivaluedMap<String, String> getFilterParams(MultivaluedMap<String, String> queryParams) {
+        MultivaluedMap<String, String> returnMap = new MultivaluedHashMap<>();
+
+        queryParams.entrySet()
+                .stream()
+                .filter((entry) -> entry.getKey().startsWith("filter"))
+                .forEach((entry) -> {
+                    returnMap.put(entry.getKey(), entry.getValue());
+                });
+        return returnMap;
     }
 
     /**
@@ -273,5 +361,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     public void saveObjects() {
         dirtyResources.stream().map(PersistentResource::getObject).forEach(transaction::save);
+    }
+
+    /**
+     * Whether or not to use Elide 3.0 filter expressions for DataStoreTransaction calls
+     * @return
+     */
+    public boolean useFilterExpressions() {
+        return useFilterExpressions;
     }
 }

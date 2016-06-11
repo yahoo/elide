@@ -25,6 +25,7 @@ public class PatchRequestScope extends RequestScope {
     /**
      * Outer RequestScope constructor for use by Patch Extension.
      *
+     * @param path the URL path
      * @param transaction current database transaction
      * @param user        request user
      * @param dictionary  entity dictionary
@@ -32,13 +33,14 @@ public class PatchRequestScope extends RequestScope {
      * @param auditLogger      the logger
      */
     public PatchRequestScope(
+            String path,
             DataStoreTransaction transaction,
             User user,
             EntityDictionary dictionary,
             JsonApiMapper mapper,
             AuditLogger auditLogger,
             Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
-        super(null, transaction, user, dictionary, mapper, auditLogger, SecurityMode.SECURITY_ACTIVE,
+        super(path, null, transaction, user, dictionary, mapper, auditLogger, SecurityMode.SECURITY_ACTIVE,
                 permissionExecutorGenerator);
     }
 
@@ -48,7 +50,7 @@ public class PatchRequestScope extends RequestScope {
      * @param jsonApiDocument document
      * @param scope           outer request scope
      */
-    public PatchRequestScope(JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
-        super(jsonApiDocument, scope);
+    public PatchRequestScope(String path, JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
+        super(path, jsonApiDocument, scope);
     }
 }

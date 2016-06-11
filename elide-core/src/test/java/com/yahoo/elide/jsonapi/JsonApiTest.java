@@ -55,7 +55,7 @@ public class JsonApiTest {
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
-        userScope = new RequestScope(new JsonApiDocument(),
+        userScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(0), dictionary, mapper, testLogger);
     }

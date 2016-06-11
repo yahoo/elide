@@ -163,7 +163,7 @@ public class PermissionExpressionBuilderTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }
 }
