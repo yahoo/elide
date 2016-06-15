@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
@@ -73,6 +74,8 @@ public class Child {
             mappedBy = "children",
             targetEntity = Parent.class
         )
+    // Contrived check for regression example. Should clean this up. No updating child 4 via parent 10
+    @UpdatePermission(all = Child4Parent10Check.class)
     public Set<Parent> getParents() {
         return parents;
     }
