@@ -439,7 +439,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         deleted
                 .stream()
                 .forEach(toDelete -> {
-                    delFromCollection(collection, fieldName, toDelete);
+                    delFromCollection(collection, fieldName, toDelete, false);
                     deleteInverseRelation(fieldName, toDelete.getObject());
                 });
 
@@ -543,7 +543,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (collection != null && !collection.isEmpty()) {
                 mine.stream()
                         .forEach(toDelete -> {
-                            delFromCollection(collection, relationName, toDelete);
+                            delFromCollection(collection, relationName, toDelete, false);
                             if (hasInverseRelation(relationName)) {
                                 toDelete.markDirty();
                             }
@@ -585,7 +585,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 //Nothing to do
                 return;
             }
-            delFromCollection((Collection) relation, fieldName, removeResource);
+            delFromCollection((Collection) relation, fieldName, removeResource, false);
         } else {
             if (relation == null || !relation.equals(removeResource.getObject())) {
                 //Nothing to do
@@ -1284,8 +1284,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param collection the collection
      * @param collectionName the collection name
      * @param toDelete the to delete
+     * @param isInverseCheck Whether or not the deletion is already coming from cleaning up an inverse.
+     *                       Without this parameter, we could find ourselves in a loop of checks.
+     *                       TODO: This is a band-aid for a quick fix. This should certainly be refactored.
      */
-    protected void delFromCollection(Collection collection, String collectionName, PersistentResource toDelete) {
+    protected void delFromCollection(
+            Collection collection,
+            String collectionName,
+            PersistentResource toDelete,
+            boolean isInverseCheck) {
         final Collection original = copyCollection(collection);
         checkFieldAwareDeferPermissions(
                 UpdatePermission.class,
@@ -1295,7 +1302,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         );
 
         String inverseField = getInverseRelationField(collectionName);
-        if (!inverseField.isEmpty()) {
+        if (!isInverseCheck && !inverseField.isEmpty()) {
             // Compute the ChangeSpec for the inverse relation and check whether or not we have access
             // to apply this change to that field.
             final Object originalValue = toDelete.getValueUnchecked(inverseField);
@@ -1492,7 +1499,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
 
             if (inverseRelation instanceof Collection) {
-                inverseResource.delFromCollection((Collection) inverseRelation, inverseRelationName, this);
+                inverseResource.delFromCollection((Collection) inverseRelation, inverseRelationName, this, true);
             } else if (inverseRelationType.equals(this.getResourceClass())) {
                 inverseResource.nullValue(inverseRelationName, this);
             } else {

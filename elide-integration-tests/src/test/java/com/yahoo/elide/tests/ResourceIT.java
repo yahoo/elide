@@ -1432,6 +1432,21 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
     }
 
+    @Test(priority = 40)
+    public void testInverseDeleteFromCollection() {
+        // NOTE: This only tests this behavior is correct BECAUSE of the Child4Parent10 check.
+        // It's a bit contrived, but we shouldn't lose the logic.
+        // The problem: when deleting an inverse relation, it checks whether it can update its inverse field back
+        // to the original. This is flawed logic since you're deleting the original in the first place (and that check
+        // succeeded if we got there).
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .delete("/parent/10/children/4")
+                .then()
+                .statusCode(204);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
