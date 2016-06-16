@@ -6,10 +6,10 @@
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.filter.expression.AndExpression;
-import com.yahoo.elide.core.filter.expression.Expression;
-import com.yahoo.elide.core.filter.expression.NotExpression;
-import com.yahoo.elide.core.filter.expression.OrExpression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 
 import java.util.Set;
@@ -66,7 +66,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         return filterString.toString();
     }
 
-    public String apply(Expression filterExpression) {
+    public String apply(FilterExpression filterExpression) {
         HQLQueryVisitor visitor = new HQLQueryVisitor();
         return "WHERE " + filterExpression.accept(visitor);
 
@@ -86,7 +86,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
 
         @Override
-        public String visitAndExpression(AndExpression expression) {
+        public String visitAndExpression(AndFilterExpression expression) {
             String left = expression.getLeft().accept(this);
             String right = expression.getRight().accept(this);
             query = "(" + left + " AND " + right + ")";
@@ -94,7 +94,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
 
         @Override
-        public String visitOrExpression(OrExpression expression) {
+        public String visitOrExpression(OrFilterExpression expression) {
             String left = expression.getLeft().accept(this);
             String right = expression.getRight().accept(this);
             query = "(" + left + " OR " + right + ")";
@@ -102,7 +102,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
 
         @Override
-        public String visitNotExpression(NotExpression expression) {
+        public String visitNotExpression(NotFilterExpression expression) {
             String negated = expression.getNegated().accept(this);
             query = "NOT (" + negated + ")";
             return query;

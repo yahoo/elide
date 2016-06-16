@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
@@ -40,7 +40,7 @@ public class HQLTransaction {
         private Set<Predicate> filters = null;
         private String sortingRules = "";
         private Pagination pagination = null;
-        private Expression filterExpression = null;
+        private FilterExpression filterExpression = null;
 
         public Builder(final Session session, final Collection collection, final Class<T> entityClass,
                        final EntityDictionary dictionary) {
@@ -50,7 +50,14 @@ public class HQLTransaction {
             this.dictionary = dictionary;
         }
 
-        public Builder withFilterExpression(Expression filterExpression) {
+        public Builder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
+            if (filterExpression.isPresent()) {
+                return withFilterExpression(filterExpression.get());
+            }
+            return this;
+        }
+
+        public Builder withFilterExpression(FilterExpression filterExpression) {
             this.filterExpression = filterExpression;
             PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
             this.filters = filterExpression.accept(visitor);

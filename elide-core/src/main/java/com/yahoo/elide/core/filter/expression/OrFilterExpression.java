@@ -3,30 +3,31 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.core.filter.expression;
 
 import lombok.Getter;
 
 /**
- * An 'And' Filter Expression.
+ * An 'Or' Filter FilterExpression.
  */
-public class AndExpression implements Expression {
+public class OrFilterExpression implements FilterExpression {
 
-    @Getter private Expression left;
-    @Getter private Expression right;
+    @Getter private FilterExpression left;
+    @Getter private FilterExpression right;
 
-    public AndExpression(Expression left, Expression right) {
+    public OrFilterExpression(FilterExpression left, FilterExpression right) {
         this.left = left;
         this.right = right;
 
     }
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitAndExpression(this);
+        return visitor.visitOrExpression(this);
     }
 
     @Override
     public String toString() {
-        return String.format("(%s AND %s)", left, right);
+        return String.format("(%s OR %s)", left, right);
     }
 }

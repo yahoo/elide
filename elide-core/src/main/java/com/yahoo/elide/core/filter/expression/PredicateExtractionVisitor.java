@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A Visitor which extracts the set of predicates from a filter Expression.
+ * A Visitor which extracts the set of predicates from a filter FilterExpression.
  */
 public class PredicateExtractionVisitor implements Visitor<Set<Predicate>> {
     @Getter Set<Predicate> predicates = new HashSet<>();
@@ -24,21 +24,21 @@ public class PredicateExtractionVisitor implements Visitor<Set<Predicate>> {
     }
 
     @Override
-    public Set<Predicate> visitAndExpression(AndExpression expression) {
+    public Set<Predicate> visitAndExpression(AndFilterExpression expression) {
         predicates.addAll(expression.getLeft().accept(this));
         predicates.addAll(expression.getRight().accept(this));
         return predicates;
     }
 
     @Override
-    public Set<Predicate> visitOrExpression(OrExpression expression) {
+    public Set<Predicate> visitOrExpression(OrFilterExpression expression) {
         predicates.addAll(expression.getLeft().accept(this));
         predicates.addAll(expression.getRight().accept(this));
         return predicates;
     }
 
     @Override
-    public Set<Predicate> visitNotExpression(NotExpression expression) {
+    public Set<Predicate> visitNotExpression(NotFilterExpression expression) {
         predicates.addAll(expression.getNegated().accept(this));
         return predicates;
     }

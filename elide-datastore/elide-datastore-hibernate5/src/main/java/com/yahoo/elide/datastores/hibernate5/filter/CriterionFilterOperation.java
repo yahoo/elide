@@ -8,10 +8,10 @@ package com.yahoo.elide.datastores.hibernate5.filter;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.AndExpression;
-import com.yahoo.elide.core.filter.expression.Expression;
-import com.yahoo.elide.core.filter.expression.NotExpression;
-import com.yahoo.elide.core.filter.expression.OrExpression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -136,7 +136,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         return result;
     }
 
-    public Criteria apply(Expression filterExpression) {
+    public Criteria apply(FilterExpression filterExpression) {
         CriteriaVisitor visitor = new CriteriaVisitor();
         Criterion restrictions = filterExpression.accept(visitor);
 
@@ -185,7 +185,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         }
 
         @Override
-        public Criterion visitAndExpression(AndExpression expression) {
+        public Criterion visitAndExpression(AndFilterExpression expression) {
             Criterion left = expression.getLeft().accept(this);
             Criterion right = expression.getRight().accept(this);
             criterion = Restrictions.and(left, right);
@@ -193,7 +193,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         }
 
         @Override
-        public Criterion visitOrExpression(OrExpression expression) {
+        public Criterion visitOrExpression(OrFilterExpression expression) {
             Criterion left = expression.getLeft().accept(this);
             Criterion right = expression.getRight().accept(this);
             criterion = Restrictions.or(left, right);
@@ -201,7 +201,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         }
 
         @Override
-        public Criterion visitNotExpression(NotExpression expression) {
+        public Criterion visitNotExpression(NotFilterExpression expression) {
             Criterion negated = expression.getNegated().accept(this);
             criterion =  Restrictions.not(negated);
             return criterion;

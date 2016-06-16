@@ -13,7 +13,7 @@ import com.yahoo.elide.core.filter.Predicate;
  */
 public interface Visitor<T> {
     public T visitPredicate(Predicate predicate);
-    public T visitAndExpression(AndExpression expression);
-    public T visitOrExpression(OrExpression expression);
-    public T visitNotExpression(NotExpression expression);
+    public T visitAndExpression(AndFilterExpression expression);
+    public T visitOrExpression(OrFilterExpression expression);
+    public T visitNotExpression(NotFilterExpression expression);
 }

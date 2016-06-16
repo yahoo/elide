@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +18,7 @@ import java.util.List;
  * Predicate class.
  */
 @AllArgsConstructor
-public class Predicate implements Expression {
+public class Predicate implements FilterExpression {
 
     /**
      * The path taken through data model associations to

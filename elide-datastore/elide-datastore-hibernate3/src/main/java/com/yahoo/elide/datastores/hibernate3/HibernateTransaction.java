@@ -16,8 +16,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.Expression;
-import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
@@ -173,7 +172,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        Optional<Expression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(loadClass);
+        Optional<FilterExpression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(loadClass);
 
         Criteria criteria = session.createCriteria(loadClass);
         if (securityCriterion != null) {
@@ -192,7 +191,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
         Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        Optional<Expression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(entityClass);
+        Optional<FilterExpression> filterExpression =
+                filterScope.getRequestScope().getLoadFilterExpression(entityClass);
 
         Criteria criteria = session.createCriteria(entityClass);
         if (securityCriterion != null) {
@@ -371,41 +371,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Optional<Expression> filterExpression
-    ) {
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-
-            if (filterExpression.isPresent() && (val instanceof AbstractPersistentCollection)) {
-                String filterString = new HQLFilterOperation().apply(filterExpression.get());
-
-                if (filterString.length() != 0) {
-                    Query query = session.createFilter(filteredVal, filterString);
-
-                    PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-                    for (Predicate predicate : filterExpression.get().accept(visitor)) {
-                        if (predicate.getOperator().isParameterized()) {
-                            query = query.setParameterList(predicate.getField(), predicate.getValues());
-                        }
-                    }
-
-                    return query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).list();
-                }
-            }
-        }
-
-        return val;
-    }
-
-    @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Optional<Expression> filterExpression,
+            Optional<FilterExpression> filterExpression,
             Sorting sorting,
             Pagination pagination
     ) {
@@ -424,7 +390,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                 @SuppressWarnings("unchecked")
                 final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
                         dictionary)
-                        .withFilterExpression(filterExpression.get())
+                        .withPossibleFilterExpression(filterExpression)
                         .withPossibleSorting(sortingRules)
                         .withPossiblePagination(paginationRules)
                         .build();

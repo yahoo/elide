@@ -8,6 +8,6 @@ package com.yahoo.elide.core.filter.expression;
 /**
  * A filter expression.
  */
-public interface Expression {
+public interface FilterExpression {
     public <T> T accept(Visitor<T> visitor);
 }

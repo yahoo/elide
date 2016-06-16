@@ -6,7 +6,7 @@
 package com.yahoo.elide.core.filter.strategy;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilte
     }
 
     @Override
-    public Expression parseGlobalExpression(String path,
+    public FilterExpression parseGlobalExpression(String path,
                                             MultivaluedMap<String, String> queryParams) throws ParseException {
         if (joinStrategies.isEmpty()) {
             throw new ParseException("Heterogeneous type filtering not supported");
@@ -54,7 +54,7 @@ public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilte
     }
 
     @Override
-    public Map<String, Expression> parseTypedExpression(String path,
+    public Map<String, FilterExpression> parseTypedExpression(String path,
                                                         MultivaluedMap<String, String> queryParams)
             throws ParseException {
 

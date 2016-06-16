@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter.strategy;
 
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.Map;
@@ -30,8 +30,8 @@ public interface SubqueryFilterStrategy {
     /**
      * @param path The URL path
      * @param queryParams The subset of queryParams that start with 'filter'
-     * @return
+     * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      */
-    public Map<String, Expression> parseTypedExpression(String path, MultivaluedMap<String, String> queryParams)
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> queryParams)
             throws ParseException;
 }

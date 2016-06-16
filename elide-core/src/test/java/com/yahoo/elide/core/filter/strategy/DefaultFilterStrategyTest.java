@@ -6,7 +6,7 @@
 package com.yahoo.elide.core.filter.strategy;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import example.Author;
 import example.Book;
 import org.testng.Assert;
@@ -48,11 +48,11 @@ public class DefaultFilterStrategyTest {
                 "Hemingway"
         );
 
-        Expression expression = strategy.parseGlobalExpression("/author", queryParams);
+        FilterExpression filterExpression = strategy.parseGlobalExpression("/author", queryParams);
 
         Assert.assertEquals(
                 "(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
-                expression.toString()
+                filterExpression.toString()
         );
     }
 
@@ -76,7 +76,7 @@ public class DefaultFilterStrategyTest {
                 "Hemingway"
         );
 
-        Map<String, Expression> expressionMap = strategy.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = strategy.parseTypedExpression("/author", queryParams);
 
         Assert.assertEquals(expressionMap.size(), 2);
         Assert.assertEquals(expressionMap.get("book").toString(),

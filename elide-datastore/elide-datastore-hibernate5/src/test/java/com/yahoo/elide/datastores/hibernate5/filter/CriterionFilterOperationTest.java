@@ -7,10 +7,10 @@ package com.yahoo.elide.datastores.hibernate5.filter;
 
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.AndExpression;
-import com.yahoo.elide.core.filter.expression.Expression;
-import com.yahoo.elide.core.filter.expression.NotExpression;
-import com.yahoo.elide.core.filter.expression.OrExpression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import example.AddressFragment;
 import example.Author;
 import example.Book;
@@ -51,9 +51,9 @@ public class CriterionFilterOperationTest {
         );
         Predicate p3 = new Predicate(p3Path, Operator.IN, Arrays.asList("scifi"));
 
-        OrExpression or = new OrExpression(p2, p3);
-        AndExpression and = new AndExpression(or, p1);
-        NotExpression not = new NotExpression(and);
+        OrFilterExpression or = new OrFilterExpression(p2, p3);
+        AndFilterExpression and = new AndFilterExpression(or, p1);
+        NotFilterExpression not = new NotFilterExpression(and);
 
         Criteria criteria = mock(Criteria.class);
         CriterionFilterOperation filterOp = new CriterionFilterOperation(criteria);
@@ -80,7 +80,7 @@ public class CriterionFilterOperationTest {
         CriterionFilterOperation filterOp = new CriterionFilterOperation(criteria);
 
         ArgumentCaptor<Criterion> argument = ArgumentCaptor.forClass(Criterion.class);
-        filterOp.apply((Expression) p1);
+        filterOp.apply((FilterExpression) p1);
 
         verify(criteria, times(1)).add(argument.capture());
         verify(criteria).createAlias("address", "person__address");

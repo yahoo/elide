@@ -8,8 +8,8 @@ package com.yahoo.elide.core.filter.strategy;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.AndExpression;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -80,7 +80,7 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
     }
 
     @Override
-    public Expression parseGlobalExpression(
+    public FilterExpression parseGlobalExpression(
             String path,
             MultivaluedMap<String, String> queryParams) throws ParseException {
         List<Predicate> predicates;
@@ -99,7 +99,7 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
         }
 
         /* Comma separated filter parameters are joined with logical AND. */
-        Expression joinedExpression = null;
+        FilterExpression joinedExpression = null;
 
         for (Predicate predicate : predicates)  {
 
@@ -111,17 +111,17 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
             if (joinedExpression == null) {
                 joinedExpression = predicate;
             } else {
-                joinedExpression = new AndExpression(joinedExpression, predicate);
+                joinedExpression = new AndFilterExpression(joinedExpression, predicate);
             }
         }
         return joinedExpression;
     }
 
     @Override
-    public Map<String, Expression> parseTypedExpression(
+    public Map<String, FilterExpression> parseTypedExpression(
             String path,
             MultivaluedMap<String, String> queryParams) throws ParseException {
-        Map<String, Expression> expressionMap = new HashMap<>();
+        Map<String, FilterExpression> expressionMap = new HashMap<>();
 
         List<Predicate> predicates = extractPredicates(queryParams);
 
@@ -133,8 +133,8 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
             String entityType = predicate.getEntityType();
 
             if (expressionMap.containsKey(entityType)) {
-                Expression expression = expressionMap.get(entityType);
-                expressionMap.put(entityType, new AndExpression(expression, predicate));
+                FilterExpression filterExpression = expressionMap.get(entityType);
+                expressionMap.put(entityType, new AndFilterExpression(filterExpression, predicate));
             } else {
                 expressionMap.put(entityType, predicate);
             }

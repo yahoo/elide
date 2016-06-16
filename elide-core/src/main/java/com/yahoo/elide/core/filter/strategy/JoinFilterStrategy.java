@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter.strategy;
 
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -22,10 +22,10 @@ public interface JoinFilterStrategy {
     /**
      * @param path the URL path
      * @param queryParams the subset of query parameters that start with 'filter'
-     * @return
+     * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      * @throws ParseException
      */
-    public Expression parseGlobalExpression(
+    public FilterExpression parseGlobalExpression(
             String path,
             MultivaluedMap<String, String> queryParams) throws ParseException;
 }

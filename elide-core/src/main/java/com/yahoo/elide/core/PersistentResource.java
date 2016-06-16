@@ -27,7 +27,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -730,7 +730,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public PersistentResource getRelation(String relation, String id) {
 
-        Optional<Expression> filterExpression;
+        Optional<FilterExpression> filterExpression;
         boolean skipNew = false;
         // Criteria filtering not supported in Patch extension
         if (requestScope instanceof PatchRequestScope) {
@@ -814,12 +814,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        Optional<Expression> expression = getExpressionForRelation(relationName);
+        Optional<FilterExpression> expression = getExpressionForRelation(relationName);
 
         return getRelationUnchecked(relationName, expression);
     }
 
-    private Optional<Expression> getExpressionForRelation(String relationName) {
+    private Optional<FilterExpression> getExpressionForRelation(String relationName) {
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
         if (entityClass == null) {
             throw new InvalidAttributeException(relationName, type);
@@ -839,7 +839,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return Collections.emptySet();
         }
 
-        Optional<Expression> filterExpression = getExpressionForRelation(relationName);
+        Optional<FilterExpression> filterExpression = getExpressionForRelation(relationName);
         final boolean hasSortingRules = !requestScope.getSorting().isDefaultInstance();
         final boolean hasPagination = !requestScope.getPagination().isDefaultInstance();
         return (hasSortingRules || hasPagination)
@@ -887,7 +887,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param filterExpression An optional filter expression
      * @return collection relation
      */
-    protected Set<PersistentResource> getRelationChecked(String relationName, Optional<Expression> filterExpression) {
+    protected Set<PersistentResource> getRelationChecked(String relationName,
+                                                         Optional<FilterExpression> filterExpression) {
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
@@ -902,7 +903,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param filterExpression An optional filter expression
      * @return the resources in the relationship
      */
-    private Set<PersistentResource> getRelationUnchecked(String relationName, Optional<Expression> filterExpression) {
+    private Set<PersistentResource> getRelationUnchecked(String relationName,
+                                                         Optional<FilterExpression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
 
@@ -911,7 +913,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         /* If elide was configured for Elide 3.0 data store interface */
         if (requestScope.useFilterExpressions()) {
             val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, entityClass, dictionary, filterExpression);
+                    .getRelation(obj, type, relationName, entityClass, dictionary,
+                            filterExpression, requestScope.getSorting(), requestScope.getPagination());
 
         /* Otherwise use the Elide 2.0 interface */
         } else {
@@ -953,7 +956,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private Set<PersistentResource> getRelationUncheckedWithSortingAndPagination(
             String relationName,
-            Optional<Expression> filterExpression) {
+            Optional<FilterExpression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
 
@@ -962,8 +965,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         /* If elide was configured for Elide 3.0 data store interface */
         if (requestScope.useFilterExpressions()) {
             val = requestScope.getTransaction()
-                    .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary,
-                            filterExpression, requestScope.getSorting(), requestScope.getPagination());
+                   .getRelation(obj, type, relationName, entityClass, dictionary,
+                           filterExpression, requestScope.getSorting(), requestScope.getPagination());
 
         /* Otherwise use the Elide 2.0 interface */
         } else {

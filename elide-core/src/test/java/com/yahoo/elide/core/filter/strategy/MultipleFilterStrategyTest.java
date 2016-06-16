@@ -6,7 +6,7 @@
 package com.yahoo.elide.core.filter.strategy;
 
 import com.beust.jcommander.internal.Lists;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -32,7 +32,7 @@ public class MultipleFilterStrategyTest {
     public void testGlobalExpressionParsing() throws Exception {
         JoinFilterStrategy strategy1 = mock(JoinFilterStrategy.class);
         JoinFilterStrategy strategy2 = mock(JoinFilterStrategy.class);
-        Expression expression = mock(Expression.class);
+        FilterExpression filterExpression = mock(FilterExpression.class);
 
         MultipleFilterStrategy strategy = new MultipleFilterStrategy(
                 Lists.newArrayList(strategy1, strategy2),
@@ -52,14 +52,14 @@ public class MultipleFilterStrategyTest {
         );
 
         when(strategy1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(strategy2.parseGlobalExpression("/author", queryParams)).thenReturn(expression);
+        when(strategy2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
 
-        Expression returnExpression = strategy.parseGlobalExpression("/author", queryParams);
+        FilterExpression returnExpression = strategy.parseGlobalExpression("/author", queryParams);
 
         verify(strategy1, times(1)).parseGlobalExpression("/author", queryParams);
         verify(strategy2, times(1)).parseGlobalExpression("/author", queryParams);
 
-        Assert.assertEquals(expression, returnExpression);
+        Assert.assertEquals(filterExpression, returnExpression);
     }
 
     /**
@@ -69,7 +69,7 @@ public class MultipleFilterStrategyTest {
     public void testTypedExpressionParsing() throws Exception {
         SubqueryFilterStrategy strategy1 = mock(SubqueryFilterStrategy.class);
         SubqueryFilterStrategy strategy2 = mock(SubqueryFilterStrategy.class);
-        Map<String, Expression> expressionMap = Collections.EMPTY_MAP;
+        Map<String, FilterExpression> expressionMap = Collections.EMPTY_MAP;
 
         MultipleFilterStrategy strategy = new MultipleFilterStrategy(
                 Collections.EMPTY_LIST,
@@ -91,7 +91,7 @@ public class MultipleFilterStrategyTest {
         when(strategy1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
         when(strategy2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
 
-        Map<String, Expression> returnMap = strategy.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> returnMap = strategy.parseTypedExpression("/author", queryParams);
 
         verify(strategy1, times(1)).parseTypedExpression("/author", queryParams);
         verify(strategy2, times(1)).parseTypedExpression("/author", queryParams);

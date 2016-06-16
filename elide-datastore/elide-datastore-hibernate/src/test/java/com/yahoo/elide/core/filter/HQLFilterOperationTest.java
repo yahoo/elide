@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.filter.expression.AndExpression;
-import com.yahoo.elide.core.filter.expression.NotExpression;
-import com.yahoo.elide.core.filter.expression.OrExpression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -47,9 +47,9 @@ public class HQLFilterOperationTest {
         );
         Predicate p3 = new Predicate(p3Path, Operator.IN, Arrays.asList("scifi"));
 
-        OrExpression or = new OrExpression(p2, p3);
-        AndExpression and = new AndExpression(or, p1);
-        NotExpression not = new NotExpression(and);
+        OrFilterExpression or = new OrFilterExpression(p2, p3);
+        AndFilterExpression and = new AndFilterExpression(or, p1);
+        NotFilterExpression not = new NotFilterExpression(and);
 
         HQLFilterOperation filterOp = new HQLFilterOperation();
         String query = filterOp.apply(not);

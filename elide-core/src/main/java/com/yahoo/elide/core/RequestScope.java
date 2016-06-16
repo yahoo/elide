@@ -8,7 +8,7 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.filter.expression.Expression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
 import com.yahoo.elide.core.filter.strategy.ParseException;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -55,10 +55,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final String path;
     private final boolean useFilterExpressions;
     private final MultipleFilterStrategy filterStrategy;
-    private final Map<String, Expression> expressionsByType;
+    private final Map<String, FilterExpression> expressionsByType;
 
     /* Used to filter across heterogeneous types during the first load */
-    private Expression globalFilterExpression;
+    private FilterExpression globalFilterExpression;
 
     final private transient LinkedHashSet<Runnable> commitTriggers;
 
@@ -307,7 +307,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param type The name of the type
      * @return The filter expression for the given type
      */
-    public Optional<Expression> getFilterExpressionByType(String type) {
+    public Optional<FilterExpression> getFilterExpressionByType(String type) {
         return Optional.ofNullable(expressionsByType.get(type));
     }
 
@@ -316,7 +316,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param loadClass
      * @return The global filter expression evaluated at the first load
      */
-    public Optional<Expression> getLoadFilterExpression(Class<?> loadClass) {
+    public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
         if (globalFilterExpression == null) {
             String typeName = dictionary.getJsonAliasFor(loadClass);
             return getFilterExpressionByType(typeName);

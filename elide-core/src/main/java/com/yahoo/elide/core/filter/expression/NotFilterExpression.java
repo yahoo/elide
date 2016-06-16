@@ -8,13 +8,13 @@ package com.yahoo.elide.core.filter.expression;
 import lombok.Getter;
 
 /**
- * A 'Not' Filter Expression.
+ * A 'Not' Filter FilterExpression.
  */
-public class NotExpression implements Expression {
+public class NotFilterExpression implements FilterExpression {
 
-    @Getter private Expression negated;
+    @Getter private FilterExpression negated;
 
-    public NotExpression(Expression negated) {
+    public NotFilterExpression(FilterExpression negated) {
         this.negated = negated;
 
     }
