@@ -118,13 +118,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             /* Extract any query param that starts with 'filter' */
             MultivaluedMap filterParams = getFilterParams(queryParams);
 
+            String errorMessage = "";
             if (! filterParams.isEmpty()) {
 
                 /* First check to see if there is a global, cross-type filter */
                 try {
                     globalFilterExpression = filterStrategy.parseGlobalExpression(path, filterParams);
                 } catch (ParseException e) {
-                    //TODO - perhaps aggregate this error message with any subsequent filter parsing error */
+                    errorMessage = e.getMessage();
                 }
 
                 /* Next check to see if there is are type specific filters */
@@ -134,7 +135,16 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
                     /* If neither strategy parsed, report the last error found */
                     if (globalFilterExpression == null) {
-                        throw new InvalidPredicateException(e.getMessage());
+
+                        if (errorMessage.isEmpty()) {
+                            errorMessage = e.getMessage();
+                        } else if (! errorMessage.equals(e.getMessage())) {
+
+                            /* Combine the two different messages together */
+                            errorMessage = errorMessage + "\n" + e.getMessage();
+                        }
+
+                        throw new InvalidPredicateException(errorMessage);
                     }
                 }
             }
