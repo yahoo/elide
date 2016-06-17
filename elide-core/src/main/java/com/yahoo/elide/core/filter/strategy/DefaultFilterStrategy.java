@@ -73,6 +73,8 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
                 Predicate predicate = new Predicate(path, operator, values);
 
                 predicates.add(predicate);
+            } else {
+                throw new ParseException("Invalid filter format: " + paramName);
             }
         }
 

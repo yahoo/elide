@@ -182,7 +182,7 @@ public class MultipleFilterStrategyTest {
         try {
             strategy.parseGlobalExpression("/author", queryParams);
         } catch (ParseException e) {
-            Assert.assertEquals("two", e.getMessage());
+            Assert.assertEquals(e.getMessage(), "two\none");
         }
     }
 
@@ -217,7 +217,7 @@ public class MultipleFilterStrategyTest {
         try {
             strategy.parseTypedExpression("/author", queryParams);
         } catch (ParseException e) {
-            Assert.assertEquals("two", e.getMessage());
+            Assert.assertEquals(e.getMessage(), "two\none");
         }
     }
 }

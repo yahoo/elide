@@ -5,16 +5,17 @@
  */
 package com.yahoo.elide.initialization;
 
+import com.beust.jcommander.internal.Lists;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy;
 import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
+import com.yahoo.elide.core.filter.strategy.RSQLFilterStrategy;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
-import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -35,10 +36,13 @@ public class StandardTestBinder extends AbstractBinder {
             public Elide provide() {
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
                 DefaultFilterStrategy defaultFilterStrategy = new DefaultFilterStrategy(dictionary);
+                RSQLFilterStrategy rsqlFilterStrategy = new RSQLFilterStrategy(dictionary);
+
                 MultipleFilterStrategy multipleFilterStrategy = new MultipleFilterStrategy(
-                        Collections.singletonList(defaultFilterStrategy),
-                        Collections.singletonList(defaultFilterStrategy)
+                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy),
+                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
+
                 return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterStrategy(multipleFilterStrategy)

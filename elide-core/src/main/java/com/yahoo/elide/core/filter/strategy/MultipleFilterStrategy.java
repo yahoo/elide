@@ -47,7 +47,11 @@ public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilte
                 return strategy.parseGlobalExpression(path, queryParams);
             } catch (ParseException e) {
                 log.trace("Parse Failure: {}", e.getMessage());
-                lastFailure = e;
+                if (lastFailure != null) {
+                    lastFailure = new ParseException(e.getMessage() + "\n" + lastFailure.getMessage());
+                } else {
+                    lastFailure = e;
+                }
             }
         }
         throw lastFailure;
@@ -68,7 +72,11 @@ public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilte
                 return strategy.parseTypedExpression(path, queryParams);
             } catch (ParseException e) {
                 log.trace("Parse Failure: {}", e.getMessage());
-                lastFailure = e;
+                if (lastFailure != null) {
+                    lastFailure = new ParseException(e.getMessage() + "\n" + lastFailure.getMessage());
+                } else {
+                    lastFailure = e;
+                }
             }
         }
         throw lastFailure;
