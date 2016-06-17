@@ -138,6 +138,35 @@ public class Elide {
                   DataStore dataStore,
                   EntityDictionary dictionary,
                   JsonApiMapper mapper,
+                  Function<RequestScope, PermissionExecutor> permissionExecutor) {
+        this(
+            auditLogger,
+            dataStore,
+            dictionary,
+            mapper,
+            ActivePermissionExecutor::new,
+            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+            false
+        );
+    }
+
+    /**
+     * Instantiates a new Elide.
+     *
+     * @param auditLogger the audit logger
+     * @param dataStore the dataStore
+     * @param dictionary the dictionary
+     * @param mapper Serializer/Deserializer for JSON API
+     * @param permissionExecutor Custom permission executor implementation
+     * @param joinFilterStrategies A list of filter parsers to use for filtering across types
+     * @param subqueryFilterStrategies A list of filter parsers to use for filtering by type
+     * @param useFilterExpressions Whether or not to use Elide 3.0 filter expressions for DataStore interactions
+     */
+    protected Elide(AuditLogger auditLogger,
+                  DataStore dataStore,
+                  EntityDictionary dictionary,
+                  JsonApiMapper mapper,
                   Function<RequestScope, PermissionExecutor> permissionExecutor,
                   List<JoinFilterStrategy> joinFilterStrategies,
                   List<SubqueryFilterStrategy> subqueryFilterStrategies,
