@@ -327,6 +327,27 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Gets the total number of records that could be loaded from the data store ignoring any pagination limits
+     *
+     * @param <T> the type parameter
+     * @param loadClass the load class
+     * @param requestScope the request scope
+     * @return total number of records that could be loaded
+     */
+    public static <T> Long getTotalRecords(Class<T> loadClass, RequestScope requestScope) {
+        DataStoreTransaction tx = requestScope.getTransaction();
+
+        if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
+            return 0L;
+        }
+
+        FilterScope filterScope = new FilterScope(requestScope, loadClass);
+        Long totalRecords = tx.getTotalRecords(loadClass, filterScope);
+
+        return totalRecords;
+    }
+
+    /**
      * Update attribute in existing resource.
      *
      * @param fieldName the field name

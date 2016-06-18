@@ -17,11 +17,13 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
@@ -30,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +71,32 @@ public class CollectionTerminalState extends BaseState {
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
+
+        // Add pagination meta data
+        Pagination pagination = requestScope.getPagination();
+        if (!pagination.isEmpty()) {
+
+            Map<String, Number> pageMetaData = new HashMap<>();
+            pageMetaData.put("number", (pagination.getOffset() / pagination.getLimit()) + 1);
+            pageMetaData.put("limit", pagination.getLimit());
+
+            // Get total records if it has been requested and add to the page meta data
+            if (pagination.isPageTotalsRequested()) {
+                Long totalRecords = PersistentResource.getTotalRecords(entityClass, requestScope);
+                pageMetaData.put("totalPages",
+                        totalRecords / pagination.getLimit() + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
+                pageMetaData.put("totalRecords", totalRecords);
+            }
+
+            Map<String, Object> allMetaData = new HashMap<>();
+            allMetaData.put("page", pageMetaData);
+
+            Meta meta = new Meta(allMetaData);
+            jsonApiDocument.setMeta(meta);
+        }
+
         JsonNode responseBody = mapper.convertValue(jsonApiDocument, JsonNode.class);
+
         return () -> Pair.of(HttpStatus.SC_OK, responseBody);
     }
 

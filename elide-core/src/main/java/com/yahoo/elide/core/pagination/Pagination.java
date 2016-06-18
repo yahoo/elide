@@ -9,6 +9,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class Pagination {
     public static final int DEFAULT_PAGE_SIZE = 500;
     public static final int MAX_PAGE_SIZE = 10000;
 
-    private static final Pagination DEFAULT_PAGINATION = new Pagination(0, 0);
+    private static final Pagination DEFAULT_PAGINATION = new Pagination(0, 0, false);
 
     public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
     static {
@@ -40,11 +41,17 @@ public class Pagination {
         PAGE_KEYS.put("page[offset]", PaginationKey.offset);
     }
 
+    // For requesting total pages/records be included in the response
+    public static String PAGE_TOTAL_KEY = "page[totals]";
+
     @Getter
     private int offset;
 
     @Getter
     private int limit;
+
+    @Getter
+    private boolean pageTotalsRequested = false;
 
     /**
      * Know if this is the default instance.
@@ -70,6 +77,8 @@ public class Pagination {
     public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams)
             throws InvalidValueException {
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
+        final MutableBoolean pageTotalsRequested = new MutableBoolean(false);
+
         queryParams.entrySet()
                 .forEach(paramEntry -> {
                     final String queryParamKey = paramEntry.getKey();
@@ -80,9 +89,18 @@ public class Pagination {
                         } catch (ClassCastException e) {
                             throw new InvalidValueException("page values must be integers");
                         }
+                    } else if (queryParamKey.equals(PAGE_TOTAL_KEY)) {
+                        final String value = paramEntry.getValue().get(0);
+                        if (value.equals("true")) {
+                            pageTotalsRequested.setTrue();
+                        } else if (value.equals("false")) {
+                            pageTotalsRequested.setFalse();
+                        } else {
+                            throw new InvalidValueException(PAGE_TOTAL_KEY + " must be either true or false");
+                        }
                     } else if (queryParamKey.startsWith("page[")) {
                         throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are page[number]"
-                                + ",page[size],page[offset],page[limit]");
+                                + ",page[size],page[offset],page[limit],page[totals]");
                     }
                 });
 
@@ -103,8 +121,8 @@ public class Pagination {
         if (!pageData.containsKey(PaginationKey.offset)) {
             pageData.put(PaginationKey.offset, 0);
         }
-        // offset, page, limit
-        return new Pagination(pageData.get(PaginationKey.offset), limit);
+        // offset, page, limit, pageTotalsRequested
+        return new Pagination(pageData.get(PaginationKey.offset), limit, pageTotalsRequested.getValue());
     }
 
     /**

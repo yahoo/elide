@@ -35,6 +35,7 @@ import org.hibernate.Session;
 import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import java.io.IOException;
@@ -265,6 +266,20 @@ public class HibernateTransaction implements RequestScopedTransaction {
             return criteria.list();
         }
         return new ScrollableIterator(criteria.scroll(scrollMode));
+    }
+
+    @Override
+    public <T> Long getTotalRecords(Class<T> entityClass, FilterScope filterScope) {
+        final Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
+        final CriteriaExplorer criteriaExplorer = new CriteriaExplorer(
+                entityClass, filterScope.getRequestScope(), criterion);
+        final Criteria sessionCriteria = session.createCriteria(entityClass);
+
+        criteriaExplorer.buildCriteria(sessionCriteria, session);
+
+        sessionCriteria.setProjection(Projections.rowCount());
+
+        return (Long) sessionCriteria.uniqueResult();
     }
 
     /**
