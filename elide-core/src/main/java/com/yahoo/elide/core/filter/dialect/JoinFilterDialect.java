@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
@@ -15,10 +15,10 @@ import javax.ws.rs.core.MultivaluedMap;
  * would require a join between 'book' and 'publisher'.  The resulting join is filtered by
  * both predicates.
  *
- * This filter strategy is invoked whenever the first entity is loaded from the DataStoreTransaction.
+ * This filter dialect is invoked whenever the first entity is loaded from the DataStoreTransaction.
  * For example, the above filter on '/books' would be invoked when 'book' is loaded from the DataStoreTransaction.
  */
-public interface JoinFilterStrategy {
+public interface JoinFilterDialect {
     /**
      * @param path the URL path
      * @param queryParams the subset of query parameters that start with 'filter'

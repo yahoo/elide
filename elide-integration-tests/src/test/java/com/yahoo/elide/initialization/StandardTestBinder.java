@@ -9,9 +9,9 @@ import com.beust.jcommander.internal.Lists;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.RSQLFilterStrategy;
+import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -35,18 +35,18 @@ public class StandardTestBinder extends AbstractBinder {
             @Override
             public Elide provide() {
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-                DefaultFilterStrategy defaultFilterStrategy = new DefaultFilterStrategy(dictionary);
-                RSQLFilterStrategy rsqlFilterStrategy = new RSQLFilterStrategy(dictionary);
+                DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
-                MultipleFilterStrategy multipleFilterStrategy = new MultipleFilterStrategy(
+                MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy),
                         Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
                 return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
                         .withAuditLogger(auditLogger)
-                        .withJoinFilterStrategy(multipleFilterStrategy)
-                        .withSubqueryFilterStrategy(multipleFilterStrategy)
+                        .withJoinFilterDialect(multipleFilterStrategy)
+                        .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .build();
             }

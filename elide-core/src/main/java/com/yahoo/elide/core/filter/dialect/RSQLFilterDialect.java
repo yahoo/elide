@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -38,16 +38,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * FilterStrategy which implements support for RSQL filter dialect.
+ * FilterDialect which implements support for RSQL filter dialect.
  */
-public class RSQLFilterStrategy implements SubqueryFilterStrategy, JoinFilterStrategy {
+public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
 
     private final Pattern typedFilterPattern;
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
     private final Map<ComparisonOperator, Operator> operatorMap;
 
-    public RSQLFilterStrategy(EntityDictionary dictionary, Set<ComparisonOperator> rsqlOperators) {
+    public RSQLFilterDialect(EntityDictionary dictionary, Set<ComparisonOperator> rsqlOperators) {
         // Match "filter[<type>]"
         typedFilterPattern = Pattern.compile("filter\\[([^\\]]+)\\]");
 
@@ -64,7 +64,7 @@ public class RSQLFilterStrategy implements SubqueryFilterStrategy, JoinFilterStr
         operatorMap.put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE);
     }
 
-    public RSQLFilterStrategy(EntityDictionary dictionary) {
+    public RSQLFilterDialect(EntityDictionary dictionary) {
         this(dictionary, RSQLOperators.defaultOperators());
     }
 

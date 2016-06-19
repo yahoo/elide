@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -24,12 +24,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The default filter strategy supported in Elide 1.0 and 2.0.
+ * The default filter dialect supported in Elide 1.0 and 2.0.
  */
-public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilterStrategy {
+public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
     private final EntityDictionary dictionary;
 
-    public DefaultFilterStrategy(EntityDictionary dictionary) {
+    public DefaultFilterDialect(EntityDictionary dictionary) {
         this.dictionary = dictionary;
     }
 

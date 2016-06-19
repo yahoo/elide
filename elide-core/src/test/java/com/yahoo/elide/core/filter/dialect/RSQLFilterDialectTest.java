@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -19,18 +19,18 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Tests RSQLFilterStrategy
+ * Tests RSQLFilterDialect
  */
-public class RSQLFilterStrategyTest {
+public class RSQLFilterDialectTest {
 
-    RSQLFilterStrategy strategy;
+    RSQLFilterDialect dialect;
     @BeforeTest
     public void init() {
         EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
-        strategy = new RSQLFilterStrategy(dictionary);
+        dialect = new RSQLFilterDialect(dictionary);
     }
 
     @Test
@@ -42,7 +42,7 @@ public class RSQLFilterStrategyTest {
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
 
-        Map<String, FilterExpression> expressionMap = strategy.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
 
         Assert.assertEquals(expressionMap.size(), 1);
         Assert.assertEquals(expressionMap.get("book").toString(),
@@ -60,7 +60,7 @@ public class RSQLFilterStrategyTest {
                 "title==*foo*;authors.name==Hemingway"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "(book.title INFIX [foo] AND book.authors.name IN [Hemingway])"
@@ -76,7 +76,7 @@ public class RSQLFilterStrategyTest {
                 "title==Hemingway"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "book.title IN [Hemingway]"
@@ -92,7 +92,7 @@ public class RSQLFilterStrategyTest {
                 "title!=Hemingway"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "NOT (book.title IN [Hemingway])"
@@ -108,7 +108,7 @@ public class RSQLFilterStrategyTest {
                 "title=in=Hemingway"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "book.title IN [Hemingway]"
@@ -124,7 +124,7 @@ public class RSQLFilterStrategyTest {
                 "title=out=Hemingway"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "book.title NOT [Hemingway]"
@@ -142,7 +142,7 @@ public class RSQLFilterStrategyTest {
 
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "((((book.publishDate GT [5] OR book.publishDate GE [5]) OR book.publishDate LT [10]) OR book.publishDate LE [10]) "
@@ -160,7 +160,7 @@ public class RSQLFilterStrategyTest {
                 "title==*Hemingway*,title==*Hemingway,title==Hemingway*"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "((book.title INFIX [Hemingway] OR book.title POSTFIX [Hemingway]) OR book.title PREFIX [Hemingway])"
@@ -176,7 +176,7 @@ public class RSQLFilterStrategyTest {
                 "title==foo;(title==bar;title==baz)"
         );
 
-        FilterExpression expression = strategy.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
                 "(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))"

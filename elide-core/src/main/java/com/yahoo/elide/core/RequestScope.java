@@ -8,9 +8,9 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.ParseException;
+import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
@@ -54,7 +54,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final String path;
     private final boolean useFilterExpressions;
-    private final MultipleFilterStrategy filterStrategy;
+    private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
     /* Used to filter across heterogeneous types during the first load */
@@ -85,7 +85,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
-                        MultipleFilterStrategy filterStrategy,
+                        MultipleFilterDialect filterDialect,
                         boolean useFilterExpressions) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
@@ -95,7 +95,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.mapper = mapper;
         this.auditLogger = auditLogger;
         this.securityMode = securityMode;
-        this.filterStrategy = filterStrategy;
+        this.filterDialect = filterDialect;
 
         this.expressionsByType = new HashMap<>();
         this.globalFilterExpression = null;
@@ -123,17 +123,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
                 /* First check to see if there is a global, cross-type filter */
                 try {
-                    globalFilterExpression = filterStrategy.parseGlobalExpression(path, filterParams);
+                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams);
                 } catch (ParseException e) {
                     errorMessage = e.getMessage();
                 }
 
                 /* Next check to see if there is are type specific filters */
                 try {
-                    expressionsByType.putAll(filterStrategy.parseTypedExpression(path, filterParams));
+                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams));
                 } catch (ParseException e) {
 
-                    /* If neither strategy parsed, report the last error found */
+                    /* If neither dialect parsed, report the last error found */
                     if (globalFilterExpression == null) {
 
                         if (errorMessage.isEmpty()) {
@@ -183,7 +183,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 null,
                 securityMode,
                 permissionExecutor,
-                new MultipleFilterStrategy(dictionary),
+                new MultipleFilterDialect(dictionary),
                 false
         );
     }
@@ -207,7 +207,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 queryParams,
                 SecurityMode.SECURITY_ACTIVE,
                 null,
-                new MultipleFilterStrategy(dictionary),
+                new MultipleFilterDialect(dictionary),
                 false
         );
     }
@@ -230,7 +230,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 null,
                 SecurityMode.SECURITY_ACTIVE,
                 null,
-                new MultipleFilterStrategy(dictionary),
+                new MultipleFilterDialect(dictionary),
                 false
         );
     }
@@ -276,7 +276,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.dirtyResources = outerRequestScope.dirtyResources;
-        this.filterStrategy = outerRequestScope.filterStrategy;
+        this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
     }

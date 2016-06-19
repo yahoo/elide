@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
@@ -21,12 +21,12 @@ import java.util.Map;
  * Whenever a collection of type 'book' is referenced, the first filter is applied.
  * Whenever a collection of type 'publisher' is referenced, the second filter is applied.
  *
- * This strategy is invoked whenever a collection of elements is returned via Elide.  This includes:
+ * This dialect is invoked whenever a collection of elements is returned via Elide.  This includes:
  *  - GET on a collection whose type is referenced in the filter
  *  - GET on a relationship whose type is referenced in the filter
  *  - A compound document includes a relationship whose type is referenced in the filter
  */
-public interface SubqueryFilterStrategy {
+public interface SubqueryFilterDialect {
     /**
      * @param path The URL path
      * @param queryParams The subset of queryParams that start with 'filter'

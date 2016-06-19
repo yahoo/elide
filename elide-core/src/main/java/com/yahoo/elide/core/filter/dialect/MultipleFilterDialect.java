@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -16,35 +16,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A filter strategy that supports an ordered list of different strategies.  Strategies
- * are attempted in sequence.  The first strategy that successfully parses a filter expression
- * is used.  If no strategy succeeds, the error from the last strategy is returned.
+ * A filter dialect that supports an ordered list of different dialects.  Dialects
+ * are attempted in sequence.  The first dialect that successfully parses a filter expression
+ * is used.  If no dialect succeeds, the error from the last dialect is returned.
  */
 @AllArgsConstructor
 @Slf4j
-public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilterStrategy {
-    private List<JoinFilterStrategy> joinStrategies;
-    private List<SubqueryFilterStrategy> subqueryStrategies;
+public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
+    private List<JoinFilterDialect> joinDialects;
+    private List<SubqueryFilterDialect> subqueryDialects;
 
-    public MultipleFilterStrategy(EntityDictionary dictionary) {
-        DefaultFilterStrategy defaultStrategy = new DefaultFilterStrategy(dictionary);
-        joinStrategies = new ArrayList<>();
-        joinStrategies.add(defaultStrategy);
-        subqueryStrategies = new ArrayList<>();
-        subqueryStrategies.add(defaultStrategy);
+    public MultipleFilterDialect(EntityDictionary dictionary) {
+        DefaultFilterDialect defaultDialect = new DefaultFilterDialect(dictionary);
+        joinDialects = new ArrayList<>();
+        joinDialects.add(defaultDialect);
+        subqueryDialects = new ArrayList<>();
+        subqueryDialects.add(defaultDialect);
     }
 
     @Override
     public FilterExpression parseGlobalExpression(String path,
                                             MultivaluedMap<String, String> queryParams) throws ParseException {
-        if (joinStrategies.isEmpty()) {
+        if (joinDialects.isEmpty()) {
             throw new ParseException("Heterogeneous type filtering not supported");
         }
 
         ParseException lastFailure = null;
-        for (JoinFilterStrategy strategy : joinStrategies) {
+        for (JoinFilterDialect dialect : joinDialects) {
             try {
-                return strategy.parseGlobalExpression(path, queryParams);
+                return dialect.parseGlobalExpression(path, queryParams);
             } catch (ParseException e) {
                 log.trace("Parse Failure: {}", e.getMessage());
                 if (lastFailure != null) {
@@ -62,14 +62,14 @@ public class MultipleFilterStrategy implements JoinFilterStrategy, SubqueryFilte
                                                         MultivaluedMap<String, String> queryParams)
             throws ParseException {
 
-        if (subqueryStrategies.isEmpty()) {
+        if (subqueryDialects.isEmpty()) {
             throw new ParseException("Type filtering not supported");
         }
 
         ParseException lastFailure = null;
-        for (SubqueryFilterStrategy strategy : subqueryStrategies) {
+        for (SubqueryFilterDialect dialect : subqueryDialects) {
             try {
-                return strategy.parseTypedExpression(path, queryParams);
+                return dialect.parseTypedExpression(path, queryParams);
             } catch (ParseException e) {
                 log.trace("Parse Failure: {}", e.getMessage());
                 if (lastFailure != null) {
