@@ -42,7 +42,7 @@ public class HibernateStore implements DataStore {
      * @param isScrollEnabled Whether or not scrolling is enabled on driver
      * @param scrollMode Scroll mode to use for scrolling driver
      */
-    private HibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
+    protected HibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
         this.sessionFactory = aSessionFactory;
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
