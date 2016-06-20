@@ -61,7 +61,7 @@ public class JsonApiPatch {
                 try {
                     // Only update relationships
                     clearAllExceptRelationships(doc);
-                    PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(doc, requestScope));
+                    PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, doc, requestScope));
                     visitor.visit(Elide.parse(path));
                 } catch (HttpStatusException e) {
                     cause = e;
@@ -208,7 +208,7 @@ public class JsonApiPatch {
                 action.path = fullPath;
                 action.isPostProcessing = true;
             }
-            PostVisitor visitor = new PostVisitor(new PatchRequestScope(value, requestScope));
+            PostVisitor visitor = new PostVisitor(new PatchRequestScope(path, value, requestScope));
             return visitor.visit(Elide.parse(path));
         } catch (HttpStatusException e) {
             action.cause = e;
@@ -226,7 +226,7 @@ public class JsonApiPatch {
         try {
             JsonApiDocument value = requestScope.getMapper().readJsonApiPatchExtValue(patchVal);
             // Defer relationship updating until the end
-            PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(value, requestScope));
+            PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, value, requestScope));
             return visitor.visit(Elide.parse(path));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchVal);
@@ -255,7 +255,7 @@ public class JsonApiPatch {
                 }
             }
             DeleteVisitor visitor = new DeleteVisitor(
-                new PatchRequestScope(value, requestScope));
+                new PatchRequestScope(path, value, requestScope));
             return visitor.visit(Elide.parse(fullPath));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);

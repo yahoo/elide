@@ -5,24 +5,25 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import com.google.common.base.Objects;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.hibernate3.filter.CriteriaExplorer;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Objects;
-
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Hibernate;
@@ -35,9 +36,6 @@ import org.hibernate.collection.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-
-import lombok.AccessLevel;
-import lombok.Getter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -63,7 +61,6 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final CriterionFilterOperation criterionFilterOperation = new CriterionFilterOperation();
     private final boolean isScrollEnabled;
     private final ScrollMode scrollMode;
     @Getter(value = AccessLevel.PROTECTED)
@@ -137,8 +134,15 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
     }
 
+    @Deprecated
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
+
+        /*
+         * No join/global filters can be applied here until this interface can change in Elide 3.0.
+         * Ideally, this interface will need a RequestScope so that it can extract the global filter.
+         */
+
         try {
             if (isJoinQuery()) {
                 Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
@@ -158,6 +162,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
     }
 
+    @Deprecated
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         throw new IllegalStateException("" + loadClass);
@@ -165,25 +170,39 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
+        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        // Criteria for filtering this object
-        CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
+        Optional<FilterExpression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(loadClass);
 
-        return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
+        Criteria criteria = session.createCriteria(loadClass);
+        if (securityCriterion != null) {
+            criteria.add(securityCriterion);
+        }
+
+        if (filterExpression.isPresent()) {
+            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            criteria = filterOpn.apply(filterExpression.get());
+        }
+
+        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
     }
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
+        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        String type = filterScope.getRequestScope().getDictionary().getJsonAliasFor(entityClass);
-        Set<Predicate> filteredPredicates = filterScope.getRequestScope().getPredicatesOfType(type);
-        criterion = CriterionFilterOperation.andWithNull(
-                criterion,
-                criterionFilterOperation.applyAll(filteredPredicates)
-        );
+        Optional<FilterExpression> filterExpression =
+                filterScope.getRequestScope().getLoadFilterExpression(entityClass);
 
+        Criteria criteria = session.createCriteria(entityClass);
+        if (securityCriterion != null) {
+            criteria.add(securityCriterion);
+        }
+
+        if (filterExpression.isPresent()) {
+            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            criteria = filterOpn.apply(filterExpression.get());
+        }
 
         final Pagination pagination = filterScope.hasPagination()
                 ? filterScope.getRequestScope().getPagination()
@@ -203,49 +222,49 @@ public class HibernateTransaction implements RequestScopedTransaction {
                     .collect(Collectors.toSet());
         }
 
-        return loadObjects(entityClass, new CriteriaExplorer(entityClass, filterScope.getRequestScope(), criterion),
-                Optional.ofNullable(validatedSortingRules), Optional.ofNullable(pagination));
+        return loadObjects(
+                entityClass,
+                criteria,
+                Optional.ofNullable(validatedSortingRules),
+                Optional.ofNullable(pagination));
     }
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteriaExplorer Criteria explorer to explore and construct criterion
+     * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Criteria criteria,
             final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
-        final Criteria sessionCriteria = session.createCriteria(loadClass);
-
-        criteriaExplorer.buildCriteria(sessionCriteria, session);
 
         if (sortingRules.isPresent()) {
-            sortingRules.get().forEach(sessionCriteria::addOrder);
+            sortingRules.get().forEach(criteria::addOrder);
         }
 
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
-            sessionCriteria.setFirstResult(paginationData.getOffset());
-            sessionCriteria.setMaxResults(paginationData.getLimit());
+            criteria.setFirstResult(paginationData.getOffset());
+            criteria.setMaxResults(paginationData.getLimit());
         } else {
             Integer queryLimit = getQueryLimit();
             if (queryLimit != null) {
-                sessionCriteria.setMaxResults(queryLimit);
+                criteria.setMaxResults(queryLimit);
             }
         }
 
         if (isJoinQuery()) {
-            joinCriteria(sessionCriteria, loadClass);
+            joinCriteria(criteria, loadClass);
         }
 
-        sessionCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         if (!isScrollEnabled || isJoinQuery()) {
-            return sessionCriteria.list();
+            return criteria.list();
         }
-        return new ScrollableIterator(sessionCriteria.scroll(scrollMode));
+        return new ScrollableIterator(criteria.scroll(scrollMode));
     }
 
     /**
@@ -343,6 +362,46 @@ public class HibernateTransaction implements RequestScopedTransaction {
         };
 
         requestScope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
+            final boolean hasSortRules = sorting.isDefaultInstance();
+            final boolean isPaginated = pagination.isDefaultInstance();
+
+            if ((filterExpression.isPresent() || hasSortRules || isPaginated)
+                    && (filteredVal instanceof AbstractPersistentCollection)) {
+                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(sorting) : Optional.empty();
+                final Optional<Pagination> paginationRules = isPaginated ? Optional.of(pagination) : Optional.empty();
+
+                @SuppressWarnings("unchecked")
+                final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
+                        dictionary)
+                        .withPossibleFilterExpression(filterExpression)
+                        .withPossibleSorting(sortingRules)
+                        .withPossiblePagination(paginationRules)
+                        .build();
+                if (possibleQuery.isPresent()) {
+                    return possibleQuery.get().list();
+                }
+
+            }
+        }
+
+        return val;
     }
 
     @Override

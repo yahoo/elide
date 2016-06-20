@@ -4,33 +4,62 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.filter
-
 import com.yahoo.elide.core.EntityDictionary
 import com.yahoo.elide.core.exceptions.InvalidPredicateException
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor
+import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy
+import com.yahoo.elide.core.filter.strategy.ParseException
+import example.Author
+import example.Book
 import org.testng.Assert
 import org.testng.annotations.BeforeSuite
 import org.testng.annotations.Test
 
 import javax.ws.rs.core.MultivaluedHashMap
+import javax.ws.rs.core.MultivaluedMap
 
 import static org.mockito.Mockito.mock
 import static org.mockito.Mockito.when
-
 /**
  * Predicate test class.
  */
 public class PredicateTest {
-    private EntityDictionary entityDictionary
+    private DefaultFilterStrategy strategy
 
     @BeforeSuite
     public void setup() {
-        entityDictionary = mock(EntityDictionary.class)
+        EntityDictionary entityDictionary = mock(EntityDictionary.class)
         when(entityDictionary.getJsonAliasFor(String.class)).thenReturn("string")
-        when(entityDictionary.getEntityClass("type1")).thenReturn(String.class)
-        when(entityDictionary.getEntityClass("type2")).thenReturn(String.class)
-        when(entityDictionary.getParameterizedType(String.class, "field1")).thenReturn(String.class)
-        when(entityDictionary.getParameterizedType(String.class, "field2")).thenReturn(String.class)
-        when(entityDictionary.getParameterizedType(String.class, "intField")).thenReturn(Integer.class)
+        when(entityDictionary.getJsonAliasFor(Book.class)).thenReturn("type1")
+        when(entityDictionary.getJsonAliasFor(Author.class)).thenReturn("type2")
+        when(entityDictionary.getEntityClass("type1")).thenReturn(Book.class)
+        when(entityDictionary.getEntityClass("type2")).thenReturn(Author.class)
+        when(entityDictionary.getParameterizedType(Book.class, "field1")).thenReturn(String.class)
+        when(entityDictionary.getParameterizedType(Book.class, "field2")).thenReturn(String.class)
+        when(entityDictionary.getParameterizedType(Book.class, "intField")).thenReturn(Integer.class)
+        strategy = new DefaultFilterStrategy(entityDictionary);
+    }
+
+    private Map<String, Set<Predicate>> parse(MultivaluedMap<String, String> queryParams) {
+        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+
+        def expressionMap;
+        try {
+            expressionMap = strategy.parseTypedExpression("/type1", queryParams);
+        } catch (ParseException e) {
+            throw new InvalidPredicateException(e.getMessage());
+        }
+
+        def returnMap = new HashMap<String, Set<Predicate>>();
+        for (entry in expressionMap) {
+            def typeName = entry.key;
+            def expression = entry.value;
+            if (!returnMap.containsKey(typeName)) {
+                returnMap[typeName] = new HashSet<Predicate>();
+            }
+            returnMap[typeName].addAll(expression.accept(visitor));
+        }
+        return returnMap;
     }
 
     @Test
@@ -38,7 +67,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1]", "abc")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -52,7 +81,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1]", "abc,def")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -67,7 +96,7 @@ public class PredicateTest {
         queryParams.add("filter[type1.field1]", "abc,def")
         queryParams.add("filter[type1.field2]", "def,jkl")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         for (Predicate predicate : predicates.get("type1")) {
@@ -91,7 +120,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][in]", "abc,def")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -105,7 +134,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][not]", "abc,def")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -119,7 +148,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][prefix]", "abc")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -133,7 +162,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][postfix]", "abc,def")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -147,7 +176,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.field1][infix]", "abc,def")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -161,7 +190,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[field1]", "abc,def")
 
-        Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
     }
 
     @Test
@@ -169,7 +198,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.intField]", "1")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()
@@ -183,7 +212,7 @@ public class PredicateTest {
         def queryParams = new MultivaluedHashMap<>()
         queryParams.add("filter[type1.intField]", "1,2,3")
 
-        def predicates = Predicate.parseQueryParams(entityDictionary, queryParams)
+        def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
         def predicate = predicates.get("type1").iterator().next()

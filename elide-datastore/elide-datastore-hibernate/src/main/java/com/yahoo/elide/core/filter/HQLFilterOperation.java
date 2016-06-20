@@ -1,11 +1,16 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.expression.Visitor;
 
 import java.util.Set;
 
@@ -59,5 +64,48 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
 
         return filterString.toString();
+    }
+
+    public String apply(FilterExpression filterExpression) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor();
+        return "WHERE " + filterExpression.accept(visitor);
+
+    }
+
+    /**
+     * Filter expression visitor which builds an HQL query.
+     */
+    public class HQLQueryVisitor implements Visitor<String> {
+
+        private String query;
+
+        @Override
+        public String visitPredicate(Predicate predicate) {
+            query = apply(predicate);
+            return query;
+        }
+
+        @Override
+        public String visitAndExpression(AndFilterExpression expression) {
+            String left = expression.getLeft().accept(this);
+            String right = expression.getRight().accept(this);
+            query = "(" + left + " AND " + right + ")";
+            return query;
+        }
+
+        @Override
+        public String visitOrExpression(OrFilterExpression expression) {
+            String left = expression.getLeft().accept(this);
+            String right = expression.getRight().accept(this);
+            query = "(" + left + " OR " + right + ")";
+            return query;
+        }
+
+        @Override
+        public String visitNotExpression(NotFilterExpression expression) {
+            String negated = expression.getNegated().accept(this);
+            query = "NOT (" + negated + ")";
+            return query;
+        }
     }
 }

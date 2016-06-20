@@ -58,15 +58,4 @@ public class FilterScope {
     public boolean hasPagination() {
         return !requestScope.getPagination().isDefaultInstance();
     }
-
-    /**
-     * Returns true if filters are applied to this query.
-     *
-     * NOTE: This method is often used in transaction implementations.
-     *
-     * @return true if there are filters
-     */
-    public boolean hasPredicates() {
-        return !requestScope.getPredicates().isEmpty();
-    }
 }

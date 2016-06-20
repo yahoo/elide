@@ -379,14 +379,14 @@ public class PermissionExecutorTest {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.getCheckMappings().put("FailAtCommit", FailingCommitCheck.class);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, dictionary, null, null);
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
         try {
             return new PersistentResource<>(cls.newInstance(), requestScope);
         } catch (InstantiationException | IllegalAccessException e) {

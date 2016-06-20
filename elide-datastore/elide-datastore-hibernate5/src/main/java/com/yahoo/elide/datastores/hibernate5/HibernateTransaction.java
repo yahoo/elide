@@ -8,14 +8,15 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.hibernate5.filter.CriteriaExplorer;
+import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.User;
-
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -143,16 +144,39 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
+        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        CriteriaExplorer criteriaExplorer = new CriteriaExplorer(loadClass, filterScope.getRequestScope(), criterion);
+        Optional<FilterExpression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(loadClass);
 
-        return loadObjects(loadClass, criteriaExplorer, Optional.empty(), Optional.empty());
+        Criteria criteria = session.createCriteria(loadClass);
+        if (securityCriterion != null) {
+            criteria.add(securityCriterion);
+        }
+
+        if (filterExpression.isPresent()) {
+            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            criteria = filterOpn.apply(filterExpression.get());
+        }
+
+        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
     }
 
     @Override
     public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
+        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
+
+        Optional<FilterExpression> filterExpression =
+                filterScope.getRequestScope().getLoadFilterExpression(entityClass);
+
+        Criteria criteria = session.createCriteria(entityClass);
+        if (securityCriterion != null) {
+            criteria.add(securityCriterion);
+        }
+
+        if (filterExpression.isPresent()) {
+            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            criteria = filterOpn.apply(filterExpression.get());
+        }
 
         final Pagination pagination = filterScope.hasPagination()
                 ? filterScope.getRequestScope().getPagination()
@@ -172,39 +196,78 @@ public class HibernateTransaction implements DataStoreTransaction {
                     .collect(Collectors.toSet());
         }
 
-        return loadObjects(entityClass, new CriteriaExplorer(entityClass, filterScope.getRequestScope(), criterion),
-                Optional.ofNullable(validatedSortingRules), Optional.ofNullable(pagination));
+        return loadObjects(
+                entityClass,
+                criteria,
+                Optional.ofNullable(validatedSortingRules),
+                Optional.ofNullable(pagination));
     }
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteriaExplorer Criteria explorer to explore and construct criterion
+     * @param criteria Filtering criteria
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final CriteriaExplorer criteriaExplorer,
+    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Criteria criteria,
                                        final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
-        final Criteria sessionCriteria = session.createCriteria(loadClass);
-
-        criteriaExplorer.buildCriteria(sessionCriteria, session);
-
         if (sortingRules.isPresent()) {
-            sortingRules.get().forEach(sessionCriteria::addOrder);
+            sortingRules.get().forEach(criteria::addOrder);
         }
 
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
-            sessionCriteria.setFirstResult(paginationData.getOffset());
-            sessionCriteria.setMaxResults(paginationData.getLimit());
+            criteria.setFirstResult(paginationData.getOffset());
+            criteria.setMaxResults(paginationData.getLimit());
         }
 
         if (isScrollEnabled) {
-            return new ScrollableIterator(sessionCriteria.scroll(scrollMode));
+            return new ScrollableIterator(criteria.scroll(scrollMode));
         }
-        return sessionCriteria.list();
+        return criteria.list();
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+
+            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
+            final boolean hasSortRules = sorting.isDefaultInstance();
+            final boolean isPaginated = pagination.isDefaultInstance();
+
+            if ((filterExpression.isPresent() || hasSortRules || isPaginated)
+                    && (filteredVal instanceof AbstractPersistentCollection)) {
+                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(sorting) : Optional.empty();
+                final Optional<Pagination> paginationRules = isPaginated ? Optional.of(pagination) : Optional.empty();
+
+                @SuppressWarnings("unchecked")
+                final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
+                        dictionary)
+                        .withPossibleFilterExpression(filterExpression)
+                        .withPossibleSorting(sortingRules)
+                        .withPossiblePagination(paginationRules)
+                        .build();
+                if (possibleQuery.isPresent()) {
+                    return possibleQuery.get().list();
+                }
+            }
+        }
+
+        return val;
     }
 
     @Override

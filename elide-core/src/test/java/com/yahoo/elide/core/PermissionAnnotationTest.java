@@ -46,8 +46,10 @@ public class PermissionAnnotationTest {
         fun.setId(1);
 
         AuditLogger testLogger = new TestAuditLogger();
-        funRecord = new PersistentResource<>(fun, new RequestScope(null, null, goodUser, dictionary, null, testLogger));
-        badRecord = new PersistentResource<>(fun, new RequestScope(null, null, badUser, dictionary, null, testLogger));
+        funRecord = new PersistentResource<>(fun,
+                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger));
+        badRecord = new PersistentResource<>(fun,
+                new RequestScope(null, null, null, badUser, dictionary, null, testLogger));
     }
 
     @Test

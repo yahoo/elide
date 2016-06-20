@@ -15,22 +15,26 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
+import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy;
+import com.yahoo.elide.core.filter.strategy.JoinFilterStrategy;
+import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
+import com.yahoo.elide.core.filter.strategy.SubqueryFilterStrategy;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
+import com.yahoo.elide.generated.parsers.CoreLexer;
+import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.parsers.DeleteVisitor;
 import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
-import com.yahoo.elide.generated.parsers.CoreLexer;
-import com.yahoo.elide.generated.parsers.CoreParser;
+import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +49,15 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -61,11 +67,15 @@ import java.util.function.Supplier;
 @Slf4j
 public class Elide {
 
+
     private final AuditLogger auditLogger;
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
+    private final List<JoinFilterStrategy> joinFilterStrategies;
+    private final List<SubqueryFilterStrategy> subqueryFilterStrategies;
+    private final boolean useFilterExpressions;
 
     /**
      * Instantiates a new Elide.
@@ -103,7 +113,16 @@ public class Elide {
      */
     @Deprecated
     public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
-        this(auditLogger, dataStore, dictionary, mapper, ActivePermissionExecutor::new);
+        this(
+                auditLogger,
+                dataStore,
+                dictionary,
+                mapper,
+                ActivePermissionExecutor::new,
+                Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+                Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+                false
+        );
     }
 
     /**
@@ -120,12 +139,47 @@ public class Elide {
                   EntityDictionary dictionary,
                   JsonApiMapper mapper,
                   Function<RequestScope, PermissionExecutor> permissionExecutor) {
+        this(
+            auditLogger,
+            dataStore,
+            dictionary,
+            mapper,
+            ActivePermissionExecutor::new,
+            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+            false
+        );
+    }
+
+    /**
+     * Instantiates a new Elide.
+     *
+     * @param auditLogger the audit logger
+     * @param dataStore the dataStore
+     * @param dictionary the dictionary
+     * @param mapper Serializer/Deserializer for JSON API
+     * @param permissionExecutor Custom permission executor implementation
+     * @param joinFilterStrategies A list of filter parsers to use for filtering across types
+     * @param subqueryFilterStrategies A list of filter parsers to use for filtering by type
+     * @param useFilterExpressions Whether or not to use Elide 3.0 filter expressions for DataStore interactions
+     */
+    protected Elide(AuditLogger auditLogger,
+                  DataStore dataStore,
+                  EntityDictionary dictionary,
+                  JsonApiMapper mapper,
+                  Function<RequestScope, PermissionExecutor> permissionExecutor,
+                  List<JoinFilterStrategy> joinFilterStrategies,
+                  List<SubqueryFilterStrategy> subqueryFilterStrategies,
+                  boolean useFilterExpressions) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
         dataStore.populateEntityDictionary(dictionary);
         this.mapper = mapper;
         this.permissionExecutor = permissionExecutor;
+        this.joinFilterStrategies = joinFilterStrategies;
+        this.subqueryFilterStrategies = subqueryFilterStrategies;
+        this.useFilterExpressions = useFilterExpressions;
     }
 
     /**
@@ -137,6 +191,9 @@ public class Elide {
         private JsonApiMapper jsonApiMapper;
         private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
+        private List<JoinFilterStrategy> joinFilterStrategies;
+        private List<SubqueryFilterStrategy> subqueryFilterStrategies;
+        private boolean useFilterExpressions;
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -150,6 +207,9 @@ public class Elide {
             this.auditLogger = auditLogger;
             this.dataStore = dataStore;
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+            this.joinFilterStrategies = new ArrayList<>();
+            this.subqueryFilterStrategies = new ArrayList<>();
+
         }
 
         /**
@@ -162,10 +222,28 @@ public class Elide {
             this.dataStore = dataStore;
             this.auditLogger = new Slf4jLogger();
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+            this.joinFilterStrategies = new ArrayList<>();
+            this.subqueryFilterStrategies = new ArrayList<>();
         }
 
         public Elide build() {
-            return new Elide(auditLogger, dataStore, entityDictionary, jsonApiMapper, permissionExecutorFunction);
+            if (joinFilterStrategies.isEmpty()) {
+                joinFilterStrategies.add(new DefaultFilterStrategy(entityDictionary));
+            }
+
+            if (subqueryFilterStrategies.isEmpty()) {
+                subqueryFilterStrategies.add(new DefaultFilterStrategy(entityDictionary));
+            }
+
+            return new Elide(
+                    auditLogger,
+                    dataStore,
+                    entityDictionary,
+                    jsonApiMapper,
+                    permissionExecutorFunction,
+                    joinFilterStrategies,
+                    subqueryFilterStrategies,
+                    useFilterExpressions);
         }
 
         @Deprecated
@@ -233,6 +311,18 @@ public class Elide {
             };
             return this;
         }
+
+        public Builder withJoinFilterStrategy(JoinFilterStrategy strategy) {
+            useFilterExpressions = true;
+            joinFilterStrategies.add(strategy);
+            return this;
+        }
+
+        public Builder withSubqueryFilterStrategy(SubqueryFilterStrategy strategy) {
+            useFilterExpressions = true;
+            subqueryFilterStrategies.add(strategy);
+            return this;
+        }
     }
 
     /**
@@ -257,6 +347,7 @@ public class Elide {
         try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
             final User user = transaction.accessUser(opaqueUser);
             requestScope = new RequestScope(
+                    path,
                     new JsonApiDocument(),
                     transaction,
                     user,
@@ -265,7 +356,10 @@ public class Elide {
                     auditLogger,
                     queryParams,
                     securityMode,
-                    permissionExecutor);
+                    permissionExecutor,
+                    new MultipleFilterStrategy(joinFilterStrategies, subqueryFilterStrategies),
+                    useFilterExpressions);
+
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -325,7 +419,7 @@ public class Elide {
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-            requestScope = new RequestScope(doc,
+            requestScope = new RequestScope(path, doc,
                     transaction,
                     user,
                     dictionary,
@@ -400,15 +494,15 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder;
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
-                PatchRequestScope patchRequestScope = new PatchRequestScope(
+                PatchRequestScope patchRequestScope = new PatchRequestScope(path,
                         transaction, user, dictionary, mapper, auditLogger, permissionExecutor);
                 requestScope = patchRequestScope;
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-                requestScope = new RequestScope(doc, transaction, user, dictionary, mapper, auditLogger, securityMode,
-                        permissionExecutor);
+                requestScope = new RequestScope(path, doc, transaction, user, dictionary, mapper, auditLogger,
+                        securityMode, permissionExecutor);
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
@@ -482,7 +576,7 @@ public class Elide {
                 doc = new JsonApiDocument();
             }
             requestScope = new RequestScope(
-                    doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
+                    path, doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));

@@ -163,7 +163,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         Assert.assertNotNull(resource);
         verify(book, times(1)).onCreateBook();
@@ -178,7 +178,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         scope.runCommitTriggers();
         Assert.assertNotNull(resource);
@@ -194,7 +194,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(Book.class, 1L)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.loadRecord(Book.class, "1", scope);
         scope.runCommitTriggers();
         Assert.assertNotNull(resource);
@@ -210,7 +210,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObjects(eq(Book.class), isA(FilterScope.class))).thenReturn(Arrays.asList(book));
-        RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         Set<PersistentResource<Book>> resources = PersistentResource.loadRecords(Book.class, scope);
         scope.runCommitTriggers();
         Assert.assertEquals(resources.size(), 1);
@@ -224,7 +224,7 @@ public class LifeCycleTest {
     @Test
     public void testOnUpdate() {
         Book book = mock(Book.class);
-        RequestScope scope = new RequestScope(null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runCommitTriggers();
@@ -239,7 +239,7 @@ public class LifeCycleTest {
     public void testOnDelete() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
         verify(book, times(0)).onCreateBook();

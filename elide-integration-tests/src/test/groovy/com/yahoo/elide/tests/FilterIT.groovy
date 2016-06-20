@@ -927,19 +927,22 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testGetBadRelationshipRoot() {
         def result = mapper.readTree(RestAssured.get("author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
-        Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown entity in filter: idontexist");
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Unknown entity in filter: idontexist");
     }
 
     @Test
     public void testGetBadRelationshipIntermediate() {
         def result = mapper.readTree(RestAssured.get("author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
-        Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown field in filter: idontexist");
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Unknown field in filter: idontexist");
     }
 
     @Test
     public void testGetBadRelationshipLeaf() {
         def result = mapper.readTree(RestAssured.get("author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
-        Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown field in filter: idontexist");
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Unknown field in filter: idontexist");
     }
 
     @AfterTest

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -139,7 +140,7 @@ public interface DataStoreTransaction extends Closeable {
         return collection;
     }
 
-    /**
+   /**
      * Filter Sort and Paginate a collection in filterScope or requestScope.
      * @param collection The collection
      * @param dictionary The entity dictionary
@@ -158,6 +159,7 @@ public interface DataStoreTransaction extends Closeable {
         return collection;
     }
 
+    @Deprecated
     default <T> Object getRelation(
             Object entity,
             RelationshipType relationshipType,
@@ -179,6 +181,20 @@ public interface DataStoreTransaction extends Closeable {
         return val;
     }
 
+    default <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        return PersistentResource.getValue(entity, relationName, dictionary);
+    }
+
+    @Deprecated
     default <T> Object getRelationWithSortingAndPagination(
             Object entity,
             RelationshipType relationshipType,

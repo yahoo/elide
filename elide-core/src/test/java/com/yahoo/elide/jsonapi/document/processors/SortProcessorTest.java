@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -16,16 +14,16 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
-
+import example.Child;
+import example.Parent;
+import example.Post;
 import org.mockito.Answers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import example.Child;
-import example.Parent;
-import example.Post;
-
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,8 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import static org.mockito.Mockito.mock;
 
 public class SortProcessorTest {
     private static final String SORT = "sort";
@@ -57,7 +54,7 @@ public class SortProcessorTest {
         dictionary.bindEntity(Parent.class);
 
         sortProcessor = new SortProcessor();
-        goodUserScope = new RequestScope(new JsonApiDocument(),
+        goodUserScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), dictionary, null, new TestAuditLogger());
 
