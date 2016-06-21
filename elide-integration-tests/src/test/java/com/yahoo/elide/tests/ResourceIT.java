@@ -1457,7 +1457,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(createRoot)
-                .post("/ResoureWithInvalidRelationship")
+                .post("resourceWithInvalidRelationship")
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }

@@ -1,6 +1,6 @@
 {
   "data": {
-    "type": "ResourceWithInvalidRelationship",
+    "type": "resourceWithInvalidRelationship",
     "id": "1",
     "attributes": {
       "name": "test123"
@@ -8,7 +8,7 @@
     "relationships": {
       "notIncludedResouce": {
         "data": {
-          "type": "NotIncludedResource",
+          "type": "notIncludedResource",
           "id": "1"
         }
       }
