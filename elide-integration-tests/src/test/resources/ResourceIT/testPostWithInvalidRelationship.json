@@ -1,0 +1,17 @@
+{
+  "data": {
+    "type": "ResourceWithInvalidRelationship",
+    "id": "1",
+    "attributes": {
+      "name": "test123"
+    },
+    "relationships": {
+      "notIncludedResouce": {
+        "data": {
+          "type": "NotIncludedResource",
+          "id": "1"
+        }
+      }
+    }
+  }
+}

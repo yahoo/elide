@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.yahoo.elide.core.exceptions.InvalidRelationException;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -80,6 +81,8 @@ public class Relationship {
                     res.add(resource.toPersistentResource(requestScope));
                 } catch (ForbiddenAccessException e) {
                     //skip resource
+                } catch (java.lang.NullPointerException e) {
+                    throw new InvalidRelationException(resource.getType());
                 }
             }
         }
