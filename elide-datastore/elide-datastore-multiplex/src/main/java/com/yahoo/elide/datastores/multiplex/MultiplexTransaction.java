@@ -12,6 +12,7 @@ import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -126,17 +128,33 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         }
     }
 
-    public DataStoreTransaction getTransaction(Object object) {
+    protected DataStoreTransaction getTransaction(Object object) {
         return getTransaction(object.getClass());
     }
 
-    public DataStoreTransaction getTransaction(Class<?> cls) {
+    protected DataStoreTransaction getTransaction(Class<?> cls) {
         DataStoreTransaction transaction = transactions.get(this.multiplexManager.getSubManager(cls));
         if (transaction == null) {
             Class entityClass = multiplexManager.getDictionary().lookupEntityClass(cls);
             throw new InvalidCollectionException(entityClass == null ? cls.getName() : entityClass.getName());
         }
         return transaction;
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        return transaction.getRelation(entity, relationshipType, relationName,
+                relationClass, dictionary, filterExpression, sorting, pagination);
     }
 
     @Override
