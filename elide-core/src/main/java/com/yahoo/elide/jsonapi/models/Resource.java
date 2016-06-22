@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.yahoo.elide.core.exceptions.InvalidRelationException;
 import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 import lombok.ToString;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -141,6 +142,9 @@ public class Resource {
     public PersistentResource toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         Class<?> cls = requestScope.getDictionary().getEntityClass(type);
+        if (cls == null) {
+            throw new InvalidRelationException(type);
+        }
         return PersistentResource.loadRecord(cls, id, requestScope);
     }
 }

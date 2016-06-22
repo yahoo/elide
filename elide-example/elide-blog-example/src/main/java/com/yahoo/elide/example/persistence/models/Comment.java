@@ -23,7 +23,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "comment")
-@Include(rootLevel = true)
+@Include
 @SharePermission(any = { Role.ALL.class })
 public class Comment {
     private long id;

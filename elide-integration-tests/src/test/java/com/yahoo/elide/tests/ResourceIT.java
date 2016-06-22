@@ -1459,7 +1459,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(createRoot)
                 .post("resourceWithInvalidRelationship")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test

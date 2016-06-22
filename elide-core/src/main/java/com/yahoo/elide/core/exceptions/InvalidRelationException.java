@@ -11,7 +11,7 @@ import com.yahoo.elide.core.HttpStatus;
  * Invalid Relationship exception.
  */
 public class InvalidRelationException extends HttpStatusException {
-    public InvalidRelationException(String objectOrFieldName) {
-        super(HttpStatus.SC_NOT_FOUND, "Unknown resource type in relationship '" + objectOrFieldName + "'.");
+    public InvalidRelationException(String entityType) {
+        super(HttpStatus.SC_BAD_REQUEST, "Unknown entity in relationship '" + entityType + "'");
     }
 }
