@@ -1531,7 +1531,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .post("/assignedIdString")
             .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN);
+            .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test

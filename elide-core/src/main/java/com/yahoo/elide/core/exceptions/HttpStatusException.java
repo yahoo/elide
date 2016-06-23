@@ -19,7 +19,7 @@ import java.util.Map;
  * Creates fast exceptions without stack traces since filter checks can throw many of these.
  */
 @Slf4j
-public class HttpStatusException extends RuntimeException {
+public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     protected final int status;
