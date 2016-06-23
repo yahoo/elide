@@ -131,6 +131,15 @@ public class OperatorTest {
         Assert.assertFalse(fn.test(author));
         fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("error"), dictionary);
         Assert.assertFalse(fn.test(author));
+
+        // When values is null
+        author.setName(null);
+        fn = Operator.PREFIX.getFilterFunction("name", Arrays.asList("Author"), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.INFIX.getFilterFunction("name", Arrays.asList("For"), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("Test"), dictionary);
+        Assert.assertFalse(fn.test(author));
     }
 
     @Test

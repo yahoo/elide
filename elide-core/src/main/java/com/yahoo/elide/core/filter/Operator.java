@@ -24,29 +24,28 @@ import java.util.stream.Collectors;
 public enum Operator implements BiFunction<Predicate, EntityDictionary, java.util.function.Predicate> {
     IN("in", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 Object val = PersistentResource.getValue(entity, field, dictionary);
                 List<Object> coercedValues = values.stream()
-                        .map(v -> CoerceUtil.coerce(v, val.getClass())).collect(Collectors.toList());
+                        .map(v -> CoerceUtil.coerce(v, val.getClass()))
+                        .collect(Collectors.toList());
                 return coercedValues.contains(val);
             };
         }
     },
     NOT("not", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                List<Object> coercedValues = values.stream()
-                        .map(v -> CoerceUtil.coerce(v, val.getClass())).collect(Collectors.toList());
-                return !coercedValues.contains(val);
-            };
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return (entity) -> !IN.getFilterFunction(field, values, dictionary).test(entity);
         }
     },
     PREFIX("prefix", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 if (values.size() != 1) {
                     throw new InvalidPredicateException("PREFIX can only take one argument");
@@ -55,13 +54,14 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 Object val = PersistentResource.getValue(entity, field, dictionary);
                 String valStr = (String) CoerceUtil.coerce(val, String.class);
                 String filterStr = (String) CoerceUtil.coerce(values.get(0), String.class);
-                return valStr.startsWith(filterStr);
+                return valStr != null && filterStr != null && valStr.startsWith(filterStr);
             };
         }
     },
     POSTFIX("postfix", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 if (values.size() != 1) {
                     throw new InvalidPredicateException("POSTFIX can only take one argument");
@@ -70,13 +70,14 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 Object val = PersistentResource.getValue(entity, field, dictionary);
                 String valStr = (String) CoerceUtil.coerce(val, String.class);
                 String filterStr = (String) CoerceUtil.coerce(values.get(0), String.class);
-                return valStr.endsWith(filterStr);
+                return valStr != null && filterStr != null && valStr.endsWith(filterStr);
             };
         }
     },
     INFIX("infix", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 if (values.size() != 1) {
                     throw new InvalidPredicateException("INFIX can only take one argument");
@@ -85,13 +86,14 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 Object val = PersistentResource.getValue(entity, field, dictionary);
                 String valStr = (String) CoerceUtil.coerce(val, String.class);
                 String filterStr = (String) CoerceUtil.coerce(values.get(0), String.class);
-                return valStr.contains(filterStr);
+                return valStr != null && filterStr != null && valStr.contains(filterStr);
             };
         }
     },
     ISNULL("isnull", false) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 Object val = PersistentResource.getValue(entity, field, dictionary);
                 return val == null;
@@ -100,16 +102,15 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
     },
     NOTNULL("notnull", false) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null;
-            };
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return (entity) -> !ISNULL.getFilterFunction(field, values, dictionary).test(entity);
         }
     },
     LT("lt", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 if (values.size() != 1) {
                     throw new InvalidPredicateException("LT can only take one argument");
@@ -125,7 +126,8 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
     },
     LE("le", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 if (values.size() != 1) {
                     throw new InvalidPredicateException("LE can only take one argument");
@@ -141,34 +143,16 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
     },
     GT("gt", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("GT can only take one argument");
-                }
-
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
-                Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
-                return valComp.compareTo(filterComp) > 0;
-            };
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return (entity) -> !LE.getFilterFunction(field, values, dictionary).test(entity);
         }
     },
     GE("ge", true) {
         @Override
-        java.util.function.Predicate getFilterFunction(String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("GE can only take one argument");
-                }
-
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
-                Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
-                return valComp.compareTo(filterComp) >= 0;
-            };
+        public java.util.function.Predicate getFilterFunction(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return (entity) -> !LT.getFilterFunction(field, values, dictionary).test(entity);
         }
     };
 
@@ -191,7 +175,7 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
         throw new InvalidPredicateException("Unknown operator in filter: " + string);
     }
 
-    abstract java.util.function.Predicate getFilterFunction(
+    public abstract java.util.function.Predicate getFilterFunction(
             String field, List<Object> values, EntityDictionary dictionary);
 
     @Override

@@ -161,6 +161,18 @@ public class InMemoryFilterVisitorTest {
         expression = new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.POSTFIX, Arrays.asList("error"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
+
+        // When values is null
+        author.setName(null);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.PREFIX, Arrays.asList("Author"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.INFIX, Arrays.asList("For"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.POSTFIX, Arrays.asList("Test"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
     }
 
     @Test
