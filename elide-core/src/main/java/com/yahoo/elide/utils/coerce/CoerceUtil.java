@@ -56,7 +56,7 @@ public class CoerceUtil {
         BeanUtilsBean.setInstance(new BeanUtilsBean(new ConvertUtilsBean() {
             {
                 // https://github.com/yahoo/elide/issues/260
-                // disable returning defaultValues when conversions fail
+                // enable throwing exceptions when conversion fails
                 register(true, false, 0);
             }
 
