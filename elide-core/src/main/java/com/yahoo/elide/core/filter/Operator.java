@@ -123,8 +123,8 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 if (val == null) {
                     return false;
                 }
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Object filterVal = CoerceUtil.coerce(values.get(0), val.getClass());
+                Comparable filterComp = (Comparable) CoerceUtil.coerce(filterVal, Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
                 return valComp.compareTo(filterComp) < 0;
             };
@@ -143,8 +143,8 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 if (val == null) {
                     return false;
                 }
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Object filterVal = CoerceUtil.coerce(values.get(0), val.getClass());
+                Comparable filterComp = (Comparable) CoerceUtil.coerce(filterVal, Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
                 return valComp.compareTo(filterComp) <= 0;
             };
@@ -163,8 +163,8 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 if (val == null) {
                     return false;
                 }
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Object filterVal = CoerceUtil.coerce(values.get(0), val.getClass());
+                Comparable filterComp = (Comparable) CoerceUtil.coerce(filterVal, Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
                 return valComp.compareTo(filterComp) > 0;
             };
@@ -183,8 +183,8 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 if (val == null) {
                     return false;
                 }
-                Comparable filterComp = (Comparable) CoerceUtil
-                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Object filterVal = CoerceUtil.coerce(values.get(0), val.getClass());
+                Comparable filterComp = (Comparable) CoerceUtil.coerce(filterVal, Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
                 return valComp.compareTo(filterComp) >= 0;
             };
