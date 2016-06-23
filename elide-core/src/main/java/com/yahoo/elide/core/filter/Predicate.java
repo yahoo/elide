@@ -7,6 +7,7 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -43,6 +44,13 @@ public class Predicate implements FilterExpression {
         this(Collections.singletonList(pathElement), op, values);
     }
 
+    public Predicate(PathElement pathElement, Operator op, Object value) {
+        this(Collections.singletonList(pathElement), op, Collections.singletonList(value));
+    }
+
+    public Predicate(List<PathElement> path, Operator op, Object value) {
+        this(path, op, Collections.singletonList(value));
+    }
 
     public String getField() {
         PathElement last = path.get(path.size() - 1);

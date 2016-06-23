@@ -13,6 +13,7 @@ import java.util.Set;
 
 /**
  * A Visitor which extracts the set of predicates from a filter FilterExpression.
+ * Should only be used in Elide 2.0 scope
  */
 public class PredicateExtractionVisitor implements Visitor<Set<Predicate>> {
     @Getter Set<Predicate> predicates = new HashSet<>();
