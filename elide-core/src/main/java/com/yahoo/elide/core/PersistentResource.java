@@ -415,6 +415,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             requested = resourceIdentifiers;
         }
 
+        checkReadPermission(requested);
+
         // deleted = mine - requested
         deleted = Sets.difference(mine, requested);
 
@@ -475,7 +477,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         PersistentResource oldResource = !mine.isEmpty() ? mine.iterator().next() : null;
-
+        checkReadPermission(resourceIdentifiers);
         if (oldResource == null) {
             if (newValue == null) {
                 return false;
@@ -622,6 +624,21 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             // NOTE: updateRelation marks dirty.
             updateRelation(fieldName, Collections.singleton(newRelation));
             return;
+        }
+    }
+
+    /**
+     * Check if reading a relation is allowed.
+     *
+     * @param resourceIdentifiers The persistent resources that are being read
+     */
+    protected void checkReadPermission(Set<PersistentResource> resourceIdentifiers) {
+        if (resourceIdentifiers == null) {
+            return;
+        }
+
+        for (PersistentResource persistentResource : resourceIdentifiers) {
+            checkPermission(ReadPermission.class, persistentResource);
         }
     }
 
