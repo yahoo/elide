@@ -1450,7 +1450,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @Test(priority = 41)
     public void testPostInvalidRelationship() {
         // Note: This tests the correct response when POSTing a resource with a not "include" relationship. The server
-        // should returns InvalidRelationException rather than NPE.
+        // should returns UnknownEntityException rather than NPE.
         String createRoot = jsonParser.getJson("/ResourceIT/testPostWithInvalidRelationship.json");
 
         given()

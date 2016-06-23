@@ -8,10 +8,10 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
- * Invalid Relationship exception.
+ * Unknown entity exception.
  */
-public class InvalidRelationException extends HttpStatusException {
-    public InvalidRelationException(String entityType) {
+public class UnknownEntityException extends HttpStatusException {
+    public UnknownEntityException(String entityType) {
         super(HttpStatus.SC_BAD_REQUEST, "Unknown entity in relationship '" + entityType + "'");
     }
 }
