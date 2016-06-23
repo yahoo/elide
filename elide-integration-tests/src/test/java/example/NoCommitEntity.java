@@ -15,6 +15,7 @@ import com.yahoo.elide.security.checks.prefab.Role;
 import example.NoCommitEntity.NoCommitCheck;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -39,7 +40,7 @@ public class NoCommitEntity {
 
     private long id;
 
-    @Id
+    @Id @GeneratedValue
     public long getId() {
         return id;
     }

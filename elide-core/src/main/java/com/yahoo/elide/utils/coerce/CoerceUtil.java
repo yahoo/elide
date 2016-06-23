@@ -44,7 +44,6 @@ public class CoerceUtil {
 
         try {
             return ConvertUtils.convert(value, cls);
-
         } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
             throw new InvalidValueException(value, e.getMessage());
         }
@@ -55,6 +54,11 @@ public class CoerceUtil {
      */
     private static void setup() {
         BeanUtilsBean.setInstance(new BeanUtilsBean(new ConvertUtilsBean() {
+            {
+                // https://github.com/yahoo/elide/issues/260
+                // enable throwing exceptions when conversion fails
+                register(true, false, 0);
+            }
 
             @Override
             /*
