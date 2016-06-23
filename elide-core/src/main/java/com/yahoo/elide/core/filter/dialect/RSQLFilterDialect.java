@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
@@ -42,41 +43,41 @@ import java.util.stream.Collectors;
  */
 public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
 
-    private final Pattern typedFilterPattern;
+    private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
+
+    /* Subset of operators that map directly to Elide operators */
+    private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
+            ImmutableMap.<ComparisonOperator, Operator>builder()
+            .put(RSQLOperators.IN, Operator.IN)
+            .put(RSQLOperators.NOT_IN, Operator.NOT)
+            .put(RSQLOperators.LESS_THAN, Operator.LT)
+            .put(RSQLOperators.GREATER_THAN, Operator.GT)
+            .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
+            .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
+            .build();
+
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
-    private final Map<ComparisonOperator, Operator> operatorMap;
 
     public RSQLFilterDialect(EntityDictionary dictionary, Set<ComparisonOperator> rsqlOperators) {
         // Match "filter[<type>]"
-        typedFilterPattern = Pattern.compile("filter\\[([^\\]]+)\\]");
 
         parser = new RSQLParser(rsqlOperators);
         this. dictionary = dictionary;
-
-        /* Subuset of operators that map directly to Elide operators */
-        operatorMap = new HashMap<>();
-        operatorMap.put(RSQLOperators.IN, Operator.IN);
-        operatorMap.put(RSQLOperators.NOT_IN, Operator.NOT);
-        operatorMap.put(RSQLOperators.LESS_THAN, Operator.LT);
-        operatorMap.put(RSQLOperators.GREATER_THAN, Operator.GT);
-        operatorMap.put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE);
-        operatorMap.put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE);
     }
 
     public RSQLFilterDialect(EntityDictionary dictionary) {
         this(dictionary, RSQLOperators.defaultOperators());
     }
 
-
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> queryParams)
+    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
             throws ParseException {
-        if (queryParams.size() != 1) {
+        if (filterParams.size() != 1) {
             throw new ParseException("There can only be a single filter query parameter");
         }
 
-        MultivaluedMap.Entry<String, List<String>> entry = queryParams.entrySet().iterator().next();
+        MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
         String queryParamName = entry.getKey();
 
         if (!queryParamName.equals("filter")) {
@@ -90,7 +91,9 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
         String queryParamValue = queryParamValues.get(0);
 
-        /* Extract the last collection in the URL */
+        /*
+         * Extract the last collection in the URL.
+         */
         path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
         if (path.startsWith("/")) {
             path = path.substring(1);
@@ -102,6 +105,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             lastPathComponent = pathComponents[pathComponents.length - 1];
         }
 
+        /*
+         * TODO - create a visitor which extracts the type/class of the last path component.
+         * This works today by virtue that global filter expressions are only used for root collections
+         * and NOT nested associations.
+         */
         Class entityType = dictionary.getEntityClass(lastPathComponent);
         if (entityType == null) {
             throw new ParseException("No such collection: " + lastPathComponent);
@@ -119,16 +127,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
     @Override
     public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String>
-            queryParams) throws ParseException {
+            filterParams) throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
 
-        for (MultivaluedMap.Entry<String, List<String>> entry : queryParams.entrySet()) {
+        for (MultivaluedMap.Entry<String, List<String>> entry : filterParams.entrySet()) {
 
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();
 
-            Matcher matcher = typedFilterPattern.matcher(paramName);
+            Matcher matcher = TYPED_FILTER_PATTERN.matcher(paramName);
             if (matcher.find()) {
                 String typeName = matcher.group(1);
                 if (paramValues.size() != 1) {
@@ -305,8 +313,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 } else {
                     return new NotFilterExpression(new Predicate(path, Operator.IN, values));
                 }
-            } else if (operatorMap.containsKey(op)) {
-                return new Predicate(path, operatorMap.get(op), values);
+            } else if (OPERATOR_MAP.containsKey(op)) {
+                return new Predicate(path, OPERATOR_MAP.get(op), values);
             }
 
             throw new RSQLParseException(String.format("Invalid Operator %s", op.getSymbol()));

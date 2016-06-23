@@ -84,9 +84,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     @Override
     public FilterExpression parseGlobalExpression(
             String path,
-            MultivaluedMap<String, String> queryParams) throws ParseException {
+            MultivaluedMap<String, String> filterParams) throws ParseException {
         List<Predicate> predicates;
-        predicates = extractPredicates(queryParams);
+        predicates = extractPredicates(filterParams);
 
         /* Extract the first collection in the URL */
         path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
@@ -122,10 +122,10 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     @Override
     public Map<String, FilterExpression> parseTypedExpression(
             String path,
-            MultivaluedMap<String, String> queryParams) throws ParseException {
+            MultivaluedMap<String, String> filterParams) throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();
 
-        List<Predicate> predicates = extractPredicates(queryParams);
+        List<Predicate> predicates = extractPredicates(filterParams);
 
         for (Predicate predicate : predicates) {
             if (predicate.getPath().size() > 1) {

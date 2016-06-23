@@ -21,11 +21,11 @@ import javax.ws.rs.core.MultivaluedMap;
 public interface JoinFilterDialect {
     /**
      * @param path the URL path
-     * @param queryParams the subset of query parameters that start with 'filter'
+     * @param filterParams the subset of query parameters that start with 'filter'
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      * @throws ParseException
      */
     public FilterExpression parseGlobalExpression(
             String path,
-            MultivaluedMap<String, String> queryParams) throws ParseException;
+            MultivaluedMap<String, String> filterParams) throws ParseException;
 }

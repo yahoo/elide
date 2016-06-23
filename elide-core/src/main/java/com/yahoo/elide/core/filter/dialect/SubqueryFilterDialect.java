@@ -29,9 +29,9 @@ import java.util.Map;
 public interface SubqueryFilterDialect {
     /**
      * @param path The URL path
-     * @param queryParams The subset of queryParams that start with 'filter'
+     * @param filterParams The subset of queryParams that start with 'filter'
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      */
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> queryParams)
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
             throws ParseException;
 }
