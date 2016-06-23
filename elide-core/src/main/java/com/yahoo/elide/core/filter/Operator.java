@@ -28,6 +28,9 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 String field, List<Object> values, EntityDictionary dictionary) {
             return (entity) -> {
                 Object val = PersistentResource.getValue(entity, field, dictionary);
+                if (val == null) {
+                    return false;
+                }
                 List<Object> coercedValues = values.stream()
                         .map(v -> CoerceUtil.coerce(v, val.getClass()))
                         .collect(Collectors.toList());
@@ -117,6 +120,9 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 }
 
                 Object val = PersistentResource.getValue(entity, field, dictionary);
+                if (val == null) {
+                    return false;
+                }
                 Comparable filterComp = (Comparable) CoerceUtil
                         .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
@@ -134,6 +140,9 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
                 }
 
                 Object val = PersistentResource.getValue(entity, field, dictionary);
+                if (val == null) {
+                    return false;
+                }
                 Comparable filterComp = (Comparable) CoerceUtil
                         .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
                 Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
@@ -145,14 +154,40 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
         @Override
         public java.util.function.Predicate getFilterFunction(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> !LE.getFilterFunction(field, values, dictionary).test(entity);
+            return (entity) -> {
+                if (values.size() != 1) {
+                    throw new InvalidPredicateException("LT can only take one argument");
+                }
+
+                Object val = PersistentResource.getValue(entity, field, dictionary);
+                if (val == null) {
+                    return false;
+                }
+                Comparable filterComp = (Comparable) CoerceUtil
+                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
+                return valComp.compareTo(filterComp) > 0;
+            };
         }
     },
     GE("ge", true) {
         @Override
         public java.util.function.Predicate getFilterFunction(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> !LT.getFilterFunction(field, values, dictionary).test(entity);
+            return (entity) -> {
+                if (values.size() != 1) {
+                    throw new InvalidPredicateException("LE can only take one argument");
+                }
+
+                Object val = PersistentResource.getValue(entity, field, dictionary);
+                if (val == null) {
+                    return false;
+                }
+                Comparable filterComp = (Comparable) CoerceUtil
+                        .coerce(CoerceUtil.coerce(values.get(0), val.getClass()), Comparable.class);
+                Comparable valComp = (Comparable) CoerceUtil.coerce(val, Comparable.class);
+                return valComp.compareTo(filterComp) >= 0;
+            };
         }
     };
 

@@ -55,7 +55,7 @@ public class InMemoryFilterVisitorTest {
     @Test
     public void inAndNotInPredicateTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // Test exact match
@@ -97,12 +97,21 @@ public class InMemoryFilterVisitorTest {
         expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
+
+        // Test null
+        author.setId(null);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Arrays.asList(1));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, Arrays.asList(1));
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
     }
 
     @Test
     public void isnullAndNotnullPredicateTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // When name is not null
@@ -126,7 +135,7 @@ public class InMemoryFilterVisitorTest {
     @Test
     public void prefixAndPostfixAndInfixPredicateTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
@@ -178,7 +187,7 @@ public class InMemoryFilterVisitorTest {
     @Test
     public void compareOpPredicateTests() throws Exception {
         author = new Author();
-        author.setId(10);
+        author.setId(10L);
 
         expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.LT, Arrays.asList("11"));
         fn = expression.accept(visitor);
@@ -204,12 +213,27 @@ public class InMemoryFilterVisitorTest {
         expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.GE, Arrays.asList("11"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
+
+        // when val is null
+        author.setId(null);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.LT, Arrays.asList("10"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.LE, Arrays.asList("10"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.GT, Arrays.asList("10"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.GE, Arrays.asList("10"));
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
     }
 
     @Test
     public void negativeTests() throws Exception {
         author = new Author();
-        author.setId(10);
+        author.setId(10L);
 
         expression = new NotFilterExpression(new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.LT, Arrays.asList("11")));
         fn = expression.accept(visitor);
@@ -240,7 +264,7 @@ public class InMemoryFilterVisitorTest {
     @Test
     public void andExpressionTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         expression = new AndFilterExpression(
@@ -271,7 +295,7 @@ public class InMemoryFilterVisitorTest {
     @Test
     public void orExpressionTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         expression = new OrFilterExpression(

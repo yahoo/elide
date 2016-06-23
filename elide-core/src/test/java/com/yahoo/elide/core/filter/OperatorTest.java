@@ -48,7 +48,7 @@ public class OperatorTest {
     @Test
     public void inAndNotInTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // Test exact match
@@ -80,12 +80,19 @@ public class OperatorTest {
         Assert.assertFalse(fn.test(author));
         fn = Operator.NOT.getFilterFunction("id", Collections.emptyList(), dictionary);
         Assert.assertTrue(fn.test(author));
+
+        // Test null
+        author.setId(null);
+        fn = Operator.IN.getFilterFunction("id", Arrays.asList(1), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.NOT.getFilterFunction("id", Arrays.asList(1), dictionary);
+        Assert.assertTrue(fn.test(author));
     }
 
     @Test
     public void isnullAndNotnullTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // When name is not null
@@ -105,7 +112,7 @@ public class OperatorTest {
     @Test
     public void prefixAndPostfixAndInfixTest() throws Exception {
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
@@ -145,7 +152,7 @@ public class OperatorTest {
     @Test
     public void compareOpTests() throws Exception {
         author = new Author();
-        author.setId(10);
+        author.setId(10L);
 
         fn = Operator.LT.getFilterFunction("id", Arrays.asList("11"), dictionary);
         Assert.assertTrue(fn.test(author));
@@ -163,13 +170,24 @@ public class OperatorTest {
         Assert.assertFalse(fn.test(author));
         fn = Operator.GE.getFilterFunction("id", Arrays.asList("11"), dictionary);
         Assert.assertFalse(fn.test(author));
+
+        // when val is null
+        author.setId(null);
+        fn = Operator.LT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.LE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.GT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        Assert.assertFalse(fn.test(author));
+        fn = Operator.GE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        Assert.assertFalse(fn.test(author));
     }
 
     @Test
     public void testInvalidValueExceptionCases() throws Exception {
         // Test type
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
         try {
             Operator.IN.getFilterFunction("id", Arrays.asList("a"), dictionary).test(author);
@@ -190,7 +208,7 @@ public class OperatorTest {
     public void testInvalidPredicateExceptionCases() throws Exception {
         // When num of values != 1
         author = new Author();
-        author.setId(1);
+        author.setId(1L);
         author.setName("AuthorForTest");
 
         try {
