@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -24,7 +25,7 @@ import javax.persistence.Table;
 public class NoDeleteEntity {
     private long id;
 
-    @Id
+    @Id @GeneratedValue
     public long getId() {
         return id;
     }

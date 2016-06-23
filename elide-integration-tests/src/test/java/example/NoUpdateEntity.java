@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -29,7 +30,7 @@ public class NoUpdateEntity {
     @OneToMany()
     public Set<Child> children;
 
-    @Id
+    @Id @GeneratedValue
     public long getId() {
         return id;
     }

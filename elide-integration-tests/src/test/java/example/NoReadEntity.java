@@ -11,6 +11,7 @@ import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -30,7 +31,7 @@ public class NoReadEntity {
     @OneToOne(fetch = FetchType.LAZY)
     public Child child;
 
-    @Id
+    @Id @GeneratedValue
     public long getId() {
         return id;
     }
