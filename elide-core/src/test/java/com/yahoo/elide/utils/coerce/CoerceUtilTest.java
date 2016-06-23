@@ -6,6 +6,7 @@
 package com.yahoo.elide.utils.coerce;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
@@ -98,5 +99,10 @@ public class CoerceUtilTest {
     @Test(expectedExceptions = InvalidValueException.class)
     public void testConversionFailure() throws Exception {
         CoerceUtil.coerce("a", Long.class);
+    }
+
+    @Test
+    public void testNullConversion() throws Exception {
+        assertNull(CoerceUtil.coerce(null, String.class));
     }
 }
