@@ -44,14 +44,6 @@ public class Predicate implements FilterExpression {
         this(Collections.singletonList(pathElement), op, values);
     }
 
-    public Predicate(PathElement pathElement, Operator op, Object value) {
-        this(Collections.singletonList(pathElement), op, Collections.singletonList(value));
-    }
-
-    public Predicate(List<PathElement> path, Operator op, Object value) {
-        this(path, op, Collections.singletonList(value));
-    }
-
     public String getField() {
         PathElement last = path.get(path.size() - 1);
         return last.getFieldName();

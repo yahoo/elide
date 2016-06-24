@@ -59,10 +59,10 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         // Test exact match
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 1L);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(1L));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, 1L);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, Collections.singletonList(1L));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
@@ -75,18 +75,18 @@ public class InMemoryFilterVisitorTest {
         Assert.assertFalse(fn.test(author));
 
         // Test type
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, "1");
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList("1"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, "1");
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, Collections.singletonList("1"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // Test not in
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 3L);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(3L));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, 3L);
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.NOT, Collections.singletonList(3L));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
@@ -268,26 +268,26 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         expression = new AndFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 1L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "AuthorForTest"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(1L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("AuthorForTest")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new AndFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 0L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "AuthorForTest"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(0L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("AuthorForTest")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         expression = new AndFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 1L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "Fail"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(1L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("Fail")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         expression = new AndFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 0L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "Fail"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(0L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("Fail")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -299,26 +299,26 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         expression = new OrFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 1L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "AuthorForTest"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(1L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("AuthorForTest")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 0L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "AuthorForTest"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(0L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("AuthorForTest")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 1L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "Fail"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(1L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("Fail")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, 0L),
-                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, "Fail"));
+                new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Collections.singletonList(0L)),
+                new Predicate(new Predicate.PathElement(Author.class, "author", String.class, "name"), Operator.IN, Collections.singletonList("Fail")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
