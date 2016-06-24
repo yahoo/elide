@@ -37,13 +37,13 @@ public class CoerceUtil {
      * @param cls class to convert to
      * @return coerced value
      */
-    public static Object coerce(Object value, Class<?> cls) {
+    public static <T> T coerce(Object value, Class<T> cls) {
         if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
-            return value;
+            return (T) value;
         }
 
         try {
-            return ConvertUtils.convert(value, cls);
+            return (T) ConvertUtils.convert(value, cls);
         } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
             throw new InvalidValueException(value, e.getMessage());
         }

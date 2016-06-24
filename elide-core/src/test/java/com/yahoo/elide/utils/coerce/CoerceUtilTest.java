@@ -5,19 +5,17 @@
  */
 package com.yahoo.elide.utils.coerce;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
-import org.testng.annotations.Test;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.testng.annotations.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class CoerceUtilTest {
 
@@ -34,14 +32,14 @@ public class CoerceUtilTest {
     @Test
     public void testNoConversions() throws Exception {
 
-        assertEquals(CoerceUtil.coerce(1, null), 1,
-                "coerce returns value if target class null");
+        assertEquals(CoerceUtil.coerce(1, (Class<Object>) null), 1,
+                     "coerce returns value if target class null");
 
         assertEquals(CoerceUtil.coerce(null, Object.class), null,
-                "coerce returns value if value is null");
+                     "coerce returns value if value is null");
 
-        assertEquals(CoerceUtil.coerce(1, int.class), 1,
-                "coerce returns value if value is assignable to target");
+        assertEquals((Object) CoerceUtil.coerce(1, int.class), 1,
+                     "coerce returns value if value is assignable to target");
     }
 
     @Test
@@ -55,13 +53,13 @@ public class CoerceUtilTest {
     public void testBasicConversion() throws Exception {
 
         assertEquals(CoerceUtil.coerce(1, String.class), "1",
-                "coerce converts int to String");
+                     "coerce converts int to String");
 
         assertEquals(CoerceUtil.coerce("1", Long.class), Long.valueOf("1"),
-                "coerce converts String to Long");
+                     "coerce converts String to Long");
 
-        assertEquals(CoerceUtil.coerce(1.0, int.class), 1,
-                "coerce converts float to int");
+        assertEquals((Object) CoerceUtil.coerce(1.0, int.class), 1,
+                     "coerce converts float to int");
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
