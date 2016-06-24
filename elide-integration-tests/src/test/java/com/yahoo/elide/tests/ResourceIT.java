@@ -71,20 +71,25 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         Child c1 = new Child(); // id 2
         c1.setName("Child-ID2");
         c1.setParents(Sets.newHashSet(p1));
+        c1.setAdopter(p1);
 
         Child c2 = new Child(); // id 3
         c2.setName("Child-ID3");
         c2.setParents(Sets.newHashSet(p1));
+        c2.setAdopter(p1);
 
         Set<Child> friendSet = new HashSet<>();
         friendSet.add(c2);
         c1.setFriends(friendSet);
+
 
         Set<Child> childrenSet1 = new HashSet<>();
         childrenSet1.add(c1);
         childrenSet1.add(c2);
 
         p1.setChildren(childrenSet1);
+        p1.setOrphans(childrenSet1);
+
 
         tx.save(p1);
         tx.save(c1);
@@ -130,8 +135,22 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         String actual = given().when().get("/parent").then().statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
+        System.out.println("test root" + actual);
         JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
         assertEquals(doc.getData().get().size(), 4);
+    }
+
+    @Test
+    public void testRootDelete() throws Exception {
+        String actual = given().when().delete("/parent/2").then().statusCode(HttpStatus.SC_NO_CONTENT)
+            .extract().body().asString();
+
+        String actual2 = given().when().get("/parent").then().statusCode(HttpStatus.SC_OK)
+            .extract().body().asString();
+
+        System.out.println("test root" + actual2);
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual2);
+        assertEquals(doc.getData().get().size(), 3);
     }
 
     @Test
