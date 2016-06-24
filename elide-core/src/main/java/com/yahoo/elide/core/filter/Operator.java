@@ -24,7 +24,8 @@ public enum Operator {
     LT("lt", true),
     LE("le", true),
     GT("gt", true),
-    GE("ge", true);
+    GE("ge", true),
+    SEARCH("search", true);
 
     @Getter private final String string;
     @Getter private final boolean parameterized;
