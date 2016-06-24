@@ -95,6 +95,11 @@
             <version>2.6.3</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>cz.jirutka.rsql</groupId>
+            <artifactId>rsql-parser</artifactId>
+            <version>2.1.0</version>
+        </dependency>
 
         <!-- Logging -->
         <dependency>

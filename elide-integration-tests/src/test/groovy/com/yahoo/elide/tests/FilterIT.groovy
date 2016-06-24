@@ -363,48 +363,102 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testRootFilterInvalidField() {
+        /* Test Default */
         RestAssured
                 .get("/book?filter[book.name]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL typed */
+        RestAssured
+                .get("/book?filter[book]=name==Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL global */
+        RestAssured
+                .get("/book?filter=name==Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
 
     @Test
     public void testRootFilterInvalidEntity() {
+        /* Test Default */
         RestAssured
                 .get("/book?filter[bank.title]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL typed */
+        RestAssured
+                .get("/book?filter[bank]=title==Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
 
     @Test
     public void testRootInvalidOperator() {
+        /* Test Default */
         RestAssured
-                .get("/book?filter[bank.title][invalid]=Ignored")
+                .get("/book?filter[book.title][invalid]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL Typed */
+        RestAssured
+                .get("/book?filter[book]=title=invalid=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+         /* Test RSQL Global */
+        RestAssured
+                .get("/book?filter=title=invalid=Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
 
     @Test
     public void testFilterInvalidField() {
+        /* Test Default */
         RestAssured
                 .get("/author/3/book?filter[book.name]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL Typed */
+        RestAssured
+                .get("/author/3/book?filter[book]=name==Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
 
     @Test
     public void testFilterInvalidEntity() {
+        /* Test Default */
         RestAssured
                 .get("/author/3/book?filter[bank.title]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL Typed */
+        RestAssured
+                .get("/author/3/book?filter[bank]=title==Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
 
     @Test
     public void testInvalidOperator() {
+        /* Test Default */
         RestAssured
                 .get("/author/3/book?filter[book.title][invalid]=Ignored")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+
+        /* Test RSQL Typed */
+        RestAssured
+                .get("/author/3/book?filter[book]=title=invalid=Ignored")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
     }
@@ -420,10 +474,24 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(scienceFictionBookCount > 0)
 
+        /* Test Default */
         def scienceFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre]=Science Fiction").asString())
 
         Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        scienceFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre=='Science Fiction'").asString())
+
+        Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
+
+        /* Test RSQL Global */
+        scienceFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre=='Science Fiction'").asString())
+
+        Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
+
     }
 
     @Test
@@ -437,8 +505,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(literaryFictionBookCount > 0)
 
+        /* Test Default */
         def literaryFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][in]=Literary Fiction").asString())
+
+        Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        literaryFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre=in='Literary Fiction'").asString())
+
+        Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
+
+        /* Test RSQL Global */
+        literaryFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre=in='Literary Fiction'").asString())
 
         Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
     }
@@ -455,8 +536,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(nonLiteraryFictionBookCount > 0)
 
+        /* Test Default */
         def nonLiteraryFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][not]=Literary Fiction").asString())
+
+        Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
+
+        /* Test RSQL typed */
+        nonLiteraryFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre!='Literary Fiction'").asString())
+
+        Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
+
+        /* Test RSQL global */
+        nonLiteraryFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre!='Literary Fiction'").asString())
 
         Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
     }
@@ -474,8 +568,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(nonFictionBookCount > 0)
 
+        /* Test default */
         def nonFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][not]=Literary Fiction,Science Fiction").asString())
+
+        Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
+
+        /* Test RSQL typed */
+        nonFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre=out=('Literary Fiction','Science Fiction')").asString())
+
+        Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
+
+        /* Test RSQL global */
+        nonFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre=out=('Literary Fiction','Science Fiction')").asString())
 
         Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
     }
@@ -492,8 +599,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(literaryAndScienceFictionBookCount > 0)
 
+        /* Test Default */
         def literaryAndScienceFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][in]=Literary Fiction,Science Fiction").asString())
+
+        Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
+
+        /* Test RSQL typed */
+        literaryAndScienceFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre=in=('Literary Fiction','Science Fiction')").asString())
+
+        Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
+
+        /* Test RSQL global */
+        literaryAndScienceFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre=in=('Literary Fiction','Science Fiction')").asString())
 
         Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
     }
@@ -509,8 +629,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(genreEndsWithFictionBookCount > 0)
 
+        /* Test Default */
         def genreEndsWithFictionBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][postfix]=Fiction").asString())
+
+        Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        genreEndsWithFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=genre==*Fiction").asString())
+
+        Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
+
+        /* Test RSQL Global */
+        genreEndsWithFictionBooks = mapper.readTree(
+                RestAssured.get("/book?filter=genre==*Fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
     }
@@ -526,8 +659,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleStartsWithTheBookCount > 0)
 
+        /* Test Default */
         def titleStartsWithTheBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.title][prefix]=The").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=title==The*").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Global  */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter=title==The*").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
@@ -543,8 +689,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleStartsWithTheBookCount > 0)
 
+        /* Test Default */
         def titleStartsWithTheBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.title][prefix]=I'm").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=title=='I\\'m*'").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Global */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter=title=='I\\'m*'").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
@@ -560,8 +719,21 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleContainsTheBookCount > 0)
 
+        /* Test Default */
         def titleContainsTheBooks = mapper.readTree(
                 RestAssured.get("/book?filter[book.title][infix]=the").asString())
+
+        Assert.assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleContainsTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter[book]=title==*the*").asString())
+
+        Assert.assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size())
+
+        /* Test RSQL Global */
+        titleContainsTheBooks = mapper.readTree(
+                RestAssured.get("/book?filter=title==*the*").asString())
 
         Assert.assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size())
     }
@@ -580,8 +752,25 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(authorIdsOfLiteraryFiction.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?include=authors&filter[book.genre]=Literary Fiction").asString())
+
+        for (JsonNode author : result.get("included")) {
+            Assert.assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()))
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(
+                RestAssured.get("/book?include=authors&filter[book]=genre=='Literary Fiction'").asString())
+
+        for (JsonNode author : result.get("included")) {
+            Assert.assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()))
+        }
+
+        /* Test RSQL Global */
+        result = mapper.readTree(
+                RestAssured.get("/book?include=authors&filter=genre=='Literary Fiction'").asString())
 
         for (JsonNode author : result.get("included")) {
             Assert.assertTrue(authorIdsOfLiteraryFiction.contains(author.get("id").asText()))
@@ -600,6 +789,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(bookIdsWithNullGenre.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][isnull]").asString())
 
@@ -623,6 +813,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][notnull]").asString())
 
@@ -645,8 +836,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(asimovScienceFictionBookCount > 0)
 
+        /* Test Default */
         def asimovScienceFictionBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.genre]=Science Fiction").asString())
+
+        Assert.assertEquals(asimovScienceFictionBookCount, asimovScienceFictionBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        asimovScienceFictionBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=genre=='Science Fiction'").asString())
 
         Assert.assertEquals(asimovScienceFictionBookCount, asimovScienceFictionBooks.get("data").size())
     }
@@ -662,8 +860,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(asimovHistoryBookCount > 0)
 
+        /* Test Default */
         def asimovHistoryBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.genre]=History").asString())
+
+        Assert.assertEquals(asimovHistoryBookCount, asimovHistoryBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        asimovHistoryBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=genre==History").asString())
 
         Assert.assertEquals(asimovHistoryBookCount, asimovHistoryBooks.get("data").size())
     }
@@ -680,8 +885,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(nonHistoryBookCount > 0)
 
+        /* Test Default */
         def nonHistoryBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.genre][not]=History").asString())
+
+        Assert.assertEquals(nonHistoryBookCount, nonHistoryBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        nonHistoryBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=genre!=History").asString())
 
         Assert.assertEquals(nonHistoryBookCount, nonHistoryBooks.get("data").size())
     }
@@ -697,8 +909,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(genreEndsWithFictionBookCount > 0)
 
+        /* Test Default */
         def genreEndsWithFictionBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.genre][postfix]=Fiction").asString())
+
+        Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        genreEndsWithFictionBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=genre==*Fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
     }
@@ -714,8 +933,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleStartsWithTheBookCount > 0)
 
+        /* Test Default */
         def titleStartsWithTheBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.title][prefix]=The").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=title==The*").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
@@ -731,8 +957,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleStartsWithTheBookCount > 0)
 
+        /* Test Default */
         def titleStartsWithTheBooks = mapper.readTree(
                 RestAssured.get("/author/${thomasHarrisId}/books?filter[book.title][prefix]=I'm").asString())
+
+        Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleStartsWithTheBooks = mapper.readTree(
+                RestAssured.get("/author/${thomasHarrisId}/books?filter[book]=title=='I\\'m*'").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
@@ -748,8 +981,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(titleContainsTheBookCount > 0)
 
+        /* Test Default */
         def titleContainsTheBooks = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?filter[book.title][infix]=the").asString())
+
+        Assert.assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size())
+
+        /* Test RSQL Typed */
+        titleContainsTheBooks = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?filter[book]=title==*the*").asString())
 
         Assert.assertEquals(titleContainsTheBookCount, titleContainsTheBooks.get("data").size())
     }
@@ -768,8 +1008,17 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(authorIdsOfScienceFiction.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/author/${asimovId}/books?include=authors&filter[book.genre]=Science Fiction").asString())
+
+        for (JsonNode author : result.get("included")) {
+            Assert.assertTrue(authorIdsOfScienceFiction.contains(author.get("id").asText()))
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(
+                RestAssured.get("/author/${asimovId}/books?include=authors&filter[book]=genre=='Science Fiction'").asString())
 
         for (JsonNode author : result.get("included")) {
             Assert.assertTrue(authorIdsOfScienceFiction.contains(author.get("id").asText()))
@@ -788,6 +1037,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(bookIdsWithNullGenre.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/author/${nullNedId}/books?filter[book.genre][isnull]").asString())
 
@@ -811,6 +1061,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/author/${nullNedId}/books?filter[book.genre][notnull]").asString())
 
@@ -832,8 +1083,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         }
 
         Assert.assertTrue(bookIdsWithNonNullGenre.size() > 0)
+
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.publishDate][gt]=1").asString())
+        Assert.assertEquals(result.get("data").size(), 1);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate > 1L);
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(
+                RestAssured.get("/book?filter[book]=publishDate>1").asString())
         Assert.assertEquals(result.get("data").size(), 1);
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
@@ -843,7 +1105,16 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testPublishDateGreaterThanFilterSubRecord() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?filter[book.publishDate][gt]=1454638927411").asString());
+        Assert.assertTrue(result.get("data").size() > 0);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate > 1454638927411L);
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?filter[book]=publishDate>1454638927411").asString());
         Assert.assertTrue(result.get("data").size() > 0);
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
@@ -853,7 +1124,16 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testPublishDateLessThanOrEqualsFilterSubRecord() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?filter[book.publishDate][le]=1454638927412").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate <= 1454638927412L);
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?filter[book]=publishDate<=1454638927412").asString());
         Assert.assertEquals(result.get("data").size(), 1);
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
@@ -863,7 +1143,24 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testPublishDateLessThanOrEqual() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.publishDate][le]=1454638927412").asString());
+        Assert.assertTrue(result.get("data").size() > 0);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate <= 1454638927412L);
+        }
+
+        /* Test RSQL Typed */
+        result = mapper.readTree(RestAssured.get("book?filter[book]=publishDate<=1454638927412").asString());
+        Assert.assertTrue(result.get("data").size() > 0);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate <= 1454638927412L);
+        }
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("book?filter=publishDate<=1454638927412").asString());
         Assert.assertTrue(result.get("data").size() > 0);
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
@@ -880,8 +1177,27 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             }
         }
 
+        /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.publishDate][lt]=1454638927411").asString())
+        Assert.assertTrue(result.get("data").size() > 0);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate < 1454638927411L);
+        }
+
+        /* RSQL Typed */
+        result = mapper.readTree(
+                RestAssured.get("/book?filter[book]=publishDate<1454638927411").asString())
+        Assert.assertTrue(result.get("data").size() > 0);
+        for (JsonNode book : result.get("data")) {
+            long publishDate = book.get("attributes").get("publishDate").asLong();
+            Assert.assertTrue(publishDate < 1454638927411L);
+        }
+
+        /* RSQL Global */
+        result = mapper.readTree(
+                RestAssured.get("/book?filter=publishDate<1454638927411").asString())
         Assert.assertTrue(result.get("data").size() > 0);
         for (JsonNode book : result.get("data")) {
             long publishDate = book.get("attributes").get("publishDate").asLong();
@@ -891,13 +1207,33 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testGetBadRelationshipNameWithNestedFieldFilter() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.author12.name]=Null Ned").asString());
-        Assert.assertEquals(result.get("errors").get(0).asText(), "InvalidPredicateException: Unknown field in filter: author12");
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Unknown field in filter: author12\n" +
+                "Invalid query parameter: filter[book.author12.name]");
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("book?filter=author12.name=='Null Ned'").asString());
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Invalid filter format: filter\n" +
+                "No such association author12 for type book\n" +
+                "Invalid filter format: filter\n" +
+                "Invalid query parameter: filter");
     }
 
     @Test
     public void testGetBooksFilteredByAuthors() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null Ned").asString());
+        Assert.assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            String authorId = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+            Assert.assertEquals(authorId, nullNedId);
+        }
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("book?filter=authors.name=='Null Ned'").asString());
         Assert.assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
         for (JsonNode book : result.get("data")) {
             String authorId = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
@@ -907,7 +1243,14 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testGetBooksFilteredByAuthorAndTitle() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned").asString());
+        Assert.assertEquals(result.get("data").size(), 1);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(), "Life with Null Ned");
+        Assert.assertEquals(result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(), nullNedId);
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("book?filter=authors.name=='Null Ned';title=='Life with Null Ned'").asString());
         Assert.assertEquals(result.get("data").size(), 1);
         Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(), "Life with Null Ned");
         Assert.assertEquals(result.get("data").get(0).get("relationships").get("authors").get("data").get(0).get("id").asText(), nullNedId);
@@ -915,9 +1258,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testFilterAuthorsByBookChapterTitle() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("author?filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
         Assert.assertEquals(result.get("data").size(), 2);
         String last = null;
+        for (JsonNode author : result.get("data")) {
+            String name = author.get("attributes").get("name").asText();
+            Assert.assertTrue(("Isaac Asimov".equals(name) || "Null Ned".equals(name)) && !name.equals(last));
+        }
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("author?filter=books.chapters.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString());
+        Assert.assertEquals(result.get("data").size(), 2);
+        last = null;
         for (JsonNode author : result.get("data")) {
             String name = author.get("attributes").get("name").asText();
             Assert.assertTrue(("Isaac Asimov".equals(name) || "Null Ned".equals(name)) && !name.equals(last));
@@ -926,23 +1279,53 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testGetBadRelationshipRoot() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
         Assert.assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown entity in filter: idontexist");
+                "InvalidPredicateException: Unknown entity in filter: idontexist\n" +
+                        "Invalid query parameter: filter[idontexist.books.title][in]");
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString());
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Invalid filter format: filter\n" +
+                "No such association idontexist for type author\n" +
+                "Invalid filter format: filter\n" +
+                "Invalid query parameter: filter");
     }
 
     @Test
     public void testGetBadRelationshipIntermediate() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
         Assert.assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist");
+                "InvalidPredicateException: Unknown field in filter: idontexist\n" +
+                        "Invalid query parameter: filter[author.idontexist.title][in]");
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString());
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Invalid filter format: filter\n" +
+                "No such association idontexist for type author\n" +
+                "Invalid filter format: filter\n" +
+                "Invalid query parameter: filter");
     }
 
     @Test
     public void testGetBadRelationshipLeaf() {
+        /* Test Default */
         def result = mapper.readTree(RestAssured.get("author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString());
         Assert.assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist");
+                "InvalidPredicateException: Unknown field in filter: idontexist\n" +
+                        "Invalid query parameter: filter[author.books.idontexist][in]");
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("author?filter=books.idontexist=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString());
+        Assert.assertEquals(result.get("errors").get(0).asText(),
+                "InvalidPredicateException: Invalid filter format: filter\n" +
+                        "No such association idontexist for type book\n" +
+                        "Invalid filter format: filter\n" +
+                        "Invalid query parameter: filter");
     }
 
     @AfterTest

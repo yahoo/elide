@@ -19,10 +19,10 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.JoinFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.MultipleFilterStrategy;
-import com.yahoo.elide.core.filter.strategy.SubqueryFilterStrategy;
+import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.generated.parsers.CoreLexer;
@@ -73,8 +73,8 @@ public class Elide {
     private final EntityDictionary dictionary;
     private final JsonApiMapper mapper;
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
-    private final List<JoinFilterStrategy> joinFilterStrategies;
-    private final List<SubqueryFilterStrategy> subqueryFilterStrategies;
+    private final List<JoinFilterDialect> joinFilterDialects;
+    private final List<SubqueryFilterDialect> subqueryFilterDialects;
     private final boolean useFilterExpressions;
 
     /**
@@ -119,8 +119,8 @@ public class Elide {
                 dictionary,
                 mapper,
                 ActivePermissionExecutor::new,
-                Collections.singletonList(new DefaultFilterStrategy(dictionary)),
-                Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+                Collections.singletonList(new DefaultFilterDialect(dictionary)),
+                Collections.singletonList(new DefaultFilterDialect(dictionary)),
                 false
         );
     }
@@ -145,8 +145,8 @@ public class Elide {
             dictionary,
             mapper,
             ActivePermissionExecutor::new,
-            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
-            Collections.singletonList(new DefaultFilterStrategy(dictionary)),
+            Collections.singletonList(new DefaultFilterDialect(dictionary)),
+            Collections.singletonList(new DefaultFilterDialect(dictionary)),
             false
         );
     }
@@ -159,8 +159,8 @@ public class Elide {
      * @param dictionary the dictionary
      * @param mapper Serializer/Deserializer for JSON API
      * @param permissionExecutor Custom permission executor implementation
-     * @param joinFilterStrategies A list of filter parsers to use for filtering across types
-     * @param subqueryFilterStrategies A list of filter parsers to use for filtering by type
+     * @param joinFilterDialects A list of filter parsers to use for filtering across types
+     * @param subqueryFilterDialects A list of filter parsers to use for filtering by type
      * @param useFilterExpressions Whether or not to use Elide 3.0 filter expressions for DataStore interactions
      */
     protected Elide(AuditLogger auditLogger,
@@ -168,8 +168,8 @@ public class Elide {
                   EntityDictionary dictionary,
                   JsonApiMapper mapper,
                   Function<RequestScope, PermissionExecutor> permissionExecutor,
-                  List<JoinFilterStrategy> joinFilterStrategies,
-                  List<SubqueryFilterStrategy> subqueryFilterStrategies,
+                  List<JoinFilterDialect> joinFilterDialects,
+                  List<SubqueryFilterDialect> subqueryFilterDialects,
                   boolean useFilterExpressions) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
@@ -177,8 +177,8 @@ public class Elide {
         dataStore.populateEntityDictionary(dictionary);
         this.mapper = mapper;
         this.permissionExecutor = permissionExecutor;
-        this.joinFilterStrategies = joinFilterStrategies;
-        this.subqueryFilterStrategies = subqueryFilterStrategies;
+        this.joinFilterDialects = joinFilterDialects;
+        this.subqueryFilterDialects = subqueryFilterDialects;
         this.useFilterExpressions = useFilterExpressions;
     }
 
@@ -191,8 +191,8 @@ public class Elide {
         private JsonApiMapper jsonApiMapper;
         private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
-        private List<JoinFilterStrategy> joinFilterStrategies;
-        private List<SubqueryFilterStrategy> subqueryFilterStrategies;
+        private List<JoinFilterDialect> joinFilterDialects;
+        private List<SubqueryFilterDialect> subqueryFilterDialects;
         private boolean useFilterExpressions;
 
         /**
@@ -207,8 +207,8 @@ public class Elide {
             this.auditLogger = auditLogger;
             this.dataStore = dataStore;
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.joinFilterStrategies = new ArrayList<>();
-            this.subqueryFilterStrategies = new ArrayList<>();
+            this.joinFilterDialects = new ArrayList<>();
+            this.subqueryFilterDialects = new ArrayList<>();
 
         }
 
@@ -222,17 +222,17 @@ public class Elide {
             this.dataStore = dataStore;
             this.auditLogger = new Slf4jLogger();
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.joinFilterStrategies = new ArrayList<>();
-            this.subqueryFilterStrategies = new ArrayList<>();
+            this.joinFilterDialects = new ArrayList<>();
+            this.subqueryFilterDialects = new ArrayList<>();
         }
 
         public Elide build() {
-            if (joinFilterStrategies.isEmpty()) {
-                joinFilterStrategies.add(new DefaultFilterStrategy(entityDictionary));
+            if (joinFilterDialects.isEmpty()) {
+                joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
             }
 
-            if (subqueryFilterStrategies.isEmpty()) {
-                subqueryFilterStrategies.add(new DefaultFilterStrategy(entityDictionary));
+            if (subqueryFilterDialects.isEmpty()) {
+                subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
             }
 
             return new Elide(
@@ -241,8 +241,8 @@ public class Elide {
                     entityDictionary,
                     jsonApiMapper,
                     permissionExecutorFunction,
-                    joinFilterStrategies,
-                    subqueryFilterStrategies,
+                    joinFilterDialects,
+                    subqueryFilterDialects,
                     useFilterExpressions);
         }
 
@@ -312,15 +312,15 @@ public class Elide {
             return this;
         }
 
-        public Builder withJoinFilterStrategy(JoinFilterStrategy strategy) {
+        public Builder withJoinFilterDialect(JoinFilterDialect dialect) {
             useFilterExpressions = true;
-            joinFilterStrategies.add(strategy);
+            joinFilterDialects.add(dialect);
             return this;
         }
 
-        public Builder withSubqueryFilterStrategy(SubqueryFilterStrategy strategy) {
+        public Builder withSubqueryFilterDialect(SubqueryFilterDialect dialect) {
             useFilterExpressions = true;
-            subqueryFilterStrategies.add(strategy);
+            subqueryFilterDialects.add(dialect);
             return this;
         }
     }
@@ -357,7 +357,7 @@ public class Elide {
                     queryParams,
                     securityMode,
                     permissionExecutor,
-                    new MultipleFilterStrategy(joinFilterStrategies, subqueryFilterStrategies),
+                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
                     useFilterExpressions);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();

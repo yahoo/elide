@@ -7,8 +7,8 @@ package com.yahoo.elide.core.filter
 import com.yahoo.elide.core.EntityDictionary
 import com.yahoo.elide.core.exceptions.InvalidPredicateException
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor
-import com.yahoo.elide.core.filter.strategy.DefaultFilterStrategy
-import com.yahoo.elide.core.filter.strategy.ParseException
+import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect
+import com.yahoo.elide.core.filter.dialect.ParseException
 import example.Author
 import example.Book
 import org.testng.Assert
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when
  * Predicate test class.
  */
 public class PredicateTest {
-    private DefaultFilterStrategy strategy
+    private DefaultFilterDialect strategy
 
     @BeforeSuite
     public void setup() {
@@ -37,7 +37,7 @@ public class PredicateTest {
         when(entityDictionary.getParameterizedType(Book.class, "field1")).thenReturn(String.class)
         when(entityDictionary.getParameterizedType(Book.class, "field2")).thenReturn(String.class)
         when(entityDictionary.getParameterizedType(Book.class, "intField")).thenReturn(Integer.class)
-        strategy = new DefaultFilterStrategy(entityDictionary);
+        strategy = new DefaultFilterDialect(entityDictionary);
     }
 
     private Map<String, Set<Predicate>> parse(MultivaluedMap<String, String> queryParams) {

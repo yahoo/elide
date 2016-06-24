@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -21,16 +21,16 @@ import java.util.Map;
 /**
  * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0)
  */
-public class DefaultFilterStrategyTest {
+public class DefaultFilterDialectTest {
 
-    DefaultFilterStrategy strategy;
+    DefaultFilterDialect dialect;
     @BeforeTest
     public void init() {
         EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
-        strategy = new DefaultFilterStrategy(dictionary);
+        dialect = new DefaultFilterDialect(dictionary);
 
     }
 
@@ -48,7 +48,7 @@ public class DefaultFilterStrategyTest {
                 "Hemingway"
         );
 
-        FilterExpression filterExpression = strategy.parseGlobalExpression("/author", queryParams);
+        FilterExpression filterExpression = dialect.parseGlobalExpression("/author", queryParams);
 
         Assert.assertEquals(
                 "(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
@@ -76,7 +76,7 @@ public class DefaultFilterStrategyTest {
                 "Hemingway"
         );
 
-        Map<String, FilterExpression> expressionMap = strategy.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
 
         Assert.assertEquals(expressionMap.size(), 2);
         Assert.assertEquals(expressionMap.get("book").toString(),
@@ -94,7 +94,7 @@ public class DefaultFilterStrategyTest {
                 "foo,bar,baz"
         );
 
-        strategy.parseTypedExpression("/invalid", queryParams);
+        dialect.parseTypedExpression("/invalid", queryParams);
     }
 
     @Test(expectedExceptions = ParseException.class)
@@ -106,7 +106,7 @@ public class DefaultFilterStrategyTest {
                 "foo,bar,baz"
         );
 
-        strategy.parseTypedExpression("/book", queryParams);
+        dialect.parseTypedExpression("/book", queryParams);
     }
 
     @Test(expectedExceptions = ParseException.class)
@@ -119,6 +119,6 @@ public class DefaultFilterStrategyTest {
                 "foo,bar,baz"
         );
 
-        strategy.parseTypedExpression("/author", queryParams);
+        dialect.parseTypedExpression("/author", queryParams);
     }
 }
