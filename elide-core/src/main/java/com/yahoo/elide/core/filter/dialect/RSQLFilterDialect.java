@@ -274,12 +274,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 throw new RSQLParseException(String.format("No such association %s", relationship));
             }
 
-            Class relationshipType = path.get(0).getFieldType();
+            Class<?> relationshipType = path.get(0).getFieldType();
 
             //Coerce arguments to their correct types
             List<Object> values = arguments
                     .stream()
-                    .map((argument) -> CoerceUtil.coerce(argument, relationshipType))
+                    .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
             if (op.equals(RSQLOperators.EQUAL)) {
