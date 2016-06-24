@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -39,12 +35,17 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import lombok.NonNull;
-import lombok.ToString;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
-import javax.persistence.GeneratedValue;
+import lombok.NonNull;
+
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -67,12 +68,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import javax.persistence.GeneratedValue;
+
 /**
  * Resource wrapper around Entity bean.
  *
  * @param <T> type of resource
  */
-@ToString
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
@@ -906,14 +908,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private Set<PersistentResource> getRelationUnchecked(String relationName,
                                                          Optional<FilterExpression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
-        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         Object val;
 
         /* If elide was configured for Elide 3.0 data store interface */
         if (requestScope.useFilterExpressions()) {
             val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, entityClass, dictionary,
+                    .getRelation(obj, type, relationName, relationClass, dictionary,
                             filterExpression, requestScope.getSorting(), requestScope.getPagination());
 
         /* Otherwise use the Elide 2.0 interface */
@@ -928,7 +930,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filters = Collections.emptySet();
             }
             val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, entityClass, dictionary, filters);
+                    .getRelation(obj, type, relationName, relationClass, dictionary, filters);
         }
 
         if (val == null) {
@@ -958,14 +960,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             String relationName,
             Optional<FilterExpression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
-        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
+        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         Object val;
 
         /* If elide was configured for Elide 3.0 data store interface */
         if (requestScope.useFilterExpressions()) {
             val = requestScope.getTransaction()
-                   .getRelation(obj, type, relationName, entityClass, dictionary,
+                   .getRelation(obj, type, relationName, relationClass, dictionary,
                            filterExpression, requestScope.getSorting(), requestScope.getPagination());
 
         /* Otherwise use the Elide 2.0 interface */
@@ -979,7 +981,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filters = Collections.emptySet();
             }
             val = requestScope.getTransaction()
-                    .getRelationWithSortingAndPagination(obj, type, relationName, entityClass, dictionary, filters,
+                    .getRelationWithSortingAndPagination(obj, type, relationName, relationClass, dictionary, filters,
                             requestScope.getSorting(), requestScope.getPagination());
         }
 

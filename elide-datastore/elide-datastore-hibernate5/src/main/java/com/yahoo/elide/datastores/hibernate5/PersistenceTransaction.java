@@ -8,9 +8,10 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.security.User;
 
-import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.Serializable;
+
+import javax.persistence.EntityManager;
 
 /**
  * The type Persistence transaction.

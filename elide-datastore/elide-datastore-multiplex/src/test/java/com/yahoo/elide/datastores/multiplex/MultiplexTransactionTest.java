@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import org.testng.annotations.Test;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.DataStoreTransaction;
+
+import org.testng.annotations.Test;
 
 /**
  * Tests MultiplexTransaction

@@ -12,6 +12,7 @@ import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -146,9 +148,25 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        return transaction.getRelation(entity, relationshipType, relationName,
+                relationClass, dictionary, filterExpression, sorting, pagination);
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
     }
 
@@ -163,7 +181,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             Sorting sorting,
             Pagination pagination
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
     }

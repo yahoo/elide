@@ -11,6 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -141,6 +143,10 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      *  Clone contents of object for possible reverse transaction.
      */
     private Object cloneObject(Object object) {
+        if (object == null) {
+            return null;
+        }
+
         Class<?> cls = multiplexManager.getDictionary().lookupEntityClass(object.getClass());
         try {
             Object clone = cls.newInstance();
@@ -184,9 +190,31 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
+            Optional<FilterExpression> filterExpression,
+            Sorting sorting,
+            Pagination pagination
+    ) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        Object relation = transaction.getRelation(entity, relationshipType, relationName,
+                relationClass, dictionary, filterExpression, sorting, pagination);
+
+        if (relation instanceof Iterable) {
+            return hold(transaction, (Iterable) relation);
+        }
+
+        return hold(transaction, relation);
+    }
+
+    @Override
+    public <T> Object getRelation(
+            Object entity,
+            RelationshipType relationshipType,
+            String relationName,
+            Class<T> relationClass,
+            EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         Object relation = transaction
                 .getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
 
@@ -208,7 +236,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             Sorting sorting,
             Pagination pagination
     ) {
-        DataStoreTransaction transaction = getTransaction(relationClass);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
         Object relation = transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
 
