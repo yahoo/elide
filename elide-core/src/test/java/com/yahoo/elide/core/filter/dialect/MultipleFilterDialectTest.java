@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.beust.jcommander.internal.Lists;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -21,21 +21,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests MultipleFilterStrategy
+ * Tests MultipleFilterDialect
  */
-public class MultipleFilterStrategyTest {
+public class MultipleFilterDialectTest {
 
     /**
-     * Verify that all strategies are iterated over.
+     * Verify that all dialects are iterated over.
      */
     @Test
     public void testGlobalExpressionParsing() throws Exception {
-        JoinFilterStrategy strategy1 = mock(JoinFilterStrategy.class);
-        JoinFilterStrategy strategy2 = mock(JoinFilterStrategy.class);
+        JoinFilterDialect dialect1 = mock(JoinFilterDialect.class);
+        JoinFilterDialect dialect2 = mock(JoinFilterDialect.class);
         FilterExpression filterExpression = mock(FilterExpression.class);
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
-                Lists.newArrayList(strategy1, strategy2),
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
+                Lists.newArrayList(dialect1, dialect2),
                 Collections.EMPTY_LIST
         );
 
@@ -51,29 +51,29 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        when(strategy1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(strategy2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
+        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
+        when(dialect2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
 
-        FilterExpression returnExpression = strategy.parseGlobalExpression("/author", queryParams);
+        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams);
 
-        verify(strategy1, times(1)).parseGlobalExpression("/author", queryParams);
-        verify(strategy2, times(1)).parseGlobalExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams);
+        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams);
 
         Assert.assertEquals(filterExpression, returnExpression);
     }
 
     /**
-     * Verify that all strategies are iterated over.
+     * Verify that all dialects are iterated over.
      */
     @Test
     public void testTypedExpressionParsing() throws Exception {
-        SubqueryFilterStrategy strategy1 = mock(SubqueryFilterStrategy.class);
-        SubqueryFilterStrategy strategy2 = mock(SubqueryFilterStrategy.class);
+        SubqueryFilterDialect dialect1 = mock(SubqueryFilterDialect.class);
+        SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
         Map<String, FilterExpression> expressionMap = Collections.EMPTY_MAP;
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Collections.EMPTY_LIST,
-                Lists.newArrayList(strategy1, strategy2)
+                Lists.newArrayList(dialect1, dialect2)
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -88,24 +88,24 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        when(strategy1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(strategy2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
+        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
+        when(dialect2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
 
-        Map<String, FilterExpression> returnMap = strategy.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams);
 
-        verify(strategy1, times(1)).parseTypedExpression("/author", queryParams);
-        verify(strategy2, times(1)).parseTypedExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams);
+        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams);
 
         Assert.assertEquals(expressionMap, returnMap);
     }
 
     /**
-     * Verify that missing strategies throws a ParseException
+     * Verify that missing dialects throws a ParseException
      */
     @Test(expectedExceptions = ParseException.class)
-    public void testMissingTypedStrategy() throws Exception {
+    public void testMissingTypedDialect() throws Exception {
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Collections.EMPTY_LIST,
                 Collections.EMPTY_LIST
         );
@@ -122,16 +122,16 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        strategy.parseTypedExpression("/author", queryParams);
+        dialect.parseTypedExpression("/author", queryParams);
     }
 
     /**
-     * Verify that missing strategies throws a ParseException
+     * Verify that missing dialects throws a ParseException
      */
     @Test(expectedExceptions = ParseException.class)
-    public void testMissingGlobalStrategy() throws Exception {
+    public void testMissingGlobalDialect() throws Exception {
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Collections.EMPTY_LIST,
                 Collections.EMPTY_LIST
         );
@@ -148,19 +148,19 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        strategy.parseGlobalExpression("/author", queryParams);
+        dialect.parseGlobalExpression("/author", queryParams);
     }
 
     /**
-     * Verify that the last error is returned when all strategies fail.
+     * Verify that the last error is returned when all dialects fail.
      */
     @Test
     public void testGlobalExpressionParseFailure() throws Exception {
-        JoinFilterStrategy strategy1 = mock(JoinFilterStrategy.class);
-        JoinFilterStrategy strategy2 = mock(JoinFilterStrategy.class);
+        JoinFilterDialect dialect1 = mock(JoinFilterDialect.class);
+        JoinFilterDialect dialect2 = mock(JoinFilterDialect.class);
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
-                Lists.newArrayList(strategy1, strategy2),
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
+                Lists.newArrayList(dialect1, dialect2),
                 Collections.EMPTY_LIST
         );
 
@@ -176,27 +176,27 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        when(strategy1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(strategy2.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("one"));
+        when(dialect2.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("two"));
 
         try {
-            strategy.parseGlobalExpression("/author", queryParams);
+            dialect.parseGlobalExpression("/author", queryParams);
         } catch (ParseException e) {
-            Assert.assertEquals("two", e.getMessage());
+            Assert.assertEquals(e.getMessage(), "two\none");
         }
     }
 
     /**
-     * Verify that the last error is returned when all strategies fail.
+     * Verify that the last error is returned when all dialects fail.
      */
     @Test
     public void testTypedExpressionParseFailure() throws Exception {
-        SubqueryFilterStrategy strategy1 = mock(SubqueryFilterStrategy.class);
-        SubqueryFilterStrategy strategy2 = mock(SubqueryFilterStrategy.class);
+        SubqueryFilterDialect dialect1 = mock(SubqueryFilterDialect.class);
+        SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
 
-        MultipleFilterStrategy strategy = new MultipleFilterStrategy(
+        MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Collections.EMPTY_LIST,
-                Lists.newArrayList(strategy1, strategy2)
+                Lists.newArrayList(dialect1, dialect2)
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -211,13 +211,13 @@ public class MultipleFilterStrategyTest {
                 "Hemingway"
         );
 
-        when(strategy1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(strategy2.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("one"));
+        when(dialect2.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("two"));
 
         try {
-            strategy.parseTypedExpression("/author", queryParams);
+            dialect.parseTypedExpression("/author", queryParams);
         } catch (ParseException e) {
-            Assert.assertEquals("two", e.getMessage());
+            Assert.assertEquals(e.getMessage(), "two\none");
         }
     }
 }

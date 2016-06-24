@@ -1447,6 +1447,21 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(204);
     }
 
+    @Test(priority = 41)
+    public void testPostInvalidRelationship() {
+        // Note: This tests the correct response when POSTing a resource with a not "include" relationship. The server
+        // should returns UnknownEntityException rather than NPE.
+        String createRoot = jsonParser.getJson("/ResourceIT/testPostWithInvalidRelationship.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createRoot)
+                .post("resourceWithInvalidRelationship")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
     @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
@@ -1531,7 +1546,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .post("/assignedIdString")
             .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN);
+            .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test

@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter.strategy;
+package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -24,12 +24,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The default filter strategy supported in Elide 1.0 and 2.0.
+ * The default filter dialect supported in Elide 1.0 and 2.0.
  */
-public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilterStrategy {
+public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
     private final EntityDictionary dictionary;
 
-    public DefaultFilterStrategy(EntityDictionary dictionary) {
+    public DefaultFilterDialect(EntityDictionary dictionary) {
         this.dictionary = dictionary;
     }
 
@@ -73,6 +73,8 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
                 Predicate predicate = new Predicate(path, operator, values);
 
                 predicates.add(predicate);
+            } else {
+                throw new ParseException("Invalid filter format: " + paramName);
             }
         }
 
@@ -82,9 +84,9 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
     @Override
     public FilterExpression parseGlobalExpression(
             String path,
-            MultivaluedMap<String, String> queryParams) throws ParseException {
+            MultivaluedMap<String, String> filterParams) throws ParseException {
         List<Predicate> predicates;
-        predicates = extractPredicates(queryParams);
+        predicates = extractPredicates(filterParams);
 
         /* Extract the first collection in the URL */
         path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
@@ -120,10 +122,10 @@ public class DefaultFilterStrategy implements JoinFilterStrategy, SubqueryFilter
     @Override
     public Map<String, FilterExpression> parseTypedExpression(
             String path,
-            MultivaluedMap<String, String> queryParams) throws ParseException {
+            MultivaluedMap<String, String> filterParams) throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();
 
-        List<Predicate> predicates = extractPredicates(queryParams);
+        List<Predicate> predicates = extractPredicates(filterParams);
 
         for (Predicate predicate : predicates) {
             if (predicate.getPath().size() > 1) {

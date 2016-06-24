@@ -5,16 +5,19 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+
+import org.testng.annotations.Test;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.testng.annotations.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.testng.Assert.assertEquals;
 
 public class CoerceUtilTest {
 
@@ -91,5 +94,15 @@ public class CoerceUtilTest {
         testMap.put("baz", "qaz");
 
         CoerceUtil.coerce(testMap, TestClass.class);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testConversionFailure() throws Exception {
+        CoerceUtil.coerce("a", Long.class);
+    }
+
+    @Test
+    public void testNullConversion() throws Exception {
+        assertNull(CoerceUtil.coerce(null, String.class));
     }
 }

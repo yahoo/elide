@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,6 +38,10 @@ public class Predicate implements FilterExpression {
     @Getter @NonNull private List<PathElement> path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
+
+    public Predicate(PathElement pathElement, Operator op, List<Object> values) {
+        this(Collections.singletonList(pathElement), op, values);
+    }
 
 
     public String getField() {

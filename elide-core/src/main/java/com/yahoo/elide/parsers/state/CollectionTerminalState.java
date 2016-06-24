@@ -16,6 +16,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -27,6 +28,7 @@ import com.yahoo.elide.security.User;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Collection State.
@@ -184,7 +185,10 @@ public class CollectionTerminalState extends BaseState {
                 persistentResource.setId(id);
             } else {
                 //If expecting id to persist and id is not present, throw exception
-                throw new ForbiddenAccessException("No id provided, cannot persist " + persistentResource.getObject());
+                throw new InvalidValueException(
+                        persistentResource.toResource(),
+                        "No id provided, cannot persist " + persistentResource.getObject()
+                );
             }
         }
     }
