@@ -49,18 +49,6 @@ public class CoerceUtil {
         }
     }
 
-//    public static Object coerce(Object value, Class<?> cls) {
-//        if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
-//            return value;
-//        }
-//
-//        try {
-//            return ConvertUtils.convert(value, cls);
-//        } catch (ConversionException | InvalidAttributeException | IllegalArgumentException e) {
-//            throw new InvalidValueException(value, e.getMessage());
-//        }
-//    }
-
     /**
      * Perform CoerceUtil setup.
      */
