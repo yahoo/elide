@@ -52,40 +52,40 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // Test exact match
-        fn = Operator.IN.getFilterFunction("id", Arrays.asList(1), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(1), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Arrays.asList(1), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // Test contains works
-        fn = Operator.IN.getFilterFunction("id", Arrays.asList(1, 2), dictionary);
+        fn = Operator.IN.contextualize("id", Arrays.asList(1, 2), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Arrays.asList(1, 2), dictionary);
+        fn = Operator.NOT.contextualize("id", Arrays.asList(1, 2), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // Test type
-        fn = Operator.IN.getFilterFunction("id", Arrays.asList("1"), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList("1"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Arrays.asList("1"), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList("1"), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // Test not in
-        fn = Operator.IN.getFilterFunction("id", Arrays.asList(3), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(3), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Arrays.asList(3), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(3), dictionary);
         Assert.assertTrue(fn.test(author));
 
         // Test empty
-        fn = Operator.IN.getFilterFunction("id", Collections.emptyList(), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.emptyList(), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Collections.emptyList(), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.emptyList(), dictionary);
         Assert.assertTrue(fn.test(author));
 
         // Test null
         author.setId(null);
-        fn = Operator.IN.getFilterFunction("id", Arrays.asList(1), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(1), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.getFilterFunction("id", Arrays.asList(1), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), dictionary);
         Assert.assertTrue(fn.test(author));
     }
 
@@ -96,16 +96,16 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When name is not null
-        fn = Operator.ISNULL.getFilterFunction("name", null, dictionary);
+        fn = Operator.ISNULL.contextualize("name", null, dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOTNULL.getFilterFunction("name", null, dictionary);
+        fn = Operator.NOTNULL.contextualize("name", null, dictionary);
         Assert.assertTrue(fn.test(author));
 
         // When name is null
         author.setName(null);
-        fn = Operator.ISNULL.getFilterFunction("name", null, dictionary);
+        fn = Operator.ISNULL.contextualize("name", null, dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOTNULL.getFilterFunction("name", null, dictionary);
+        fn = Operator.NOTNULL.contextualize("name", null, dictionary);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -116,36 +116,36 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
-        fn = Operator.PREFIX.getFilterFunction("name", Arrays.asList("Author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.INFIX.getFilterFunction("name", Arrays.asList("For"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("Test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), dictionary);
         Assert.assertTrue(fn.test(author));
 
         // When prefix, infix, postfix are correctly matched if case-insensitive
-        fn = Operator.PREFIX.getFilterFunction("name", Arrays.asList("author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("author"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.getFilterFunction("name", Arrays.asList("for"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("for"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("test"), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // When prefix, infix, postfix are not matched
-        fn = Operator.PREFIX.getFilterFunction("name", Arrays.asList("error"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("error"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.getFilterFunction("name", Arrays.asList("error"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("error"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("error"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("error"), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // When values is null
         author.setName(null);
-        fn = Operator.PREFIX.getFilterFunction("name", Arrays.asList("Author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.getFilterFunction("name", Arrays.asList("For"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.getFilterFunction("name", Arrays.asList("Test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), dictionary);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -154,32 +154,32 @@ public class OperatorTest {
         author = new Author();
         author.setId(10L);
 
-        fn = Operator.LT.getFilterFunction("id", Arrays.asList("11"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("11"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.LE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.GT.getFilterFunction("id", Arrays.asList("9"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("9"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.GE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.LT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.LE.getFilterFunction("id", Arrays.asList("9"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("9"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GE.getFilterFunction("id", Arrays.asList("11"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("11"), dictionary);
         Assert.assertFalse(fn.test(author));
 
         // when val is null
         author.setId(null);
-        fn = Operator.LT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.LE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GT.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GE.getFilterFunction("id", Arrays.asList("10"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), dictionary);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -190,14 +190,14 @@ public class OperatorTest {
         author.setId(1L);
         author.setName("AuthorForTest");
         try {
-            Operator.IN.getFilterFunction("id", Arrays.asList("a"), dictionary).test(author);
+            Operator.IN.contextualize("id", Collections.singletonList("a"), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidValueException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.NOT.getFilterFunction("id", Arrays.asList("a"), dictionary).test(author);
+            Operator.NOT.contextualize("id", Collections.singletonList("a"), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidValueException e) {
             Assert.assertTrue(true);
@@ -212,98 +212,98 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         try {
-            Operator.PREFIX.getFilterFunction("name", Arrays.asList("Author", "Author"), dictionary).test(author);
+            Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.INFIX.getFilterFunction("name", Arrays.asList("For", "For"), dictionary).test(author);
+            Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.POSTFIX.getFilterFunction("name", Arrays.asList("Test", "Test"), dictionary).test(author);
+            Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.PREFIX.getFilterFunction("name", Collections.emptyList(), dictionary).test(author);
+            Operator.PREFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.INFIX.getFilterFunction("name", Collections.emptyList(), dictionary).test(author);
+            Operator.INFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.POSTFIX.getFilterFunction("name", Collections.emptyList(), dictionary).test(author);
+            Operator.POSTFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LT.getFilterFunction("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.LT.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LE.getFilterFunction("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.LE.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GT.getFilterFunction("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.GT.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GE.getFilterFunction("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.GE.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LT.getFilterFunction("id", Collections.emptyList(), dictionary).test(author);
+            Operator.LT.contextualize("id", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LE.getFilterFunction("id", Collections.emptyList(), dictionary).test(author);
+            Operator.LE.contextualize("id", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GT.getFilterFunction("id", Collections.emptyList(), dictionary).test(author);
+            Operator.GT.contextualize("id", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GE.getFilterFunction("id", Collections.emptyList(), dictionary).test(author);
+            Operator.GE.contextualize("id", Collections.emptyList(), dictionary).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);

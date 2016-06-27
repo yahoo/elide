@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -15,12 +15,13 @@ import lombok.ToString;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Predicate class.
  */
 @AllArgsConstructor
-public class Predicate implements FilterExpression {
+public class Predicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
 
     /**
      * The path taken through data model associations to
@@ -57,6 +58,11 @@ public class Predicate implements FilterExpression {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitPredicate(this);
+    }
+
+    @Override
+    public java.util.function.Predicate apply(EntityDictionary dictionary) {
+        return operator.contextualize(getField(), values, dictionary);
     }
 
     @Override
