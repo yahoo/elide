@@ -13,172 +13,113 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 /**
  * Operator enum for predicates.
  */
 @RequiredArgsConstructor
-public enum Operator implements BiFunction<Predicate, EntityDictionary, java.util.function.Predicate> {
+public enum Operator {
     IN("in", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null && values.stream()
-                        .map(v -> CoerceUtil.coerce(v, val.getClass()))
-                        .anyMatch(val::equals);
-            };
+            return Operator.in(field, values, dictionary);
         }
     },
 
     NOT("not", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> !IN.getFilterFunction(field, values, dictionary).test(entity);
+            return Operator.notIn(field, values, dictionary);
         }
     },
 
     PREFIX("prefix", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("PREFIX can only take one argument");
-                }
-
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                String valStr = CoerceUtil.coerce(val, String.class);
-                String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-                return valStr != null && filterStr != null && valStr.startsWith(filterStr);
-            };
+            return Operator.prefix(field, values, dictionary);
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("POSTFIX can only take one argument");
-                }
-
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                String valStr = CoerceUtil.coerce(val, String.class);
-                String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-                return valStr != null && filterStr != null && valStr.endsWith(filterStr);
-            };
+            return Operator.postfix(field, values, dictionary);
         }
     },
 
     INFIX("infix", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("INFIX can only take one argument");
-                }
-
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                String valStr = CoerceUtil.coerce(val, String.class);
-                String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-                return valStr != null && filterStr != null && valStr.contains(filterStr);
-            };
+            return Operator.infix(field, values, dictionary);
         }
     },
 
     ISNULL("isnull", false) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val == null;
-            };
+            return Operator.isNull(field, dictionary);
         }
     },
 
     NOTNULL("notnull", false) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> !ISNULL.getFilterFunction(field, values, dictionary).test(entity);
+            return Operator.isNotNull(field, dictionary);
         }
     },
 
     LT("lt", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("LT can only take one argument");
-                }
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null && getComparisonResult(val, values.get(0)) < 0;
-            };
+            return Operator.lt(field, values, dictionary);
         }
     },
 
     LE("le", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("LE can only take one argument");
-                }
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null && getComparisonResult(val, values.get(0)) <= 0;
-            };
+            return Operator.le(field, values, dictionary);
         }
     },
 
     GT("gt", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("LT can only take one argument");
-                }
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null && getComparisonResult(val, values.get(0)) > 0;
-            };
+            return Operator.gt(field, values, dictionary);
         }
     },
 
     GE("ge", true) {
         @Override
-        public java.util.function.Predicate getFilterFunction(
+        public <T> Predicate<T> contextualize(
                 String field, List<Object> values, EntityDictionary dictionary) {
-            return (entity) -> {
-                if (values.size() != 1) {
-                    throw new InvalidPredicateException("LE can only take one argument");
-                }
-                Object val = PersistentResource.getValue(entity, field, dictionary);
-                return val != null && getComparisonResult(val, values.get(0)) >= 0;
-            };
+            return Operator.ge(field, values, dictionary);
         }
     };
 
-    @Getter private final String string;
+    @Getter private final String notation;
     @Getter private final boolean parameterized;
 
     /**
-     * Returns Operator from query parameter operator string.
+     * Returns Operator from query parameter operator notation.
      *
-     * @param string operator string from query parameter
+     * @param string operator notation from query parameter
      * @return Operator
      */
     public static Operator fromString(final String string) {
         for (final Operator operator : values()) {
-            if (operator.getString().equals(string)) {
+            if (operator.getNotation().equals(string)) {
                 return operator;
             }
         }
@@ -186,18 +127,152 @@ public enum Operator implements BiFunction<Predicate, EntityDictionary, java.uti
         throw new InvalidPredicateException("Unknown operator in filter: " + string);
     }
 
-    public abstract java.util.function.Predicate getFilterFunction(
+    public abstract <T> Predicate<T> contextualize(
             String field, List<Object> values, EntityDictionary dictionary);
 
-    @Override
-    public java.util.function.Predicate apply(Predicate predicate, EntityDictionary dictionary) {
-        return getFilterFunction(predicate.getField(), predicate.getValues(), dictionary);
+    //
+    // Predicate generation
+    //
+
+    private static <T> Predicate<T> in(
+            String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null && values.stream()
+                    .map(v -> CoerceUtil.coerce(v, val.getClass()))
+                    .anyMatch(val::equals);
+        };
+    }
+
+    private static <T> Predicate<T> notIn(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val == null || values.stream()
+                    .map(v -> CoerceUtil.coerce(v, val.getClass()))
+                    .noneMatch(val::equals);
+        };
+    }
+
+    private static <T> Predicate<T> prefix(
+            String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("PREFIX can only take one argument");
+            }
+
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.startsWith(filterStr);
+        };
+    }
+
+    private static <T> Predicate<T> postfix(
+            String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("POSTFIX can only take one argument");
+            }
+
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.endsWith(filterStr);
+        };
+    }
+
+    private static <T> Predicate<T> infix(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("INFIX can only take one argument");
+            }
+
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.contains(filterStr);
+        };
+    }
+
+    private static <T> Predicate<T> isNull(String field, EntityDictionary dictionary) {
+        return (T entity) -> {
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+            return val == null;
+        };
+    }
+
+    private static <T> Predicate<T> isNotNull(String field, EntityDictionary dictionary) {
+        return (T entity) -> {
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null;
+        };
+    }
+
+    private static <T> Predicate<T> lt(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("LT can only take one argument");
+            }
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null
+                    && getComparisonResult(val, values.get(0)) < 0;
+        };
+    }
+
+    private static <T> Predicate<T> le(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("LE can only take one argument");
+            }
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null
+                    && getComparisonResult(val, values.get(0)) <= 0;
+        };
+    }
+
+    private static <T> Predicate<T> gt(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("LE can only take one argument");
+            }
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null
+                    && getComparisonResult(val, values.get(0)) > 0;
+        };
+    }
+
+    private static <T> Predicate<T> ge(String field, List<Object> values, EntityDictionary dictionary) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("LE can only take one argument");
+            }
+            Object val = PersistentResource.getValue(entity, field, dictionary);
+
+            return val != null
+                    && getComparisonResult(val, values.get(0)) >= 0;
+        };
     }
 
     private static int getComparisonResult(Object val, Object rawFilterVal) {
         Object filterVal = CoerceUtil.coerce(rawFilterVal, val.getClass());
         Comparable filterComp = CoerceUtil.coerce(filterVal, Comparable.class);
         Comparable valComp = CoerceUtil.coerce(val, Comparable.class);
+
         return valComp.compareTo(filterComp);
     }
 }

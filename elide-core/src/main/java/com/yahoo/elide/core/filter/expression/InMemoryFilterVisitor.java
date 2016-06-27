@@ -21,7 +21,7 @@ public class InMemoryFilterVisitor implements Visitor<Predicate> {
 
     @Override
     public Predicate visitPredicate(com.yahoo.elide.core.filter.Predicate predicate) {
-        return predicate.getOperator().apply(predicate, dictionary);
+        return predicate.apply(dictionary);
     }
 
     @Override

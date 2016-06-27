@@ -7,7 +7,6 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,15 +23,18 @@ public class InMemoryFilterOperation implements FilterOperation<Set<java.util.fu
 
     @Override
     public Set<java.util.function.Predicate> apply(Predicate predicate) {
-        return Collections.singleton(predicate.getOperator().apply(predicate, dictionary));
+        return Collections.singleton(this.applyOperator(predicate));
     }
 
     @Override
     public Set<java.util.function.Predicate> applyAll(Set<Predicate> predicates) {
         return predicates.stream()
-                .map(this::apply)
-                .flatMap(Collection::stream)
+                .map(this::applyOperator)
                 .collect(Collectors.toSet());
+    }
+
+    private java.util.function.Predicate applyOperator(Predicate predicate) {
+        return predicate.apply(dictionary);
     }
 
     public EntityDictionary getDictionary() {
