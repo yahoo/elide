@@ -450,6 +450,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     addInverseRelation(fieldName, toAdd.getObject());
                 });
 
+        if (deleted.isEmpty() && added.isEmpty() && updated.isEmpty()) {
+            // When there is no change in the relationship, we check update permission to avoid leaking data
+            checkSharePermission(requested);
+        }
 
         if (!updated.isEmpty()) {
             this.markDirty();
@@ -484,6 +488,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             checkSharePermission(resourceIdentifiers);
         } else if (oldResource.getObject().equals(newValue)) {
+            checkSharePermission(resourceIdentifiers);
             return false;
         } else {
             checkSharePermission(resourceIdentifiers);
