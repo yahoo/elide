@@ -45,6 +45,14 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
         this(Collections.singletonList(pathElement), op, values);
     }
 
+    public Predicate(PathElement pathElement, Operator op) {
+        this(Collections.singletonList(pathElement), op, Collections.emptyList());
+    }
+
+    public Predicate(List<PathElement> path, Operator op) {
+        this(path, op, Collections.emptyList());
+    }
+
     public String getField() {
         PathElement last = path.get(path.size() - 1);
         return last.getFieldName();
