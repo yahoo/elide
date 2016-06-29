@@ -1572,12 +1572,14 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertTrue(userModel.getNoShares().contains(noShare1));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
-    public void testSharePermissionFailureOnUpdateNoShareSingularRelationship() {
+    @Test
+    public void testSharePermissionSuccessOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
 
         NoShareEntity noShare = new NoShareEntity();
+
+        /* The noshare already exists so no exception should be thrown */
         userModel.setNoShare(noShare);
 
         List<Resource> idList = new ArrayList<>();
@@ -1591,7 +1593,10 @@ public class PersistentResourceTest extends PersistentResource {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope);
 
-        userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+        boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+
+        Assert.assertFalse(returnVal);
+        Assert.assertEquals(userModel.getNoShare(), noShare);
     }
 
     @Test
