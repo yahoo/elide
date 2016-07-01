@@ -7,9 +7,17 @@
         },
         "relationships":{
             "friends":{
+                "links": {
+                    "self": "/child/1/relationships/friends",
+                    "related": "/child/1/friends"
+                },
                 "data":[]
             },
             "parents":{
+                "links": {
+                    "self": "/child/1/relationships/parents",
+                    "related": "/child/1/parents"
+                },
                 "data":[
                     {
                         "type":"parent",
@@ -17,6 +25,9 @@
                     }
                 ]
             }
+        },
+        "links": {
+            "self": "/child/1"
         }
     }
 }

@@ -7,12 +7,24 @@
         },
         "relationships":{
             "friends":{
+                "links": {
+                    "self": "/child/1/relationships/friends",
+                    "related": "/child/1/friends"
+                },
                 "data":[]
             },
             "noReadAccess":{
+                "links": {
+                    "self": "/child/1/relationships/noReadAccess",
+                    "related": "/child/1/noReadAccess"
+                },
                 "data":null
             },
             "parents":{
+                "links": {
+                    "self": "/child/1/relationships/parents",
+                    "related": "/child/1/parents"
+                },
                 "data":[
                     {
                         "type":"parent",
@@ -20,6 +32,9 @@
                     }
                 ]
             }
+        },
+        "links": {
+            "self": "/child/1"
         }
     }
 }

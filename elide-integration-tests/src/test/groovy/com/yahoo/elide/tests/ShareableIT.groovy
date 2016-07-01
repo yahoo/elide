@@ -242,7 +242,7 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
         result.then().statusCode(HttpStatus.SC_OK)
 
         def resultJson = mapper.readTree(result.asString())
-        Assert.assertEquals(resultJson['data']['relationships']['shareables'].size(), 1)
+        Assert.assertEquals(resultJson['data']['relationships']['shareables'].size(), 2)
     }
 
     @Test
@@ -299,7 +299,7 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
         result.then().statusCode(HttpStatus.SC_OK)
 
         def resultJson = mapper.readTree(result.asString())
-        Assert.assertEquals(resultJson['data']['relationships']['shareables'].size(), 1)
+        Assert.assertEquals(resultJson['data']['relationships']['shareables'].size(), 2)
     }
 
     @Test

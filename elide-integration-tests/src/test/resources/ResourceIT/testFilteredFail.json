@@ -1,1 +1,1 @@
-{"data":[{"type":"filtered","id":"1"},{"type":"filtered","id":"3"}]}
+{"data":[{"type":"filtered","id":"1","links":{"self":"/filtered/1"}},{"type":"filtered","id":"3","links":{"self":"/filtered/3"}}]}

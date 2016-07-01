@@ -8,11 +8,18 @@
       },
       "relationships": {
         "child": {
+          "links": {
+            "self": "/specialread/1/relationships/child",
+            "related": "/specialread/1/child"
+          },
           "data": {
             "type": "child",
             "id": "11"
           }
         }
+      },
+      "links": {
+        "self": "/specialread/1"
       }
     }
   },
@@ -25,11 +32,22 @@
       },
       "relationships": {
         "friends": {
+          "links": {
+            "self": "/child/11/relationships/friends",
+            "related": "/child/11/friends"
+          },
           "data": []
         },
         "parents": {
+          "links": {
+            "self": "/child/11/relationships/parents",
+            "related": "/child/11/parents"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/child/11"
       }
     }
   }

@@ -8,9 +8,17 @@
             },
             "relationships":{
                 "children":{
+                    "links": {
+                        "self": "/parent/11/relationships/children",
+                        "related": "/parent/11/children"
+                    },
                     "data":[]
                 },
                 "spouses":{
+                    "links": {
+                        "self": "/parent/11/relationships/spouses",
+                        "related": "/parent/11/spouses"
+                    },
                     "data":[
                         {
                             "type":"parent",
@@ -18,6 +26,9 @@
                         }
                     ]
                 }
+            },
+            "links": {
+                "self": "/parent/11"
             }
         }
     },
@@ -30,6 +41,10 @@
             },
             "relationships":{
                 "friends":{
+                    "links": {
+                        "self": "/child/9/relationships/friends",
+                        "related": "/child/9/friends"
+                    },
                     "data":[
                         {
                             "type":"child",
@@ -38,6 +53,10 @@
                     ]
                 },
                 "parents":{
+                    "links": {
+                        "self": "/child/9/relationships/parents",
+                        "related": "/child/9/parents"
+                    },
                     "data":[
                         {
                             "type":"parent",
@@ -45,6 +64,9 @@
                         }
                     ]
                 }
+            },
+            "links": {
+                "self": "/child/9"
             }
         }
     }

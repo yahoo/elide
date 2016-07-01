@@ -7,11 +7,22 @@
         },
         "relationships":{
             "children":{
+                "links": {
+                    "self": "/parent/10/relationships/children",
+                    "related": "/parent/10/children"
+                },
                 "data":[]
             },
             "spouses":{
+                "links": {
+                    "self": "/parent/10/relationships/spouses",
+                    "related": "/parent/10/spouses"
+                },
                 "data":[]
             }
+        },
+        "links": {
+            "self": "/parent/10"
         }
     }
 }

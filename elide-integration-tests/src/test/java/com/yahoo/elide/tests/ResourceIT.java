@@ -1571,7 +1571,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 + "  }\n"
                 + "}\n";
         String req = jsonParser.getJson("/ResourceIT/noShareBiDirectional.req.json");
-        String expected = "{\"data\":{\"type\":\"noShareBid\",\"id\":\"2\",\"relationships\":{\"other\":{\"data\":{\"type\":\"noShareBid\",\"id\":\"1\"}}}}}";
+        String expected = "{\"data\":{\"type\":\"noShareBid\",\"id\":\"2\",\"relationships\":{\"other\":{\"links\":{\"self\":\"/noShareBid/2/relationships/other\",\"related\":\"/noShareBid/2/other\"},\"data\":{\"type\":\"noShareBid\",\"id\":\"1\"}}},\"links\":{\"self\":\"/noShareBid/2\"}}}";
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)

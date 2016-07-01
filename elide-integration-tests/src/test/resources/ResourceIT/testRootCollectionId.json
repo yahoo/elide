@@ -7,6 +7,10 @@
         },
         "relationships":{
             "children":{
+                "links": {
+                    "self": "/parent/1/relationships/children",
+                    "related": "/parent/1/children"
+                },
                 "data":[
                     {
                         "type":"child",
@@ -15,8 +19,15 @@
                 ]
             },
             "spouses":{
+                "links": {
+                    "self": "/parent/1/relationships/spouses",
+                    "related": "/parent/1/spouses"
+                },
                 "data":[]
             }
+        },
+        "links": {
+            "self": "/parent/1"
         }
     }
 }

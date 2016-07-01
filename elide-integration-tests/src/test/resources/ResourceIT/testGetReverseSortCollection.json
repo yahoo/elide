@@ -8,11 +8,22 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/4/relationships/children",
+            "related": "/parent/4/children"
+          },
           "data": []
         },
         "spouses": {
+          "links": {
+            "self": "/parent/4/relationships/spouses",
+            "related": "/parent/4/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/4"
       }
     },
     {
@@ -23,6 +34,10 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/2/relationships/children",
+            "related": "/parent/2/children"
+          },
           "data": [
             {
               "type": "child",
@@ -35,8 +50,15 @@
           ]
         },
         "spouses": {
+          "links": {
+            "self": "/parent/2/relationships/spouses",
+            "related": "/parent/2/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/2"
       }
     },
     {
@@ -47,6 +69,10 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/6/relationships/children",
+            "related": "/parent/6/children"
+          },
           "data": [
             {
               "type": "child",
@@ -55,8 +81,15 @@
           ]
         },
         "spouses": {
+          "links": {
+            "self": "/parent/6/relationships/spouses",
+            "related": "/parent/6/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/6"
       }
     },
     {
@@ -67,6 +100,10 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/3/relationships/children",
+            "related": "/parent/3/children"
+          },
           "data": [
             {
               "type": "child",
@@ -79,8 +116,15 @@
           ]
         },
         "spouses": {
+          "links": {
+            "self": "/parent/3/relationships/spouses",
+            "related": "/parent/3/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/3"
       }
     },
     {
@@ -91,6 +135,10 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/5/relationships/children",
+            "related": "/parent/5/children"
+          },
           "data": [
             {
               "type": "child",
@@ -99,8 +147,15 @@
           ]
         },
         "spouses": {
+          "links": {
+            "self": "/parent/5/relationships/spouses",
+            "related": "/parent/5/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/5"
       }
     },
     {
@@ -111,6 +166,10 @@
       },
       "relationships": {
         "children": {
+          "links": {
+            "self": "/parent/1/relationships/children",
+            "related": "/parent/1/children"
+          },
           "data": [
             {
               "type": "child",
@@ -123,8 +182,15 @@
           ]
         },
         "spouses": {
+          "links": {
+            "self": "/parent/1/relationships/spouses",
+            "related": "/parent/1/spouses"
+          },
           "data": []
         }
+      },
+      "links": {
+        "self": "/parent/1"
       }
     }
   ]
