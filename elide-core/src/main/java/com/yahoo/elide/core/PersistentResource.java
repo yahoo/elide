@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -1170,6 +1171,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 : dictionary.getId(obj));
         resource.setRelationships(relationshipSupplier.get());
         resource.setAttributes(attributeSupplier.get());
+        resource.setLinks(ImmutableMap.of("self", "/" + getType() + "/" + getId()));
         return resource;
     }
 
@@ -1219,8 +1221,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } else {
                 data = new Data<>(resources);
             }
-            // TODO - links
-            relationshipMap.put(field, new Relationship(null, data));
+
+            ImmutableMap<String, String> links = ImmutableMap.of(
+                    "self", "/" + getType() + "/" + getId() + "/relationships/" + field,
+                    "related", "/" + getType() + "/" + getId() + "/" + field);
+            relationshipMap.put(field, new Relationship(links, data));
         }
 
         return relationshipMap;
