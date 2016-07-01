@@ -9,6 +9,7 @@ import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -327,11 +328,28 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @return The global filter expression evaluated at the first load
      */
     public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
+        Optional<FilterExpression> permissionFilter;
+        permissionFilter = getPermissionExecutor().getReadPermissionFilter(loadClass);
+        Optional<FilterExpression> globalFilterExpressionOptional = null;
         if (globalFilterExpression == null) {
             String typeName = dictionary.getJsonAliasFor(loadClass);
-            return getFilterExpressionByType(typeName);
+            globalFilterExpressionOptional =  getFilterExpressionByType(typeName);
+        } else {
+            globalFilterExpressionOptional = Optional.of(globalFilterExpression);
         }
-        return Optional.of(globalFilterExpression);
+
+        if (globalFilterExpressionOptional.isPresent() && permissionFilter.isPresent()) {
+            return Optional.of(new AndFilterExpression(globalFilterExpressionOptional.get(),
+                    permissionFilter.get()));
+        }
+        else if (globalFilterExpressionOptional.isPresent()) {
+            return globalFilterExpressionOptional;
+        }
+        else if (permissionFilter.isPresent()) {
+            return permissionFilter;
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**

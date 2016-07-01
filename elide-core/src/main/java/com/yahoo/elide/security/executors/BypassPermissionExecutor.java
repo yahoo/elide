@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.security.executors;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 
 /**
  * Permission executor intended to bypass all security checks. I.e. this is effectively a no-op.
@@ -52,6 +54,11 @@ public class BypassPermissionExecutor implements PermissionExecutor {
     public <A extends Annotation> void checkUserPermissions(Class<?> resourceClass,
                                                             Class<A> annotationClass) {
 
+    }
+
+    @Override
+    public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
+        return Optional.empty();
     }
 
     @Override

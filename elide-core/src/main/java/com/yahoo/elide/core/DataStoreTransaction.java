@@ -90,6 +90,10 @@ public interface DataStoreTransaction extends Closeable {
      */
     <T> T loadObject(Class<T> entityClass, Serializable id);
 
+    default <T> T loadObject(Class<T> entityClass, Serializable id, Optional<FilterExpression> filterExpression) {
+        return loadObject(entityClass, id);
+    }
+
     /**
      * Read entity records from database table.
      *
@@ -112,6 +116,7 @@ public interface DataStoreTransaction extends Closeable {
         return loadObjects(entityClass);
     }
 
+
     /**
      * Read entity records from database table with applied criteria.
      *
@@ -124,6 +129,7 @@ public interface DataStoreTransaction extends Closeable {
         // default to ignoring criteria
         return loadObjects(entityClass);
     }
+
 
     /**
      * Filter a collection by the Predicates in filterScope.

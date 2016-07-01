@@ -122,6 +122,29 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
     }
 
+    /**
+     * load a single record with id and filter.
+     *
+     * @param loadClass class of query object
+     * @param id id of the query object
+     * @param filterExpression FilterExpression contains the predicates
+     */
+    @Override
+    public <T> T loadObject(Class<T> loadClass, Serializable id,  Optional<FilterExpression> filterExpression) {
+
+        try {
+            Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+            if (filterExpression.isPresent()) {
+                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+                criteria = filterOpn.apply(filterExpression.get());
+            }
+            T record = (T) criteria.uniqueResult();
+            return record;
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
         try {

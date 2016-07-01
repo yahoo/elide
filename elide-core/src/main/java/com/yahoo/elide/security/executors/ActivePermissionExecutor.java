@@ -5,11 +5,15 @@
  */
 package com.yahoo.elide.security.executors;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.CriterionExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
@@ -20,19 +24,19 @@ import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.expressions.Expression;
+
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 
 /**
  * Default permission executor.
@@ -194,6 +198,21 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 requestScope
         );
         executeExpressions(expressions, annotationClass);
+    }
+
+    /**
+     * Get permission filter on an entity.
+     *
+     * @param resourceClass Resource class
+     */
+    public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
+        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
+            return Optional.empty(); // Bypass
+        }
+        FilterExpression filterExpression =
+                expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);
+
+        return Optional.ofNullable(filterExpression);
     }
 
     /**

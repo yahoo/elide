@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * An 'And' Filter FilterExpression.
  */
+@EqualsAndHashCode
 public class AndFilterExpression implements FilterExpression {
 
     @Getter private FilterExpression left;

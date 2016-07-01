@@ -5,9 +5,13 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
@@ -29,6 +33,8 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
@@ -298,12 +304,60 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return new AnyFieldExpression(condition, entityExpression, allFieldsExpression);
     }
 
+    /**
+     * Build an expression representing any field on an entity.
+     *
+     * @param <A>             type parameter
+     * @param resourceClass   Resource class
+     * @param requestScope requestScope
+     * @return Expressions
+     */
+    public <A extends Annotation> FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass,
+                                                                                 RequestScope requestScope) {
+
+        Class<? extends Annotation> annotationClass = ReadPermission.class;
+        ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
+        FilterExpression entityFilterExpression = filterExpressionFromParseTree(classPermissions, requestScope);
+
+        FilterExpression allFieldsFilterExpression = entityFilterExpression;
+        List<String> fields = entityDictionary.getAllFields(resourceClass);
+        for (String field : fields) {
+            ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
+            FilterExpression fieldExpression = filterExpressionFromParseTree(fieldPermissions, requestScope);
+            if (fieldExpression == null) {
+                continue;
+            }
+            if (allFieldsFilterExpression == null) {
+                allFieldsFilterExpression = fieldExpression;
+            } else {
+                allFieldsFilterExpression = new OrFilterExpression(allFieldsFilterExpression, fieldExpression);
+            }
+        }
+        return allFieldsFilterExpression;
+    }
+
     private Expression expressionFromParseTree(ParseTree permissions, Function<Check, Expression> checkFn) {
         if (permissions == null) {
             return null;
         }
 
         return new PermissionExpressionVisitor(entityDictionary, checkFn).visit(permissions);
+    }
+
+    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, RequestScope requestScope) {
+        if (permissions == null) {
+            return null;
+        }
+        FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
+                requestScope).visit(permissions);
+        //case where the permissions does not have ANY filterExpressionCheck
+        if (permissionFilter == NO_EVALUATION_EXPRESSION) {
+            return null;
+        }
+        if (permissionFilter == USER_CHECK_EXPRESSION) {
+            return null;
+        }
+        return permissionFilter;
     }
 
     /**

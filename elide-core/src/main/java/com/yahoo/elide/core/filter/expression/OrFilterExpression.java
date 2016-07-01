@@ -6,11 +6,13 @@
 
 package com.yahoo.elide.core.filter.expression;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * An 'Or' Filter FilterExpression.
  */
+@EqualsAndHashCode
 public class OrFilterExpression implements FilterExpression {
 
     @Getter private FilterExpression left;
