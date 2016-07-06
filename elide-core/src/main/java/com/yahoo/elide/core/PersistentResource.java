@@ -341,10 +341,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return 0L;
         }
 
-        FilterScope filterScope = new FilterScope(requestScope, loadClass);
-        Long totalRecords = tx.getTotalRecords(loadClass, filterScope);
-
-        return totalRecords;
+        return tx.getTotalRecords(loadClass);
     }
 
     /**

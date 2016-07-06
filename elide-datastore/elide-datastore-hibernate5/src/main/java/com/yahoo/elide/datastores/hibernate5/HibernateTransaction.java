@@ -221,6 +221,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
+            paginationData.evaluate(loadClass);
             criteria.setFirstResult(paginationData.getOffset());
             criteria.setMaxResults(paginationData.getLimit());
         }
@@ -272,16 +273,9 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Long getTotalRecords(Class<T> entityClass, FilterScope filterScope) {
-        final Criterion criterion = filterScope.getCriterion(NOT, AND, OR);
-        final CriteriaExplorer criteriaExplorer = new CriteriaExplorer(
-                entityClass, filterScope.getRequestScope(), criterion);
+    public <T> Long getTotalRecords(Class<T> entityClass) {
         final Criteria sessionCriteria = session.createCriteria(entityClass);
-
-        criteriaExplorer.buildCriteria(sessionCriteria, session);
-
         sessionCriteria.setProjection(Projections.rowCount());
-
         return (Long) sessionCriteria.uniqueResult();
     }
 

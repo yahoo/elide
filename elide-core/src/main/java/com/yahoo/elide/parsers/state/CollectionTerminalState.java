@@ -81,10 +81,10 @@ public class CollectionTerminalState extends BaseState {
             pageMetaData.put("limit", pagination.getLimit());
 
             // Get total records if it has been requested and add to the page meta data
-            if (pagination.isPageTotalsRequested()) {
+            if (pagination.isGenerateTotals()) {
                 Long totalRecords = PersistentResource.getTotalRecords(entityClass, requestScope);
-                pageMetaData.put("totalPages",
-                        totalRecords / pagination.getLimit() + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
+                pageMetaData.put("totalPages", totalRecords / pagination.getLimit()
+                        + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
                 pageMetaData.put("totalRecords", totalRecords);
             }
 
