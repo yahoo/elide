@@ -5,40 +5,10 @@
   ~ See LICENSE file in project root for terms.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Suite">
-    <test name="com.yahoo.elide.tests.ResourceIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.ResourceIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.AccessIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.AccessIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.EmbeddedIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.EmbeddedIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.BookAuthorIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.BookAuthorIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.FilterIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.FilterIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.ShareableIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.ShareableIT" />
-        </classes>
-    </test>
-    <test name="com.yahoo.elide.tests.DataStoreIT">
-        <classes>
-            <class name="com.yahoo.elide.tests.DataStoreIT" />
-        </classes>
+<suite name="Test Suite">
+    <test name="com.yahoo.elide.tests">
+        <packages>
+            <package name="com.yahoo.elide.tests"/>
+        </packages>
     </test>
 </suite>

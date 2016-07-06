@@ -96,14 +96,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = auditLogger;
         this.securityMode = securityMode;
         this.filterDialect = filterDialect;
+        this.useFilterExpressions = useFilterExpressions;
 
-        this.expressionsByType = new HashMap<>();
         this.globalFilterExpression = null;
+        this.expressionsByType = new HashMap<>();
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.commitTriggers = new LinkedHashSet<>();
-        this.useFilterExpressions = useFilterExpressions;
 
         this.permissionExecutor = (permissionExecutorGenerator == null)
                 ? new ActivePermissionExecutor(this)

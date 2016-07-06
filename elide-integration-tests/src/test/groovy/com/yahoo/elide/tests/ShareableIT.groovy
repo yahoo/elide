@@ -5,9 +5,12 @@
  */
 package com.yahoo.elide.tests
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.yahoo.elide.core.DataStoreTransaction
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+import example.Left
 import org.testng.Assert
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 
 import static com.jayway.restassured.RestAssured.given
@@ -16,6 +19,14 @@ import static com.jayway.restassured.RestAssured.given
  */
 class ShareableIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @BeforeClass
+    public void setUp() {
+        DataStoreTransaction tx = dataStore.beginTransaction();
+        Left left = new Left();
+        tx.save(left);
+        tx.commit();
+    }
 
     @Test
     public void testUnshareableForbiddenAccess() {

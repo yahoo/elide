@@ -11,7 +11,7 @@ import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 import org.testng.Assert
 import org.testng.annotations.AfterTest
-import org.testng.annotations.BeforeTest
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 /**
  * Tests for Filters
@@ -31,7 +31,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     private Set<Integer> bookIds = new HashSet<>()
     private Set<Integer> authorIds = new HashSet<>()
 
-    @BeforeTest
+    @BeforeClass
     public void setup() {
         RestAssured
                 .given()

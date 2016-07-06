@@ -5,10 +5,10 @@
   ~ See LICENSE file in project root for terms.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Suite">
+<suite name="Audit Test Suite">
     <test name="com.yahoo.elide.tests.AuditIT">
         <classes>
-            <class name="com.yahoo.elide.tests.AuditIT" />
+            <class name="com.yahoo.elide.auditTests.AuditIT" />
         </classes>
     </test>
 </suite>

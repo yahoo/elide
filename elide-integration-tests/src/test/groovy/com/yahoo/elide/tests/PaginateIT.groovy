@@ -7,12 +7,11 @@ package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import org.testng.Assert
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.AfterTest
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test
 
 /**
@@ -31,7 +30,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     private Set<Integer> bookIds = new HashSet<>()
     private Set<Integer> authorIds = new HashSet<>()
 
-    @BeforeTest
+    @BeforeClass
     public void setup() {
         RestAssured
                 .given()
@@ -308,14 +307,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPaginationNoFilterSortDescPaginationFirstPage() {
-        def bookIdsWithNonNullGenre = [] as Set
-        for (JsonNode book : nullNedBooks.get("data")) {
-            if (!book.get("attributes").get("genre").isNull()) {
-                bookIdsWithNonNullGenre.add(book.get("id"))
-            }
-        }
-
+    public void testNoFilterSortDescPaginationFirstPage() {
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title&page[size]=3").asString())
         Assert.assertTrue(result.get("data").size() == 3);
@@ -326,7 +318,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPageinationOnSubRecords() {
+    public void testPaginationOnSubRecords() {
         final String httpResult = RestAssured.get("/author/${orsonCardId}/books?sort=-title&page[size]=1").asString();
         def result = mapper.readTree(httpResult);
         Assert.assertEquals(result.get("data").size(), 1);
@@ -335,7 +327,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPaginationNoFilterSortDescPagination() {
+    public void testNoFilterSortDescPagination() {
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title&page[number]=2&page[size]=3").asString())
         Assert.assertTrue(result.get("data").size() == 3);
@@ -346,7 +338,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testPaginationNoFilterMultiSortPagination() {
+    public void testNoFilterMultiSortPagination() {
         //select * from book order by title desc, genre asc;
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title,genre&page[size]=3").asString())
@@ -361,7 +353,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     public void testPublishDateLessThanFilter() {
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.publishDate][lt]=1454638927411&page[size]=2").asString())
-        Assert.assertTrue(result.get("data").size() > 0);
+        Assert.assertEquals(result.get("data").size(), 2);
         for (JsonNode book : result.get("data")) {
             // we should be starting off at index 4 here - this is true. However due to limitations of the test environment
             // there is no way we can check based on index since results could have been added many times...
@@ -379,8 +371,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         JsonNode book = result.get("data").get(0);
         long publishDate = book.get("attributes").get("publishDate").asLong();
         Assert.assertEquals(publishDate, 1464638927412L);
-        int authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asInt();
-        Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
+        String authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+        Assert.assertEquals(authorIdFromRelation, orsonCardId); // ensure we always have a bound relationship
     }
 
     @Test
@@ -388,12 +380,10 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         def result = mapper.readTree(RestAssured.get("/author/${orsonCardId}/books?sort=-title&page[number]=2&page[size]=1").asString());
         Assert.assertEquals(result.get("data").size(), 1);
         JsonNode book = result.get("data").get(0);
-        long publishDate = book.get("attributes").get("publishDate").asLong();
-        Assert.assertEquals(publishDate, 1454638927412L);
         String title = book.get("attributes").get("title").asText();
         Assert.assertEquals(title, "Enders Game");
-        int authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asInt();
-        Assert.assertEquals(authorIdFromRelation, 2); // ensure we always have a bound relationship
+        String authorIdFromRelation = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+        Assert.assertEquals(authorIdFromRelation, orsonCardId); // ensure we always have a bound relationship
     }
 
     @Test
@@ -405,7 +395,45 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         String errorMsg = errors.asText();
 
         Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: Book doesn't contain the field onion");
+    }
 
+    @Test
+    public void testBasicPageBasedPagination() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?page[number]=2&page[size]=2").asString())
+        Assert.assertTrue(result.get("data").size() == 2);
+    }
+
+    @Test
+    public void testBasicOffsetBasedPagination() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?page[offset]=3&page[limit]=2").asString())
+        Assert.assertTrue(result.get("data").size() == 2);
+    }
+
+    @Test
+    public void testPaginationOffsetOnly() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?page[offset]=3").asString())
+        Assert.assertTrue(result.get("data").size() == 5);
+    }
+
+    @Test
+    public void testPaginationSizeOnly() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?page[size]=2").asString())
+        Assert.assertTrue(result.get("data").size() == 2);
+    }
+
+    @Test(priority = -1)
+    public void testPaginationOffsetWithSorting() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?sort=title&page[offset]=3").asString())
+        Assert.assertTrue(result.get("data").size() == 5);
+
+        final JsonNode books = result.get("data");
+        final String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "Foundation");
     }
 
     @AfterTest

@@ -10,7 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -49,25 +49,29 @@ public abstract class AbstractIntegrationTestInitializer extends AbstractApiReso
      */
     public static DataStore getDatabaseManager() {
         if (dataStore == null) {
-            try {
-                final String dataStoreSupplierName = System.getProperty("dataStoreSupplier");
-                Supplier<DataStore> dataStoreSupplier =
-                        (Supplier<DataStore>) Class.forName(dataStoreSupplierName).newInstance();
-                dataStore = dataStoreSupplier.get();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
+            return getNewDatabaseManager();
         }
-
         return dataStore;
     }
 
-    /**
-     * Hibernate init.
-     */
-    @BeforeTest
+    public static DataStore getNewDatabaseManager() {
+        try {
+            final String dataStoreSupplierName = System.getProperty("dataStoreSupplier");
+            Supplier<DataStore> dataStoreSupplier =
+                    (Supplier<DataStore>) Class.forName(dataStoreSupplierName).newInstance();
+            dataStore = dataStoreSupplier.get();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+        return dataStore;
+    }
+
+        /**
+         * Hibernate init.
+         */
+    @BeforeClass
     public static void hibernateInit() {
-        getDatabaseManager();
+        getNewDatabaseManager();
     }
 
     /**
