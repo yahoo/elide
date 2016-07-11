@@ -482,6 +482,12 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testPaginateInvalidParameter() {
+        def response = RestAssured.get("/entityWithoutPaginate?page[bad]=2&page[totals]").asString();
+        Assert.assertTrue(response.contains("Invalid Pagination Parameter"), "Response should contain invalid parameter message");
+    }
+
+    @Test
     public void testPaginateAnnotationTotals() {
         def result = mapper.readTree(RestAssured.get("/entityWithoutPaginate?page[size]=2&page[totals]").asString())
         Assert.assertEquals(result.get("data").size(), 2)

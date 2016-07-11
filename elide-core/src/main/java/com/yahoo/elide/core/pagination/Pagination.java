@@ -14,6 +14,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Encapsulates the pagination strategy.
@@ -32,17 +33,31 @@ public class Pagination {
 
     private static final Pagination DEFAULT_PAGINATION = new Pagination(new HashMap<>());
 
-    // For requesting total pages/records be included in the response
-    public static String PAGE_TOTALS_KEY = "page[totals]";
+    // For limiting the number of records returned
+    public static final String PAGE_LIMIT_KEY = "page[limit]";
 
-    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
+    // For specifying the page size - essentially an alias for page[limit]
+    public static final String PAGE_SIZE_KEY = "page[size]";
+
+    // For specifying which page of records is to be returned in the response
+    public static final String PAGE_NUMBER_KEY = "page[number]";
+
+    // For specifying the first row to be returned in the response
+    public static final String PAGE_OFFSET_KEY = "page[offset]";
+
+    // For requesting total pages/records be included in the response page meta data
+    public static final String PAGE_TOTALS_KEY = "page[totals]";
+
+    private static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
     static {
-        PAGE_KEYS.put("page[size]", PaginationKey.limit);
-        PAGE_KEYS.put("page[limit]", PaginationKey.limit);
-        PAGE_KEYS.put("page[number]", PaginationKey.page);
-        PAGE_KEYS.put("page[offset]", PaginationKey.offset);
+        PAGE_KEYS.put(PAGE_SIZE_KEY, PaginationKey.limit);
+        PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
+        PAGE_KEYS.put(PAGE_NUMBER_KEY, PaginationKey.page);
+        PAGE_KEYS.put(PAGE_OFFSET_KEY, PaginationKey.offset);
         PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
     }
+
+    private static final String PAGE_KEYS_CSV = PAGE_KEYS.keySet().stream().collect(Collectors.joining(", "));
 
     // For holding the page query parameters until they can be evaluated
     private Map<PaginationKey, Integer> pageData;
@@ -102,8 +117,8 @@ public class Pagination {
                             try {
                                 int intValue = Integer.parseInt(value, 10);
                                 if (paginationKey == PaginationKey.limit && intValue <= 0) {
-                                    throw new InvalidValueException(
-                                            "page[size] and page[limit] must contain positive values.");
+                                    throw new InvalidValueException(PAGE_SIZE_KEY + " and " + PAGE_LIMIT_KEY
+                                            + " must contain positive values.");
                                 }
                                 pageData.put(paginationKey, intValue);
                             } catch (ClassCastException e) {
@@ -111,8 +126,9 @@ public class Pagination {
                             }
                         }
                     } else if (queryParamKey.startsWith("page[")) {
-                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are page[number]"
-                                + ",page[size],page[offset],page[limit],page[totals]");
+                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are "
+                                + PAGE_KEYS_CSV
+                        );
                     }
                 });
         return new Pagination(pageData).evaluate(null);
@@ -126,8 +142,8 @@ public class Pagination {
     public Pagination evaluate(final Class entityClass) {
         Paginate paginate = entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
 
-        int defaultLimit = paginate != null ? paginate.defaultLimit() : this.DEFAULT_PAGE_SIZE;
-        int maxLimit = paginate != null ? paginate.maxLimit() : this.MAX_PAGE_SIZE;
+        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_SIZE;
+        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_SIZE;
 
         limit = pageData.containsKey(PaginationKey.limit) ? pageData.get(PaginationKey.limit) : defaultLimit;
         limit = Math.min(maxLimit, limit);
