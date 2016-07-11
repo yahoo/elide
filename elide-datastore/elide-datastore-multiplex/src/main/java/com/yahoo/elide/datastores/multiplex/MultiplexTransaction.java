@@ -185,4 +185,17 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
     }
+
+    @Override
+    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
+        return getTransaction(entityClass).loadObjectsWithSortingAndPagination(entityClass, filterScope);
+    }
+
+    @Override
+    public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
+            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
+            Optional<Pagination> pagination) {
+        return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
+                collection, entityClass, dictionary, filters, sorting, pagination);
+    }
 }

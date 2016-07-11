@@ -97,6 +97,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass the entity class
      * @return records iterable
      */
+    @Deprecated
     <T> Iterable<T> loadObjects(Class<T> entityClass);
 
     /**
@@ -121,8 +122,7 @@ public interface DataStoreTransaction extends Closeable {
      * @return records iterable
      */
     default <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        // default to ignoring criteria
-        return loadObjects(entityClass);
+        return loadObjects(entityClass, filterScope);
     }
 
     /**
