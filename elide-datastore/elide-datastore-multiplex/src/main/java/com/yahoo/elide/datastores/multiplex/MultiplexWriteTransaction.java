@@ -178,6 +178,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
+    @Deprecated
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         DataStoreTransaction transaction = getTransaction(loadClass);
         return hold(transaction, transaction.loadObjects(loadClass));
