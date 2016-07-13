@@ -99,7 +99,10 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     @Override
     public void save(Object object) {
-        deferredTasks.add(() -> session.saveOrUpdate(object));
+        deferredTasks.add(() -> {
+            session.saveOrUpdate(object);
+            session.evict(object);
+        } );
     }
 
     @Override

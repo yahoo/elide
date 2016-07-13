@@ -19,15 +19,7 @@ import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child.InitCheck;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.util.Optional;
 import java.util.Set;
 
@@ -53,6 +45,7 @@ public class Child {
     private long id;
     private Set<Parent> parents;
 
+    private Parent adopter;
 
     private String name;
 
@@ -94,6 +87,18 @@ public class Child {
     public void setFriends(Set<Child> friends) {
         this.friends = friends;
     }
+
+
+    @JoinColumn(name = "adopter")
+    @ManyToOne
+    public Parent getAdopter() {
+        return adopter;
+    }
+
+    public void setAdopter(Parent adopter) {
+        this.adopter = adopter;
+    }
+
 
     @Audit(action = Audit.Action.UPDATE,
        operation = 1,

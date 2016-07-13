@@ -18,12 +18,7 @@ import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.ToString;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +40,7 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
+    private Set<Child> orphans;
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
     public void doInit() {
@@ -57,7 +53,7 @@ public class Parent extends BaseId {
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
+            cascade = { CascadeType.MERGE, CascadeType.PERSIST }
     )
     @JoinTable(
             name = "Parent_Child",
@@ -71,6 +67,15 @@ public class Parent extends BaseId {
 
     public void setChildren(Set<Child> children) {
         this.children = children;
+    }
+
+    @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE)
+    public Set<Child> getOrphans() {
+        return orphans;
+    }
+
+    public void setOrphans(Set<Child> orphans) {
+        this.orphans = orphans;
     }
 
     @ManyToMany(

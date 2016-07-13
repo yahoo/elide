@@ -670,6 +670,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         inverseResource.markDirty();
                     }
                 }
+                Object obj = getValueUnchecked(relationName);
+                if (obj instanceof Collection) {
+                    Collection coll = (Collection) obj;
+                    try {
+                        coll.clear();
+                    } catch (UnsupportedOperationException e) {
+//                        log.debug("Caught unsupported exception");
+                    }
+                }
             }
         }
 
