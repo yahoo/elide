@@ -126,6 +126,18 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
+     * Get total count of entity records satisfying the given filter.
+     *
+     * @param <T>         the type parameter
+     * @param entityClass the entity class
+     * @return total matching entities
+     */
+    default <T> Long getTotalRecords(Class<T> entityClass) {
+        // default to no records
+        return 0L;
+    }
+
+    /**
      * Filter a collection by the Predicates in filterScope.
      *
      * @param <T>         the type parameter
