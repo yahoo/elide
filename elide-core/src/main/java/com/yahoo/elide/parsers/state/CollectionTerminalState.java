@@ -91,6 +91,8 @@ public class CollectionTerminalState extends BaseState {
 
     private Set<PersistentResource> getResourceCollection(RequestScope requestScope) {
         final Set<PersistentResource> collection;
+        // TODO: In case of join filters, apply pagination after getting records
+        // instead of passing it to the datastore
         final boolean hasSortingOrPagination = requestScope.getPagination() != null
                 || requestScope.getSorting() != null;
         if (parent.isPresent()) {

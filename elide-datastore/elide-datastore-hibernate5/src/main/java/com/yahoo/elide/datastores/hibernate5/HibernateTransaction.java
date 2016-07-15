@@ -178,9 +178,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             criteria = filterOpn.apply(filterExpression.get());
         }
 
-        final Pagination pagination = filterScope.hasPagination()
-                ? filterScope.getRequestScope().getPagination()
-                : Pagination.getDefaultPagination();
+        final Pagination pagination = filterScope.getRequestScope().getPagination();
 
         // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
         Set<Order> validatedSortingRules = null;

@@ -98,11 +98,14 @@ public class Pagination {
             int computedOffset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
             return new Pagination(computedOffset, limit);
 
-        } else if (isOffsetBased(pageData)) {
+        } else if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
 
             // Offset-based pagination strategy
             int limit = pageData.containsKey(PaginationKey.limit)
                     ? pageData.get(PaginationKey.limit) : DEFAULT_PAGE_LIMIT;
+            if (limit > MAX_PAGE_LIMIT) {
+                throw new InvalidValueException("page[size] value must be less than or equal to " + MAX_PAGE_LIMIT);
+            }
 
             int offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
 
@@ -131,10 +134,6 @@ public class Pagination {
             throw new InvalidValueException("page[size] parameter is required for page-based pagination.");
         }
         return false;
-    }
-
-    private static boolean isOffsetBased(Map<PaginationKey, Integer> pageData) {
-        return  (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset));
     }
 
     /**

@@ -7,8 +7,8 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="Audit Test Suite">
     <test name="com.yahoo.elide.tests.AuditIT">
-        <classes>
-            <class name="com.yahoo.elide.auditTests.AuditIT" />
-        </classes>
+        <packages>
+            <package name="com.yahoo.elide.auditTests" />
+        </packages>
     </test>
 </suite>
