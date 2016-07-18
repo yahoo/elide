@@ -7,6 +7,7 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -45,29 +46,32 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
 
+    private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
+
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
             ImmutableMap.<ComparisonOperator, Operator>builder()
-            .put(RSQLOperators.IN, Operator.IN)
-            .put(RSQLOperators.NOT_IN, Operator.NOT)
-            .put(RSQLOperators.LESS_THAN, Operator.LT)
-            .put(RSQLOperators.GREATER_THAN, Operator.GT)
-            .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
-            .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
-            .build();
+                    .put(RSQLOperators.IN, Operator.IN)
+                    .put(RSQLOperators.NOT_IN, Operator.NOT)
+                    .put(RSQLOperators.LESS_THAN, Operator.LT)
+                    .put(RSQLOperators.GREATER_THAN, Operator.GT)
+                    .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
+                    .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
+                    .build();
 
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
 
-    public RSQLFilterDialect(EntityDictionary dictionary, Set<ComparisonOperator> rsqlOperators) {
-        // Match "filter[<type>]"
-
-        parser = new RSQLParser(rsqlOperators);
+    public RSQLFilterDialect(EntityDictionary dictionary) {
+        parser = new RSQLParser(getDefaultOperatorsWithIsnull());
         this. dictionary = dictionary;
     }
 
-    public RSQLFilterDialect(EntityDictionary dictionary) {
-        this(dictionary, RSQLOperators.defaultOperators());
+    //add rsql isnull op to the default ops
+    private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
+        Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
+        operators.add(ISNULL_OP);
+        return operators;
     }
 
     @Override
@@ -274,6 +278,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 throw new RSQLParseException(String.format("No such association %s", relationship));
             }
 
+            //handles '=isnull=' op before coerce arguments
+            if (op.equals(ISNULL_OP)) {
+                return buildIsNullOperator(path, arguments);
+            }
+
             Class<?> relationshipType = path.get(0).getFieldType();
 
             //Coerce arguments to their correct types
@@ -318,6 +327,28 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             }
 
             throw new RSQLParseException(String.format("Invalid Operator %s", op.getSymbol()));
+        }
+
+        /**
+         * Returns Predicate for '=isnull=' case depending on its arguments.
+         *
+         * NOTE: Filter Expression builder specially for '=isnull=' case.
+         *
+         * @return Returns Predicate for '=isnull=' case depending on its arguments.
+         */
+        private FilterExpression buildIsNullOperator(List<Predicate.PathElement> path, List<String> arguments) {
+            Operator elideOP;
+            try {
+                boolean argBool = (boolean) CoerceUtil.coerce(arguments.get(0), boolean.class);
+                if (argBool) {
+                    elideOP = Operator.ISNULL;
+                } else {
+                    elideOP = Operator.NOTNULL;
+                }
+                return new Predicate(path, elideOP);
+            } catch (InvalidValueException e) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull="));
+            }
         }
     }
 }

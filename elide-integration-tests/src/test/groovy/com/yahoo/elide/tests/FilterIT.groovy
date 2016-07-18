@@ -799,6 +799,52 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             Assert.assertTrue(book.get("attributes").get("genre").isNull())
             Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
         }
+
+        /* Test RSQL Typed */
+        /* param = true */
+        result = mapper.readTree(
+                RestAssured.get("book?filter[book]=genre=isnull=true").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 1 */
+        result = mapper.readTree(
+                RestAssured.get("book?filter[book]=genre=isnull=1").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+
+        /* Test RSQL Global */
+        /* param = true */
+        result = mapper.readTree(
+                RestAssured.get("book?filter=genre=isnull=true").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 1 */
+        result = mapper.readTree(
+                RestAssured.get("book?filter=genre=isnull=1").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
     }
 
     @Test
@@ -816,6 +862,52 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/book?filter[book.genre][notnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* Test RSQL Typed */
+        /* param = false */
+        result = mapper.readTree(
+                RestAssured.get("book?filter[book]=genre=isnull=false").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 0 */
+        result = mapper.readTree(
+                RestAssured.get("book?filter[book]=genre=isnull=0").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* Test RSQL Global */
+        /* param = false */
+        result = mapper.readTree(
+                RestAssured.get("book?filter=genre=isnull=false").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 0 */
+        result = mapper.readTree(
+                RestAssured.get("book?filter=genre=isnull=0").asString())
 
         Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
 
@@ -1047,6 +1139,29 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             Assert.assertTrue(book.get("attributes").get("genre").isNull())
             Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
         }
+
+        /* Test RSQL Typed */
+        /* param = true */
+        result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre=isnull=true").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 1 */
+        result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre=isnull=1").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNullGenre.contains(book.get("id")))
+        }
     }
 
     @Test
@@ -1064,6 +1179,29 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         /* Test Default */
         def result = mapper.readTree(
                 RestAssured.get("/author/${nullNedId}/books?filter[book.genre][notnull]").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* Test RSQL Typed */
+        /* param = false */
+        result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre=isnull=false").asString())
+
+        Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
+
+        for (JsonNode book : result.get("data")) {
+            Assert.assertTrue(!book.get("attributes").get("genre").isNull())
+            Assert.assertTrue(bookIdsWithNonNullGenre.contains(book.get("id")))
+        }
+
+        /* param = 0 */
+        result = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre=isnull=0").asString())
 
         Assert.assertEquals(result.get("data").size(), bookIdsWithNonNullGenre.size())
 
@@ -1327,6 +1465,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                         "Invalid filter format: filter\n" +
                         "Invalid query parameter: filter");
     }
+
 
     @AfterTest
     public void cleanUp() {

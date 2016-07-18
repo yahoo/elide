@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.pagination;
 
+import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.Getter;
 import lombok.ToString;
@@ -12,6 +13,7 @@ import lombok.ToString;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Encapsulates the pagination strategy.
@@ -20,38 +22,63 @@ import java.util.Map;
 @ToString
 public class Pagination {
 
+    /**
+     * Denotes the internal field names for paging.
+     */
+    public enum PaginationKey { offset, number, size, limit, totals }
+
+    public static final int DEFAULT_OFFSET = 0;
+    public static final int DEFAULT_PAGE_LIMIT = 500;
+    public static final int MAX_PAGE_LIMIT = 10000;
+
+    private static final Pagination DEFAULT_PAGINATION = new Pagination(new HashMap<>());
+
+    // For specifying which page of records is to be returned in the response
+    public static final String PAGE_NUMBER_KEY = "page[number]";
+
+    // For specifying the page size - essentially an alias for page[limit]
+    public static final String PAGE_SIZE_KEY = "page[size]";
+
+    // For specifying the first row to be returned in the response
+    public static final String PAGE_OFFSET_KEY = "page[offset]";
+
+    // For limiting the number of records returned
+    public static final String PAGE_LIMIT_KEY = "page[limit]";
+
+    // For requesting total pages/records be included in the response page meta data
+    public static final String PAGE_TOTALS_KEY = "page[totals]";
+
+    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
+    static {
+        PAGE_KEYS.put(PAGE_NUMBER_KEY, PaginationKey.number);
+        PAGE_KEYS.put(PAGE_SIZE_KEY, PaginationKey.size);
+        PAGE_KEYS.put(PAGE_OFFSET_KEY, PaginationKey.offset);
+        PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
+        PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
+    }
+
+    private static final String PAGE_KEYS_CSV = PAGE_KEYS.keySet().stream().collect(Collectors.joining(", "));
+
+    // For holding the page query parameters until they can be evaluated
+    private Map<PaginationKey, Integer> pageData;
+
     @Getter
     private int offset;
 
     @Getter
     private int limit;
 
-    public Pagination(int offset, int limit) {
-        this.offset = offset;
-        this.limit = limit;
-    }
+    @Getter
+    private boolean generateTotals;
 
-    /**
-     * Denotes the internal field names for paging.
-     */
-    public enum PaginationKey { offset, number, size, limit }
 
-    public static final int DEFAULT_OFFSET = 0;
-    public static final int DEFAULT_PAGE_LIMIT = 500;
-    public static final int MAX_PAGE_LIMIT = 10000;
-
-    private static final Pagination DEFAULT_PAGINATION = new Pagination(DEFAULT_OFFSET, DEFAULT_PAGE_LIMIT);
-
-    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
-    static {
-        PAGE_KEYS.put("page[number]", PaginationKey.number);
-        PAGE_KEYS.put("page[size]", PaginationKey.size);
-        PAGE_KEYS.put("page[offset]", PaginationKey.offset);
-        PAGE_KEYS.put("page[limit]", PaginationKey.limit);
+    private Pagination(Map<PaginationKey, Integer> pageData) {
+        this.pageData = pageData;
     }
 
     /**
      * Given json-api paging params, generate page and pageSize values from query params.
+     *
      * @param queryParams The page queryParams (ImmuatableMultiValueMap).
      * @return The new Page object.
      */
@@ -62,30 +89,52 @@ public class Pagination {
                 .forEach(paramEntry -> {
                     final String queryParamKey = paramEntry.getKey();
                     if (PAGE_KEYS.containsKey(queryParamKey)) {
-                        final String value = paramEntry.getValue().get(0);
-                        try {
-                            pageData.put(PAGE_KEYS.get(queryParamKey), Integer.parseInt(value, 10));
-                        } catch (NumberFormatException e) {
-                            throw new InvalidValueException("page values must be integers");
+                        PaginationKey paginationKey = PAGE_KEYS.get(queryParamKey);
+                        if (queryParamKey.equals(PAGE_TOTALS_KEY)) {
+                            // page[totals] is a valueless parameter, use value of 0 just so that its presence can
+                            // be recorded in the map
+                            pageData.put(paginationKey, 0);
+                        } else {
+                            final String value = paramEntry.getValue().get(0);
+                            try {
+                                int intValue = Integer.parseInt(value, 10);
+                                pageData.put(paginationKey, intValue);
+                            } catch (NumberFormatException e) {
+                                throw new InvalidValueException("page values must be integers");
+                            }
                         }
                     } else if (queryParamKey.startsWith("page[")) {
-                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are page[number]"
-                                + ",page[size],page[offset],page[limit]");
+                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are "
+                                + PAGE_KEYS_CSV);
                     }
                 });
+        return new Pagination(pageData).evaluate(null);
+    }
 
-        if (pageData.isEmpty()) {
-            return DEFAULT_PAGINATION;
-        } else if (pageData.size() > 2) {
-            throw new InvalidValueException("Invalid usage of pagination parameters.");
-        }
+    /**
+     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
+     * queried.
+     *
+     * @param entityClass
+     */
+    public Pagination evaluate(final Class entityClass) {
+        Paginate paginate =
+                entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
 
-        if (isPageBased(pageData)) {
+        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_LIMIT;
+        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_LIMIT;
 
+        if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
             // Page-based pagination strategy
-            int limit = pageData.get(PaginationKey.size);
-            if (limit > MAX_PAGE_LIMIT) {
-                throw new InvalidValueException("page[size] value must be less than or equal to " + MAX_PAGE_LIMIT);
+
+            if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
+                throw new InvalidValueException("Invalid usage of pagination parameters.");
+            }
+
+            limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
+            if (limit > maxLimit) {
+                throw new InvalidValueException(
+                        "page[size] value must be less than or equal to " + maxLimit);
             } else if (limit < 0) {
                 throw new InvalidValueException("page[size] must contain a positive value.");
             }
@@ -95,45 +144,46 @@ public class Pagination {
                 throw new InvalidValueException("page[number] must contain a positive value.");
             }
 
-            int computedOffset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
-            return new Pagination(computedOffset, limit);
-
+            offset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
         } else if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
 
             // Offset-based pagination strategy
-            int limit = pageData.containsKey(PaginationKey.limit)
-                    ? pageData.get(PaginationKey.limit) : DEFAULT_PAGE_LIMIT;
-            if (limit > MAX_PAGE_LIMIT) {
-                throw new InvalidValueException("page[size] value must be less than or equal to " + MAX_PAGE_LIMIT);
+            limit = pageData.containsKey(PaginationKey.limit)
+                    ? pageData.get(PaginationKey.limit) : defaultLimit;
+            if (limit > maxLimit) {
+                throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
             }
 
-            int offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
+            offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
 
             if (limit < 0 || offset < 0) {
                 throw new InvalidValueException("page[offset] and page[limit] must contain positive values.");
             }
-            return new Pagination(offset, limit);
 
+        } else {
+            limit = defaultLimit;
+            offset = 0;
         }
+        generateTotals = pageData.containsKey(PaginationKey.totals)
+                && (paginate == null || paginate.countable());
 
-        // Default Pagination
-        return DEFAULT_PAGINATION;
+        return this;
     }
 
-    private static boolean isPageBased(Map<PaginationKey, Integer> pageData) {
-        if (pageData.containsKey(PaginationKey.size)) {
-            if (pageData.size() == 1 || pageData.containsKey(PaginationKey.number)) {
-                // Either Only contains page[size] in params
-                // Or contains Both page[size] and page[number]
-                return true;
-            } else {
-                throw new InvalidValueException("Invalid usage of pagination parameters.");
-            }
-        } else if (pageData.containsKey(PaginationKey.number)) {
-            // Contains page[number] but not page[size]
-            throw new InvalidValueException("page[size] parameter is required for page-based pagination.");
-        }
-        return false;
+    /**
+     * Know if this is the default instance.
+     * @return The default pagination values.
+     */
+    public boolean isDefaultInstance() {
+        return pageData.isEmpty();
+    }
+
+    /**
+     * Alias for isDefault.
+     * @return true if there are no pagination rules
+     */
+    public boolean isEmpty() {
+        return isDefaultInstance();
     }
 
     /**

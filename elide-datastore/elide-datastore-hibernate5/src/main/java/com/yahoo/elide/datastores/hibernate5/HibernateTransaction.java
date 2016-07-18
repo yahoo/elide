@@ -27,6 +27,7 @@ import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
@@ -218,6 +219,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
+            paginationData.evaluate(loadClass);
             criteria.setFirstResult(paginationData.getOffset());
             criteria.setMaxResults(paginationData.getLimit());
         }
@@ -259,6 +261,13 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
         return val;
+    }
+
+    @Override
+    public <T> Long getTotalRecords(Class<T> entityClass) {
+        final Criteria sessionCriteria = session.createCriteria(entityClass);
+        sessionCriteria.setProjection(Projections.rowCount());
+        return (Long) sessionCriteria.uniqueResult();
     }
 
     @Override

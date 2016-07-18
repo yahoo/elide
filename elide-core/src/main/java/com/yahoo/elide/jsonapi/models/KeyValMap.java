@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @AllArgsConstructor
 public abstract class KeyValMap {
-    private final Map<String, Object> map;
+    protected final Map<String, Object> map;
 
     /**
      * Get an object from map.

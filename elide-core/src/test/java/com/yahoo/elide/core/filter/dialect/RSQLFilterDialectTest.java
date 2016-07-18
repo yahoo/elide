@@ -182,4 +182,68 @@ public class RSQLFilterDialectTest {
                 "(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))"
         );
     }
+
+    @Test
+    public void testIsnullOperatorBool() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isnull=true"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "book.title ISNULL []"
+        );
+    }
+
+    @Test
+    public void testIsnullOperatorInt() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isnull=1"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "book.title ISNULL []"
+        );
+    }
+
+    @Test
+    public void testNotnullOperatorBool() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isnull=false"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "book.title NOTNULL []"
+        );
+    }
+
+    @Test
+    public void testNotnullOperatorInt() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "title=isnull=0"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "book.title NOTNULL []"
+        );
+    }
 }

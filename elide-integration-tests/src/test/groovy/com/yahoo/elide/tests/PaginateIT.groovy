@@ -7,9 +7,11 @@ package com.yahoo.elide.tests;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.RestAssured
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import org.testng.Assert
+import org.testng.annotations.AfterClass
 import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test
@@ -29,6 +31,16 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     private String orsonCardId = null
     private Set<Integer> bookIds = new HashSet<>()
     private Set<Integer> authorIds = new HashSet<>()
+
+    private int entityWithoutPaginateCreateCount = 20
+    private int entityWithPaginateCountableCreateCount = 5
+    private int entityWithPaginateDefaultLimitCreateCount = 5
+    private int entityWithPaginateMaxLimitCreateCount = 30
+
+    private Set<Integer> entityWithoutPaginateIds = new HashSet<>()
+    private Set<Integer> entityWithPaginateCountableFalseIds = new HashSet<>()
+    private Set<Integer> entityWithPaginateDefaultLimitIds = new HashSet<>()
+    private Set<Integer> entityWithPaginateMaxLimitIds = new HashSet<>()
 
     @BeforeClass
     public void setup() {
@@ -304,13 +316,75 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         asimovBooks = mapper.readTree(RestAssured.get("/author/${asimovId}/books").asString())
         nullNedBooks = mapper.readTree(RestAssured.get("/author/${nullNedId}/books").asString())
+
+        JsonNode responseJson
+
+        for (int i = 0; i < entityWithoutPaginateCreateCount; i++) {
+            RestAssured
+                    .given()
+                    .contentType("application/vnd.api+json")
+                    .accept("application/vnd.api+json")
+                    .body("""{"data": {"type": "entityWithoutPaginate","attributes": {"name": "A name"}}}""")
+                    .post("/entityWithoutPaginate")
+                    .thenReturn()
+        }
+        responseJson = mapper.readTree(RestAssured.get("/entityWithoutPaginate").asString())
+        for (JsonNode node : responseJson.get("data")) {
+            entityWithoutPaginateIds.add(node.get("id").asInt());
+        }
+        Assert.assertEquals(entityWithoutPaginateIds.size(), entityWithoutPaginateCreateCount)
+
+        for (int i = 0; i < entityWithPaginateCountableCreateCount; i++) {
+            RestAssured
+                    .given()
+                    .contentType("application/vnd.api+json")
+                    .accept("application/vnd.api+json")
+                    .body("""{"data": {"type": "entityWithPaginateCountableFalse","attributes": {"name": "A name"}}}""")
+                    .post("/entityWithPaginateCountableFalse")
+                    .thenReturn()
+        }
+        responseJson = mapper.readTree(RestAssured.get("/entityWithPaginateCountableFalse").asString())
+        for (JsonNode node : responseJson.get("data")) {
+            entityWithPaginateCountableFalseIds.add(node.get("id").asInt());
+        }
+        Assert.assertEquals(entityWithPaginateCountableFalseIds.size(), entityWithPaginateCountableCreateCount)
+
+        for (int i = 0; i < entityWithPaginateDefaultLimitCreateCount; i++) {
+            RestAssured
+                    .given()
+                    .contentType("application/vnd.api+json")
+                    .accept("application/vnd.api+json")
+                    .body("""{"data": {"type": "entityWithPaginateDefaultLimit","attributes": {"name": "A name"}}}""")
+                    .post("/entityWithPaginateDefaultLimit")
+                    .thenReturn()
+        }
+        responseJson = mapper.readTree(RestAssured.get("/entityWithPaginateDefaultLimit").asString())
+        for (JsonNode node : responseJson.get("data")) {
+            entityWithPaginateDefaultLimitIds.add(node.get("id").asInt());
+        }
+        Assert.assertEquals(entityWithPaginateDefaultLimitIds.size(), entityWithPaginateDefaultLimitCreateCount)
+
+        for (int i = 0; i < entityWithPaginateMaxLimitCreateCount; i++) {
+            RestAssured
+                    .given()
+                    .contentType("application/vnd.api+json")
+                    .accept("application/vnd.api+json")
+                    .body("""{"data": {"type": "entityWithPaginateMaxLimit","attributes": {"name": "A name"}}}""")
+                    .post("/entityWithPaginateMaxLimit")
+                    .thenReturn()
+        }
+        responseJson = mapper.readTree(RestAssured.get("/entityWithPaginateMaxLimit").asString())
+        for (JsonNode node : responseJson.get("data")) {
+            entityWithPaginateMaxLimitIds.add(node.get("id").asInt());
+        }
+        Assert.assertEquals(entityWithPaginateMaxLimitIds.size(), entityWithPaginateMaxLimitCreateCount)
     }
 
     @Test
     public void testNoFilterSortDescPaginationFirstPage() {
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title&page[size]=3").asString())
-        Assert.assertTrue(result.get("data").size() == 3);
+        Assert.assertEquals(result.get("data").size(), 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
@@ -330,7 +404,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     public void testNoFilterSortDescPagination() {
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title&page[number]=2&page[size]=3").asString())
-        Assert.assertTrue(result.get("data").size() == 3);
+        Assert.assertEquals(result.get("data").size(), 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
@@ -342,7 +416,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         //select * from book order by title desc, genre asc;
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=-title,genre&page[size]=3").asString())
-        Assert.assertTrue(result.get("data").size() == 3);
+        Assert.assertEquals(result.get("data").size(), 3);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
@@ -401,42 +475,85 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     public void testBasicPageBasedPagination() {
         def result = mapper.readTree(
                 RestAssured.get("/book?page[number]=2&page[size]=2").asString())
-        Assert.assertTrue(result.get("data").size() == 2);
+        Assert.assertEquals(result.get("data").size(), 2);
     }
 
     @Test
     public void testBasicOffsetBasedPagination() {
         def result = mapper.readTree(
                 RestAssured.get("/book?page[offset]=3&page[limit]=2").asString())
-        Assert.assertTrue(result.get("data").size() == 2);
+        Assert.assertEquals(result.get("data").size(), 2);
     }
 
     @Test
     public void testPaginationOffsetOnly() {
         def result = mapper.readTree(
                 RestAssured.get("/book?page[offset]=3").asString())
-        Assert.assertTrue(result.get("data").size() == 5);
+        Assert.assertEquals(result.get("data").size(), 5);
     }
 
     @Test
     public void testPaginationSizeOnly() {
         def result = mapper.readTree(
                 RestAssured.get("/book?page[size]=2").asString())
-        Assert.assertTrue(result.get("data").size() == 2);
+        Assert.assertEquals(result.get("data").size(), 2);
     }
 
     @Test(priority = -1)
     public void testPaginationOffsetWithSorting() {
         def result = mapper.readTree(
                 RestAssured.get("/book?sort=title&page[offset]=3").asString())
-        Assert.assertTrue(result.get("data").size() == 5);
+        Assert.assertEquals(result.get("data").size(), 5);
 
         final JsonNode books = result.get("data");
         final String firstBookName = books.get(0).get("attributes").get("title").asText();
         Assert.assertEquals(firstBookName, "Foundation");
     }
 
-    @AfterTest
+    @Test
+    public void testPaginateInvalidParameter() {
+        def response = RestAssured.get("/entityWithoutPaginate?page[bad]=2&page[totals]").asString();
+        Assert.assertTrue(response.contains("Invalid Pagination Parameter"), "Response should contain invalid parameter message");
+    }
+
+    @Test
+    public void testPaginateAnnotationTotals() {
+        def result = mapper.readTree(RestAssured.get("/entityWithoutPaginate?page[size]=2&page[totals]").asString())
+        Assert.assertEquals(result.get("data").size(), 2)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), entityWithoutPaginateCreateCount)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), (int) (entityWithoutPaginateCreateCount / 2))
+    }
+
+    @Test
+    public void testPaginateAnnotationPreventTotals() {
+        def result = mapper.readTree(RestAssured.get("/entityWithPaginateCountableFalse?page[size]=3&page[totals]").asString())
+        Assert.assertEquals(result.get("data").size(), 3)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertNull(pageNode.get("totalPages"))
+        Assert.assertNull(pageNode.get("totalRecords"))
+    }
+
+    @Test
+    public void testPaginateAnnotationDefaultLimit() {
+        def result = mapper.readTree(RestAssured.get("/entityWithPaginateDefaultLimit?page[number]=1").asString())
+        Assert.assertEquals(result.get("data").size(), 5)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("number").asInt(), 1)
+        Assert.assertEquals(pageNode.get("limit").asInt(), 5)
+    }
+
+    @Test
+    public void testPaginateAnnotationMaxLimit() {
+        def response = RestAssured.get("/entityWithPaginateMaxLimit?page[limit]=100").asString()
+        Assert.assertTrue(response.contains("page[limit] value must be less than or equal to 10"),
+                "Should complain about exceeding the pagination max limit");
+    }
+
+    @AfterClass
     public void cleanUp() {
         for (int id : authorIds) {
             RestAssured
@@ -449,6 +566,30 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                     .given()
                     .accept("application/vnd.api+json; ext=jsonpatch")
                     .delete("/book/"+id)
+        }
+        for (int id : entityWithoutPaginateIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/entityWithoutPaginate/"+id)
+        }
+        for (int id : entityWithPaginateCountableFalseIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/entityWithPaginateCountableFalse/"+id)
+        }
+        for (int id : entityWithPaginateDefaultLimitIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/entityWithPaginateDefaultLimit/"+id)
+        }
+        for (int id : entityWithPaginateMaxLimitIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/entityWithPaginateMaxLimit/"+id)
         }
     }
 }

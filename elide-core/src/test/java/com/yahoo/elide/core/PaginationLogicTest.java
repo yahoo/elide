@@ -83,11 +83,13 @@ public class PaginationLogicTest {
         Pagination.parseQueryParams(queryParams);
     }
 
-    @Test(expectedExceptions = InvalidValueException.class)
-    public void cannotUsePageBasedPaginationWithoutSize() {
+    @Test
+    public void pageBasedPaginationWithDefaultSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[number]", "2");
-        Pagination.parseQueryParams(queryParams);
+        Pagination pageData = Pagination.parseQueryParams(queryParams);
+        Assert.assertEquals(pageData.getLimit(), 500);
+        Assert.assertEquals(pageData.getOffset(), 500);
     }
 
     @Test (expectedExceptions = InvalidValueException.class)
@@ -102,5 +104,20 @@ public class PaginationLogicTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[random]", "1");
         Pagination.parseQueryParams(queryParams);
+    }
+
+    @Test
+    public void shouldSetGenerateTotals() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        queryParams.add("page[totals]", null);
+        Pagination pageData = Pagination.parseQueryParams(queryParams);
+        Assert.assertTrue(pageData.isGenerateTotals());
+    }
+
+    @Test
+    public void shouldNotSetGenerateTotals() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+        Pagination pageData = Pagination.parseQueryParams(queryParams);
+        Assert.assertFalse(pageData.isGenerateTotals());
     }
 }
