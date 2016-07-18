@@ -20,7 +20,7 @@ import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 import example.Filtered;
 import org.apache.http.HttpStatus;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 public class DataStoreIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
-    @BeforeTest
+    @BeforeClass
     public static void setup() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 

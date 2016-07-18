@@ -205,9 +205,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             criteria = filterOpn.apply(filterExpression.get());
         }
 
-        final Pagination pagination = filterScope.hasPagination()
-                ? filterScope.getRequestScope().getPagination()
-                : null;
+        final Pagination pagination = filterScope.getRequestScope().getPagination();
 
         // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
         Set<Order> validatedSortingRules = null;
@@ -220,7 +218,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                             ? Order.desc(entry.getKey())
                             : Order.asc(entry.getKey())
                     )
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         return loadObjects(
@@ -387,14 +385,9 @@ public class HibernateTransaction implements RequestScopedTransaction {
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            // sorting/pagination supported on last entity only eg /v1/author/1/books? books would be valid
-            final boolean hasSortRules = sorting.isDefaultInstance();
-            final boolean isPaginated = pagination.isDefaultInstance();
-
-            if ((filterExpression.isPresent() || hasSortRules || isPaginated)
-                    && (filteredVal instanceof AbstractPersistentCollection)) {
-                final Optional<Sorting> sortingRules = hasSortRules ? Optional.of(sorting) : Optional.empty();
-                final Optional<Pagination> paginationRules = isPaginated ? Optional.of(pagination) : Optional.empty();
+            if (filteredVal instanceof AbstractPersistentCollection) {
+                Optional<Sorting> sortingRules = sorting != null ? Optional.of(sorting) : Optional.empty();
+                Optional<Pagination> paginationRules = pagination != null ? Optional.of(pagination) : Optional.empty();
 
                 @SuppressWarnings("unchecked")
                 final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
@@ -406,10 +399,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
                 }
-
             }
         }
-
         return val;
     }
 

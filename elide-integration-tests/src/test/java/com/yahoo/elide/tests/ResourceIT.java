@@ -24,7 +24,7 @@ import example.Parent;
 import example.User;
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -51,7 +51,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
-    @BeforeTest
+    @BeforeClass
     public static void setup() {
         DataStoreTransaction tx = dataStore.beginTransaction();
         Parent parent = new Parent(); // id 1

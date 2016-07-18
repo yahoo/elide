@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
 
@@ -26,6 +27,7 @@ import java.util.Collection;
 @Table(name = "author")
 @Include(rootLevel = true)
 @SharePermission(any = {Role.ALL.class})
+@Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

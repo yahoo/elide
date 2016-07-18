@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.Getter;
 import lombok.ToString;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
@@ -26,34 +25,35 @@ public class Pagination {
     /**
      * Denotes the internal field names for paging.
      */
-    public enum PaginationKey { offset, limit, page, totals }
+    public enum PaginationKey { offset, number, size, limit, totals }
 
-    public static final int DEFAULT_PAGE_SIZE = 500;
-    public static final int MAX_PAGE_SIZE = 10000;
+    public static final int DEFAULT_OFFSET = 0;
+    public static final int DEFAULT_PAGE_LIMIT = 500;
+    public static final int MAX_PAGE_LIMIT = 10000;
 
     private static final Pagination DEFAULT_PAGINATION = new Pagination(new HashMap<>());
-
-    // For limiting the number of records returned
-    public static final String PAGE_LIMIT_KEY = "page[limit]";
-
-    // For specifying the page size - essentially an alias for page[limit]
-    public static final String PAGE_SIZE_KEY = "page[size]";
 
     // For specifying which page of records is to be returned in the response
     public static final String PAGE_NUMBER_KEY = "page[number]";
 
+    // For specifying the page size - essentially an alias for page[limit]
+    public static final String PAGE_SIZE_KEY = "page[size]";
+
     // For specifying the first row to be returned in the response
     public static final String PAGE_OFFSET_KEY = "page[offset]";
+
+    // For limiting the number of records returned
+    public static final String PAGE_LIMIT_KEY = "page[limit]";
 
     // For requesting total pages/records be included in the response page meta data
     public static final String PAGE_TOTALS_KEY = "page[totals]";
 
-    private static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
+    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
     static {
-        PAGE_KEYS.put(PAGE_SIZE_KEY, PaginationKey.limit);
-        PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
-        PAGE_KEYS.put(PAGE_NUMBER_KEY, PaginationKey.page);
+        PAGE_KEYS.put(PAGE_NUMBER_KEY, PaginationKey.number);
+        PAGE_KEYS.put(PAGE_SIZE_KEY, PaginationKey.size);
         PAGE_KEYS.put(PAGE_OFFSET_KEY, PaginationKey.offset);
+        PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
         PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
     }
 
@@ -77,6 +77,115 @@ public class Pagination {
     }
 
     /**
+     * Given json-api paging params, generate page and pageSize values from query params.
+     *
+     * @param queryParams The page queryParams (ImmuatableMultiValueMap).
+     * @return The new Page object.
+     */
+    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams)
+            throws InvalidValueException {
+        final Map<PaginationKey, Integer> pageData = new HashMap<>();
+        queryParams.entrySet()
+                .forEach(paramEntry -> {
+                    final String queryParamKey = paramEntry.getKey();
+                    if (PAGE_KEYS.containsKey(queryParamKey)) {
+                        PaginationKey paginationKey = PAGE_KEYS.get(queryParamKey);
+                        if (paginationKey.equals(PaginationKey.totals)) {
+                            // page[totals] is a valueless parameter, use value of 0 just so that its presence can
+                            // be recorded in the map
+                            pageData.put(paginationKey, 0);
+                        } else {
+                            final String value = paramEntry.getValue().get(0);
+                            try {
+                                int intValue = Integer.parseInt(value, 10);
+                                pageData.put(paginationKey, intValue);
+                            } catch (NumberFormatException e) {
+                                throw new InvalidValueException("page values must be integers");
+                            }
+                        }
+                    } else if (queryParamKey.startsWith("page[")) {
+                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are "
+                                + PAGE_KEYS_CSV);
+                    }
+                });
+        return new Pagination(pageData).evaluate(DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT);
+    }
+
+    /**
+     * Evaluates the pagination variables for default limits
+     *
+     * @param defaultLimit
+     * @param maxLimit
+     */
+    public Pagination evaluate(int defaultLimit, int maxLimit) {
+
+        if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
+            // Page-based pagination strategy
+
+            if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
+                throw new InvalidValueException("Invalid usage of pagination parameters.");
+            }
+
+            limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
+            if (limit > maxLimit) {
+                throw new InvalidValueException(
+                        "page[size] value must be less than or equal to " + maxLimit);
+            } else if (limit < 0) {
+                throw new InvalidValueException("page[size] must contain a positive value.");
+            }
+
+            int pageNumber = pageData.containsKey(PaginationKey.number) ? pageData.get(PaginationKey.number) : 1;
+            if (pageNumber < 1) {
+                throw new InvalidValueException("page[number] must contain a positive value.");
+            }
+
+            offset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
+        } else if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
+
+            // Offset-based pagination strategy
+            limit = pageData.containsKey(PaginationKey.limit)
+                    ? pageData.get(PaginationKey.limit) : defaultLimit;
+            if (limit > maxLimit) {
+                throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
+            }
+
+            offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
+
+            if (limit < 0 || offset < 0) {
+                throw new InvalidValueException("page[offset] and page[limit] must contain positive values.");
+            }
+
+        } else {
+            limit = defaultLimit;
+            offset = 0;
+        }
+
+        generateTotals = pageData.containsKey(PaginationKey.totals);
+
+        return this;
+    }
+
+    /**
+     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
+     * queried.
+     *
+     * @param entityClass
+     */
+    public Pagination evaluate(final Class entityClass) {
+        Paginate paginate =
+                entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
+
+        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_LIMIT;
+        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_LIMIT;
+
+        evaluate(defaultLimit, maxLimit);
+
+        generateTotals = generateTotals && (paginate == null || paginate.countable());
+
+        return this;
+    }
+
+    /**
      * Know if this is the default instance.
      * @return The default pagination values.
      */
@@ -90,74 +199,6 @@ public class Pagination {
      */
     public boolean isEmpty() {
         return isDefaultInstance();
-    }
-
-    /**
-     * Given json-api paging params, generate page and pageSize values from query params.
-     * @param queryParams The page queryParams (ImmuatableMultiValueMap).
-     * @return The new Page object.
-     */
-    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams)
-            throws InvalidValueException {
-        final Map<PaginationKey, Integer> pageData = new HashMap<>();
-        final MutableBoolean pageTotalsRequested = new MutableBoolean(false);
-
-        queryParams.entrySet()
-                .forEach(paramEntry -> {
-                    final String queryParamKey = paramEntry.getKey();
-                    if (PAGE_KEYS.containsKey(queryParamKey)) {
-                        PaginationKey paginationKey = PAGE_KEYS.get(queryParamKey);
-                        if (queryParamKey.equals(PAGE_TOTALS_KEY)) {
-                            // page[totals] is a valueless parameter, use value of 0 just so that its presence can
-                            // be recorded in the map
-                            pageData.put(paginationKey, 0);
-                        }
-                        else {
-                            final String value = paramEntry.getValue().get(0);
-                            try {
-                                int intValue = Integer.parseInt(value, 10);
-                                if (paginationKey == PaginationKey.limit && intValue <= 0) {
-                                    throw new InvalidValueException(PAGE_SIZE_KEY + " and " + PAGE_LIMIT_KEY
-                                            + " must contain positive values.");
-                                }
-                                pageData.put(paginationKey, intValue);
-                            } catch (ClassCastException e) {
-                                throw new InvalidValueException("page values must be integers");
-                            }
-                        }
-                    } else if (queryParamKey.startsWith("page[")) {
-                        throw new InvalidValueException("Invalid Pagination Parameter. Accepted values are "
-                                + PAGE_KEYS_CSV
-                        );
-                    }
-                });
-        return new Pagination(pageData).evaluate(null);
-    }
-
-    /**
-     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
-     * queried.
-     * @param entityClass
-     */
-    public Pagination evaluate(final Class entityClass) {
-        Paginate paginate = entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
-
-        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_SIZE;
-        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_SIZE;
-
-        limit = pageData.containsKey(PaginationKey.limit) ? pageData.get(PaginationKey.limit) : defaultLimit;
-        limit = Math.min(maxLimit, limit);
-
-        Integer page = pageData.get(PaginationKey.page);
-        if (page != null) {
-            pageData.put(PaginationKey.offset, (page > 0 ? page - 1 : 0) * limit);
-        }
-
-        offset = pageData.getOrDefault(PaginationKey.offset, 0);
-
-        generateTotals = pageData.containsKey(PaginationKey.totals) && (paginate == null || paginate.countable());
-
-        return this;
     }
 
     /**

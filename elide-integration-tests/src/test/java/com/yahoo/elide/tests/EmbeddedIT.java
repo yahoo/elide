@@ -13,7 +13,7 @@ import com.yahoo.elide.utils.JsonParser;
 import example.Embedded;
 import example.Left;
 import example.Right;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class EmbeddedIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
-    @BeforeTest
+    @BeforeClass
     public static void setup() throws IOException {
         DataStoreTransaction tx = dataStore.beginTransaction();
         Embedded embedded = new Embedded(); // id 1

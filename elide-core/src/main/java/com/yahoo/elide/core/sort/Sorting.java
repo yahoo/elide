@@ -25,15 +25,15 @@ public class Sorting {
      */
     public enum SortOrder { asc, desc }
 
-    private static final Sorting DEFAULT_EMPTY_INSTANCE = new Sorting(null);
     private final Map<String, SortOrder> sortRules = new LinkedHashMap<>();
+    private static final Sorting DEFAULT_EMPTY_INSTANCE = new Sorting(null);
 
     /**
      * Constructs a new Sorting instance.
      * @param sortingRules The map of sorting rules
      */
     public Sorting(final Map<String, SortOrder> sortingRules) {
-        if (sortingRules != null && !sortingRules.isEmpty()) {
+        if (sortingRules != null) {
             sortRules.putAll(sortingRules);
         }
     }
@@ -99,13 +99,13 @@ public class Sorting {
         queryParams.entrySet().stream()
                 .filter(entry -> entry.getKey().equals("sort"))
                 .forEachOrdered(entry -> {
-                    String sortKey = entry.getValue().get(0);
-                    if (sortKey.contains(",")) {
-                        for (String sortRule : sortKey.split(",")) {
-                            parseSortingRule(sortRule, sortingRules);
+                    String sortRule = entry.getValue().get(0);
+                    if (sortRule.contains(",")) {
+                        for (String sortRuleSplit : sortRule.split(",")) {
+                            parseSortRule(sortRuleSplit, sortingRules);
                         }
                     } else {
-                        parseSortingRule(sortKey, sortingRules);
+                        parseSortRule(sortRule, sortingRules);
                     }
                 });
         return sortingRules.isEmpty() ? DEFAULT_EMPTY_INSTANCE : new Sorting(sortingRules);
@@ -113,21 +113,21 @@ public class Sorting {
 
     /**
      * Internal helper method to parse sorting rule strings.
-     * @param sortingRule The string from the queryParams
+     * @param sortRule The string from the queryParams
      * @param sortingRules The final shared reference to the sortingRules map
      */
-    private static void parseSortingRule(String sortingRule, final Map<String, SortOrder> sortingRules) {
+    private static void parseSortRule(String sortRule, final Map<String, SortOrder> sortingRules) {
         boolean isDesc = false;
-        char firstCharacter = sortingRule.charAt(0);
+        char firstCharacter = sortRule.charAt(0);
         if (firstCharacter == '-') {
             isDesc = true;
-            sortingRule = sortingRule.substring(1);
+            sortRule = sortRule.substring(1);
         }
         if (firstCharacter == '+') {
             // json-api spec supports asc by default, there is no need to explicitly support +
-            sortingRule = sortingRule.substring(1);
+            sortRule = sortRule.substring(1);
         }
-        sortingRules.put(sortingRule, isDesc ? SortOrder.desc : SortOrder.asc);
+        sortingRules.put(sortRule, isDesc ? SortOrder.desc : SortOrder.asc);
     }
 
     /**

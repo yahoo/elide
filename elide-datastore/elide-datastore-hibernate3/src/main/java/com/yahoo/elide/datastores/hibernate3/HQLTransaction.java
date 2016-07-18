@@ -112,7 +112,7 @@ public class HQLTransaction {
         }
 
         public Builder withPagination(final Pagination pagination) {
-            if (pagination != null && !pagination.isDefaultInstance()) {
+            if (pagination != null) {
                 this.pagination = pagination;
             }
             return this;
@@ -130,7 +130,7 @@ public class HQLTransaction {
             }
 
             // add sorting into HQL string query generation
-            if (!sortingRules.isEmpty()) {
+            if (sortingRules != null && !sortingRules.isEmpty()) {
                 filterString += sortingRules;
             }
 
