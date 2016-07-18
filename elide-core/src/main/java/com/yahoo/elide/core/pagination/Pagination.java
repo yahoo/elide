@@ -90,7 +90,7 @@ public class Pagination {
                     final String queryParamKey = paramEntry.getKey();
                     if (PAGE_KEYS.containsKey(queryParamKey)) {
                         PaginationKey paginationKey = PAGE_KEYS.get(queryParamKey);
-                        if (queryParamKey.equals(PAGE_TOTALS_KEY)) {
+                        if (paginationKey.equals(PaginationKey.totals)) {
                             // page[totals] is a valueless parameter, use value of 0 just so that its presence can
                             // be recorded in the map
                             pageData.put(paginationKey, 0);
@@ -108,21 +108,16 @@ public class Pagination {
                                 + PAGE_KEYS_CSV);
                     }
                 });
-        return new Pagination(pageData).evaluate(null);
+        return new Pagination(pageData).evaluate(DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT);
     }
 
     /**
-     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
-     * queried.
+     * Evaluates the pagination variables for default limits
      *
-     * @param entityClass
+     * @param defaultLimit
+     * @param maxLimit
      */
-    public Pagination evaluate(final Class entityClass) {
-        Paginate paginate =
-                entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
-
-        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_LIMIT;
-        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_LIMIT;
+    public Pagination evaluate(int defaultLimit, int maxLimit) {
 
         if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
             // Page-based pagination strategy
@@ -164,8 +159,28 @@ public class Pagination {
             limit = defaultLimit;
             offset = 0;
         }
-        generateTotals = pageData.containsKey(PaginationKey.totals)
-                && (paginate == null || paginate.countable());
+
+        generateTotals = pageData.containsKey(PaginationKey.totals);
+
+        return this;
+    }
+
+    /**
+     * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
+     * queried.
+     *
+     * @param entityClass
+     */
+    public Pagination evaluate(final Class entityClass) {
+        Paginate paginate =
+                entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
+
+        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_LIMIT;
+        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_LIMIT;
+
+        evaluate(defaultLimit, maxLimit);
+
+        generateTotals = generateTotals && (paginate == null || paginate.countable());
 
         return this;
     }
