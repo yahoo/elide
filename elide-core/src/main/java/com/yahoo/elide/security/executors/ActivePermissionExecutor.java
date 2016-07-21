@@ -7,6 +7,7 @@ package com.yahoo.elide.security.executors;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -26,12 +27,15 @@ import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressi
 import com.yahoo.elide.security.permissions.expressions.Expression;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.tuple.Triple;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,6 +52,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     private final RequestScope requestScope;
     private final PermissionExpressionBuilder expressionBuilder;
+    private final Map<Triple<Class, Class, String>, ExpressionResult> userPermissionCheckCache;
 
     /**
      * Constructor.
@@ -59,22 +64,24 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         this.requestScope = requestScope;
         this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
+        userPermissionCheckCache = new HashMap<>();
     }
 
     /**
      * Check permission on class.
      *
+     * @param <A> type parameter
      * @param annotationClass annotation class
      * @param resource resource
-     * @param <A> type parameter
      * @see com.yahoo.elide.annotation.CreatePermission
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
      */
     @Override
-    public <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource) {
-        checkPermission(annotationClass, resource, null);
+    public <A extends Annotation> ExpressionResult checkPermission(
+            Class<A> annotationClass, PersistentResource resource) {
+        return checkPermission(annotationClass, resource, null);
     }
 
     /**
@@ -90,11 +97,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @see com.yahoo.elide.annotation.DeletePermission
      */
     @Override
-    public <A extends Annotation> void checkPermission(Class<A> annotationClass,
+    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                        PersistentResource resource,
                                                        ChangeSpec changeSpec) {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return; // Bypass
+            return ExpressionResult.PASS; // Bypass
         }
         Expressions expressions;
         if (SharePermission.class == annotationClass) {
@@ -102,52 +109,67 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         } else {
             expressions = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         }
-        executeExpressions(expressions, annotationClass);
+        return executeExpressions(expressions, annotationClass);
     }
 
     /**
      * Check for permissions on a specific field.
      *
+     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
-     * @param <A> type parameter
      */
     @Override
-    public <A extends Annotation> void checkSpecificFieldPermissions(PersistentResource<?> resource,
-                                                                     ChangeSpec changeSpec,
-                                                                     Class<A> annotationClass,
-                                                                     String field) {
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
+                                                                                 ChangeSpec changeSpec,
+                                                                                 Class<A> annotationClass,
+                                                                                 String field) {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return; // Bypass
+            return ExpressionResult.PASS; // Bypass
         }
+
+        ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
+        if (requestScope.getExpressionResultShortCircuit()
+                .contains(Triple.of(annotationClass, resource.getResourceClass(), field))) {
+            return expressionResult;
+        }
+
         Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
                 resource,
                 annotationClass,
                 field,
                 changeSpec
         );
-        executeExpressions(expressions, annotationClass);
+        return executeExpressions(expressions, annotationClass);
     }
 
     /**
      * Check for permissions on a specific field deferring all checks.
      *
+     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
-     * @param <A> type parameter
      */
     @Override
-    public <A extends Annotation> void checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
-                                                                             ChangeSpec changeSpec,
-                                                                             Class<A> annotationClass,
-                                                                             String field) {
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
+                                                                                         ChangeSpec changeSpec,
+                                                                                         Class<A> annotationClass,
+                                                                                         String field) {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return; // Bypass
+            return ExpressionResult.PASS; // Bypass
         }
+
+        // If the user check has already been evaluated before, return the result directly and save the building cost
+        ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
+        if (requestScope.getExpressionResultShortCircuit()
+                .contains(Triple.of(annotationClass, resource.getResourceClass(), field))) {
+            return expressionResult;
+        }
+
         Expressions expressions = expressionBuilder.buildSpecificFieldExpressions(
                 resource,
                 annotationClass,
@@ -158,46 +180,80 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (commitExpression != null) {
             commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
         }
+        return ExpressionResult.DEFERRED;
     }
 
     /**
      * Check strictly user permissions on a specific field and entity.
      *
+     * @param <A> type parameter
      * @param resource Resource
      * @param annotationClass Annotation class
      * @param field Field
-     * @param <A> type parameter
      */
     @Override
-    public <A extends Annotation> void checkUserPermissions(PersistentResource<?> resource,
-                                                            Class<A> annotationClass,
-                                                            String field) {
+    public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
+                                                                        Class<A> annotationClass,
+                                                                        String field) {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return; // Bypass
+            return ExpressionResult.PASS; // Bypass
         }
+
+        // If the user check has already been evaluated before, return the result directly and save the building cost
+        ExpressionResult expressionResult
+                = userPermissionCheckCache.get(Triple.of(resource.getResourceClass(), annotationClass, field));
+        if (expressionResult != null) {
+            return expressionResult;
+        }
+
         Expressions expressions = expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
-        executeExpressions(expressions, annotationClass);
+        expressionResult = executeExpressions(expressions, annotationClass);
+
+        userPermissionCheckCache.put(Triple.of(resource.getResourceClass(), annotationClass, field), expressionResult);
+
+        if (expressionResult == PASS) {
+            requestScope.getExpressionResultShortCircuit()
+                    .add(Triple.of(annotationClass, resource.getResourceClass(), field));
+        }
+
+        return expressionResult;
     }
 
     /**
      * Check strictly user permissions on an entity.
      *
+     * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
-     * @param <A> type parameter
      */
     @Override
-    public <A extends Annotation> void checkUserPermissions(Class<?> resourceClass,
-                                                            Class<A> annotationClass) {
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass) {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return; // Bypass
+            return ExpressionResult.PASS; // Bypass
         }
+
+        // If the user check has already been evaluated before, return the result directly and save the building cost
+        ExpressionResult expressionResult
+                = userPermissionCheckCache.get(Triple.of(resourceClass, annotationClass, null));
+        if (expressionResult != null) {
+            return expressionResult;
+        }
+
         Expressions expressions = expressionBuilder.buildUserCheckAnyExpression(
                 resourceClass,
                 annotationClass,
                 requestScope
         );
-        executeExpressions(expressions, annotationClass);
+        expressionResult = executeExpressions(expressions, annotationClass);
+
+        userPermissionCheckCache.put(Triple.of(resourceClass, annotationClass, null), expressionResult);
+
+        if (expressionResult == PASS) {
+            requestScope.getExpressionResultShortCircuit().add(Triple.of(annotationClass, resourceClass, null));
+        }
+
+        return expressionResult;
     }
 
     /**
@@ -268,11 +324,16 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      *
      * @param expressions expressions to execute
      */
-    private void executeExpressions(final Expressions expressions,
+    private ExpressionResult executeExpressions(final Expressions expressions,
                                     final Class<? extends Annotation> annotationClass) {
         Expression expression = expressions.getOperationExpression();
         ExpressionResult result = expression.evaluate();
-        if (result == DEFERRED) {
+
+        // Record the check
+        Long checkOccurrences = requestScope.getCheckStats().getOrDefault(expression.toString(), 0L) + 1;
+        requestScope.getCheckStats().put(expression.toString(), checkOccurrences);
+
+       if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
                 if (isInlineOnlyCheck(annotationClass)) {
@@ -289,11 +350,14 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     commitCheckQueue.add(new QueuedCheck(commitExpression, annotationClass));
                 }
             }
+            return DEFERRED;
         } else if (result == FAIL) {
             ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(), expression);
             log.trace("{}", e.getLoggedMessage());
             throw e;
         }
+
+        return result;
     }
 
     /**

@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStore;
@@ -37,7 +35,10 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
-import lombok.extern.slf4j.Slf4j;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -48,7 +49,8 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.MultivaluedMap;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -60,6 +62,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * REST Entry point handler.
@@ -370,6 +374,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            if (log.isTraceEnabled()) {
+                requestScope.printCheckStats();
+            }
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
@@ -438,6 +445,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            if (log.isTraceEnabled()) {
+                requestScope.printCheckStats();
+            }
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
@@ -515,6 +525,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            if (log.isTraceEnabled()) {
+                requestScope.printCheckStats();
+            }
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
@@ -588,6 +601,9 @@ public class Elide {
             auditLogger.commit();
             transaction.commit();
             requestScope.runCommitTriggers();
+            if (log.isTraceEnabled()) {
+                requestScope.printCheckStats();
+            }
             return response;
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
