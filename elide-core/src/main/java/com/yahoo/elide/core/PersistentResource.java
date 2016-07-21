@@ -898,19 +898,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
-        // Check for permission to the relationship and to the underlying type to avoid iterating a lazy collection
-        if (shouldSkipCollection(ReadPermission.class, relationName)) {
-            return false;
-        }
-
+        final PermissionExecutor executor = requestScope.getPermissionExecutor();
         try {
-            // If we cannot read any element of this type, don't try to filter
-            requestScope.getPermissionExecutor().checkUserPermissions(
-                    dictionary.getParameterizedType(obj, relationName),
-                    ReadPermission.class);
+            //The collection can be skipped if the User check for the objects inside the relationship evaluates to false
+            executor.checkUserPermissions(dictionary.getParameterizedType(obj, relationName), ReadPermission.class);
         } catch (ForbiddenAccessException e) {
             return false;
         }
+
         return true;
     }
 
@@ -1047,26 +1042,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         return (Set) resources;
-    }
-
-    /**
-     * Determine whether the user has permissions to a collection. Prevents lazy collections from
-     * being instantiated for no reason.
-     *
-     * @param annotationClass Annotation class
-     * @param relationName Field
-     * @param <A> type parameter
-     * @return True if collection should be skipped (i.e. denied access), false otherwise
-     */
-    private <A extends Annotation> boolean shouldSkipCollection(Class<A> annotationClass, String relationName) {
-        final PermissionExecutor executor = requestScope.getPermissionExecutor();
-        try {
-            executor.checkUserPermissions(this, annotationClass, relationName);
-            executor.checkUserPermissions(dictionary.getParameterizedType(obj, relationName), ReadPermission.class);
-        } catch (ForbiddenAccessException e) {
-            return true;
-        }
-        return false;
     }
 
     /**
