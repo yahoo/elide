@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -94,7 +95,7 @@ public class LifeCycleTest {
         Elide elide = builder.build();
 
         when(store.beginReadTransaction()).thenReturn(tx);
-        when(tx.loadObject(Book.class, new Long(1))).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
@@ -118,7 +119,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(Book.class, new Long(1))).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
@@ -146,7 +147,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(Book.class, new Long(1))).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
 
         elide.delete("/book/1", "", null);
         verify(tx).accessUser(null);
@@ -193,7 +194,7 @@ public class LifeCycleTest {
     public void loadRecordOnCommit() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(Book.class, 1L)).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.loadRecord(Book.class, "1", scope);
         scope.runCommitTriggers();

@@ -5,9 +5,11 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -94,6 +96,8 @@ public interface PermissionExecutor {
      * @param <A> type parameter
      */
     <A extends Annotation> void checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
+
+    Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass);
 
     /**
      * Execute commmit checks.

@@ -23,6 +23,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -256,8 +257,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         T obj = (T) cache.get(dictionary.getJsonAliasFor(loadClass), id);
         if (obj == null) {
             // try to load object
+            Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
+                    requestScope);
             Class<?> idType = dictionary.getIdType(loadClass);
-            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType));
+            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType), permissionFilter);
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id, loadClass.getSimpleName());
             }
@@ -297,6 +300,23 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             requestScope.queueCommitTrigger(resource);
         }
         return resources;
+    }
+
+    /**
+     * Get a FilterExpression parsed from FilterExpressionCheck.
+     *
+     * @param <T> the type parameter
+     * @param loadClass the load class
+     * @param requestScope the request scope
+     * @return a FilterExpression defined by FilterExpressionCheck.
+     */
+    private static <T> Optional<FilterExpression> getPermissionFilterExpression(Class<T> loadClass,
+                                                                      RequestScope requestScope) {
+        try {
+            return requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
+        } catch (ForbiddenAccessException e) {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -921,6 +941,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                          Optional<FilterExpression> filterExpression) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+
+        //Invoke filterExpressionCheck and then merge with filterExpression.
+        Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
+        if (permissionFilter.isPresent()) {
+            if (filterExpression.isPresent()) {
+                FilterExpression mergedExpression =
+                        new AndFilterExpression(filterExpression.get(), permissionFilter.get());
+                filterExpression = Optional.of(mergedExpression);
+            } else {
+                filterExpression = permissionFilter;
+            }
+        }
 
         Object val;
 

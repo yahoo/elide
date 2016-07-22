@@ -9,9 +9,11 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.ToString;
+import lombok.NonNull;
+
 
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.function.Function;
  * Predicate class.
  */
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Predicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
 
     /**
@@ -30,6 +33,7 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
      */
     @AllArgsConstructor
     @ToString
+    @EqualsAndHashCode
     public static class PathElement {
         @Getter Class type;
         @Getter String typeName;

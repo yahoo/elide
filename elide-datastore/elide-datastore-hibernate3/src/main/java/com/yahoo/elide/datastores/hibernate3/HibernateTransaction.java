@@ -163,6 +163,32 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
     }
 
+    /**
+     * load a single record with id and filter.
+     *
+     * @param loadClass class of query object
+     * @param id id of the query object
+     * @param filterExpression FilterExpression contains the predicates
+     */
+    @Override
+    public <T> T loadObject(Class<T> loadClass, Serializable id, Optional<FilterExpression> filterExpression) {
+
+        try {
+            Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+            if (requestScope != null && isJoinQuery()) {
+                joinCriteria(criteria, loadClass);
+            }
+            if (filterExpression.isPresent()) {
+                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+                criteria = filterOpn.apply(filterExpression.get());
+            }
+            T record = (T) criteria.uniqueResult();
+            return record;
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
     @Deprecated
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
@@ -173,7 +199,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
         Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
-        Optional<FilterExpression> filterExpression = filterScope.getRequestScope().getLoadFilterExpression(loadClass);
+        Optional<FilterExpression> filterExpression =
+                filterScope.getRequestScope().getLoadFilterExpression(loadClass);
 
         Criteria criteria = session.createCriteria(loadClass);
         if (securityCriterion != null) {
@@ -189,7 +216,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
-    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
+    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass,
+                                                               FilterScope filterScope) {
         Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
 
         Optional<FilterExpression> filterExpression =

@@ -135,6 +135,114 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testReadPermissionWithFilterCheckCollectionId() {
+        /*
+         * To see the detail of the FilterExpression check, go to the bean of filterExpressionCheckObj and see
+         * CheckRestrictUser.
+         */
+        String createObj1 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.1.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createObj1)
+                .post("/filterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        String createObj2 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.2.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createObj2)
+                .post("/filterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        String createObj3 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.3.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createObj2)
+                .post("/filterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        String createAnother = jsonParser.getJson("/ResourceIT/createAnotherFilterExpressionCheckObj.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createAnother)
+                .post("/anotherFilterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        //The User ID is set to one so the following get request won't return record including
+        // filterExpressionCheckObj.id != User'id.
+
+        //test root object collection, should just receive 2 out of 3 records.
+        String getResult1 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/filterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
+
+        //test authentication pass querying with ID == 1
+        String getResult2 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/filterExpressionCheckObj/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
+
+        //test authentication pass querying with ID == 2, it shouldn't contain attribute "name".
+        String getResult3 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/filterExpressionCheckObj/2")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
+
+        //test authentication fail querying with ID == 3
+        String getResult4 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/filterExpressionCheckObj/3")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .extract().response().asString();
+
+        //test authentication pass query a relation of object
+        String getResult5 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/filterExpressionCheckObj/1/listOfAnotherObjs")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
+
+        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
+
+        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
+
+        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
+
+        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
+
+        assertEquals(getResult1, expected1);
+        assertEquals(getResult2, expected2);
+        assertEquals(getResult3, expected3);
+        assertEquals(getResult5, expected5);
+    }
+
+    @Test
     public void testRootCollectionId() {
         String expected = jsonParser.getJson("/ResourceIT/testRootCollectionId.json");
 
@@ -1366,7 +1474,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void testCreatedRootNoReadPermRequired() {
         String req = jsonParser.getJson("/ResourceIT/testPatchExtNoReadPermForNew.req.json");
         String badReq = "[{\n"
-                 + "    \"op\": \"add\",\n"
+                 + "    \"op\": \"add\","
                  + "    \"path\": \"/1/child\",\n"
                  + "    \"value\": {\n"
                  + "      \"type\": \"child\",\n"

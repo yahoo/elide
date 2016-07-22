@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * A 'Not' Filter FilterExpression.
  */
+@EqualsAndHashCode
 public class NotFilterExpression implements FilterExpression {
 
     @Getter private FilterExpression negated;
