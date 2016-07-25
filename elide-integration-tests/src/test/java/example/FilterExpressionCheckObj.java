@@ -30,7 +30,7 @@ import java.util.List;
 @Table(name = "filterExpressionCheckObj")
 @Include(rootLevel = true)
 @SharePermission(any = {Role.ALL.class})
-@ReadPermission(any = {FilterExpressionCheckObj.CheckLE.class})  //ReadPermission for object id <= 2
+@ReadPermission(any = {FilterExpressionCheckObj.CheckLE.class, Role.NONE.class})  //ReadPermission for object id <= 2
 public class FilterExpressionCheckObj {
     private long id;
     private String name;

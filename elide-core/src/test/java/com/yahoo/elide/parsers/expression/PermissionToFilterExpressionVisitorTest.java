@@ -7,30 +7,48 @@
 package com.yahoo.elide.parsers.expression;
 
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.USER_CHECK_EXPRESSION;
 
-import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.security.*;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-import lombok.AllArgsConstructor;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.persistence.*;
+import lombok.AllArgsConstructor;
+
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 
 public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
@@ -84,28 +102,28 @@ public class PermissionToFilterExpressionVisitorTest {
         FilterExpression feg1 = fev.visit(g1);
         Assert.assertEquals(expected, feg1);
         FilterExpression feg2 = fev.visit(g2);
-        Assert.assertTrue(feg2 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg2 == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         //Assert.assertEquals(expected, feg2);
         FilterExpression feg3 = fev.visit(g3);
-        Assert.assertTrue(feg3 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg3  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         FilterExpression feg4 = fev.visit(g4);
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg4);
         FilterExpression feg5 = fev.visit(g5);
-        Assert.assertTrue(feg5 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg5  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         FilterExpression feg6 = fev.visit(g6);
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg6);
         FilterExpression feg7 = fev.visit(g7);
         Assert.assertTrue(feg7 == NO_EVALUATION_EXPRESSION);
         FilterExpression feg8 = fev.visit(g8);
-        Assert.assertTrue(feg8 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg8  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         FilterExpression feb2 = fev.visit(b2);
-        Assert.assertTrue(feb2 == NO_EVALUATION_EXPRESSION || feb2 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feb2 == NO_EVALUATION_EXPRESSION || feb2  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         FilterExpression feb4 = fev.visit(b4);
-        Assert.assertTrue(feb4 == NO_EVALUATION_EXPRESSION || feb4 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feb4 == NO_EVALUATION_EXPRESSION || feb4  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         FilterExpression feg9 = fev.visit(g9);
-        Assert.assertTrue(feg9 == NO_EVALUATION_EXPRESSION || feg9 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg9 == NO_EVALUATION_EXPRESSION || feg9  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         FilterExpression feg10 = fev.visit(g10);
-        Assert.assertTrue(feg10 == NO_EVALUATION_EXPRESSION || feg10 == USER_CHECK_EXPRESSION);
+        Assert.assertTrue(feg10 == NO_EVALUATION_EXPRESSION || feg10  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
     }
 
     @Test

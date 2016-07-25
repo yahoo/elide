@@ -5,14 +5,18 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
+
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
+import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
@@ -25,17 +29,15 @@ import com.yahoo.elide.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
+
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.function.Function;
-
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
@@ -277,8 +279,6 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * Build an expression representing any field on an entity.
      *
      * @param <A>             type parameter
-     * @param resourceClass   Resource class
-     * @param annotationClass Annotation class
      * @param checkFn         check function
      * @return Expressions
      */
@@ -318,13 +318,17 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         FilterExpression entityFilterExpression = filterExpressionFromParseTree(classPermissions, requestScope);
-
         FilterExpression allFieldsFilterExpression = entityFilterExpression;
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         for (String field : fields) {
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             FilterExpression fieldExpression = filterExpressionFromParseTree(fieldPermissions, requestScope);
             if (fieldExpression == null) {
+                if (entityFilterExpression == null) {
+                    //If the class FilterExpression is also null, we should just return null to allow the field with
+                    // null FE be able to see all records.
+                    return null;
+                }
                 continue;
             }
             if (allFieldsFilterExpression == null) {
@@ -351,10 +355,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
                 requestScope).visit(permissions);
         //case where the permissions does not have ANY filterExpressionCheck
-        if (permissionFilter == NO_EVALUATION_EXPRESSION) {
-            return null;
-        }
-        if (permissionFilter == USER_CHECK_EXPRESSION) {
+        if (permissionFilter == NO_EVALUATION_EXPRESSION
+                || permissionFilter == FALSE_USER_CHECK_EXPRESSION) {
             return null;
         }
         return permissionFilter;
