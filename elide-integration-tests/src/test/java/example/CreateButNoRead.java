@@ -21,7 +21,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
 /**
- * A model intended to be ONLY created and read, but never updated
+ * A model intended to be ONLY created and read, but never updated.
  */
 @Include(rootLevel = true)
 @Entity
