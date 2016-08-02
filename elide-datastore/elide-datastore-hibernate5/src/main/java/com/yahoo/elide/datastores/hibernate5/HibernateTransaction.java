@@ -9,6 +9,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -113,14 +114,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
-        try {
-            T object = entityClass.newInstance();
-            deferredTasks.add(() -> session.persist(object));
-            return object;
-        } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            return null;
-        }
+    public void createObject(Object entity, RequestScope scope) {
+        deferredTasks.add(() -> session.persist(entity));
     }
 
     /**

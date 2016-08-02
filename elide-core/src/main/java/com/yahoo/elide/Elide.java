@@ -441,7 +441,7 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
+            requestScope.saveOrCreateObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
@@ -523,7 +523,7 @@ public class Elide {
             }
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
+            requestScope.saveOrCreateObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
@@ -601,7 +601,7 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            requestScope.saveObjects();
+            requestScope.saveOrCreateObjects();
             transaction.flush();
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();

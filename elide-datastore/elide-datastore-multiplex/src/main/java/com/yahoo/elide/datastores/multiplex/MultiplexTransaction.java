@@ -10,6 +10,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -63,9 +64,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> createObject) {
-        return getTransaction(createObject).createObject(createObject);
+    public void createObject(Object entity, RequestScope scope) {
+        getTransaction(entity).createObject(entity, scope);
     }
+
 
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {

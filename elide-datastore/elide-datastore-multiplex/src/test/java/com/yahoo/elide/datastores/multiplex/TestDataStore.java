@@ -8,16 +8,19 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
-import javax.persistence.Entity;
 import java.io.IOException;
 import java.io.Serializable;
+
+import javax.persistence.Entity;
 
 class TestDataStore implements DataStore, DataStoreTransaction {
 
@@ -62,12 +65,8 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
-        try {
-            return entityClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException | Error | RuntimeException e) {
-            throw new TransactionException(e);
-        }
+    public void createObject(Object entity, RequestScope scope) {
+
     }
 
     @Override

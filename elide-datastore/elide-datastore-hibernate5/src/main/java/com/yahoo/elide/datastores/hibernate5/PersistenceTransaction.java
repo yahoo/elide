@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -46,14 +47,8 @@ public class PersistenceTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
-        try {
-            T entity = entityClass.newInstance();
-            entityManager.persist(entity);
-            return entity;
-        } catch (InstantiationException | IllegalAccessException e) {
-            return null;
-        }
+    public void createObject(Object entity, RequestScope scope) {
+        entityManager.persist(entity);
     }
 
     @Override
