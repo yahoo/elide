@@ -391,6 +391,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
     }
 
+
     public void saveOrCreateObjects() {
         dirtyResources.removeAll(newPersistentResources);
         newPersistentResources

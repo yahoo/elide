@@ -71,6 +71,15 @@ public interface DataStoreTransaction extends Closeable {
 
     }
 
+//    /**
+//     * Create new entity record.
+//     *
+//     * @param <T>         the type parameter
+//     * @param entityClass the entity class
+//     * @return new record
+//     */
+//    <T> T createObject(Class<T> entityClass);
+
     /**
      * Create entity record of populated object.
      *
@@ -78,7 +87,6 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope  the request scope
      */
     void createObject(Object entity, RequestScope scope);
-
 
     default <T> T createNewObject(Class<T> entityClass) {
         T obj = null;
