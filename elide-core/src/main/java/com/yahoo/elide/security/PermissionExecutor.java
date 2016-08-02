@@ -8,12 +8,8 @@ package com.yahoo.elide.security;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import java.lang.annotation.Annotation;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Interface describing classes responsible for managing the life-cycle and execution of checks.
@@ -105,23 +101,6 @@ public interface PermissionExecutor {
      * Execute commmit checks.
      */
     void executeCommitChecks();
-
-    /**
-     * Method to build criterion check.
-     *
-     * @param permissions Permissions to visit
-     * @param criterionNegater Function to apply negation to a criterion
-     * @param andCriterionJoiner Function to combine criteria with an and condition
-     * @param orCriterionJoiner Function to combine criteria with an or condition
-     * @param <T> type parameter
-     * @return Built criterion if possible else null. Default always returns null.
-     */
-    default <T> T getCriterion(ParseTree permissions,
-                               Function<T, T> criterionNegater,
-                               BiFunction<T, T, T> andCriterionJoiner,
-                               BiFunction<T, T, T> orCriterionJoiner) {
-        return null;
-    }
 
     default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                Class resourceClass, String field) {

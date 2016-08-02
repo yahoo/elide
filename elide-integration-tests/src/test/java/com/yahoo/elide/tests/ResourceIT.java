@@ -5,8 +5,13 @@
  */
 package com.yahoo.elide.tests;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Sets;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.startsWith;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
@@ -18,29 +23,28 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
-import example.Child;
-import example.FunWithPermissions;
-import example.Parent;
-import example.User;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
+import example.Child;
+import example.FunWithPermissions;
+import example.Parent;
+import example.User;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * The type Config resource test.
@@ -60,8 +64,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         parent.setSpouses(Sets.newHashSet());
         child.setParents(Sets.newHashSet(parent));
 
-        tx.save(parent);
-        tx.save(child);
+        tx.save(parent, null);
+        tx.save(child, null);
 
         // Single tests
         Parent p1 = new Parent(); // id 2
@@ -86,9 +90,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         p1.setChildren(childrenSet1);
 
-        tx.save(p1);
-        tx.save(c1);
-        tx.save(c2);
+        tx.save(p1, null);
+        tx.save(c1, null);
+        tx.save(c2, null);
 
         // List tests
         Parent p2 = new Parent(); // id 3
@@ -110,19 +114,19 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         p3.setSpouses(Sets.newHashSet());
         p3.setChildren(Sets.newHashSet());
 
-        tx.save(p2);
-        tx.save(p3);
-        tx.save(c3);
-        tx.save(c4);
+        tx.save(p2, null);
+        tx.save(p3, null);
+        tx.save(c3, null);
+        tx.save(c4, null);
 
         FunWithPermissions fun = new FunWithPermissions();
-        tx.save(fun);
+        tx.save(fun, null);
 
         User user = new User(); //ID 1
         user.setPassword("god");
-        tx.save(user);
+        tx.save(user, null);
 
-        tx.commit();
+        tx.commit(null);
     }
 
     @Test(priority = -1)

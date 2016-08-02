@@ -369,10 +369,10 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            transaction.flush();
+            transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
-            transaction.commit();
+            transaction.commit(requestScope);
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
@@ -442,10 +442,10 @@ public class Elide {
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
-            transaction.flush();
+            transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
-            transaction.commit();
+            transaction.commit(requestScope);
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
@@ -524,10 +524,10 @@ public class Elide {
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
-            transaction.flush();
+            transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
-            transaction.commit();
+            transaction.commit(requestScope);
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
@@ -602,10 +602,10 @@ public class Elide {
             transaction.preCommit();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
-            transaction.flush();
+            transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             auditLogger.commit();
-            transaction.commit();
+            transaction.commit(requestScope);
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();

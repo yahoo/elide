@@ -15,7 +15,6 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.parsers.expression.CriterionExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
@@ -26,7 +25,6 @@ import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.tuple.Triple;
 
 import lombok.AllArgsConstructor;
@@ -41,8 +39,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Default permission executor.
@@ -294,36 +290,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         });
         commitCheckQueue.clear();
-    }
-
-    /**
-     * Build criterion check.
-     *
-     * @param permissions Permissions to visit
-     * @param criterionNegater Function to apply negation to a criterion
-     * @param andCriterionJoiner Function to combine criteria with an and condition
-     * @param orCriterionJoiner Function to combine criteria with an or condition
-     * @param <T> type parameter
-     * @return
-     */
-    @Override
-    public <T> T getCriterion(final ParseTree permissions,
-                              final Function<T, T> criterionNegater,
-                              final BiFunction<T, T, T> andCriterionJoiner,
-                              final BiFunction<T, T, T> orCriterionJoiner) {
-        if (permissions == null) {
-            return null;
-        }
-
-        CriterionExpressionVisitor<T> visitor = new CriterionExpressionVisitor<>(
-                requestScope,
-                requestScope.getDictionary(),
-                criterionNegater,
-                orCriterionJoiner,
-                andCriterionJoiner
-        );
-
-        return visitor.visit(permissions);
     }
 
     @Override
