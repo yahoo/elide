@@ -10,21 +10,23 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.datastores.hibernate3.security.CriteriaCheck;
-import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import example.Filtered.FilterCheck;
 import example.Filtered.FilterCheck3;
 import lombok.ToString;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Entity;
-import java.util.Optional;
 
 /**
  * Filtered permission check.
@@ -41,35 +43,35 @@ import java.util.Optional;
 public class Filtered extends BaseId {
     @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
 
+    static private Predicate getPredicateOfId(long id) {
+        List<Predicate.PathElement> pathList = new ArrayList<>();
+        Predicate.PathElement path1 = new Predicate.PathElement(Filtered.class, "filtered", long.class, "id");
+        pathList.add(path1);
+        Operator op = Operator.IN;
+        List<Object> value = new ArrayList<>();
+        value.add(id);
+        return new Predicate(pathList, op, value);
+    }
+
     /**
      * Filter for ID == 1.
      */
-    static public class FilterCheck extends OperationCheck<Filtered> implements CriteriaCheck<Filtered> {
+    static public class FilterCheck extends FilterExpressionCheck {
         /* Limit reads to ID 1 */
         @Override
-        public Criterion getCriterion(RequestScope requestScope) {
-            return Restrictions.idEq(1L);
-        }
-
-        @Override
-        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
+        public Predicate getFilterExpression(RequestScope requestScope) {
+            return getPredicateOfId(1L);
         }
     }
 
     /**
      * Filter for ID == 3.
      */
-    static public class FilterCheck3 extends OperationCheck<Filtered> implements CriteriaCheck<Filtered> {
+    static public class FilterCheck3 extends FilterExpressionCheck {
         /* Limit reads to ID 3 */
         @Override
-        public Criterion getCriterion(RequestScope requestScope) {
-            return Restrictions.idEq(3L);
-        }
-
-        @Override
-        public boolean ok(Filtered object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return true;
+        public Predicate getFilterExpression(RequestScope requestScope) {
+            return getPredicateOfId(3L);
         }
     }
 }

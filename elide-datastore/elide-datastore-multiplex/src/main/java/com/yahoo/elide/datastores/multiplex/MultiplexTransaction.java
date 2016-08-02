@@ -8,9 +8,8 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -70,23 +69,25 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id) {
-        return getTransaction(loadClass).loadObject(loadClass, id);
+    public Object loadObject(Class<?> entityClass,
+                             Serializable id,
+                             Optional<FilterExpression> filterExpression,
+                             RequestScope scope) {
+        return getTransaction(entityClass).loadObject(entityClass, id, filterExpression, scope);
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        return getTransaction(loadClass).loadObjects(loadClass);
-    }
-
-    @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
-        return getTransaction(entityClass).loadObjects(entityClass, filterScope);
-    }
-
-    @Override
-    public <T> T loadObject(Class<T> entityClass, Serializable id, Optional<FilterExpression> filterExpression) {
-        return getTransaction(entityClass).loadObject(entityClass, id, filterExpression);
+    public Iterable<Object> loadObjects(
+            Class<?> entityClass,
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope) {
+        return getTransaction(entityClass).loadObjects(entityClass,
+                filterExpression,
+                sorting,
+                pagination,
+                scope);
     }
 
     @Override
@@ -96,8 +97,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void flush() {
-        transactions.values().forEach(DataStoreTransaction::flush);
+    public void flush(RequestScope requestScope) {
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
     }
 
     @Override
@@ -106,10 +107,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit() {
+    public void commit(RequestScope requestScope) {
         // flush all before commit
-        flush();
-        transactions.values().forEach(DataStoreTransaction::commit);
+        flush(requestScope);
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.commit(requestScope));
         transactions.clear();
     }
 
@@ -155,22 +156,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Optional<FilterExpression> filterExpression,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName,
-                relationClass, dictionary, filterExpression, sorting, pagination);
-    }
-
-    @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
             Set<Predicate> filters
     ) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
@@ -191,11 +176,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
-    }
-
-    @Override
-    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        return getTransaction(entityClass).loadObjectsWithSortingAndPagination(entityClass, filterScope);
     }
 
     @Override

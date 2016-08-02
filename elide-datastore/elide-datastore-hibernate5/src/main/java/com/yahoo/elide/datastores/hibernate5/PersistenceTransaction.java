@@ -6,11 +6,15 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -26,23 +30,23 @@ public class PersistenceTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void save(Object entity) {
+    public void save(Object entity, RequestScope requestScope) {
         entityManager.persist(entity);
     }
 
     @Override
-    public void delete(Object entity) {
+    public void delete(Object entity, RequestScope requestScope) {
         entityManager.remove(entity);
     }
 
     @Override
-    public void flush() {
+    public void flush(RequestScope requestScope) {
         entityManager.flush();
     }
 
     @Override
-    public void commit() {
-        flush();
+    public void commit(RequestScope requestScope) {
+        flush(requestScope);
         entityManager.getTransaction().commit();
     }
 
@@ -52,13 +56,30 @@ public class PersistenceTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> entityClass, Serializable id) {
+    public Object loadObject(Class<?> entityClass,
+                      Serializable id,
+                      Optional<FilterExpression> filterExpression,
+                      RequestScope scope) {
         return entityManager.find(entityClass, id);
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> entityClass) {
-        return entityManager.createQuery("from " + entityClass.getName(), entityClass).getResultList();
+    public Iterable<Object> loadObjects(Class<?> entityClass,
+                                        Optional<FilterExpression> filterExpression,
+                                        Optional<Sorting> sorting, Optional<Pagination> pagination,
+                                        RequestScope scope) {
+        return (Iterable<Object>) entityManager.createQuery("from " + entityClass.getName(), entityClass)
+                .getResultList();
+    }
+
+    @Override
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity, String relationName,
+                              Optional<FilterExpression> filterExpression,
+                              Optional<Sorting> sorting,
+                              Optional<Pagination> pagination,
+                              RequestScope scope) {
+        return null;
     }
 
     @Override

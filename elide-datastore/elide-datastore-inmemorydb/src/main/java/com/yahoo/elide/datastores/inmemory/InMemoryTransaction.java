@@ -7,10 +7,11 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -48,12 +49,12 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void flush() {
+    public void flush(RequestScope requestScope) {
         // Do nothing
     }
 
     @Override
-    public void save(Object object) {
+    public void save(Object object, RequestScope requestScope) {
         if (object == null) {
             return;
         }
@@ -66,7 +67,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void delete(Object object) {
+    public void delete(Object object, RequestScope requestScope) {
         if (object == null) {
             return;
         }
@@ -75,7 +76,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit() {
+    public void commit(RequestScope requestScope) {
         operations.forEach(op -> {
             Class<?> cls = op.getType();
             ConcurrentHashMap<String, Object> data = dataStore.get(cls);
@@ -136,23 +137,31 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id) {
-        ConcurrentHashMap<String, Object> objs = dataStore.get(loadClass);
+    public Object loadObject(Class<?> entityClass,
+                             Serializable id,
+                             Optional<FilterExpression> filterExpression,
+                             RequestScope scope) {
+        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
         if (objs == null) {
             return null;
         }
-        return (T) objs.get(id.toString());
+        return objs.get(id.toString());
     }
 
     @Override
-    public <T> List<T> loadObjects(Class<T> loadClass) {
-        ConcurrentHashMap<String, Object> objs = dataStore.get(loadClass);
+    public Iterable<Object> loadObjects(
+            Class<?> entityClass,
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope) {
+        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
         if (objs == null) {
             return Collections.emptyList();
         }
         List<Object> results = new ArrayList<>();
         objs.forEachValue(1, results::add);
-        return (List<T>) results;
+        return results;
     }
 
     @Override

@@ -162,10 +162,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             this.sorting = Sorting.getDefaultEmptyInstance();
             this.pagination = Pagination.getDefaultPagination();
         }
-
-        if (transaction instanceof RequestScopedTransaction) {
-            ((RequestScopedTransaction) transaction).setRequestScope(this);
-        }
     }
 
     public RequestScope(String path,
@@ -397,7 +393,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .stream()
                 .map(PersistentResource::getObject)
                 .forEach(s -> transaction.createObject(s, this));
-        dirtyResources.stream().map(PersistentResource::getObject).forEach(transaction::save);
+        dirtyResources.stream().map(PersistentResource::getObject).forEach(obj -> transaction.save(obj, this));
     }
 
     /**

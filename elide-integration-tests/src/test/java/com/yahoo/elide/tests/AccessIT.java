@@ -7,8 +7,10 @@ package com.yahoo.elide.tests;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import example.Parent;
+
 import org.testng.annotations.Test;
+
+import example.Parent;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -20,7 +22,7 @@ public class AccessIT extends AbstractIntegrationTestInitializer {
     @Test
     public void verifySession() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
-            tx.commit();
+            tx.commit(null);
         }
     }
 
@@ -30,7 +32,7 @@ public class AccessIT extends AbstractIntegrationTestInitializer {
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
         parent.setSpouses(new HashSet<>());
-        tx.save(parent);
-        tx.commit();
+        tx.save(parent, null);
+        tx.commit(null);
     }
 }
