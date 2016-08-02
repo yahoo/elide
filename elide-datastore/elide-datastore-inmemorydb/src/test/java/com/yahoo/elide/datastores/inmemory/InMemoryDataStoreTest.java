@@ -5,21 +5,22 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
+
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
-
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * InMemoryDataStore tests.
@@ -50,7 +51,7 @@ public class InMemoryDataStoreTest {
         object.name = "Test";
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.save(object);
+            t.createObject(object, null);
             assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
             t.commit();
         }

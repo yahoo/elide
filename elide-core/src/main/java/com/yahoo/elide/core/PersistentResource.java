@@ -126,9 +126,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<T> entityClass,
             RequestScope requestScope,
             String uuid) {
-        DataStoreTransaction tx = requestScope.getTransaction();
 
-        T obj = tx.createObject(entityClass);
+        //instead of calling transcation.createObject, create the new object here.
+        T obj = requestScope.getTransaction().createNewObject(entityClass);
+
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));

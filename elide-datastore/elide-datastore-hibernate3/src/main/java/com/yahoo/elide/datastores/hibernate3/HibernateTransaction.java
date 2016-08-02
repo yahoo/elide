@@ -125,14 +125,8 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
-        try {
-            T object = entityClass.newInstance();
-            deferredTasks.add(() -> session.persist(object));
-            return object;
-        } catch (java.lang.InstantiationException | IllegalAccessException e) {
-            return null;
-        }
+    public void createObject(Object entity, RequestScope scope) {
+        deferredTasks.add(() -> session.persist(entity));
     }
 
     @Deprecated
