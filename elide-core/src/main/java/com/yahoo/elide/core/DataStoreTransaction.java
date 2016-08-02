@@ -91,7 +91,6 @@ public interface DataStoreTransaction extends Closeable {
         return obj;
     }
 
-
     /**
      * Loads an object by ID.
      * @param id - the ID of the object to load.

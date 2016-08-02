@@ -34,6 +34,9 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -170,7 +173,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
                 final EntityDictionary dictionary = requestScope.getDictionary();
-
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -189,6 +191,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 scope);
     }
 
+
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
@@ -199,7 +202,6 @@ public class HibernateTransaction implements DataStoreTransaction {
      */
     public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
             final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination, RequestScope scope) {
-
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }

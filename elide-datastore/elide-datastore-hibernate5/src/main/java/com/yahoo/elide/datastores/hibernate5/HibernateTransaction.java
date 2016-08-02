@@ -136,7 +136,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
     }
 
-
     @Override
     public Iterable<Object> loadObjects(
             Class<?> entityClass,
@@ -161,7 +160,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
                 final EntityDictionary dictionary = requestScope.getDictionary();
-
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)

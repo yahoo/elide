@@ -353,6 +353,36 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
+     * Get the global/cross-type filter expression.
+     * @param loadClass
+     * @param permissionFilter filterExpression from FilterExpressionCheck
+     * @return The global filter expression evaluated at the first load
+     */
+    public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass,
+                                                              Optional<FilterExpression> permissionFilter) {
+        Optional<FilterExpression> globalFilterExpressionOptional = null;
+        if (globalFilterExpression == null) {
+            String typeName = dictionary.getJsonAliasFor(loadClass);
+            globalFilterExpressionOptional =  getFilterExpressionByType(typeName);
+        } else {
+            globalFilterExpressionOptional = Optional.of(globalFilterExpression);
+        }
+
+        if (globalFilterExpressionOptional.isPresent() && permissionFilter.isPresent()) {
+            return Optional.of(new AndFilterExpression(globalFilterExpressionOptional.get(),
+                    permissionFilter.get()));
+        }
+        else if (globalFilterExpressionOptional.isPresent()) {
+            return globalFilterExpressionOptional;
+        }
+        else if (permissionFilter.isPresent()) {
+            return permissionFilter;
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Extracts any query params that start with 'filter'.
      * @param queryParams
      * @return extracted filter params
