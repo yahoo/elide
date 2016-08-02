@@ -9,6 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -106,13 +107,11 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     @SuppressWarnings("resource")
     @Override
-    public <T> T createObject(Class<T> createObject) {
-        DataStoreTransaction transaction = getTransaction(createObject);
-        T object = transaction.createObject(createObject);
+    public void createObject(Object entity, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        transaction.createObject(entity, scope);
         // mark this object as newly created to be deleted on reverse transaction
-        clonedObjects.put(object, NEWLY_CREATED_OBJECT);
-        return object;
-
+        clonedObjects.put(entity, NEWLY_CREATED_OBJECT);
     }
 
     private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {

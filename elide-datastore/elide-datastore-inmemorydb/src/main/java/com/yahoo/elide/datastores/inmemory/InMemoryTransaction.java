@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -57,7 +59,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
         }
         String id = dictionary.getId(object);
         if (id.equals("0")) {
-            setId(object, dictionary.getId(createObject(object.getClass())));
+            throw new InvalidOperationException("Save on object id = 0");
         }
         id = dictionary.getId(object);
         operations.add(new Operation(id, object, object.getClass(), false));
@@ -98,21 +100,16 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createObject(Class<T> entityClass) {
+    public void createObject(Object entity, RequestScope scope) {
+        Class entityClass = entity.getClass();
         if (dataStore.get(entityClass) == null) {
             dataStore.putIfAbsent(entityClass, new ConcurrentHashMap<>());
             TYPEIDS.putIfAbsent(entityClass, new AtomicLong(1));
         }
         AtomicLong idValue = TYPEIDS.get(entityClass);
         String id = String.valueOf(idValue.getAndIncrement());
-        try {
-            T instance = entityClass.newInstance();
-            setId(instance, id);
-            return instance;
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
+        setId(entity, id);
+        operations.add(new Operation(id, entity, entity.getClass(), false));
     }
 
     public void setId(Object value, String id) {
