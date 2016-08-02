@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
@@ -33,30 +33,29 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
-     * Save entity to database table.  Save is called after commit checks have evaluated but before the final
-     * transaction commit.
-     *
-     * @param entity record to save
+     * Save the updated object.
+     * @param entity - the object to save.
+     * @param scope - contains request level metadata.
      */
-    void save(Object entity);
+    void save(Object entity, RequestScope scope);
 
     /**
-     * Delete entity from database table.
-     *
-     * @param entity record to delete
+     * Delete the object.
+     * @param entity - the object to delete.
+     * @param scope - contains request level metadata.
      */
-    void delete(Object entity);
+    void delete(Object entity, RequestScope scope);
 
     /**
      * Write any outstanding entities before processing response.
      */
-    default void flush() {
+    default void flush(RequestScope scope) {
     }
 
     /**
      * End the current transaction.
      */
-    void commit();
+    void commit(RequestScope requestScope);
 
     /**
      * Called before commit checks are evaluated and before save, flush, and commit are called.
@@ -71,14 +70,15 @@ public interface DataStoreTransaction extends Closeable {
 
     }
 
+
     /**
-     * Create entity record of populated object.
-     *
-     * @param entity   the persisted Object
-     * @param scope  the request scope
+     * Elide will create and populate the object with the attributes and relationships before
+     * calling this method.  Operation security checks will be evaluated before invocation but commit
+     * security checks will be called later immediately prior to `commit` being called.
+     * @param entity - the object to create in the data store.
+     * @param scope - contains request level metadata.
      */
     void createObject(Object entity, RequestScope scope);
-
 
     default <T> T createNewObject(Class<T> entityClass) {
         T obj = null;
@@ -89,55 +89,36 @@ public interface DataStoreTransaction extends Closeable {
         }
         return obj;
     }
-    /**
-     * Read entity record from database table.
-     *
-     * @param <T>         the type parameter
-     * @param entityClass the entity class
-     * @param id          ID of object
-     * @return record t
-     */
-    <T> T loadObject(Class<T> entityClass, Serializable id);
-
-    default <T> T loadObject(Class<T> entityClass, Serializable id, Optional<FilterExpression> filterExpression) {
-        return loadObject(entityClass, id);
-    }
-
-    /**
-     * Read entity records from database table.
-     *
-     * @param <T>         the type parameter
-     * @param entityClass the entity class
-     * @return records iterable
-     */
-    @Deprecated
-    <T> Iterable<T> loadObjects(Class<T> entityClass);
-
-    /**
-     * Read entity records from database table with applied criteria.
-     *
-     * @param <T>         the type parameter
-     * @param entityClass the entity class
-     * @param filterScope scope for filter processing
-     * @return records iterable
-     */
-    default <T> Iterable<T> loadObjects(Class<T> entityClass, FilterScope filterScope) {
-        // default to ignoring criteria
-        return loadObjects(entityClass);
-    }
 
 
     /**
-     * Read entity records from database table with applied criteria.
-     *
-     * @param <T>         the type parameter
-     * @param entityClass the entity class
-     * @param filterScope scope for filter processing
-     * @return records iterable
+     * Loads an object by ID.
+     * @param id - the ID of the object to load.
+     * @param filterExpression - security filters that can be evaluated in the data store.
+     *                         It is optional for the data store to attempt evaluation.
+     * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-        return loadObjects(entityClass, filterScope);
-    }
+    Object loadObject(Class<?> entityClass,
+                      Serializable id,
+                      Optional<FilterExpression> filterExpression,
+                      RequestScope scope);
+
+
+    /**
+     * Loads a collection of objects.
+     * @param filterExpression - filters that can be evaluated in the data store.
+     *                         It is optional for the data store to attempt evaluation.
+     * @param sorting - sorting which can be pushed down to the data store.
+     * @param pagination - pagination which can be pushed down to the data store.
+     * @param scope - contains request level metadata.
+     */
+    Iterable<Object> loadObjects(
+            Class<?> entityClass,
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope);
+
 
     /**
      * Get total count of entity records satisfying the given filter.
@@ -207,18 +188,77 @@ public interface DataStoreTransaction extends Closeable {
         return val;
     }
 
-    default <T> Object getRelation(
+    /**
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param filterExpression - filtering which can be pushed down to the data store.
+     *                         It is optional for the data store to attempt evaluation.
+     * @param sorting - sorting which can be pushed down to the data store.
+     * @param pagination - pagination which can be pushed down to the data store.
+     * @param scope - contains request level metadata.
+     */
+    default Object getRelation(
+            DataStoreTransaction relationTx,
             Object entity,
-            RelationshipType relationshipType,
             String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
             Optional<FilterExpression> filterExpression,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        return PersistentResource.getValue(entity, relationName, dictionary);
-    }
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope) {
+        EntityDictionary dictionary = scope.getDictionary();
+        Object val = PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+            return filteredVal;
+        }
+
+        return val;
+    };
+
+
+    /**
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param relationValue - the desired contents of the relationship.
+     * @param scope - contains request level metadata.
+     */
+    default void setRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            String relationName,
+            Object relationValue,
+            RequestScope scope) { }
+
+    /**
+     * @param entity - The object which owns the attribute.
+     * @param attributeName - name of the attribute.
+     * @param filterExpression - securing filtering which can be pushed down to the data store.
+     *                         It is optional for the data store to attempt evaluation.
+     * @param scope - contains request level metadata.
+     */
+    default Object getAttribute(
+            Object entity,
+            String attributeName,
+            Optional<FilterExpression> filterExpression,
+            RequestScope scope) {
+        Object val = PersistentResource.getValue(entity, attributeName, scope.getDictionary());
+        return val;
+    };
+
+    /**
+     * @param entity - The object which owns the attribute.
+     * @param attributeName - name of the attribute.
+     * @param attributeValue - the desired attribute value.
+     * @param scope - contains request level metadata.
+     */
+    default void setAttribute(
+            Object entity,
+            String attributeName,
+            Object attributeValue,
+            RequestScope scope) {
+    };
 
 
     @Deprecated

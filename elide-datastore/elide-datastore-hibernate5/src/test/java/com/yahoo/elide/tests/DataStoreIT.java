@@ -27,14 +27,14 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         try {
             Filtered filtered = Filtered.class.newInstance();
             tx.createObject(filtered, null);
-            tx.save(filtered);
+            tx.save(filtered, null);
             Filtered filtered2 = Filtered.class.newInstance();
             tx.createObject(filtered2, null);
-            tx.save(filtered2);
+            tx.save(filtered2, null);
             Filtered filtered3 = Filtered.class.newInstance();
             tx.createObject(filtered3, null);
-            tx.save(filtered3);
-            tx.commit();
+            tx.save(filtered3, null);
+            tx.commit(null);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

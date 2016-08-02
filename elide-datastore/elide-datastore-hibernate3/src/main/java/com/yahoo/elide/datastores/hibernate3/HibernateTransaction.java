@@ -5,11 +5,9 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.google.common.base.Objects;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.FilterScope;
-import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -22,11 +20,12 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
-import lombok.AccessLevel;
-import lombok.Getter;
+
+import com.google.common.base.Objects;
+
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -37,6 +36,9 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+
+import lombok.AccessLevel;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -94,17 +96,17 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
-    public void delete(Object object) {
+    public void delete(Object object, RequestScope scope) {
         deferredTasks.add(() -> session.delete(object));
     }
 
     @Override
-    public void save(Object object) {
+    public void save(Object object, RequestScope scope) {
         deferredTasks.add(() -> session.saveOrUpdate(object));
     }
 
     @Override
-    public void flush() {
+    public void flush(RequestScope requestScope) {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
@@ -115,9 +117,9 @@ public class HibernateTransaction implements RequestScopedTransaction {
     }
 
     @Override
-    public void commit() {
+    public void commit(RequestScope requestScope) {
         try {
-            this.flush();
+            this.flush(requestScope);
             this.session.getTransaction().commit();
         } catch (HibernateException e) {
             throw new TransactionException(e);
@@ -129,126 +131,154 @@ public class HibernateTransaction implements RequestScopedTransaction {
         deferredTasks.add(() -> session.persist(entity));
     }
 
-    @Deprecated
-    @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id) {
-
-        /*
-         * No join/global filters can be applied here until this interface can change in Elide 3.0.
-         * Ideally, this interface will need a RequestScope so that it can extract the global filter.
-         */
-
-        try {
-            if (isJoinQuery()) {
-                Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
-                if (requestScope != null) {
-                    joinCriteria(criteria, loadClass);
-                }
-                @SuppressWarnings("unchecked")
-                T record = (T) criteria.uniqueResult();
-                return record;
-            }
-            @SuppressWarnings("unchecked")
-            T record = (T) session.load(loadClass, id);
-            Hibernate.initialize(record);
-            return record;
-        } catch (ObjectNotFoundException e) {
-            return null;
-        }
-    }
+//    @Deprecated
+//    @Override
+//    public <T> T loadObject(Class<T> loadClass, Serializable id) {
+//
+//        /*
+//         * No join/global filters can be applied here until this interface can change in Elide 3.0.
+//         * Ideally, this interface will need a RequestScope so that it can extract the global filter.
+//         */
+//
+//        try {
+//            if (isJoinQuery()) {
+//                Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+//                if (requestScope != null) {
+//                    joinCriteria(criteria, loadClass);
+//                }
+//                @SuppressWarnings("unchecked")
+//                T record = (T) criteria.uniqueResult();
+//                return record;
+//            }
+//            @SuppressWarnings("unchecked")
+//            T record = (T) session.load(loadClass, id);
+//            Hibernate.initialize(record);
+//            return record;
+//        } catch (ObjectNotFoundException e) {
+//            return null;
+//        }
+//    }
 
     /**
      * load a single record with id and filter.
      *
-     * @param loadClass class of query object
+     * @param entityClass class of query object
      * @param id id of the query object
      * @param filterExpression FilterExpression contains the predicates
      */
     @Override
-    public <T> T loadObject(Class<T> loadClass, Serializable id, Optional<FilterExpression> filterExpression) {
+    public Object loadObject(Class<?> entityClass,
+                             Serializable id,
+                             Optional<FilterExpression> filterExpression,
+                             RequestScope scope) {
 
         try {
-            Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+            Criteria criteria = session.createCriteria(entityClass).add(Restrictions.idEq(id));
             if (requestScope != null && isJoinQuery()) {
-                joinCriteria(criteria, loadClass);
+                joinCriteria(criteria, entityClass);
             }
             if (filterExpression.isPresent()) {
                 CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
             }
-            T record = (T) criteria.uniqueResult();
+            Object record = criteria.uniqueResult();
             return record;
         } catch (ObjectNotFoundException e) {
             return null;
         }
     }
 
-    @Deprecated
     @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass) {
-        throw new IllegalStateException("" + loadClass);
-    }
+    public Iterable<Object> loadObjects(
+            Class<?> entityClass,
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope) {
+        ParseTree permissions = scope.getDictionary().getPermissionsForClass(entityClass, ReadPermission.class);
+        Criterion securityCriterion = scope.getPermissionExecutor().getCriterion(permissions, NOT, AND, OR);
 
-    @Override
-    public <T> Iterable<T> loadObjects(Class<T> loadClass, FilterScope filterScope) {
-        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
-
-        Optional<FilterExpression> filterExpression =
-                filterScope.getRequestScope().getLoadFilterExpression(loadClass);
-
-        Criteria criteria = session.createCriteria(loadClass);
-        if (securityCriterion != null) {
-            criteria.add(securityCriterion);
-        }
-
-        if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(filterExpression.get());
-        }
-
-        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
-    }
-
-    @Override
-    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass,
-                                                               FilterScope filterScope) {
-        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
-
-        Optional<FilterExpression> filterExpression =
-                filterScope.getRequestScope().getLoadFilterExpression(entityClass);
+        Optional<FilterExpression> mergedFilterExpression =
+                scope.getLoadFilterExpression(entityClass, filterExpression);
 
         Criteria criteria = session.createCriteria(entityClass);
         if (securityCriterion != null) {
             criteria.add(securityCriterion);
         }
 
-        if (filterExpression.isPresent()) {
+        if (mergedFilterExpression.isPresent()) {
             CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(filterExpression.get());
+            criteria = filterOpn.apply(mergedFilterExpression.get());
         }
 
-        final Pagination pagination = filterScope.getRequestScope().getPagination();
-
-        // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
         Set<Order> validatedSortingRules = null;
-        if (filterScope.hasSortingRules()) {
-            final Sorting sorting = filterScope.getRequestScope().getSorting();
-            final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
-            validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
-                    .stream()
-                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
-                            ? Order.desc(entry.getKey())
-                            : Order.asc(entry.getKey())
-                    )
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (sorting.isPresent()) {
+            if (!sorting.get().isDefaultInstance()) {
+                final EntityDictionary dictionary = scope.getDictionary();
+
+                validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
+                        .stream()
+                        .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+                                ? Order.desc(entry.getKey())
+                                : Order.asc(entry.getKey())
+                        )
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+            }
         }
 
         return loadObjects(
                 entityClass,
                 criteria,
                 Optional.ofNullable(validatedSortingRules),
-                Optional.ofNullable(pagination));
+                pagination);
     }
+
+//    @Deprecated
+//    @Override
+//    public <T> Iterable<T> loadObjects(Class<T> loadClass) {
+//        throw new IllegalStateException("" + loadClass);
+//    }
+
+//    @Override
+//    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass,
+//                                                               FilterScope filterScope) {
+//        Criterion securityCriterion = filterScope.getCriterion(NOT, AND, OR);
+//
+//        Optional<FilterExpression> filterExpression =
+//                filterScope.getRequestScope().getLoadFilterExpression(entityClass);
+//
+//        Criteria criteria = session.createCriteria(entityClass);
+//        if (securityCriterion != null) {
+//            criteria.add(securityCriterion);
+//        }
+//
+//        if (filterExpression.isPresent()) {
+//            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+//            criteria = filterOpn.apply(filterExpression.get());
+//        }
+//
+//        final Pagination pagination = filterScope.getRequestScope().getPagination();
+//
+//        // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
+//        Set<Order> validatedSortingRules = null;
+//        if (filterScope.hasSortingRules()) {
+//            final Sorting sorting = filterScope.getRequestScope().getSorting();
+//            final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
+//            validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
+//                    .stream()
+//                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+//                            ? Order.desc(entry.getKey())
+//                            : Order.asc(entry.getKey())
+//                    )
+//                    .collect(Collectors.toCollection(LinkedHashSet::new));
+//        }
+//
+//        return loadObjects(
+//                entityClass,
+//                criteria,
+//                Optional.ofNullable(validatedSortingRules),
+//                Optional.ofNullable(pagination));
+//    }
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
@@ -256,10 +286,9 @@ public class HibernateTransaction implements RequestScopedTransaction {
      * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
-     * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
-    public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Criteria criteria,
+    public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
             final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
 
         if (sortingRules.isPresent()) {
@@ -393,30 +422,26 @@ public class HibernateTransaction implements RequestScopedTransaction {
         requestScope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
     }
 
-    @Override
-    public <T> Object getRelation(
+    public Object getRelation(
+            DataStoreTransaction relationTx,
             Object entity,
-            RelationshipType relationshipType,
             String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
             Optional<FilterExpression> filterExpression,
-            Sorting sorting,
-            Pagination pagination
-    ) {
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope scope) {
+        EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
-                Optional<Sorting> sortingRules = sorting != null ? Optional.of(sorting) : Optional.empty();
-                Optional<Pagination> paginationRules = pagination != null ? Optional.of(pagination) : Optional.empty();
-
                 @SuppressWarnings("unchecked")
+                Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
                         dictionary)
                         .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sortingRules)
-                        .withPossiblePagination(paginationRules)
+                        .withPossibleSorting(sorting)
+                        .withPossiblePagination(pagination)
                         .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();

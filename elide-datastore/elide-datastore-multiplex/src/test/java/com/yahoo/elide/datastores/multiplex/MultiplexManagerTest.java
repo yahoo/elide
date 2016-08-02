@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * MultiplexManager tests.
@@ -56,16 +57,18 @@ public class MultiplexManagerTest {
         object.id = 0;
         object.name = "Test";
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+                    .iterator().hasNext());
             t.createObject(object, null);
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.commit();
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+                    .iterator().hasNext());
+            t.commit(null);
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
+            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = beans.iterator().next();
+            FirstBean bean = (FirstBean) beans.iterator().next();
             assertTrue(bean.id == 1 && bean.name.equals("Test"));
         }
     }
@@ -82,28 +85,28 @@ public class MultiplexManagerTest {
         assertEquals(multiplexManager.getSubManager(OtherBean.class), ds2);
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
 
             FirstBean firstBean = FirstBean.class.newInstance();
             firstBean.name = "name";
             t.createObject(firstBean, null);
             //t.save(firstBean);
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.commit();
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            t.commit(null);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            FirstBean firstBean = t.loadObjects(FirstBean.class).iterator().next();
+            FirstBean firstBean = (FirstBean) t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().next();
             firstBean.name = "update";
-            t.save(firstBean);
+            t.save(firstBean, null);
             OtherBean otherBean = OtherBean.class.newInstance();
             t.createObject(otherBean, null);
             //t.save(firstBean);
             try {
-                t.commit();
+                t.commit(null);
                 fail("TransactionException expected");
             } catch (TransactionException expected) {
                 // expected
@@ -115,11 +118,11 @@ public class MultiplexManagerTest {
         }
         // verify state
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
+            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
-            ArrayList<FirstBean> list = Lists.newArrayList(beans.iterator());
+            ArrayList<Object> list = Lists.newArrayList(beans.iterator());
             assertEquals(list.size(), 1);
-            assertEquals(list.get(0).name, "name");
+            assertEquals(((FirstBean) list.get(0)).name, "name");
         }
     }
 }
