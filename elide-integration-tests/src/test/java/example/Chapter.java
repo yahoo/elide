@@ -15,13 +15,18 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import java.util.Collection;
 
 @Entity
 @Include(rootLevel = true, type = "chapter")
 @SharePermission(all = {Role.ALL.class})
+@Setter
 public class Chapter {
     private Long id;
-    @Getter @Setter private String title;
+    @Getter private String title;
+
+    private Collection<Book> books;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +34,8 @@ public class Chapter {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @ManyToMany(mappedBy = "chapters")
+    public Collection<Book> getBooks() {
+        return books;
     }
 }
