@@ -39,11 +39,11 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public static void setup() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.save(tx.createNewObject(Filtered.class));
-            tx.save(tx.createNewObject(Filtered.class));
-            tx.save(tx.createNewObject(Filtered.class));
+            tx.save(tx.createNewObject(Filtered.class), null);
+            tx.save(tx.createNewObject(Filtered.class), null);
+            tx.save(tx.createNewObject(Filtered.class), null);
 
-            tx.commit();
+            tx.commit(null);
         }
     }
 
@@ -79,7 +79,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
 
             tx.setRequestScope(requestScope);
             List<String> includes = tx.getIncludeList();
-            tx.commit();
+            tx.commit(requestScope);
             assertEquals(includes, Arrays.asList("foo", "bar", "car"));
         }
     }
@@ -109,7 +109,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             params.add("join", "false");
             assertFalse(tx.isJoinQuery());
 
-            tx.commit();
+            tx.commit(requestScope);
         }
     }
 }

@@ -21,6 +21,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * InMemoryDataStore tests.
@@ -50,16 +51,16 @@ public class InMemoryDataStoreTest {
         object.id = 0;
         object.name = "Test";
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
             t.createObject(object, null);
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.commit();
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            t.commit(null);
         }
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
+            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = beans.iterator().next();
+            FirstBean bean = (FirstBean) beans.iterator().next();
             assertTrue(bean.id == 1 && bean.name.equals("Test"));
         }
     }

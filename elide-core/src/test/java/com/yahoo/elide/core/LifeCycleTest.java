@@ -77,12 +77,11 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         elide.post("/book", bookBody, null);
-        verify(tx).accessUser(null);
+        verify(tx).accessUser(anyObject());
         verify(tx).preCommit();
-
-        verify(tx, times(1)).createObject(eq(book), anyObject());
-        verify(tx).flush();
-        verify(tx).commit();
+        verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
         verify(tx).close();
     }
 
@@ -98,14 +97,14 @@ public class LifeCycleTest {
         Elide elide = builder.build();
 
         when(store.beginReadTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
-        verify(tx).accessUser(null);
+        verify(tx).accessUser(anyObject());
         verify(tx).preCommit();
-        verify(tx).flush();
-        verify(tx).commit();
+        verify(tx).flush(anyObject());
+        verify(tx).commit(anyObject());
         verify(tx).close();
     }
 
@@ -122,18 +121,18 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
         String contentType = "application/vnd.api+json";
         elide.patch(contentType, contentType, "/book/1", bookBody, null);
-        verify(tx).accessUser(null);
+        verify(tx).accessUser(anyObject());
         verify(tx).preCommit();
 
-        verify(tx).save(book);
-        verify(tx).flush();
-        verify(tx).commit();
+        verify(tx).save(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
         verify(tx).close();
     }
 
@@ -150,15 +149,15 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
 
         elide.delete("/book/1", "", null);
-        verify(tx).accessUser(null);
+        verify(tx).accessUser(anyObject());
         verify(tx).preCommit();
 
-        verify(tx).delete(book);
-        verify(tx).flush();
-        verify(tx).commit();
+        verify(tx).delete(eq(book), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
         verify(tx).close();
     }
 
@@ -197,8 +196,8 @@ public class LifeCycleTest {
     public void loadRecordOnCommit() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject())).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), eq(scope))).thenReturn(book);
         PersistentResource resource = PersistentResource.loadRecord(Book.class, "1", scope);
         scope.runCommitTriggers();
         Assert.assertNotNull(resource);
@@ -213,7 +212,7 @@ public class LifeCycleTest {
     public void loadRecordsOnCommit() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObjects(eq(Book.class), isA(FilterScope.class))).thenReturn(Arrays.asList(book));
+        when(tx.loadObjects(eq(Book.class), anyObject(), anyObject(), anyObject(), isA(RequestScope.class))).thenReturn(Arrays.asList(book));
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         Set<PersistentResource<Book>> resources = PersistentResource.loadRecords(Book.class, scope);
         scope.runCommitTriggers();

@@ -26,6 +26,8 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -258,19 +260,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Check the resource cache if exists
         @SuppressWarnings("unchecked")
-        T obj = (T) cache.get(dictionary.getJsonAliasFor(loadClass), id);
+        Object obj = cache.get(dictionary.getJsonAliasFor(loadClass), id);
         if (obj == null) {
             // try to load object
             Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
                     requestScope);
             Class<?> idType = dictionary.getIdType(loadClass);
-            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType), permissionFilter);
+            obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType),
+                    permissionFilter, requestScope);
             if (obj == null) {
                 throw new InvalidObjectIdentifierException(id, loadClass.getSimpleName());
             }
         }
 
-        PersistentResource<T> resource = new PersistentResource<>(obj, requestScope);
+        PersistentResource<T> resource = new PersistentResource(obj, requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -296,8 +299,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable<T> list;
-        FilterScope filterScope = new FilterScope(requestScope, loadClass);
-        list = tx.loadObjects(loadClass, filterScope);
+        Optional<FilterExpression> permissionFilter;
+        permissionFilter = requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
+
+        list = (Iterable<T>) tx.loadObjects(loadClass, permissionFilter,
+                Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
@@ -340,8 +346,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable<T> list;
-        FilterScope filterScope = new FilterScope(requestScope, loadClass);
-        list = tx.loadObjectsWithSortingAndPagination(loadClass, filterScope);
+        Optional<FilterExpression> permissionFilter = requestScope.getPermissionExecutor()
+                .getReadPermissionFilter(loadClass);
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+        list = (Iterable<T>) tx.loadObjects(loadClass, permissionFilter, sorting, pagination, requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {
@@ -715,7 +724,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        transaction.delete(getObject());
+        transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
         runTriggers(OnDelete.class);
     }
@@ -959,8 +968,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (requestScope.useFilterExpressions()) {
             String path = requestScope.getPath();
             val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, relationClass, dictionary,
-                            filterExpression, null, null);
+                    .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,  Optional.empty(),
+                            Optional.empty(), requestScope);
 
         /* Otherwise use the Elide 2.0 interface */
         } else {
@@ -1012,8 +1021,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         /* If elide was configured for Elide 3.0 data store interface */
         if (requestScope.useFilterExpressions()) {
             val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, relationClass, dictionary,
-                            filterExpression, requestScope.getSorting(), requestScope.getPagination());
+                    .getRelation(requestScope.getTransaction(), obj, relationName,
+                            filterExpression,
+                            Optional.ofNullable(requestScope.getSorting()),
+                            Optional.ofNullable(requestScope.getPagination()),
+                            requestScope);
 
         /* Otherwise use the Elide 2.0 interface */
         } else {
