@@ -83,6 +83,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
+    public <T> T loadObject(Class<T> entityClass, Serializable id, Optional<FilterExpression> filterExpression) {
+        return getTransaction(entityClass).loadObject(entityClass, id, filterExpression);
+    }
+
+    @Override
     @Deprecated
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
@@ -197,5 +202,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination) {
         return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
                 collection, entityClass, dictionary, filters, sorting, pagination);
+    }
+
+    @Override
+    public <T> Long getTotalRecords(Class<T> entityClass) {
+        return getTransaction(entityClass).getTotalRecords(entityClass);
     }
 }

@@ -182,4 +182,10 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public void close() throws IOException {
         operations.clear();
     }
+
+    @Override
+    public <T> Long getTotalRecords(Class<T> entityClass) {
+        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
+        return objs == null ? 0L : objs.size();
+    }
 }
