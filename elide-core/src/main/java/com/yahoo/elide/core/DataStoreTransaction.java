@@ -227,8 +227,8 @@ public interface DataStoreTransaction extends Closeable {
         Object val = PersistentResource.getValue(entity, relationName, dictionary);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            Optional<Sorting> sortingRules = Optional.ofNullable(sorting);
-            Optional<Pagination> paginationRules = Optional.ofNullable(pagination);
+            Optional<Sorting> sortingRules = Optional.ofNullable(sorting.isDefaultInstance() ? null : sorting);
+            Optional<Pagination> paginationRules = Optional.ofNullable(pagination.isDefaultInstance() ? null : pagination);
             filteredVal = filterCollectionWithSortingAndPagination(filteredVal, relationClass, dictionary,
                     Optional.of(filters), sortingRules, paginationRules);
             return filteredVal;
