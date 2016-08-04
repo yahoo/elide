@@ -41,7 +41,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     "value": {"type": "chapter", "id": 2,"attributes": {"title": "The Vanishing Glass"}}
                 },
                 {"op": "add", "path": "/chapter",
-                    "value": {"type": "chapter", "id": 3,"attributes": {"title": "The The Letters from No One"}}
+                    "value": {"type": "chapter", "id": 3,"attributes": {"title": "The Letters from No One"}}
                 },
                 {"op": "add", "path": "/chapter",
                     "value": {"type": "chapter", "id": 4,"attributes": {"title": "The Worst Birthday"}}
@@ -62,7 +62,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     "value": {"type": "chapter", "id": 9,"attributes": {"title": "The Knight Bus"}}
                 }
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         // Create author J.K. Rowling with a few books
         RestAssured
@@ -132,7 +132,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     }
                 }}
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         // Some chapter titles from The Hobbit and Lord of the Rings
         RestAssured
@@ -159,7 +159,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     "value": {"type": "chapter", "id": 15,"attributes": {"title": "Three is Company"}}
                 }
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         // Create author J.R.R. Tolkien with a couple of books
         RestAssured
@@ -212,7 +212,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     }
                 }}
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
 
         // Some chapter titles from The Lion, the Witch and the Wardrobe
@@ -228,7 +228,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     "value": {"type": "chapter", "id": 17,"attributes": {"title": "What Lucy Found There"}}
                 }
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
 
         // Create author C.S. Lewis with one book
@@ -264,7 +264,7 @@ class SortIT extends AbstractIntegrationTestInitializer {
                     }
                 }}
                 ]''')
-            .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
+            .patch("/").then().statusCode(HttpStatus.SC_OK)
 
         for (JsonNode author : mapper.readTree(RestAssured.get("/author").asString()).get("data")) {
             authorIds.add(author.get("id").asInt())
@@ -280,47 +280,68 @@ class SortIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testSortOnSimpleAttribute() {
         def result = mapper.readTree(RestAssured.get("/chapter?sort=title").asString())
-        final JsonNode chapters = result.get("data")
+        def chapters = result["data"]
         Assert.assertEquals(chapters.size(), 17)
-        final String firstChapterTitle = chapters.get(0).get("attributes").get("title").asText()
+        final String firstChapterTitle = chapters.get(0)["attributes"]["title"].asText()
         Assert.assertEquals(firstChapterTitle, "A Long-expected Party")
     }
 
     @Test
     public void testSortOnSingleJoinEntityAttribute() {
         def result = mapper.readTree(RestAssured.get("/chapter?sort=books.title,title").asString())
-        final JsonNode chapters = result.get("data")
+        def chapters = result["data"]
         Assert.assertEquals(chapters.size(), 17)
-        final JsonNode firstChapter = chapters.get(0)
-        final String firstChapterBookId = firstChapter.get("relationships").get("books").get("data").get(0).get("id").asText()
+        def firstChapter = chapters.get(0)
+        final String firstChapterBookId = firstChapter["relationships"]["books"]["data"].get(0)["id"].asText()
         Assert.assertEquals(firstChapterBookId, "2")
-        final String firstChapterTitle = firstChapter.get("attributes").get("title").asText()
+        final String firstChapterTitle = firstChapter["attributes"]["title"].asText()
         Assert.assertEquals(firstChapterTitle, "Dobby's Warning")
     }
 
     @Test
     public void testSortOnMultipleJoinEntityAttributes() {
         def result = mapper.readTree(RestAssured.get("/chapter?sort=-books.genre,books.authors.name,-title&page[limit]=3").asString())
-        final JsonNode chapters = result.get("data")
+        def chapters = result["data"]
         Assert.assertEquals(chapters.size(), 3)
-        final JsonNode firstChapter = chapters.get(0)
-        final String firstChapterBookId = firstChapter.get("relationships").get("books").get("data").get(0).get("id").asText()
+        def firstChapter = chapters.get(0)
+        final String firstChapterBookId = firstChapter["relationships"]["books"]["data"].get(0)["id"].asText()
         Assert.assertEquals(firstChapterBookId, "6")
-        final String firstChapterTitle = firstChapter.get("attributes").get("title").asText()
+        final String firstChapterTitle = firstChapter["attributes"]["title"].asText()
         Assert.assertEquals(firstChapterTitle, "What Lucy Found There")
     }
 
     @Test
     public void testSortOnMultipleJoinEntityAttributesWithFilter() {
         def result = mapper.readTree(RestAssured.get(
-                "/chapter?filter[chapter.books.title][prefix]=The&sort=books.genre,books.title,-title&page[limit]=5").asString())
-        final JsonNode chapters = result.get("data")
+                "/chapter?filter[chapter.books.title][prefix]=The&sort=books.genre,books.title,-title&page[limit]=5")
+                .asString())
+        def chapters = result["data"]
         Assert.assertEquals(chapters.size(), 5)
-        final JsonNode firstChapter = chapters.get(0)
-        final String firstChapterBookId = firstChapter.get("relationships").get("books").get("data").get(0).get("id").asText()
+        def firstChapter = chapters.get(0)
+        final String firstChapterBookId = firstChapter["relationships"]["books"]["data"].get(0)["id"].asText()
         Assert.assertEquals(firstChapterBookId, "4")
-        final String firstChapterTitle = firstChapter.get("attributes").get("title").asText()
+        final String firstChapterTitle = firstChapter["attributes"]["title"].asText()
         Assert.assertEquals(firstChapterTitle, "Roast Mutton")
+    }
+
+    @Test
+    public void testSortOnMultipleJoinEntityAttributesWithPagination() {
+        def result = mapper.readTree(RestAssured.get(
+                "/chapter?include=books,books.authors&sort=books.authors.name,books.title,title" +
+                "&page[size]=4&page[number]=2&page[totals]")
+                .asString())
+        def chapters = result["data"]
+        Assert.assertEquals(chapters.size(), 4)
+
+        def firstChapter = chapters.get(2)
+        Assert.assertEquals(firstChapter["relationships"]["books"]["data"].get(0)["id"].asText(), "1")
+        Assert.assertEquals(firstChapter["attributes"]["title"].asText(), "The Letters from No One")
+
+        def metaPage = result["meta"]["page"]
+        Assert.assertEquals(metaPage.get("number").asText(), "2")
+        Assert.assertEquals(metaPage["totalPages"].asText(), "5")
+        Assert.assertEquals(metaPage["totalRecords"].asText(), "17")
+        Assert.assertEquals(metaPage["limit"].asText(), "4")
     }
 
     @AfterTest
