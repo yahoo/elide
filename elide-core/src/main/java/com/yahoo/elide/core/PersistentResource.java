@@ -1665,7 +1665,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                                                  boolean skipNew) {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
-            Set<Triple<Class, Class, String>> expressionResultShortCircuit
+            Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit
                     = resource.getRequestScope().getExpressionResultShortCircuit();
             PermissionExecutor permissionExecutor = resource.getRequestScope().getPermissionExecutor();
 
@@ -1673,9 +1673,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
                     if (!expressionResultShortCircuit
                             .contains(Triple.of(permission, resource.getResourceClass(), null))) {
-                        permissionExecutor.checkUserPermissions(resource.getResourceClass(), permission);
-                        if (expressionResultShortCircuit
-                                .contains(Triple.of(permission, resource.getResourceClass(), null))) {
+                        ExpressionResult expressionResult
+                                = permissionExecutor.checkUserPermissions(resource.getResourceClass(), permission);
+                        if (expressionResult == ExpressionResult.PASS) {
                             filteredSet.add(resource);
                             continue;
                         }
@@ -1702,7 +1702,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        Set<Triple<Class, Class, String>> expressionResultShortCircuit = requestScope.getExpressionResultShortCircuit();
+        Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit
+                = requestScope.getExpressionResultShortCircuit();
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
@@ -1712,10 +1713,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         continue;
                     }
 
-                    requestScope.getPermissionExecutor().checkUserPermissions(this, ReadPermission.class, field);
+                    ExpressionResult expressionResult = requestScope.getPermissionExecutor()
+                            .checkUserPermissions(this, ReadPermission.class, field);
 
-                    if (expressionResultShortCircuit
-                            .contains(Triple.of(ReadPermission.class, getResourceClass(), field))) {
+                    if (expressionResult == ExpressionResult.PASS) {
                         filteredSet.add(field);
                         continue;
                     }

@@ -26,6 +26,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     private final Map<String, FilterExpression> expressionsByType;
 
     @Getter private final Map<String, Long> checkStats;
-    @Getter private final Set<Triple<Class, Class, String>> expressionResultShortCircuit;
+    @Getter private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
@@ -425,11 +426,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         Map<String, Long> result = new LinkedHashMap<>();
         checkStats.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
-                .forEachOrdered(e -> result.put(e.getKey(), e.getValue()));
-
-        for (Map.Entry<String, Long> entry : result.entrySet()) {
-            sb.append(entry.getKey() + ": " + entry.getValue() + "\n");
-        }
+                .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
 
         String stats = sb.toString();
         log.trace(stats);

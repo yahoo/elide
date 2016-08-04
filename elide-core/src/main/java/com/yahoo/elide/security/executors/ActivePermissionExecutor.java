@@ -52,7 +52,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     private final RequestScope requestScope;
     private final PermissionExpressionBuilder expressionBuilder;
-    private final Map<Triple<Class, Class, String>, ExpressionResult> userPermissionCheckCache;
+    private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
 
     /**
      * Constructor.
@@ -103,10 +103,15 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
             return ExpressionResult.PASS; // Bypass
         }
+
         Expressions expressions;
         if (SharePermission.class == annotationClass) {
             expressions = expressionBuilder.buildSharePermissionExpressions(resource);
         } else {
+            ExpressionResult expressionResult = this.checkUserPermissions(resource.getResourceClass(), annotationClass);
+            if (expressionResult == PASS) {
+                return expressionResult;
+            }
             expressions = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         }
         return executeExpressions(expressions, annotationClass);
@@ -131,8 +136,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         }
 
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
-        if (requestScope.getExpressionResultShortCircuit()
-                .contains(Triple.of(annotationClass, resource.getResourceClass(), field))) {
+        if (expressionResult == PASS) {
             return expressionResult;
         }
 
@@ -163,10 +167,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return ExpressionResult.PASS; // Bypass
         }
 
-        // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
-        if (requestScope.getExpressionResultShortCircuit()
-                .contains(Triple.of(annotationClass, resource.getResourceClass(), field))) {
+        if (expressionResult == PASS) {
             return expressionResult;
         }
 
@@ -201,7 +203,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
-                = userPermissionCheckCache.get(Triple.of(resource.getResourceClass(), annotationClass, field));
+                = userPermissionCheckCache.get(Triple.of(annotationClass, resource.getResourceClass(), field));
         if (expressionResult != null) {
             return expressionResult;
         }
@@ -209,7 +211,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         Expressions expressions = expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
         expressionResult = executeExpressions(expressions, annotationClass);
 
-        userPermissionCheckCache.put(Triple.of(resource.getResourceClass(), annotationClass, field), expressionResult);
+        userPermissionCheckCache.put(Triple.of(annotationClass, resource.getResourceClass(), field), expressionResult);
 
         if (expressionResult == PASS) {
             requestScope.getExpressionResultShortCircuit()
@@ -235,7 +237,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
-                = userPermissionCheckCache.get(Triple.of(resourceClass, annotationClass, null));
+                = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, null));
         if (expressionResult != null) {
             return expressionResult;
         }
@@ -247,7 +249,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         );
         expressionResult = executeExpressions(expressions, annotationClass);
 
-        userPermissionCheckCache.put(Triple.of(resourceClass, annotationClass, null), expressionResult);
+        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, null), expressionResult);
 
         if (expressionResult == PASS) {
             requestScope.getExpressionResultShortCircuit().add(Triple.of(annotationClass, resourceClass, null));
