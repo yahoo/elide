@@ -375,7 +375,7 @@ public class Elide {
             transaction.commit();
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
-                requestScope.printCheckStats();
+                requestScope.getPermissionExecutor().printCheckStats();
             }
             return response;
         } catch (ForbiddenAccessException e) {
@@ -446,7 +446,7 @@ public class Elide {
             transaction.commit();
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
-                requestScope.printCheckStats();
+                requestScope.getPermissionExecutor().printCheckStats();
             }
             return response;
         } catch (ForbiddenAccessException e) {
@@ -526,7 +526,7 @@ public class Elide {
             transaction.commit();
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
-                requestScope.printCheckStats();
+                requestScope.getPermissionExecutor().printCheckStats();
             }
             return response;
         } catch (ForbiddenAccessException e) {
@@ -602,7 +602,7 @@ public class Elide {
             transaction.commit();
             requestScope.runCommitTriggers();
             if (log.isTraceEnabled()) {
-                requestScope.printCheckStats();
+                requestScope.getPermissionExecutor().printCheckStats();
             }
             return response;
         } catch (ForbiddenAccessException e) {

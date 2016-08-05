@@ -35,9 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -52,7 +54,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     private final RequestScope requestScope;
     private final PermissionExpressionBuilder expressionBuilder;
+    private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
     private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
+    private final Map<String, Long> checkStats;
 
     /**
      * Constructor.
@@ -65,6 +69,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         this.requestScope = requestScope;
         this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
         userPermissionCheckCache = new HashMap<>();
+        expressionResultShortCircuit = new HashSet<>();
+        checkStats = new HashMap<>();
     }
 
     /**
@@ -214,8 +220,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         userPermissionCheckCache.put(Triple.of(annotationClass, resource.getResourceClass(), field), expressionResult);
 
         if (expressionResult == PASS) {
-            requestScope.getExpressionResultShortCircuit()
-                    .add(Triple.of(annotationClass, resource.getResourceClass(), field));
+            expressionResultShortCircuit.add(Triple.of(annotationClass, resource.getResourceClass(), field));
         }
 
         return expressionResult;
@@ -252,7 +257,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, null), expressionResult);
 
         if (expressionResult == PASS) {
-            requestScope.getExpressionResultShortCircuit().add(Triple.of(annotationClass, resourceClass, null));
+            expressionResultShortCircuit.add(Triple.of(annotationClass, resourceClass, null));
         }
 
         return expressionResult;
@@ -321,6 +326,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         return visitor.visit(permissions);
     }
 
+    @Override
+    public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
+                                                      Class resourceClass, String field) {
+        return expressionResultShortCircuit.contains(Triple.of(annotationClass, resourceClass, field));
+    }
+
     /**
      * Execute expressions.
      *
@@ -332,8 +343,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         ExpressionResult result = expression.evaluate();
 
         // Record the check
-        Long checkOccurrences = requestScope.getCheckStats().getOrDefault(expression.toString(), 0L) + 1;
-        requestScope.getCheckStats().put(expression.toString(), checkOccurrences);
+        Long checkOccurrences = checkStats.getOrDefault(expression.toString(), 0L) + 1;
+        checkStats.put(expression.toString(), checkOccurrences);
 
        if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
@@ -381,6 +392,21 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         @Getter
         private final Expression expression;
         @Getter private final Class<? extends Annotation> annotationClass;
+    }
+
+    /**
+     * Print the permission check statistics
+     * @return the permission check statistics
+     */
+    @Override
+    public String printCheckStats() {
+        StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
+        checkStats.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
+        String stats = sb.toString();
+        log.trace(stats);
+        return stats;
     }
 
     @Override

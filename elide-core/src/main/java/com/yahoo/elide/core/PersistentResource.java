@@ -45,7 +45,6 @@ import com.google.common.collect.Sets;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.commons.lang3.tuple.Triple;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -1665,14 +1664,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                                                  boolean skipNew) {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
-            Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit
-                    = resource.getRequestScope().getExpressionResultShortCircuit();
             PermissionExecutor permissionExecutor = resource.getRequestScope().getPermissionExecutor();
-
             try {
                 if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
-                    if (!expressionResultShortCircuit
-                            .contains(Triple.of(permission, resource.getResourceClass(), null))) {
+                    if (!permissionExecutor
+                            .shouldShortCircuitPermissionChecks(permission, resource.getResourceClass(), null)) {
                         ExpressionResult expressionResult
                                 = permissionExecutor.checkUserPermissions(resource.getResourceClass(), permission);
                         if (expressionResult == ExpressionResult.PASS) {
@@ -1702,13 +1698,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Set<String> filterFields(Collection<String> fields) {
         Set<String> filteredSet = new LinkedHashSet<>();
-        Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit
-                = requestScope.getExpressionResultShortCircuit();
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
-                    if (expressionResultShortCircuit
-                            .contains(Triple.of(ReadPermission.class, getResourceClass(), field))) {
+                    if (requestScope.getPermissionExecutor()
+                            .shouldShortCircuitPermissionChecks(ReadPermission.class, getResourceClass(), field)) {
                         filteredSet.add(field);
                         continue;
                     }

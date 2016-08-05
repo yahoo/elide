@@ -21,17 +21,12 @@ import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 
-import org.apache.commons.lang3.tuple.Triple;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +61,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     private final boolean useFilterExpressions;
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
-
-    @Getter private final Map<String, Long> checkStats;
-    @Getter private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
@@ -117,9 +109,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.commitTriggers = new LinkedHashSet<>();
-
-        this.checkStats = new HashMap<>();
-        this.expressionResultShortCircuit = new HashSet<>();
 
         this.permissionExecutor = (permissionExecutorGenerator == null)
                 ? new ActivePermissionExecutor(this)
@@ -295,8 +284,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
-        this.checkStats = outerRequestScope.checkStats;
-        this.expressionResultShortCircuit = outerRequestScope.expressionResultShortCircuit;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
@@ -414,22 +401,5 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     public boolean useFilterExpressions() {
         return useFilterExpressions;
-    }
-
-    /**
-     * Print the permission check statistics
-     * @return the permission check statistics
-     */
-    public String printCheckStats() {
-        StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
-
-        Map<String, Long> result = new LinkedHashMap<>();
-        checkStats.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
-                .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
-
-        String stats = sb.toString();
-        log.trace(stats);
-        return stats;
     }
 }

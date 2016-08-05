@@ -123,6 +123,15 @@ public interface PermissionExecutor {
         return null;
     }
 
+    default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
+                                               Class resourceClass, String field) {
+        return false;
+    }
+
+    default String printCheckStats() {
+        return null;
+    }
+
     /**
      * Whether or not the permission executor will return verbose logging to the requesting user in the response.
      *
