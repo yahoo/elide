@@ -435,7 +435,6 @@ public class HibernateTransaction implements RequestScopedTransaction {
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
-
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,

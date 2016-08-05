@@ -1015,6 +1015,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
+        //Invoke filterExpressionCheck and then merge with filterExpression.
+        Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
+        if (permissionFilter.isPresent()) {
+            if (filterExpression.isPresent()) {
+                FilterExpression mergedExpression =
+                        new AndFilterExpression(filterExpression.get(), permissionFilter.get());
+                filterExpression = Optional.of(mergedExpression);
+            } else {
+                filterExpression = permissionFilter;
+            }
+        }
+
         Object val;
 
         String path = requestScope.getPath();

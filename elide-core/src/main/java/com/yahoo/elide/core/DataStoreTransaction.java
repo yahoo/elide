@@ -5,14 +5,21 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -214,6 +221,70 @@ public interface DataStoreTransaction extends Closeable {
         }
 
         return val;
+    };
+
+
+    /**
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param relationValue - the desired contents of the relationship.
+     * @param scope - contains request level metadata.
+     */
+    default void setRelation(
+            DataStoreTransaction relationTx,
+            Object entity,
+            String relationName,
+            Object relationValue,
+            RequestScope scope) { }
+
+    /**
+     * @param entity - The object which owns the attribute.
+     * @param attributeName - name of the attribute.
+     * @param filterExpression - securing filtering which can be pushed down to the data store.
+     *                         It is optional for the data store to attempt evaluation.
+     * @param scope - contains request level metadata.
+     */
+    default Object getAttribute(
+            Object entity,
+            String attributeName,
+            Optional<FilterExpression> filterExpression,
+            RequestScope scope) {
+        Object val = PersistentResource.getValue(entity, attributeName, scope.getDictionary());
+        return val;
+    };
+
+    /**
+     * @param entity - The object which owns the attribute.
+     * @param attributeName - name of the attribute.
+     * @param attributeValue - the desired attribute value.
+     * @param scope - contains request level metadata.
+     */
+    default void setAttribute(
+            Object entity,
+            String attributeName,
+            Object attributeValue,
+            RequestScope scope) {
+        Class<?> entityClass = entity.getClass();
+        EntityDictionary dictionary = scope.getDictionary();
+        String type = dictionary.getJsonAliasFor(entity.getClass());
+        try {
+            Class<?> fieldClass = dictionary.getType(entityClass, attributeName);
+            String realName = dictionary.getNameFromAlias(entityClass, attributeName);
+            attributeName = (realName != null) ? realName : attributeName;
+            String setMethod = "set" + WordUtils.capitalize(attributeName);
+            Method method = EntityDictionary.findMethod(entityClass, setMethod, fieldClass);
+            method.invoke(entity, CoerceUtil.coerce(attributeValue, fieldClass));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new InvalidAttributeException(attributeName, type);
+        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
+            try {
+                Field field = entityClass.getField(attributeName);
+                field.set(entity, CoerceUtil.coerce(attributeValue, entityClass));
+            } catch (NoSuchFieldException | IllegalAccessException noField) {
+                throw new InvalidAttributeException(attributeName, type);
+            }
+        }
     };
 
 
