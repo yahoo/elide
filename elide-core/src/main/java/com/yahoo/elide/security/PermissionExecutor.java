@@ -6,6 +6,8 @@
 package com.yahoo.elide.security;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.security.permissions.ExpressionResult;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -22,80 +24,80 @@ public interface PermissionExecutor {
     /**
      * Check permission on class.
      *
+     * @param <A> type parameter
      * @param annotationClass annotation class
      * @param resource resource
-     * @param <A> type parameter
      * @see com.yahoo.elide.annotation.CreatePermission
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
      */
-    <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource);
+    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass, PersistentResource resource);
 
     /**
      * Check permission on class.
      *
+     * @param <A> type parameter
      * @param annotationClass annotation class
      * @param resource resource
      * @param changeSpec ChangeSpec
-     * @param <A> type parameter
      * @see com.yahoo.elide.annotation.CreatePermission
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
      */
-    <A extends Annotation> void checkPermission(Class<A> annotationClass,
-                                                PersistentResource resource,
-                                                ChangeSpec changeSpec);
+    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
+                                                            PersistentResource resource,
+                                                            ChangeSpec changeSpec);
 
     /**
      * Check for permissions on a specific field.
      *
+     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
-     * @param <A> type parameter
      */
-    <A extends Annotation> void checkSpecificFieldPermissions(PersistentResource<?> resource,
-                                                              ChangeSpec changeSpec,
-                                                              Class<A> annotationClass,
-                                                              String field);
+    <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
+                                                                          ChangeSpec changeSpec,
+                                                                          Class<A> annotationClass,
+                                                                          String field);
 
     /**
      * Check for permissions on a specific field deferring all checks.
      *
+     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
-     * @param <A> type parameter
      */
-    <A extends Annotation> void checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
-                                                                      ChangeSpec changeSpec,
-                                                                      Class<A> annotationClass,
-                                                                      String field);
+    <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
+                                                                                  ChangeSpec changeSpec,
+                                                                                  Class<A> annotationClass,
+                                                                                  String field);
 
     /**
      * Check strictly user permissions on a specific field and entity.
      *
+     * @param <A> type parameter
      * @param resource Resource
      * @param annotationClass Annotation class
      * @param field Field
-     * @param <A> type parameter
      */
-    <A extends Annotation> void checkUserPermissions(PersistentResource<?> resource,
-                                                     Class<A> annotationClass,
-                                                     String field);
+    <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
+                                                                 Class<A> annotationClass,
+                                                                 String field);
 
     /**
      * Check strictly user permissions on an entity.
      *
+     * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
-     * @param <A> type parameter
      */
-    <A extends Annotation> void checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
+    <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
 
     Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass);
 
@@ -118,6 +120,15 @@ public interface PermissionExecutor {
                                Function<T, T> criterionNegater,
                                BiFunction<T, T, T> andCriterionJoiner,
                                BiFunction<T, T, T> orCriterionJoiner) {
+        return null;
+    }
+
+    default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
+                                               Class resourceClass, String field) {
+        return false;
+    }
+
+    default String printCheckStats() {
         return null;
     }
 

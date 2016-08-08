@@ -9,6 +9,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
+import com.yahoo.elide.security.permissions.ExpressionResult;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
@@ -18,42 +19,40 @@ import java.util.Optional;
  */
 public class BypassPermissionExecutor implements PermissionExecutor {
     @Override
-    public <A extends Annotation> void checkPermission(Class<A> annotationClass,
-                                                       PersistentResource resource) {
-
+    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
+                                                                   PersistentResource resource) {
+        return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> void checkPermission(Class<A> annotationClass,
-                                                       PersistentResource resource,
-                                                       ChangeSpec changeSpec) {
-
+    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
+                                                                   PersistentResource resource,
+                                                                   ChangeSpec changeSpec) {
+        return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> void checkSpecificFieldPermissions(PersistentResource<?> resource,
-                                                                     ChangeSpec changeSpec,
-                                                                     Class<A> annotationClass, String field) {
-
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(
+            PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
+        return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> void checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
-                                                                             ChangeSpec changeSpec,
-                                                                             Class<A> annotationClass, String field) {
-
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(
+            PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
+        return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> void checkUserPermissions(PersistentResource<?> resource, Class<A> annotationClass,
-                                                            String field) {
-
+    public <A extends Annotation> ExpressionResult checkUserPermissions(
+            PersistentResource<?> resource, Class<A> annotationClass, String field) {
+        return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> void checkUserPermissions(Class<?> resourceClass,
-                                                            Class<A> annotationClass) {
-
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+                                                                        Class<A> annotationClass) {
+        return ExpressionResult.PASS;
     }
 
     @Override

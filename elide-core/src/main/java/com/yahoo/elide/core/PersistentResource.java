@@ -35,6 +35,7 @@ import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,6 +47,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -76,6 +78,7 @@ import javax.persistence.GeneratedValue;
  *
  * @param <T> type of resource
  */
+@Slf4j
 public class PersistentResource<T> implements com.yahoo.elide.security.PersistentResource<T> {
     private final String type;
     protected T obj;
@@ -1661,9 +1664,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                                                  boolean skipNew) {
         Set<PersistentResource<T>> filteredSet = new LinkedHashSet<>();
         for (PersistentResource<T> resource : resources) {
+            PermissionExecutor permissionExecutor = resource.getRequestScope().getPermissionExecutor();
             try {
                 if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
-                    resource.checkFieldAwarePermissions(permission);
+                    if (!permissionExecutor
+                            .shouldShortCircuitPermissionChecks(permission, resource.getResourceClass(), null)) {
+                        ExpressionResult expressionResult
+                                = permissionExecutor.checkUserPermissions(resource.getResourceClass(), permission);
+                        if (expressionResult == ExpressionResult.PASS) {
+                            filteredSet.add(resource);
+                            continue;
+                        }
+                        resource.checkFieldAwarePermissions(permission);
+                    }
                 }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
@@ -1688,6 +1701,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
+                    if (requestScope.getPermissionExecutor()
+                            .shouldShortCircuitPermissionChecks(ReadPermission.class, getResourceClass(), field)) {
+                        filteredSet.add(field);
+                        continue;
+                    }
+
+                    ExpressionResult expressionResult = requestScope.getPermissionExecutor()
+                            .checkUserPermissions(this, ReadPermission.class, field);
+
+                    if (expressionResult == ExpressionResult.PASS) {
+                        filteredSet.add(field);
+                        continue;
+                    }
+
                     checkFieldAwarePermissions(ReadPermission.class, field, (Object) null, (Object) null);
                     filteredSet.add(field);
                 }
@@ -1698,15 +1725,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return filteredSet;
     }
 
-    private static <A extends Annotation> void checkPermission(Class<A> annotationClass, PersistentResource resource) {
-        resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
+    private static <A extends Annotation> ExpressionResult checkPermission(
+            Class<A> annotationClass, PersistentResource resource) {
+        return resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
     }
 
-    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass) {
-        requestScope.getPermissionExecutor().checkPermission(annotationClass, this);
+    private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass) {
+        return requestScope.getPermissionExecutor().checkPermission(annotationClass, this);
     }
 
-    private <A extends Annotation> void checkFieldAwarePermissions(Class<A> annotationClass,
+    private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass,
                                                                    String fieldName,
                                                                    Object modified,
                                                                    Object original) {
@@ -1714,11 +1742,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
 
-        requestScope.getPermissionExecutor()
+        return requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
-    private <A extends Annotation> void checkFieldAwareDeferPermissions(Class<A> annotationClass,
+    private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
                                                                         String fieldName,
                                                                         Object modified,
                                                                         Object original) {
@@ -1731,12 +1759,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (requestScope.getNewResources().contains(this)
                 && ((requestScope instanceof PatchRequestScope)
                 || changeSpec != null)) {
-            requestScope
+            return requestScope
                     .getPermissionExecutor()
                     .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
-            return;
         }
-        requestScope
+        return requestScope
                 .getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
