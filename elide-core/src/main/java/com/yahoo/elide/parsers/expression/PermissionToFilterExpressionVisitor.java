@@ -39,7 +39,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
             return null;
         }
     };
-    public static final FilterExpression USER_CHECK_EXPRESSION = new FilterExpression() {
+
+    public static final FilterExpression FALSE_USER_CHECK_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
             return null;
@@ -60,9 +61,10 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
             return NO_EVALUATION_EXPRESSION;
         }
 
-        //This special case require future reconsideration.
-        if (left == USER_CHECK_EXPRESSION || right == USER_CHECK_EXPRESSION) {
-            return USER_CHECK_EXPRESSION;
+        if (left == FALSE_USER_CHECK_EXPRESSION) {
+            return right;
+        } else if (right == FALSE_USER_CHECK_EXPRESSION) {
+            return left;
         }
 
         return new OrFilterExpression(left, right);
@@ -78,7 +80,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
             }
             return ((FilterExpressionCheck) check).getFilterExpression(requestScope);
         } else if (UserCheck.class.isAssignableFrom(check.getClass())) {
-            return USER_CHECK_EXPRESSION;
+            boolean userCheckResult = check.ok(requestScope.getUser());
+            return userCheckResult ? NO_EVALUATION_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
         } else {
             return NO_EVALUATION_EXPRESSION;
         }
@@ -89,23 +92,25 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         FilterExpression left = visit(ctx.left);
         FilterExpression right = visit(ctx.right);
 
-        // (NO_EVA and UserCheck) should return NO_EVA let the upper level know.
-        // For example, FilterExpressionCheck Or (NO_EVA and UserCheck) should evaluate to  NO_EVALUATION_EXPRESSION.
-        if (left == NO_EVALUATION_EXPRESSION && right == USER_CHECK_EXPRESSION) {
-            return left;
+        //Case (FALSE_USER_CHECK_EXPRESSION AND FE):  should evaluate to FALSE_USER_CHECK_EXPRESSION
+        //Case (FALSE_USER_CHECK_EXPRESSION AND NO_EVALUATION_EXPRESSION): should also evaluate to
+        // FALSE_USER_CHECK_EXPRESSION
+        if (left == FALSE_USER_CHECK_EXPRESSION || right == FALSE_USER_CHECK_EXPRESSION) {
+            return FALSE_USER_CHECK_EXPRESSION;
         }
 
-        if (right == NO_EVALUATION_EXPRESSION && left == USER_CHECK_EXPRESSION) {
+        //Case (NO_EVALUATION_EXPRESSION AND FilterExpression): should ignore NO_EVALUATION_EXPRESSION and return
+        // FilterExpression.
+        //Case (NO_EVALUATION_EXPRESSION AND NO_EVALUATION_EXPRESSION): returns NO_EVALUATION_EXPRESSION.
+        if (left == NO_EVALUATION_EXPRESSION) {
             return right;
         }
 
-        if (left == NO_EVALUATION_EXPRESSION || left == USER_CHECK_EXPRESSION) {
-            return right;
-        }
-
-        if (right == NO_EVALUATION_EXPRESSION || right == USER_CHECK_EXPRESSION) {
+        if (right == NO_EVALUATION_EXPRESSION) {
             return left;
         }
+
+        //Case (FilterExpression AND FilterExpression): should return the AND expression of them.
         return new AndFilterExpression(left, right);
     }
 
