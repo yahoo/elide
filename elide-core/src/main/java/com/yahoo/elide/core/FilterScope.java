@@ -56,6 +56,6 @@ public class FilterScope {
      * @return true if there is pagination filtering
      */
     public boolean hasPagination() {
-        return requestScope.getPagination() != null;
+        return !requestScope.getPagination().isDefaultInstance();
     }
 }
