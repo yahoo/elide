@@ -72,14 +72,23 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
-     * Create new entity record.
+     * Create entity record of populated object.
      *
-     * @param <T>         the type parameter
-     * @param entityClass the entity class
-     * @return new record
+     * @param entity   the persisted Object
+     * @param scope  the request scope
      */
-    <T> T createObject(Class<T> entityClass);
+    void createObject(Object entity, RequestScope scope);
 
+
+    default <T> T createNewObject(Class<T> entityClass) {
+        T obj = null;
+        try {
+            obj = entityClass.newInstance();
+        } catch (java.lang.InstantiationException | IllegalAccessException e) {
+            //do nothing
+        }
+        return obj;
+    }
     /**
      * Read entity record from database table.
      *
@@ -195,7 +204,6 @@ public interface DataStoreTransaction extends Closeable {
             }
             return filteredVal;
         }
-
         return val;
     }
 

@@ -18,10 +18,12 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate3.HibernateTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
-import example.Filtered;
+
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import example.Filtered;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,9 +39,9 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public static void setup() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.save(tx.createObject(Filtered.class));
-            tx.save(tx.createObject(Filtered.class));
-            tx.save(tx.createObject(Filtered.class));
+            tx.save(tx.createNewObject(Filtered.class));
+            tx.save(tx.createNewObject(Filtered.class));
+            tx.save(tx.createNewObject(Filtered.class));
 
             tx.commit();
         }
