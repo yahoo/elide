@@ -7,6 +7,7 @@ package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -14,7 +15,9 @@ import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
+import org.apache.commons.lang3.ClassUtils;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -24,6 +27,7 @@ public class CoerceUtil {
 
     private static final ToEnumConverter TO_ENUM_CONVERTER = new ToEnumConverter();
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
+    private static final EpochToDateConverter EPOCH_TO_DATE_CONVERTER = new EpochToDateConverter();
 
     //static block for setup and registering new converters
     static {
@@ -70,6 +74,9 @@ public class CoerceUtil {
                     return TO_ENUM_CONVERTER;
                 } else if (Map.class.isAssignableFrom(sourceType)) {
                     return FROM_MAP_CONVERTER;
+                } else if ((String.class.isAssignableFrom(sourceType) || Long.class.isAssignableFrom(sourceType))
+                        && ClassUtils.isAssignable(targetType, Date.class)) {
+                    return EPOCH_TO_DATE_CONVERTER;
                 } else {
                     return super.lookup(sourceType, targetType);
                 }
