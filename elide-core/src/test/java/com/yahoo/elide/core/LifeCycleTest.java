@@ -227,7 +227,8 @@ public class LifeCycleTest {
     @Test
     public void testOnUpdate() {
         Book book = mock(Book.class);
-        RequestScope scope = new RequestScope(null, null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runCommitTriggers();

@@ -8,13 +8,12 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -150,32 +149,33 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity,
+                              String relationName,
+                              Optional<FilterExpression> filterExpression,
+                              Optional<Sorting> sorting,
+                              Optional<Pagination> pagination,
+                              RequestScope scope) {
+        return relationTx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
     }
 
     @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
+    public void setRelation(DataStoreTransaction relationTx,
+                            Object entity, String relationName, Object relationValue, RequestScope scope) {
+        relationTx.setRelation(relationTx, entity, relationName, relationValue, scope);
+    }
+
+    @Override
+    public Object getAttribute(Object entity,
+                               String attributeName, Optional<FilterExpression> filterExpression, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
+        return transaction.getAttribute(entity, attributeName, filterExpression, scope);
+    }
+
+    @Override
+    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        transaction.setAttribute(entity, attributeName, attributeValue, scope);
     }
 
     @Override

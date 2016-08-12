@@ -125,7 +125,7 @@ public class Elide {
                 ActivePermissionExecutor::new,
                 Collections.singletonList(new DefaultFilterDialect(dictionary)),
                 Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                false
+                true
         );
     }
 
@@ -151,7 +151,7 @@ public class Elide {
             ActivePermissionExecutor::new,
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            false
+            true
         );
     }
 
@@ -247,7 +247,7 @@ public class Elide {
                     permissionExecutorFunction,
                     joinFilterDialects,
                     subqueryFilterDialects,
-                    useFilterExpressions);
+                    true);
         }
 
         @Deprecated

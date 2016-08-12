@@ -26,7 +26,6 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -782,9 +781,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return uuid;
     }
 
-
     /**
-     * Load a single entity relation from the PersistentResource.
+     * Load a single entity relation from the PersistentResource. Example: GET /book/2
      *
      * @param relation the relation
      * @param id the id
@@ -989,17 +987,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         /* Otherwise use the Elide 2.0 interface */
         } else {
-
-            /* Convert the expression to a set of predicates */
-            Set<Predicate> filters;
-            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-            if (filterExpression.isPresent()) {
-                filters = filterExpression.get().accept(visitor);
-            } else {
-                filters = Collections.emptySet();
-            }
-            val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, relationClass, dictionary, filters);
+            throw new UnsupportedOperationException("elide 2.0 no longer supported");
         }
 
         if (val == null) {
@@ -1057,18 +1045,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         /* Otherwise use the Elide 2.0 interface */
         } else {
-            /* Convert the expression to a set of predicates */
-            Set<Predicate> filters;
-            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-            if (filterExpression.isPresent()) {
-                filters = filterExpression.get().accept(visitor);
-            } else {
-                filters = Collections.emptySet();
-            }
-
-            val = requestScope.getTransaction()
-                    .getRelationWithSortingAndPagination(obj, type, relationName, relationClass, dictionary,
-                            filters, requestScope.getSorting(), requestScope.getPagination());
+            throw new UnsupportedOperationException("elide 2.0 no longer supported");
         }
 
         if (val == null) {
@@ -1357,7 +1334,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Object getValueChecked(String fieldName) {
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
-        return getValue(getObject(), fieldName, dictionary);
+        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(getObject().getClass());
+        return transaction.getAttribute(getObject(), fieldName, filterExpression, requestScope);
     }
 
     /**
@@ -1367,7 +1345,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        return getValue(getObject(), fieldName, dictionary);
+        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(getObject().getClass());
+        return transaction.getAttribute(getObject(), fieldName, filterExpression, requestScope);
     }
 
     /**
