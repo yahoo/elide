@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.RequestScope;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -206,14 +207,19 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        EntityDictionary dictionary = scope.getDictionary();
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            return filteredVal;
-        }
+        try {
+            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            EntityDictionary dictionary = requestScope.getDictionary();
+            Object val = PersistentResource.getValue(entity, relationName, dictionary);
+            if (val instanceof Collection) {
+                Collection filteredVal = (Collection) val;
+                return filteredVal;
+            }
 
-        return val;
+            return val;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail trying to cast requestscope");
+        }
     };
 
 
@@ -243,8 +249,13 @@ public interface DataStoreTransaction extends Closeable {
             String attributeName,
             Optional<FilterExpression> filterExpression,
             RequestScope scope) {
-        Object val = PersistentResource.getValue(entity, attributeName, scope.getDictionary());
-        return val;
+        try {
+            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
+            return val;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail trying to cast requestscope");
+        }
     };
 
     /**

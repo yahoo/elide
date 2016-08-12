@@ -299,10 +299,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable<T> list;
-        Optional<FilterExpression> permissionFilter;
-        permissionFilter = requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
+        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
 
-        list = (Iterable<T>) tx.loadObjects(loadClass, permissionFilter,
+        list = (Iterable<T>) tx.loadObjects(loadClass, filterExpression,
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
@@ -346,11 +345,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable<T> list;
-        Optional<FilterExpression> permissionFilter = requestScope.getPermissionExecutor()
-                .getReadPermissionFilter(loadClass);
+        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
         Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
         Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
-        list = (Iterable<T>) tx.loadObjects(loadClass, permissionFilter, sorting, pagination, requestScope);
+        list = (Iterable<T>) tx.loadObjects(loadClass, filterExpression, sorting, pagination, requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         for (PersistentResource<T> resource : resources) {

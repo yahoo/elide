@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
@@ -152,42 +152,46 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        ParseTree permissions = scope.getDictionary().getPermissionsForClass(entityClass, ReadPermission.class);
-        Criterion securityCriterion = scope.getPermissionExecutor().getCriterion(permissions, NOT, AND, OR);
+        try {
+            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            ParseTree permissions = requestScope.getDictionary()
+                    .getPermissionsForClass(entityClass, ReadPermission.class);
+            Criterion securityCriterion = requestScope.getPermissionExecutor()
+                    .getCriterion(permissions, NOT, AND, OR);
 
-        Optional<FilterExpression> mergedFilterExpression =
-                scope.getLoadFilterExpression(entityClass, filterExpression);
-
-        Criteria criteria = session.createCriteria(entityClass);
-        if (securityCriterion != null) {
-            criteria.add(securityCriterion);
-        }
-
-        if (mergedFilterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(mergedFilterExpression.get());
-        }
-
-        Set<Order> validatedSortingRules = null;
-        if (sorting.isPresent()) {
-            if (!sorting.get().isDefaultInstance()) {
-                final EntityDictionary dictionary = scope.getDictionary();
-
-                validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
-                        .stream()
-                        .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
-                                ? Order.desc(entry.getKey())
-                                : Order.asc(entry.getKey())
-                        )
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
+            Criteria criteria = session.createCriteria(entityClass);
+            if (securityCriterion != null) {
+                criteria.add(securityCriterion);
             }
-        }
 
-        return loadObjects(
-                entityClass,
-                criteria,
-                Optional.ofNullable(validatedSortingRules),
-                pagination);
+            if (filterExpression.isPresent()) {
+                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+                criteria = filterOpn.apply(filterExpression.get());
+            }
+
+            Set<Order> validatedSortingRules = null;
+            if (sorting.isPresent()) {
+                if (!sorting.get().isDefaultInstance()) {
+                    final EntityDictionary dictionary = requestScope.getDictionary();
+
+                    validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
+                            .stream()
+                            .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
+                                    ? Order.desc(entry.getKey())
+                                    : Order.asc(entry.getKey())
+                            )
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                }
+            }
+
+            return loadObjects(
+                    entityClass,
+                    criteria,
+                    Optional.ofNullable(validatedSortingRules),
+                    pagination);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail casting requestscope");
+        }
     }
 
 
@@ -227,26 +231,32 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            if (filteredVal instanceof AbstractPersistentCollection) {
+        try {
+            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            EntityDictionary dictionary = requestScope.getDictionary();
+            Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+            if (val instanceof Collection) {
+                Collection filteredVal = (Collection) val;
+                if (filteredVal instanceof AbstractPersistentCollection) {
 
-                @SuppressWarnings("unchecked")
-                Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
-                final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                        dictionary)
-                        .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sorting)
-                        .withPossiblePagination(pagination)
-                        .build();
-                if (possibleQuery.isPresent()) {
-                    return possibleQuery.get().list();
+                    @SuppressWarnings("unchecked")
+                    Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+                    final Optional<Query> possibleQuery =
+                            new HQLTransaction.Builder<>(session, filteredVal, relationClass,
+                            dictionary)
+                            .withPossibleFilterExpression(filterExpression)
+                            .withPossibleSorting(sorting)
+                            .withPossiblePagination(pagination)
+                            .build();
+                    if (possibleQuery.isPresent()) {
+                        return possibleQuery.get().list();
+                    }
                 }
             }
+            return val;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail casting requestscope");
         }
-        return val;
     }
 
     @Override

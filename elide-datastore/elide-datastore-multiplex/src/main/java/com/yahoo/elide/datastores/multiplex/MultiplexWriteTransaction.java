@@ -9,7 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -98,7 +98,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                         transaction.save(cloned, requestScope);
                     }
                 }
-                transaction.commit(null);
+                transaction.commit(requestScope);
             } catch (RuntimeException | IOException e) {
                 cause.addSuppressed(e);
             }

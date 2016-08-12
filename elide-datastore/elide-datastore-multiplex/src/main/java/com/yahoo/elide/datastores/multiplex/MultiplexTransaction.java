@@ -9,7 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -177,11 +177,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
                 relationClass, dictionary, filters, sorting, pagination);
     }
-
-//    @Override
-//    public <T> Iterable<T> loadObjectsWithSortingAndPagination(Class<T> entityClass, FilterScope filterScope) {
-//        return getTransaction(entityClass).loadObjectsWithSortingAndPagination(entityClass, filterScope);
-//    }
 
     @Override
     public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
