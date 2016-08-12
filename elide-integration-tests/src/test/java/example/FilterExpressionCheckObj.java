@@ -89,11 +89,6 @@ public class FilterExpressionCheckObj {
             return createUserPredicate(requestScope, false, 1L);
         }
 
-        @Override
-        public boolean ok(com.yahoo.elide.security.User user) {
-            return true;
-        }
-
         public CheckRestrictUser() {
 
         }
@@ -110,11 +105,6 @@ public class FilterExpressionCheckObj {
             List<Object> value = new ArrayList<>();
             value.add((long) 2);
             return new Predicate(pathList, op, value);
-        }
-
-        @Override
-        public boolean ok(com.yahoo.elide.security.User user) {
-            return true;
         }
 
         public CheckLE() {

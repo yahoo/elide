@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -28,14 +26,17 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-
+import lombok.AllArgsConstructor;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import lombok.AllArgsConstructor;
-
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,11 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 
 public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
@@ -425,11 +422,6 @@ public class PermissionToFilterExpressionVisitorTest {
         @Override
         public Predicate getFilterExpression(RequestScope requestScope) {
             return createDummyPredicate();
-        }
-
-        @Override
-        public boolean ok(User user) {
-            return true;
         }
 
         public FilterExpressionCheck1() {

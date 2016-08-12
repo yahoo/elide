@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -32,6 +33,7 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
+import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
@@ -336,6 +338,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             return Collections.emptySet();
+        }
+
+        EntityDictionary dictionary = requestScope.getDictionary();
+        if (! requestScope.getPagination().isDefaultInstance()
+                && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
+            throw new InvalidPredicateException(String.format("Cannot paginate %s",
+                    dictionary.getJsonAliasFor(loadClass)));
         }
 
         Iterable<T> list;
@@ -878,6 +887,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private Set<PersistentResource> getRelationWithSortingAndPagination(String relationName, boolean checked) {
         if (checked && !checkRelation(relationName)) {
             return Collections.emptySet();
+        }
+
+        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+        if (! requestScope.getPagination().isDefaultInstance()
+                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
+            throw new InvalidPredicateException(String.format("Cannot paginate %s",
+                    dictionary.getJsonAliasFor(relationClass)));
         }
 
         Optional<FilterExpression> filterExpression = getExpressionForRelation(relationName);
