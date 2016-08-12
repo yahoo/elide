@@ -7,14 +7,11 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.security.RequestScope;
 
 import com.google.common.collect.Lists;
 
@@ -28,7 +25,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -191,44 +187,20 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = transaction
-                .getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity, String relationName,
+                              Optional<FilterExpression> filterExpression,
+                              Optional<Sorting> sorting,
+                              Optional<Pagination> pagination,
+                              RequestScope scope) {
+        Object relation = relationTx
+                .getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
 
         if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
+            return hold(relationTx, (Iterable) relation);
         }
 
-        return hold(transaction, relation);
-    }
+        return hold(relationTx, relation);
 
-    @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
-
-        if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable) relation);
-        }
-
-        return hold(transaction, relation);
     }
 }

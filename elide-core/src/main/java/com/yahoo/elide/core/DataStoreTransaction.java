@@ -168,27 +168,6 @@ public interface DataStoreTransaction extends Closeable {
         return collection;
     }
 
-    @Deprecated
-    default <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-
-            if (!filters.isEmpty()) {
-                filteredVal = filterCollection(filteredVal, relationClass, filters);
-            }
-            return filteredVal;
-        }
-        return val;
-    }
-
     /**
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
@@ -271,27 +250,4 @@ public interface DataStoreTransaction extends Closeable {
             RequestScope scope) {
     };
 
-
-    @Deprecated
-    default <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            Optional<Sorting> sortingRules = Optional.ofNullable(sorting);
-            Optional<Pagination> paginationRules = Optional.ofNullable(pagination);
-            filteredVal = filterCollectionWithSortingAndPagination(filteredVal, relationClass, dictionary,
-                    Optional.of(filters), sortingRules, paginationRules);
-            return filteredVal;
-        }
-        return val;
-    }
 }

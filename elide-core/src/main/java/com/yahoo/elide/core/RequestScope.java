@@ -189,7 +189,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 securityMode,
                 permissionExecutor,
                 new MultipleFilterDialect(dictionary),
-                false
+                true
         );
     }
 
@@ -213,7 +213,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 SecurityMode.SECURITY_ACTIVE,
                 null,
                 new MultipleFilterDialect(dictionary),
-                false
+                true
         );
     }
 
@@ -236,7 +236,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 SecurityMode.SECURITY_ACTIVE,
                 null,
                 new MultipleFilterDialect(dictionary),
-                false
+                true
         );
     }
 
