@@ -375,6 +375,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
+        Class<?> fieldClass = dictionary.getType(getResourceClass(), fieldName);
+        newVal =  coerce(newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (val != newVal && (val == null || !val.equals(newVal))) {
