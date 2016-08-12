@@ -34,9 +34,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -190,7 +187,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                 pagination,
                 scope);
     }
-
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
@@ -374,11 +370,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery =
                         new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                        dictionary)
-                        .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sorting)
-                        .withPossiblePagination(pagination)
-                        .build();
+                                dictionary)
+                                .withPossibleFilterExpression(filterExpression)
+                                .withPossibleSorting(sorting)
+                                .withPossiblePagination(pagination)
+                                .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
                 }
