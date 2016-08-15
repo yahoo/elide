@@ -1140,8 +1140,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     @Override
     public int hashCode() {
         if (hashCode == 0) {
-            final int prime = 31;
-            int result = 1;
             // NOTE: UUID's are only present in the case of newly created objects.
             // Consequently, a known ID will never be present during processing (only after commit
             // assigned by the DB) and so we can assume that any newly created object can be fully
@@ -1155,12 +1153,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             //         required, the user would be forced to provide a UUID anyway.
             String id = dictionary.getId(getObject());
             if (uuid.isPresent() && "0".equals(id)) {
-                result = prime * result + uuid.hashCode();
+                hashCode = Objects.hashCode(uuid);
             } else {
-                result = prime * result + (id == null ? 0 : id.hashCode());
+                hashCode = Objects.hashCode(id);
             }
-            result = prime * result + (type == null ? 0 : type.hashCode());
-            hashCode = result;
         }
         return hashCode;
     }

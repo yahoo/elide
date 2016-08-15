@@ -31,8 +31,6 @@ public class Pagination {
     public static final int DEFAULT_PAGE_LIMIT = 500;
     public static final int MAX_PAGE_LIMIT = 10000;
 
-    private static final Pagination DEFAULT_PAGINATION = new Pagination(new HashMap<>());
-
     // For specifying which page of records is to be returned in the response
     public static final String PAGE_NUMBER_KEY = "page[number]";
 
@@ -206,6 +204,9 @@ public class Pagination {
      * @return The default instance.
      */
     public static Pagination getDefaultPagination() {
-        return DEFAULT_PAGINATION;
+        Pagination defaultPagination = new Pagination(new HashMap<>());
+        defaultPagination.offset = DEFAULT_OFFSET;
+        defaultPagination.limit = DEFAULT_PAGE_LIMIT;
+        return defaultPagination;
     }
 }

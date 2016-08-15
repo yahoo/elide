@@ -88,8 +88,8 @@ public class PaginationLogicTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         queryParams.add("page[number]", "2");
         Pagination pageData = Pagination.parseQueryParams(queryParams);
-        Assert.assertEquals(pageData.getLimit(), 500);
-        Assert.assertEquals(pageData.getOffset(), 500);
+        Assert.assertEquals(pageData.getLimit(), Pagination.DEFAULT_PAGE_LIMIT);
+        Assert.assertEquals(pageData.getOffset(), Pagination.DEFAULT_PAGE_LIMIT);
     }
 
     @Test (expectedExceptions = InvalidValueException.class)
@@ -119,5 +119,15 @@ public class PaginationLogicTest {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
         Pagination pageData = Pagination.parseQueryParams(queryParams);
         Assert.assertFalse(pageData.isGenerateTotals());
+    }
+
+
+    @Test
+    public void shouldUseDefaultsWhenNoParams() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
+
+        Pagination pageData = Pagination.parseQueryParams(queryParams);
+        Assert.assertEquals(pageData.getOffset(), 0);
+        Assert.assertEquals(pageData.getLimit(), Pagination.DEFAULT_PAGE_LIMIT);
     }
 }
