@@ -361,8 +361,7 @@ public class Elide {
                     queryParams,
                     securityMode,
                     permissionExecutor,
-                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
-                    useFilterExpressions);
+                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             GetVisitor visitor = new GetVisitor(requestScope);

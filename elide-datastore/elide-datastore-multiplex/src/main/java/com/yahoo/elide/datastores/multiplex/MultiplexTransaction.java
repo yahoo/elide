@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -18,10 +17,8 @@ import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -89,11 +86,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                 scope);
     }
 
-    @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
-    }
 
     @Override
     public void flush(RequestScope requestScope) {
@@ -156,13 +148,32 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        return relationTx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
+        com.yahoo.elide.core.RequestScope requestScope;
+        try {
+            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail trying to cast requestscope");
+        }
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+        DataStoreTransaction subTransaction = getTransaction(relationClass);
+        return relationTx.getRelation(subTransaction, entity,
+                relationName, filterExpression, sorting, pagination, scope);
     }
 
     @Override
     public void setRelation(DataStoreTransaction relationTx,
                             Object entity, String relationName, Object relationValue, RequestScope scope) {
-        relationTx.setRelation(relationTx, entity, relationName, relationValue, scope);
+        com.yahoo.elide.core.RequestScope requestScope;
+        try {
+            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Fail trying to cast requestscope");
+        }
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+        DataStoreTransaction subTransaction = getTransaction(relationClass);
+        relationTx.setRelation(subTransaction, entity, relationName, relationValue, scope);
     }
 
     @Override
@@ -176,14 +187,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
         transaction.setAttribute(entity, attributeName, attributeValue, scope);
-    }
-
-    @Override
-    public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-            Optional<Pagination> pagination) {
-        return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
-                collection, entityClass, dictionary, filters, sorting, pagination);
     }
 
     @Override

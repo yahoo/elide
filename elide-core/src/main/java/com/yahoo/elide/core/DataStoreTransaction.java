@@ -5,18 +5,16 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Wraps the Database Transaction type.
@@ -134,40 +132,6 @@ public interface DataStoreTransaction extends Closeable {
 
 
     /**
-     * Filter a collection by the Predicates in filterScope.
-     *
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
-     * @param entityClass the class of the entities in the collection
-     * @param predicates  the set of Predicate's to filter by
-     * @return the filtered collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return collection;
-    }
-
-   /**
-     * Filter Sort and Paginate a collection in filterScope or requestScope.
-     * @param collection The collection
-     * @param dictionary The entity dictionary
-     * @param entityClass The class of the entities in the collection
-     * @param filters The optional set of Predicate's to filter by
-     * @param sorting The optional Sorting object
-     * @param pagination The optional Pagination object
-     * @param <T> The type parameter
-     * @return The optionally filtered, sorted and paginated collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-                                                          EntityDictionary dictionary, Optional<Set<Predicate>> filters,
-                                                          Optional<Sorting> sorting, Optional<Pagination> pagination) {
-        return collection;
-    }
-
-    /**
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
@@ -185,19 +149,20 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
+        com.yahoo.elide.core.RequestScope requestScope;
         try {
-            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
-            EntityDictionary dictionary = requestScope.getDictionary();
-            Object val = PersistentResource.getValue(entity, relationName, dictionary);
-            if (val instanceof Collection) {
-                Collection filteredVal = (Collection) val;
-                return filteredVal;
-            }
-
-            return val;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Object val = PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+            return filteredVal;
+        }
+
+        return val;
     };
 
 
@@ -227,13 +192,15 @@ public interface DataStoreTransaction extends Closeable {
             String attributeName,
             Optional<FilterExpression> filterExpression,
             RequestScope scope) {
+        com.yahoo.elide.core.RequestScope requestScope;
         try {
-            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
-            Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
-            return val;
+            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
+        Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
+        return val;
+
     };
 
     /**

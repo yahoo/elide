@@ -978,17 +978,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val;
 
-        /* If elide was configured for Elide 3.0 data store interface */
-        if (requestScope.useFilterExpressions()) {
-            String path = requestScope.getPath();
-            val = requestScope.getTransaction()
-                    .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,  Optional.empty(),
-                            Optional.empty(), requestScope);
-
-        /* Otherwise use the Elide 2.0 interface */
-        } else {
-            throw new UnsupportedOperationException("elide 2.0 no longer supported");
-        }
+        /* elide 3.0 only */
+        String path = requestScope.getPath();
+        val = requestScope.getTransaction()
+                .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,  Optional.empty(),
+                        Optional.empty(), requestScope);
 
         if (val == null) {
             return Collections.emptySet();
@@ -1020,6 +1014,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         if (permissionFilter.isPresent()) {
             if (filterExpression.isPresent()) {
@@ -1030,23 +1026,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filterExpression = permissionFilter;
             }
         }
-
         Object val;
 
         String path = requestScope.getPath();
-        /* If elide was configured for Elide 3.0 data store interface */
-        if (requestScope.useFilterExpressions()) {
-            val = requestScope.getTransaction()
-                    .getRelation(requestScope.getTransaction(), obj, relationName,
-                            filterExpression,
-                            Optional.ofNullable(requestScope.getSorting()),
-                            Optional.ofNullable(requestScope.getPagination()),
-                            requestScope);
-
-        /* Otherwise use the Elide 2.0 interface */
-        } else {
-            throw new UnsupportedOperationException("elide 2.0 no longer supported");
-        }
+        /* Elide 3.0 only */
+        val = requestScope.getTransaction()
+                .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,
+                        sorting, pagination, requestScope);
 
         if (val == null) {
             return Collections.emptySet();
