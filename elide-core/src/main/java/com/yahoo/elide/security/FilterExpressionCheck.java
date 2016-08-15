@@ -28,6 +28,12 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     public abstract FilterExpression getFilterExpression(RequestScope requestScope);
 
+    /* NOTE: Filter Expression checks and user checks are intended to be _distinct_ */
+    @Override
+    public final boolean ok(User user) {
+        throw new UnsupportedOperationException();
+    }
+
 
     /**
      * The filter expression is evaluated in memory if it cannot be pushed to the data store by elide for any reason.

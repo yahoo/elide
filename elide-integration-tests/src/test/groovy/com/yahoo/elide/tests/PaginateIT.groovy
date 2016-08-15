@@ -8,11 +8,9 @@ package com.yahoo.elide.tests;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.restassured.RestAssured
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import org.testng.Assert
 import org.testng.annotations.AfterClass
-import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test
 
@@ -29,8 +27,10 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     private String nullNedId = null
     private JsonNode nullNedBooks = null
     private String orsonCardId = null
+    private String parentId = null
     private Set<Integer> bookIds = new HashSet<>()
     private Set<Integer> authorIds = new HashSet<>()
+    private Set<Integer> childIds = new HashSet<>()
 
     private int entityWithoutPaginateCreateCount = 20
     private int entityWithPaginateCountableCreateCount = 5
@@ -44,6 +44,54 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
     @BeforeClass
     public void setup() {
+        RestAssured
+                .given()
+                .contentType("application/vnd.api+json; ext=jsonpatch")
+                .accept("application/vnd.api+json; ext=jsonpatch")
+                .body('''
+                    [
+                      {
+                        "op": "add",
+                        "path": "/parent",
+                        "value": {
+                          "id": "12345678-1234-1234-1234-1234567890ab",
+                          "type": "parent",
+                          "relationships": {
+                            "children": {
+                              "data": [
+                                {
+                                  "type": "child",
+                                  "id": "12345678-1234-1234-1234-1234567890ac"
+                                },
+                                {
+                                  "type": "child",
+                                  "id": "12345678-1234-1234-1234-1234567890ad"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/parent/12345678-1234-1234-1234-1234567890ab/children",
+                        "value": {
+                          "type": "child",
+                          "id": "12345678-1234-1234-1234-1234567890ac"
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/parent/12345678-1234-1234-1234-1234567890ab/children",
+                        "value": {
+                          "type": "child",
+                          "id": "12345678-1234-1234-1234-1234567890ad"
+                        }
+                      }
+                    ]
+                    ''')
+                .patch("/")
+
         RestAssured
                 .given()
                 .contentType("application/vnd.api+json; ext=jsonpatch")
@@ -291,6 +339,13 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         books = mapper.readTree(RestAssured.get("/book").asString())
         authors = mapper.readTree(RestAssured.get("/author").asString())
+        JsonNode parents = mapper.readTree(RestAssured.get("/parent").asString())
+
+        parentId = parents.get("data").get(0).get("id").asText()
+
+        for (JsonNode child : parents.get("data").get(0).get("relationships").get("children").get("data")) {
+            childIds.add(child.get("id").asInt())
+        }
 
         for (JsonNode author : authors.get("data")) {
             authorIds.add(author.get("id").asInt());
@@ -553,6 +608,28 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                 "Should complain about exceeding the pagination max limit");
     }
 
+    @Test
+    public void testPaginationNotPossibleAtRoot() {
+        def result = mapper.readTree(RestAssured.get("/parent?page[size]=1").asString());
+        Assert.assertEquals(result.get("errors").size(), 1);
+        JsonNode errors = result.get("errors").get(0);
+
+        String errorMsg = errors.asText();
+
+        Assert.assertEquals(errorMsg, "InvalidPredicateException: Cannot paginate parent");
+    }
+
+    @Test
+    public void testPaginationNotPossibleAtRelationship() {
+        def result = mapper.readTree(RestAssured.get("/parent/${parentId}/children?page[size]=1").asString());
+        Assert.assertEquals(result.get("errors").size(), 1);
+        JsonNode errors = result.get("errors").get(0);
+
+        String errorMsg = errors.asText();
+
+        Assert.assertEquals(errorMsg, "InvalidPredicateException: Cannot paginate child");
+    }
+
     @AfterClass
     public void cleanUp() {
         for (int id : authorIds) {
@@ -567,6 +644,17 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                     .accept("application/vnd.api+json; ext=jsonpatch")
                     .delete("/book/"+id)
         }
+        for (int id : childIds) {
+            RestAssured
+                    .given()
+                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .delete("/parent/"+parentId +"/"+id)
+        }
+        RestAssured
+            .given()
+            .accept("application/vnd.api+json; ext=jsonpatch")
+            .delete("/parent/"+parentId)
+
         for (int id : entityWithoutPaginateIds) {
             RestAssured
                     .given()

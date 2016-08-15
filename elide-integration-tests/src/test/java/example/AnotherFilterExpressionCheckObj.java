@@ -92,11 +92,6 @@ public class AnotherFilterExpressionCheckObj {
             return createFilterPredicate();
         }
 
-        @Override
-        public boolean ok(com.yahoo.elide.security.User user) {
-            return true;
-        }
-
         public CheckActsLikeFilter() {
 
         }
