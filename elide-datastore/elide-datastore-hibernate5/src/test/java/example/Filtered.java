@@ -87,6 +87,7 @@ public class Filtered  {
         @Override
         public Predicate getFilterExpression(RequestScope requestScope) {
             return getPredicateOfId(3L);
+
         }
     }
 }

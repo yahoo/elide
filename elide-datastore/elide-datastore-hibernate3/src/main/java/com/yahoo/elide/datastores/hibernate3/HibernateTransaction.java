@@ -375,6 +375,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                                 .withPossibleSorting(sorting)
                                 .withPossiblePagination(pagination)
                                 .build();
+
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
                 }
