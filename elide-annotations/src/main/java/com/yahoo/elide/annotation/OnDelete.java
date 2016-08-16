@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 
 /**
  * On Delete trigger annotation.
+ * The onDelete invoked function takes a Requestscope as parameter.
  */
 @Target({METHOD, FIELD})
 @Retention(RUNTIME)

@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 
 /**
  * On Update trigger annotation.
+ * The onUpdate invoked function takes a Requestscope as parameter.
  */
 @Target({METHOD, FIELD})
 @Retention(RUNTIME)
