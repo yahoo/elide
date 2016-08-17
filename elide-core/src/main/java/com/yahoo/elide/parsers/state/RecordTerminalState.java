@@ -115,9 +115,9 @@ public class RecordTerminalState extends BaseState {
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                String key = entry.getKey();
+                String fieldName = entry.getKey();
                 Object newVal = entry.getValue();
-                isUpdated |= record.updateAttribute(key, newVal);
+                isUpdated |= record.updateAttribute(fieldName, newVal);
             }
         }
 
@@ -125,12 +125,12 @@ public class RecordTerminalState extends BaseState {
         Map<String, Relationship> relationships = resource.getRelationships();
         if (relationships != null) {
             for (Map.Entry<String, Relationship> entry : relationships.entrySet()) {
-                String key = entry.getKey();
+                String fieldName = entry.getKey();
                 Relationship relationship = entry.getValue();
                 Set<PersistentResource> resources = (relationship == null)
                                                     ? null
                                                     : relationship.toPersistentResources(requestScope);
-                isUpdated |= record.updateRelation(key, resources);
+                isUpdated |= record.updateRelation(fieldName, resources);
             }
         }
 

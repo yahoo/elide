@@ -180,9 +180,9 @@ public class CollectionTerminalState extends BaseState {
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                String key = entry.getKey();
+                String fieldName = entry.getKey();
                 Object val = entry.getValue();
-                pResource.updateAttribute(key, val);
+                pResource.updateAttribute(fieldName, val);
             }
         }
 
