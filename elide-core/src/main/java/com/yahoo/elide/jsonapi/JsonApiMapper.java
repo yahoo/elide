@@ -33,6 +33,17 @@ public class JsonApiMapper {
     }
 
     /**
+     * Instantiates a new Json Api Mapper.
+     *
+     * @param dictionary the dictionary
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
+     */
+    public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
+        this.mapper = mapper;
+        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+    }
+
+    /**
      * Write out JSON API Document as a string.
      *
      * @param jsonApiDocument the json api document
