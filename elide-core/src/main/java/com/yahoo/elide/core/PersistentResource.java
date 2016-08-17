@@ -398,6 +398,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (val != newVal && (val == null || !val.equals(newVal))) {
             this.setValueChecked(fieldName, newVal);
             this.markDirty();
+            //Hooks for customize logic for setAttribute/Relation
+            if (dictionary.isAttribute(obj.getClass(), fieldName)) {
+                transaction.setAttribute(obj, fieldName, newVal, requestScope);
+            }
             return true;
         }
         return false;
@@ -1473,11 +1477,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } catch (NoSuchFieldException | IllegalAccessException noField) {
                 throw new InvalidAttributeException(fieldName, type);
             }
-        }
-
-        //Hooks for customize logic for setAttribute/Relation
-        if (dictionary.isAttribute(targetClass, fieldName)) {
-            transaction.setAttribute(obj, fieldName, value, requestScope);
         }
 
         runTriggers(OnUpdate.class, fieldName);
