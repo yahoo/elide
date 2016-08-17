@@ -11,7 +11,7 @@ package com.yahoo.elide.core.filter.dialect;
 public class ParseException extends Exception {
     private String message;
 
-    ParseException(String message) {
+    public ParseException(String message) {
         this.message = message;
     }
 
