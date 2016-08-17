@@ -429,6 +429,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ReadPermission.class,
                 (Set) getRelationUncheckedUnfiltered(fieldName)
         );
+        boolean isUpdated;
         if (type.isToMany()) {
             checkFieldAwareDeferPermissions(
                     UpdatePermission.class,
@@ -436,7 +437,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     resourceIdentifiers.stream().map(PersistentResource::getObject).collect(Collectors.toList()),
                     resources.stream().map(PersistentResource::getObject).collect(Collectors.toList())
             );
-            return updateToManyRelation(fieldName, resourceIdentifiers, resources);
+            isUpdated = updateToManyRelation(fieldName, resourceIdentifiers, resources);
         } else { // To One Relationship
             PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
             Object original = (resource == null) ? null : resource.getObject();
@@ -445,8 +446,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                             : resourceIdentifiers.iterator().next();
             Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
             checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
-            return updateToOneRelation(fieldName, resourceIdentifiers, resources);
+            isUpdated = updateToOneRelation(fieldName, resourceIdentifiers, resources);
         }
+
+        //Hook for setRelation
+        Object relationVal = this.getValueUnchecked(fieldName);
+        Class<?> targetClass = obj.getClass();
+        if (dictionary.isRelation(targetClass, fieldName)) {
+            transaction.setRelation(transaction, obj, fieldName, relationVal, requestScope);
+        }
+        return isUpdated;
     }
 
     /**
@@ -510,12 +519,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 });
 
 
-        //Hook for setRelation
-        Class<?> targetClass = obj.getClass();
-        if (dictionary.isRelation(targetClass, fieldName)) {
-            transaction.setRelation(transaction, obj, fieldName, collection, requestScope);
-        }
-
         if (!updated.isEmpty()) {
             this.markDirty();
         }
@@ -567,12 +570,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         this.setValueChecked(fieldName, newValue);
 
-        //Hook for serRelation
-        Class<?> targetClass = obj.getClass();
-        if (dictionary.isRelation(targetClass, fieldName)) {
-            transaction.setRelation(transaction, obj, fieldName, newValue, requestScope);
-        }
-
         this.markDirty();
         return true;
     }
@@ -623,6 +620,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
+        //Hook for setRelation
+        Object relationVal = this.getValueUnchecked(relationName);
+        Class<?> targetClass = obj.getClass();
+        if (dictionary.isRelation(targetClass, relationName)) {
+            transaction.setRelation(transaction, obj, relationName, relationVal, requestScope);
+        }
         return true;
     }
 
@@ -673,6 +676,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (original != modified && original != null && !original.equals(modified)) {
             this.markDirty();
         }
+
+        //Hook for setRelation
+        Object relationVal = this.getValueUnchecked(fieldName);
+        Class<?> targetClass = obj.getClass();
+        if (dictionary.isRelation(targetClass, fieldName)) {
+            transaction.setRelation(transaction, obj, fieldName, relationVal, requestScope);
+        }
     }
 
     /**
@@ -689,6 +699,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (addToCollection((Collection) relation, fieldName, newRelation)) {
                 this.markDirty();
             }
+
+            //Hook for setRelation
+            Object relationVal = this.getValueUnchecked(fieldName);
+            Class<?> targetClass = obj.getClass();
+            if (dictionary.isRelation(targetClass, fieldName)) {
+                transaction.setRelation(transaction, obj, fieldName, relationVal, requestScope);
+            }
+
             addInverseRelation(fieldName, newRelation.getObject());
         } else {
             // Not a collection, but may be trying to create a ToOne relationship.
@@ -1616,6 +1634,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
             inverseResource.markDirty();
+            //Hook for setRelation
+            Object relationVal = inverseResource.getValueUnchecked(inverseRelationName);
+            Class<?> targetClass = inverseEntity.getClass();
+            if (dictionary.isRelation(targetClass, inverseRelationName)) {
+                transaction.setRelation(transaction, inverseEntity, inverseRelationName, relationVal, requestScope);
+            }
         }
     }
 
@@ -1656,6 +1680,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 throw new InternalServerErrorException("Relationship type mismatch");
             }
             inverseResource.markDirty();
+            //Hook for setRelation
+            Object relationVal = inverseResource.getValueUnchecked(inverseRelationName);
+            Class<?> targetClass = inverseEntity.getClass();
+            if (dictionary.isRelation(targetClass, inverseRelationName)) {
+                transaction.setRelation(transaction, inverseEntity, inverseRelationName, relationVal, requestScope);
+            }
         }
     }
 
