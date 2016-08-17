@@ -26,4 +26,11 @@ public abstract class AuditLogger {
     }
 
     public abstract void commit() throws IOException;
+
+    public void clear() {
+        List<LogMessage> remainingMessages = messages.get();
+        if (remainingMessages != null) {
+            remainingMessages.clear();
+        }
+    }
 }
