@@ -57,7 +57,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
             sb.append(ALIAS_DELIM);
             sb.append(element.getFieldName());
         }
-        return sb.toString();
+        return sb.toString().replace('-', '_');
     }
 
     /**
