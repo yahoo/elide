@@ -5,17 +5,22 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+
+import org.testng.annotations.Test;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.testng.annotations.Test;
 
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 
 public class CoerceUtilTest {
 
@@ -39,7 +44,7 @@ public class CoerceUtilTest {
                      "coerce returns value if value is null");
 
         assertEquals((Object) CoerceUtil.coerce(1, int.class), 1,
-                     "coerce returns value if value is assignable to target");
+                "coerce returns value if value is assignable to target");
     }
 
     @Test
@@ -53,13 +58,13 @@ public class CoerceUtilTest {
     public void testBasicConversion() throws Exception {
 
         assertEquals(CoerceUtil.coerce(1, String.class), "1",
-                     "coerce converts int to String");
+                "coerce converts int to String");
 
         assertEquals(CoerceUtil.coerce("1", Long.class), Long.valueOf("1"),
-                     "coerce converts String to Long");
+                "coerce converts String to Long");
 
         assertEquals((Object) CoerceUtil.coerce(1.0, int.class), 1,
-                     "coerce converts float to int");
+                "coerce converts float to int");
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
@@ -102,5 +107,20 @@ public class CoerceUtilTest {
     @Test
     public void testNullConversion() throws Exception {
         assertNull(CoerceUtil.coerce(null, String.class));
+    }
+
+    @Test
+    public void testStringToDate() throws Exception {
+        Date date = CoerceUtil.coerce("1", Date.class);
+        assertEquals(date, new Date(1));
+
+        java.sql.Date date1 = CoerceUtil.coerce("1", java.sql.Date.class);
+        assertEquals(date1, new java.sql.Date(1));
+
+        Timestamp timestamp = CoerceUtil.coerce("1", Timestamp.class);
+        assertEquals(timestamp, new Timestamp(1));
+
+        Time time = CoerceUtil.coerce("1", Time.class);
+        assertEquals(time, new Time(1));
     }
 }
