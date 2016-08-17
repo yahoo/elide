@@ -183,14 +183,11 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * @param entity - The object which owns the attribute.
      * @param attributeName - name of the attribute.
-     * @param filterExpression - securing filtering which can be pushed down to the data store.
-     *                         It is optional for the data store to attempt evaluation.
      * @param scope - contains request level metadata.
      */
     default Object getAttribute(
             Object entity,
             String attributeName,
-            Optional<FilterExpression> filterExpression,
             RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {

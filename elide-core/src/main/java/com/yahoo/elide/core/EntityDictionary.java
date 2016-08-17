@@ -807,4 +807,12 @@ public class EntityDictionary {
         }
         return fields;
     }
+
+    public boolean isRelation(Class<?> entityClass, String relationName) {
+        return getEntityBinding(entityClass).relationships.contains(relationName);
+    }
+
+    public boolean isAttribute(Class<?> entityClass, String attributeName) {
+        return getEntityBinding(entityClass).attributes.contains(attributeName);
+    }
 }

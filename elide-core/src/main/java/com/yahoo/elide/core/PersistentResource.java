@@ -510,6 +510,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 });
 
 
+        //Hook for setRelation
+        Class<?> targetClass = obj.getClass();
+        if (dictionary.isRelation(targetClass, fieldName)) {
+            transaction.setRelation(transaction, obj, fieldName, collection, requestScope);
+        }
+
         if (!updated.isEmpty()) {
             this.markDirty();
         }
@@ -560,6 +566,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         this.setValueChecked(fieldName, newValue);
+
+        //Hook for serRelation
+        Class<?> targetClass = obj.getClass();
+        if (dictionary.isRelation(targetClass, fieldName)) {
+            transaction.setRelation(transaction, obj, fieldName, newValue, requestScope);
+        }
 
         this.markDirty();
         return true;
@@ -1320,8 +1332,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Object getValueChecked(String fieldName) {
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
-        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(getObject().getClass());
-        return transaction.getAttribute(getObject(), fieldName, filterExpression, requestScope);
+        return transaction.getAttribute(getObject(), fieldName, requestScope);
     }
 
     /**
@@ -1331,8 +1342,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(getObject().getClass());
-        return transaction.getAttribute(getObject(), fieldName, filterExpression, requestScope);
+        return transaction.getAttribute(getObject(), fieldName, requestScope);
     }
 
     /**
@@ -1447,6 +1457,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
+        //Hooks for customize logic for setAttribute/Relation
+        if (dictionary.isAttribute(targetClass, fieldName)) {
+            transaction.setAttribute(obj, fieldName, value, requestScope);
+        }
+
         runTriggers(OnUpdate.class, fieldName);
         this.requestScope.queueCommitTrigger(this, fieldName);
         auditField(new ChangeSpec(this, fieldName, original, value));
@@ -1463,9 +1478,16 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (Method method : methods) {
             try {
                 method.invoke(obj, requestScope);
+            } catch (IllegalArgumentException exception) {
+                try {
+                    method.invoke(obj);
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalArgumentException(e);
+                }
             } catch (ReflectiveOperationException e) {
                 throw new IllegalArgumentException(e);
             }
+
         }
     }
 

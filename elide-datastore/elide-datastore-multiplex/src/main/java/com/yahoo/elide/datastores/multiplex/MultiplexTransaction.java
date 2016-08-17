@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -148,39 +147,23 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-        EntityDictionary dictionary = requestScope.getDictionary();
-        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
-        DataStoreTransaction subTransaction = getTransaction(relationClass);
-        return relationTx.getRelation(subTransaction, entity,
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        return entityTransaction.getRelation(relationTx, entity,
                 relationName, filterExpression, sorting, pagination, scope);
     }
 
     @Override
     public void setRelation(DataStoreTransaction relationTx,
                             Object entity, String relationName, Object relationValue, RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-        EntityDictionary dictionary = requestScope.getDictionary();
-        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
-        DataStoreTransaction subTransaction = getTransaction(relationClass);
-        relationTx.setRelation(subTransaction, entity, relationName, relationValue, scope);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.setRelation(relationTx, entity, relationName, relationValue, scope);
     }
 
     @Override
     public Object getAttribute(Object entity,
-                               String attributeName, Optional<FilterExpression> filterExpression, RequestScope scope) {
+                               String attributeName, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getAttribute(entity, attributeName, filterExpression, scope);
+        return transaction.getAttribute(entity, attributeName, scope);
     }
 
     @Override
