@@ -13,15 +13,21 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import lombok.Getter;
-import lombok.Setter;
-
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -35,14 +41,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -68,6 +66,7 @@ class EntityBinding {
 
     public final ConcurrentHashMap<String, RelationshipType> relationshipTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
     public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
@@ -208,24 +207,31 @@ class EntityBinding {
             fieldList = relationshipsDeque;
             RelationshipType type;
             String mappedBy;
+            CascadeType [] cascadeTypes;
             if (oneToMany) {
                 type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_MANY : RelationshipType.ONE_TO_MANY;
                 mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
+                cascadeTypes = fieldOrMethod.getAnnotation(OneToMany.class).cascade();
             } else if (oneToOne) {
                 type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_ONE : RelationshipType.ONE_TO_ONE;
                 mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
+                cascadeTypes = fieldOrMethod.getAnnotation(OneToOne.class).cascade();
             } else if (manyToMany) {
                 type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_MANY : RelationshipType.MANY_TO_MANY;
                 mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
+                cascadeTypes = fieldOrMethod.getAnnotation(ManyToMany.class).cascade();
             } else if (manyToOne) {
                 type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
                 mappedBy = "";
+                cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
             } else {
                 type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE;
                 mappedBy = "";
+                cascadeTypes = new CascadeType[0];
             }
             relationshipTypes.put(fieldName, type);
             relationshipToInverse.put(fieldName, mappedBy);
+            relationshipToCascadeTypes.put(fieldName, cascadeTypes);
         } else {
             fieldList = attributesDeque;
         }

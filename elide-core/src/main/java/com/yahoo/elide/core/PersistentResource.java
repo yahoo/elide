@@ -712,6 +712,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Map<String, Relationship> relations = getRelationships();
         for (Map.Entry<String, Relationship> entry : relations.entrySet()) {
             String relationName = entry.getKey();
+
+            /* Skip updating inverse relationships for deletes which are cascaded */
+            if (dictionary.cascadeDeletes(getResourceClass(), relationName)) {
+                continue;
+            }
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!inverseRelationName.equals("")) {
                 for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
