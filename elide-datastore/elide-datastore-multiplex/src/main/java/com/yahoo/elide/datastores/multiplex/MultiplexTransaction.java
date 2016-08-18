@@ -141,14 +141,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return transaction;
     }
 
-    protected DataStoreTransaction getRelationTransaction(Object object, String relationName, RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-        EntityDictionary dictionary = requestScope.getDictionary();
+    protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
+        EntityDictionary dictionary = multiplexManager.getDictionary();
         Class<?> relationClass = dictionary.getParameterizedType(object, relationName);
         return getTransaction(relationClass);
     }
@@ -161,7 +155,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName, scope);
+        relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
         return entityTransaction.getRelation(relationTx, entity,
                 relationName, filterExpression, sorting, pagination, scope);
@@ -173,7 +167,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                      Set<Object> newRelationships,
                                      Set<Object> deletedRelationships,
                                      RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName, scope);
+        relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
         entityTransaction.updateToManyRelation(relationTx, entity, relationName,
                 newRelationships, deletedRelationships, scope);
@@ -182,7 +176,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
                                     String relationName, Object relationshipValue, RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName, scope);
+        relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
         entityTransaction.updateToOneRelation(relationTx, entity, relationName,
                 relationshipValue, scope);

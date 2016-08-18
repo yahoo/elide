@@ -1498,7 +1498,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Collection<Method> methods = dictionary.getTriggers(targetClass, annotationClass, fieldName);
         for (Method method : methods) {
             try {
-                if (method.getParameterCount() != 0) {
+                if (method.getParameterCount() == 1) {
                     method.invoke(obj, requestScope);
                 } else {
                     method.invoke(obj);

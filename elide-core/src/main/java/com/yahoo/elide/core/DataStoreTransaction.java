@@ -168,6 +168,8 @@ public interface DataStoreTransaction extends Closeable {
 
 
     /**
+     * Elide core will update the in memory representation of the objects to the requested state.
+     * These functions allow a data store to optionally persist the relationship if needed.
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
@@ -183,6 +185,8 @@ public interface DataStoreTransaction extends Closeable {
                                       RequestScope scope) { };
 
     /**
+     * Elide core will update the in memory representation of the objects to the requested state.
+     * These functions allow a data store to optionally persist the relationship if needed.
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
