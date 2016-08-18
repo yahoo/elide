@@ -175,6 +175,7 @@
                             <configuration>
                                 <port>${mysql.port}</port>
                                 <data>${mysql.data.directory}</data>
+                                <socket>/tmp/elide.sock</socket>
                             </configuration>
                         </execution>
                     </executions>
