@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -153,10 +154,22 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void setRelation(DataStoreTransaction relationTx,
-                            Object entity, String relationName, Object relationValue, RequestScope scope) {
+    public void updateToManyRelation(DataStoreTransaction relationTx,
+                                     Object entity, String relationName,
+                                     Set<Object> newRelationships,
+                                     Set<Object> deletedRelationships,
+                                     RequestScope scope) {
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
-        entityTransaction.setRelation(relationTx, entity, relationName, relationValue, scope);
+        entityTransaction.updateToManyRelation(relationTx, entity, relationName,
+                newRelationships, deletedRelationships, scope);
+    }
+
+    @Override
+    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
+                                    String relationName, Object relationshipValue, RequestScope scope) {
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.updateToOneRelation(relationTx, entity, relationName,
+                relationshipValue, scope);
     }
 
     @Override

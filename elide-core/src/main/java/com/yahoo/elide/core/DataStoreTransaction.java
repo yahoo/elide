@@ -15,6 +15,7 @@ import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Wraps the Database Transaction type.
@@ -166,19 +167,18 @@ public interface DataStoreTransaction extends Closeable {
     };
 
 
-    /**
-     * @param relationTx - The datastore that governs objects of the relationhip's type.
-     * @param entity - The object which owns the relationship.
-     * @param relationName - name of the relationship.
-     * @param relationValue - the desired contents of the relationship.
-     * @param scope - contains request level metadata.
-     */
-    default void setRelation(
-            DataStoreTransaction relationTx,
-            Object entity,
-            String relationName,
-            Object relationValue,
-            RequestScope scope) { }
+    default void updateToManyRelation(DataStoreTransaction relationTx,
+                                      Object entity,
+                                      String relationName,
+                                      Set<Object> newRelationships,
+                                      Set<Object> deletedRelationships,
+                                      RequestScope scope) { };
+
+    default void updateToOneRelation(DataStoreTransaction relationTx,
+                                     Object entity,
+                                     String relationName,
+                                     Object relationshipValue,
+                                     RequestScope scope) { };
 
     /**
      * @param entity - The object which owns the attribute.
