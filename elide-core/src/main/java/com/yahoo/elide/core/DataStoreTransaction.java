@@ -167,6 +167,14 @@ public interface DataStoreTransaction extends Closeable {
     };
 
 
+    /**
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param newRelationships - the set of the added relationship to the collection.
+     * @param deletedRelationships - the set of the deleted relationship to the collection.
+     * @param scope - contains request level metadata.
+     */
     default void updateToManyRelation(DataStoreTransaction relationTx,
                                       Object entity,
                                       String relationName,
@@ -174,6 +182,13 @@ public interface DataStoreTransaction extends Closeable {
                                       Set<Object> deletedRelationships,
                                       RequestScope scope) { };
 
+    /**
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param relationshipValue - the new value of the updated one-to-one relationship
+     * @param scope - contains request level metadata.
+     */
     default void updateToOneRelation(DataStoreTransaction relationTx,
                                      Object entity,
                                      String relationName,
