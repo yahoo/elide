@@ -737,8 +737,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test(priority = 11)
     public void testDeleteParent() {
-        //Should work without content-type and body
         given()
+            .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .delete("/parent/1")
             .then()
