@@ -33,7 +33,7 @@ import java.util.Set;
 @CreatePermission(any = { InitCheck.class })
 @SharePermission(any = {Role.ALL.class})
 @ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class})
-@Include
+@Include(rootLevel = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",
