@@ -610,13 +610,13 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testPaginationNotPossibleAtRoot() {
-        def result = mapper.readTree(RestAssured.get("/parent?page[size]=1").asString());
+        def result = mapper.readTree(RestAssured.get("/child?page[size]=1").asString());
         Assert.assertEquals(result.get("errors").size(), 1);
         JsonNode errors = result.get("errors").get(0);
 
         String errorMsg = errors.asText();
 
-        Assert.assertEquals(errorMsg, "InvalidPredicateException: Cannot paginate parent");
+        Assert.assertEquals(errorMsg, "InvalidPredicateException: Cannot paginate child");
     }
 
     @Test
