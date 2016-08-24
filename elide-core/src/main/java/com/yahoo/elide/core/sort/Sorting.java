@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
@@ -64,6 +65,17 @@ public class Sorting {
                                 + " doesn't contain the field " + sortRule);
                     }
                 } else {
+                    // Not all relationships work with Elide sorting
+                    RelationshipType relationshipType =
+                            dictionary.getRelationshipType(precedingEntityClass, ruleParts[i]);
+                    if (relationshipType != RelationshipType.ONE_TO_ONE
+                            && relationshipType != RelationshipType.MANY_TO_ONE
+                            && relationshipType != RelationshipType.ONE_TO_MANY
+                        && relationshipType != RelationshipType.MANY_TO_MANY) {
+                        throw new InvalidValueException("sorting rule not supported - " + entityClass.getSimpleName()
+                                + " relationship with " + ruleParts[i] + " is " + relationshipType
+                                + ", must be OneToOne, ManyToOne, OneToMany or ManyToMany");
+                    }
                     // All parts but the last in the sort rule must be validly related entities
                     precedingEntityClass = dictionary.getParameterizedType(precedingEntityClass, ruleParts[i]);
                     if (precedingEntityClass == null) {
