@@ -5,6 +5,7 @@
  */
 package example;
 
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -15,27 +16,36 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import java.util.Collection;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
-@Include(rootLevel = true, type = "chapter")
+@Include(rootLevel = true)
 @SharePermission(all = {Role.ALL.class})
+@Getter
 @Setter
-public class Chapter {
-    private Long id;
-    @Getter private String title;
-
-    private Collection<Book> books;
+public class Territory {
+    private long id;
+    private String name;
+    private Country country;
+    private HeadOfGovernment headOfGovernment;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    @ManyToMany(mappedBy = "chapters")
-    public Collection<Book> getBooks() {
-        return books;
+    @OneToOne
+    @JoinColumn(name = "head_of_government_id")
+    public HeadOfGovernment getHeadOfGovernment() {
+        return headOfGovernment;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "country_id")
+    public Country getCountry() {
+        return country;
     }
 }

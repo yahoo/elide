@@ -5,6 +5,7 @@
  */
 package example;
 
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -19,23 +20,24 @@ import javax.persistence.ManyToMany;
 import java.util.Collection;
 
 @Entity
-@Include(rootLevel = true, type = "chapter")
+@Include(rootLevel = true)
 @SharePermission(all = {Role.ALL.class})
+@Getter
 @Setter
-public class Chapter {
-    private Long id;
-    @Getter private String title;
-
-    private Collection<Book> books;
+public class OlympicGames {
+    private long id;
+    private String location;
+    private Integer year;
+    private Collection<Country> countries;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    @ManyToMany(mappedBy = "chapters")
-    public Collection<Book> getBooks() {
-        return books;
+    @ManyToMany(mappedBy = "olympicGames")
+    public Collection<Country> getCountries() {
+        return countries;
     }
 }

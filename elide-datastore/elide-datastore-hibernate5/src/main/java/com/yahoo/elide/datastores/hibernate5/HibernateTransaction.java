@@ -33,13 +33,16 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 /**
@@ -137,7 +140,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
             if (filterExpression.isPresent()) {
                 CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-                criteria = filterOpn.apply(filterExpression.get());
+                filterOpn.apply(filterExpression.get());
             }
             T record = (T) criteria.uniqueResult();
             return record;
@@ -179,10 +182,10 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         if (filterExpression.isPresent()) {
             CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(filterExpression.get());
+            filterOpn.apply(filterExpression.get());
         }
 
-        return loadObjects(loadClass, criteria, Optional.empty(), Optional.empty());
+        return loadObjects(loadClass, criteria, Optional.empty());
     }
 
     @Override
@@ -197,49 +200,93 @@ public class HibernateTransaction implements DataStoreTransaction {
             criteria.add(securityCriterion);
         }
 
+        Set<String> createdAliases = null;
         if (filterExpression.isPresent()) {
             CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(filterExpression.get());
+            createdAliases = filterOpn.apply(filterExpression.get());
         }
 
         final Pagination pagination = filterScope.getRequestScope().getPagination();
 
-        // if we have sorting and sorting isn't empty, then we should pull dictionary to validate the sorting rules
-        Set<Order> validatedSortingRules = null;
         if (filterScope.hasSortingRules()) {
             final Sorting sorting = filterScope.getRequestScope().getSorting();
             final EntityDictionary dictionary = filterScope.getRequestScope().getDictionary();
-            validatedSortingRules = sorting.getValidSortingRules(entityClass, dictionary).entrySet()
-                    .stream()
-                    .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
-                            ? Order.desc(entry.getKey())
-                            : Order.asc(entry.getKey())
-                    )
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            applySorting(entityClass, criteria,
+                    sorting, dictionary, createdAliases);
         }
 
         return loadObjects(
                 entityClass,
                 criteria,
-                Optional.ofNullable(validatedSortingRules),
                 Optional.ofNullable(pagination));
+    }
+
+    /**
+     * Apply the sorting rules, defining additional joins as required. This supports sorting on related entity
+     * attributes.
+     * @param entityClass class of query object
+     * @param sorting contains sorting info for the query
+     * @param dictionary entity dictionary
+     * @param prevCreatedAliases Set of join aliases previously created
+     */
+    public <T> Set<String> applySorting(Class<T> entityClass, Criteria criteria,
+                                        Sorting sorting, EntityDictionary dictionary, Set<String> prevCreatedAliases) {
+
+        final String entityTypeName = dictionary.getJsonAliasFor(entityClass);
+        final Set<String> createdAliases = prevCreatedAliases != null
+                ? new HashSet<>(prevCreatedAliases)
+                : new HashSet<>();
+
+        // Validate the sorting rules then set the query ordering
+        sorting.getValidSortingRules(entityClass, dictionary).entrySet()
+                .stream()
+                .forEach(entry -> {
+                    // Last element of a sorting rule is always an entity attribute.
+                    // Preceding elements, if any, represent entity relationships/joins.
+                    String sortRule = entry.getKey();
+                    List<String> joinPath = new LinkedList<>(Arrays.asList(sortRule.split("\\.")));
+                    String attribute = joinPath.remove(joinPath.size() - 1);
+
+                    // Create the join Criteria needed for each entity relationship. Joins previously created for
+                    // filtering must be reused.
+                    String aliasSortRule = null;
+                    if (joinPath.size() > 0) {
+                        String alias = joinPath.stream()
+                                .reduce(entityTypeName,
+                                        (path, elem) -> path + CriterionFilterOperation.ALIAS_DELIM + elem);
+                        String associationPath = joinPath.stream()
+                                .reduce("", (path, elem) -> path + (path.length() > 0 ? "." : "") + elem);
+                        if (!createdAliases.contains(alias)) {
+                            criteria.createAlias(associationPath, alias);
+                            createdAliases.add(alias);
+                        }
+                        // The path in the sorting rule must use the alias for the join path to the entity whose
+                        // attribute is being sorted.
+                        aliasSortRule = alias + '.' + attribute;
+                    }
+                    else {
+                        // No joins used with sorting, so simply use the attribute
+                        aliasSortRule = attribute;
+                    }
+                    Order order = entry.getValue().equals(Sorting.SortOrder.asc)
+                            ? Order.asc(aliasSortRule)
+                            : Order.desc(aliasSortRule);
+
+                    criteria.addOrder(order);
+                });
+        return createdAliases;
     }
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
      * @param criteria Filtering criteria
-     * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
      * @return The Iterable for Hibernate.
      */
     public <T> Iterable<T> loadObjects(final Class<T> loadClass, final Criteria criteria,
-            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
-        if (sortingRules.isPresent()) {
-            sortingRules.get().forEach(criteria::addOrder);
-        }
-
+            final Optional<Pagination> pagination) {
         if (pagination.isPresent()) {
             final Pagination paginationData = pagination.get();
             paginationData.evaluate(loadClass);

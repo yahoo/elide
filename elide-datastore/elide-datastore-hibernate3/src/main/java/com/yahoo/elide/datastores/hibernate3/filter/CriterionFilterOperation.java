@@ -32,7 +32,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
     private final Criteria criteria;
 
-    private static String ALIAS_DELIM = "__";
+    public static String ALIAS_DELIM = "__";
 
     public CriterionFilterOperation(Criteria criteria) {
         this.criteria = criteria;
@@ -136,7 +136,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         return result;
     }
 
-    public Criteria apply(FilterExpression filterExpression) {
+    public Set<String> apply(FilterExpression filterExpression) {
         CriteriaVisitor visitor = new CriteriaVisitor();
         Criterion restrictions = filterExpression.accept(visitor);
 
@@ -161,7 +161,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         }
 
         criteria.add(restrictions);
-        return criteria;
+        return createdAliases;
     }
 
     /**

@@ -6,12 +6,12 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,7 +39,8 @@ public class Sorting {
     }
 
     /**
-     * Checks to see if the sorting rules are valid for the given JPA class.
+     * Checks to see if the sorting rules are valid for the given JPA class. Sorting rules may contain related
+     * entities.
      * @param entityClass The target jpa entity
      * @param dictionary The elide entity dictionary
      * @param <T> The Type of the target entity
@@ -49,11 +50,39 @@ public class Sorting {
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
                                         final EntityDictionary dictionary) throws InvalidValueException {
 
-        final List<String> entities = dictionary.getAttributes(entityClass);
         sortRules.keySet().stream().forEachOrdered(sortRule -> {
-            if (!entities.contains(sortRule)) {
-                throw new InvalidValueException(entityClass.getSimpleName()
-                        + " doesn't contain the field " + sortRule);
+
+            // Get all parts of the sort rule. Last part is an entity attribute. Preceding parts are related entities.
+            final String[] ruleParts = sortRule.split("\\.");
+
+            Class<?> precedingEntityClass = entityClass;
+
+            for (int i = 0; i < ruleParts.length; ++i) {
+                if (i == (ruleParts.length - 1)) {
+                    // Last part of the sort rule must be an attribute of the preceding entity in the chain
+                    if (!dictionary.getAttributes(precedingEntityClass).contains(ruleParts[i])) {
+                        throw new InvalidValueException(entityClass.getSimpleName()
+                                + " doesn't contain the field " + sortRule);
+                    }
+                } else {
+                    // Not all relationships work with Elide sorting
+                    RelationshipType relationshipType =
+                            dictionary.getRelationshipType(precedingEntityClass, ruleParts[i]);
+                    if (relationshipType != RelationshipType.ONE_TO_ONE
+                            && relationshipType != RelationshipType.MANY_TO_ONE
+                            && relationshipType != RelationshipType.ONE_TO_MANY
+                        && relationshipType != RelationshipType.MANY_TO_MANY) {
+                        throw new InvalidValueException("sorting rule not supported - " + entityClass.getSimpleName()
+                                + " relationship with " + ruleParts[i] + " is " + relationshipType
+                                + ", must be OneToOne, ManyToOne, OneToMany or ManyToMany");
+                    }
+                    // All parts but the last in the sort rule must be validly related entities
+                    precedingEntityClass = dictionary.getParameterizedType(precedingEntityClass, ruleParts[i]);
+                    if (precedingEntityClass == null) {
+                        throw new InvalidValueException(entityClass.getSimpleName()
+                                + " doesn't have relationship with " + ruleParts[i]);
+                    }
+                }
             }
         });
         return true;
