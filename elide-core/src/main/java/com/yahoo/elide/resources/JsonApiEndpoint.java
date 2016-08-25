@@ -33,7 +33,6 @@ import javax.ws.rs.core.UriInfo;
  */
 @Singleton
 @Produces("application/vnd.api+json")
-@Consumes("application/vnd.api+json")
 @Path("/")
 public class JsonApiEndpoint {
     protected final Elide elide;
@@ -56,6 +55,7 @@ public class JsonApiEndpoint {
      */
     @POST
     @Path("{path:.*}")
+    @Consumes("application/vnd.api+json")
     public Response post(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
@@ -93,6 +93,7 @@ public class JsonApiEndpoint {
      */
     @PATCH
     @Path("{path:.*}")
+    @Consumes("application/vnd.api+json")
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
@@ -103,7 +104,7 @@ public class JsonApiEndpoint {
     }
 
     /**
-     * Delete handler.
+     * Delete relationship handler (expects body with resource ids and types).
      *
      * @param path request path
      * @param securityContext security context
@@ -112,11 +113,27 @@ public class JsonApiEndpoint {
      */
     @DELETE
     @Path("{path:.*}")
+    @Consumes("application/vnd.api+json")
     public Response delete(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
+    }
+
+    /**
+     * Delete resource handler (expects no body and no content-type header).
+     *
+     * @param path request path
+     * @param securityContext security context
+     * @return response
+     */
+    @DELETE
+    @Path("{path:.*}")
+    public Response deleteWithoutBody(
+            @PathParam("path") String path,
+            @Context SecurityContext securityContext) {
+        return build(elide.delete(path, null, getUser.apply(securityContext)));
     }
 
     private static Response build(ElideResponse response) {
