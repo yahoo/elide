@@ -174,6 +174,13 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public <T> T loadObject(Class<T> loadClass, Serializable id, Optional<FilterExpression> filterExpression) {
 
         try {
+            // use load if no join or filter
+            if (!filterExpression.isPresent() && !isJoinQuery()) {
+                @SuppressWarnings("unchecked")
+                T record = (T) session.load(loadClass, id);
+                Hibernate.initialize(record);
+                return record;
+            }
             Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
             if (requestScope != null && isJoinQuery()) {
                 joinCriteria(criteria, loadClass);
@@ -182,6 +189,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                 CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
             }
+            @SuppressWarnings("unchecked")
             T record = (T) criteria.uniqueResult();
             return record;
         } catch (ObjectNotFoundException e) {
@@ -496,6 +504,10 @@ public class HibernateTransaction implements RequestScopedTransaction {
         this.requestScope = requestScope;
     }
 
+    /**
+     * Overrideable default query limit for the data store
+     * @return default limit
+     */
     public Integer getQueryLimit() {
         // no limit
         return null;
