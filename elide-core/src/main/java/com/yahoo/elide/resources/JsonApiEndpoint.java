@@ -130,6 +130,7 @@ public class JsonApiEndpoint {
      */
     @DELETE
     @Path("{path:.*}")
+    @Consumes("")
     public Response deleteWithoutBody(
             @PathParam("path") String path,
             @Context SecurityContext securityContext) {

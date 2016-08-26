@@ -61,7 +61,7 @@ public class CanPaginateVisitorTest {
 
     public static final class TestFilterExpressionCheck extends FilterExpressionCheck<Object> {
         @Override
-        public FilterExpression getFilterExpression(com.yahoo.elide.security.RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
             return null;
         }
     }

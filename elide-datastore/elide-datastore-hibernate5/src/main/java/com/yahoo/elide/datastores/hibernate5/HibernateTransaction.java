@@ -134,11 +134,14 @@ public class HibernateTransaction implements DataStoreTransaction {
     public <T> T loadObject(Class<T> loadClass, Serializable id,  Optional<FilterExpression> filterExpression) {
 
         try {
-            Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
-            if (filterExpression.isPresent()) {
-                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
-                criteria = filterOpn.apply(filterExpression.get());
+            if (!filterExpression.isPresent()) {
+                T record = session.load(loadClass, id);
+                Hibernate.initialize(record);
+                return record;
             }
+            Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
+            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            criteria = filterOpn.apply(filterExpression.get());
             T record = (T) criteria.uniqueResult();
             return record;
         } catch (ObjectNotFoundException e) {
