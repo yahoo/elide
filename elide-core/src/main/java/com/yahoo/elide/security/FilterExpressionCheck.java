@@ -23,10 +23,11 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
 
     /**
      * Returns a FilterExpression from FilterExpressionCheck.
+     * @param entityClass entity type
      * @param requestScope Request scope object
      * @return FilterExpression for FilterExpressionCheck.
      */
-    public abstract FilterExpression getFilterExpression(RequestScope requestScope);
+    public abstract FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope);
 
     /* NOTE: Filter Expression checks and user checks are intended to be _distinct_ */
     @Override
@@ -44,7 +45,9 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        FilterExpression filterExpression = getFilterExpression(requestScope);
+        Class entityClass =
+                ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary().lookupEntityClass(object.getClass());
+        FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
 

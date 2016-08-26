@@ -317,12 +317,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
-        FilterExpression entityFilterExpression = filterExpressionFromParseTree(classPermissions, requestScope);
+        FilterExpression entityFilterExpression =
+                filterExpressionFromParseTree(classPermissions, resourceClass, requestScope);
         FilterExpression allFieldsFilterExpression = entityFilterExpression;
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         for (String field : fields) {
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
-            FilterExpression fieldExpression = filterExpressionFromParseTree(fieldPermissions, requestScope);
+            FilterExpression fieldExpression =
+                    filterExpressionFromParseTree(fieldPermissions, resourceClass, requestScope);
             if (fieldExpression == null) {
                 if (entityFilterExpression == null) {
                     //If the class FilterExpression is also null, we should just return null to allow the field with
@@ -348,12 +350,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return new PermissionExpressionVisitor(entityDictionary, checkFn).visit(permissions);
     }
 
-    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, RequestScope requestScope) {
+    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Class entityClass,
+            RequestScope requestScope) {
         if (permissions == null) {
             return null;
         }
         FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
-                requestScope).visit(permissions);
+                requestScope, entityClass).visit(permissions);
         //case where the permissions does not have ANY filterExpressionCheck
         if (permissionFilter == NO_EVALUATION_EXPRESSION
                 || permissionFilter == FALSE_USER_CHECK_EXPRESSION) {

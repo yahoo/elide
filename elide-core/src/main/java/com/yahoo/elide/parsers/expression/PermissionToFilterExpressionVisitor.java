@@ -31,12 +31,17 @@ import com.yahoo.elide.security.checks.UserCheck;
 public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<FilterExpression>
         implements CheckInstantiator {
     private final EntityDictionary dictionary;
+    private final Class entityClass;
     private final RequestScope requestScope;
 
     public static final FilterExpression NO_EVALUATION_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
             return null;
+        }
+        @Override
+        public String toString() {
+            return "NO_EVALUATION_EXPRESSION";
         }
     };
 
@@ -45,11 +50,17 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         public <T> T accept(Visitor<T> visitor) {
             return null;
         }
+        @Override
+        public String toString() {
+            return "FALSE_USER_CHECK_EXPRESSION";
+        }
     };
 
-    public PermissionToFilterExpressionVisitor(EntityDictionary dictionary, RequestScope requestScope) {
+    public PermissionToFilterExpressionVisitor(EntityDictionary dictionary, RequestScope requestScope,
+            Class entityClass) {
         this.dictionary = dictionary;
         this.requestScope = requestScope;
+        this.entityClass = entityClass;
     }
 
     @Override
@@ -73,12 +84,13 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     @Override
     public FilterExpression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
         Check check = getCheck(dictionary, ctx.getText());
-        if (FilterExpressionCheck.class.isAssignableFrom(check.getClass())) {
-            FilterExpression filterExpression = ((FilterExpressionCheck) check).getFilterExpression(requestScope);
+        if (check instanceof FilterExpressionCheck) {
+            FilterExpression filterExpression =
+                    ((FilterExpressionCheck) check).getFilterExpression(entityClass, requestScope);
             if (filterExpression == null) {
                 throw new IllegalStateException("FilterExpression null is not permitted.");
             }
-            return ((FilterExpressionCheck) check).getFilterExpression(requestScope);
+            return filterExpression;
         } else if (UserCheck.class.isAssignableFrom(check.getClass())) {
             boolean userCheckResult = check.ok(requestScope.getUser());
             return userCheckResult ? NO_EVALUATION_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
