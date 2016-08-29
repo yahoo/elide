@@ -137,7 +137,7 @@ public enum Operator {
     private static <T> Predicate<T> in(
             String field, List<Object> values, EntityDictionary dictionary) {
         return (T entity) -> {
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null && values.stream()
                     .map(v -> CoerceUtil.coerce(v, val.getClass()))
@@ -147,7 +147,7 @@ public enum Operator {
 
     private static <T> Predicate<T> notIn(String field, List<Object> values, EntityDictionary dictionary) {
         return (T entity) -> {
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val == null || values.stream()
                     .map(v -> CoerceUtil.coerce(v, val.getClass()))
@@ -162,7 +162,7 @@ public enum Operator {
                 throw new InvalidPredicateException("PREFIX can only take one argument");
             }
 
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
             String valStr = CoerceUtil.coerce(val, String.class);
             String filterStr = CoerceUtil.coerce(values.get(0), String.class);
 
@@ -179,7 +179,7 @@ public enum Operator {
                 throw new InvalidPredicateException("POSTFIX can only take one argument");
             }
 
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
             String valStr = CoerceUtil.coerce(val, String.class);
             String filterStr = CoerceUtil.coerce(values.get(0), String.class);
 
@@ -195,7 +195,7 @@ public enum Operator {
                 throw new InvalidPredicateException("INFIX can only take one argument");
             }
 
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
             String valStr = CoerceUtil.coerce(val, String.class);
             String filterStr = CoerceUtil.coerce(values.get(0), String.class);
 
@@ -207,14 +207,14 @@ public enum Operator {
 
     private static <T> Predicate<T> isNull(String field, EntityDictionary dictionary) {
         return (T entity) -> {
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
             return val == null;
         };
     }
 
     private static <T> Predicate<T> isNotNull(String field, EntityDictionary dictionary) {
         return (T entity) -> {
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null;
         };
@@ -225,7 +225,7 @@ public enum Operator {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("LT can only take one argument");
             }
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null
                     && getComparisonResult(val, values.get(0)) < 0;
@@ -237,7 +237,7 @@ public enum Operator {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("LE can only take one argument");
             }
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null
                     && getComparisonResult(val, values.get(0)) <= 0;
@@ -249,7 +249,7 @@ public enum Operator {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("LE can only take one argument");
             }
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null
                     && getComparisonResult(val, values.get(0)) > 0;
@@ -261,11 +261,29 @@ public enum Operator {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("LE can only take one argument");
             }
-            Object val = PersistentResource.getValue(entity, field, dictionary);
+            Object val = getFieldValue(entity, field, dictionary);
 
             return val != null
                     && getComparisonResult(val, values.get(0)) >= 0;
         };
+    }
+
+    /**
+     * Return value of field/path for given entity.  For example this.book.author
+     * @param entity Entity bean
+     * @param fieldPath field value/path
+     * @param dictionary
+     * @return
+     */
+    public static <T> Object getFieldValue(T entity, String fieldPath, EntityDictionary dictionary) {
+        Object val = entity;
+        for (String field : fieldPath.split("\\.")) {
+            if ("this".equals(field)) {
+                continue;
+            }
+            val = PersistentResource.getValue(val, field, dictionary);
+        }
+        return val;
     }
 
     private static int getComparisonResult(Object val, Object rawFilterVal) {
