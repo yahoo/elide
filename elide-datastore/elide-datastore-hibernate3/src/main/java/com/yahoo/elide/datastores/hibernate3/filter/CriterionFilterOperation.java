@@ -117,6 +117,10 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.gt(alias, predicate.getValues().get(0));
             case GE:
                 return Restrictions.ge(alias, predicate.getValues().get(0));
+            case TRUE:
+                return Restrictions.sqlRestriction("(true)");
+            case FALSE:
+                return Restrictions.sqlRestriction("(false)");
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

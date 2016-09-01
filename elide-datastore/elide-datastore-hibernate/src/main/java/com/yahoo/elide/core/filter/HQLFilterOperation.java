@@ -22,8 +22,14 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public String apply(Predicate predicate) {
         switch (predicate.getOperator()) {
             case IN:
+                if (predicate.getValues().isEmpty()) {
+                    return "(false)";
+                }
                 return String.format("%s IN (:%s)", predicate.getField(), predicate.getField());
             case NOT:
+                if (predicate.getValues().isEmpty()) {
+                    return "(true)";
+                }
                 return String.format("%s NOT IN (:%s)", predicate.getField(), predicate.getField());
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", predicate.getField(), predicate.getField());
@@ -43,6 +49,10 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return String.format("%s > :%s", predicate.getField(), predicate.getField());
             case GE:
                 return String.format("%s >= :%s", predicate.getField(), predicate.getField());
+            case TRUE:
+                return String.format("(true)");
+            case FALSE:
+                return String.format("(false)");
 
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());

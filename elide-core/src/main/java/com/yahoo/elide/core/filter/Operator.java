@@ -106,7 +106,24 @@ public enum Operator {
                 String field, List<Object> values, EntityDictionary dictionary) {
             return Operator.ge(field, values, dictionary);
         }
+    },
+
+    TRUE("true", false) {
+        @Override
+        public <T> Predicate<T> contextualize(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return Operator.isTrue();
+        }
+    },
+
+    FALSE("false", false) {
+        @Override
+        public <T> Predicate<T> contextualize(
+                String field, List<Object> values, EntityDictionary dictionary) {
+            return Operator.isFalse();
+        }
     };
+
 
     @Getter private final String notation;
     @Getter private final boolean parameterized;
@@ -265,6 +282,18 @@ public enum Operator {
 
             return val != null
                     && getComparisonResult(val, values.get(0)) >= 0;
+        };
+    }
+
+    private static <T> Predicate<T> isTrue() {
+        return (T entity) -> {
+            return true;
+        };
+    }
+
+    private static <T> Predicate<T> isFalse() {
+        return (T entity) -> {
+            return false;
         };
     }
 
