@@ -20,35 +20,36 @@ import java.util.Set;
 public class HQLFilterOperation implements FilterOperation<String> {
     @Override
     public String apply(Predicate predicate) {
+        String fieldPath = predicate.getFieldPath();
         switch (predicate.getOperator()) {
             case IN:
                 if (predicate.getValues().isEmpty()) {
                     return "(false)";
                 }
-                return String.format("%s IN (:%s)", predicate.getField(), predicate.getField());
+                return String.format("%s IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
             case NOT:
                 if (predicate.getValues().isEmpty()) {
                     return "(true)";
                 }
-                return String.format("%s NOT IN (:%s)", predicate.getField(), predicate.getField());
+                return String.format("%s NOT IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
             case PREFIX:
-                return String.format("%s LIKE CONCAT(:%s, '%%')", predicate.getField(), predicate.getField());
+                return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, fieldPath.replace('.', '_'));
             case POSTFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s)", predicate.getField(), predicate.getField());
+                return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, fieldPath.replace('.', '_'));
             case INFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s, '%%')", predicate.getField(), predicate.getField());
+                return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, fieldPath.replace('.', '_'));
             case ISNULL:
-                return String.format("%s IS NULL", predicate.getField());
+                return String.format("%s IS NULL", fieldPath);
             case NOTNULL:
-                return String.format("%s IS NOT NULL", predicate.getField());
+                return String.format("%s IS NOT NULL", fieldPath);
             case LT:
-                return String.format("%s < :%s", predicate.getField(), predicate.getField());
+                return String.format("%s < :%s", fieldPath, fieldPath.replace('.', '_'));
             case LE:
-                return String.format("%s <= :%s", predicate.getField(), predicate.getField());
+                return String.format("%s <= :%s", fieldPath, fieldPath.replace('.', '_'));
             case GT:
-                return String.format("%s > :%s", predicate.getField(), predicate.getField());
+                return String.format("%s > :%s", fieldPath, fieldPath.replace('.', '_'));
             case GE:
-                return String.format("%s >= :%s", predicate.getField(), predicate.getField());
+                return String.format("%s >= :%s", fieldPath, fieldPath.replace('.', '_'));
             case TRUE:
                 return String.format("(true)");
             case FALSE:

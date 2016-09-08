@@ -96,8 +96,14 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
         switch (predicate.getOperator()) {
             case IN:
+                if (predicate.getValues().isEmpty()) {
+                    return Restrictions.sqlRestriction("(false)");
+                }
                 return Restrictions.in(alias, predicate.getValues());
             case NOT:
+                if (predicate.getValues().isEmpty()) {
+                    return Restrictions.sqlRestriction("(true)");
+                }
                 return Restrictions.not(Restrictions.in(alias, predicate.getValues()));
             case PREFIX:
                 return Restrictions.like(alias, predicate.getValues().get(0) + "%");

@@ -298,16 +298,20 @@ public enum Operator {
 
     /**
      * Return value of field/path for given entity.  For example this.book.author
-     * @param target the object to get
-     * @param fieldName the field name to get or invoke equivalent get method
-     * @param dictionary the dictionary
-     * @return the value
+     * @param entity Entity bean
+     * @param fieldPath field value/path
+     * @param dictionary
+     * @return
      */
-    public static <T> Object getFieldValue(T target, String fieldName, EntityDictionary dictionary) {
-        if ("this".equals(fieldName)) {
-            return target;
+    public static <T> Object getFieldValue(T entity, String fieldPath, EntityDictionary dictionary) {
+        Object val = entity;
+        for (String field : fieldPath.split("\\.")) {
+            if ("this".equals(field)) {
+                continue;
+            }
+            val = PersistentResource.getValue(val, field, dictionary);
         }
-        return PersistentResource.getValue(target, fieldName, dictionary);
+        return val;
     }
 
     private static int getComparisonResult(Object val, Object rawFilterVal) {
