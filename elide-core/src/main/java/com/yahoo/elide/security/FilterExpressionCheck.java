@@ -59,15 +59,10 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @return true if the object pass evaluation against Predicate.
      */
     public boolean applyPredicateToObject(T object, Predicate predicate, RequestScope requestScope) {
-        Predicate.PathElement path = predicate.getPath().get(predicate.getPath().size() - 1);
-        Class type = path.getType();
-        String fieldName = path.getFieldName();
-        if (fieldName == null) {
-            return false;
-        }
+        String fieldPath = predicate.getFieldPath();
         EntityDictionary dictionary = ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary();
         java.util.function.Predicate fn = predicate.getOperator()
-                .contextualize(fieldName, predicate.getValues(), dictionary);
+                .contextualize(fieldPath, predicate.getValues(), dictionary);
         return fn.test(object);
     }
 }
