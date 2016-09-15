@@ -91,7 +91,7 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
 
     @Override
     public String toString() {
-        String formattedPath = path.get(0).getTypeName();
+        String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
 
         for (PathElement element : path) {
             formattedPath = formattedPath + "." + element.getFieldName();

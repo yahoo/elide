@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -23,14 +24,10 @@ public class HQLFilterOperation implements FilterOperation<String> {
         String fieldPath = predicate.getFieldPath();
         switch (predicate.getOperator()) {
             case IN:
-                if (predicate.getValues().isEmpty()) {
-                    return "(false)";
-                }
+                Preconditions.checkState(!predicate.getValues().isEmpty());
                 return String.format("%s IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
             case NOT:
-                if (predicate.getValues().isEmpty()) {
-                    return "(true)";
-                }
+                Preconditions.checkState(!predicate.getValues().isEmpty());
                 return String.format("%s NOT IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, fieldPath.replace('.', '_'));
@@ -51,9 +48,9 @@ public class HQLFilterOperation implements FilterOperation<String> {
             case GE:
                 return String.format("%s >= :%s", fieldPath, fieldPath.replace('.', '_'));
             case TRUE:
-                return String.format("(true)");
+                return "(1 = 1)";
             case FALSE:
-                return String.format("(false)");
+                return "(1 = 0)";
 
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
