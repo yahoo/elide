@@ -319,19 +319,29 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         FilterExpression entityFilterExpression =
                 filterExpressionFromParseTree(classPermissions, resourceClass, requestScope);
+        //case where the permissions does not have ANY filterExpressionCheck
+        if (entityFilterExpression == FALSE_USER_CHECK_EXPRESSION
+                || entityFilterExpression == NO_EVALUATION_EXPRESSION) {
+            entityFilterExpression = null;
+        }
         FilterExpression allFieldsFilterExpression = entityFilterExpression;
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         for (String field : fields) {
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             FilterExpression fieldExpression =
                     filterExpressionFromParseTree(fieldPermissions, resourceClass, requestScope);
-            if (fieldExpression == null) {
+            if (fieldExpression == null || fieldExpression == FALSE_USER_CHECK_EXPRESSION) {
                 if (entityFilterExpression == null) {
                     //If the class FilterExpression is also null, we should just return null to allow the field with
                     // null FE be able to see all records.
                     return null;
                 }
                 continue;
+            }
+            if (fieldExpression == NO_EVALUATION_EXPRESSION) {
+                // For in memory check, we should just return null to allow the field with
+                // memory expression be able to see all records.
+                return null;
             }
             if (allFieldsFilterExpression == null) {
                 allFieldsFilterExpression = fieldExpression;
@@ -357,11 +367,6 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         }
         FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
                 requestScope, entityClass).visit(permissions);
-        //case where the permissions does not have ANY filterExpressionCheck
-        if (permissionFilter == NO_EVALUATION_EXPRESSION
-                || permissionFilter == FALSE_USER_CHECK_EXPRESSION) {
-            return null;
-        }
         return permissionFilter;
     }
 
