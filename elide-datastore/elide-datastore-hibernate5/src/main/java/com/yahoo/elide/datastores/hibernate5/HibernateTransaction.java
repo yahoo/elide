@@ -307,7 +307,8 @@ public class HibernateTransaction implements DataStoreTransaction {
 
                 for (Predicate predicate : predicates) {
                     if (predicate.getOperator().isParameterized()) {
-                        query = query.setParameterList(predicate.getField(), predicate.getValues());
+                        String name = predicate.getFieldPath().replace('.', '_');
+                        query = query.setParameterList(name, predicate.getValues());
                     }
                 }
 
