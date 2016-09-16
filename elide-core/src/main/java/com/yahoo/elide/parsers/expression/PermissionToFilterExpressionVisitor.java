@@ -8,6 +8,8 @@ package com.yahoo.elide.parsers.expression;
 
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -68,13 +70,23 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         FilterExpression left = visit(ctx.left);
         FilterExpression right = visit(ctx.right);
 
+        // short circuit if TRUE
+        if (operator(left) == Operator.TRUE) {
+            return left;
+        }
+
+        // short circuit if TRUE
+        if (operator(right) == Operator.TRUE) {
+            return right;
+        }
+
         if (left == NO_EVALUATION_EXPRESSION || right == NO_EVALUATION_EXPRESSION) {
             return NO_EVALUATION_EXPRESSION;
         }
 
-        if (left == FALSE_USER_CHECK_EXPRESSION) {
+        if (left == FALSE_USER_CHECK_EXPRESSION || operator(left) == Operator.FALSE) {
             return right;
-        } else if (right == FALSE_USER_CHECK_EXPRESSION) {
+        } else if (right == FALSE_USER_CHECK_EXPRESSION || operator(right) == Operator.FALSE) {
             return left;
         }
 
@@ -111,19 +123,34 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
             return FALSE_USER_CHECK_EXPRESSION;
         }
 
+        if (operator(left) == Operator.FALSE) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+
+        if (operator(right) == Operator.FALSE) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+
         //Case (NO_EVALUATION_EXPRESSION AND FilterExpression): should ignore NO_EVALUATION_EXPRESSION and return
         // FilterExpression.
         //Case (NO_EVALUATION_EXPRESSION AND NO_EVALUATION_EXPRESSION): returns NO_EVALUATION_EXPRESSION.
-        if (left == NO_EVALUATION_EXPRESSION) {
+        if (left == NO_EVALUATION_EXPRESSION || operator(left) == Operator.TRUE) {
             return right;
         }
 
-        if (right == NO_EVALUATION_EXPRESSION) {
+        if (right == NO_EVALUATION_EXPRESSION || operator(right) == Operator.TRUE) {
             return left;
         }
 
         //Case (FilterExpression AND FilterExpression): should return the AND expression of them.
         return new AndFilterExpression(left, right);
+    }
+
+    private Operator operator(FilterExpression expression) {
+        if (expression instanceof Predicate) {
+            return ((Predicate) expression).getOperator();
+        }
+        return null;
     }
 
     @Override
