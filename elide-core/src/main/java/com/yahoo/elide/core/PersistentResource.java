@@ -1439,13 +1439,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
             method.invoke(obj, coerce(value, fieldName, fieldClass));
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException(fieldName, type);
+            throw new InvalidAttributeException(fieldName, type, e);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
             try {
                 Field field = targetClass.getField(fieldName);
                 field.set(obj, coerce(value, fieldName, field.getType()));
             } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException(fieldName, type);
+                throw new InvalidAttributeException(fieldName, type, noField);
             }
         }
 
@@ -1564,7 +1564,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
+            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()), e);
         }
         throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
     }

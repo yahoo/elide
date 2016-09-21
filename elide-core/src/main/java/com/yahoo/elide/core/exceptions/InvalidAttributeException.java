@@ -12,8 +12,15 @@ import com.yahoo.elide.core.HttpStatus;
  * {@link com.yahoo.elide.core.HttpStatus#SC_NOT_FOUND invalid}
  */
 public class InvalidAttributeException extends HttpStatusException {
+    public InvalidAttributeException(String attributeName, String type, Throwable cause) {
+        super(HttpStatus.SC_NOT_FOUND,
+                "Unknown attribute '" + attributeName + "' in " + "'" + type + "'",
+                null,
+                cause);
+    }
+
     public InvalidAttributeException(String attributeName, String type) {
-        super(HttpStatus.SC_NOT_FOUND, "Unknown attribute '" + attributeName + "' in " + "'" + type + "'");
+        this(attributeName, type, null);
     }
 
     public InvalidAttributeException(String message, Throwable cause) {
