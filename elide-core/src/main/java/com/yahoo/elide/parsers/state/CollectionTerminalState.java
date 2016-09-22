@@ -17,6 +17,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
@@ -170,6 +171,9 @@ public class CollectionTerminalState extends BaseState {
         String id = resource.getId();
         Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType());
 
+        if (newObjectClass == null) {
+            throw new UnknownEntityException("Entity " + resource.getType() + " not found");
+        }
         if (!entityClass.isAssignableFrom(newObjectClass)) {
             throw new InvalidValueException("Cannot assign value of type: " + resource.getType()
                     + " to type: " + entityClass);
