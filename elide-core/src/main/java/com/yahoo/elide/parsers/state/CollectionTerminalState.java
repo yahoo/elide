@@ -168,11 +168,18 @@ public class CollectionTerminalState extends BaseState {
         }
 
         String id = resource.getId();
+        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType());
+
+        if (!entityClass.isAssignableFrom(newObjectClass)) {
+            throw new InvalidValueException("Cannot assign value of type: " + resource.getType()
+                    + " to type: " + entityClass);
+        }
+
         PersistentResource pResource;
         if (parent.isPresent()) {
-            pResource = PersistentResource.createObject(parent.get(), entityClass, requestScope, id);
+            pResource = PersistentResource.createObject(parent.get(), newObjectClass, requestScope, id);
         } else {
-            pResource = PersistentResource.createObject(entityClass, requestScope, id);
+            pResource = PersistentResource.createObject(newObjectClass, requestScope, id);
         }
 
         assignId(pResource, id);
