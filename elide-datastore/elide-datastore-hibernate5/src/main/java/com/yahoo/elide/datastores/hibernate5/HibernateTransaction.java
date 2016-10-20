@@ -140,7 +140,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 return record;
             }
             Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
             T record = (T) criteria.uniqueResult();
             return record;
@@ -160,6 +160,16 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
     }
 
+    /**
+     * Build the CriterionFilterOperation for provided criteria
+     * @param criteria the criteria
+     * @return the CriterionFilterOperation
+     */
+    protected CriterionFilterOperation buildCriterionFilterOperation(Criteria criteria) {
+        return new CriterionFilterOperation(criteria);
+    }
+
+    @Deprecated
     @Override
     public <T> Iterable<T> loadObjects(Class<T> loadClass) {
         final Criteria sessionCriteria = session.createCriteria(loadClass);
@@ -181,7 +191,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
         }
 
@@ -201,7 +211,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
         }
 
@@ -231,7 +241,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteria Filtering criteria
+     * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @param <T> The return Iterable type.
