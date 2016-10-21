@@ -186,7 +186,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                 joinCriteria(criteria, loadClass);
             }
             if (filterExpression.isPresent()) {
-                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+                CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
             }
             @SuppressWarnings("unchecked")
@@ -195,6 +195,15 @@ public class HibernateTransaction implements RequestScopedTransaction {
         } catch (ObjectNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Build the CriterionFilterOperation for provided criteria
+     * @param criteria the criteria
+     * @return the CriterionFilterOperation
+     */
+    protected CriterionFilterOperation buildCriterionFilterOperation(Criteria criteria) {
+        return new CriterionFilterOperation(criteria);
     }
 
     @Deprecated
@@ -216,7 +225,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
 
         if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
         }
 
@@ -237,7 +246,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
 
         if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
         }
 
