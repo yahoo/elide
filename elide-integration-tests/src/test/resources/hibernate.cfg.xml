@@ -20,7 +20,7 @@
         <property name="hibernate.jdbc.batch_size">50</property>
         <property name="hibernate.jdbc.fetch_size">50</property>
 
-        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">false</property>
 
         <property name="hibernate.transaction.factory_class">org.hibernate.transaction.JDBCTransactionFactory</property>
 
