@@ -18,7 +18,6 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.security.User;
 import org.hibernate.Criteria;
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -135,8 +134,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         try {
             if (!filterExpression.isPresent()) {
-                T record = session.load(loadClass, id);
-                Hibernate.initialize(record);
+                T record = session.get(loadClass, id);
                 return record;
             }
             Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
@@ -152,8 +150,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public <T> T loadObject(Class<T> loadClass, Serializable id) {
         try {
-            T record = session.load(loadClass, id);
-            Hibernate.initialize(record);
+            T record = session.get(loadClass, id);
             return record;
         } catch (ObjectNotFoundException e) {
             return null;
