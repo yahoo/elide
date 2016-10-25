@@ -26,7 +26,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -155,8 +154,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
                 return record;
             }
             @SuppressWarnings("unchecked")
-            T record = (T) session.load(loadClass, id);
-            Hibernate.initialize(record);
+            T record = (T) session.get(loadClass, id);
             return record;
         } catch (ObjectNotFoundException e) {
             return null;
@@ -177,8 +175,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             // use load if no join or filter
             if (!filterExpression.isPresent() && !isJoinQuery()) {
                 @SuppressWarnings("unchecked")
-                T record = (T) session.load(loadClass, id);
-                Hibernate.initialize(record);
+                T record = (T) session.get(loadClass, id);
                 return record;
             }
             Criteria criteria = session.createCriteria(loadClass).add(Restrictions.idEq(id));
