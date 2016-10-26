@@ -17,10 +17,9 @@ import com.yahoo.elide.security.User;
 
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import example.FunWithPermissions;
+import example.TestCheckMappings;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-
-import java.util.HashMap;
 
 /**
  * Tests audit functions inside RecordDao.
@@ -35,7 +34,7 @@ public class PermissionAnnotationTest {
     public PermissionAnnotationTest() {
         goodUser = new User(3);
         badUser = new User(-1);
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
     }
 
     @BeforeTest

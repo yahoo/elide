@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,7 +41,6 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.Color;
 import example.FirstClassFields;
@@ -58,6 +56,7 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
 import example.Shape;
+import example.TestCheckMappings;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
@@ -97,7 +96,8 @@ public class PersistentResourceTest extends PersistentResource {
         super(
                 new Child(),
                 null,
-                new RequestScope(null, null, null, null, new EntityDictionary(new HashMap<>()), null, MOCK_AUDIT_LOGGER)
+                new RequestScope(null, null, null, null, new EntityDictionary(TestCheckMappings.MAPPINGS), null,
+                        MOCK_AUDIT_LOGGER)
         );
         goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
@@ -570,7 +570,7 @@ public class PersistentResourceTest extends PersistentResource {
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -660,7 +660,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -681,7 +681,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(eq(tx), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -1810,30 +1810,30 @@ public class PersistentResourceTest extends PersistentResource {
     /* ChangeSpec-specific test elements */
     @Entity
     @Include
-    @CreatePermission(any = {Role.ALL.class})
-    @ReadPermission(any = {Role.ALL.class})
-    @UpdatePermission(any = {Role.NONE.class})
-    @DeletePermission(any = {Role.ALL.class})
+    @CreatePermission(expression = "allow all")
+    @ReadPermission(expression = "allow all")
+    @UpdatePermission(expression = "deny all")
+    @DeletePermission(expression = "allow all")
     public static final class ChangeSpecModel {
         @Id
         public long id;
 
-        @ReadPermission(all = {Role.NONE.class})
-        @UpdatePermission(all = {Role.NONE.class})
+        @ReadPermission(expression = "deny all")
+        @UpdatePermission(expression = "deny all")
         public Function<ChangeSpec, Boolean> checkFunction;
 
-        @UpdatePermission(all = {ChangeSpecNonCollection.class})
+        @UpdatePermission(expression = "changeSpecNonCollection")
         public String testAttr;
 
-        @UpdatePermission(all = {ChangeSpecCollection.class})
+        @UpdatePermission(expression = "changeSpecCollection")
         public List<String> testColl;
 
         @OneToOne
-        @UpdatePermission(all = {ChangeSpecNonCollection.class})
+        @UpdatePermission(expression = "changeSpecNonCollection")
         public ChangeSpecChild child;
 
         @ManyToMany
-        @UpdatePermission(all = {ChangeSpecCollection.class})
+        @UpdatePermission(expression = "changeSpecCollection")
         public List<Child> otherKids;
 
         public ChangeSpecModel(final Function<ChangeSpec, Boolean> checkFunction) {
@@ -1845,11 +1845,11 @@ public class PersistentResourceTest extends PersistentResource {
     @Include
     @EqualsAndHashCode
     @AllArgsConstructor
-    @CreatePermission(any = {Role.ALL.class})
-    @ReadPermission(any = {Role.ALL.class})
-    @UpdatePermission(any = {Role.ALL.class})
-    @DeletePermission(any = {Role.ALL.class})
-    @SharePermission(any = {Role.ALL.class})
+    @CreatePermission(expression = "allow all")
+    @ReadPermission(expression = "allow all")
+    @UpdatePermission(expression = "allow all")
+    @DeletePermission(expression = "allow all")
+    @SharePermission(expression = "allow all")
     public static final class ChangeSpecChild {
         @Id
         public long id;

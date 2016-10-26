@@ -101,28 +101,13 @@ public class EntityPermissions implements CheckInstantiator {
     private ParseTree getPermissionExpressionTree(Class<? extends Annotation> annotationClass, Annotation annotation) {
         try {
             String expression = (String) annotationClass.getMethod("expression").invoke(annotation);
-            Class<? extends Check>[] allChecks = (Class<? extends Check>[]) annotationClass.getMethod("all")
-                                                                                           .invoke(annotation);
-            Class<? extends Check>[] anyChecks = (Class<? extends Check>[]) annotationClass.getMethod("any")
-                                                                                           .invoke(annotation);
 
-            boolean hasAnyChecks = anyChecks.length > 0;
-            boolean hasAllChecks = allChecks.length > 0;
             boolean hasExpression = !expression.isEmpty();
 
-            boolean hasConfiguredChecks = hasAnyChecks || hasAllChecks || hasExpression;
-            boolean hasConfiguredOneChecks = hasAnyChecks ^ hasAllChecks ^ hasExpression;
-
-            if (!hasConfiguredChecks || !hasConfiguredOneChecks) {
+            if (!hasExpression) {
                 log.warn("Poorly configured permission: {} {}", annotationClass.getName(),
-                         hasConfiguredChecks ? "more than one set of checks specified" : "no checks specified.");
+                        hasExpression ? "more than one set of checks specified" : "no checks specified.");
                 throw new IllegalArgumentException("Poorly configured permission '" + annotationClass.getName() + "'");
-            }
-
-            if (allChecks.length > 0) {
-                expression = listToExpression(allChecks, " and ");
-            } else if (anyChecks.length > 0) {
-                expression = listToExpression(anyChecks, " or ");
             }
 
             return parseExpression(expression);

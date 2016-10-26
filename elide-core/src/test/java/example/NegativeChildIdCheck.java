@@ -19,4 +19,9 @@ public class NegativeChildIdCheck extends OperationCheck<Child> {
     public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> fChangeSpec) {
         return child.getId() >= 0;
     }
+
+    @Override
+    public String checkIdentifier() {
+        return "negativeChildId";
+    }
 }

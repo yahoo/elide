@@ -7,13 +7,12 @@ package example;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@DeletePermission(all = { Role.NONE.class })
+@DeletePermission(expression = "deny all")
 @Include(rootLevel = true, type = "nodelete") // optional here because class has this name
 // Hibernate
 @Entity

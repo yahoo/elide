@@ -16,12 +16,11 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
+import example.TestCheckMappings;
 import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,7 +30,7 @@ public class PermissionExecutorTest {
     public void testSuccessfulOperationCheck() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(all = {SampleOperationCheck.class})
+        @UpdatePermission(expression = "sampleOperation")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -45,7 +44,7 @@ public class PermissionExecutorTest {
     public void testFailOperationCheckAll() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(all = {SampleOperationCheck.class, Role.NONE.class})
+        @UpdatePermission(expression = "sampleOperation OR deny all")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -58,7 +57,7 @@ public class PermissionExecutorTest {
     public void testFailOperationCheckAny() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(any = {SampleOperationCheck.class, SampleCommitCheck.class})
+        @UpdatePermission(expression = "sampleCommit OR sampleOperation")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -72,7 +71,7 @@ public class PermissionExecutorTest {
     public void testSuccessfulCommitChecks() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(all = {SampleCommitCheck.class})
+        @UpdatePermission(expression = "sampleCommit")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -87,7 +86,7 @@ public class PermissionExecutorTest {
     public void testFailCommitChecks() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(all = {SampleCommitCheck.class})
+        @UpdatePermission(expression = "sampleCommit")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -213,12 +212,12 @@ public class PermissionExecutorTest {
     public void testPassAnyFieldAwareFailOperationSuccessCommit() {
         @Entity
         @Include
-        @UpdatePermission(all = {Role.NONE.class, PassingCommitCheck.class})
+        @UpdatePermission(expression = "deny all AND passingCommit")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(any = {Role.NONE.class, PassingCommitCheck.class})
+            @UpdatePermission(expression = "deny all OR passingCommit")
             public String field = "some data";
         }
 
@@ -232,12 +231,12 @@ public class PermissionExecutorTest {
     public void testFailAllFieldAwareSuccessOperationFailCommit() {
         @Entity
         @Include
-        @UpdatePermission(all = {Role.NONE.class})
+        @UpdatePermission(expression = "deny all")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(all = {Role.ALL.class, FailingCommitCheck.class})
+            @UpdatePermission(expression = "allow all AND FailAtCommit")
             public String field = "some data";
         }
 
@@ -251,12 +250,12 @@ public class PermissionExecutorTest {
     public void testPassAnySpecificFieldAwareFailOperationSuccessCommit() {
         @Entity
         @Include
-        @UpdatePermission(all = {Role.NONE.class, PassingCommitCheck.class})
+        @UpdatePermission(expression = "deny all AND passingCommit")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(any = {Role.NONE.class, PassingCommitCheck.class})
+            @UpdatePermission(expression = "deny all OR passingCommit")
             public String field = "some data";
         }
 
@@ -270,12 +269,12 @@ public class PermissionExecutorTest {
     public void testFailAllSpecificFieldAwareSuccessOperationFailCommit() {
         @Entity
         @Include
-        @UpdatePermission(all = {Role.ALL.class})
+        @UpdatePermission(expression = "allow all")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(all = {Role.ALL.class, FailingCommitCheck.class})
+            @UpdatePermission(expression = "allow all AND FailAtCommit")
             public String field = "some data";
         }
 
@@ -289,7 +288,7 @@ public class PermissionExecutorTest {
     public void testBadInstance() {
         @Entity
         @Include
-        @UpdatePermission(all = {PrivatePermission.class})
+        @UpdatePermission(expression = "privatePermission")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -376,15 +375,14 @@ public class PermissionExecutorTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.getCheckMappings().put("FailAtCommit", FailingCommitCheck.class);
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
         return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
         try {
@@ -434,38 +432,31 @@ public class PermissionExecutorTest {
         }
     }
 
-    private static final class PrivatePermission extends OperationCheck<Object> {
-        @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return false;
-        }
-    }
-
-    @ReadPermission(all = {Role.NONE.class})
-    @UpdatePermission(all = {Role.NONE.class})
+    @ReadPermission(expression = "deny all")
+    @UpdatePermission(expression = "deny all")
     @Include
     @Entity
     public static final class SampleBean {
         @Id
         public Long id;
 
-        @ReadPermission(all = {Role.ALL.class, SampleOperationCheck.class})
-        @UpdatePermission(all = {Role.ALL.class, SampleCommitCheck.class})
+        @ReadPermission(expression = "allow all AND sampleOperation")
+        @UpdatePermission(expression = "allow all AND sampleCommit")
         public String allVisible = "You should see me!";
 
         public String defaultHidden = "I'm invisible. muwahaha...";
 
-        @ReadPermission(all = {Role.ALL.class, Role.NONE.class})
-        @UpdatePermission(all = {Role.ALL.class, Role.NONE.class})
+        @ReadPermission(expression = "allow all AND deny all")
+        @UpdatePermission(expression = "allow all AND deny all")
         public String cannotSeeMe = "hidden";
 
-        @ReadPermission(any = {SampleOperationCheck.class})
-        @UpdatePermission(any = {SampleCommitCheck.class, Role.NONE.class})
+        @ReadPermission(expression = "sampleOperation")
+        @UpdatePermission(expression =  "sampleCommit OR deny all")
         public String mayFailInCommit = "aw :(";
     }
 
-    @ReadPermission(all = {Role.ALL.class})
-    @UpdatePermission(all = {Role.ALL.class})
+    @ReadPermission(expression = "allow all")
+    @UpdatePermission(expression = "allow all")
     @Include
     @Entity
     public static final class OpenBean {
@@ -474,23 +465,23 @@ public class PermissionExecutorTest {
 
         public String open;
 
-        @ReadPermission(all = {Role.NONE.class, SampleOperationCheck.class})
-        @UpdatePermission(all = {SampleCommitCheck.class, SampleOperationCheck.class})
+        @ReadPermission(expression = "deny all AND sampleOperation")
+        @UpdatePermission(expression = "sampleCommit AND sampleOperation")
         public String openAll = "all";
 
-        @ReadPermission(any = {SampleOperationCheck.class, SampleOperationCheck.class})
-        @UpdatePermission(any = {SampleCommitCheck.class, SampleOperationCheck.class})
+        @ReadPermission(expression = "sampleOperation OR sampleOperation")
+        @UpdatePermission(expression = "sampleCommit or sampleOperation")
         public String openAny = "all";
     }
 
     @Entity
     @Include
-    @UpdatePermission(all = {SampleCommitCheck.class})
+    @UpdatePermission(expression = "sampleCommit")
     public static final class CommitCheckEntity {
         @Id
         public Long id;
 
-        @UpdatePermission(all = {SampleOperationCheckCommitInverse.class})
+        @UpdatePermission(expression = "sampleOperationCommitInverse")
         public String hello;
     }
 
@@ -506,8 +497,8 @@ public class PermissionExecutorTest {
 
     @Entity
     @Include
-    @ReadPermission(any = { ShouldCache.class })
-    @UpdatePermission(any = { ShouldCache.class })
+    @ReadPermission(expression = "shouldCache")
+    @UpdatePermission(expression = "shouldCache")
     public static class AnnotationOnlyRecord {
     }
 
@@ -523,8 +514,8 @@ public class PermissionExecutorTest {
 
     @Entity
     @Include
-    @ReadPermission(any = {UserCheckTest.class})
-    @UpdatePermission(any = {UserCheckTest.class})
+    @ReadPermission(expression = "peUserCheck")
+    @UpdatePermission(expression = "peUserCheck")
     public static class UserCheckCacheRecord {
     }
 }

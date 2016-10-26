@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,7 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.Set;
 
-@UpdatePermission(all = { Role.NONE.class })
+@UpdatePermission(expression = "deny all")
 @Include(rootLevel = true, type = "noupdate") // optional here because class has this name
 // Hibernate
 @Entity

@@ -17,6 +17,7 @@ import com.yahoo.elide.security.User;
 import example.Child;
 import example.Parent;
 import example.Post;
+import example.TestCheckMappings;
 import org.mockito.Answers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -27,7 +28,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +49,7 @@ public class SortProcessorTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 
