@@ -7,9 +7,10 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -162,29 +163,17 @@ public class InMemoryTransaction implements DataStoreTransaction {
         if (objs == null) {
             return Collections.emptyList();
         }
+        // Support for filtering
+        if (filterExpression.isPresent()) {
+            Set<Predicate> predicates = filterExpression.get().accept(new PredicateExtractionVisitor());
+            Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(predicates);
+            return (Collection) objs.values().stream()
+                    .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
+                    .collect(Collectors.toList());
+        }
         List<Object> results = new ArrayList<>();
         objs.forEachValue(1, results::add);
         return results;
-    }
-
-    @Override
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(predicates);
-        return (Collection) collection.stream()
-                .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public <T> Collection filterCollectionWithSortingAndPagination(
-            Collection collection,
-            Class<T> entityClass,
-            EntityDictionary dictionary,
-            Optional<Set<Predicate>> filters,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination
-    ) {
-        return filterCollection(collection, entityClass, filters.orElseGet(() -> Collections.emptySet()));
     }
 
     @Override
