@@ -60,15 +60,6 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
 
     /**
-     * Instantiates a new Entity dictionary.
-     * @deprecated As of 2.2, {@link #EntityDictionary(Map)} is preferred.
-     */
-    @Deprecated
-    public EntityDictionary() {
-        this(new ConcurrentHashMap<>());
-    }
-
-    /**
      * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
      * in {@link com.yahoo.elide.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
      * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}

@@ -18,7 +18,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
@@ -102,10 +101,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                        PersistentResource resource,
                                                        ChangeSpec changeSpec) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         Expressions expressions;
         if (SharePermission.class == annotationClass) {
             expressions = expressionBuilder.buildSharePermissionExpressions(resource);
@@ -133,10 +128,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                  ChangeSpec changeSpec,
                                                                                  Class<A> annotationClass,
                                                                                  String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
         if (expressionResult == PASS) {
             return expressionResult;
@@ -165,10 +156,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
         if (expressionResult == PASS) {
             return expressionResult;
@@ -199,10 +186,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                         Class<A> annotationClass,
                                                                         String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
                 = userPermissionCheckCache.get(Triple.of(annotationClass, resource.getResourceClass(), field));
@@ -232,10 +215,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
                                                                         Class<A> annotationClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
                 = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, null));
@@ -265,9 +244,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param resourceClass Resource class
      */
     public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return Optional.empty(); // Bypass
-        }
         FilterExpression filterExpression =
                 expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);
 
@@ -377,6 +353,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     @Override
     public boolean isVerbose() {
-        return requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE;
+        //TODO: Should make this configurable?
+        return false;
     }
 }

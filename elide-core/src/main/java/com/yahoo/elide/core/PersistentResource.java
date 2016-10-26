@@ -29,7 +29,6 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -968,29 +967,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Object val;
-
-        /* If elide was configured for Elide 3.0 data store interface */
-        if (requestScope.useFilterExpressions()) {
-            String path = requestScope.getPath();
-            val = requestScope.getTransaction()
-                    .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,  Optional.empty(),
-                            Optional.empty(), requestScope);
-
-        /* Otherwise use the Elide 2.0 interface */
-        } else {
-
-            /* Convert the expression to a set of predicates */
-            Set<Predicate> filters;
-            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-            if (filterExpression.isPresent()) {
-                filters = filterExpression.get().accept(visitor);
-            } else {
-                filters = Collections.emptySet();
-            }
-            val = requestScope.getTransaction()
-                    .getRelation(obj, type, relationName, relationClass, dictionary, filters);
-        }
+        Object val = requestScope.getTransaction()
+                .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression, Optional.empty(),
+                        Optional.empty(), requestScope);
 
         if (val == null) {
             return Collections.emptySet();
@@ -1033,33 +1012,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Object val;
-
-        String path = requestScope.getPath();
-        /* If elide was configured for Elide 3.0 data store interface */
-        if (requestScope.useFilterExpressions()) {
-            val = requestScope.getTransaction()
-                    .getRelation(requestScope.getTransaction(), obj, relationName,
-                            filterExpression,
-                            Optional.ofNullable(requestScope.getSorting()),
-                            Optional.ofNullable(requestScope.getPagination()),
+        Object val = requestScope.getTransaction()
+                .getRelation(requestScope.getTransaction(), obj, relationName,
+                        filterExpression,
+                        Optional.ofNullable(requestScope.getSorting()),
+                        Optional.ofNullable(requestScope.getPagination()),
                             requestScope);
-
-        /* Otherwise use the Elide 2.0 interface */
-        } else {
-            /* Convert the expression to a set of predicates */
-            Set<Predicate> filters;
-            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-            if (filterExpression.isPresent()) {
-                filters = filterExpression.get().accept(visitor);
-            } else {
-                filters = Collections.emptySet();
-            }
-
-            val = requestScope.getTransaction()
-                    .getRelationWithSortingAndPagination(obj, type, relationName, relationClass, dictionary,
-                            filters, requestScope.getSorting(), requestScope.getPagination());
-        }
 
         if (val == null) {
             return Collections.emptySet();

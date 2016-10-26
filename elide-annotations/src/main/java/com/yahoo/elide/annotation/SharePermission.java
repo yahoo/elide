@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.security.checks.Check;
-
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -23,24 +21,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Inherited
 public @interface SharePermission {
-
-    /**
-     * Any one of these checks must pass.
-     *
-     * @return the array of check classes
-     * @deprecated as of 2.2, use {@link #expression()} instead.
-     */
-    @Deprecated
-    Class<? extends Check>[] any() default {};
-
-    /**
-     * All of these checks must pass.
-     *
-     * @return the array of check classes
-     * @deprecated as of 2.2, use {@link #expression()} instead.
-     */
-    @Deprecated
-    Class<? extends Check>[] all() default {};
 
     /**
      * An expression of checks that will be parsed via ANTLR. For example:

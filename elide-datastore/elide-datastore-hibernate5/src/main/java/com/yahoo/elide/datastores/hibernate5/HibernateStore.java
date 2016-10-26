@@ -27,17 +27,6 @@ public class HibernateStore implements DataStore {
     private final ScrollMode scrollMode;
 
     /**
-     * Initialize HibernateStore and dictionaries.
-     *
-     * @param aSessionFactory the a session factory
-     */
-    public HibernateStore(SessionFactory aSessionFactory) {
-        this.sessionFactory = aSessionFactory;
-        this.isScrollEnabled = true;
-        this.scrollMode = ScrollMode.FORWARD_ONLY;
-    }
-
-    /**
      * Constructor.
      *
      * @param aSessionFactory Session factory

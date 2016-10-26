@@ -7,11 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -19,10 +16,8 @@ import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -91,12 +86,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
-    }
-
-    @Override
     public void flush(RequestScope requestScope) {
         transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.flush(requestScope));
     }
@@ -147,43 +136,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             throw new InvalidCollectionException(entityClass == null ? cls.getName() : entityClass.getName());
         }
         return transaction;
-    }
-
-    @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
-    }
-
-    @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
-    }
-
-    @Override
-    public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-            Optional<Pagination> pagination) {
-        return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
-                collection, entityClass, dictionary, filters, sorting, pagination);
     }
 
     @Override

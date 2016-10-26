@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -16,7 +15,6 @@ import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Wraps the Database Transaction type.
@@ -133,62 +131,6 @@ public interface DataStoreTransaction extends Closeable {
         return 0L;
     }
 
-
-    /**
-     * Filter a collection by the Predicates in filterScope.
-     *
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
-     * @param entityClass the class of the entities in the collection
-     * @param predicates  the set of Predicate's to filter by
-     * @return the filtered collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return collection;
-    }
-
-   /**
-     * Filter Sort and Paginate a collection in filterScope or requestScope.
-     * @param collection The collection
-     * @param dictionary The entity dictionary
-     * @param entityClass The class of the entities in the collection
-     * @param filters The optional set of Predicate's to filter by
-     * @param sorting The optional Sorting object
-     * @param pagination The optional Pagination object
-     * @param <T> The type parameter
-     * @return The optionally filtered, sorted and paginated collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-                                                          EntityDictionary dictionary, Optional<Set<Predicate>> filters,
-                                                          Optional<Sorting> sorting, Optional<Pagination> pagination) {
-        return collection;
-    }
-
-    @Deprecated
-    default <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-
-            if (!filters.isEmpty()) {
-                filteredVal = filterCollection(filteredVal, relationClass, filters);
-            }
-            return filteredVal;
-        }
-        return val;
-    }
-
     /**
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
@@ -270,28 +212,4 @@ public interface DataStoreTransaction extends Closeable {
             Object attributeValue,
             RequestScope scope) {
     };
-
-
-    @Deprecated
-    default <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            Optional<Sorting> sortingRules = Optional.ofNullable(sorting);
-            Optional<Pagination> paginationRules = Optional.ofNullable(pagination);
-            filteredVal = filterCollectionWithSortingAndPagination(filteredVal, relationClass, dictionary,
-                    Optional.of(filters), sortingRules, paginationRules);
-            return filteredVal;
-        }
-        return val;
-    }
 }

@@ -32,7 +32,6 @@ import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 
@@ -80,54 +79,6 @@ public class Elide {
     private final List<JoinFilterDialect> joinFilterDialects;
     private final List<SubqueryFilterDialect> subqueryFilterDialects;
     private final boolean useFilterExpressions;
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
-     */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary) {
-        this(auditLogger, dataStore, dictionary, new JsonApiMapper(dictionary));
-    }
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
-     */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore) {
-        this(auditLogger, dataStore, new EntityDictionary(new HashMap<>()));
-    }
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @deprecated Since 2.1, use the {@link Elide.Builder} instead
-     */
-    @Deprecated
-    public Elide(AuditLogger auditLogger, DataStore dataStore, EntityDictionary dictionary, JsonApiMapper mapper) {
-        this(
-                auditLogger,
-                dataStore,
-                dictionary,
-                mapper,
-                ActivePermissionExecutor::new,
-                Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                false
-        );
-    }
 
     /**
      * Instantiates a new Elide.
@@ -201,23 +152,6 @@ public class Elide {
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
-         * providing a mapping of security checks.
-         *
-         * @param auditLogger the logger to use for audit annotations
-         * @param dataStore the datastore used to communicate with the persistence layer
-         * @deprecated 2.3 use {@link #Builder(DataStore)}
-         */
-        public Builder(AuditLogger auditLogger, DataStore dataStore) {
-            this.auditLogger = auditLogger;
-            this.dataStore = dataStore;
-            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
-            this.joinFilterDialects = new ArrayList<>();
-            this.subqueryFilterDialects = new ArrayList<>();
-
-        }
-
-        /**
-         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
          * providing a mapping of security checks and uses the provided {@link Slf4jLogger} for audit.
          *
          * @param dataStore the datastore used to communicate with the persistence layer
@@ -248,31 +182,6 @@ public class Elide {
                     joinFilterDialects,
                     subqueryFilterDialects,
                     useFilterExpressions);
-        }
-
-        @Deprecated
-        public Builder auditLogger(final AuditLogger auditLogger) {
-            return withAuditLogger(auditLogger);
-        }
-
-        @Deprecated
-        public Builder entityDictionary(final EntityDictionary entityDictionary) {
-            return withEntityDictionary(entityDictionary);
-        }
-
-        @Deprecated
-        public Builder jsonApiMapper(final JsonApiMapper jsonApiMapper) {
-            return withJsonApiMapper(jsonApiMapper);
-        }
-
-        @Deprecated
-        public Builder permissionExecutor(final Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
-            return withPermissionExecutor(permissionExecutorFunction);
-        }
-
-        @Deprecated
-        public Builder permissionExecutor(final Class<? extends PermissionExecutor> permissionExecutorClass) {
-            return withPermissionExecutor(permissionExecutorClass);
         }
 
         public Builder withAuditLogger(AuditLogger auditLogger) {
@@ -335,17 +244,12 @@ public class Elide {
      * @param path the path
      * @param queryParams the query params
      * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
      * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
-    @Deprecated
     public ElideResponse get(
             String path,
             MultivaluedMap<String, String> queryParams,
-            Object opaqueUser,
-            SecurityMode securityMode) {
-
+            Object opaqueUser) {
         RequestScope requestScope = null;
         boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginReadTransaction()) {
@@ -359,7 +263,6 @@ public class Elide {
                     mapper,
                     auditLogger,
                     queryParams,
-                    securityMode,
                     permissionExecutor,
                     new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
                     useFilterExpressions);
@@ -393,36 +296,17 @@ public class Elide {
     }
 
     /**
-     * Handle GET.
-     *
-     * @param path the path
-     * @param queryParams the query params
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse get(
-            String path,
-            MultivaluedMap<String, String> queryParams,
-            Object opaqueUser) {
-        return this.get(path, queryParams, opaqueUser, SecurityMode.SECURITY_ACTIVE);
-    }
-
-    /**
      * Handle POST.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
      * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
-    @Deprecated
     public ElideResponse post(
             String path,
             String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
+            Object opaqueUser) {
         RequestScope requestScope = null;
         boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
@@ -434,7 +318,6 @@ public class Elide {
                     dictionary,
                     mapper,
                     auditLogger,
-                    securityMode,
                     permissionExecutor);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             PostVisitor visitor = new PostVisitor(requestScope);
@@ -466,21 +349,6 @@ public class Elide {
     }
 
     /**
-     * Handle POST.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse post(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.post(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
-    }
-
-    /**
      * Handle PATCH.
      *
      * @param contentType the content type
@@ -488,18 +356,14 @@ public class Elide {
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
      * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
-    @Deprecated
     public ElideResponse patch(
             String contentType,
             String accept,
             String path,
             String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
+            Object opaqueUser) {
         RequestScope requestScope = null;
         boolean isVerbose = false;
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
@@ -516,7 +380,7 @@ public class Elide {
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
                 requestScope = new RequestScope(path, doc, transaction, user, dictionary, mapper, auditLogger,
-                        securityMode, permissionExecutor);
+                        permissionExecutor);
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
@@ -550,40 +414,17 @@ public class Elide {
     }
 
     /**
-     * Handle PATCH.
-     *
-     * @param contentType the content type
-     * @param accept the accept
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse patch(
-            String contentType,
-            String accept,
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.patch(contentType, accept, path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
-    }
-
-    /**
      * Handle DELETE.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
      * @param opaqueUser the opaque user
-     * @param securityMode only for test mode
      * @return Elide response object
-     * @deprecated Since 2.1, instead use the {@link Elide.Builder} with an appropriate {@link PermissionExecutor}
      */
-    @Deprecated
     public ElideResponse delete(
             String path,
             String jsonApiDocument,
-            Object opaqueUser,
-            SecurityMode securityMode) {
+            Object opaqueUser) {
         JsonApiDocument doc;
         RequestScope requestScope = null;
         boolean isVerbose = false;
@@ -595,7 +436,7 @@ public class Elide {
                 doc = new JsonApiDocument();
             }
             requestScope = new RequestScope(
-                    path, doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
+                    path, doc, transaction, user, dictionary, mapper, auditLogger, permissionExecutor);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -623,21 +464,6 @@ public class Elide {
         } finally {
             auditLogger.clear();
         }
-    }
-
-    /**
-     * Handle DELETE.
-     *
-     * @param path the path
-     * @param jsonApiDocument the json api document
-     * @param opaqueUser the opaque user
-     * @return Elide response object
-     */
-    public ElideResponse delete(
-            String path,
-            String jsonApiDocument,
-            Object opaqueUser) {
-        return this.delete(path, jsonApiDocument, opaqueUser, SecurityMode.SECURITY_ACTIVE);
     }
 
     /**

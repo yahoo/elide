@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -47,19 +45,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
     private final ScrollMode scrollMode;
-
-    /**
-     * Instantiates a new Hibernate transaction.
-     *
-     * @param session the session
-     * @deprecated since Elide 2.3.2. Will be removed no later than the release of Elide 3.0.
-     */
-    @Deprecated
-    public HibernateTransaction(Session session) {
-        this.session = session;
-        this.isScrollEnabled = true;
-        this.scrollMode = ScrollMode.FORWARD_ONLY;
-    }
 
     /**
      * Constructor.
@@ -257,53 +242,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         final Criteria sessionCriteria = session.createCriteria(entityClass);
         sessionCriteria.setProjection(Projections.rowCount());
         return (Long) sessionCriteria.uniqueResult();
-    }
-
-    @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
-            String filterString = new HQLFilterOperation().applyAll(predicates);
-
-            if (filterString.length() != 0) {
-                Query query = session.createFilter(collection, filterString);
-
-                for (Predicate predicate : predicates) {
-                    if (predicate.getOperator().isParameterized()) {
-                        String name = predicate.getFieldPath().replace('.', '_');
-                        query = query.setParameterList(name, predicate.getValues());
-                    }
-                }
-
-                return query.list();
-            }
-        }
-
-        return collection;
-    }
-
-    @Override
-    @Deprecated
-    public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
-                                                                   final Class<T> entityClass,
-                                                                   final EntityDictionary dictionary,
-                                                                   final Optional<Set<Predicate>> filters,
-                                                                   final Optional<Sorting> sorting,
-                                                                   final Optional<Pagination> pagination) {
-        if (((collection instanceof AbstractPersistentCollection))
-                && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
-            @SuppressWarnings("unchecked")
-            final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, collection, entityClass,
-                    dictionary)
-                    .withPossibleFilters(filters)
-                    .withPossibleSorting(sorting)
-                    .withPossiblePagination(pagination)
-                    .build();
-            if (possibleQuery.isPresent()) {
-                return possibleQuery.get().list();
-            }
-        }
-        return collection;
     }
 
     @Override
