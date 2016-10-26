@@ -98,6 +98,14 @@ public class InMemoryFilterVisitorTest {
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
+        // Test TRUE/FALSE
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.TRUE);
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
+        expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.FALSE);
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+
         // Test null
         author.setId(null);
         expression = new Predicate(new Predicate.PathElement(Author.class, "author", Long.class, "id"), Operator.IN, Arrays.asList(1));

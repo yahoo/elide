@@ -127,67 +127,101 @@ import java.util.Set;
  *  - The filtered (2) result set will be returned
  *
  */
-public class CanPaginateVisitor extends ExpressionBaseVisitor<Boolean> implements CheckInstantiator {
+public class CanPaginateVisitor
+        extends ExpressionBaseVisitor<CanPaginateVisitor.PaginationStatus>
+        implements CheckInstantiator {
 
-    public static final Boolean CAN_PAGINATE = true;
-    public static final Boolean CANNOT_PAGINATE = false;
+    /**
+     *  All states except for CANNOT_PAGINATE allow for pagination
+     */
+      public enum PaginationStatus {
+        CAN_PAGINATE,
+        USER_CHECK_FALSE,
+        USER_CHECK_TRUE,
+        CANNOT_PAGINATE
+    };
 
     private final EntityDictionary dictionary;
+    private final RequestScope scope;
 
 
-    public CanPaginateVisitor(EntityDictionary dictionary) {
+    public CanPaginateVisitor(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
+        this.scope = scope;
     }
 
+    @Override
+    public PaginationStatus visitNOT(ExpressionParser.NOTContext ctx) {
+        PaginationStatus status = visit(ctx.expression());
+        if (status == PaginationStatus.USER_CHECK_FALSE) {
+            return PaginationStatus.USER_CHECK_TRUE;
+        }
+
+        if (status == PaginationStatus.USER_CHECK_TRUE) {
+            return PaginationStatus.USER_CHECK_FALSE;
+        }
+
+        /*
+         * Pagination status really only depends on whether the check runs in memory or in the DB.  NOT has not bearing
+         * on that.
+         */
+        return status;
+    }
 
     @Override
-    public Boolean visitNOT(ExpressionParser.NOTContext ctx) {
+    public PaginationStatus visitOR(ExpressionParser.ORContext ctx) {
+        PaginationStatus lhs = visit(ctx.left);
+        PaginationStatus rhs = visit(ctx.right);
+
+        if (lhs == PaginationStatus.USER_CHECK_TRUE || rhs == PaginationStatus.USER_CHECK_TRUE) {
+            return PaginationStatus.USER_CHECK_TRUE;
+        }
+
+        if (rhs == PaginationStatus.CANNOT_PAGINATE || lhs == PaginationStatus.CANNOT_PAGINATE) {
+            return PaginationStatus.CANNOT_PAGINATE;
+        }
+
+        return PaginationStatus.CAN_PAGINATE;
+    }
+
+    @Override
+    public PaginationStatus visitAND(ExpressionParser.ANDContext ctx) {
+        PaginationStatus lhs = visit(ctx.left);
+        PaginationStatus rhs = visit(ctx.right);
+
+        if (lhs == PaginationStatus.USER_CHECK_FALSE || rhs == PaginationStatus.USER_CHECK_FALSE) {
+            return PaginationStatus.USER_CHECK_FALSE;
+        }
+
+        if (rhs == PaginationStatus.CANNOT_PAGINATE || lhs == PaginationStatus.CANNOT_PAGINATE) {
+            return PaginationStatus.CANNOT_PAGINATE;
+        }
+
+        return PaginationStatus.CAN_PAGINATE;
+    }
+
+    @Override
+    public PaginationStatus visitPAREN(ExpressionParser.PARENContext ctx) {
         return visit(ctx.expression());
     }
 
     @Override
-    public Boolean visitOR(ExpressionParser.ORContext ctx) {
-        boolean lhs = visit(ctx.left);
-        boolean rhs = visit(ctx.right);
-
-        /* If either side requires in memory filtering, the data store cannot paginate */
-        if (lhs == CANNOT_PAGINATE || rhs == CANNOT_PAGINATE) {
-            return CANNOT_PAGINATE;
-        }
-        return CAN_PAGINATE;
-    }
-
-    @Override
-    public Boolean visitAND(ExpressionParser.ANDContext ctx) {
-        boolean lhs = visit(ctx.left);
-        boolean rhs = visit(ctx.right);
-
-        /* If either side requires in memory filtering, the data store cannot paginate */
-        if (lhs == CANNOT_PAGINATE || rhs == CANNOT_PAGINATE) {
-            return CANNOT_PAGINATE;
-        }
-        return CAN_PAGINATE;
-    }
-
-    @Override
-    public Boolean visitPAREN(ExpressionParser.PARENContext ctx) {
-        return visit(ctx.expression());
-    }
-
-    @Override
-    public Boolean visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
+    public PaginationStatus visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
         Check check = getCheck(dictionary, ctx.getText());
 
         //Filter expression checks can always be pushed to the DataStore so pagination is possible
         if (FilterExpressionCheck.class.isAssignableFrom(check.getClass())) {
-            return CAN_PAGINATE;
+            return PaginationStatus.CAN_PAGINATE;
 
-        //User Checks have no bearing on pagination since they are true or false for every item in the collection
         } else if (UserCheck.class.isAssignableFrom(check.getClass())) {
-            return CAN_PAGINATE;
+            if (check.ok(scope.getUser())) {
+                return PaginationStatus.USER_CHECK_TRUE;
+            } else {
+                return PaginationStatus.USER_CHECK_FALSE;
+            }
         //Any in memory check will alter (incorrectly) the paginated result
         } else {
-            return CANNOT_PAGINATE;
+            return PaginationStatus.CANNOT_PAGINATE;
         }
     }
 
@@ -201,11 +235,12 @@ public class CanPaginateVisitor extends ExpressionBaseVisitor<Boolean> implement
      */
     public static boolean canPaginate(Class<?> resourceClass, EntityDictionary dictionary, RequestScope scope) {
 
-        CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary);
+        CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary, scope);
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = dictionary.getPermissionsForClass(resourceClass, annotationClass);
-        Boolean canPaginateClass = CAN_PAGINATE;
+        PaginationStatus canPaginateClass = PaginationStatus.CAN_PAGINATE;
+
         if (classPermissions != null) {
             canPaginateClass = visitor.visit(classPermissions);
         }
@@ -214,19 +249,36 @@ public class CanPaginateVisitor extends ExpressionBaseVisitor<Boolean> implement
         String resourceName = dictionary.getJsonAliasFor(resourceClass);
         Set<String> requestedFields = scope.getSparseFields().getOrDefault(resourceName, Collections.EMPTY_SET);
 
+        boolean canPaginate = true;
         for (String field : fields) {
             if (! requestedFields.isEmpty() && ! requestedFields.contains(field)) {
                 continue;
             }
-            Boolean canPaginateField = canPaginateClass;
+
+            PaginationStatus canPaginateField = canPaginateClass;
             ParseTree fieldPermissions = dictionary.getPermissionsForField(resourceClass, field, annotationClass);
             if (fieldPermissions != null) {
                 canPaginateField = visitor.visit(fieldPermissions);
             }
-            if (canPaginateField == CANNOT_PAGINATE) {
-                return CANNOT_PAGINATE;
+
+            /*
+             * If any of the fields can always be seen by the user, the user can see the entire
+             * collection of entities (absent any fields which they cannot see).
+             */
+            if (canPaginateField == PaginationStatus.USER_CHECK_TRUE) {
+                return true;
+            }
+
+            /*
+             * Except for true user checks above, any field which cannot be paginated means the entire
+             * collection cannot be paginated.  If one field has a filter expression check and the other has
+             * an in memory check, both checks must be evaluated in memory (effectively any in memory check makes
+             * all other checks in memory).
+             */
+            if (canPaginateField == PaginationStatus.CANNOT_PAGINATE) {
+                canPaginate = false;
             }
         }
-        return CAN_PAGINATE;
+        return canPaginate;
     }
 }

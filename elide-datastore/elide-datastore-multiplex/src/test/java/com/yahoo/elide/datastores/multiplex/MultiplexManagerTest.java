@@ -54,7 +54,7 @@ public class MultiplexManagerTest {
     @Test
     public void testValidCommit() throws IOException {
         final FirstBean object = new FirstBean();
-        object.id = 0;
+        object.id = null;
         object.name = "Test";
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
@@ -69,7 +69,7 @@ public class MultiplexManagerTest {
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) beans.iterator().next();
-            assertTrue(bean.id == 1 && bean.name.equals("Test"));
+            assertTrue(bean.id != null && bean.name.equals("Test"));
         }
     }
 

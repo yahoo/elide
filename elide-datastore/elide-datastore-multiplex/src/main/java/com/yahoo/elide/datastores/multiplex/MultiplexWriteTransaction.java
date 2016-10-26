@@ -10,6 +10,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -30,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -72,6 +74,9 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             try {
                 entry.getValue().commit(requestScope);
                 commitList.add(entry.getKey());
+            } catch (HttpStatusException | WebApplicationException e) {
+                reverseTransactions(commitList, e, requestScope);
+                throw e;
             } catch (Error | RuntimeException e) {
                 TransactionException transactionException = new TransactionException(e);
                 reverseTransactions(commitList, transactionException, requestScope);

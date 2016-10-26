@@ -54,6 +54,6 @@ public class HQLFilterOperationTest {
         HQLFilterOperation filterOp = new HQLFilterOperation();
         String query = filterOp.apply(not);
 
-        Assert.assertEquals(query, "WHERE NOT (((name IN (:name) OR genre IN (:genre)) AND name IN (:name)))");
+        Assert.assertEquals(query, "WHERE NOT (((name IN (:name) OR genre IN (:genre)) AND authors.name IN (:authors_name)))");
     }
 }

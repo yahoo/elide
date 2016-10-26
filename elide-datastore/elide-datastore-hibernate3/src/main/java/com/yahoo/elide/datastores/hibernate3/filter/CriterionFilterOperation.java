@@ -57,7 +57,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
             sb.append(ALIAS_DELIM);
             sb.append(element.getFieldName());
         }
-        return sb.toString();
+        return sb.toString().replace('-', '_');
     }
 
     /**
@@ -96,8 +96,14 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
         switch (predicate.getOperator()) {
             case IN:
+                if (predicate.getValues().isEmpty()) {
+                    return Restrictions.sqlRestriction("(false)");
+                }
                 return Restrictions.in(alias, predicate.getValues());
             case NOT:
+                if (predicate.getValues().isEmpty()) {
+                    return Restrictions.sqlRestriction("(true)");
+                }
                 return Restrictions.not(Restrictions.in(alias, predicate.getValues()));
             case PREFIX:
                 return Restrictions.like(alias, predicate.getValues().get(0) + "%");
@@ -117,6 +123,10 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.gt(alias, predicate.getValues().get(0));
             case GE:
                 return Restrictions.ge(alias, predicate.getValues().get(0));
+            case TRUE:
+                return Restrictions.sqlRestriction("(true)");
+            case FALSE:
+                return Restrictions.sqlRestriction("(false)");
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
         }

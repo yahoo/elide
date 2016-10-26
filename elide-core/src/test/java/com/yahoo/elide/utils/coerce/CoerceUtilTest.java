@@ -123,4 +123,34 @@ public class CoerceUtilTest {
         Time time = CoerceUtil.coerce("1", Time.class);
         assertEquals(time, new Time(1));
     }
+
+    @Test
+    public void testLongToDate() {
+        Date dateLong = CoerceUtil.coerce(0L, Date.class);
+        assertEquals(dateLong, new Date(0));
+
+        java.sql.Date date1Long = CoerceUtil.coerce(0L, java.sql.Date.class);
+        assertEquals(date1Long, new java.sql.Date(0));
+
+        Timestamp timestampLong = CoerceUtil.coerce(0L, Timestamp.class);
+        assertEquals(timestampLong, new Timestamp(0));
+
+        Time timeLong = CoerceUtil.coerce(0L, Time.class);
+        assertEquals(timeLong, new Time(0));
+    }
+
+    @Test
+    public void testIntToDate() throws Exception {
+        Date date = CoerceUtil.coerce(0, Date.class);
+        assertEquals(date, new Date(0));
+
+        java.sql.Date date1 = CoerceUtil.coerce(0, java.sql.Date.class);
+        assertEquals(date1, new java.sql.Date(0));
+
+        Timestamp timestamp = CoerceUtil.coerce(0, Timestamp.class);
+        assertEquals(timestamp, new Timestamp(0));
+
+        Time time = CoerceUtil.coerce(0, Time.class);
+        assertEquals(time, new Time(0));
+    }
 }

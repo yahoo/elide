@@ -62,6 +62,18 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
         return last.getFieldName();
     }
 
+    public String getFieldPath() {
+        StringBuilder fieldPath = new StringBuilder();
+        for (PathElement pathElement : path) {
+            if (fieldPath.length() != 0) {
+                fieldPath.append('.');
+            }
+            fieldPath.append(pathElement.getFieldName());
+        }
+        return fieldPath.toString();
+    }
+
+
     public String getEntityType() {
         PathElement last = path.get(path.size() - 1);
         return last.getTypeName();
@@ -74,12 +86,12 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
 
     @Override
     public java.util.function.Predicate apply(EntityDictionary dictionary) {
-        return operator.contextualize(getField(), values, dictionary);
+        return operator.contextualize(getFieldPath(), values, dictionary);
     }
 
     @Override
     public String toString() {
-        String formattedPath = path.get(0).getTypeName();
+        String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
 
         for (PathElement element : path) {
             formattedPath = formattedPath + "." + element.getFieldName();

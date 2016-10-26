@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -41,17 +44,10 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.text.WordUtils;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -722,6 +718,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Map<String, Relationship> relations = getRelationships();
         for (Map.Entry<String, Relationship> entry : relations.entrySet()) {
             String relationName = entry.getKey();
+
+            /* Skip updating inverse relationships for deletes which are cascaded */
+            if (dictionary.cascadeDeletes(getResourceClass(), relationName)) {
+                continue;
+            }
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!inverseRelationName.equals("")) {
                 for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
@@ -812,23 +813,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
 
-            List<Predicate.PathElement> path = Lists.newArrayList(
-                new Predicate.PathElement(
-                    getResourceClass(),
-                    getType(),
-                    entityType,
-                    relation
-                ),
-                new Predicate.PathElement(
-                    entityType,
-                    relation,
-                    idType,
-                    idField
-                )
-            );
-
             filterExpression = Optional.of(new Predicate(
-                    path,
+                    new Predicate.PathElement(
+                            entityType,
+                            relation,
+                            idType,
+                            idField),
                     Operator.IN,
                     Collections.singletonList(idVal)));
         }
@@ -1472,13 +1462,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
             method.invoke(obj, coerce(value, fieldName, fieldClass));
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException(fieldName, type);
+            throw new InvalidAttributeException(fieldName, type, e);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
             try {
                 Field field = targetClass.getField(fieldName);
                 field.set(obj, coerce(value, fieldName, field.getType()));
             } catch (NoSuchFieldException | IllegalAccessException noField) {
-                throw new InvalidAttributeException(fieldName, type);
+                throw new InvalidAttributeException(fieldName, type, noField);
             }
         }
 
@@ -1597,7 +1587,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
+            throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()), e);
         }
         throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(target.getClass()));
     }

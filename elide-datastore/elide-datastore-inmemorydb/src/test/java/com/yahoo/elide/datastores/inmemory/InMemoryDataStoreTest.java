@@ -17,11 +17,19 @@ import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
 
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Optional;
+
+import com.google.common.collect.ImmutableSet;
+
+import org.testng.annotations.BeforeMethod;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.testng.Assert.assertEquals;
 
 /**
  * InMemoryDataStore tests.
@@ -29,7 +37,7 @@ import java.util.Optional;
 public class InMemoryDataStoreTest {
     private InMemoryDataStore inMemoryDataStore;
 
-    @BeforeTest
+    @BeforeMethod
     public void setup() {
         final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
         inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
@@ -48,7 +56,7 @@ public class InMemoryDataStoreTest {
     @Test
     public void testValidCommit() throws Exception {
         FirstBean object = new FirstBean();
-        object.id = 0;
+        object.id = "0";
         object.name = "Test";
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
             assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
@@ -61,7 +69,43 @@ public class InMemoryDataStoreTest {
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) beans.iterator().next();
-            assertTrue(bean.id == 1 && bean.name.equals("Test"));
+            assertTrue(!bean.id.equals("0") && bean.name.equals("Test"));
         }
+    }
+
+    @Test
+    public void testCanGenerateIdsAfterDataCommitted() throws Exception {
+        // given an object with a non-generated ID has been created
+        FirstBean object = new FirstBean();
+        object.id = "1";
+        object.name = "number one";
+
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.save(object, null);
+            t.commit(null);
+        }
+
+        // when an object without ID is created, that works
+        FirstBean object2 = new FirstBean();
+        object2.id = null;
+        object2.name = "number two";
+
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.save(object2, null);
+            t.commit(null);
+        }
+
+        // and a meaningful ID is assigned
+        Set<String> names = new HashSet<>();
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            for (Object objBean : t.loadObjects(FirstBean.class,
+                                                Optional.empty(), Optional.empty(), Optional.empty(), null)) {
+                FirstBean bean = (FirstBean) objBean;
+                names.add(bean.name);
+                assertFalse(bean.id == null);
+            }
+        }
+
+        assertEquals(names, ImmutableSet.of("number one", "number two"));
     }
 }

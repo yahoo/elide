@@ -81,45 +81,57 @@ public class PermissionToFilterExpressionVisitorTest {
 
     @Test
     public void testParseCombinationExpression() {
-        ParseTree g1 = dictionary.getPermissionsForClass(Good1.class, ReadPermission.class);
-        ParseTree g2 = dictionary.getPermissionsForClass(Good2.class, ReadPermission.class);
-        ParseTree g3 = dictionary.getPermissionsForClass(Good3.class, ReadPermission.class);
-        ParseTree g4 = dictionary.getPermissionsForClass(Good4.class, ReadPermission.class);
-        ParseTree g5 = dictionary.getPermissionsForClass(Good5.class, ReadPermission.class);
-        ParseTree g6 = dictionary.getPermissionsForClass(Good6.class, ReadPermission.class);
-        ParseTree g7 = dictionary.getPermissionsForClass(Good7.class, ReadPermission.class);
-        ParseTree g8 = dictionary.getPermissionsForClass(GOOD8.class, ReadPermission.class);
-        ParseTree b1 = dictionary.getPermissionsForClass(BAD1.class, ReadPermission.class);
-        ParseTree b2 = dictionary.getPermissionsForClass(BAD2.class, ReadPermission.class);
-        ParseTree b4 = dictionary.getPermissionsForClass(BAD4.class, ReadPermission.class);
-        ParseTree g9 = dictionary.getPermissionsForClass(GOOD9.class, ReadPermission.class);
-        ParseTree g10 = dictionary.getPermissionsForClass(GOOD10.class, ReadPermission.class);
-        PermissionToFilterExpressionVisitor fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope);
+        Class g1 = Good1.class;
+        Class g2 = Good2.class;
+        Class g3 = Good3.class;
+        Class g4 = Good4.class;
+        Class g5 = Good5.class;
+        Class g6 = Good6.class;
+        Class g7 = Good7.class;
+        Class g8 = GOOD8.class;
+        Class b1 = BAD1.class;
+        Class b2 = BAD2.class;
+        Class b4 = BAD4.class;
+        Class g9 = GOOD9.class;
+        Class g10 = GOOD10.class;
+        PermissionToFilterExpressionVisitor fev;
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g1);
         FilterExpression expected = createDummyPredicate();
-        FilterExpression feg1 = fev.visit(g1);
+        FilterExpression feg1 = fev.visit(dictionary.getPermissionsForClass(g1, ReadPermission.class));
         Assert.assertEquals(expected, feg1);
-        FilterExpression feg2 = fev.visit(g2);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g2);
+        FilterExpression feg2 = fev.visit(dictionary.getPermissionsForClass(g2, ReadPermission.class));
         Assert.assertTrue(feg2 == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         //Assert.assertEquals(expected, feg2);
-        FilterExpression feg3 = fev.visit(g3);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g3);
+        FilterExpression feg3 = fev.visit(dictionary.getPermissionsForClass(g3, ReadPermission.class));
         Assert.assertTrue(feg3  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feg4 = fev.visit(g4);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g4);
+        FilterExpression feg4 = fev.visit(dictionary.getPermissionsForClass(g4, ReadPermission.class));
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg4);
-        FilterExpression feg5 = fev.visit(g5);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g5);
+        FilterExpression feg5 = fev.visit(dictionary.getPermissionsForClass(g5, ReadPermission.class));
         Assert.assertTrue(feg5  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feg6 = fev.visit(g6);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g6);
+        FilterExpression feg6 = fev.visit(dictionary.getPermissionsForClass(g6, ReadPermission.class));
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg6);
-        FilterExpression feg7 = fev.visit(g7);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g7);
+        FilterExpression feg7 = fev.visit(dictionary.getPermissionsForClass(g7, ReadPermission.class));
         Assert.assertTrue(feg7 == NO_EVALUATION_EXPRESSION);
-        FilterExpression feg8 = fev.visit(g8);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g8);
+        FilterExpression feg8 = fev.visit(dictionary.getPermissionsForClass(g8, ReadPermission.class));
         Assert.assertTrue(feg8  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        FilterExpression feb2 = fev.visit(b2);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, b2);
+        FilterExpression feb2 = fev.visit(dictionary.getPermissionsForClass(b2, ReadPermission.class));
         Assert.assertTrue(feb2 == NO_EVALUATION_EXPRESSION || feb2  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feb4 = fev.visit(b4);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, b4);
+        FilterExpression feb4 = fev.visit(dictionary.getPermissionsForClass(b4, ReadPermission.class));
         Assert.assertTrue(feb4 == NO_EVALUATION_EXPRESSION || feb4  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feg9 = fev.visit(g9);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g9);
+        FilterExpression feg9 = fev.visit(dictionary.getPermissionsForClass(g9, ReadPermission.class));
         Assert.assertTrue(feg9 == NO_EVALUATION_EXPRESSION || feg9  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
-        FilterExpression feg10 = fev.visit(g10);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g10);
+        FilterExpression feg10 = fev.visit(dictionary.getPermissionsForClass(g10, ReadPermission.class));
         Assert.assertTrue(feg10 == NO_EVALUATION_EXPRESSION || feg10  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
     }
 
@@ -420,7 +432,7 @@ public class PermissionToFilterExpressionVisitorTest {
     public static class FilterExpressionCheck1 extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createDummyPredicate();
         }
 
