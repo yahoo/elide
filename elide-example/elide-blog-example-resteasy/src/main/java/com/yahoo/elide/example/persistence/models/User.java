@@ -22,7 +22,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "user")
 @Include(rootLevel = true)
-@SharePermission(any = { allow all.class})
+@SharePermission(expression = "Prefab.Role.All")
 //@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;

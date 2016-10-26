@@ -8,7 +8,6 @@ package com.yahoo.elide.example.persistence.models;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,7 +23,7 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = "comment")
 @Include
-@SharePermission(any = { Role.ALL.class })
+@SharePermission(expression = "Prefab.Role.All")
 public class Comment {
     private long id;
     private Post post;

@@ -26,7 +26,9 @@ public class ElideResourceConfig extends Application {
         EntityManagerFactory entityManagerFactory =
                 Persistence.createEntityManagerFactory("com.yahoo.elide.example");
 
-        Elide elide = new Elide.Builder(new Slf4jLogger(), new PersistenceStore(entityManagerFactory)).build();
+        Elide elide = new Elide.Builder(new PersistenceStore(entityManagerFactory))
+                .withAuditLogger(new Slf4jLogger())
+                .build();
 
         Set<Object> set = new HashSet<>();
         set.add(new JsonApiEndpoint(elide, v -> null));
