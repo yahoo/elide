@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,7 +57,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
             return;
         }
         String id = dictionary.getId(object);
-        if (id.equals("0")) {
+        if (id == null || id.equals("null") || id.equals("0")) {
             setId(object, dictionary.getId(createObject(object.getClass())));
         }
         id = dictionary.getId(object);
@@ -101,9 +102,8 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public <T> T createObject(Class<T> entityClass) {
         if (dataStore.get(entityClass) == null) {
             dataStore.putIfAbsent(entityClass, new ConcurrentHashMap<>());
-            TYPEIDS.putIfAbsent(entityClass, new AtomicLong(1));
         }
-        AtomicLong idValue = TYPEIDS.get(entityClass);
+        AtomicLong idValue = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
         String id = String.valueOf(idValue.getAndIncrement());
         try {
             T instance = entityClass.newInstance();
@@ -113,6 +113,10 @@ public class InMemoryTransaction implements DataStoreTransaction {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private AtomicLong newRandomId(Class<?> entityClass) {
+        return new AtomicLong(new Random().nextLong());
     }
 
     public void setId(Object value, String id) {
