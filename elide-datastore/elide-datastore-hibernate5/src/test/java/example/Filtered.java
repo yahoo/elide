@@ -15,13 +15,10 @@ import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import example.Filtered.FilterCheck;
-import example.Filtered.FilterCheck3;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -35,17 +32,17 @@ import javax.persistence.Id;
 /**
  * Filtered permission check.
  */
-@CreatePermission(any = { FilterCheck.class })
-@ReadPermission(any = { Role.NONE.class, FilterCheck.class, FilterCheck3.class })
-@UpdatePermission(any = { FilterCheck.class })
-@DeletePermission(any = { FilterCheck.class })
+@CreatePermission(expression = "filterCheck")
+@ReadPermission(expression = "deny all OR filterCheck OR filterCheck3")
+@UpdatePermission(expression = "filterCheck")
+@DeletePermission(expression = "filterCheck")
 @Include(rootLevel = true)
 // Hibernate
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @ToString
 public class Filtered  {
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
+    @ReadPermission(expression = "deny all") public transient boolean init = false;
 
     private long id;
 

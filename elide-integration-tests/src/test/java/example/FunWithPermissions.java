@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.Set;
 
@@ -29,10 +28,10 @@ import javax.persistence.Table;
 /**
  * Permission checks test bean.
  */
-@CreatePermission(any = { Role.ALL.class })
-@ReadPermission(all = { Role.ALL.class })
-@UpdatePermission(any = { Role.NONE.class, Role.ALL.class })
-@DeletePermission(all = { Role.ALL.class, Role.NONE.class })
+@CreatePermission(expression = "allow all")
+@ReadPermission(expression = "allow all")
+@UpdatePermission(expression = "deny all OR allow all")
+@DeletePermission(expression = "deny all AND allow all")
 @Include(rootLevel = true, type = "fun") // optional here because class has this name
 // Hibernate
 @Entity
@@ -43,15 +42,15 @@ public class FunWithPermissions {
     private String field1;
     private String field2;
 
-    @ReadPermission(any = { NegativeIntegerUserCheck.class })
+    @ReadPermission(expression = "negativeIntegerUser")
     public String field3;
 
-    @UpdatePermission(any = { NegativeIntegerUserCheck.class })
+    @UpdatePermission(expression = "negativeIntegerUser")
     public String field4;
 
     private Set<Child> relation1;
 
-    @ReadPermission(any = { NegativeIntegerUserCheck.class })
+    @ReadPermission(expression = "negativeIntegerUser")
     @OneToMany(
             targetEntity = Child.class,
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
@@ -61,8 +60,8 @@ public class FunWithPermissions {
 
     private Child relation3;
 
-    @ReadPermission(any = { NegativeIntegerUserCheck.class })
-    @UpdatePermission(any = { NegativeIntegerUserCheck.class })
+    @ReadPermission(expression = "negativeIntegerUser")
+    @UpdatePermission(expression = "negativeIntegerUser")
     @OneToOne (cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "child_id")
     public Child getRelation3() {
@@ -83,7 +82,7 @@ public class FunWithPermissions {
         this.id = id;
     }
 
-    @ReadPermission(any = { Role.NONE.class})
+    @ReadPermission(expression = "deny all")
     public String getField1() {
         return field1;
     }
@@ -92,7 +91,7 @@ public class FunWithPermissions {
         this.field1 = field1;
     }
 
-    @ReadPermission(all = { Role.ALL.class})
+    @ReadPermission(expression = "allow all")
     public String getField2() {
         return field2;
     }
@@ -101,8 +100,8 @@ public class FunWithPermissions {
         this.field2 = field2;
     }
 
-    @ReadPermission(any = { NegativeIntegerUserCheck.class })
-    @UpdatePermission(any = { NegativeIntegerUserCheck.class })
+    @ReadPermission(expression = "negativeIntegerUser")
+    @UpdatePermission(expression = "negativeIntegerUser")
     @OneToMany(
             targetEntity = Child.class,
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
@@ -116,18 +115,18 @@ public class FunWithPermissions {
     }
 
     /* Verifies a chain of checks where all can succeed */
-    @ReadPermission(any = { NegativeIntegerUserCheck.class, Role.ALL.class })
+    @ReadPermission(expression = "allow all OR negativeIntegerUser")
     public String field5;
 
     /* Verifies a chain of checks where the first can fail or all succeed */
-    @ReadPermission(all = { NegativeIntegerUserCheck.class, Role.ALL.class })
+    @ReadPermission(expression = "negativeIntegerUser AND allow all")
     public String field6;
 
     /* Verifies a chain of checks where the last can fail. */
-    @ReadPermission(all = { Role.ALL.class, Role.NONE.class })
+    @ReadPermission(expression = "allow all AND deny all")
     public String field7;
 
     /* Verifies a chain of checks where all can fail or the last can succeed. */
-    @ReadPermission(any = { Role.NONE.class, NegativeIntegerUserCheck.class })
+    @ReadPermission(expression = "deny all OR negativeIntegerUser")
     public String field8;
 }

@@ -103,7 +103,7 @@ public class HibernateStore implements DataStore {
         Session session = sessionFactory.getCurrentSession();
         Preconditions.checkNotNull(session);
         session.beginTransaction();
-        return new HibernateTransaction(session);
+        return new HibernateTransaction(session, isScrollEnabled, scrollMode);
     }
 
     @Override

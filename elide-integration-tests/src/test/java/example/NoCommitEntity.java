@@ -11,8 +11,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.NoCommitEntity.NoCommitCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,8 +22,8 @@ import java.util.Optional;
 /**
  * No Update test bean.
  */
-@CreatePermission(all = { Role.ALL.class, NoCommitCheck.class })
-@UpdatePermission(all = { Role.ALL.class, NoCommitCheck.class })
+@CreatePermission(expression = "allow all AND noCommit")
+@UpdatePermission(expression = "allow all AND noCommit")
 @Include(rootLevel = true, type = "nocommit")
 // Hibernate
 @Entity

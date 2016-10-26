@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -20,9 +19,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
 @Include(rootLevel = false)
-@ReadPermission(any = {Role.ALL.class})
-@CreatePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.ALL.class})
+@ReadPermission(expression = "allow all")
+@CreatePermission(expression = "allow all")
+@UpdatePermission(expression = "allow all")
 @Entity
 public class OneToOneNonRoot {
     private Long id;

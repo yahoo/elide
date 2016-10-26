@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.*;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -29,8 +28,8 @@ import java.util.List;
 @Entity
 @Table(name = "filterExpressionCheckObj")
 @Include(rootLevel = true)
-@SharePermission(any = {Role.ALL.class})
-@ReadPermission(any = {FilterExpressionCheckObj.CheckLE.class, Role.NONE.class})  //ReadPermission for object id <= 2
+@SharePermission(expression = "allow all")
+@ReadPermission(expression = "checkLE OR deny all")  //ReadPermission for object id <= 2
 public class FilterExpressionCheckObj {
     private long id;
     private String name;
@@ -48,7 +47,7 @@ public class FilterExpressionCheckObj {
     }
 
     //This field only display for id == User.id (which is 1 in IT)
-    @ReadPermission(all = {CheckRestrictUser.class})
+    @ReadPermission(expression = "checkRestrictUser")
     public String getName() {
         return name;
     }

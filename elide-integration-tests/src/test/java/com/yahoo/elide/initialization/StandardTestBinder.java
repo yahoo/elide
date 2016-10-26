@@ -13,10 +13,9 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import example.TestCheckMappings;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
-
-import java.util.HashMap;
 
 /**
  * Typical-use test binder for integration test resource configs.
@@ -34,7 +33,7 @@ public class StandardTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 

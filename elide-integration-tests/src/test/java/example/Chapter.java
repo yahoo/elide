@@ -7,7 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +18,7 @@ import javax.persistence.Id;
 
 @Entity
 @Include(rootLevel = true, type = "chapter")
-@SharePermission(all = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 public class Chapter {
     private Long id;
     @Getter @Setter private String title;

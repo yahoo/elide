@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -18,12 +17,12 @@ import javax.persistence.ManyToOne;
  */
 @Include(rootLevel = true)
 @Entity
-@CreatePermission(any = {Role.ALL.class})
+@CreatePermission(expression = "allow all")
 public class CreateButNoReadChild extends BaseId {
     private CreateButNoRead otherObject;
 
     @ManyToOne()
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(expression = "allow all")
     public CreateButNoRead getOtherObject() {
         return otherObject;
     }

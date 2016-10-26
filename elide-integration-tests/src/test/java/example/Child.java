@@ -16,8 +16,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,9 +33,9 @@ import java.util.Set;
  * Child test bean.
  */
 @Entity
-@CreatePermission(any = { InitCheck.class })
-@SharePermission(any = { Role.ALL.class })
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class})
+@CreatePermission(expression = "initCheck")
+@SharePermission(expression = "allow all")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -75,7 +73,7 @@ public class Child {
             targetEntity = Parent.class
         )
     // Contrived check for regression example. Should clean this up. No updating child 4 via parent 10
-    @UpdatePermission(all = Child4Parent10Check.class)
+    @UpdatePermission(expression = "child4Parent10")
     public Set<Parent> getParents() {
         return parents;
     }
@@ -110,7 +108,7 @@ public class Child {
     }
 
     @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
-    @ReadPermission(all = {Role.NONE.class})
+    @ReadPermission(expression = "deny all")
     public Child getNoReadAccess() {
         return noReadAccess;
     }
