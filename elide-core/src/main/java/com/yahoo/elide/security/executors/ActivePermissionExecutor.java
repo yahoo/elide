@@ -52,13 +52,24 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
     private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
     private final Map<String, Long> checkStats;
+    private final boolean verbose;
 
     /**
      * Constructor.
      *
-     * @param requestScope Request scope.
+     * @param requestScope Request scope
      */
     public ActivePermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
+        this(false, requestScope);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param verbose True if executor should produce verbose output to caller
+     * @param requestScope Request scope
+     */
+    public ActivePermissionExecutor(boolean verbose, final com.yahoo.elide.core.RequestScope requestScope) {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
@@ -66,6 +77,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         userPermissionCheckCache = new HashMap<>();
         expressionResultShortCircuit = new HashSet<>();
         checkStats = new HashMap<>();
+        this.verbose = verbose;
     }
 
     /**
@@ -353,7 +365,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     @Override
     public boolean isVerbose() {
-        //TODO: Should make this configurable?
-        return false;
+        return verbose;
     }
 }
