@@ -15,7 +15,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import org.testng.annotations.Test;
 
 /**
- * Tests MultiplexTransaction
+ * Tests MultiplexTransaction.
  */
 public class MultiplexTransactionTest {
     @Test

@@ -162,7 +162,7 @@ public interface DataStoreTransaction extends Closeable {
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
-    };
+    }
 
 
     /**
@@ -198,7 +198,7 @@ public interface DataStoreTransaction extends Closeable {
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
-    };
+    }
 
     /**
      * @param entity - The object which owns the attribute.
@@ -211,5 +211,5 @@ public interface DataStoreTransaction extends Closeable {
             String attributeName,
             Object attributeValue,
             RequestScope scope) {
-    };
+    }
 }

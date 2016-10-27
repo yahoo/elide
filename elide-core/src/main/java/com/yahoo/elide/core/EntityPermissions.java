@@ -105,8 +105,7 @@ public class EntityPermissions implements CheckInstantiator {
             boolean hasExpression = !expression.isEmpty();
 
             if (!hasExpression) {
-                log.warn("Poorly configured permission: {} {}", annotationClass.getName(),
-                        hasExpression ? "more than one set of checks specified" : "no checks specified.");
+                log.warn("Poorly configured permission: {} {}", annotationClass.getName(), "no checks specified.");
                 throw new IllegalArgumentException("Poorly configured permission '" + annotationClass.getName() + "'");
             }
 

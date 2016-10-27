@@ -44,7 +44,7 @@ public class PermissionExecutorTest {
     public void testFailOperationCheckAll() throws Exception {
         @Entity
         @Include
-        @UpdatePermission(expression = "sampleOperation OR deny all")
+        @UpdatePermission(expression = "sampleOperation AND deny all")
         class Model { }
 
         PersistentResource resource = newResource(new Model(), Model.class);
@@ -470,7 +470,7 @@ public class PermissionExecutorTest {
         public String openAll = "all";
 
         @ReadPermission(expression = "sampleOperation OR sampleOperation")
-        @UpdatePermission(expression = "sampleCommit or sampleOperation")
+        @UpdatePermission(expression = "sampleCommit OR sampleOperation")
         public String openAny = "all";
     }
 
