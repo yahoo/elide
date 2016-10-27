@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -169,7 +167,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
                 final EntityDictionary dictionary = requestScope.getDictionary();
-
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -179,7 +176,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .collect(Collectors.toCollection(LinkedHashSet::new));
             }
         }
-
         return loadObjects(
                 entityClass,
                 criteria,
@@ -239,11 +235,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery =
                         new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                        dictionary)
-                        .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sorting)
-                        .withPossiblePagination(pagination)
-                        .build();
+                                dictionary)
+                                .withPossibleFilterExpression(filterExpression)
+                                .withPossibleSorting(sorting)
+                                .withPossiblePagination(pagination)
+                                .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
                 }
@@ -257,53 +253,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         final Criteria sessionCriteria = session.createCriteria(entityClass);
         sessionCriteria.setProjection(Projections.rowCount());
         return (Long) sessionCriteria.uniqueResult();
-    }
-
-    @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
-            String filterString = new HQLFilterOperation().applyAll(predicates);
-
-            if (filterString.length() != 0) {
-                Query query = session.createFilter(collection, filterString);
-
-                for (Predicate predicate : predicates) {
-                    if (predicate.getOperator().isParameterized()) {
-                        String name = predicate.getFieldPath().replace('.', '_');
-                        query = query.setParameterList(name, predicate.getValues());
-                    }
-                }
-
-                return query.list();
-            }
-        }
-
-        return collection;
-    }
-
-    @Override
-    @Deprecated
-    public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
-                                                                   final Class<T> entityClass,
-                                                                   final EntityDictionary dictionary,
-                                                                   final Optional<Set<Predicate>> filters,
-                                                                   final Optional<Sorting> sorting,
-                                                                   final Optional<Pagination> pagination) {
-        if (((collection instanceof AbstractPersistentCollection))
-                && (filters.isPresent() || sorting.isPresent() || pagination.isPresent())) {
-            @SuppressWarnings("unchecked")
-            final Optional<Query> possibleQuery = new HQLTransaction.Builder<>(session, collection, entityClass,
-                    dictionary)
-                    .withPossibleFilters(filters)
-                    .withPossibleSorting(sorting)
-                    .withPossiblePagination(pagination)
-                    .build();
-            if (possibleQuery.isPresent()) {
-                return possibleQuery.get().list();
-            }
-        }
-        return collection;
     }
 
     @Override

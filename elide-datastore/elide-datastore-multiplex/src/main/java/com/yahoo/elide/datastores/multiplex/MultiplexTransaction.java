@@ -8,18 +8,15 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -90,11 +87,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                 scope);
     }
 
-    @Override
-    @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
-    }
 
     @Override
     public void flush(RequestScope requestScope) {
@@ -149,41 +141,58 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return transaction;
     }
 
-    @Override
-    public <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
+    protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
+        EntityDictionary dictionary = multiplexManager.getDictionary();
+        Class<?> relationClass = dictionary.getParameterizedType(object, relationName);
+        return getTransaction(relationClass);
     }
 
     @Override
-    public <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getRelationWithSortingAndPagination(entity, relationshipType, relationName,
-                relationClass, dictionary, filters, sorting, pagination);
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity,
+                              String relationName,
+                              Optional<FilterExpression> filterExpression,
+                              Optional<Sorting> sorting,
+                              Optional<Pagination> pagination,
+                              RequestScope scope) {
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        return entityTransaction.getRelation(relationTx, entity,
+                relationName, filterExpression, sorting, pagination, scope);
     }
 
     @Override
-    public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-            Optional<Pagination> pagination) {
-        return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
-                collection, entityClass, dictionary, filters, sorting, pagination);
+    public void updateToManyRelation(DataStoreTransaction relationTx,
+                                     Object entity, String relationName,
+                                     Set<Object> newRelationships,
+                                     Set<Object> deletedRelationships,
+                                     RequestScope scope) {
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.updateToManyRelation(relationTx, entity, relationName,
+                newRelationships, deletedRelationships, scope);
+    }
+
+    @Override
+    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
+                                    String relationName, Object relationshipValue, RequestScope scope) {
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.updateToOneRelation(relationTx, entity, relationName,
+                relationshipValue, scope);
+    }
+
+    @Override
+    public Object getAttribute(Object entity,
+                               String attributeName, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        return transaction.getAttribute(entity, attributeName, scope);
+    }
+
+    @Override
+    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        transaction.setAttribute(entity, attributeName, attributeValue, scope);
     }
 
     @Override

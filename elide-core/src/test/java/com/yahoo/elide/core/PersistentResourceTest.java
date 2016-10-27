@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -97,7 +96,7 @@ public class PersistentResourceTest extends PersistentResource {
         super(
                 new Child(),
                 null,
-                new RequestScope(null, null, null, null, new EntityDictionary(new HashMap<>()), null, MOCK_AUDIT_LOGGER)
+                new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS), null, new EntityDictionary(new HashMap<>()), null, MOCK_AUDIT_LOGGER)
         );
         goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
@@ -124,6 +123,184 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(ChangeSpecChild.class);
         dictionary.bindEntity(Invoice.class);
         dictionary.bindEntity(LineItem.class);
+    }
+
+    @Test
+    public void testUpdateToOneRelationHookInAddRelation() {
+        FunWithPermissions fun = new FunWithPermissions();
+        Child child = newChild(1);
+
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        funResource.addRelation("relation3", childResource);
+
+        verify(tx, times(1)).updateToOneRelation(eq(tx), eq(fun), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToOneRelation(eq(tx), eq(child), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToOneRelationHookInUpdateRelation() {
+        FunWithPermissions fun = new FunWithPermissions();
+        Child child1 = newChild(1);
+        Child child2 = newChild(2);
+        fun.setRelation1(Sets.newHashSet(child1));
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
+        PersistentResource<Child> child2Resource = new PersistentResource<>(child2, null, "1", goodScope);
+        funResource.updateRelation("relation3", Sets.newHashSet(child2Resource));
+
+        verify(tx, times(1)).updateToOneRelation(eq(tx), eq(fun), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToOneRelation(eq(tx), eq(child1), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToOneRelation(eq(tx), eq(child2), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToOneRelationHookInRemoveRelation() {
+        FunWithPermissions fun = new FunWithPermissions();
+        Child child = newChild(1);
+        fun.setRelation3(child);
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        funResource.removeRelation("relation3", childResource);
+
+        verify(tx, times(1)).updateToOneRelation(eq(tx), eq(fun), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToOneRelation(eq(tx), eq(child), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToOneRelationHookInClearRelation() {
+        FunWithPermissions fun = new FunWithPermissions();
+        Child child1 = newChild(1);
+        fun.setRelation3(child1);
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
+        funResource.clearRelation("relation3");
+
+        verify(tx, times(1)).updateToOneRelation(eq(tx), eq(fun), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToOneRelation(eq(tx), eq(child1), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToManyRelationHookInAddRelationBidirection() {
+        Parent parent = new Parent();
+        Child child = newChild(1);
+
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        parentResource.addRelation("children", childResource);
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(parent),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToManyRelationHookInRemoveRelationBidirection() {
+        Parent parent = new Parent();
+        Child child = newChild(1);
+        parent.setChildren(Sets.newHashSet(child));
+        child.setParents(Sets.newHashSet(parent));
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        parentResource.removeRelation("children", childResource);
+
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(parent),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToManyRelationHookInClearRelationBidirection() {
+        Parent parent = new Parent();
+        Child child1 = newChild(1);
+        Child child2 = newChild(2);
+        parent.setChildren(Sets.newHashSet(child1, child2));
+        child1.setParents(Sets.newHashSet(parent));
+        child2.setParents(Sets.newHashSet(parent));
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
+        parentResource.clearRelation("children");
+
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(parent),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child1),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child2),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testUpdateToManyRelationHookInUpdateRelationBidirection() {
+        Parent parent = new Parent();
+        Child child1 = newChild(1);
+        Child child2 = newChild(2);
+        Child child3 = newChild(3);
+        parent.setChildren(Sets.newHashSet(child1, child2));
+        child1.setParents(Sets.newHashSet(parent));
+        child2.setParents(Sets.newHashSet(parent));
+        User goodUser = new User(1);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
+        PersistentResource<Child> childResource1 = new PersistentResource<>(child1, null, "1", goodScope);
+        PersistentResource<Child> childResource3 = new PersistentResource<>(child3, null, "1", goodScope);
+        parentResource.updateRelation("children", Sets.newHashSet(childResource1, childResource3));
+
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(parent),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, never()).updateToManyRelation(eq(tx), eq(child1),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child2),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+        verify(tx, times(1)).updateToManyRelation(eq(tx), eq(child3),
+                anyObject(), anyObject(), anyObject(), eq(goodScope));
+    }
+
+    @Test
+    public void testSetAttributeHookInUpdateAttribute() {
+        Parent parent = newParent(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        User goodUser = new User(1);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
+        parentResource.updateAttribute("firstName", "foobar");
+
+        verify(tx, times(1)).setAttribute(parent, "firstName", "foobar", goodScope);
     }
 
     @Test
@@ -570,7 +747,7 @@ public class PersistentResourceTest extends PersistentResource {
         parent.setChildren(Sets.newHashSet(child1, child2, child3));
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(any(), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -660,7 +837,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(any(), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -681,7 +858,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(any(), any(), any(), any(), any(), anySet())).thenReturn(Sets.newHashSet(child1));
+        when(tx.getRelation(any(), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);

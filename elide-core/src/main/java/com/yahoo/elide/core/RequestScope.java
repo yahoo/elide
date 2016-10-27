@@ -58,7 +58,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final String path;
-    private final boolean useFilterExpressions;
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
@@ -90,8 +89,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         MultivaluedMap<String, String> queryParams,
                         SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
-                        MultipleFilterDialect filterDialect,
-                        boolean useFilterExpressions) {
+                        MultipleFilterDialect filterDialect) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
@@ -101,7 +99,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = auditLogger;
         this.securityMode = securityMode;
         this.filterDialect = filterDialect;
-        this.useFilterExpressions = useFilterExpressions;
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -184,8 +181,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 null,
                 securityMode,
                 permissionExecutor,
-                new MultipleFilterDialect(dictionary),
-                false
+                new MultipleFilterDialect(dictionary)
         );
     }
 
@@ -208,8 +204,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 queryParams,
                 SecurityMode.SECURITY_ACTIVE,
                 null,
-                new MultipleFilterDialect(dictionary),
-                false
+                new MultipleFilterDialect(dictionary)
         );
     }
 
@@ -231,8 +226,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 null,
                 SecurityMode.SECURITY_ACTIVE,
                 null,
-                new MultipleFilterDialect(dictionary),
-                false
+                new MultipleFilterDialect(dictionary)
         );
     }
 
@@ -279,7 +273,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = outerRequestScope.dirtyResources;
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
-        this.useFilterExpressions = outerRequestScope.useFilterExpressions;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
@@ -394,13 +387,5 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .map(PersistentResource::getObject)
                 .forEach(s -> transaction.createObject(s, this));
         dirtyResources.stream().map(PersistentResource::getObject).forEach(obj -> transaction.save(obj, this));
-    }
-
-    /**
-     * Whether or not to use Elide 3.0 filter expressions for DataStoreTransaction calls
-     * @return
-     */
-    public boolean useFilterExpressions() {
-        return useFilterExpressions;
     }
 }

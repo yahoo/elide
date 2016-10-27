@@ -169,11 +169,11 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         Assert.assertNotNull(resource);
-        verify(book, times(1)).onCreateBook();
-        verify(book, times(0)).onDeleteBook();
-        verify(book, times(0)).onCommitBook();
-        verify(book, times(0)).onUpdateTitle();
-        verify(book, times(0)).onCommitTitle();
+        verify(book, times(1)).onCreateBook(scope);
+        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, times(0)).onCommitBook(scope);
+        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, times(0)).onCommitTitle(scope);
     }
 
     @Test
@@ -185,11 +185,11 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         scope.runCommitTriggers();
         Assert.assertNotNull(resource);
-        verify(book, times(1)).onCreateBook();
-        verify(book, times(0)).onDeleteBook();
-        verify(book, times(1)).onCommitBook();
-        verify(book, times(0)).onUpdateTitle();
-        verify(book, times(0)).onCommitTitle();
+        verify(book, times(1)).onCreateBook(scope);
+        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, times(1)).onCommitBook(scope);
+        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, times(0)).onCommitTitle(scope);
     }
 
     @Test
@@ -201,11 +201,11 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.loadRecord(Book.class, "1", scope);
         scope.runCommitTriggers();
         Assert.assertNotNull(resource);
-        verify(book, times(0)).onCreateBook();
-        verify(book, times(0)).onDeleteBook();
-        verify(book, times(1)).onCommitBook();
-        verify(book, times(0)).onUpdateTitle();
-        verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onCreateBook(scope);
+        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, times(1)).onCommitBook(scope);
+        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, times(0)).onCommitTitle(scope);
     }
 
     @Test
@@ -217,25 +217,26 @@ public class LifeCycleTest {
         Set<PersistentResource<Book>> resources = PersistentResource.loadRecords(Book.class, scope);
         scope.runCommitTriggers();
         Assert.assertEquals(resources.size(), 1);
-        verify(book, times(0)).onCreateBook();
-        verify(book, times(0)).onDeleteBook();
-        verify(book, times(1)).onCommitBook();
-        verify(book, times(0)).onUpdateTitle();
-        verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onCreateBook(scope);
+        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, times(1)).onCommitBook(scope);
+        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, times(0)).onCommitTitle(scope);
     }
 
     @Test
     public void testOnUpdate() {
         Book book = mock(Book.class);
-        RequestScope scope = new RequestScope(null, null, null, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runCommitTriggers();
-        verify(book, times(0)).onCreateBook();
-        verify(book, times(0)).onDeleteBook();
-        verify(book, times(0)).onCommitBook();
-        verify(book, times(1)).onUpdateTitle();
-        verify(book, times(1)).onCommitTitle();
+        verify(book, times(0)).onCreateBook(scope);
+        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, times(0)).onCommitBook(scope);
+        verify(book, times(1)).onUpdateTitle(scope);
+        verify(book, times(1)).onCommitTitle(scope);
     }
 
     @Test
@@ -245,10 +246,10 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
-        verify(book, times(0)).onCreateBook();
-        verify(book, times(1)).onDeleteBook();
-        verify(book, times(0)).onCommitBook();
-        verify(book, times(0)).onCommitTitle();
-        verify(book, times(0)).onUpdateTitle();
+        verify(book, times(0)).onCreateBook(scope);
+        verify(book, times(1)).onDeleteBook(scope);
+        verify(book, times(0)).onCommitBook(scope);
+        verify(book, times(0)).onCommitTitle(scope);
+        verify(book, times(0)).onUpdateTitle(scope);
     }
 }

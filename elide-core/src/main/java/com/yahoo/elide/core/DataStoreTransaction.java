@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -91,7 +90,6 @@ public interface DataStoreTransaction extends Closeable {
         return obj;
     }
 
-
     /**
      * Loads an object by ID.
      * @param id - the ID of the object to load.
@@ -135,61 +133,6 @@ public interface DataStoreTransaction extends Closeable {
 
 
     /**
-     * Filter a collection by the Predicates in filterScope.
-     *
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
-     * @param entityClass the class of the entities in the collection
-     * @param predicates  the set of Predicate's to filter by
-     * @return the filtered collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return collection;
-    }
-
-   /**
-     * Filter Sort and Paginate a collection in filterScope or requestScope.
-     * @param collection The collection
-     * @param dictionary The entity dictionary
-     * @param entityClass The class of the entities in the collection
-     * @param filters The optional set of Predicate's to filter by
-     * @param sorting The optional Sorting object
-     * @param pagination The optional Pagination object
-     * @param <T> The type parameter
-     * @return The optionally filtered, sorted and paginated collection
-     * @deprecated Since 2.4, instead implement the filtering logic in detail methods in implementations
-     */
-    @Deprecated
-    default <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-                                                          EntityDictionary dictionary, Optional<Set<Predicate>> filters,
-                                                          Optional<Sorting> sorting, Optional<Pagination> pagination) {
-        return collection;
-    }
-
-    @Deprecated
-    default <T> Object getRelation(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-
-            if (!filters.isEmpty()) {
-                filteredVal = filterCollection(filteredVal, relationClass, filters);
-            }
-            return filteredVal;
-        }
-        return val;
-    }
-
-    /**
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
@@ -207,55 +150,73 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
+        com.yahoo.elide.core.RequestScope requestScope;
         try {
-            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
-            EntityDictionary dictionary = requestScope.getDictionary();
-            Object val = PersistentResource.getValue(entity, relationName, dictionary);
-            if (val instanceof Collection) {
-                Collection filteredVal = (Collection) val;
-                return filteredVal;
-            }
-
-            return val;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Object val = PersistentResource.getValue(entity, relationName, dictionary);
+        if (val instanceof Collection) {
+            Collection filteredVal = (Collection) val;
+            return filteredVal;
+        }
+
+        return val;
     };
 
 
     /**
+     * Elide core will update the in memory representation of the objects to the requested state.
+     * These functions allow a data store to optionally persist the relationship if needed.
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
-     * @param relationValue - the desired contents of the relationship.
+     * @param newRelationships - the set of the added relationship to the collection.
+     * @param deletedRelationships - the set of the deleted relationship to the collection.
      * @param scope - contains request level metadata.
      */
-    default void setRelation(
-            DataStoreTransaction relationTx,
-            Object entity,
-            String relationName,
-            Object relationValue,
-            RequestScope scope) { }
+    default void updateToManyRelation(DataStoreTransaction relationTx,
+                                      Object entity,
+                                      String relationName,
+                                      Set<Object> newRelationships,
+                                      Set<Object> deletedRelationships,
+                                      RequestScope scope) { };
+
+    /**
+     * Elide core will update the in memory representation of the objects to the requested state.
+     * These functions allow a data store to optionally persist the relationship if needed.
+     * @param relationTx - The datastore that governs objects of the relationhip's type.
+     * @param entity - The object which owns the relationship.
+     * @param relationName - name of the relationship.
+     * @param relationshipValue - the new value of the updated one-to-one relationship
+     * @param scope - contains request level metadata.
+     */
+    default void updateToOneRelation(DataStoreTransaction relationTx,
+                                     Object entity,
+                                     String relationName,
+                                     Object relationshipValue,
+                                     RequestScope scope) { };
 
     /**
      * @param entity - The object which owns the attribute.
      * @param attributeName - name of the attribute.
-     * @param filterExpression - securing filtering which can be pushed down to the data store.
-     *                         It is optional for the data store to attempt evaluation.
      * @param scope - contains request level metadata.
      */
     default Object getAttribute(
             Object entity,
             String attributeName,
-            Optional<FilterExpression> filterExpression,
             RequestScope scope) {
+        com.yahoo.elide.core.RequestScope requestScope;
         try {
-            com.yahoo.elide.core.RequestScope requestScope = (com.yahoo.elide.core.RequestScope) scope;
-            Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
-            return val;
+            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
+        Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
+        return val;
+
     };
 
     /**
@@ -271,27 +232,4 @@ public interface DataStoreTransaction extends Closeable {
             RequestScope scope) {
     };
 
-
-    @Deprecated
-    default <T> Object getRelationWithSortingAndPagination(
-            Object entity,
-            RelationshipType relationshipType,
-            String relationName,
-            Class<T> relationClass,
-            EntityDictionary dictionary,
-            Set<Predicate> filters,
-            Sorting sorting,
-            Pagination pagination
-    ) {
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            Optional<Sorting> sortingRules = Optional.ofNullable(sorting);
-            Optional<Pagination> paginationRules = Optional.ofNullable(pagination);
-            filteredVal = filterCollectionWithSortingAndPagination(filteredVal, relationClass, dictionary,
-                    Optional.of(filters), sortingRules, paginationRules);
-            return filteredVal;
-        }
-        return val;
-    }
 }

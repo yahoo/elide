@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 
 /**
  * On Commit trigger annotation.
+ * The onCommit invoked function takes a Requestscope as parameter.
  */
 @Target({METHOD, FIELD})
 @Retention(RUNTIME)
