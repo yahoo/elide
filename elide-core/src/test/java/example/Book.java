@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.security.RequestScope;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -94,27 +95,27 @@ public class Book {
     }
 
     @OnUpdate("title")
-    public void onUpdateTitle() {
+    public void onUpdateTitle(RequestScope requestScope) {
        // title attribute updated
     }
 
     @OnCommit("title")
-    public void onCommitTitle() {
+    public void onCommitTitle(RequestScope requestScope) {
        // title attribute update committed
     }
 
     @OnCreate
-    public void onCreateBook() {
+    public void onCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
     @OnCommit
-    public void onCommitBook() {
+    public void onCommitBook(RequestScope requestScope) {
        // book entity committed
     }
 
     @OnDelete
-    public void onDeleteBook() {
+    public void onDeleteBook(RequestScope requestScope) {
        // book entity deleted
     }
 }

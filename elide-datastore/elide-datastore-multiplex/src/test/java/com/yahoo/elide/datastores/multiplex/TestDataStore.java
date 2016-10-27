@@ -64,6 +64,11 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
+    public void flush(RequestScope scope) {
+        // Nothing
+    }
+
+    @Override
     public void commit(RequestScope scope) {
         throw new UnsupportedOperationException(this.toString());
     }

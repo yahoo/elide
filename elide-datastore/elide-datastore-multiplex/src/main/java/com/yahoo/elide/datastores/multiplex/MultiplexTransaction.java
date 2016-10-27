@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.multiplex;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
@@ -138,6 +140,12 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return transaction;
     }
 
+    protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
+        EntityDictionary dictionary = multiplexManager.getDictionary();
+        Class<?> relationClass = dictionary.getParameterizedType(object, relationName);
+        return getTransaction(relationClass);
+    }
+
     @Override
     public Object getRelation(DataStoreTransaction relationTx,
                               Object entity,
@@ -146,8 +154,44 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity);
-        return transaction.getRelation(transaction, entity, relationName, filterExpression, sorting, pagination, scope);
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        return entityTransaction.getRelation(relationTx, entity,
+                relationName, filterExpression, sorting, pagination, scope);
+    }
+
+    @Override
+    public void updateToManyRelation(DataStoreTransaction relationTx,
+                                     Object entity, String relationName,
+                                     Set<Object> newRelationships,
+                                     Set<Object> deletedRelationships,
+                                     RequestScope scope) {
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.updateToManyRelation(relationTx, entity, relationName,
+                newRelationships, deletedRelationships, scope);
+    }
+
+    @Override
+    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
+                                    String relationName, Object relationshipValue, RequestScope scope) {
+        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        entityTransaction.updateToOneRelation(relationTx, entity, relationName,
+                relationshipValue, scope);
+    }
+
+    @Override
+    public Object getAttribute(Object entity,
+                               String attributeName, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        return transaction.getAttribute(entity, attributeName, scope);
+    }
+
+    @Override
+    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        transaction.setAttribute(entity, attributeName, attributeValue, scope);
     }
 
     @Override

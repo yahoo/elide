@@ -154,7 +154,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
                 final EntityDictionary dictionary = requestScope.getDictionary();
-
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -164,7 +163,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .collect(Collectors.toCollection(LinkedHashSet::new));
             }
         }
-
         return loadObjects(
                 entityClass,
                 criteria,
@@ -224,11 +222,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery =
                         new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                        dictionary)
-                        .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sorting)
-                        .withPossiblePagination(pagination)
-                        .build();
+                                dictionary)
+                                .withPossibleFilterExpression(filterExpression)
+                                .withPossibleSorting(sorting)
+                                .withPossiblePagination(pagination)
+                                .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
                 }

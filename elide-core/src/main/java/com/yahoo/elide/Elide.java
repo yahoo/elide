@@ -78,7 +78,6 @@ public class Elide {
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     private final List<JoinFilterDialect> joinFilterDialects;
     private final List<SubqueryFilterDialect> subqueryFilterDialects;
-    private final boolean useFilterExpressions;
 
     /**
      * Instantiates a new Elide.
@@ -101,8 +100,7 @@ public class Elide {
             mapper,
             ActivePermissionExecutor::new,
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            false
+            Collections.singletonList(new DefaultFilterDialect(dictionary))
         );
     }
 
@@ -116,7 +114,6 @@ public class Elide {
      * @param permissionExecutor Custom permission executor implementation
      * @param joinFilterDialects A list of filter parsers to use for filtering across types
      * @param subqueryFilterDialects A list of filter parsers to use for filtering by type
-     * @param useFilterExpressions Whether or not to use Elide 3.0 filter expressions for DataStore interactions
      */
     protected Elide(AuditLogger auditLogger,
                   DataStore dataStore,
@@ -124,8 +121,7 @@ public class Elide {
                   JsonApiMapper mapper,
                   Function<RequestScope, PermissionExecutor> permissionExecutor,
                   List<JoinFilterDialect> joinFilterDialects,
-                  List<SubqueryFilterDialect> subqueryFilterDialects,
-                  boolean useFilterExpressions) {
+                  List<SubqueryFilterDialect> subqueryFilterDialects) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -134,7 +130,6 @@ public class Elide {
         this.permissionExecutor = permissionExecutor;
         this.joinFilterDialects = joinFilterDialects;
         this.subqueryFilterDialects = subqueryFilterDialects;
-        this.useFilterExpressions = useFilterExpressions;
     }
 
     /**
@@ -148,7 +143,6 @@ public class Elide {
         private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
         private List<JoinFilterDialect> joinFilterDialects;
         private List<SubqueryFilterDialect> subqueryFilterDialects;
-        private boolean useFilterExpressions;
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -180,8 +174,7 @@ public class Elide {
                     jsonApiMapper,
                     permissionExecutorFunction,
                     joinFilterDialects,
-                    subqueryFilterDialects,
-                    useFilterExpressions);
+                    subqueryFilterDialects);
         }
 
         public Builder withAuditLogger(AuditLogger auditLogger) {
@@ -226,13 +219,11 @@ public class Elide {
         }
 
         public Builder withJoinFilterDialect(JoinFilterDialect dialect) {
-            useFilterExpressions = true;
             joinFilterDialects.add(dialect);
             return this;
         }
 
         public Builder withSubqueryFilterDialect(SubqueryFilterDialect dialect) {
-            useFilterExpressions = true;
             subqueryFilterDialects.add(dialect);
             return this;
         }
@@ -264,8 +255,7 @@ public class Elide {
                     auditLogger,
                     queryParams,
                     permissionExecutor,
-                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
-                    useFilterExpressions);
+                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             GetVisitor visitor = new GetVisitor(requestScope);

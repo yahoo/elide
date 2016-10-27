@@ -85,6 +85,7 @@ public class Filtered  {
         @Override
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return getPredicateOfId(3L);
+
         }
     }
 }

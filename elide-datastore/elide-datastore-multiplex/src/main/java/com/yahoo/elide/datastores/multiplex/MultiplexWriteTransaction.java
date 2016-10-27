@@ -199,9 +199,9 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity);
-        Object relation = transaction
-                .getRelation(this, entity, relationName, filterExpression, sorting, pagination, scope);
+        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        Object relation = super.getRelation(relationTx, entity, relationName,
+                filterExpression, sorting, pagination, scope);
 
         if (relation instanceof Iterable) {
             return hold(transaction, (Iterable) relation);
