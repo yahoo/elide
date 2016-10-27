@@ -45,7 +45,14 @@ public class CanPaginateVisitorTest {
         }
     }
 
-    public static final class TestUserCheck extends UserCheck {
+    public static final class FalseUserCheck extends UserCheck {
+        @Override
+        public boolean ok(User user) {
+            return false;
+        }
+    }
+
+    public static final class TrueUserCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
             return true;
@@ -54,7 +61,7 @@ public class CanPaginateVisitorTest {
 
     public static final class TestFilterExpressionCheck extends FilterExpressionCheck<Object> {
         @Override
-        public FilterExpression getFilterExpression(com.yahoo.elide.security.RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
             return null;
         }
     }
@@ -64,7 +71,8 @@ public class CanPaginateVisitorTest {
     void init() {
         checkMappings = new HashMap<>();
         checkMappings.put("In Memory Check", TestOperationCheck.class);
-        checkMappings.put("User Check", TestUserCheck.class);
+        checkMappings.put("False User Check", FalseUserCheck.class);
+        checkMappings.put("True User Check", TrueUserCheck.class);
         checkMappings.put("Filter Expression Check", TestFilterExpressionCheck.class);
     }
 
@@ -105,7 +113,7 @@ public class CanPaginateVisitorTest {
     public void testClassUserPermissions() throws Exception {
         @Entity
         @Include
-        @ReadPermission(expression = "User Check")
+        @ReadPermission(expression = "False User Check")
         class Book {
             public String title;
         }
@@ -139,7 +147,7 @@ public class CanPaginateVisitorTest {
         @Include
         class Book {
             @ReadPermission(expression =
-                    "(Filter Expression Check AND User Check) OR (Filter Expression Check OR NOT User Check)")
+                    "(Filter Expression Check AND False User Check) OR (Filter Expression Check OR NOT False User Check)")
             public String title;
         }
 
@@ -151,11 +159,11 @@ public class CanPaginateVisitorTest {
     }
 
     @Test
-    public void testUserOROperationExpression() throws Exception {
+    public void testFalseUserOROperationExpression() throws Exception {
         @Entity
         @Include
         class Book {
-            @ReadPermission(expression = "User Check OR In Memory Check")
+            @ReadPermission(expression = "False User Check OR In Memory Check")
             public String title;
         }
 
@@ -167,11 +175,43 @@ public class CanPaginateVisitorTest {
     }
 
     @Test
-    public void testUserAndOperationExpression() throws Exception {
+    public void testTrueUserOROperationExpression() throws Exception {
         @Entity
         @Include
         class Book {
-            @ReadPermission(expression = "User Check AND In Memory Check")
+            @ReadPermission(expression = "True User Check OR In Memory Check")
+            public String title;
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        dictionary.bindEntity(Book.class);
+        RequestScope scope = mock(RequestScope.class);
+
+        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+    }
+
+    @Test
+    public void testFalseUserAndOperationExpression() throws Exception {
+        @Entity
+        @Include
+        class Book {
+            @ReadPermission(expression = "False User Check AND In Memory Check")
+            public String title;
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        dictionary.bindEntity(Book.class);
+        RequestScope scope = mock(RequestScope.class);
+
+        Assert.assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+    }
+
+    @Test
+    public void testTrueUserAndOperationExpression() throws Exception {
+        @Entity
+        @Include
+        class Book {
+            @ReadPermission(expression = "True User Check AND In Memory Check")
             public String title;
         }
 

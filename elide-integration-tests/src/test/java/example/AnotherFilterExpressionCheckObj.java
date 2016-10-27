@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.*;
 import com.yahoo.elide.security.checks.prefab.Role;
 
@@ -88,7 +89,7 @@ public class AnotherFilterExpressionCheckObj {
     public static class CheckActsLikeFilter extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createFilterPredicate();
         }
 

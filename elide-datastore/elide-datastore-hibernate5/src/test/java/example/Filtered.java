@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -74,7 +75,7 @@ public class Filtered  {
     static public class FilterCheck extends FilterExpressionCheck {
         /* Limit reads to ID 1 */
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return getPredicateOfId(1L);
         }
     }
@@ -85,7 +86,7 @@ public class Filtered  {
     static public class FilterCheck3 extends FilterExpressionCheck {
         /* Limit reads to ID 3 */
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return getPredicateOfId(3L);
 
         }

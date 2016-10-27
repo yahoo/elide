@@ -24,8 +24,8 @@ public class EpochToDateConverter implements Converter {
         try {
             if (ClassUtils.isAssignable(value.getClass(), String.class)) {
                 return stringToDate(cls, (String) value);
-            } else if (ClassUtils.isAssignable(value.getClass(), Long.class, true)) {
-                return longToDate(cls, (Long) value);
+            } else if (ClassUtils.isAssignable(value.getClass(), Number.class, true)) {
+                return numberToDate(cls, (Number) value);
             } else {
                 throw new UnsupportedOperationException(value.getClass().getSimpleName() + " is not a valid epoch");
             }
@@ -35,21 +35,21 @@ public class EpochToDateConverter implements Converter {
         }
     }
 
-    private static <T> T longToDate(Class<T> cls, Long epoch) throws ReflectiveOperationException {
+    private static <T> T numberToDate(Class<T> cls, Number epoch) throws ReflectiveOperationException {
         if (ClassUtils.isAssignable(cls, java.sql.Date.class)) {
-            return (T) new java.sql.Date(epoch);
+            return (T) new java.sql.Date(epoch.longValue());
         } else if (ClassUtils.isAssignable(cls, Timestamp.class)) {
-            return (T) new Timestamp(epoch);
+            return (T) new Timestamp(epoch.longValue());
         } else if (ClassUtils.isAssignable(cls, Time.class)) {
-            return (T) new Time(epoch);
+            return (T) new Time(epoch.longValue());
         } else if (ClassUtils.isAssignable(cls, Date.class)) {
-            return (T) new Date(epoch);
+            return (T) new Date(epoch.longValue());
         } else {
             throw new UnsupportedOperationException("Cannot convert to " + cls.getSimpleName());
         }
     }
 
     private static <T> T stringToDate(Class<T> cls, String epoch) throws ReflectiveOperationException {
-        return longToDate(cls, Long.parseLong(epoch));
+        return numberToDate(cls, Long.parseLong(epoch));
     }
 }

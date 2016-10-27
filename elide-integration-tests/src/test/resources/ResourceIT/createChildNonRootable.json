@@ -1,6 +1,6 @@
 {
     "data":{
-        "type":"parent",
+        "type":"child",
         "id":"required",
         "attributes":{
             "firstName":"I should not be created :x"

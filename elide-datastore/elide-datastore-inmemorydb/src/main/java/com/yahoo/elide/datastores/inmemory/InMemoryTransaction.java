@@ -7,11 +7,10 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.io.IOException;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,8 +54,8 @@ public class InMemoryTransaction implements DataStoreTransaction {
             return;
         }
         String id = dictionary.getId(object);
-        if (id.equals("0")) {
-            throw new InvalidOperationException("Save on object id = 0");
+        if (id == null || id.equals("null") || id.equals("0")) {
+            createObject(object, requestScope);
         }
         id = dictionary.getId(object);
         operations.add(new Operation(id, object, object.getClass(), false));
@@ -100,12 +100,15 @@ public class InMemoryTransaction implements DataStoreTransaction {
         Class entityClass = entity.getClass();
         if (dataStore.get(entityClass) == null) {
             dataStore.putIfAbsent(entityClass, new ConcurrentHashMap<>());
-            TYPEIDS.putIfAbsent(entityClass, new AtomicLong(1));
         }
-        AtomicLong idValue = TYPEIDS.get(entityClass);
+        AtomicLong idValue = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
         String id = String.valueOf(idValue.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));
+    }
+
+    private AtomicLong newRandomId(Class<?> entityClass) {
+        return new AtomicLong(new Random().nextLong());
     }
 
     public void setId(Object value, String id) {

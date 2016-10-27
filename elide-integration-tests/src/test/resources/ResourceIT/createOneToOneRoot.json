@@ -1,6 +1,6 @@
 {
     "data":{
-        "type":"OneToOneRoot",
+        "type":"oneToOneRoot",
         "id":"1",
         "attributes":{
             "name": "test123"

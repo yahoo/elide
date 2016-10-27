@@ -27,15 +27,17 @@ import com.yahoo.elide.utils.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 
+import example.Child;
+import example.FunWithPermissions;
+import example.Invoice;
+import example.LineItem;
+import example.Parent;
+import example.User;
+
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import example.Child;
-import example.FunWithPermissions;
-import example.Parent;
-import example.User;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -58,6 +60,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @BeforeClass
     public static void setup() {
         DataStoreTransaction tx = dataStore.beginTransaction();
+
         Parent parent = new Parent(); // id 1
         Child child = new Child(); // id 1
         parent.setChildren(Sets.newHashSet(child));
@@ -125,6 +128,14 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         User user = new User(); //ID 1
         user.setPassword("god");
         tx.save(user, null);
+
+        Invoice invoice = new Invoice();
+        invoice.setId(1);
+        LineItem item = new LineItem();
+        invoice.setItems(Sets.newHashSet(item));
+        item.setInvoice(invoice);
+        tx.save(invoice, null);
+        tx.save(item, null);
 
         tx.commit(null);
     }
@@ -750,6 +761,16 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(isEmptyOrNullString());
     }
 
+    @Test(priority = 11)
+    public void testDeleteWithCascade() {
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .delete("/invoice/1")
+            .then()
+            .statusCode(HttpStatus.SC_NO_CONTENT)
+            .body(isEmptyOrNullString());
+    }
 
     @Test(priority = 12)
     public void failDeleteParent() {

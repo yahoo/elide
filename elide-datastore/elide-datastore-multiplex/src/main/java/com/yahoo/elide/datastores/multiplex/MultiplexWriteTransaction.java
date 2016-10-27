@@ -7,11 +7,12 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.RequestScope;
 
 import com.google.common.collect.Lists;
 
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -68,6 +70,9 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             try {
                 entry.getValue().commit(requestScope);
                 commitList.add(entry.getKey());
+            } catch (HttpStatusException | WebApplicationException e) {
+                reverseTransactions(commitList, e, requestScope);
+                throw e;
             } catch (Error | RuntimeException e) {
                 TransactionException transactionException = new TransactionException(e);
                 reverseTransactions(commitList, transactionException, requestScope);

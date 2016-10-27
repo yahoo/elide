@@ -114,6 +114,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param entityClass class of query object
      * @param id id of the query object
      * @param filterExpression FilterExpression contains the predicates
+     * @param scope Request scope associated with specific request
      */
     @Override
     public Object loadObject(Class<?> entityClass,
@@ -127,11 +128,19 @@ public class HibernateTransaction implements DataStoreTransaction {
                 CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
             }
-            Object record = criteria.uniqueResult();
-            return record;
+            return criteria.uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Build the CriterionFilterOperation for provided criteria
+     * @param criteria the criteria
+     * @return the CriterionFilterOperation
+     */
+    protected CriterionFilterOperation buildCriterionFilterOperation(Criteria criteria) {
+        return new CriterionFilterOperation(criteria);
     }
 
     @Override
@@ -150,7 +159,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         Criteria criteria = session.createCriteria(entityClass);
 
         if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
             criteria = filterOpn.apply(filterExpression.get());
         }
 
@@ -178,7 +187,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
      * @param loadClass The hibernate class to build the query off of.
-     * @param criteria Filtering criteria
+     * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @return The Iterable for Hibernate.

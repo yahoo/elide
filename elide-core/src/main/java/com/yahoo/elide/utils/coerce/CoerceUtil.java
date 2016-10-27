@@ -74,7 +74,7 @@ public class CoerceUtil {
                     return TO_ENUM_CONVERTER;
                 } else if (Map.class.isAssignableFrom(sourceType)) {
                     return FROM_MAP_CONVERTER;
-                } else if ((String.class.isAssignableFrom(sourceType) || Long.class.isAssignableFrom(sourceType))
+                } else if ((String.class.isAssignableFrom(sourceType) || Number.class.isAssignableFrom(sourceType))
                         && ClassUtils.isAssignable(targetType, Date.class)) {
                     return EPOCH_TO_DATE_CONVERTER;
                 } else {

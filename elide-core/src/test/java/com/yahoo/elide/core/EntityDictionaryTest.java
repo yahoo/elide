@@ -107,6 +107,14 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertFalse(attributes.contains("reversedPassword"));
     }
 
+    @Test
+    public void testDetectCascadeRelations() {
+        Assert.assertFalse(cascadeDeletes(FunWithPermissions.class, "relation1"));
+        Assert.assertFalse(cascadeDeletes(FunWithPermissions.class, "relation2"));
+        Assert.assertTrue(cascadeDeletes(FunWithPermissions.class, "relation3"));
+        Assert.assertFalse(cascadeDeletes(FunWithPermissions.class, "relation4"));
+        Assert.assertFalse(cascadeDeletes(FunWithPermissions.class, "relation5"));
+    }
 
     @Test
     public void testGetIdAnnotations() throws Exception {

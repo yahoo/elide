@@ -85,7 +85,7 @@ public class FilterExpressionCheckObj {
     public static class CheckRestrictUser extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createUserPredicate(requestScope, false, 1L);
         }
 
@@ -97,7 +97,7 @@ public class FilterExpressionCheckObj {
     public static class CheckLE extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(RequestScope requestScope) {
+        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             List<Predicate.PathElement> pathList = new ArrayList<>();
             Predicate.PathElement path1 = new Predicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
             pathList.add(path1);

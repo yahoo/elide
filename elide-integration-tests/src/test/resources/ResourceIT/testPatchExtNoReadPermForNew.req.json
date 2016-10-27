@@ -3,7 +3,7 @@
     "op": "add",
     "path": "/-",
     "value": {
-      "type": "specialRead",
+      "type": "specialread",
       "id": "12345678-1234-1234-1234-123456789ab1",
       "attributes": {
         "value": "special value"
