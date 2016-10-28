@@ -13,7 +13,6 @@ import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
