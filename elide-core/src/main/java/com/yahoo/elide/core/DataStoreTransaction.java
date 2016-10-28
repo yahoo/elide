@@ -160,13 +160,8 @@ public interface DataStoreTransaction extends Closeable {
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
-        Object val = PersistentResource.getValue(entity, relationName, dictionary);
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
-            return filteredVal;
-        }
 
-        return val;
+        return PersistentResource.getValue(entity, relationName, dictionary);
     }
 
 
