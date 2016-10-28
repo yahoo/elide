@@ -64,9 +64,11 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 Predicate.PathElement last = path.get(path.size() - 1);
 
                 final List<Object> values = new ArrayList<>();
-                for (String valueParams : paramValues) {
-                    for (String valueParam : valueParams.split(",")) {
-                        values.add(CoerceUtil.coerce(valueParam, last.getFieldType()));
+                if (operator.isParameterized()) {
+                    for (String valueParams : paramValues) {
+                        for (String valueParam : valueParams.split(",")) {
+                            values.add(CoerceUtil.coerce(valueParam, last.getFieldType()));
+                        }
                     }
                 }
 

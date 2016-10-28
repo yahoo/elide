@@ -145,6 +145,15 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEquals(doc.getData().get().size(), 4);
     }
 
+    @Test(priority = -1)
+    public void testRootCollectionWithNoOperatorFilter() throws Exception {
+        String actual = given().when().get("/parent?filter[parent.id][isnull]").then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
+        assertEquals(doc.getData().get().size(), 0);
+    }
+
     @Test
     public void testReadPermissionWithFilterCheckCollectionId() {
         /*
