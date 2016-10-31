@@ -263,7 +263,7 @@ public enum Operator {
     private static <T> Predicate<T> gt(String field, List<Object> values, EntityDictionary dictionary) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("LE can only take one argument");
+                throw new InvalidPredicateException("GT can only take one argument");
             }
             Object val = getFieldValue(entity, field, dictionary);
 
@@ -275,7 +275,7 @@ public enum Operator {
     private static <T> Predicate<T> ge(String field, List<Object> values, EntityDictionary dictionary) {
         return (T entity) -> {
             if (values.size() != 1) {
-                throw new InvalidPredicateException("LE can only take one argument");
+                throw new InvalidPredicateException("GE can only take one argument");
             }
             Object val = getFieldValue(entity, field, dictionary);
 
