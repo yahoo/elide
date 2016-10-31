@@ -8,7 +8,6 @@ package com.yahoo.elide.example.persistence;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +23,7 @@ import javax.persistence.Table;
  * Model for authors
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "Prefab.Role.All")
 @Table(name = "author")
 @Include(rootLevel = true)
 public class Author {

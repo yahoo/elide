@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -18,7 +17,7 @@ import javax.persistence.OneToOne;
 
 @Entity
 @Include(rootLevel = true, type = "noShareBid")
-@SharePermission(all = {Role.NONE.class})
+@SharePermission(expression = "deny all")
 public class NoShareBiDirectional {
     private Long id;
     private NoShareBiDirectional other;

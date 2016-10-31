@@ -26,7 +26,9 @@ public class ElideResourceConfig extends ResourceConfig {
                 bind(noUserFn).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
 
                 SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
-                Elide elide = new Elide.Builder(new Slf4jLogger(), new HibernateStore(sessionFactory)).build();
+                Elide elide = new Elide.Builder(new HibernateStore.Builder(sessionFactory).build())
+                        .withAuditLogger(new Slf4jLogger())
+                        .build();
                 bind(elide).to(Elide.class).named("elide");
             }
         });

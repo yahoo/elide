@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -17,12 +18,14 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import javax.persistence.Id;
 
@@ -156,6 +159,14 @@ public class InMemoryTransaction implements DataStoreTransaction {
         ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
         if (objs == null) {
             return Collections.emptyList();
+        }
+        // Support for filtering
+        if (filterExpression.isPresent()) {
+            java.util.function.Predicate predicate = filterExpression.get()
+                    .accept(new InMemoryFilterVisitor(dictionary));
+            return (Collection) objs.values().stream()
+                    .filter(predicate::test)
+                    .collect(Collectors.toList());
         }
         List<Object> results = new ArrayList<>();
         objs.forEachValue(1, results::add);

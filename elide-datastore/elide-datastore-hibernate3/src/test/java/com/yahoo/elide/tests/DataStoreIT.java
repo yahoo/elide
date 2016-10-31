@@ -14,11 +14,13 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate3.HibernateTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 
+import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -51,7 +53,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithPassingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredPass.json");
 
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build();
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -61,7 +66,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithFailingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredFail.json");
 
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build();
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);

@@ -7,8 +7,11 @@ package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.utils.ClassScanner;
+import example.Filtered;
 import example.Parent;
+import example.TestCheckMappings;
 import org.hibernate.MappingException;
+import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
@@ -23,6 +26,11 @@ import java.util.function.Supplier;
 public class HibernateDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
+        // Add additional checks to our static check mappings map.
+        // NOTE: This is a bit hacky. We need to do a major overhaul on our test architecture
+        TestCheckMappings.MAPPINGS.put("filterCheck", Filtered.FilterCheck.class);
+        TestCheckMappings.MAPPINGS.put("filterCheck3", Filtered.FilterCheck3.class);
+
         // method to force class initialization
         Configuration configuration = new Configuration();
         try {
@@ -49,6 +57,6 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
-        return new HibernateStore(sessionFactory);
+        return new HibernateStore(sessionFactory, true, ScrollMode.FORWARD_ONLY);
     }
 }

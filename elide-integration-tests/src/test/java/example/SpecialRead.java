@@ -12,7 +12,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Common;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -24,8 +23,8 @@ import java.util.Optional;
 
 @Entity
 @Include(rootLevel = true, type = "specialread")
-@ReadPermission(all = {SpecialRead.SpecialValue.class})
-@UpdatePermission(all = {Common.UpdateOnCreate.class})
+@ReadPermission(expression = "specialValue")
+@UpdatePermission(expression = "updateOnCreate")
 public class SpecialRead {
     public Long id;
 

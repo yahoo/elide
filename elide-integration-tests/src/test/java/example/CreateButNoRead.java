@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.Optional;
 import java.util.Set;
@@ -25,12 +24,12 @@ import javax.persistence.OneToMany;
  */
 @Include(rootLevel = true)
 @Entity
-@CreatePermission(any = {Role.ALL.class})
+@CreatePermission(expression = "allow all")
 public class CreateButNoRead extends BaseId {
     private Set<CreateButNoReadChild> otherObjects;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @ReadPermission(any = {NOREAD.class})
+    @ReadPermission(expression = "noRead")
     public Set<CreateButNoReadChild> getOtherObjects() {
         return otherObjects;
     }

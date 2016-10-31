@@ -47,19 +47,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final ScrollMode scrollMode;
 
     /**
-     * Instantiates a new Hibernate transaction.
-     *
-     * @param session the session
-     * @deprecated since Elide 2.3.2. Will be removed no later than the release of Elide 3.0.
-     */
-    @Deprecated
-    public HibernateTransaction(Session session) {
-        this.session = session;
-        this.isScrollEnabled = true;
-        this.scrollMode = ScrollMode.FORWARD_ONLY;
-    }
-
-    /**
      * Constructor.
      *
      * @param session Hibernate session

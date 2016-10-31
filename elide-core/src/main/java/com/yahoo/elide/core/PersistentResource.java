@@ -1004,10 +1004,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Object val;
-
-        val = requestScope.getTransaction()
-                .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,  Optional.empty(),
+        Object val = requestScope.getTransaction()
+                .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression, Optional.empty(),
                         Optional.empty(), requestScope);
 
         if (val == null) {
@@ -1052,9 +1050,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filterExpression = permissionFilter;
             }
         }
-        Object val;
 
-        val = requestScope.getTransaction()
+        Object val = requestScope.getTransaction()
                 .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,
                         sorting, pagination, requestScope);
 

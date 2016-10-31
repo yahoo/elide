@@ -22,7 +22,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "user")
 @Include(rootLevel = true)
-@SharePermission(any = { com.yahoo.elide.security.checks.prefab.Role.ALL.class})
+@SharePermission(expression = "Prefab.Role.All")
 //@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;

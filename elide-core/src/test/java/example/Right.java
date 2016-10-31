@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -24,8 +23,8 @@ import java.util.Set;
 
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
-@SharePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.NONE.class})
+@SharePermission(expression = "allow all")
+@UpdatePermission(expression = "deny all")
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -38,9 +37,7 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    @UpdatePermission(
-            any = { Role.ALL.class }
-    )
+    @UpdatePermission(expression = "allow all")
     public Left getOne2one() {
         return one2one;
     }
@@ -71,18 +68,14 @@ public class Right {
         return id;
     }
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    @UpdatePermission(expression = "deny all")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
     public Left noUpdateOne2One;
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    @UpdatePermission(expression = "deny all")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
@@ -93,8 +86,6 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    @UpdatePermission(
-            any = {Role.ALL.class}
-    )
+    @UpdatePermission(expression = "allow all")
     public Set<Left> allowDeleteAtFieldLevel;
 }

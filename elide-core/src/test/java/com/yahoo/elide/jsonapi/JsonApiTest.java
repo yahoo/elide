@@ -26,6 +26,7 @@ import com.yahoo.elide.security.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 
+import example.TestCheckMappings;
 import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -36,7 +37,6 @@ import example.Parent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class JsonApiTest {
     private JsonApiMapper mapper;
     @BeforeTest
     void init() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
         dictionary.bindInitializer(Parent::doInit, Parent.class);

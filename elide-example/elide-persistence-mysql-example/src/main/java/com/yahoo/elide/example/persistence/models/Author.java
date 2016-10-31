@@ -22,7 +22,7 @@ import java.util.Collection;
  * Model for authors
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "Prefab.Role.All")
 @Table(name = "author")
 @Include(rootLevel = true)
 public class Author {

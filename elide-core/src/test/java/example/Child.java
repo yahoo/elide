@@ -15,8 +15,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.Child.InitCheck;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -30,9 +28,9 @@ import java.util.Optional;
 import java.util.Set;
 
 @Entity
-@CreatePermission(any = { InitCheck.class })
-@SharePermission(any = {Role.ALL.class})
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class})
+@CreatePermission(expression = "initCheck")
+@SharePermission(expression = "allow all")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -105,7 +103,7 @@ public class Child {
     @OneToOne(
             targetEntity = Child.class
     )
-    @ReadPermission(all = {Role.NONE.class})
+    @ReadPermission(expression = "deny all")
     public Child getReadNoAccess() {
         return noReadAccess;
     }
@@ -122,6 +120,11 @@ public class Child {
             }
             return false;
         }
+
+        @Override
+        public String checkIdentifier() {
+            return "initCheck";
+        }
     }
 
     static public class InitCheckOp extends OperationCheck<Child> {
@@ -131,6 +134,11 @@ public class Child {
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public String checkIdentifier() {
+            return "initCheckOp";
         }
     }
 }

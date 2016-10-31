@@ -10,17 +10,16 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 
 /**
  * Post test bean.
  */
-@CreatePermission(any = { Role.ALL.class })
-@ReadPermission(any = { Role.ALL.class })
-@UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
-@DeletePermission(any = { Role.ALL.class, Role.NONE.class })
+@CreatePermission(expression = "allow all")
+@ReadPermission(expression = "allow all")
+@UpdatePermission(expression = "allow all OR deny all")
+@DeletePermission(expression = "allow all OR deny all")
 @Include(rootLevel = true, type = "post") // optional here because class has this name
 // Hibernate
 @Entity
@@ -28,7 +27,7 @@ public class Post extends BaseId {
     private String title;
     private int created;
 
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
+    @ReadPermission(expression = "deny all") public transient boolean init = false;
 
     public void doInit() {
         init = true;

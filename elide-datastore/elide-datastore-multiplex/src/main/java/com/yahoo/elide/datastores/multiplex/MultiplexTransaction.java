@@ -7,12 +7,12 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -86,7 +86,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                 pagination,
                 scope);
     }
-
 
     @Override
     public void flush(RequestScope requestScope) {

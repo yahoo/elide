@@ -12,7 +12,6 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.*;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,9 +27,9 @@ import java.util.List;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 @Table(name = "anotherFilterExpressionCheckObj")
-@ReadPermission(any = {AnotherFilterExpressionCheckObj.CheckActsLikeFilter.class})
+@ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)
 public class AnotherFilterExpressionCheckObj {
     private long id;

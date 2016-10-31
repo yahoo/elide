@@ -5,9 +5,7 @@
  */
 package com.yahoo.elide.example.persistence.models;
 
-import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
@@ -22,7 +20,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "user")
 @Include(rootLevel = true)
-@SharePermission(any = { com.yahoo.elide.security.checks.prefab.Role.ALL.class})
+@SharePermission(expression = "Prefab.Role.All")
 //@CreatePermission(expression = "Prefab.Role.All")
 public class User {
     private long id;

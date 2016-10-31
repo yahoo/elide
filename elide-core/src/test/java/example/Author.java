@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +25,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "author")
 @Include(rootLevel = true)
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

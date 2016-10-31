@@ -17,7 +17,6 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 
@@ -52,7 +51,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final Pagination pagination;
     @Getter private final Sorting sorting;
-    @Getter private final SecurityMode securityMode;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
@@ -76,7 +74,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param mapper converts JsonApiDocuments to raw JSON
      * @param auditLogger logger for this request
      * @param queryParams the query parameters
-     * @param securityMode the current security mode
      * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
      */
     public RequestScope(String path,
@@ -87,7 +84,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
-                        SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
                         MultipleFilterDialect filterDialect) {
         this.path = path;
@@ -97,7 +93,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dictionary = dictionary;
         this.mapper = mapper;
         this.auditLogger = auditLogger;
-        this.securityMode = securityMode;
         this.filterDialect = filterDialect;
 
         this.globalFilterExpression = null;
@@ -168,7 +163,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         EntityDictionary dictionary,
                         JsonApiMapper mapper,
                         AuditLogger auditLogger,
-                        SecurityMode securityMode,
                         Function<RequestScope, PermissionExecutor> permissionExecutor) {
         this(
                 path,
@@ -179,7 +173,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 mapper,
                 auditLogger,
                 null,
-                securityMode,
                 permissionExecutor,
                 new MultipleFilterDialect(dictionary)
         );
@@ -202,7 +195,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 mapper,
                 auditLogger,
                 queryParams,
-                SecurityMode.SECURITY_ACTIVE,
                 null,
                 new MultipleFilterDialect(dictionary)
         );
@@ -224,7 +216,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 mapper,
                 auditLogger,
                 null,
-                SecurityMode.SECURITY_ACTIVE,
                 null,
                 new MultipleFilterDialect(dictionary)
         );
@@ -266,7 +257,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.sorting = Sorting.getDefaultEmptyInstance();
         this.pagination = Pagination.getDefaultPagination();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
-        this.securityMode = outerRequestScope.securityMode;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.commitTriggers = outerRequestScope.commitTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();

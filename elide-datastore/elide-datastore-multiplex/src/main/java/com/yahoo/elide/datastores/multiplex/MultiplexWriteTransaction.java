@@ -193,7 +193,8 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     @Override
     public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity, String relationName,
+                              Object entity,
+                              String relationName,
                               Optional<FilterExpression> filterExpression,
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
@@ -207,6 +208,5 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
         }
 
         return hold(transaction, relation);
-
     }
 }

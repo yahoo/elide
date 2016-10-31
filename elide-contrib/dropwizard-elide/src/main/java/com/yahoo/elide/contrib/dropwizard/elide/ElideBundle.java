@@ -134,7 +134,7 @@ public abstract class ElideBundle<T extends Configuration>
         final PooledDataSourceFactory dbConfig = getDataSourceFactory(configuration);
         SessionFactory sessionFactory = sessionFactoryFactory.build(this, environment, dbConfig, entities, name());
 
-        return new HibernateStore(sessionFactory);
+        return new HibernateStore.Builder(sessionFactory).build();
     }
 
     public ImmutableList<Class<?>> getEntities() {

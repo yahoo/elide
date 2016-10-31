@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -26,9 +25,7 @@ import java.util.Set;
 @Include(rootLevel = true, type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
-@DeletePermission(
-        any = {NegativeIntegerUserCheck.class}
-)
+@DeletePermission(expression = "negativeIntegerUser")
 public class Left {
     @JsonIgnore
     private long id;
@@ -72,9 +69,7 @@ public class Left {
         return id;
     }
 
-    @UpdatePermission(
-           any = {Role.NONE.class}
-    )
+    @UpdatePermission(expression = "deny all")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
