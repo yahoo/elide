@@ -18,6 +18,10 @@ import java.util.Optional;
  */
 public class Collections {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private Collections() {
+    }
+
     /**
      * Use changeSpec to enforce that values were exclusively added to the collection.
      *
@@ -43,7 +47,7 @@ public class Collections {
      *
      * @param <T> type parameter
      */
-    public class RemoveOnly<T> extends CommitCheck<T> {
+    public static class RemoveOnly<T> extends CommitCheck<T> {
 
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {

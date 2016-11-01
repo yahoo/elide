@@ -6,6 +6,9 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
+import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
+import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.FieldAnnotations;
@@ -58,6 +61,9 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testFindCheckByExpression() {
         Assert.assertEquals(getCheckIdentifier(Role.ALL.class), "user has all access");
         Assert.assertEquals(getCheckIdentifier(Role.NONE.class), "Prefab.Role.None");
+        Assert.assertEquals(getCheckIdentifier(AppendOnly.class), "Prefab.Collections.AppendOnly");
+        Assert.assertEquals(getCheckIdentifier(RemoveOnly.class), "Prefab.Collections.RemoveOnly");
+        Assert.assertEquals(getCheckIdentifier(UpdateOnCreate.class), "Prefab.Common.UpdateOnCreate");
     }
 
     @Test
