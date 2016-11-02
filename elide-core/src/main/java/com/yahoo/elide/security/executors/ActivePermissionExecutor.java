@@ -297,8 +297,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         ExpressionResult result = expression.evaluate();
 
         // Record the check
-        Long checkOccurrences = checkStats.getOrDefault(expression.toString(), 0L) + 1;
-        checkStats.put(expression.toString(), checkOccurrences);
+        if (log.isTraceEnabled()) {
+            String checkKey = expression.toString();
+            Long checkOccurrences = checkStats.getOrDefault(checkKey, 0L) + 1;
+            checkStats.put(checkKey, checkOccurrences);
+        }
 
        if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
@@ -354,13 +357,16 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @Override
     public String printCheckStats() {
-        StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
-        checkStats.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
-                .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
-        String stats = sb.toString();
-        log.trace(stats);
-        return stats;
+        if (log.isTraceEnabled()) {
+            StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
+            checkStats.entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue())
+                    .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
+            String stats = sb.toString();
+            log.trace(stats);
+            return stats;
+        }
+        return null;
     }
 
     @Override
