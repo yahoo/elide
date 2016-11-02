@@ -8,15 +8,15 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.PostCreate;
-import com.yahoo.elide.annotation.PostDelete;
-import com.yahoo.elide.annotation.PostUpdate;
-import com.yahoo.elide.annotation.PreCreate;
-import com.yahoo.elide.annotation.PreDelete;
-import com.yahoo.elide.annotation.PreUpdate;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
 import lombok.Setter;
@@ -117,15 +117,15 @@ class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            bindTriggerIfPresent(OnCreate.class, fieldOrMethod);
-            bindTriggerIfPresent(OnDelete.class, fieldOrMethod);
-            bindTriggerIfPresent(OnUpdate.class, fieldOrMethod);
-            bindTriggerIfPresent(PreCreate.class, fieldOrMethod);
-            bindTriggerIfPresent(PreDelete.class, fieldOrMethod);
-            bindTriggerIfPresent(PreUpdate.class, fieldOrMethod);
-            bindTriggerIfPresent(PostCreate.class, fieldOrMethod);
-            bindTriggerIfPresent(PostDelete.class, fieldOrMethod);
-            bindTriggerIfPresent(PostUpdate.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePostCommit.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);

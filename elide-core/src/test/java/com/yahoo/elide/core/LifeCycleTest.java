@@ -168,17 +168,17 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
-        scope.runQueuedOnTriggers();
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(1)).onCreateBook(scope);
         verify(book, times(0)).onDeleteBook(scope);
         verify(book, times(0)).onUpdateTitle(scope);
 
-        scope.runQueuedPreTriggers();
+        scope.runQueuedPreCommitTriggers();
         verify(book, times(1)).preCreateBook(scope);
         verify(book, times(0)).preDeleteBook(scope);
         verify(book, times(0)).preUpdateTitle(scope);
 
-        scope.runQueuedPostTriggers();
+        scope.runQueuedPostCommitTriggers();
         verify(book, times(1)).postCreateBook(scope);
         verify(book, times(0)).postDeleteBook(scope);
         verify(book, times(0)).postUpdateTitle(scope);
@@ -191,17 +191,17 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
-        scope.runQueuedOnTriggers();
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
         verify(book, times(0)).onDeleteBook(scope);
         verify(book, times(1)).onUpdateTitle(scope);
 
-        scope.runQueuedPreTriggers();
+        scope.runQueuedPreCommitTriggers();
         verify(book, times(0)).preCreateBook(scope);
         verify(book, times(0)).preDeleteBook(scope);
         verify(book, times(1)).preUpdateTitle(scope);
 
-        scope.runQueuedPostTriggers();
+        scope.runQueuedPostCommitTriggers();
         verify(book, times(0)).postCreateBook(scope);
         verify(book, times(0)).postDeleteBook(scope);
         verify(book, times(1)).postUpdateTitle(scope);
@@ -214,17 +214,17 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
-        scope.runQueuedOnTriggers();
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
         verify(book, times(1)).onDeleteBook(scope);
         verify(book, times(0)).onUpdateTitle(scope);
 
-        scope.runQueuedPreTriggers();
+        scope.runQueuedPreCommitTriggers();
         verify(book, times(0)).preCreateBook(scope);
         verify(book, times(1)).preDeleteBook(scope);
         verify(book, times(0)).preUpdateTitle(scope);
 
-        scope.runQueuedPostTriggers();
+        scope.runQueuedPostCommitTriggers();
         verify(book, times(0)).postCreateBook(scope);
         verify(book, times(1)).postDeleteBook(scope);
         verify(book, times(0)).postUpdateTitle(scope);

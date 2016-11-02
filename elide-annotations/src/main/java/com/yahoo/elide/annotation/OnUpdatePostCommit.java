@@ -11,13 +11,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * On Update trigger annotation.
+ * Post-update hook. This annotation marks a callback that is triggered when a user performs a "update" action.
+ * This hook will be triggered <em>after</em> all security checks have been run and <em>after</em> the datastore
+ * has been committed.
  *
  * The invoked function takes a RequestScope as parameter.
  * @see com.yahoo.elide.security.RequestScope
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OnUpdate {
+public @interface OnUpdatePostCommit {
+    /**
+     * Field name on which the annotated method is only triggered if that field is modified.
+     * If value is empty string, then trigger for any modification of the object.
+     */
     String value() default "";
 }

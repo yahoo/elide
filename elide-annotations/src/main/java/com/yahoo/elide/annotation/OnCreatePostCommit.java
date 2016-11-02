@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Post-update hook. This annotation marks a callback that is triggered when a user performs a "update" action.
+ * Post-create hook. This annotation marks a callback that is triggered when a user performs a "create" action.
  * This hook will be triggered <em>after</em> all security checks have been run and <em>after</em> the datastore
  * has been committed.
  *
@@ -20,6 +20,5 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PostUpdate {
-    String value() default "";
+public @interface OnCreatePostCommit {
 }

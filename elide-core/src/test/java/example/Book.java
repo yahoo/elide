@@ -7,15 +7,15 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.PostCreate;
-import com.yahoo.elide.annotation.PostDelete;
-import com.yahoo.elide.annotation.PostUpdate;
-import com.yahoo.elide.annotation.PreCreate;
-import com.yahoo.elide.annotation.PreDelete;
-import com.yahoo.elide.annotation.PreUpdate;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
@@ -99,47 +99,47 @@ public class Book {
         this.authors = authors;
     }
 
-    @OnUpdate("title")
+    @OnUpdatePreSecurity("title")
     public void onUpdateTitle(RequestScope requestScope) {
        // title attribute updated
     }
 
-    @OnCreate
+    @OnCreatePreSecurity
     public void onCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
-    @OnDelete
+    @OnDeletePreSecurity
     public void onDeleteBook(RequestScope requestScope) {
        // book entity deleted
     }
 
-    @PreUpdate("title")
+    @OnUpdatePreCommit("title")
     public void preUpdateTitle(RequestScope requestScope) {
         // title attribute updated
     }
 
-    @PreCreate
+    @OnCreatePreCommit
     public void preCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
-    @PreDelete
+    @OnDeletePreCommit
     public void preDeleteBook(RequestScope requestScope) {
         // book entity deleted
     }
 
-    @PostUpdate("title")
+    @OnUpdatePostCommit("title")
     public void postUpdateTitle(RequestScope requestScope) {
         // title attribute updated
     }
 
-    @PostCreate
+    @OnCreatePostCommit
     public void postCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
-    @PostDelete
+    @OnDeletePostCommit
     public void postDeleteBook(RequestScope requestScope) {
         // book entity deleted
     }

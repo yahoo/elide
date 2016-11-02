@@ -20,6 +20,5 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreCreate {
-    String value() default "";
+public @interface OnCreatePreCommit {
 }

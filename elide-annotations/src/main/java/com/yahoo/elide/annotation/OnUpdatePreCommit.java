@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Pre-delete hook. This annotation marks a callback that is triggered when a user performs a "delete" action.
+ * Pre-update hook. This annotation marks a callback that is triggered when a user performs a "update" action.
  * This hook will be triggered <em>after</em> all security checks have been run, but <em>before</em> the datastore
  * has been committed.
  *
@@ -20,6 +20,10 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreDelete {
-
+public @interface OnUpdatePreCommit {
+    /**
+     * Field name on which the annotated method is only triggered if that field is modified.
+     * If value is empty string, then trigger for any modification of the object.
+     */
+    String value() default "";
 }

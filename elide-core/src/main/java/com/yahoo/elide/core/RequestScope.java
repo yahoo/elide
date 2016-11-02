@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
-import com.yahoo.elide.annotation.PostCreate;
-import com.yahoo.elide.annotation.PostDelete;
-import com.yahoo.elide.annotation.PostUpdate;
-import com.yahoo.elide.annotation.PreCreate;
-import com.yahoo.elide.annotation.PreDelete;
-import com.yahoo.elide.annotation.PreUpdate;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -111,15 +111,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = new LinkedHashSet<>();
         this.queuedTriggers = new HashMap<Class, LinkedHashSet<Runnable>>() {
             {
-                put(OnCreate.class, new LinkedHashSet<>());
-                put(OnUpdate.class, new LinkedHashSet<>());
-                put(OnDelete.class, new LinkedHashSet<>());
-                put(PreCreate.class, new LinkedHashSet<>());
-                put(PreUpdate.class, new LinkedHashSet<>());
-                put(PreDelete.class, new LinkedHashSet<>());
-                put(PostCreate.class, new LinkedHashSet<>());
-                put(PostUpdate.class, new LinkedHashSet<>());
-                put(PostDelete.class, new LinkedHashSet<>());
+                put(OnCreatePreSecurity.class, new LinkedHashSet<>());
+                put(OnUpdatePreSecurity.class, new LinkedHashSet<>());
+                put(OnDeletePreSecurity.class, new LinkedHashSet<>());
+                put(OnCreatePreCommit.class, new LinkedHashSet<>());
+                put(OnUpdatePreCommit.class, new LinkedHashSet<>());
+                put(OnDeletePreCommit.class, new LinkedHashSet<>());
+                put(OnCreatePostCommit.class, new LinkedHashSet<>());
+                put(OnUpdatePostCommit.class, new LinkedHashSet<>());
+                put(OnDeletePostCommit.class, new LinkedHashSet<>());
             }
         };
 
@@ -374,36 +374,36 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run queued on triggers (i.e. @OnCreate, @OnUpdate, etc.)
+     * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.)
      */
-    public void runQueuedOnTriggers() {
-        runQueuedTriggers(OnCreate.class);
-        runQueuedTriggers(OnUpdate.class);
-        runQueuedTriggers(OnDelete.class);
+    public void runQueuedPreSecurityTriggers() {
+        runQueuedTriggers(OnCreatePreSecurity.class);
+        runQueuedTriggers(OnUpdatePreSecurity.class);
+        runQueuedTriggers(OnDeletePreSecurity.class);
     }
 
     /**
-     * Run queued pre triggers (i.e. @PreCreate, @PreUpdate, etc.)
+     * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.)
      */
-    public void runQueuedPreTriggers() {
-        runQueuedTriggers(PreCreate.class);
-        runQueuedTriggers(PreUpdate.class);
-        runQueuedTriggers(PreDelete.class);
+    public void runQueuedPreCommitTriggers() {
+        runQueuedTriggers(OnCreatePreCommit.class);
+        runQueuedTriggers(OnUpdatePreCommit.class);
+        runQueuedTriggers(OnDeletePreCommit.class);
     }
 
     /**
-     * Run queued post triggers (i.e. @PostCreate, @PostUpdate, etc.)
+     * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.)
      */
-    public void runQueuedPostTriggers() {
-        runQueuedTriggers(PostCreate.class);
-        runQueuedTriggers(PostUpdate.class);
-        runQueuedTriggers(PostDelete.class);
+    public void runQueuedPostCommitTriggers() {
+        runQueuedTriggers(OnCreatePostCommit.class);
+        runQueuedTriggers(OnUpdatePostCommit.class);
+        runQueuedTriggers(OnDeletePostCommit.class);
     }
 
     /**
      * Run any queued triggers for a specific type
      *
-     * @param triggerType Class representing the trigger type (i.e. OnCreate.class, etc.)
+     * @param triggerType Class representing the trigger type (i.e. OnCreatePreSecurity.class, etc.)
      */
     private void runQueuedTriggers(Class triggerType) {
         if (!queuedTriggers.containsKey(triggerType)) {
@@ -433,23 +433,23 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param crudAction CRUD Action
      */
     protected void queueTriggers(PersistentResource resource, String fieldName, CRUDAction crudAction) {
-        Consumer<Class> queue = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
+        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
 
         switch (crudAction) {
             case CREATE:
-                queue.accept(OnCreate.class);
-                queue.accept(PreCreate.class);
-                queue.accept(PostCreate.class);
+                queueTrigger.accept(OnCreatePreSecurity.class);
+                queueTrigger.accept(OnCreatePreCommit.class);
+                queueTrigger.accept(OnCreatePostCommit.class);
                 break;
             case UPDATE:
-                queue.accept(OnUpdate.class);
-                queue.accept(PreUpdate.class);
-                queue.accept(PostUpdate.class);
+                queueTrigger.accept(OnUpdatePreSecurity.class);
+                queueTrigger.accept(OnUpdatePreCommit.class);
+                queueTrigger.accept(OnUpdatePostCommit.class);
                 break;
             case DELETE:
-                queue.accept(OnDelete.class);
-                queue.accept(PreDelete.class);
-                queue.accept(PostDelete.class);
+                queueTrigger.accept(OnDeletePreSecurity.class);
+                queueTrigger.accept(OnDeletePreCommit.class);
+                queueTrigger.accept(OnDeletePostCommit.class);
                 break;
             case READ:
             default:

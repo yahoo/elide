@@ -11,15 +11,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Post-delete hook. This annotation marks a callback that is triggered when a user performs a "delete" action.
- * This hook will be triggered <em>after</em> all security checks have been run and <em>after</em> the datastore
- * has been committed.
+ * On Create trigger annotation.
  *
  * The invoked function takes a RequestScope as parameter.
  * @see com.yahoo.elide.security.RequestScope
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PostDelete {
-
+public @interface OnCreatePreSecurity {
 }

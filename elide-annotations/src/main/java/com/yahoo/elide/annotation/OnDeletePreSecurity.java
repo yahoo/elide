@@ -11,15 +11,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Pre-update hook. This annotation marks a callback that is triggered when a user performs a "update" action.
- * This hook will be triggered <em>after</em> all security checks have been run, but <em>before</em> the datastore
- * has been committed.
+ * On Delete trigger annotation.
  *
  * The invoked function takes a RequestScope as parameter.
  * @see com.yahoo.elide.security.RequestScope
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreUpdate {
-    String value() default "";
+public @interface OnDeletePreSecurity {
+
 }
