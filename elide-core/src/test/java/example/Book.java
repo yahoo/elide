@@ -7,10 +7,15 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
 import com.yahoo.elide.annotation.OnUpdate;
+import com.yahoo.elide.annotation.PostCreate;
+import com.yahoo.elide.annotation.PostDelete;
+import com.yahoo.elide.annotation.PostUpdate;
+import com.yahoo.elide.annotation.PreCreate;
+import com.yahoo.elide.annotation.PreDelete;
+import com.yahoo.elide.annotation.PreUpdate;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
@@ -99,23 +104,43 @@ public class Book {
        // title attribute updated
     }
 
-    @OnCommit("title")
-    public void onCommitTitle(RequestScope requestScope) {
-       // title attribute update committed
-    }
-
     @OnCreate
     public void onCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
-    @OnCommit
-    public void onCommitBook(RequestScope requestScope) {
-       // book entity committed
-    }
-
     @OnDelete
     public void onDeleteBook(RequestScope requestScope) {
        // book entity deleted
+    }
+
+    @PreUpdate("title")
+    public void preUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @PreCreate
+    public void preCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @PreDelete
+    public void preDeleteBook(RequestScope requestScope) {
+        // book entity deleted
+    }
+
+    @PostUpdate("title")
+    public void postUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @PostCreate
+    public void postCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @PostDelete
+    public void postDeleteBook(RequestScope requestScope) {
+        // book entity deleted
     }
 }

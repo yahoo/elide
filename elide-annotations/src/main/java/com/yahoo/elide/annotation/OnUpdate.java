@@ -1,23 +1,23 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2016, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
  * On Update trigger annotation.
- * The onUpdate invoked function takes a Requestscope as parameter.
+ *
+ * The invoked function takes a RequestScope as parameter.
+ * @see com.yahoo.elide.security.RequestScope
  */
-@Target({METHOD, FIELD})
-@Retention(RUNTIME)
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
 public @interface OnUpdate {
-    String value();
+    String value() default "";
 }
