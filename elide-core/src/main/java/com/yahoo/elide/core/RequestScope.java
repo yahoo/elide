@@ -5,8 +5,17 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.annotation.OnCommit;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -23,7 +32,6 @@ import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -31,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -62,7 +71,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
 
-    final private transient LinkedHashSet<Runnable> commitTriggers;
+    final private transient HashMap<Class, LinkedHashSet<Runnable>> queuedTriggers;
 
     /**
      * Create a new RequestScope.
@@ -100,7 +109,19 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
-        this.commitTriggers = new LinkedHashSet<>();
+        this.queuedTriggers = new HashMap<Class, LinkedHashSet<Runnable>>() {
+            {
+                put(OnCreatePreSecurity.class, new LinkedHashSet<>());
+                put(OnUpdatePreSecurity.class, new LinkedHashSet<>());
+                put(OnDeletePreSecurity.class, new LinkedHashSet<>());
+                put(OnCreatePreCommit.class, new LinkedHashSet<>());
+                put(OnUpdatePreCommit.class, new LinkedHashSet<>());
+                put(OnDeletePreCommit.class, new LinkedHashSet<>());
+                put(OnCreatePostCommit.class, new LinkedHashSet<>());
+                put(OnUpdatePostCommit.class, new LinkedHashSet<>());
+                put(OnDeletePostCommit.class, new LinkedHashSet<>());
+            }
+        };
 
         this.permissionExecutor = (permissionExecutorGenerator == null)
                 ? new ActivePermissionExecutor(this)
@@ -258,7 +279,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.pagination = Pagination.getDefaultPagination();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
-        this.commitTriggers = outerRequestScope.commitTriggers;
+        this.queuedTriggers = outerRequestScope.queuedTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.dirtyResources = outerRequestScope.dirtyResources;
         this.filterDialect = outerRequestScope.filterDialect;
@@ -353,21 +374,87 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * run any deferred post-commit triggers.
-     *
-     * @see com.yahoo.elide.annotation.CreatePermission
+     * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.)
      */
-    public void runCommitTriggers() {
-        new ArrayList<>(commitTriggers).forEach(Runnable::run);
-        commitTriggers.clear();
+    public void runQueuedPreSecurityTriggers() {
+        runQueuedTriggers(OnCreatePreSecurity.class);
+        runQueuedTriggers(OnUpdatePreSecurity.class);
+        runQueuedTriggers(OnDeletePreSecurity.class);
     }
 
-    public void queueCommitTrigger(PersistentResource resource) {
-        queueCommitTrigger(resource, "");
+    /**
+     * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.)
+     */
+    public void runQueuedPreCommitTriggers() {
+        runQueuedTriggers(OnCreatePreCommit.class);
+        runQueuedTriggers(OnUpdatePreCommit.class);
+        runQueuedTriggers(OnDeletePreCommit.class);
     }
 
-    public void queueCommitTrigger(PersistentResource resource, String fieldName) {
-        commitTriggers.add(() -> resource.runTriggers(OnCommit.class, fieldName));
+    /**
+     * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.)
+     */
+    public void runQueuedPostCommitTriggers() {
+        runQueuedTriggers(OnCreatePostCommit.class);
+        runQueuedTriggers(OnUpdatePostCommit.class);
+        runQueuedTriggers(OnDeletePostCommit.class);
+    }
+
+    /**
+     * Run any queued triggers for a specific type
+     *
+     * @param triggerType Class representing the trigger type (i.e. OnCreatePreSecurity.class, etc.)
+     */
+    private void runQueuedTriggers(Class triggerType) {
+        if (!queuedTriggers.containsKey(triggerType)) {
+            // NOTE: This is a programming error. Should never occur.
+            throw new InternalServerErrorException("Failed to run queued trigger of type: " + triggerType);
+        }
+        LinkedHashSet<Runnable> triggers = queuedTriggers.get(triggerType);
+        triggers.forEach(Runnable::run);
+        triggers.clear();
+    }
+
+    /**
+     * Queue a trigger for a particular resource
+     *
+     * @param resource Resource on which to execute trigger
+     * @param crudAction CRUD action
+     */
+    protected void queueTriggers(PersistentResource resource, CRUDAction crudAction) {
+        queueTriggers(resource, "", crudAction);
+    }
+
+    /**
+     * Queue triggers for a particular resource and its field.
+     *
+     * @param resource Resource on which to execute trigger
+     * @param fieldName Field name for which to specify trigger
+     * @param crudAction CRUD Action
+     */
+    protected void queueTriggers(PersistentResource resource, String fieldName, CRUDAction crudAction) {
+        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
+
+        switch (crudAction) {
+            case CREATE:
+                queueTrigger.accept(OnCreatePreSecurity.class);
+                queueTrigger.accept(OnCreatePreCommit.class);
+                queueTrigger.accept(OnCreatePostCommit.class);
+                break;
+            case UPDATE:
+                queueTrigger.accept(OnUpdatePreSecurity.class);
+                queueTrigger.accept(OnUpdatePreCommit.class);
+                queueTrigger.accept(OnUpdatePostCommit.class);
+                break;
+            case DELETE:
+                queueTrigger.accept(OnDeletePreSecurity.class);
+                queueTrigger.accept(OnDeletePreCommit.class);
+                queueTrigger.accept(OnDeletePostCommit.class);
+                break;
+            case READ:
+            default:
+                throw new InternalServerErrorException("Failed to queue trigger of non-actionable CRUD: " + crudAction);
+        }
     }
 
     public void saveOrCreateObjects() {

@@ -11,9 +11,6 @@ import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -130,8 +127,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
         checkPermission(CreatePermission.class, newResource);
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
-        newResource.runTriggers(OnCreate.class);
-        requestScope.queueCommitTrigger(newResource);
+        requestScope.queueTriggers(newResource, CRUDAction.CREATE);
 
         String type = newResource.getType();
         requestScope.getObjectEntityCache().put(type, uuid, newResource.getObject());
@@ -275,7 +271,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
         }
-        requestScope.queueCommitTrigger(resource);
 
         return resource;
     }
@@ -302,9 +297,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
-        for (PersistentResource<T> resource : resources) {
-            requestScope.queueCommitTrigger(resource);
-        }
         return resources;
     }
 
@@ -355,9 +347,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         list = (Iterable<T>) tx.loadObjects(loadClass, filterExpression, sorting, pagination, requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
-        for (PersistentResource<T> resource : resources) {
-            requestScope.queueCommitTrigger(resource);
-        }
         return resources;
     }
 
@@ -773,7 +762,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
-        runTriggers(OnDelete.class);
+        requestScope.queueTriggers(this, CRUDAction.DELETE);
     }
 
     /**
@@ -1466,13 +1455,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        runTriggers(OnUpdate.class, fieldName);
-        this.requestScope.queueCommitTrigger(this, fieldName);
+        // Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
+        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
+        requestScope.queueTriggers(this, fieldName, (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE);
         auditField(new ChangeSpec(this, fieldName, original, value));
-    }
-
-    <A extends Annotation> void runTriggers(Class<A> annotationClass) {
-        runTriggers(annotationClass, "");
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass, String fieldName) {

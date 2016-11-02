@@ -24,10 +24,8 @@ import org.testng.annotations.Test;
 import example.Author;
 import example.Book;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -162,81 +160,51 @@ public class LifeCycleTest {
     }
 
     @Test
-    public void testOnCreate() {
+    public void testCreate() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
+        resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(1)).onCreateBook(scope);
         verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(0)).onCommitBook(scope);
         verify(book, times(0)).onUpdateTitle(scope);
-        verify(book, times(0)).onCommitTitle(scope);
+
+        scope.runQueuedPreCommitTriggers();
+        verify(book, times(1)).preCreateBook(scope);
+        verify(book, times(0)).preDeleteBook(scope);
+        verify(book, times(0)).preUpdateTitle(scope);
+
+        scope.runQueuedPostCommitTriggers();
+        verify(book, times(1)).postCreateBook(scope);
+        verify(book, times(0)).postDeleteBook(scope);
+        verify(book, times(0)).postUpdateTitle(scope);
     }
 
     @Test
-    public void createObjectOnCommit() {
-        Book book = mock(Book.class);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
-        PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
-        scope.runCommitTriggers();
-        Assert.assertNotNull(resource);
-        verify(book, times(1)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(1)).onCommitBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
-        verify(book, times(0)).onCommitTitle(scope);
-    }
-
-    @Test
-    public void loadRecordOnCommit() {
-        Book book = mock(Book.class);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), eq(scope))).thenReturn(book);
-        PersistentResource resource = PersistentResource.loadRecord(Book.class, "1", scope);
-        scope.runCommitTriggers();
-        Assert.assertNotNull(resource);
-        verify(book, times(0)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(1)).onCommitBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
-        verify(book, times(0)).onCommitTitle(scope);
-    }
-
-    @Test
-    public void loadRecordsOnCommit() {
-        Book book = mock(Book.class);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObjects(eq(Book.class), anyObject(), anyObject(), anyObject(), isA(RequestScope.class))).thenReturn(Arrays.asList(book));
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
-        Set<PersistentResource<Book>> resources = PersistentResource.loadRecords(Book.class, scope);
-        scope.runCommitTriggers();
-        Assert.assertEquals(resources.size(), 1);
-        verify(book, times(0)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(1)).onCommitBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
-        verify(book, times(0)).onCommitTitle(scope);
-    }
-
-    @Test
-    public void testOnUpdate() {
+    public void testUpdate() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
-        scope.runCommitTriggers();
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
         verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(0)).onCommitBook(scope);
         verify(book, times(1)).onUpdateTitle(scope);
-        verify(book, times(1)).onCommitTitle(scope);
+
+        scope.runQueuedPreCommitTriggers();
+        verify(book, times(0)).preCreateBook(scope);
+        verify(book, times(0)).preDeleteBook(scope);
+        verify(book, times(1)).preUpdateTitle(scope);
+
+        scope.runQueuedPostCommitTriggers();
+        verify(book, times(0)).postCreateBook(scope);
+        verify(book, times(0)).postDeleteBook(scope);
+        verify(book, times(1)).postUpdateTitle(scope);
     }
 
     @Test
@@ -246,10 +214,19 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
+        scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
         verify(book, times(1)).onDeleteBook(scope);
-        verify(book, times(0)).onCommitBook(scope);
-        verify(book, times(0)).onCommitTitle(scope);
         verify(book, times(0)).onUpdateTitle(scope);
+
+        scope.runQueuedPreCommitTriggers();
+        verify(book, times(0)).preCreateBook(scope);
+        verify(book, times(1)).preDeleteBook(scope);
+        verify(book, times(0)).preUpdateTitle(scope);
+
+        scope.runQueuedPostCommitTriggers();
+        verify(book, times(0)).postCreateBook(scope);
+        verify(book, times(1)).postDeleteBook(scope);
+        verify(book, times(0)).postUpdateTitle(scope);
     }
 }

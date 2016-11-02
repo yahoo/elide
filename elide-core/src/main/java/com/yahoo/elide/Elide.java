@@ -261,12 +261,14 @@ public class Elide {
             GetVisitor visitor = new GetVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
+            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
+            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit();
             transaction.commit(requestScope);
-            requestScope.runCommitTriggers();
+            requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
@@ -313,13 +315,15 @@ public class Elide {
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
+            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
+            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit();
             transaction.commit(requestScope);
-            requestScope.runCommitTriggers();
+            requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
@@ -376,13 +380,15 @@ public class Elide {
                 responder = visitor.visit(parse(path));
             }
             transaction.preCommit();
+            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
+            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit();
             transaction.commit(requestScope);
-            requestScope.runCommitTriggers();
+            requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
@@ -431,13 +437,15 @@ public class Elide {
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
             transaction.preCommit();
+            requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             requestScope.saveOrCreateObjects();
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
+            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit();
             transaction.commit(requestScope);
-            requestScope.runCommitTriggers();
+            requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
