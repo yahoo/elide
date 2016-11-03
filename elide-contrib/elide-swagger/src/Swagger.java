@@ -17,7 +17,7 @@ enum Scheme {
     HTTPS
 };
 
-class Swagger {
+class Swagger extends SwaggerComponent {
     // This is specified to be this value. 
     // TODO: Should I somehow externalize these values so that
     // they are easier to increment?
