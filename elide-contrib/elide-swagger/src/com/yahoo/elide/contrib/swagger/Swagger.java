@@ -18,6 +18,7 @@ enum Scheme {
 };
 
 public class Swagger extends SwaggerComponent {
+    private static final String[] REQUIRED = {"swagger", "info", "paths"};
     // This is specified to be this value. 
     // TODO: Should I somehow externalize these values so that
     // they are easier to increment?
@@ -44,4 +45,8 @@ public class Swagger extends SwaggerComponent {
     public SecurityRequirement[] security;
     public Tag[] tags;
     public ExternalDocumentation externalDocs;
+    public Swagger()
+    {
+        this.required = REQUIRED;
+    }
 }

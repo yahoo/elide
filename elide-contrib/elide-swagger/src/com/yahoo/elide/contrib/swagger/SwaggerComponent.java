@@ -1,10 +1,11 @@
 package com.yahoo.elide.contrib.swagger;
 
 import java.lang.reflect.Field;
+import java.util.*;
 
 public class SwaggerComponent {
     protected String[] required = {};
-    protected boolean checkRequired(){
+    public boolean checkRequired(){
         for(String field : required)
         {
             Field f;
@@ -29,7 +30,7 @@ public class SwaggerComponent {
         return true;
     }
 
-    protected static boolean checkAllRequired(SwaggerComponent head) {
+    public static boolean checkAllRequired(SwaggerComponent head) {
         if(!head.checkRequired())
             return false;
         boolean children = true;
