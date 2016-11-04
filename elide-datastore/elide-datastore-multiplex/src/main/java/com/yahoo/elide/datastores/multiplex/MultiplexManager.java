@@ -55,6 +55,7 @@ public class MultiplexManager implements DataStore {
                 this.dataStoreMap.put(cls, dataStore);
                 // bind to multiplex dictionary
                 dictionary.bindEntity(cls);
+                dictionary.bindInitializer(subordinateDictionary::initializeEntity, cls);
             }
         }
     }
