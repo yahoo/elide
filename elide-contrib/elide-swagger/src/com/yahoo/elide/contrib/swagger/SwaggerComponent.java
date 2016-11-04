@@ -3,7 +3,7 @@ package com.yahoo.elide.contrib.swagger;
 import java.lang.reflect.Field;
 import java.util.*;
 
-public class SwaggerComponent {
+public class SwaggerComponent implements Requirer {
     protected String[] required = {};
     public boolean checkRequired(){
         for(String field : required)
@@ -40,11 +40,16 @@ public class SwaggerComponent {
                 return false;
 
             try {
-            if(f.get(head) instanceof SwaggerComponent)
-            {
-                SwaggerComponent comp = (SwaggerComponent) f.get(head);
-                children = children && SwaggerComponent.checkAllRequired(comp);
-            }
+                if(f.get(head) instanceof SwaggerComponent)
+                {
+                    SwaggerComponent comp = (SwaggerComponent) f.get(head);
+                    children = children && SwaggerComponent.checkAllRequired(comp);
+                }
+                else if(f.get(head) instanceof Requirer)
+                {
+                    Requirer comp = (Requirer) f.get(head);
+                    children = children && comp.checkRequired();
+                }
             }
             catch (IllegalAccessException e)
             {

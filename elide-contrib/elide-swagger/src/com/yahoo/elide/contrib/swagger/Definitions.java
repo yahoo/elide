@@ -1,4 +1,7 @@
 package com.yahoo.elide.contrib.swagger;
 
-public class Definitions extends SwaggerComponent {
+import java.util.HashMap;
+
+public class Definitions extends HashMap<String, Schema> {
+
 }

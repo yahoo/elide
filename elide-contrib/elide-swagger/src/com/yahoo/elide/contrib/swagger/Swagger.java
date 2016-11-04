@@ -18,6 +18,7 @@ enum Scheme {
 };
 
 public class Swagger extends SwaggerComponent {
+    protected static Swagger main;
     private static final String[] REQUIRED = {"swagger", "info", "paths"};
     // This is specified to be this value. 
     // TODO: Should I somehow externalize these values so that
@@ -47,6 +48,7 @@ public class Swagger extends SwaggerComponent {
     public ExternalDocumentation externalDocs;
     public Swagger()
     {
+        main = this;
         this.required = REQUIRED;
     }
 }
