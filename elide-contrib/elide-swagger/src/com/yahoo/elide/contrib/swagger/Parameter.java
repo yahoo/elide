@@ -1,107 +1,17 @@
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.gson.annotations.SerializedName;
-enum Location {
-    @SerializedName("query")
-    QUERY,
-
-    @SerializedName("header")
-    HEADER,
-
-    @SerializedName("path")
-    PATH,
-
-    @SerializedName("formData")
-    FORM_DATA, 
-
-    @SerializedName("body")
-    BODY
-};
-
-enum Format {
-    @SerializedName("csv")
-    CSV, 
-
-    @SerializedName("SSV")
-    SSV,
-
-    @SerializedName("TSV")
-    TSV,
-
-    @SerializedName("pipes")
-    PIPES,
-
-    @SerializedName("multi")
-    MULTI
-}
-
-enum Type {
-    @SerializedName("string")
-    STRING, 
-
-    @SerializedName("number")
-    NUMBER,
-
-    @SerializedName("integer")
-    INTEGER,
-
-    @SerializedName("boolean")
-    BOOLEAN,
-
-    @SerializedName("array")
-    ARRAY, 
-
-    @SerializedName("file")
-    FILE
-}
-
-enum DataType {
-    @SerializedName("integer")
-    INTEGER,
-
-    @SerializedName("long")
-    LONG,
-
-    @SerializedName("long")
-    FLOAT,
-
-    @SerializedName("double")
-    DOUBLE,
-
-    @SerializedName("string")
-    STRING,
-
-    @SerializedName("byte")
-    BYTE,
-
-    @SerializedName("binary")
-    BINARY,
-
-    @SerializedName("boolean")
-    BOOLEAN,
-
-    @SerializedName("date")
-    DATE,
-
-    @SerializedName("datetime")
-    DATETIME,
-
-    @SerializedName("password")
-    PASSWORD
-}
-
 public class Parameter extends SwaggerComponent {
     private static final String[] REQUIRED = {"name", "in"};
     public String name;
-    public Location in;
+    public Enums.Location in;
     public String description;
     public boolean required;
     public Schema schema;
-    public Type type;
-    public DataType format;
+    public Enums.Type type;
+    public Enums.DataType format;
     public boolean allowEmptyValue = false;
     public Items items;
-    public Format collectionFormat = Format.CSV;
+    public Enums.Format collectionFormat = Enums.Format.CSV;
     // It says this could be any type, but I'm just going to say it's a 
     // String since a human will be reading it and a string can describe anything.
     public String defaultValue;
@@ -125,7 +35,7 @@ public class Parameter extends SwaggerComponent {
     {
         if(!super.checkRequired())
             return false;
-        if(in == Location.PATH)
+        if(in == Enums.Location.PATH)
         {
             boolean foundInPaths = true;
             for(String s : Swagger.main.paths.getKeys())
@@ -136,10 +46,10 @@ public class Parameter extends SwaggerComponent {
             if(!foundInPaths)
                 return false;
         }
-        if(in == Location.PATH && required == false)
+        if(in == Enums.Location.PATH && required == false)
             return false;
 
-        if(in == Location.BODY)
+        if(in == Enums.Location.BODY)
         {
             if(schema == null)
                 return false;
@@ -150,7 +60,7 @@ public class Parameter extends SwaggerComponent {
                 return false;
             // TODO: Implement something on the thing that governs this that makes sure that
             // the consumes of that thing is either "multipart/form-data" or "application/x-www-form-urlencoded" or both if the type is "file"
-            if(type == DataType.ARRAY)
+            if(type == Enums.Type.ARRAY)
             {
                 if(items == null)
                     return false;

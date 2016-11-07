@@ -1,21 +1,6 @@
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.gson.annotations.SerializedName;
-
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md
-enum Scheme {
-    @SerializedName("wss")
-    WSS, 
-
-    @SerializedName("ws")
-    WS, 
-
-    @SerializedName("http")
-    HTTP,
-
-    @SerializedName("https")
-    HTTPS
-};
 
 public class Swagger extends SwaggerComponent {
     protected static Swagger main;
@@ -27,7 +12,7 @@ public class Swagger extends SwaggerComponent {
     public Info info;
     public String host;
     public String basePath = "/";
-    public Scheme[] schemes;
+    public Enums.Scheme[] schemes;
     public MimeType[] consumes;
     public MimeType[] produces;
     // There's going to be a Paths type and a Path type. 
