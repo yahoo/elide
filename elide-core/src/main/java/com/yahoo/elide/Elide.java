@@ -428,14 +428,19 @@ public class Elide {
         try (DataStoreTransaction transaction = dataStore.beginTransaction()) {
             User user = transaction.accessUser(opaqueUser);
             JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-            requestScope = new RequestScope(path, doc,
+            requestScope = new RequestScope(
+                    path,
+                    doc,
                     transaction,
                     user,
                     dictionary,
                     mapper,
                     auditLogger,
+                    null,
                     securityMode,
-                    permissionExecutor);
+                    permissionExecutor,
+                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
+                    useFilterExpressions);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             PostVisitor visitor = new PostVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -515,8 +520,19 @@ public class Elide {
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
             } else {
                 JsonApiDocument doc = mapper.readJsonApiDocument(jsonApiDocument);
-                requestScope = new RequestScope(path, doc, transaction, user, dictionary, mapper, auditLogger,
-                        securityMode, permissionExecutor);
+                requestScope = new RequestScope(
+                        path,
+                        doc,
+                        transaction,
+                        user,
+                        dictionary,
+                        mapper,
+                        auditLogger,
+                        null,
+                        securityMode,
+                        permissionExecutor,
+                        new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
+                        useFilterExpressions);
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));
@@ -595,7 +611,18 @@ public class Elide {
                 doc = new JsonApiDocument();
             }
             requestScope = new RequestScope(
-                    path, doc, transaction, user, dictionary, mapper, auditLogger, securityMode, permissionExecutor);
+                    path,
+                    doc,
+                    transaction,
+                    user,
+                    dictionary,
+                    mapper,
+                    auditLogger,
+                    null,
+                    securityMode,
+                    permissionExecutor,
+                    new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
+                    useFilterExpressions);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
             Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
