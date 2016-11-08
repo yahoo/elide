@@ -1473,6 +1473,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     method.invoke(obj);
                 }
             } catch (ReflectiveOperationException e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                }
                 throw new IllegalArgumentException(e);
             }
         }
