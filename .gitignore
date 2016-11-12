@@ -10,3 +10,4 @@ bin
 dependency-reduced-pom.xml
 *.jar
 *.class
+*tags
