@@ -52,6 +52,9 @@ public class Enums {
 
         @SerializedName("array")
         ARRAY, 
+
+        @SerializedName("file")
+        FILE, 
     };
 
     public enum Scheme {
@@ -101,5 +104,35 @@ public class Enums {
 
         @SerializedName("password")
         PASSWORD
+    };
+
+    public enum SecurityType {
+        @SerializedName("basic")
+        BASIC, 
+
+        @SerializedName("apiKey")
+        APIKEY, 
+
+        @SerializedName("oauth2")
+        OAUTH2
+    };
+
+    public enum ApiKeyLocation {
+        @SerializedName("query")
+        QUERY, 
+
+        @SerializedName("header")
+        HEADER
+    };
+
+    public enum Flow {
+        @SerializedName("implicit")
+        IMPLICIT,
+        @SerializedName("password")
+        PASSWORD,
+        @SerializedName("application")
+        APPLICATION,
+        @SerializedName("accessCode")
+        ACCESSCODE
     }
 }

@@ -38,7 +38,7 @@ public class Parameter extends SwaggerComponent {
         if(in == Enums.Location.PATH)
         {
             boolean foundInPaths = true;
-            for(String s : Swagger.main.paths.getKeys())
+            for(String s : Swagger.main.paths.keySet())
             {
                 if(s.equals(name))
                     foundInPaths = true;
@@ -58,8 +58,6 @@ public class Parameter extends SwaggerComponent {
         {
             if(type == null)
                 return false;
-            // TODO: Implement something on the thing that governs this that makes sure that
-            // the consumes of that thing is either "multipart/form-data" or "application/x-www-form-urlencoded" or both if the type is "file"
             if(type == Enums.Type.ARRAY)
             {
                 if(items == null)
@@ -70,5 +68,6 @@ public class Parameter extends SwaggerComponent {
             if(minItems < 0 || minItems > maxItems || maxItems < 0)
                 return false;
         }
+        return true;
     }
 }

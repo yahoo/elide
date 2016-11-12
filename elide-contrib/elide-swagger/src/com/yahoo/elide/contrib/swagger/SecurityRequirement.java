@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 public class SecurityRequirement extends HashMap<String, String[]> implements Requirer {
     public boolean checkRequired()
     {
-        for(Entry<String, String[]> e : this)
+        for(Entry<String, String[]> e : this.entrySet())
         {
             if(e.getKey().equals("oauth2"))
             {

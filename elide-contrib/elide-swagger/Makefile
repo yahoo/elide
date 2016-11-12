@@ -1,4 +1,4 @@
-.PHONY=all clean test
+.PHONY: all clean test tags
 GSON="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar"
 JUNIT="http://search.maven.org/remotecontent?filepath=junit/junit/4.12/junit-4.12.jar"
 HAMCREST="http://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
@@ -26,3 +26,6 @@ test/TestRunner.class :
 
 bin : 
 	mkdir bin
+
+tags :
+	zsh -c "ctags -R ./**/*.java(N)"
