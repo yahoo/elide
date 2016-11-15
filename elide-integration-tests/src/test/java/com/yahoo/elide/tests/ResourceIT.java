@@ -280,13 +280,13 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().response().asString();
 
-        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
+        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"links\":{\"self\":\"/filterExpressionCheckObj/1/relationships/listOfAnotherObjs\",\"related\":\"/filterExpressionCheckObj/1/listOfAnotherObjs\"},\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}},\"links\":{\"self\":\"/filterExpressionCheckObj/1\"}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"links\":{\"self\":\"/filterExpressionCheckObj/2/relationships/listOfAnotherObjs\",\"related\":\"/filterExpressionCheckObj/2/listOfAnotherObjs\"},\"data\":[]}},\"links\":{\"self\":\"/filterExpressionCheckObj/2\"}}]}";
 
-        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
+        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"links\":{\"self\":\"/filterExpressionCheckObj/1/relationships/listOfAnotherObjs\",\"related\":\"/filterExpressionCheckObj/1/listOfAnotherObjs\"},\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}},\"links\":{\"self\":\"/filterExpressionCheckObj/1\"}}}";
 
-        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
+        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"links\":{\"self\":\"/filterExpressionCheckObj/2/relationships/listOfAnotherObjs\",\"related\":\"/filterExpressionCheckObj/2/listOfAnotherObjs\"},\"data\":[]}},\"links\":{\"self\":\"/filterExpressionCheckObj/2\"}}}";
 
-        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
+        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"links\":{\"self\":\"/filterExpressionCheckObj/1/anotherFilterExpressionCheckObj/1/relationships/linkToParent\",\"related\":\"/filterExpressionCheckObj/1/anotherFilterExpressionCheckObj/1/linkToParent\"},\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}},\"links\":{\"self\":\"/filterExpressionCheckObj/1/anotherFilterExpressionCheckObj/1\"}}]}";
 
         assertEquals(getResult1, expected1);
         assertEquals(getResult2, expected2);

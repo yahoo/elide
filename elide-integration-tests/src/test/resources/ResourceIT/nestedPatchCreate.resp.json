@@ -42,15 +42,15 @@
       "relationships": {
         "friends": {
           "links": {
-            "self": "/child/10/relationships/friends",
-            "related": "/child/10/friends"
+            "self": "/parent/13/child/10/relationships/friends",
+            "related": "/parent/13/child/10/friends"
           },
           "data": []
         },
         "parents": {
           "links": {
-            "self": "/child/10/relationships/parents",
-            "related": "/child/10/parents"
+            "self": "/parent/13/child/10/relationships/parents",
+            "related": "/parent/13/child/10/parents"
           },
           "data": [
             {
@@ -65,7 +65,7 @@
         }
       },
       "links": {
-        "self": "/child/10"
+        "self": "/parent/13/child/10"
       }
     }
   },

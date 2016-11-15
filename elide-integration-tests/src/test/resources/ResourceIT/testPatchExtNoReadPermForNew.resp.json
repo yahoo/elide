@@ -33,21 +33,21 @@
       "relationships": {
         "friends": {
           "links": {
-            "self": "/child/11/relationships/friends",
-            "related": "/child/11/friends"
+            "self": "/specialread/1/child/11/relationships/friends",
+            "related": "/specialread/1/child/11/friends"
           },
           "data": []
         },
         "parents": {
           "links": {
-            "self": "/child/11/relationships/parents",
-            "related": "/child/11/parents"
+            "self": "/specialread/1/child/11/relationships/parents",
+            "related": "/specialread/1/child/11/parents"
           },
           "data": []
         }
       },
       "links": {
-        "self": "/child/11"
+        "self": "/specialread/1/child/11"
       }
     }
   }

@@ -265,15 +265,15 @@
       "relationships": {
         "friends": {
           "links": {
-            "self": "/child/4/relationships/friends",
-            "related": "/child/4/friends"
+            "self": "/parent/3/child/4/relationships/friends",
+            "related": "/parent/3/child/4/friends"
           },
           "data": []
         },
         "parents": {
           "links": {
-            "self": "/child/4/relationships/parents",
-            "related": "/child/4/parents"
+            "self": "/parent/3/child/4/relationships/parents",
+            "related": "/parent/3/child/4/parents"
           },
           "data": [
             {
@@ -292,7 +292,7 @@
         }
       },
       "links": {
-        "self": "/child/4"
+        "self": "/parent/3/child/4"
       }
     }
   ]

@@ -1171,7 +1171,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 : dictionary.getId(obj));
         resource.setRelationships(relationshipSupplier.get());
         resource.setAttributes(attributeSupplier.get());
-        resource.setLinks(ImmutableMap.of("self", "/" + getType() + "/" + getId()));
+        resource.setLinks(getResourceLevelLink());
         return resource;
     }
 
@@ -1222,13 +1222,48 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 data = new Data<>(resources);
             }
 
-            ImmutableMap<String, String> links = ImmutableMap.of(
-                    "self", "/" + getType() + "/" + getId() + "/relationships/" + field,
-                    "related", "/" + getType() + "/" + getId() + "/" + field);
-            relationshipMap.put(field, new Relationship(links, data));
+            Map<String, String> relationshipLinks = getRelationshipLinks(field);
+            relationshipMap.put(field, new Relationship(relationshipLinks, data));
         }
 
         return relationshipMap;
+    }
+
+    /**
+     * Get resource level self link.
+     * @return self link of current resource
+     */
+    protected Map<String, String> getResourceLevelLink() {
+        return ImmutableMap.of("self", getResourceUrl());
+    }
+
+    /**
+     * Get relationship links based for current resource.
+     * @param field relationship field
+     * @return links for relationship object
+     */
+    protected Map<String, String> getRelationshipLinks(final String field) {
+        String resourceUrl = getResourceUrl();
+        return ImmutableMap.of(
+                "self", String.join("/", resourceUrl, "relationships", field),
+                "related", String.join("/", resourceUrl, field));
+    }
+
+    /**
+     * Get base resource url of current resource.
+     * @return resource url
+     */
+    protected String getResourceUrl() {
+        StringBuilder result = new StringBuilder();
+        for (String name : lineage.getKeys()) {
+            if (name.equals(getType())) {
+                break;
+            }
+            PersistentResource value = lineage.getRecord(name).get(0);
+            result.append("/").append(String.join("/", value.getType(), value.getId()));
+        }
+        result.append("/").append(String.join("/", getType(), getId()));
+        return result.toString();
     }
 
     /**

@@ -8,15 +8,15 @@
         "relationships":{
             "friends":{
                 "links": {
-                    "self": "/child/6/relationships/friends",
-                    "related": "/child/6/friends"
+                    "self": "/parent/5/child/6/relationships/friends",
+                    "related": "/parent/5/child/6/friends"
                 },
                 "data":[]
             },
             "parents":{
                 "links": {
-                    "self": "/child/6/relationships/parents",
-                    "related": "/child/6/parents"
+                    "self": "/parent/5/child/6/relationships/parents",
+                    "related": "/parent/5/child/6/parents"
                 },
                 "data":[
                     {
@@ -27,7 +27,7 @@
             }
         },
         "links": {
-            "self": "/child/6"
+            "self": "/parent/5/child/6"
         }
     }
 }

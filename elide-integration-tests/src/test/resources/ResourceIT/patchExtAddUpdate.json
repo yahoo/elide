@@ -42,8 +42,8 @@
             "relationships":{
                 "friends":{
                     "links": {
-                        "self": "/child/9/relationships/friends",
-                        "related": "/child/9/friends"
+                        "self": "/parent/11/child/9/relationships/friends",
+                        "related": "/parent/11/child/9/friends"
                     },
                     "data":[
                         {
@@ -54,8 +54,8 @@
                 },
                 "parents":{
                     "links": {
-                        "self": "/child/9/relationships/parents",
-                        "related": "/child/9/parents"
+                        "self": "/parent/11/child/9/relationships/parents",
+                        "related": "/parent/11/child/9/parents"
                     },
                     "data":[
                         {
@@ -66,7 +66,7 @@
                 }
             },
             "links": {
-                "self": "/child/9"
+                "self": "/parent/11/child/9"
             }
         }
     }

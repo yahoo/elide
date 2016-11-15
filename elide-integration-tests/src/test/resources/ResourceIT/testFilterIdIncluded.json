@@ -44,15 +44,15 @@
       "relationships": {
         "friends": {
           "links": {
-            "self": "/child/4/relationships/friends",
-            "related": "/child/4/friends"
+            "self": "/parent/10/child/4/relationships/friends",
+            "related": "/parent/10/child/4/friends"
           },
           "data": []
         },
         "parents": {
           "links": {
-            "self": "/child/4/relationships/parents",
-            "related": "/child/4/parents"
+            "self": "/parent/10/child/4/relationships/parents",
+            "related": "/parent/10/child/4/parents"
           },
           "data": [
             {
@@ -71,7 +71,7 @@
         }
       },
       "links": {
-        "self": "/child/4"
+        "self": "/parent/10/child/4"
       }
     },
     {
@@ -83,15 +83,15 @@
       "relationships": {
         "friends": {
           "links": {
-            "self": "/child/5/relationships/friends",
-            "related": "/child/5/friends"
+            "self": "/parent/10/child/5/relationships/friends",
+            "related": "/parent/10/child/5/friends"
           },
           "data": []
         },
         "parents": {
           "links": {
-            "self": "/child/5/relationships/parents",
-            "related": "/child/5/parents"
+            "self": "/parent/10/child/5/relationships/parents",
+            "related": "/parent/10/child/5/parents"
           },
           "data": [
             {
@@ -110,7 +110,7 @@
         }
       },
       "links": {
-        "self": "/child/5"
+        "self": "/parent/10/child/5"
       }
     }
   ]
