@@ -34,7 +34,7 @@ public class SwaggerComponent implements Requirer {
         if(!head.checkRequired())
             return false;
         boolean children = true;
-        for(Field f : head.getClass().getDeclaredFields())
+        for(Field f : head.getClass().getFields())
         {
             if(!children)
                 return false;

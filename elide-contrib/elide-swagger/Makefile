@@ -10,7 +10,7 @@ clean :
 	-rm *.jar 2>/dev/null
 	-rm tags
 
-test : all hamcrest.jar junit.jar test/TestRunner.class
+test : all hamcrest.jar junit.jar bin/test/SwaggerTest.class
 	java -cp .:junit.jar:hamcrest.jar:bin org.junit.runner.JUnitCore test.SwaggerTest  
 
 gson.jar :
@@ -22,9 +22,6 @@ hamcrest.jar :
 junit.jar :
 	wget -O junit.jar $(JUNIT)
 
-test/TestRunner.class :
-	javac -cp ./bin/:junit.jar:hamcrest.jar -d bin src/test/TestRunner.java src/test/SwaggerTest.java
-
 bin : 
 	mkdir bin
 
@@ -33,3 +30,7 @@ tags :
 
 vim :
 	zsh -c "vim ./**/*.java"
+
+bin/test/SwaggerTest.class : src/test/SwaggerTest.java
+	javac -cp hamcrest.jar:junit.jar:./src/:gson.jar src/test/SwaggerTest.java -d bin
+
