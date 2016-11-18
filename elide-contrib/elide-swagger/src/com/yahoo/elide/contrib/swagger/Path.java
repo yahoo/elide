@@ -15,13 +15,14 @@ public class Path extends SwaggerComponent {
     {
         required = REQUIRED;
     }
-    public boolean checkRequired(){
-        if(!super.checkRequired())
-            return false;
+
+    @Override
+    public void checkRequired(){
+        super.checkRequired();
+
         if(!Util.validateRef(ref))
-            return false;
+            throw new RuntimeException("The ref is invalid!");
         if(Util.hasDuplicates(parameters))
-            return false;
-        return true;
+            throw new RuntimeException("Parameters can't have duplicates");
     }
 }

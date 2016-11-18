@@ -31,10 +31,10 @@ public class Parameter extends SwaggerComponent {
     public int multipleOf;
 
     @Override
-    public boolean checkRequired()
+    public void checkRequired()
     {
-        if(!super.checkRequired())
-            return false;
+        super.checkRequired();
+
         if(in == Enums.Location.PATH)
         {
             boolean foundInPaths = true;
@@ -44,30 +44,29 @@ public class Parameter extends SwaggerComponent {
                     foundInPaths = true;
             }
             if(!foundInPaths)
-                return false;
+                throw new RuntimeException("You can't have a parameter that goes into the path without having it documented in the paths field in the Swagger object");
         }
         if(in == Enums.Location.PATH && required == false)
-            return false;
+            throw new RuntimeException("You can't have an optional path parameter");
 
         if(in == Enums.Location.BODY)
         {
             if(schema == null)
-                return false;
+                throw new RuntimeException("If a parameter is in the body, you have to include a schema to describe how it is formatted");
         }
         else
         {
             if(type == null)
-                return false;
+                throw new RuntimeException("If a parameter isn't in the body or the path, it has to have a type");
             if(type == Enums.Type.ARRAY)
             {
                 if(items == null)
-                    return false;
+                    throw new RuntimeException("If the type of the parameter is an array, you have to have an items object to describe the things in the array.");
             }
             if(maxLength < 0 || minLength < 0 || maxLength < minLength)
-                return false;
+                throw new RuntimeException("The maxlenth or minlength don't make sense");
             if(minItems < 0 || minItems > maxItems || maxItems < 0)
-                return false;
+                throw new RuntimeException("The maxitems or minitems don't make sense");
         }
-        return true;
     }
 }

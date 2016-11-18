@@ -21,14 +21,12 @@ public class Items extends SwaggerComponent {
     public Object[] enumeration;
     public int multipleOf;
 
-
-
-    public boolean checkRequired()
+    @Override
+    public void checkRequired()
     {
-        if(!super.checkRequired())
-            return false;
+        super.checkRequired();
+
         if(type == Enums.Type.ARRAY && items == null)
-            return false;
-        return true;
+            throw new RuntimeException("If the type is an array, then the items (ie, the thing describing what's in the array) can't be null");
     }
 }

@@ -25,18 +25,19 @@ public class Operation extends SwaggerComponent {
     {
         required = REQUIRED;
     }
-    public boolean checkRequired()
+    @Override
+    public void checkRequired()
     {
-        if(!super.checkRequired())
-            return false;
+        super.checkRequired();
+
         if(Util.hasDuplicates(parameters))
-            return false;
+            throw new RuntimeException("Parameters can't have duplicates in it");
         boolean foundBody = false;
         for(int i = 0; i < parameters.length; i++)
         {
             if(parameters[i].in == Enums.Location.BODY)
                 if(foundBody)
-                    return false;
+                    throw new RuntimeException("You can't have more than one parameter in the body");
                 else
                     foundBody = true;
         }
@@ -53,10 +54,9 @@ outer:
                     if(type.toString().equals("multipart/form-data") || type.toString().equals("application/x-www-form-urlencoded"))
                         break outer;
                 }
-                return false;
+                throw new RuntimeException("According to the spec, if the type of a parameter is a file, then you have to have either application/x-www-form-urlencoded or multipart/form-data as a mime type that can be consumed");
             }
         }
-        return true;
     }
 
     public void setOperationId(String id) throws IllegalArgumentException

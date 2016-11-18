@@ -1,5 +1,8 @@
 package com.yahoo.elide.contrib.swagger;
 
+import java.util.HashSet;
+import java.util.Set;
+
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md
 
 public class Swagger extends SwaggerComponent {
@@ -15,8 +18,6 @@ public class Swagger extends SwaggerComponent {
     public Enums.Scheme[] schemes;
     public MimeType[] consumes;
     public MimeType[] produces;
-    // There's going to be a Paths type and a Path type. 
-    // I don't make the rules, I just follow them.
     public Paths paths;
     public Definitions definitions;
     // I haven't the slightest idea how we're to implement this. I think one could make the case that 
@@ -26,7 +27,6 @@ public class Swagger extends SwaggerComponent {
     // I don't know how to do this for the reasons above and also java can only return 
     // one thing, so it might not be able to have many responses.
     public ResponsesDefinitions responses;
-    // May God help us with this one.
     public SecurityDefinitions securityDefinitions;
     public SecurityRequirement[] security;
     public Tag[] tags;
@@ -35,5 +35,17 @@ public class Swagger extends SwaggerComponent {
     {
         main = this;
         this.required = REQUIRED;
+    }
+
+    @Override
+    public void checkRequired()
+    {
+        super.checkRequired();
+        if(!swagger.equals("2.0"))
+            throw new RuntimeException("The swagger version must be 2.0");
+        if(basePath != null && basePath.charAt(0) != '/')
+            throw new RuntimeException("The first letter of the basePath must be /");
+        if(tags != null && Util.hasDuplicates(tags))
+            throw new RuntimeException("Tags can't have duplicates in it");
     }
 }

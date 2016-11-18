@@ -1,11 +1,12 @@
 package com.yahoo.elide.contrib.swagger;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
 
 public class SwaggerComponent implements Requirer {
     protected String[] required = {};
-    public boolean checkRequired(){
+    public HashMap<String, Object> patternedFields;
+    public void checkRequired() {
         for(String field : required)
         {
             Field f;
@@ -19,7 +20,8 @@ public class SwaggerComponent implements Requirer {
             }
             try {
                 if(f.get(this) == null)
-                    return false;
+                    throw new RuntimeException(String.format("The field %s in %s should not be null",
+                                field, this.getClass().getName()));
             }
             catch(IllegalAccessException e)
             {
@@ -27,28 +29,26 @@ public class SwaggerComponent implements Requirer {
                             field, this.getClass().getName()));
             }
         }
-        return true;
     }
 
-    public static boolean checkAllRequired(SwaggerComponent head) {
-        if(!head.checkRequired())
-            return false;
-        boolean children = true;
+    /*
+     * This method will throw an error if something isn't valid (hopefully
+     * a useful one)
+     */
+    public static void checkAllRequired(SwaggerComponent head) {
+        head.checkRequired();
         for(Field f : head.getClass().getFields())
         {
-            if(!children)
-                return false;
-
             try {
                 if(f.get(head) instanceof SwaggerComponent)
                 {
                     SwaggerComponent comp = (SwaggerComponent) f.get(head);
-                    children = children && SwaggerComponent.checkAllRequired(comp);
+                    SwaggerComponent.checkAllRequired(comp);
                 }
                 else if(f.get(head) instanceof Requirer)
                 {
                     Requirer comp = (Requirer) f.get(head);
-                    children = children && comp.checkRequired();
+                    comp.checkRequired();
                 }
             }
             catch (IllegalAccessException e)
@@ -56,6 +56,5 @@ public class SwaggerComponent implements Requirer {
                 continue;
             }
         }
-        return children;
     }
 }

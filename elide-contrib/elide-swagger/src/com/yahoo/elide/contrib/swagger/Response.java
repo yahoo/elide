@@ -11,11 +11,4 @@ public class Response extends SwaggerComponent {
     {
         required = REQUIRED;
     }
-
-    public boolean checkRequired()
-    {
-        if(!super.checkRequired())
-            return false;
-        return true;
-    }
 }

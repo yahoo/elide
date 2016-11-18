@@ -32,12 +32,10 @@ public class Schema extends SwaggerComponent {
         required = REQUIRED;
     }
     @Override
-    public boolean checkRequired()
+    public void checkRequired()
     {
-        if(!super.checkRequired())
-            return false;
+        super.checkRequired();
         if(!Util.validateRef(ref))
-            return false;
-        return true;
+            throw new RuntimeException("The ref is invalid!");
     }
 }

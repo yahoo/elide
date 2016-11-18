@@ -28,4 +28,15 @@ class Util {
         }
         return false;
     }
+    public static boolean validateURL(String url)
+    {
+        final Pattern URL = Pattern.compile("^(https?|ftp)://[^\\s/$.?#].[^\\s]*$");
+        return URL.matcher(url).matches();
+    }
+
+    public static boolean validateEmail(String email)
+    {
+        final Pattern EMAIL = Pattern.compile("^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$");
+        return EMAIL.matcher(email).matches();
+    }
 }

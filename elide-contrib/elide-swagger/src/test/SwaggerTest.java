@@ -8,21 +8,44 @@ public class SwaggerTest extends TestCase {
     public void testRequired()
     {
         Swagger s = new Swagger();
-        assertFalse(s.checkRequired());
+        try {
+            s.checkRequired();
+            fail("Something isn't working right; there should be an exception here");
+        }
+        catch (RuntimeException e)
+        {}
         s.info = new Info();
-        assertFalse(s.checkRequired());
+        try {
+            s.checkRequired();
+            fail("Something isn't working right; there should be an exception here");
+        }
+        catch (RuntimeException e)
+        {
+        }
         s.paths = new Paths();
-        assertTrue(s.checkRequired());
+        s.checkRequired();
     }
     public void testCheckAllRequired()
     {
         Swagger s = new Swagger();
-        assertFalse(Swagger.checkAllRequired(s));
+        try {
+            Swagger.checkAllRequired(s);
+            fail("Something isn't working right; there should be an exception here");
+        }
+        catch (RuntimeException e)
+        {
+        }
         s.info = new Info();
         s.paths = new Paths();
-        assertFalse(Swagger.checkAllRequired(s));
+        try {
+            Swagger.checkAllRequired(s);
+            fail("Something isn't working right; there should be an exception here");
+        }
+        catch (RuntimeException e)
+        {
+        }
         s.info.title = "Title";
         s.info.version = "15.52.1.5";
-        assertTrue(Swagger.checkAllRequired(s));
+        Swagger.checkAllRequired(s);
     }
 }

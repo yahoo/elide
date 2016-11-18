@@ -1,5 +1,5 @@
 package com.yahoo.elide.contrib.swagger;
 
 interface Requirer {
-    public abstract boolean checkRequired();
+    public abstract void checkRequired();
 }
