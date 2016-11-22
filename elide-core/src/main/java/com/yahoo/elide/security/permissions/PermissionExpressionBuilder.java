@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.security.permissions;
 
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
-
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
@@ -37,6 +33,10 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
@@ -161,7 +161,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                 resource,
                                 (String) null,
                                 changeSpec),
-                        checkFn
+                        checkFn,
+                        (RequestScope) resource.getRequestScope()
                 );
 
         return new Expressions(
@@ -228,7 +229,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 );
 
         return new Expressions(
-                buildAnyFieldExpression(new PermissionCondition(annotationClass, resourceClass), userCheckFn), null);
+                buildAnyFieldExpression(
+                        new PermissionCondition(annotationClass, resourceClass), userCheckFn, requestScope), null);
     }
 
     private Function<Check, Expression> getImmediateExpressionFor(PersistentResource resource, ChangeSpec changeSpec) {
@@ -282,7 +284,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @return Expressions
      */
     private <A extends Annotation> Expression buildAnyFieldExpression(final PermissionCondition condition,
-                                                                      final Function<Check, Expression> checkFn) {
+                                                                      final Function<Check, Expression> checkFn,
+                                                                      final RequestScope scope) {
 
 
         Class<?> resourceClass = condition.getEntityClass();
@@ -293,7 +296,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
+        Set<String> sparseFields = scope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
+
         for (String field : fields) {
+
+            if (sparseFields != null && !sparseFields.contains(field)) {
+                continue;
+            }
+
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             Expression fieldExpression = expressionFromParseTree(fieldPermissions, checkFn);
 
