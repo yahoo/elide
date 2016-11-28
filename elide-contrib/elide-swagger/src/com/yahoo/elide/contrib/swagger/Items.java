@@ -21,6 +21,10 @@ public class Items extends SwaggerComponent {
     public Object[] enumeration;
     public int multipleOf;
 
+    public Items()
+    {
+        required = REQUIRED;
+    }
     @Override
     public void checkRequired() throws SwaggerValidationException
     {

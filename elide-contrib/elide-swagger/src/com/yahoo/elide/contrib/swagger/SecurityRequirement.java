@@ -3,6 +3,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 public class SecurityRequirement extends HashMap<String, String[]> implements Requirer {
+
     @Override
     public void checkRequired() throws SwaggerValidationException
     {

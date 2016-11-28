@@ -22,8 +22,8 @@ public class Schema extends SwaggerComponent {
     // other spec to find out.
     public int maxProperties;
     public int minProperties;
-    // I guess this is everything we're allowed to be? 
-    // I dunno. May the gods help you filling this.
+    // I guess this is everything this is allowed to be? 
+    // I dunno. May the gods help you in filling this one out.
     public Object[] enumeration;
     public int multipleOf;
     public Enums.Type type;

@@ -49,10 +49,13 @@ outer:
         {
             if(p.type == Enums.Type.FILE)
             {
-                for(MimeType type : consumes)
+                if(consumes != null)
                 {
-                    if(type.toString().equals("multipart/form-data") || type.toString().equals("application/x-www-form-urlencoded"))
-                        break outer;
+                    for(MimeType type : consumes)
+                    {
+                        if(type.toString().equals("multipart/form-data") || type.toString().equals("application/x-www-form-urlencoded"))
+                            break outer;
+                    }
                 }
                 throw new SwaggerValidationException("According to the spec, if the type of a parameter is a file, then you have to have either application/x-www-form-urlencoded or multipart/form-data as a mime type that can be consumed");
             }
@@ -61,10 +64,17 @@ outer:
 
     public void setOperationId(String id) throws IllegalArgumentException
     {
-        if(operationId.equals(id) || !usedOperationIds.contains(id))
+        if(id.equals(operationId) || !usedOperationIds.contains(id))
+        {
+            if(operationId != null)
+                usedOperationIds.remove(operationId);
+            usedOperationIds.add(id);
             operationId = id;
+        }
         else
+        {
             throw new IllegalArgumentException("You can't recycle an operationId!");
+        }
     }
     public String getOperationId()
     {

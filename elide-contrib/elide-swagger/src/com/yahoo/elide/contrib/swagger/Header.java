@@ -1,6 +1,7 @@
 package com.yahoo.elide.contrib.swagger;
 
 public class Header extends SwaggerComponent {
+    private static final String[] REQUIRED = {"type"};
     public String description;
     public Enums.Type type;
     public Enums.DataType format;
@@ -19,6 +20,11 @@ public class Header extends SwaggerComponent {
     public boolean uniqueItems;
     public Object[] enumeration;
     public int multipleOf;
+
+    public Header()
+    {
+        this.required = REQUIRED;
+    }
 
     @Override
     public void checkRequired() throws SwaggerValidationException
