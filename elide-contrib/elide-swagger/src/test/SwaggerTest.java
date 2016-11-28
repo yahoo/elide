@@ -14,21 +14,21 @@ public class SwaggerTest extends TestCase {
         return retval;
     }
 
-    public void testRequired()
+    public void testRequired() throws SwaggerValidationException
     {
         Swagger s = new Swagger();
         try {
             s.checkRequired();
             fail("Something isn't working right; there should be an exception here");
         }
-        catch (RuntimeException e)
+        catch (SwaggerValidationException e)
         {}
         s.info = new Info();
         try {
             s.checkRequired();
             fail("Something isn't working right; there should be an exception here");
         }
-        catch (RuntimeException e)
+        catch (SwaggerValidationException e)
         {
         }
         s.paths = new Paths();
@@ -41,7 +41,7 @@ public class SwaggerTest extends TestCase {
             Swagger.checkAllRequired(s);
             fail("Something isn't working right; there should be an exception here");
         }
-        catch (RuntimeException e)
+        catch (SwaggerValidationException e)
         {
         }
         s.info = new Info();
@@ -64,7 +64,7 @@ public class SwaggerTest extends TestCase {
             dummyPath.checkRequired();
             fail("Something isn't working right; there should be an exception here");
         }
-        catch (RuntimeException e)
+        catch (SwaggerValidationException e)
         {
         }
         dummyPath.ref = "http://i.imgur.com/foWGjVK.gifv";
@@ -88,7 +88,7 @@ public class SwaggerTest extends TestCase {
             dummyPath.checkRequired();
             fail("Something isn't working right; there should be an exception here");
         }
-        catch (RuntimeException e)
+        catch (SwaggerValidationException e)
         {}
         s.paths.put("/test", dummyPath);
     }

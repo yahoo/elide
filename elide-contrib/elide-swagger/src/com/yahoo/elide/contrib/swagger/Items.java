@@ -22,11 +22,11 @@ public class Items extends SwaggerComponent {
     public int multipleOf;
 
     @Override
-    public void checkRequired()
+    public void checkRequired() throws SwaggerValidationException
     {
         super.checkRequired();
 
         if(type == Enums.Type.ARRAY && items == null)
-            throw new RuntimeException("If the type is an array, then the items (ie, the thing describing what's in the array) can't be null");
+            throw new SwaggerValidationException("If the type is an array, then the items (ie, the thing describing what's in the array) can't be null");
     }
 }

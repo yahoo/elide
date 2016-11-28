@@ -31,7 +31,7 @@ public class Parameter extends SwaggerComponent {
     public int multipleOf;
 
     @Override
-    public void checkRequired()
+    public void checkRequired() throws SwaggerValidationException
     {
         super.checkRequired();
 
@@ -44,29 +44,29 @@ public class Parameter extends SwaggerComponent {
                     foundInPaths = true;
             }
             if(!foundInPaths)
-                throw new RuntimeException("You can't have a parameter that goes into the path without having it documented in the paths field in the Swagger object");
+                throw new SwaggerValidationException("You can't have a parameter that goes into the path without having it documented in the paths field in the Swagger object");
         }
         if(in == Enums.Location.PATH && required == false)
-            throw new RuntimeException("You can't have an optional path parameter");
+            throw new SwaggerValidationException("You can't have an optional path parameter");
 
         if(in == Enums.Location.BODY)
         {
             if(schema == null)
-                throw new RuntimeException("If a parameter is in the body, you have to include a schema to describe how it is formatted");
+                throw new SwaggerValidationException("If a parameter is in the body, you have to include a schema to describe how it is formatted");
         }
         else
         {
             if(type == null)
-                throw new RuntimeException("If a parameter isn't in the body or the path, it has to have a type");
+                throw new SwaggerValidationException("If a parameter isn't in the body or the path, it has to have a type");
             if(type == Enums.Type.ARRAY)
             {
                 if(items == null)
-                    throw new RuntimeException("If the type of the parameter is an array, you have to have an items object to describe the things in the array.");
+                    throw new SwaggerValidationException("If the type of the parameter is an array, you have to have an items object to describe the things in the array.");
             }
             if(maxLength < 0 || minLength < 0 || maxLength < minLength)
-                throw new RuntimeException("The maxlenth or minlength don't make sense");
+                throw new SwaggerValidationException("The maxlenth or minlength don't make sense");
             if(minItems < 0 || minItems > maxItems || maxItems < 0)
-                throw new RuntimeException("The maxitems or minitems don't make sense");
+                throw new SwaggerValidationException("The maxitems or minitems don't make sense");
         }
     }
 

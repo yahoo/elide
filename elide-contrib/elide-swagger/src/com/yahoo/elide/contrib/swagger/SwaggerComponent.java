@@ -6,7 +6,7 @@ import java.util.HashMap;
 public class SwaggerComponent implements Requirer {
     protected String[] required = {};
     public HashMap<String, Object> patternedFields;
-    public void checkRequired() {
+    public void checkRequired() throws SwaggerValidationException {
         for(String field : required)
         {
             Field f;
@@ -15,17 +15,17 @@ public class SwaggerComponent implements Requirer {
             }
             catch(NoSuchFieldException e)
             {
-                throw new RuntimeException(String.format("The field %s does not exist in %s",
+                throw new SwaggerValidationException(String.format("The field %s does not exist in %s",
                             field, this.getClass().getName()));
             }
             try {
                 if(f.get(this) == null)
-                    throw new RuntimeException(String.format("The field %s in %s should not be null",
+                    throw new SwaggerValidationException(String.format("The field %s in %s should not be null",
                                 field, this.getClass().getName()));
             }
             catch(IllegalAccessException e)
             {
-                throw new RuntimeException(String.format("The field %s does not have the proper access in %s",
+                throw new SwaggerValidationException(String.format("The field %s does not have the proper access in %s",
                             field, this.getClass().getName()));
             }
         }
@@ -35,7 +35,7 @@ public class SwaggerComponent implements Requirer {
      * This method will throw an error if something isn't valid (hopefully
      * a useful one)
      */
-    public static void checkAllRequired(SwaggerComponent head) {
+    public static void checkAllRequired(SwaggerComponent head) throws SwaggerValidationException {
         head.checkRequired();
         for(Field f : head.getClass().getFields())
         {

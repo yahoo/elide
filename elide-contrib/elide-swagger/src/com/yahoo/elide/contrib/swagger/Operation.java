@@ -26,18 +26,18 @@ public class Operation extends SwaggerComponent {
         required = REQUIRED;
     }
     @Override
-    public void checkRequired()
+    public void checkRequired() throws SwaggerValidationException
     {
         super.checkRequired();
 
         if(Util.hasDuplicates(parameters))
-            throw new RuntimeException("Parameters can't have duplicates in it");
+            throw new SwaggerValidationException("Parameters can't have duplicates in it");
         boolean foundBody = false;
         for(int i = 0; i < parameters.length; i++)
         {
             if(parameters[i].in == Enums.Location.BODY)
                 if(foundBody)
-                    throw new RuntimeException("You can't have more than one parameter in the body");
+                    throw new SwaggerValidationException("You can't have more than one parameter in the body");
                 else
                     foundBody = true;
         }
@@ -54,7 +54,7 @@ outer:
                     if(type.toString().equals("multipart/form-data") || type.toString().equals("application/x-www-form-urlencoded"))
                         break outer;
                 }
-                throw new RuntimeException("According to the spec, if the type of a parameter is a file, then you have to have either application/x-www-form-urlencoded or multipart/form-data as a mime type that can be consumed");
+                throw new SwaggerValidationException("According to the spec, if the type of a parameter is a file, then you have to have either application/x-www-form-urlencoded or multipart/form-data as a mime type that can be consumed");
             }
         }
     }

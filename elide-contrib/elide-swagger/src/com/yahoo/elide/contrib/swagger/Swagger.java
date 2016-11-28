@@ -38,14 +38,14 @@ public class Swagger extends SwaggerComponent {
     }
 
     @Override
-    public void checkRequired()
+    public void checkRequired() throws SwaggerValidationException
     {
         super.checkRequired();
         if(!swagger.equals("2.0"))
-            throw new RuntimeException("The swagger version must be 2.0");
+            throw new SwaggerValidationException("The swagger version must be 2.0");
         if(basePath != null && basePath.charAt(0) != '/')
-            throw new RuntimeException("The first letter of the basePath must be /");
+            throw new SwaggerValidationException("The first letter of the basePath must be /");
         if(tags != null && Util.hasDuplicates(tags))
-            throw new RuntimeException("Tags can't have duplicates in it");
+            throw new SwaggerValidationException("Tags can't have duplicates in it");
     }
 }

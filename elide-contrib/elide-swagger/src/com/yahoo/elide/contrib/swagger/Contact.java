@@ -10,12 +10,12 @@ public class Contact extends SwaggerComponent {
         required = REQUIRED;
     }
     @Override
-    public void checkRequired()
+    public void checkRequired() throws SwaggerValidationException
     {
-        if(!Util.validateURL(url))
-            throw new RuntimeException("The URL must be properly formatted");
+        if(url != null && !Util.validateURL(url))
+            throw new SwaggerValidationException("The URL must be properly formatted");
 
-        if(!Util.validateEmail(email))
-            throw new RuntimeException("The email address must be properly formatted");
+        if(email != null && !Util.validateEmail(email))
+            throw new SwaggerValidationException("The email address must be properly formatted");
     }
 }

@@ -1,5 +1,5 @@
 package com.yahoo.elide.contrib.swagger;
 
 interface Requirer {
-    public abstract void checkRequired();
+    public abstract void checkRequired() throws SwaggerValidationException;
 }
