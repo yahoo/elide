@@ -76,6 +76,7 @@ public class SwaggerTest extends TestCase {
         dummyPath.checkRequired();
 
         dummyPath.parameters = new Parameter[2];
+
         dummyPath.parameters[0] = new Parameter();
         dummyPath.parameters[0].name = "This is the name of a parameter";
         dummyPath.parameters[0].in = Enums.Location.BODY;

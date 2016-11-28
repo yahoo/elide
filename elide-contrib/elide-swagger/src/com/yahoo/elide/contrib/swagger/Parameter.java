@@ -69,4 +69,25 @@ public class Parameter extends SwaggerComponent {
                 throw new RuntimeException("The maxitems or minitems don't make sense");
         }
     }
+
+    @Override 
+    public int hashCode()
+    {
+        int retval = 0;
+        if(name != null)
+            retval += name.hashCode();
+        if(in != null)
+            retval += in.hashCode();
+        return retval;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(o == null)
+            return false;
+        if(!this.getClass().isInstance(o))
+            return false;
+        return o.hashCode() == this.hashCode();
+    }
 }
