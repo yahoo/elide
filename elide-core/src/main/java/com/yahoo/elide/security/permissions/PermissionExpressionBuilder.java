@@ -5,21 +5,17 @@
  */
 package com.yahoo.elide.security.permissions;
 
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
-
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.DeferredCheckExpression;
@@ -29,15 +25,18 @@ import com.yahoo.elide.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
-
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
@@ -162,7 +161,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                 resource,
                                 (String) null,
                                 changeSpec),
-                        checkFn
+                        checkFn,
+                        (RequestScope) resource.getRequestScope()
                 );
 
         return new Expressions(
@@ -229,7 +229,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 );
 
         return new Expressions(
-                buildAnyFieldExpression(new PermissionCondition(annotationClass, resourceClass), userCheckFn), null);
+                buildAnyFieldExpression(
+                        new PermissionCondition(annotationClass, resourceClass), userCheckFn, requestScope), null);
     }
 
     private Function<Check, Expression> getImmediateExpressionFor(PersistentResource resource, ChangeSpec changeSpec) {
@@ -283,7 +284,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @return Expressions
      */
     private <A extends Annotation> Expression buildAnyFieldExpression(final PermissionCondition condition,
-                                                                      final Function<Check, Expression> checkFn) {
+                                                                      final Function<Check, Expression> checkFn,
+                                                                      final RequestScope scope) {
 
 
         Class<?> resourceClass = condition.getEntityClass();
@@ -294,7 +296,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
+        Set<String> sparseFields = scope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
+
         for (String field : fields) {
+
+            if (sparseFields != null && !sparseFields.contains(field)) {
+                continue;
+            }
+
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             Expression fieldExpression = expressionFromParseTree(fieldPermissions, checkFn);
 
@@ -324,9 +333,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 || entityFilterExpression == NO_EVALUATION_EXPRESSION) {
             entityFilterExpression = null;
         }
+        Set<String> sparseFields = requestScope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
         FilterExpression allFieldsFilterExpression = entityFilterExpression;
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         for (String field : fields) {
+            // ignore sparse fields
+            if (sparseFields != null && !sparseFields.contains(field)) {
+                continue;
+            }
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             FilterExpression fieldExpression =
                     filterExpressionFromParseTree(fieldPermissions, resourceClass, requestScope);

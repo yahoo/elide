@@ -177,6 +177,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
     }
 
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -199,6 +200,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         );
     }
 
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -221,6 +223,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         );
     }
 
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
