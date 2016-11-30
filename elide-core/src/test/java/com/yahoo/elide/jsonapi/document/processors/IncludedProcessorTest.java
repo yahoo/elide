@@ -11,6 +11,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
@@ -58,7 +59,7 @@ public class IncludedProcessorTest {
 
         RequestScope goodUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), dictionary, null, new TestAuditLogger());
+                new User(1), dictionary, null, new TestAuditLogger(), null, null, new MultipleFilterDialect(dictionary));
 
         //Create objects
         Parent parent1 = newParent(1);

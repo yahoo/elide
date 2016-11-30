@@ -370,8 +370,15 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder;
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
-                PatchRequestScope patchRequestScope = new PatchRequestScope(path,
-                        transaction, user, dictionary, mapper, auditLogger, permissionExecutor);
+                PatchRequestScope patchRequestScope = new PatchRequestScope(
+                        path,
+                        transaction,
+                        user,
+                        dictionary,
+                        mapper,
+                        auditLogger,
+                        permissionExecutor,
+                        new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
                 requestScope = patchRequestScope;
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
@@ -385,7 +392,7 @@ public class Elide {
                         dictionary,
                         mapper,
                         auditLogger,
-                        null,
+                        (MultivaluedMap) null,
                         permissionExecutor,
                         new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();

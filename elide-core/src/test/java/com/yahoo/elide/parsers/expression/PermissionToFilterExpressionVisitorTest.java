@@ -14,6 +14,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
@@ -186,7 +187,7 @@ public class PermissionToFilterExpressionVisitorTest {
 
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null);
+        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null, null, null, new MultipleFilterDialect(dictionary));
     }
 
     @Entity

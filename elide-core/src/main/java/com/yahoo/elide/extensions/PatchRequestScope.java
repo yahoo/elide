@@ -9,11 +9,13 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.function.Function;
 
 /**
@@ -30,6 +32,7 @@ public class PatchRequestScope extends RequestScope {
      * @param dictionary  entity dictionary
      * @param mapper      Json API mapper
      * @param auditLogger      the logger
+     * @param filterDialect filter dialect
      */
     public PatchRequestScope(
             String path,
@@ -38,8 +41,20 @@ public class PatchRequestScope extends RequestScope {
             EntityDictionary dictionary,
             JsonApiMapper mapper,
             AuditLogger auditLogger,
-            Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
-        super(path, null, transaction, user, dictionary, mapper, auditLogger, permissionExecutorGenerator);
+            Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+            MultipleFilterDialect filterDialect) {
+        super(
+                path,
+                (JsonApiDocument) null,
+                transaction,
+                user,
+                dictionary,
+                mapper,
+                auditLogger,
+                (MultivaluedMap<String, String>) null,
+                permissionExecutorGenerator,
+                filterDialect
+        );
     }
 
     /**

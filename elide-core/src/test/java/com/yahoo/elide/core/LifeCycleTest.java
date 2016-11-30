@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
@@ -164,7 +165,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
@@ -188,7 +189,7 @@ public class LifeCycleTest {
     public void testUpdate() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runQueuedPreSecurityTriggers();
@@ -211,7 +212,7 @@ public class LifeCycleTest {
     public void testOnDelete() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
         scope.runQueuedPreSecurityTriggers();

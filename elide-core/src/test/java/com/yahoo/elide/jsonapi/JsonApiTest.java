@@ -16,6 +16,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -57,7 +58,7 @@ public class JsonApiTest {
         AuditLogger testLogger = new TestAuditLogger();
         userScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(0), dictionary, mapper, testLogger);
+                new User(0), dictionary, mapper, testLogger, null, null, new MultipleFilterDialect(dictionary));
     }
 
     @Test

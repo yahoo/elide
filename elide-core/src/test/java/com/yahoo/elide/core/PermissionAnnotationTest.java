@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 
@@ -46,9 +47,9 @@ public class PermissionAnnotationTest {
 
         AuditLogger testLogger = new TestAuditLogger();
         funRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger));
+                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger, null, null, new MultipleFilterDialect(dictionary)));
         badRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, badUser, dictionary, null, testLogger));
+                new RequestScope(null, null, null, badUser, dictionary, null, testLogger, null, null, new MultipleFilterDialect(dictionary)));
     }
 
     @Test

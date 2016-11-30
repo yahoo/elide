@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import example.Child;
 import example.Parent;
 import org.testng.Assert;
@@ -42,7 +43,7 @@ public class LogMessageTest {
         child.setFriends(Sets.newHashSet(friend));
 
         final RequestScope requestScope = new RequestScope(
-                null, null, null, null, dictionary, null, new TestAuditLogger());
+                null, null, null, null, dictionary, null, new TestAuditLogger(), null, null, new MultipleFilterDialect(dictionary));
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);
