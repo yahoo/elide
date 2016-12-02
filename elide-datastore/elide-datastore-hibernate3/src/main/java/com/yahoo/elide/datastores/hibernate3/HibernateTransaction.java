@@ -15,15 +15,18 @@ import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
@@ -64,6 +67,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     private final boolean isScrollEnabled;
     private final ScrollMode scrollMode;
     @Getter(value = AccessLevel.PROTECTED)
+    @Setter
     private RequestScope requestScope = null;
 
     /**
@@ -450,6 +454,11 @@ public class HibernateTransaction implements RequestScopedTransaction {
     @Deprecated
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
+            // for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+            if (getRequestScope() instanceof PatchRequestScope) {
+                return patchRequestFilterCollection(collection, entityClass, predicates);
+            }
+
             String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
@@ -467,6 +476,25 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
 
         return collection;
+    }
+
+    /**
+     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+     * @param <T>         the type parameter
+     * @param collection  the collection to filter
+     * @param entityClass the class of the entities in the collection
+     * @param predicates  the set of Predicate's to filter by
+     * @return the filtered collection
+     * @deprecated will be removed in Elide 3.0
+     */
+    @Deprecated
+    protected <T> Collection patchRequestFilterCollection(Collection collection, Class<T> entityClass,
+            Set<Predicate> predicates) {
+        final EntityDictionary dictionary = getRequestScope().getDictionary();
+        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(predicates);
+        return (Collection) collection.stream()
+                .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -504,11 +532,6 @@ public class HibernateTransaction implements RequestScopedTransaction {
     @Override
     public User accessUser(Object opaqueUser) {
         return new User(opaqueUser);
-    }
-
-    @Override
-    public void setRequestScope(RequestScope requestScope) {
-        this.requestScope = requestScope;
     }
 
     /**

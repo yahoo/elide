@@ -5,18 +5,24 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -44,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * Hibernate Transaction implementation.
  */
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction implements RequestScopedTransaction {
     private static final Function<Criterion, Criterion> NOT = Restrictions::not;
     private static final BiFunction<Criterion, Criterion, Criterion> AND = Restrictions::and;
     private static final BiFunction<Criterion, Criterion, Criterion> OR = Restrictions::or;
@@ -53,6 +59,9 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
     private final ScrollMode scrollMode;
+    @Getter(value = AccessLevel.PROTECTED)
+    @Setter
+    private RequestScope requestScope = null;
 
     /**
      * Instantiates a new Hibernate transaction.
@@ -307,6 +316,11 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Deprecated
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
         if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
+            // for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+            if (getRequestScope() instanceof PatchRequestScope) {
+                return patchRequestFilterCollection(collection, entityClass, predicates);
+            }
+
             String filterString = new HQLFilterOperation().applyAll(predicates);
 
             if (filterString.length() != 0) {
@@ -324,6 +338,25 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         return collection;
+    }
+
+    /**
+     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+     * @param <T>         the type parameter
+     * @param collection  the collection to filter
+     * @param entityClass the class of the entities in the collection
+     * @param predicates  the set of Predicate's to filter by
+     * @return the filtered collection
+     * @deprecated will be removed in Elide 3.0
+     */
+    @Deprecated
+    protected <T> Collection patchRequestFilterCollection(Collection collection, Class<T> entityClass,
+            Set<Predicate> predicates) {
+        final EntityDictionary dictionary = getRequestScope().getDictionary();
+        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(predicates);
+        return (Collection) collection.stream()
+                .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
+                .collect(Collectors.toList());
     }
 
     @Override
