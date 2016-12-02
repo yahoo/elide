@@ -10,6 +10,8 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.FilterScope;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -28,7 +30,7 @@ import java.util.Set;
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
  * If any commit fails in process, reverse any commits already completed.
  */
-public abstract class MultiplexTransaction implements DataStoreTransaction {
+public abstract class MultiplexTransaction implements RequestScopedTransaction {
     protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
     protected final DataStoreTransaction lastDataStoreTransaction;
@@ -207,5 +209,14 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public <T> Long getTotalRecords(Class<T> entityClass) {
         return getTransaction(entityClass).getTotalRecords(entityClass);
+    }
+
+    @Override
+    public void setRequestScope(RequestScope requestScope) {
+        for (DataStoreTransaction transaction : transactions.values()) {
+            if (transaction instanceof RequestScopedTransaction) {
+                ((RequestScopedTransaction) transaction).setRequestScope(requestScope);
+            }
+        }
     }
 }
