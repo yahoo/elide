@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
@@ -287,6 +288,10 @@ public class HibernateTransaction implements RequestScopedTransaction {
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
+                if (getRequestScope() instanceof PatchRequestScope && filterExpression.isPresent()) {
+                    return patchRequestFilterCollection(filteredVal, relationClass, filterExpression.get());
+                }
+
                 Optional<Sorting> sortingRules = sorting != null ? Optional.of(sorting) : Optional.empty();
                 Optional<Pagination> paginationRules = pagination != null ? Optional.of(pagination) : Optional.empty();
 
@@ -338,6 +343,27 @@ public class HibernateTransaction implements RequestScopedTransaction {
         }
 
         return collection;
+    }
+
+    /**
+     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+     * @param <T>         the type parameter
+     * @param collection  the collection to filter
+     * @param entityClass the class of the entities in the collection
+     * @param filterExpression the filter expression
+     * @return the filtered collection
+     */
+    protected <T> Collection patchRequestFilterCollection(
+            Collection collection,
+            Class<T> entityClass,
+            FilterExpression filterExpression) {
+        final EntityDictionary dictionary = getRequestScope().getDictionary();
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
+        java.util.function.Predicate inMemoryFilterFn =
+                filterExpression.accept(inMemoryFilterVisitor);
+        return (Collection) collection.stream()
+                .filter(e -> inMemoryFilterFn.test(e))
+                .collect(Collectors.toList());
     }
 
     /**
