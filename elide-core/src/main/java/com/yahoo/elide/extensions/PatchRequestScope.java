@@ -9,6 +9,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
@@ -39,9 +40,12 @@ public class PatchRequestScope extends RequestScope {
             EntityDictionary dictionary,
             JsonApiMapper mapper,
             AuditLogger auditLogger,
-            Function<RequestScope, PermissionExecutor> permissionExecutorGenerator) {
-        super(path, null, transaction, user, dictionary, mapper, auditLogger, SecurityMode.SECURITY_ACTIVE,
-                permissionExecutorGenerator);
+            Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+            MultipleFilterDialect filterDialect,
+            boolean useFilterExpressions) {
+        super(path, null, transaction, user, dictionary, mapper, auditLogger, null, SecurityMode.SECURITY_ACTIVE,
+                permissionExecutorGenerator, filterDialect, useFilterExpressions);
+
     }
 
     /**
