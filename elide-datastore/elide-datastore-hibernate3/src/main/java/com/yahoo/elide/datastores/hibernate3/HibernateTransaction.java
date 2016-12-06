@@ -471,7 +471,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
                 for (Predicate predicate : predicates) {
                     if (predicate.getOperator().isParameterized()) {
-                        String name = predicate.getFieldPath().replace('.', '_');
+                        String name = predicate.getParameterName();
                         query = query.setParameterList(name, predicate.getValues());
                     }
                 }

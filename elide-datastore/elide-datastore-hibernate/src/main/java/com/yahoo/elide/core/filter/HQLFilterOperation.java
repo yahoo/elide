@@ -22,31 +22,32 @@ public class HQLFilterOperation implements FilterOperation<String> {
     @Override
     public String apply(Predicate predicate) {
         String fieldPath = predicate.getFieldPath();
+        String alias = predicate.getParameterName();
         switch (predicate.getOperator()) {
             case IN:
                 Preconditions.checkState(!predicate.getValues().isEmpty());
-                return String.format("%s IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s IN (:%s)", fieldPath, alias);
             case NOT:
                 Preconditions.checkState(!predicate.getValues().isEmpty());
-                return String.format("%s NOT IN (:%s)", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s NOT IN (:%s)", fieldPath, alias);
             case PREFIX:
-                return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
             case POSTFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
             case INFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
             case ISNULL:
                 return String.format("%s IS NULL", fieldPath);
             case NOTNULL:
                 return String.format("%s IS NOT NULL", fieldPath);
             case LT:
-                return String.format("%s < :%s", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s < :%s", fieldPath, alias);
             case LE:
-                return String.format("%s <= :%s", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s <= :%s", fieldPath, alias);
             case GT:
-                return String.format("%s > :%s", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s > :%s", fieldPath, alias);
             case GE:
-                return String.format("%s >= :%s", fieldPath, fieldPath.replace('.', '_'));
+                return String.format("%s >= :%s", fieldPath, alias);
             case TRUE:
                 return "(1 = 1)";
             case FALSE:

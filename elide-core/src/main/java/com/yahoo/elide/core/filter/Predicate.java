@@ -73,6 +73,13 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
         return fieldPath.toString();
     }
 
+    /**
+     * get a unique name for this predicate to be used as a parameter name
+     * @return unique name
+     */
+    public String getParameterName() {
+        return getFieldPath().replace('.', '_') + '_' + Integer.toHexString(hashCode());
+    }
 
     public String getEntityType() {
         PathElement last = path.get(path.size() - 1);
