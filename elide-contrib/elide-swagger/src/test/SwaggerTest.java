@@ -2,7 +2,7 @@ package test;
 
 import junit.framework.*;
 
-import com.yahoo.elide.contrib.swagger.*;
+import com.yahoo.elide.contrib.swagger.JSONObjectClasses.*;
 
 public class SwaggerTest extends TestCase {
 

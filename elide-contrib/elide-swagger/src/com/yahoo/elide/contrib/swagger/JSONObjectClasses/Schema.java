@@ -1,4 +1,4 @@
-package com.yahoo.elide.contrib.swagger;
+package com.yahoo.elide.contrib.swagger.JSONObjectClasses;
 
 public class Schema extends SwaggerComponent {
     public static final String[] REQUIRED = {};

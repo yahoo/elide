@@ -1,4 +1,4 @@
-package com.yahoo.elide.contrib.swagger;
+package com.yahoo.elide.contrib.swagger.JSONObjectClasses;
 
 import com.google.gson.annotations.SerializedName;
 

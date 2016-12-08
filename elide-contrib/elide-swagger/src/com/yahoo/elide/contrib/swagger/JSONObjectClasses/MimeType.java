@@ -1,4 +1,4 @@
-package com.yahoo.elide.contrib.swagger;
+package com.yahoo.elide.contrib.swagger.JSONObjectClasses;
 
 /*
  * This class is just here to prevent string typing.

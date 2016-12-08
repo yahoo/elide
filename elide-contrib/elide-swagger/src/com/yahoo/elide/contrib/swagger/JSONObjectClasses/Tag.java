@@ -1,4 +1,4 @@
-package com.yahoo.elide.contrib.swagger;
+package com.yahoo.elide.contrib.swagger.JSONObjectClasses;
 
 public class Tag extends SwaggerComponent {
     private static final String[] REQUIRED = {"name"};
