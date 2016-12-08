@@ -24,8 +24,7 @@ public class Swagger extends SwaggerComponent {
     // this is for the benefit of whatever poor soul has to write this by hand, but the computer doesn't 
     // care, so we could just leave it out.
     public ParametersDefinitions parameters;
-    // I don't know how to do this for the reasons above and also java can only return 
-    // one thing, so it might not be able to have many responses.
+
     public ResponsesDefinitions responses;
     public SecurityDefinitions securityDefinitions;
     public SecurityRequirement[] security;
