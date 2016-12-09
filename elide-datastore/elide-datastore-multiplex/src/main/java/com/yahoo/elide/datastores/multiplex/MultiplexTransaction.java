@@ -110,7 +110,6 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
         // flush all before commit
         flush();
         transactions.values().forEach(DataStoreTransaction::commit);
-        transactions.clear();
     }
 
     @Override
@@ -130,6 +129,7 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
                 }
             }
         }
+        transactions.clear();
         if (cause != null) {
             throw cause;
         }
