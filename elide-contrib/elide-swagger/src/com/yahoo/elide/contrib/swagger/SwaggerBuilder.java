@@ -11,6 +11,7 @@ public class SwaggerBuilder {
         // to make this work.
         Info info = new Info();
         retval.info = info;
+
         // Since the server implementation is separate from Elide (I think), we can't know
         // this. Knowing this means that the user would have to write it twice, once, for 
         // the server and once for us, but I don't know how to get around that.
