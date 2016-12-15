@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -55,6 +56,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,6 +85,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final Optional<String> uuid;
     private final User user;
     private final ObjectEntityCache entityCache;
+
+    private HashMap<Class, HashSet<String>> triggersRun;
 
     @Override
     public String toString() {
@@ -199,6 +204,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.entityCache = requestScope.getObjectEntityCache();
         this.transaction = requestScope.getTransaction();
         this.requestScope = requestScope;
+        this.triggersRun = new HashMap<>();
         dictionary.initializeEntity(obj);
     }
 
@@ -1329,6 +1335,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return value value
      */
     protected Object getValueChecked(String fieldName) {
+        requestScope.queueTriggers(this, CRUDAction.READ);
+        requestScope.queueTriggers(this, fieldName, CRUDAction.READ);
+        // Run the pre-security checks:
+        runTriggers(OnReadPreSecurity.class, "");
+        runTriggers(OnReadPreSecurity.class, fieldName);
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, dictionary);
     }
@@ -1340,6 +1351,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
+        requestScope.queueTriggers(this, CRUDAction.READ);
+        requestScope.queueTriggers(this, fieldName, CRUDAction.READ);
+        // Run the pre-security checks:
+        runTriggers(OnReadPreSecurity.class, "");
+        runTriggers(OnReadPreSecurity.class, fieldName);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -1462,12 +1478,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass, String fieldName) {
+        // Only run a trigger once per request:
+        if (triggersRun.containsKey(annotationClass)) {
+            if (triggersRun.get(annotationClass).contains(fieldName)) {
+                return;
+            }
+        } else {
+            triggersRun.put(annotationClass, new HashSet<>());
+        }
+        triggersRun.get(annotationClass).add(fieldName);
+
         Class<?> targetClass = obj.getClass();
 
         Collection<Method> methods = dictionary.getTriggers(targetClass, annotationClass, fieldName);
         for (Method method : methods) {
             try {
-                if (method.getParameterCount() == 1) {
+                if (method.getParameterCount() == 1 && method.getParameterTypes()[0].isInstance(requestScope)) {
                     method.invoke(obj, requestScope);
                 } else {
                     method.invoke(obj);

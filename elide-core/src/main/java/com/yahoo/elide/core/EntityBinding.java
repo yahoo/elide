@@ -12,6 +12,9 @@ import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
@@ -120,12 +123,15 @@ class EntityBinding {
             bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnUpdatePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnCreatePreCommit.class, fieldOrMethod);
             bindTriggerIfPresent(OnDeletePreCommit.class, fieldOrMethod);
             bindTriggerIfPresent(OnUpdatePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPreCommit.class, fieldOrMethod);
             bindTriggerIfPresent(OnCreatePostCommit.class, fieldOrMethod);
             bindTriggerIfPresent(OnDeletePostCommit.class, fieldOrMethod);
             bindTriggerIfPresent(OnUpdatePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPostCommit.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);

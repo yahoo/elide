@@ -11,6 +11,9 @@ import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
@@ -142,5 +145,20 @@ public class Book {
     @OnDeletePostCommit
     public void postDeleteBook(RequestScope requestScope) {
         // book entity deleted
+    }
+
+    @OnReadPreSecurity
+    public void preRead(RequestScope requestScope) {
+        // book being read pre security
+    }
+
+    @OnReadPreCommit("title")
+    public void preCommitRead(RequestScope requestScope) {
+        // book being read pre commit
+    }
+
+    @OnReadPostCommit
+    public void postRead(RequestScope requestScope) {
+        // book being read post commit
     }
 }

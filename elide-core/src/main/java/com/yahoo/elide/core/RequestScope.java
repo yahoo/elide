@@ -9,6 +9,9 @@ import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePostCommit;
@@ -114,12 +117,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 put(OnCreatePreSecurity.class, new LinkedHashSet<>());
                 put(OnUpdatePreSecurity.class, new LinkedHashSet<>());
                 put(OnDeletePreSecurity.class, new LinkedHashSet<>());
+                put(OnReadPreSecurity.class, new LinkedHashSet<>());
                 put(OnCreatePreCommit.class, new LinkedHashSet<>());
                 put(OnUpdatePreCommit.class, new LinkedHashSet<>());
                 put(OnDeletePreCommit.class, new LinkedHashSet<>());
+                put(OnReadPreCommit.class, new LinkedHashSet<>());
                 put(OnCreatePostCommit.class, new LinkedHashSet<>());
                 put(OnUpdatePostCommit.class, new LinkedHashSet<>());
                 put(OnDeletePostCommit.class, new LinkedHashSet<>());
+                put(OnReadPostCommit.class, new LinkedHashSet<>());
             }
         };
 
@@ -307,6 +313,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         runQueuedTriggers(OnCreatePreCommit.class);
         runQueuedTriggers(OnUpdatePreCommit.class);
         runQueuedTriggers(OnDeletePreCommit.class);
+        runQueuedTriggers(OnReadPreCommit.class);
     }
 
     /**
@@ -316,6 +323,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         runQueuedTriggers(OnCreatePostCommit.class);
         runQueuedTriggers(OnUpdatePostCommit.class);
         runQueuedTriggers(OnDeletePostCommit.class);
+        runQueuedTriggers(OnReadPostCommit.class);
     }
 
     /**
@@ -370,6 +378,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 queueTrigger.accept(OnDeletePostCommit.class);
                 break;
             case READ:
+                queueTrigger.accept(OnReadPreCommit.class);
+                queueTrigger.accept(OnReadPostCommit.class);
+                break;
             default:
                 throw new InternalServerErrorException("Failed to queue trigger of non-actionable CRUD: " + crudAction);
         }
