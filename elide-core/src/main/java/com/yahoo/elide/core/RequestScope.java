@@ -313,6 +313,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         runQueuedTriggers(OnCreatePreCommit.class);
         runQueuedTriggers(OnUpdatePreCommit.class);
         runQueuedTriggers(OnDeletePreCommit.class);
+        runQueuedTriggers(OnReadPreCommit.class);
     }
 
     /**
@@ -322,6 +323,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         runQueuedTriggers(OnCreatePostCommit.class);
         runQueuedTriggers(OnUpdatePostCommit.class);
         runQueuedTriggers(OnDeletePostCommit.class);
+        runQueuedTriggers(OnReadPostCommit.class);
     }
 
     /**
@@ -376,7 +378,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 queueTrigger.accept(OnDeletePostCommit.class);
                 break;
             case READ:
-                queueTrigger.accept(OnReadPreSecurity.class);
                 queueTrigger.accept(OnReadPreCommit.class);
                 queueTrigger.accept(OnReadPostCommit.class);
                 break;
