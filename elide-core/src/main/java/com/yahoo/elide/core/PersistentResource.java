@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
+import com.yahoo.elide.annotation.OnRead;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -95,6 +96,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     @NonNull private final RequestScope requestScope;
     private final Optional<PersistentResource<?>> parent;
     private int hashCode = 0;
+
+    private boolean hasRunReadTrigger;
 
     /**
      * The Dictionary.
@@ -201,6 +204,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.entityCache = requestScope.getObjectEntityCache();
         this.transaction = requestScope.getTransaction();
         this.requestScope = requestScope;
+        this.hasRunReadTrigger = false;
         dictionary.initializeEntity(obj);
     }
 
@@ -1324,6 +1328,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     protected Object getValueChecked(String fieldName) {
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
+        // On-Read occurs _after_ security:
+        runTriggers(OnRead.class);
+        runTriggers(OnRead.class, fieldName);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -1334,6 +1341,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
+        // Read triggers:
+        runTriggers(OnRead.class);
+        runTriggers(OnRead.class, fieldName);
         return getValue(getObject(), fieldName, dictionary);
     }
 
@@ -1459,12 +1469,23 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass, String fieldName) {
+        // Only run the read trigger once
+        if (annotationClass == OnRead.class && "".equals(fieldName) && hasRunReadTrigger) {
+            return;
+        } else {
+            hasRunReadTrigger = true;
+        }
         Class<?> targetClass = obj.getClass();
 
         Collection<Method> methods = dictionary.getTriggers(targetClass, annotationClass, fieldName);
         for (Method method : methods) {
             try {
-                method.invoke(obj);
+                if (method.getParameterCount() == 1
+                    && method.getParameterTypes()[0].isInstance(requestScope)) {
+                    method.invoke(obj, requestScope);
+                } else {
+                    method.invoke(obj);
+                }
             } catch (ReflectiveOperationException e) {
                 throw new IllegalArgumentException(e);
             }

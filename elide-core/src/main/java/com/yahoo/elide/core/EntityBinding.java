@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
+import com.yahoo.elide.annotation.OnRead;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
@@ -116,6 +117,7 @@ class EntityBinding {
             bindTriggerIfPresent(OnDelete.class, fieldOrMethod);
             bindTriggerIfPresent(OnUpdate.class, fieldOrMethod);
             bindTriggerIfPresent(OnCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnRead.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);

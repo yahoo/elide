@@ -172,6 +172,7 @@ public class LifeCycleTest {
         verify(book, times(0)).onCommitBook();
         verify(book, times(0)).onUpdateTitle();
         verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onReadBook();
     }
 
     @Test
@@ -188,6 +189,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCommitBook();
         verify(book, times(0)).onUpdateTitle();
         verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onReadBook();
     }
 
     @Test
@@ -204,6 +206,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCommitBook();
         verify(book, times(0)).onUpdateTitle();
         verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onReadBook();
     }
 
     @Test
@@ -220,6 +223,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCommitBook();
         verify(book, times(0)).onUpdateTitle();
         verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onReadBook();
     }
 
     @Test
@@ -234,6 +238,7 @@ public class LifeCycleTest {
         verify(book, times(0)).onCommitBook();
         verify(book, times(1)).onUpdateTitle();
         verify(book, times(1)).onCommitTitle();
+        verify(book, times(1)).onReadBook(); // Has to read value for change spec
     }
 
     @Test
@@ -248,5 +253,21 @@ public class LifeCycleTest {
         verify(book, times(0)).onCommitBook();
         verify(book, times(0)).onCommitTitle();
         verify(book, times(0)).onUpdateTitle();
+        verify(book, times(0)).onReadBook();
+    }
+
+    @Test
+    public void testOnRead() {
+        Book book = mock(Book.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER);
+        PersistentResource resource = new PersistentResource(book, scope);
+        resource.getValueChecked("title");
+        verify(book, times(0)).onCreateBook();
+        verify(book, times(0)).onDeleteBook();
+        verify(book, times(0)).onCommitBook();
+        verify(book, times(0)).onCommitTitle();
+        verify(book, times(0)).onUpdateTitle();
+        verify(book, times(1)).onReadBook();
     }
 }
