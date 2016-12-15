@@ -357,7 +357,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
         EntityDictionary dictionary = requestScope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, requestScope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
