@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCommit;
 import com.yahoo.elide.annotation.OnCreate;
 import com.yahoo.elide.annotation.OnDelete;
+import com.yahoo.elide.annotation.OnRead;
 import com.yahoo.elide.annotation.OnUpdate;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -117,5 +118,10 @@ public class Book {
     @OnDelete
     public void onDeleteBook() {
        // book entity deleted
+    }
+
+    @OnRead
+    public void onReadBook() {
+        // read book
     }
 }
