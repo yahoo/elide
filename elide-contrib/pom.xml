@@ -45,6 +45,7 @@
 
     <modules>
         <module>dropwizard-elide</module>
+        <module>elide-swagger</module>
     </modules>
 
     <dependencyManagement>
