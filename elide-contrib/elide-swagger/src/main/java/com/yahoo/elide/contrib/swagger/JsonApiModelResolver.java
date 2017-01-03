@@ -28,7 +28,7 @@ import java.util.List;
  * This resolver maps the POJO to a JSON-API Resource.
  */
 public class JsonApiModelResolver extends ModelResolver {
-    EntityDictionary dictionary;
+    private final EntityDictionary dictionary;
 
     public JsonApiModelResolver(EntityDictionary dictionary) {
         super(Json.mapper());

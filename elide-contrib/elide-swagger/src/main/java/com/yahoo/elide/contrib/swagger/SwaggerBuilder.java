@@ -143,7 +143,7 @@ public class SwaggerBuilder {
 
             Parameter param = new PathParameter()
                     .name(typeName + "Id")
-                    .description(typeName + " ID")
+                    .description(typeName + " Identifier")
                     .property(new StringProperty());
 
             return param;
@@ -225,6 +225,14 @@ public class SwaggerBuilder {
                                 .schema(new Datum(new Relationship(typeName)))
                                 .name("relationship"))
                 );
+            }
+
+            for (Parameter param : getFilterParameters()) {
+                path.getGet().addParameter(param);
+            }
+
+            for (Parameter param : getPageParameters()) {
+                path.getGet().addParameter(param);
             }
 
             decorateGlobalResponses(path);
@@ -482,11 +490,19 @@ public class SwaggerBuilder {
             String[] filterOps = new String[] {"in", "not", "prefix", "postfix", "infix",
                     "isnull", "notnull", "lt", "gt", "le", "ge"};
 
-            /* Add RSQL Filter Query Param */
+            /* Add RSQL Disjoint Filter Query Param */
             params.add(new QueryParameter()
                     .type("string")
                     .name("filter[" + typeName + "]")
-                    .description("Filters the collection of " + typeName + " using an RSQL expression"));
+                    .description("Filters the collection of " + typeName + " using a 'disjoint' RSQL expression"));
+
+            if (lineage.isEmpty()) {
+                 /* Add RSQL Joined Filter Query Param */
+                params.add(new QueryParameter()
+                        .type("string")
+                        .name("filter")
+                        .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
+            }
 
             for (String op : filterOps) {
                 attributeNames.forEach((name) -> {

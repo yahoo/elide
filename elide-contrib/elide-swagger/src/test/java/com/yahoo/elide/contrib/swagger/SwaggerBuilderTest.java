@@ -261,6 +261,8 @@ public class SwaggerBuilderTest {
 
     @Test
     public void testFilterParam() throws Exception {
+
+        /* Test root filters */
         List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
@@ -268,8 +270,9 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
-        Assert.assertEquals(filterParams, 12);
+        Assert.assertEquals(filterParams, 13);
 
+        Assert.assertTrue(paramNames.contains("filter"));
         Assert.assertTrue(paramNames.contains("filter[book]"));
         Assert.assertTrue(paramNames.contains("filter[book.title][in]"));
         Assert.assertTrue(paramNames.contains("filter[book.title][not]"));
@@ -282,10 +285,34 @@ public class SwaggerBuilderTest {
         Assert.assertTrue(paramNames.contains("filter[book.title][gt]"));
         Assert.assertTrue(paramNames.contains("filter[book.title][le]"));
         Assert.assertTrue(paramNames.contains("filter[book.title][ge]"));
+
+
+        /* Test relationships filters */
+        params = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
+        paramNames = params.stream()
+                .map((param) -> param.getName())
+                .collect(Collectors.toSet());
+
+        filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
+        Assert.assertEquals(filterParams, 12);
+
+        Assert.assertTrue(paramNames.contains("filter[author]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][in]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][not]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][prefix]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][infix]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][postfix]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][isnull]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][notnull]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][lt]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][gt]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][le]"));
+        Assert.assertTrue(paramNames.contains("filter[author.name][ge]"));
     }
 
     @Test
     public void testPageParam() throws Exception {
+        /* Tests root collection */
         List<Parameter> params = swagger.getPaths().get("/book").getGet().getParameters();
 
         Set<String> paramNames = params.stream()
@@ -293,6 +320,22 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long pageParams = paramNames.stream().filter((name) -> name.startsWith("page")).count();
+        Assert.assertEquals(pageParams, 5);
+
+        Assert.assertTrue(paramNames.contains("page[number]"));
+        Assert.assertTrue(paramNames.contains("page[size]"));
+        Assert.assertTrue(paramNames.contains("page[offset]"));
+        Assert.assertTrue(paramNames.contains("page[limit]"));
+        Assert.assertTrue(paramNames.contains("page[totals]"));
+
+        /* Tests relationship collection */
+        params = swagger.getPaths().get("/book/{bookId}/relationships/authors").getGet().getParameters();
+
+        paramNames = params.stream()
+                .map((param) -> param.getName())
+                .collect(Collectors.toSet());
+
+        pageParams = paramNames.stream().filter((name) -> name.startsWith("page")).count();
         Assert.assertEquals(pageParams, 5);
 
         Assert.assertTrue(paramNames.contains("page[number]"));
