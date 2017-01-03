@@ -22,6 +22,7 @@ public class TestCheckMappings {
                     put("deny all", Role.NONE.class);
                     put("initCheck", Child.InitCheck.class);
                     put("initCheckOp", Child.InitCheckOp.class);
+                    put("initCheckFilter", Child.InitCheckFilter.class);
                     put("parentInitCheck", Parent.InitCheck.class);
                     put("parentInitCheckOp", Parent.InitCheckOp.class);
                     put("parentSpecialValue", Parent.SpecialValue.class);

@@ -192,6 +192,7 @@ public class LifeCycleTest {
     public void testUpdate() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
         RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
@@ -218,6 +219,7 @@ public class LifeCycleTest {
     public void testOnDelete() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
@@ -246,6 +248,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
+
         resource.getValueChecked("title");
         scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);

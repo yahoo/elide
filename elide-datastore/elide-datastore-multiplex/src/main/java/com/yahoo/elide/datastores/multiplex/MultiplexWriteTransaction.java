@@ -79,7 +79,6 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                 throw transactionException;
             }
         }
-        transactions.clear();
     }
 
     /**

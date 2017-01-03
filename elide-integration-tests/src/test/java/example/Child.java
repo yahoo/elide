@@ -12,10 +12,18 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.Predicate.PathElement;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
+
+import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -26,8 +34,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Child test bean.
@@ -35,7 +41,7 @@ import java.util.Set;
 @Entity
 @CreatePermission(expression = "initCheck")
 @SharePermission(expression = "allow all")
-@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -137,6 +143,13 @@ public class Child {
                 return true;
             }
             return false;
+        }
+    }
+
+    static public class InitCheckFilter extends FilterExpressionCheck<Child> {
+        @Override
+        public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
+            return new Predicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
         }
     }
 }

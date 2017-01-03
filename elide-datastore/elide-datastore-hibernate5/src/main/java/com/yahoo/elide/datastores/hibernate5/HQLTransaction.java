@@ -141,7 +141,7 @@ public class HQLTransaction {
                 if (filters != null) {
                     for (Predicate predicate : filters) {
                         if (predicate.getOperator().isParameterized()) {
-                            String name = predicate.getFieldPath().replace('.', '_');
+                            String name = predicate.getParameterName();
                             query = query.setParameterList(name, predicate.getValues());
                         }
                     }

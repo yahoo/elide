@@ -9,12 +9,15 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
+
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
 
+import com.yahoo.elide.extensions.PatchRequestScope;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -218,6 +221,12 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
+                if (scope instanceof PatchRequestScope && filterExpression.isPresent()) {
+                    Class relationClass = dictionary.getType(entity, relationName);
+                    return patchRequestFilterCollection(filteredVal,
+                            relationClass, filterExpression.get(), ((PatchRequestScope) scope).getDictionary());
+                }
+
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery =
@@ -240,6 +249,28 @@ public class HibernateTransaction implements DataStoreTransaction {
         final Criteria sessionCriteria = session.createCriteria(entityClass);
         sessionCriteria.setProjection(Projections.rowCount());
         return (Long) sessionCriteria.uniqueResult();
+    }
+
+    /**
+     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
+     * @param <T>         the type parameter
+     * @param collection  the collection to filter
+     * @param entityClass the class of the entities in the collection
+     * @param filterExpression the filter expression
+     * @param dictionary  Entity dictionary
+     * @return the filtered collection
+     */
+    protected <T> Collection patchRequestFilterCollection(
+            Collection collection,
+            Class<T> entityClass,
+            FilterExpression filterExpression,
+            EntityDictionary dictionary) {
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
+        java.util.function.Predicate inMemoryFilterFn =
+                filterExpression.accept(inMemoryFilterVisitor);
+        return (Collection) collection.stream()
+                .filter(e -> inMemoryFilterFn.test(e))
+                .collect(Collectors.toList());
     }
 
     @Override

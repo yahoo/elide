@@ -122,6 +122,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                 }
             }
         }
+        transactions.clear();
         if (cause != null) {
             throw cause;
         }
