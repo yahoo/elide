@@ -64,15 +64,39 @@ public class SwaggerBuilderTest {
     public void testPathGeneration() throws Exception {
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}"));
+
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors/{authorId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/relationships/authors"));
+
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/exclusiveAuthors"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/books/{bookId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}/relationships/books"));
+
         Assert.assertTrue(swagger.getPaths().containsKey("/book"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}"));
+
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/authors"));
-        Assert.assertEquals(swagger.getPaths().size(), 10);
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/publisher/{publisherId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/authors/{authorId}/relationships/publisher"));
+
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
+        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/relationships/exclusiveAuthors"));
+
+        Assert.assertEquals(swagger.getPaths().size(), 28);
     }
 
     @Test
@@ -84,9 +108,16 @@ public class SwaggerBuilderTest {
             Assert.assertNotNull(path.getGet());
 
             if (url.contains("relationship")) { //Relationship URL
-                Assert.assertNotNull(path.getDelete());
+
+                /* The relationship is a one to one (so there is no DELETE op */
+                if (url.equals("/book/{bookId}/relationships/publisher")) {
+                    Assert.assertNull(path.getDelete());
+                    Assert.assertNull(path.getPost());
+                } else {
+                    Assert.assertNotNull(path.getDelete());
+                    Assert.assertNotNull(path.getPost());
+                }
                 Assert.assertNotNull(path.getPatch());
-                Assert.assertNotNull(path.getPost());
             } else if (url.endsWith("Id}")) { //Instance URL
                 Assert.assertNotNull(path.getDelete());
                 Assert.assertNotNull(path.getPatch());
@@ -238,11 +269,16 @@ public class SwaggerBuilderTest {
             Assert.assertTrue(getOperation.getResponses().containsKey("200"));
 
             if (url.contains("relationship")) { //Relationship URL
-                Operation deleteOperation = path.getDelete();
-                Assert.assertTrue(deleteOperation.getResponses().containsKey("204"));
 
-                Operation postOperation = path.getPost();
-                Assert.assertTrue(postOperation.getResponses().containsKey("201"));
+                if (path.getDelete() != null) {
+                    Operation deleteOperation = path.getDelete();
+                    Assert.assertTrue(deleteOperation.getResponses().containsKey("204"));
+                }
+
+                if (path.getPost() != null) {
+                    Operation postOperation = path.getPost();
+                    Assert.assertTrue(postOperation.getResponses().containsKey("201"));
+                }
 
                 Operation patchOperation = path.getPatch();
                 Assert.assertTrue(patchOperation.getResponses().containsKey("204"));
@@ -468,12 +504,16 @@ public class SwaggerBuilderTest {
             path.getGet().getTags().contains(expectedTag);
 
             if (url.contains("relationship") || url.endsWith("Id}")) {
-                path.getDelete().getTags().contains(expectedTag);
+                if (path.getDelete() != null) {
+                    path.getDelete().getTags().contains(expectedTag);
+                }
                 path.getPatch().getTags().contains(expectedTag);
             }
 
             if (url.contains("relationship") || ! url.endsWith("Id}")) {
-                path.getPost().getTags().contains(expectedTag);
+                if (path.getPost() != null) {
+                    path.getPost().getTags().contains(expectedTag);
+                }
             }
         });
     }
@@ -518,11 +558,6 @@ public class SwaggerBuilderTest {
                     }
             );
         }
-
-        String output = SwaggerBuilder.getDocument(swagger);
-
-        //System.err.println(output);
-        //System.err.flush();
     }
 
     /**

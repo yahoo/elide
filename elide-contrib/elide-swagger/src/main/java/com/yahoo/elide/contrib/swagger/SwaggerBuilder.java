@@ -44,11 +44,11 @@ import java.util.stream.Collectors;
  * 'EntityDictionary'.  The 'Swagger' object can be used to generate a Swagger document.
  */
 public class SwaggerBuilder {
-    EntityDictionary dictionary;
-    Set<Class<?>> rootClasses;
-    Swagger swagger;
-    Map<Integer, Response> globalResponses;
-    Set<Parameter> globalParams;
+    protected EntityDictionary dictionary;
+    protected Set<Class<?>> rootClasses;
+    protected Swagger swagger;
+    protected Map<Integer, Response> globalResponses;
+    protected Set<Parameter> globalParams;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -74,7 +74,7 @@ public class SwaggerBuilder {
         String name;
 
         /**
-         * Either the type of the root collection of the relationshp.
+         * Either the type of the root collection of the relationship.
          */
         @Getter
         Class<?> type;
@@ -533,13 +533,45 @@ public class SwaggerBuilder {
             return fullLineage;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof PathMetaData)) {
+                return false;
+            }
+
+            PathMetaData that = (PathMetaData) o;
+
+            if (!lineage.equals(that.lineage)) {
+                return false;
+            }
+            if (!name.equals(that.name)) {
+                return false;
+            }
+            if (!type.equals(that.type)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = lineage.hashCode();
+            result = 31 * result + name.hashCode();
+            result = 31 * result + type.hashCode();
+            return result;
+        }
+
         /**
-         * Checks if a given type is within the URL/lineage.
-         * @param type the type to search for.
-         * @return true if the lineage contains the given type.  False otherwise.
+         * Checks if a given path segment is already within the URL/lineage (forming a cycle).
+         * @param other the segment to search for.
+         * @return true if the lineage contains the given segment.  False otherwise.
          */
-        private boolean lineageContainsType(Class<?> type) {
-            if (this.type.equals(type)) {
+        private boolean lineageContainsType(PathMetaData other) {
+            if (this.type.equals(other.type)) {
                 return true;
             }
 
@@ -547,7 +579,13 @@ public class SwaggerBuilder {
                 return false;
             }
 
-            return lineage.peek().lineageContainsType(type);
+            for (PathMetaData compare : lineage) {
+                if (compare.type.equals(other.type)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -648,25 +686,24 @@ public class SwaggerBuilder {
         toVisit.add(new PathMetaData(rootClass));
 
         while (! toVisit.isEmpty()) {
-            PathMetaData next = toVisit.remove();
+            PathMetaData current = toVisit.remove();
 
-            List<String> relationshipNames = dictionary.getRelationships(next.getType());
+            List<String> relationshipNames = dictionary.getRelationships(current.getType());
 
             for (String relationshipName : relationshipNames) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(next.getType(), relationshipName);
+                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+
+                PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
                 /* We don't allow cycles */
-                if (next.lineageContainsType(relationshipClass)) {
+                if (current.lineageContainsType(next)) {
                     continue;
                 }
 
-                /* To reduce the number of Swagger paths, we don't include paths navigate back to a root entity */
-                if (!rootClasses.contains(relationshipClass)) {
-                    toVisit.add(new PathMetaData(next.getFullLineage(), relationshipName, relationshipClass));
-                }
+                toVisit.add(next);
             }
 
-            paths.add(next);
+            paths.add(current);
         }
         return paths;
     }
