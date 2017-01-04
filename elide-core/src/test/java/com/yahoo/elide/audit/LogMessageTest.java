@@ -99,7 +99,7 @@ public class LogMessageTest {
         try {
             testAuditLogger.log(failMessage);
             Thread.sleep(Math.floorMod(new Random().nextInt(), 100));
-            testAuditLogger.commit();
+            testAuditLogger.commit((RequestScope) null);
             Assert.fail("Exception expected");
         } catch (TestLoggerException e) {
             Assert.assertSame(e, testException);
@@ -107,7 +107,7 @@ public class LogMessageTest {
 
         // should not cause another exception
         try {
-            testAuditLogger.commit();
+            testAuditLogger.commit((RequestScope) null);
         } catch (TestLoggerException e) {
             Assert.fail("Exception not cleared from previous logger commit");
         }
