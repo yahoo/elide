@@ -41,11 +41,18 @@
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-	    <artifactId>elide-core</artifactId>
+    	    <artifactId>elide-core</artifactId>
             <version>2.4.13-SNAPSHOT</version>
         </dependency>
 
         <!-- Test -->
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+    	    <artifactId>elide-integration-tests</artifactId>
+            <version>2.4.13-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -78,6 +85,21 @@
             <artifactId>swagger-core</artifactId>
             <version>1.5.10</version>
        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -89,14 +111,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-	    <plugin>
-		<groupId>com.jcabi</groupId>
-		<artifactId>jcabi-mysql-maven-plugin</artifactId>
-            </plugin>
+   	    </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+	    </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-failsafe-plugin</artifactId>
+		<configuration>
+                    <suiteXmlFiles>
+		        <suiteXmlFile>testng.xml</suiteXmlFile>
+		    </suiteXmlFiles>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

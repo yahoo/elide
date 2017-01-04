@@ -23,13 +23,19 @@ import org.testng.annotations.BeforeSuite;
 public abstract class AbstractApiResourceInitializer {
     private Server server;
     private final String resourceConfig;
+    private String packageName;
 
     public AbstractApiResourceInitializer() {
         this(IntegrationTestApplicationResourceConfig.class);
     }
 
-    protected AbstractApiResourceInitializer(final Class<? extends ResourceConfig> resourceConfig) {
+    protected AbstractApiResourceInitializer(final Class<? extends ResourceConfig> resourceConfig, String packageName) {
         this.resourceConfig = resourceConfig.getCanonicalName();
+        this.packageName = packageName;
+    }
+
+    protected AbstractApiResourceInitializer(final Class<? extends ResourceConfig> resourceConfig) {
+        this(resourceConfig, JsonApiEndpoint.class.getPackage().getName());
     }
 
     @BeforeSuite
@@ -52,8 +58,7 @@ public abstract class AbstractApiResourceInitializer {
 
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
-        servletHolder.setInitParameter("jersey.config.server.provider.packages",
-                JsonApiEndpoint.class.getPackage().getName());
+        servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
         servletHolder.setInitParameter("javax.ws.rs.Application",
                 resourceConfig);
 
