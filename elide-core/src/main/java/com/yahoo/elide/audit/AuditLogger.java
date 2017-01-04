@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.audit;
 
+import com.yahoo.elide.core.RequestScope;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +20,14 @@ public abstract class AuditLogger {
     protected final ThreadLocal<List<LogMessage>> messages;
 
     public AuditLogger() {
-        messages = ThreadLocal.withInitial(() -> { return new ArrayList<>(); });
+        messages = ThreadLocal.withInitial(ArrayList::new);
     }
 
     public void log(LogMessage message) {
         messages.get().add(message);
     }
 
-    public abstract void commit() throws IOException;
+    public abstract void commit(RequestScope requestScope) throws IOException;
 
     public void clear() {
         List<LogMessage> remainingMessages = messages.get();

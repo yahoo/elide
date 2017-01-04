@@ -266,7 +266,7 @@ public class Elide {
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             requestScope.runQueuedPreCommitTriggers();
-            auditLogger.commit();
+            auditLogger.commit(requestScope);
             transaction.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
@@ -325,7 +325,7 @@ public class Elide {
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             requestScope.runQueuedPreCommitTriggers();
-            auditLogger.commit();
+            auditLogger.commit(requestScope);
             transaction.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
@@ -406,7 +406,7 @@ public class Elide {
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             requestScope.runQueuedPreCommitTriggers();
-            auditLogger.commit();
+            auditLogger.commit(requestScope);
             transaction.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {
@@ -472,7 +472,7 @@ public class Elide {
             transaction.flush(requestScope);
             ElideResponse response = buildResponse(responder.get());
             requestScope.runQueuedPreCommitTriggers();
-            auditLogger.commit();
+            auditLogger.commit(requestScope);
             transaction.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
             if (log.isTraceEnabled()) {

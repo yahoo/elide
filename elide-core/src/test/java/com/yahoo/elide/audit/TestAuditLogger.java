@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.audit;
 
+import com.yahoo.elide.core.RequestScope;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestAuditLogger extends AuditLogger {
     @Override
-    public void commit() throws IOException {
+    public void commit(RequestScope requestScope) throws IOException {
     }
 
     public List<LogMessage> getMessages() {
