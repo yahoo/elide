@@ -45,6 +45,7 @@
 
     <modules>
         <module>dropwizard-elide</module>
+        <module>elide-swagger</module>
     </modules>
 
     <dependencyManagement>
@@ -62,7 +63,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.10</version>
+                    <version>1.12</version>
                     <executions>
                         <execution>
                             <id>add-source-generate-sources</id>
