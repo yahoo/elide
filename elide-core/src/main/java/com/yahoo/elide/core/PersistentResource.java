@@ -1692,7 +1692,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             } else {
                 //hook for updateToManyRelation
                 transaction.updateToManyRelation(transaction, inverseEntity, inverseRelationName,
-                        new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
+                        Sets.newHashSet(obj), new LinkedHashSet<>(), requestScope);
             }
         }
     }
