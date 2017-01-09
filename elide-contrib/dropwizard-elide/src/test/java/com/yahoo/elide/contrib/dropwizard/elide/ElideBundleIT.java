@@ -26,7 +26,7 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ElideBundleTest {
+public class ElideBundleIT {
     private final DataSourceFactory dbConfig = new DataSourceFactory();
     private final ImmutableList<Class<?>> entities = ImmutableList.of(Author.class, Book.class);
     private final SessionFactoryFactory factory = mock(SessionFactoryFactory.class);

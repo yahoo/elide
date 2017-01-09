@@ -113,9 +113,6 @@
                             <restassured.port>${restassured.port}</restassured.port>
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                         </systemPropertyVariables>
-                        <suiteXmlFiles>
-                            <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
-                        </suiteXmlFiles>
                     </configuration>
                     <executions>
                         <execution>
