@@ -1636,11 +1636,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             RelationshipType type = getRelationshipType(relationName);
             if (type.isToOne()) {
                 //hook for updateToOneRelation
-                transaction.updateToOneRelation(transaction, inverseEntity, relationName,
+                transaction.updateToOneRelation(transaction, inverseEntity, inverseRelationName,
                         null, requestScope);
             } else {
                 //hook for updateToManyRelation
-                transaction.updateToManyRelation(transaction, inverseEntity, relationName,
+                transaction.updateToManyRelation(transaction, inverseEntity, inverseRelationName,
                         new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
             }
         }
