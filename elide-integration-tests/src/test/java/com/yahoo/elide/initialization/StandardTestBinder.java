@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.beust.jcommander.internal.Lists;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
@@ -16,6 +15,7 @@ import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -39,8 +39,8 @@ public class StandardTestBinder extends AbstractBinder {
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
-                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy),
-                        Lists.newArrayList(rsqlFilterStrategy, defaultFilterStrategy)
+                        Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
+                        Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
                 return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())

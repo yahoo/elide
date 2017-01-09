@@ -105,51 +105,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
-                    <executions>
-                        <execution>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>unpack</goal>
-                            </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>com.jcabi</groupId>
-                                        <artifactId>mysql-dist</artifactId>
-                                        <version>5.6.14</version>
-                                        <classifier>${mysql.classifier}</classifier>
-                                        <type>zip</type>
-                                        <overWrite>false</overWrite>
-                                        <outputDirectory>${project.build.directory}/mysql-dist</outputDirectory>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>com.jcabi</groupId>
-                    <artifactId>jcabi-mysql-maven-plugin</artifactId>
-                    <version>0.9</version>
-                    <executions>
-                        <execution>
-                            <id>mysql-test</id>
-                            <goals>
-                                <goal>classify</goal>
-                                <goal>start</goal>
-                                <goal>stop</goal>
-                            </goals>
-                            <configuration>
-                                <port>${mysql.port}</port>
-                                <data>${mysql.data.directory}</data>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>2.19</version>
                     <configuration>
@@ -158,9 +113,6 @@
                             <restassured.port>${restassured.port}</restassured.port>
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                         </systemPropertyVariables>
-                        <suiteXmlFiles>
-                            <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
-                        </suiteXmlFiles>
                     </configuration>
                     <executions>
                         <execution>
