@@ -62,7 +62,6 @@ public class SwaggerBuilderTest {
         System.err.flush();
     }
 
-    /*
     @Test
     public void testPathGeneration() throws Exception {
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher"));
@@ -71,9 +70,9 @@ public class SwaggerBuilderTest {
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors/{authorId}"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/relationships/authors"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors/{authorId}"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/relationships/authors"));
 
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
@@ -95,13 +94,12 @@ public class SwaggerBuilderTest {
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
-        Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/relationships/exclusiveAuthors"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
+        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/relationships/exclusiveAuthors"));
 
-        Assert.assertEquals(swagger.getPaths().size(), 28);
+        Assert.assertEquals(swagger.getPaths().size(), 22);
     }
-    */
 
     @Test
     public void testOperationGeneration() throws Exception {
@@ -512,8 +510,6 @@ public class SwaggerBuilderTest {
                 path.getDelete().getTags().contains(bookTag);
             } else if (url.endsWith("relationships/publisher")) {
                 path.getGet().getTags().contains(publisherTag);
-                path.getPost().getTags().contains(publisherTag);
-                path.getDelete().getTags().contains(publisherTag);
                 path.getPatch().getTags().contains(publisherTag);
             } else if (url.endsWith("/publisher")) {
                 path.getGet().getTags().contains(publisherTag);

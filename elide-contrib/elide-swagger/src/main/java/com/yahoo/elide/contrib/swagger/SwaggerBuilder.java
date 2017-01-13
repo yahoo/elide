@@ -11,6 +11,7 @@ import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.filter.Operator;
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
@@ -51,6 +52,7 @@ public class SwaggerBuilder {
     protected Swagger swagger;
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
+    protected Set<Operator> filterOperators;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -490,9 +492,6 @@ public class SwaggerBuilder {
 
             List<Parameter> params = new ArrayList<>();
 
-            String[] filterOps = new String[] {"in", "not", "prefix", "postfix", "infix",
-                    "isnull", "notnull", "lt", "gt", "le", "ge"};
-
             /* Add RSQL Disjoint Filter Query Param */
             params.add(new QueryParameter()
                     .type("string")
@@ -507,7 +506,7 @@ public class SwaggerBuilder {
                         .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
             }
 
-            for (String op : filterOps) {
+            for (Operator op : filterOperators) {
                 attributeNames.forEach((name) -> {
                     Class<?> attributeClass = dictionary.getType(type, name);
 
@@ -515,9 +514,9 @@ public class SwaggerBuilder {
                     if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
                         params.add(new QueryParameter()
                                 .type("string")
-                                .name("filter[" + typeName + "." + name + "][" + op + "]")
+                                .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
                                 .description("Filters the collection of " + typeName + " by the attribute "
-                                        + name + " " + "using the operator " + op));
+                                        + name + " " + "using the operator " + op.getNotation()));
                     }
                 });
             }
@@ -534,6 +533,27 @@ public class SwaggerBuilder {
             fullLineage.addAll(lineage);
             fullLineage.add(this);
             return fullLineage;
+        }
+
+        /**
+         * Returns true if this path is a shorter path to the same entity than the given path.
+         * @param compare The path to compare against.
+         * @return
+         */
+        public boolean shorterThan(PathMetaData compare) {
+            if (lineage.isEmpty()) {
+                return this.type.equals(compare.type);
+            }
+
+            if (!this.type.equals(compare.type) || !this.name.equals(compare.name)) {
+                return false;
+            }
+
+            if (compare.lineage.isEmpty()) {
+                return false;
+            }
+
+            return lineage.peek().shorterThan(compare.lineage.peek());
         }
 
         @Override
@@ -601,6 +621,19 @@ public class SwaggerBuilder {
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
         allClasses = new HashSet<>();
+        filterOperators = Sets.newHashSet(
+                Operator.IN,
+                Operator.NOT,
+                Operator.INFIX,
+                Operator.PREFIX,
+                Operator.POSTFIX,
+                Operator.GE,
+                Operator.GT,
+                Operator.LE,
+                Operator.LT,
+                Operator.ISNULL,
+                Operator.NOTNULL
+        );
         swagger = new Swagger();
         swagger.info(info);
     }
@@ -627,12 +660,23 @@ public class SwaggerBuilder {
     }
 
     /**
-     * The classes for which API paths will be generated.  All other paths are dropped.
+     * The classes for which API paths will be generated.  All paths that include other entities
+     * are dropped.
      * @param classes A subset of the entities in the entity dictionary.
-     * @return
+     * @return the builder
      */
     public SwaggerBuilder withExplicitClassList(Set<Class<?>> classes) {
         allClasses = new HashSet<>(classes);
+        return this;
+    }
+
+    /**
+     * Assigns a subset of the complete set of filter operations to support for each GET operation.
+     * @param ops The subset of filter operations to support.
+     * @return the builder
+     */
+    public SwaggerBuilder withFilterOps(Set<Operator> ops) {
+        filterOperators = new HashSet<>(ops);
         return this;
     }
 
@@ -671,6 +715,21 @@ public class SwaggerBuilder {
                 .flatMap(Collection::stream)
                 .filter((path) -> allClasses.contains(path.getType()))
                 .collect(Collectors.toSet());
+
+        Set<PathMetaData> toRemove = new HashSet<>();
+        for (PathMetaData path : pathData) {
+            for (PathMetaData compare : pathData) {
+                if (path.equals(compare) || compare.lineage.isEmpty()) {
+                    continue;
+                }
+                if (compare.shorterThan(path)) {
+                    toRemove.add(path);
+                    break;
+                }
+            }
+        }
+
+        pathData = Sets.difference(pathData, toRemove);
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
         for (PathMetaData pathDatum : pathData) {
@@ -718,8 +777,8 @@ public class SwaggerBuilder {
 
                     PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
-                    /* We don't allow cycles */
-                    if (current.lineageContainsType(next) || rootClasses.contains(relationshipClass)) {
+                    /* We don't allow cycles AND we only record paths that traverse through the provided subgraph */
+                    if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
                         continue;
                     }
 
