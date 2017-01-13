@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.contrib.swagger.model.Data;
 import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 public class SwaggerBuilder {
     protected EntityDictionary dictionary;
     protected Set<Class<?>> rootClasses;
+    protected Set<Class<?>> allClasses;
     protected Swagger swagger;
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
@@ -122,17 +124,18 @@ public class SwaggerBuilder {
             return baseUrl + "/relationships/" + name;
         }
 
+        @Override
+        public String toString() {
+            return getInstanceUrl();
+        }
+
         /**
-         * All Paths are 'tagged' in swagger with the root entity name in the path.
-         * This allows swaggerUI to group the paths by the root entities.
-         * @return the root entity name
+         * All Paths are 'tagged' in swagger with the final entity type name in the path.
+         * This allows swaggerUI to group the paths by entities.
+         * @return the entity type name
          */
         private String getTag() {
-            if (lineage.isEmpty()) {
-                return name;
-            } else {
-                return lineage.get(0).getName();
-            }
+            return dictionary.getJsonAliasFor(type);
         }
 
         /**
@@ -597,6 +600,7 @@ public class SwaggerBuilder {
         this.dictionary = dictionary;
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
+        allClasses = new HashSet<>();
         swagger = new Swagger();
         swagger.info(info);
     }
@@ -623,6 +627,16 @@ public class SwaggerBuilder {
     }
 
     /**
+     * The classes for which API paths will be generated.  All other paths are dropped.
+     * @param classes A subset of the entities in the entity dictionary.
+     * @return
+     */
+    public SwaggerBuilder withExplicitClassList(Set<Class<?>> classes) {
+        allClasses = new HashSet<>(classes);
+        return this;
+    }
+
+    /**
      * @return the constructed 'Swagger' object
      */
     public Swagger build() {
@@ -631,7 +645,14 @@ public class SwaggerBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         converters.addConverter(new JsonApiModelResolver(dictionary));
 
-        Set<Class<?>> allClasses = dictionary.getBindings();
+        if (allClasses.isEmpty()) {
+            allClasses = dictionary.getBindings();
+        } else {
+            allClasses = Sets.intersection(dictionary.getBindings(), allClasses);
+            if (allClasses.isEmpty()) {
+                throw new IllegalArgumentException("None of the provided classes are exported by Elide");
+            }
+        }
 
         /* Create a Model for each Elide entity */
         Map<String, Model> models = new HashMap<>();
@@ -644,10 +665,11 @@ public class SwaggerBuilder {
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
-        /* Find all the paths starting from the root entities */
+        /* Find all the paths starting from the root entities.  Filter to only the entities we care about. */
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)
+                .filter((path) -> allClasses.contains(path.getType()))
                 .collect(Collectors.toSet());
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
@@ -662,8 +684,8 @@ public class SwaggerBuilder {
             }
         }
 
-        /* We create Swagger 'tags' for each root entity so Swagger UI organizes the paths by root entities */
-        List<Tag> tags = rootClasses.stream()
+        /* We create Swagger 'tags' for each entity so Swagger UI organizes the paths by entities */
+        List<Tag> tags = allClasses.stream()
                 .map((clazz) -> dictionary.getJsonAliasFor(clazz))
                 .map((alias) -> new Tag().name(alias))
                 .collect(Collectors.toList());
@@ -688,21 +710,26 @@ public class SwaggerBuilder {
         while (! toVisit.isEmpty()) {
             PathMetaData current = toVisit.remove();
 
-            List<String> relationshipNames = dictionary.getRelationships(current.getType());
+            try {
+                List<String> relationshipNames = dictionary.getRelationships(current.getType());
 
-            for (String relationshipName : relationshipNames) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+                for (String relationshipName : relationshipNames) {
+                    Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
 
-                PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
+                    PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
-                /* We don't allow cycles */
-                if (current.lineageContainsType(next)) {
-                    continue;
+                    /* We don't allow cycles */
+                    if (current.lineageContainsType(next) || rootClasses.contains(relationshipClass)) {
+                        continue;
+                    }
+
+                    toVisit.add(next);
                 }
-
-                toVisit.add(next);
+            } catch (IllegalArgumentException e) {
+                continue;
             }
 
+            System.out.println("Another path: " + current);
             paths.add(current);
         }
         return paths;
