@@ -8,3 +8,7 @@ test-output/
 *.iml
 bin
 dependency-reduced-pom.xml
+*.jar
+*.class
+*tags
+**.swp

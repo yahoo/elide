@@ -19,7 +19,7 @@ Elide is designed to quickly build and deploy **production quality** web service
 
 More information about Elide can be found at [elide.io](http://elide.io/).
 
-## Elide on Maven
+##Elide on Maven
 
 To integrate Elide into your project, simply include elide-core into your project's pom.xml:
 
@@ -39,6 +39,19 @@ Additionally, if you do not plan to write your own data store, select the approp
     <artifactId>elide-datastore-inmemorydb</artifactId>
 </dependency>
 ```
+
+##Tutorials
+[Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
+
+[Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
+
+[Logging Into a Spring Boot/Elide JSON API Server](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
+
+[Securing a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
+
+[Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
+
+[Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
 
 ##License
 
