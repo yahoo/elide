@@ -13,8 +13,12 @@ import com.yahoo.elide.core.EntityDictionary;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SwaggerResourceConfig extends ResourceConfig {
 
@@ -22,10 +26,10 @@ public class SwaggerResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bindFactory(new Factory<Swagger>() {
+                bindFactory(new Factory<Map<String, Swagger>>() {
 
                     @Override
-                    public Swagger provide() {
+                    public Map<String, Swagger> provide() {
                         EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
 
                         dictionary.bindEntity(Book.class);
@@ -36,14 +40,17 @@ public class SwaggerResourceConfig extends ResourceConfig {
                         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
                         Swagger swagger = builder.build();
 
-                        return swagger;
+                        Map<String, Swagger> docs = new HashMap<>();
+                        docs.put("test", swagger);
+                        return docs;
                     }
 
                     @Override
-                    public void dispose(Swagger instance) {
+                    public void dispose(Map<String, Swagger> instance) {
                         //NOP
                     }
-                }).to(Swagger.class).named("swagger");
+                }).to(new TypeLiteral<Map<String, Swagger>>() {
+                }).named("swagger");
             }
         });
     }
