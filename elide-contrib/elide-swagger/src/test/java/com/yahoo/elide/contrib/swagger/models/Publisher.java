@@ -22,6 +22,7 @@ public class Publisher {
         public String city;
         public String state;
         public String zip;
+        public Book hmmm;
     }
 
     @OneToMany

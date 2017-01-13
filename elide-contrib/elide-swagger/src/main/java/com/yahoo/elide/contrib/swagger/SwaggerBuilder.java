@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.contrib.swagger.model.Data;
 import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.filter.Operator;
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
@@ -46,9 +48,11 @@ import java.util.stream.Collectors;
 public class SwaggerBuilder {
     protected EntityDictionary dictionary;
     protected Set<Class<?>> rootClasses;
+    protected Set<Class<?>> allClasses;
     protected Swagger swagger;
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
+    protected Set<Operator> filterOperators;
 
     public static final Response UNAUTHORIZED_RESPONSE = new Response().description("Unauthorized");
     public static final Response FORBIDDEN_RESPONSE = new Response().description("Forbidden");
@@ -122,17 +126,18 @@ public class SwaggerBuilder {
             return baseUrl + "/relationships/" + name;
         }
 
+        @Override
+        public String toString() {
+            return getInstanceUrl();
+        }
+
         /**
-         * All Paths are 'tagged' in swagger with the root entity name in the path.
-         * This allows swaggerUI to group the paths by the root entities.
-         * @return the root entity name
+         * All Paths are 'tagged' in swagger with the final entity type name in the path.
+         * This allows swaggerUI to group the paths by entities.
+         * @return the entity type name
          */
         private String getTag() {
-            if (lineage.isEmpty()) {
-                return name;
-            } else {
-                return lineage.get(0).getName();
-            }
+            return dictionary.getJsonAliasFor(type);
         }
 
         /**
@@ -487,9 +492,6 @@ public class SwaggerBuilder {
 
             List<Parameter> params = new ArrayList<>();
 
-            String[] filterOps = new String[] {"in", "not", "prefix", "postfix", "infix",
-                    "isnull", "notnull", "lt", "gt", "le", "ge"};
-
             /* Add RSQL Disjoint Filter Query Param */
             params.add(new QueryParameter()
                     .type("string")
@@ -504,7 +506,7 @@ public class SwaggerBuilder {
                         .description("Filters the collection of " + typeName + " using a 'joined' RSQL expression"));
             }
 
-            for (String op : filterOps) {
+            for (Operator op : filterOperators) {
                 attributeNames.forEach((name) -> {
                     Class<?> attributeClass = dictionary.getType(type, name);
 
@@ -512,9 +514,9 @@ public class SwaggerBuilder {
                     if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
                         params.add(new QueryParameter()
                                 .type("string")
-                                .name("filter[" + typeName + "." + name + "][" + op + "]")
+                                .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
                                 .description("Filters the collection of " + typeName + " by the attribute "
-                                        + name + " " + "using the operator " + op));
+                                        + name + " " + "using the operator " + op.getNotation()));
                     }
                 });
             }
@@ -531,6 +533,27 @@ public class SwaggerBuilder {
             fullLineage.addAll(lineage);
             fullLineage.add(this);
             return fullLineage;
+        }
+
+        /**
+         * Returns true if this path is a shorter path to the same entity than the given path.
+         * @param compare The path to compare against.
+         * @return
+         */
+        public boolean shorterThan(PathMetaData compare) {
+            if (lineage.isEmpty()) {
+                return this.type.equals(compare.type);
+            }
+
+            if (!this.type.equals(compare.type) || !this.name.equals(compare.name)) {
+                return false;
+            }
+
+            if (compare.lineage.isEmpty()) {
+                return false;
+            }
+
+            return lineage.peek().shorterThan(compare.lineage.peek());
         }
 
         @Override
@@ -597,6 +620,20 @@ public class SwaggerBuilder {
         this.dictionary = dictionary;
         globalResponses = new HashMap<>();
         globalParams = new HashSet<>();
+        allClasses = new HashSet<>();
+        filterOperators = Sets.newHashSet(
+                Operator.IN,
+                Operator.NOT,
+                Operator.INFIX,
+                Operator.PREFIX,
+                Operator.POSTFIX,
+                Operator.GE,
+                Operator.GT,
+                Operator.LE,
+                Operator.LT,
+                Operator.ISNULL,
+                Operator.NOTNULL
+        );
         swagger = new Swagger();
         swagger.info(info);
     }
@@ -623,6 +660,27 @@ public class SwaggerBuilder {
     }
 
     /**
+     * The classes for which API paths will be generated.  All paths that include other entities
+     * are dropped.
+     * @param classes A subset of the entities in the entity dictionary.
+     * @return the builder
+     */
+    public SwaggerBuilder withExplicitClassList(Set<Class<?>> classes) {
+        allClasses = new HashSet<>(classes);
+        return this;
+    }
+
+    /**
+     * Assigns a subset of the complete set of filter operations to support for each GET operation.
+     * @param ops The subset of filter operations to support.
+     * @return the builder
+     */
+    public SwaggerBuilder withFilterOps(Set<Operator> ops) {
+        filterOperators = new HashSet<>(ops);
+        return this;
+    }
+
+    /**
      * @return the constructed 'Swagger' object
      */
     public Swagger build() {
@@ -631,7 +689,14 @@ public class SwaggerBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         converters.addConverter(new JsonApiModelResolver(dictionary));
 
-        Set<Class<?>> allClasses = dictionary.getBindings();
+        if (allClasses.isEmpty()) {
+            allClasses = dictionary.getBindings();
+        } else {
+            allClasses = Sets.intersection(dictionary.getBindings(), allClasses);
+            if (allClasses.isEmpty()) {
+                throw new IllegalArgumentException("None of the provided classes are exported by Elide");
+            }
+        }
 
         /* Create a Model for each Elide entity */
         Map<String, Model> models = new HashMap<>();
@@ -644,11 +709,27 @@ public class SwaggerBuilder {
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
-        /* Find all the paths starting from the root entities */
+        /* Find all the paths starting from the root entities.  Filter to only the entities we care about. */
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)
+                .filter((path) -> allClasses.contains(path.getType()))
                 .collect(Collectors.toSet());
+
+        Set<PathMetaData> toRemove = new HashSet<>();
+        for (PathMetaData path : pathData) {
+            for (PathMetaData compare : pathData) {
+                if (path.equals(compare) || compare.lineage.isEmpty()) {
+                    continue;
+                }
+                if (compare.shorterThan(path)) {
+                    toRemove.add(path);
+                    break;
+                }
+            }
+        }
+
+        pathData = Sets.difference(pathData, toRemove);
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
         for (PathMetaData pathDatum : pathData) {
@@ -662,8 +743,8 @@ public class SwaggerBuilder {
             }
         }
 
-        /* We create Swagger 'tags' for each root entity so Swagger UI organizes the paths by root entities */
-        List<Tag> tags = rootClasses.stream()
+        /* We create Swagger 'tags' for each entity so Swagger UI organizes the paths by entities */
+        List<Tag> tags = allClasses.stream()
                 .map((clazz) -> dictionary.getJsonAliasFor(clazz))
                 .map((alias) -> new Tag().name(alias))
                 .collect(Collectors.toList());
@@ -688,21 +769,26 @@ public class SwaggerBuilder {
         while (! toVisit.isEmpty()) {
             PathMetaData current = toVisit.remove();
 
-            List<String> relationshipNames = dictionary.getRelationships(current.getType());
+            try {
+                List<String> relationshipNames = dictionary.getRelationships(current.getType());
 
-            for (String relationshipName : relationshipNames) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+                for (String relationshipName : relationshipNames) {
+                    Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
 
-                PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
+                    PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
-                /* We don't allow cycles */
-                if (current.lineageContainsType(next)) {
-                    continue;
+                    /* We don't allow cycles AND we only record paths that traverse through the provided subgraph */
+                    if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
+                        continue;
+                    }
+
+                    toVisit.add(next);
                 }
-
-                toVisit.add(next);
+            } catch (IllegalArgumentException e) {
+                continue;
             }
 
+            System.out.println("Another path: " + current);
             paths.add(current);
         }
         return paths;

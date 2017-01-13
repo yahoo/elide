@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.fasterxml.jackson.databind.type.SimpleType;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -37,15 +38,21 @@ public class JsonApiModelResolver extends ModelResolver {
 
     @Override
     public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
+        if (type instanceof SimpleType) {
+            type = ((SimpleType) type).getRawClass();
+        }
+
         if (!(type instanceof Class)) {
             return super.resolve(type, context, next);
         }
 
         Class<?> clazz = (Class<?>) type;
-        String typeAlias = dictionary.getJsonAliasFor(clazz);
 
         /* Not an entity managed by Elide, let Swagger convert it */
-        if (typeAlias == null) {
+        String typeAlias;
+        try {
+            typeAlias = dictionary.getJsonAliasFor(clazz);
+        } catch (IllegalArgumentException e) {
             return super.resolve(type, context, next);
         }
 
@@ -67,11 +74,15 @@ public class JsonApiModelResolver extends ModelResolver {
         List<String> relationshipNames = dictionary.getRelationships(clazz);
         for (String relationshipName : relationshipNames) {
 
-            Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
-            Relationship relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
-            relationship.setDescription(getFieldPermissions(clazz, relationshipName));
+            try {
+                Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
+                Relationship relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
+                relationship.setDescription(getFieldPermissions(clazz, relationshipName));
 
-            entitySchema.addRelationship(relationshipName, relationship);
+                entitySchema.addRelationship(relationshipName, relationship);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
         }
 
         entitySchema.name(typeAlias);
