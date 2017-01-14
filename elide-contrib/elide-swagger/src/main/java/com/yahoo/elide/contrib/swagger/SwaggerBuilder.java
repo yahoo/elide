@@ -709,7 +709,7 @@ public class SwaggerBuilder {
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
-        /* Find all the paths starting from the root entities.  Filter to only the entities we care about. */
+        /* Find all the paths starting from the root entities. */
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)
