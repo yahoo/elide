@@ -38,6 +38,10 @@ public class JsonApiModelResolver extends ModelResolver {
 
     @Override
     public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
+        /*
+         * If an Elide entity is an attribute somewhere in a model, the ModelResolver will
+         * end up wrapping this as a SimpleType (rather than trying to resolve the entity class directly).
+         */
         if (type instanceof SimpleType) {
             type = ((SimpleType) type).getRawClass();
         }
@@ -74,15 +78,18 @@ public class JsonApiModelResolver extends ModelResolver {
         List<String> relationshipNames = dictionary.getRelationships(clazz);
         for (String relationshipName : relationshipNames) {
 
+            Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
+            Relationship relationship;
             try {
-                Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
-                Relationship relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
-                relationship.setDescription(getFieldPermissions(clazz, relationshipName));
+                relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
 
-                entitySchema.addRelationship(relationshipName, relationship);
+            /* Skip the relationship if it is not bound in the dictionary */
             } catch (IllegalArgumentException e) {
                 continue;
             }
+            relationship.setDescription(getFieldPermissions(clazz, relationshipName));
+
+            entitySchema.addRelationship(relationshipName, relationship);
         }
 
         entitySchema.name(typeAlias);

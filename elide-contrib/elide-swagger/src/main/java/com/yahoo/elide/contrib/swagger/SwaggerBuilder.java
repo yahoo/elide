@@ -716,9 +716,15 @@ public class SwaggerBuilder {
                 .filter((path) -> allClasses.contains(path.getType()))
                 .collect(Collectors.toSet());
 
+        /* Prune the discovered paths to remove redundant elements */
         Set<PathMetaData> toRemove = new HashSet<>();
         for (PathMetaData path : pathData) {
             for (PathMetaData compare : pathData) {
+
+                /*
+                 * We don't prune paths that are redundant with root collections to allow both BOTH
+                 * root collection urls as well as relationship urls.
+                 */
                 if (path.equals(compare) || compare.lineage.isEmpty()) {
                     continue;
                 }
@@ -728,7 +734,6 @@ public class SwaggerBuilder {
                 }
             }
         }
-
         pathData = Sets.difference(pathData, toRemove);
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
@@ -769,26 +774,27 @@ public class SwaggerBuilder {
         while (! toVisit.isEmpty()) {
             PathMetaData current = toVisit.remove();
 
+            List<String> relationshipNames;
             try {
-                List<String> relationshipNames = dictionary.getRelationships(current.getType());
+                relationshipNames = dictionary.getRelationships(current.getType());
 
-                for (String relationshipName : relationshipNames) {
-                    Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
-
-                    PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
-
-                    /* We don't allow cycles AND we only record paths that traverse through the provided subgraph */
-                    if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
-                        continue;
-                    }
-
-                    toVisit.add(next);
-                }
+            /* If the entity is not bound in the dictionary, skip it */
             } catch (IllegalArgumentException e) {
                 continue;
             }
 
-            System.out.println("Another path: " + current);
+            for (String relationshipName : relationshipNames) {
+                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+
+                PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
+
+                /* We don't allow cycles AND we only record paths that traverse through the provided subgraph */
+                if (current.lineageContainsType(next) || !allClasses.contains(relationshipClass)) {
+                    continue;
+                }
+
+                toVisit.add(next);
+            }
             paths.add(current);
         }
         return paths;

@@ -22,6 +22,11 @@ public class Publisher {
         public String city;
         public String state;
         public String zip;
+
+        /*
+         * Adding an Elide entity as an attribute is a test case for making sure the Swagger ModelResolver creates
+         * a ref back to our existing model for Book (rather than create a new model).
+         */
         public Book hmmm;
     }
 

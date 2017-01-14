@@ -57,9 +57,6 @@ public class SwaggerBuilderTest {
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
         swagger = builder.build();
-
-        System.err.println(SwaggerBuilder.getDocument(swagger));
-        System.err.flush();
     }
 
     @Test
@@ -70,9 +67,6 @@ public class SwaggerBuilderTest {
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/relationships/books"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/authors/{authorId}"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/books/{bookId}/relationships/authors"));
 
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors"));
         Assert.assertTrue(swagger.getPaths().containsKey("/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
@@ -94,9 +88,6 @@ public class SwaggerBuilderTest {
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}"));
         Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/relationships/publisher"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/exclusiveAuthors/{authorId}"));
-        //Assert.assertTrue(swagger.getPaths().containsKey("/book/{bookId}/publisher/{publisherId}/relationships/exclusiveAuthors"));
 
         Assert.assertEquals(swagger.getPaths().size(), 22);
     }
