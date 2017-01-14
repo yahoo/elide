@@ -713,7 +713,6 @@ public class SwaggerBuilder {
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)
-                .filter((path) -> allClasses.contains(path.getType()))
                 .collect(Collectors.toSet());
 
         /* Prune the discovered paths to remove redundant elements */
