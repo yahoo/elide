@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
@@ -85,12 +84,8 @@ public class RecordTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
-        try {
-            record.deleteResource();
-            return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
-        } catch (ForbiddenAccessException e) {
-            return () -> Pair.of(e.getStatus(), null);
-        }
+        record.deleteResource();
+        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     private JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {
