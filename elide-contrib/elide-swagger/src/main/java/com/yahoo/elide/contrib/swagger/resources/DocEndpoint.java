@@ -10,24 +10,34 @@ import io.swagger.models.Swagger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A convenience endpoint to expose a swagger document.
  */
-@Singleton
+
 @Produces("application/json")
 @Path("/doc")
 public class DocEndpoint {
-    protected final String document;
+    protected Map<String, String> documents;
 
+    /**
+     * Constructs the resource
+     * @param docs Map of path parameter name to swagger document.
+     */
     @Inject
-    public DocEndpoint(@Named("swagger") Swagger swagger) {
-        this.document = SwaggerBuilder.getDocument(swagger);
+    public DocEndpoint(@Named("swagger") Map<String, Swagger> docs) {
+        documents = new HashMap<>();
+
+        docs.forEach((key, value) -> {
+            documents.put(key, SwaggerBuilder.getDocument(value));
+        });
     }
 
     /**
@@ -35,7 +45,12 @@ public class DocEndpoint {
      * @return response The Swagger JSON document
      */
     @GET
-    public Response get() {
-        return Response.status(200).entity(document).build();
+    @Path("/{name}")
+    public Response get(@PathParam("name") String name) {
+        if (documents.containsKey(name)) {
+            return Response.status(200).entity(documents.get(name)).build();
+        } else {
+            return Response.status(404).entity("Unknown document: " + name).build();
+        }
     }
 }
