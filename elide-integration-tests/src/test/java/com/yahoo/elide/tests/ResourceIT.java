@@ -1526,8 +1526,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body(badReq)
                 .patch("/specialread")
                 .then()
-                .statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo("{\"errors\":[{\"detail\":null,\"status\":403}]}"));
     }
 
     @Test(priority = 38)
