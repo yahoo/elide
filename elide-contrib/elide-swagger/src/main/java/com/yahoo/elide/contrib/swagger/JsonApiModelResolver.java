@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.fasterxml.jackson.databind.type.SimpleType;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -37,15 +38,25 @@ public class JsonApiModelResolver extends ModelResolver {
 
     @Override
     public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
+        /*
+         * If an Elide entity is an attribute somewhere in a model, the ModelResolver will
+         * end up wrapping this as a SimpleType (rather than trying to resolve the entity class directly).
+         */
+        if (type instanceof SimpleType) {
+            type = ((SimpleType) type).getRawClass();
+        }
+
         if (!(type instanceof Class)) {
             return super.resolve(type, context, next);
         }
 
         Class<?> clazz = (Class<?>) type;
-        String typeAlias = dictionary.getJsonAliasFor(clazz);
 
         /* Not an entity managed by Elide, let Swagger convert it */
-        if (typeAlias == null) {
+        String typeAlias;
+        try {
+            typeAlias = dictionary.getJsonAliasFor(clazz);
+        } catch (IllegalArgumentException e) {
             return super.resolve(type, context, next);
         }
 
@@ -68,7 +79,14 @@ public class JsonApiModelResolver extends ModelResolver {
         for (String relationshipName : relationshipNames) {
 
             Class<?> relationshipType = dictionary.getParameterizedType(clazz, relationshipName);
-            Relationship relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
+            Relationship relationship;
+            try {
+                relationship = new Relationship(dictionary.getJsonAliasFor(relationshipType));
+
+            /* Skip the relationship if it is not bound in the dictionary */
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
             relationship.setDescription(getFieldPermissions(clazz, relationshipName));
 
             entitySchema.addRelationship(relationshipName, relationship);
