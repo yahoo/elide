@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 
 import example.Child;
+import example.ExceptionThrowingBean;
 import example.FunWithPermissions;
 import example.Invoice;
 import example.LineItem;
@@ -138,6 +139,10 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         item.setInvoice(invoice);
         tx.save(invoice, null);
         tx.save(item, null);
+
+        ExceptionThrowingBean etb = new ExceptionThrowingBean();
+        etb.setId(1L);
+        tx.save(etb, null);
 
         tx.commit(null);
     }
@@ -1604,6 +1609,16 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .post("resourceWithInvalidRelationship")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testExceptionThrowingBean() {
+        // Ensure web exception from bean gets bubbled up
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/exceptionThrowingBean/1")
+                .then()
+                .statusCode(Status.GONE.getStatusCode());
     }
 
     @Test
