@@ -327,6 +327,11 @@ public class Elide {
             subqueryFilterDialects.add(dialect);
             return this;
         }
+
+        public Builder withUpdateStatusCode(int updateStatusCode) {
+            HttpStatus.SC_UPDATED = updateStatusCode == HttpStatus.SC_OK ? updateStatusCode : HttpStatus.SC_UPDATED;
+            return this;
+        }
     }
 
     /**

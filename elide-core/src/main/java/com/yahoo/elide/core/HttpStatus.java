@@ -18,4 +18,5 @@ public class HttpStatus {
     public static final int SC_NOT_FOUND = 404;
     public static final int SC_LOCKED = 423;
     public static final int SC_INTERNAL_SERVER_ERROR = 500;
+    public static int SC_UPDATED = SC_NO_CONTENT;
 }

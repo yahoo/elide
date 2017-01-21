@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.auditTests;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
@@ -14,6 +15,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Integration tests for audit functionality.
@@ -126,5 +128,26 @@ public class AuditIT extends AbstractIntegrationTestInitializer {
 
         Assert.assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list []"));
         Assert.assertTrue(logger.logMessages.contains("Inverse entities: []"));
+    }
+
+    @Test(priority = 999)
+    public void testAuditWithDuplicateLineageEntry2() {
+        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withUpdateStatusCode(HttpStatus.SC_OK)
+                .build();
+
+        String request = jsonParser.getJson("/AuditIT/updateAuditEntityLineageDup.req.json");
+        String expected = jsonParser.getJson("/AuditIT/updateAuditEntityLineageDup.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .patch("/auditEntity/2/otherEntity/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+
+        Assert.assertTrue(logger.logMessages.contains("Updated value (for id: 1): update id 1 through id 2"));
     }
 }

@@ -8,6 +8,7 @@ package com.yahoo.elide.initialization;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -48,6 +49,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
+                        .withUpdateStatusCode(HttpStatus.SC_NO_CONTENT)
                         .build();
             }
 

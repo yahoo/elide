@@ -79,7 +79,16 @@ public class RecordTerminalState extends BaseState {
         }
 
         patch(resource, state.getRequestScope());
-        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+        return () -> Pair.of(
+                HttpStatus.SC_UPDATED,
+                HttpStatus.SC_UPDATED == HttpStatus.SC_NO_CONTENT
+                        ? null
+                        : getResponseBody(
+                                record,
+                                state.getRequestScope(),
+                                state.getRequestScope().getMapper().getObjectMapper()
+                        )
+        );
     }
 
     @Override
