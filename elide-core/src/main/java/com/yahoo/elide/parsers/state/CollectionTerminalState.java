@@ -144,7 +144,6 @@ public class CollectionTerminalState extends BaseState {
     private Data getData(RequestScope requestScope, Set<PersistentResource> collection) {
         User user = requestScope.getUser();
         Preconditions.checkNotNull(collection);
-        Preconditions.checkNotNull(user);
 
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
 

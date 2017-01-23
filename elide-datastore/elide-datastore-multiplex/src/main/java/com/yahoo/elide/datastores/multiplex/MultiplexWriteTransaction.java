@@ -14,8 +14,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
-import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -116,7 +114,8 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
         if (transaction != lastDataStoreTransaction) {
-            ArrayList<T> newList = Lists.newArrayList(list);
+            ArrayList<T> newList = new ArrayList<>();
+            list.forEach(newList::add);
             for (T object : newList) {
                 hold(transaction, object);
             }
