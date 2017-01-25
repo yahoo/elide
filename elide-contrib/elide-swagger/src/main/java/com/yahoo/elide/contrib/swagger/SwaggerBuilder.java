@@ -454,7 +454,9 @@ public class SwaggerBuilder {
             params.add(new QueryParameter()
                     .name("page[totals]")
                     .description("For requesting total pages/records be included in the response page meta data")
-                    .type("null")
+                    /* Swagger UI doesn't support parameters that don't take args today.  We'll just make
+                     * this a string for now */
+                    .type("string")
             );
 
             return params;
