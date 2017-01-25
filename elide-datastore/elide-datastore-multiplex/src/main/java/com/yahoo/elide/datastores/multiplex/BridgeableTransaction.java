@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.RequestScope;
 
 import java.util.Optional;
 

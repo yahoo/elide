@@ -10,7 +10,7 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.RequestScope;
 
 import java.io.IOException;
 import java.io.Serializable;
