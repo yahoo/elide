@@ -21,7 +21,6 @@ import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import com.yahoo.elide.security.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -81,6 +80,7 @@ class EntityBinding {
     public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
@@ -218,6 +218,11 @@ class EntityBinding {
             return; // Reserved. Not attributes.
         }
 
+        if (fieldOrMethod instanceof Method) {
+            Method method = (Method) fieldOrMethod;
+            requestScopeableMethods.put(method, isRequestScopeableMethod(method));
+        }
+
         Class<?> fieldType = getFieldType(fieldOrMethod);
 
         ConcurrentLinkedDeque<String> fieldList;
@@ -271,12 +276,8 @@ class EntityBinding {
         } else {
             Method method = (Method) fieldOrMethod;
             String name = method.getName();
-            boolean isComputed = Stream.of(fieldOrMethod.getAnnotations())
-                    .map(Annotation::annotationType)
-                    .anyMatch(c -> ComputedAttribute.class == c || ComputedRelationship.class == c);
             boolean hasValidParameterCount = method.getParameterCount() == 0
-                    || (isComputed && method.getParameterCount() == 1
-                        && com.yahoo.elide.security.RequestScope.class.isAssignableFrom(method.getParameterTypes()[0]));
+                    || isRequestScopeableMethod((Method) fieldOrMethod);
 
             if (name.startsWith("get") && hasValidParameterCount) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
@@ -287,6 +288,29 @@ class EntityBinding {
             }
             return name;
         }
+    }
+
+    /**
+     * Check whether or not method expects a RequestScope.
+     *
+     * @param method  Method to check
+     * @return True if accepts a RequestScope, false otherwise
+     */
+    public static boolean isRequestScopeableMethod(Method method) {
+        return isComputedMethod(method) && method.getParameterCount() == 1
+                && com.yahoo.elide.security.RequestScope.class.isAssignableFrom(method.getParameterTypes()[0]);
+    }
+
+    /**
+     * Check whether or not the provided method described a computed attribute or relationship.
+     *
+     * @param method  Method to check
+     * @return True if method is a computed type, false otherwise
+     */
+    public static boolean isComputedMethod(Method method) {
+        return Stream.of(method.getAnnotations())
+                .map(Annotation::annotationType)
+                .anyMatch(c -> ComputedAttribute.class == c || ComputedRelationship.class == c);
     }
 
     /**
