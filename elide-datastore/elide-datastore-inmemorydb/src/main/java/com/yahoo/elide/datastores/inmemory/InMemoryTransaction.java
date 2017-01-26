@@ -163,7 +163,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
         // Support for filtering
         if (filterExpression.isPresent()) {
             java.util.function.Predicate predicate = filterExpression.get()
-                    .accept(new InMemoryFilterVisitor(dictionary));
+                    .accept(new InMemoryFilterVisitor((com.yahoo.elide.core.RequestScope) scope));
             return (Collection) objs.values().stream()
                     .filter(predicate::test)
                     .collect(Collectors.toList());

@@ -6,10 +6,12 @@
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
 
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -19,6 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.mockito.Mockito.when;
 
 public class OperatorTest {
     public class TestEntityDictionary extends EntityDictionary {
@@ -37,12 +41,15 @@ public class OperatorTest {
     }
 
     private final EntityDictionary dictionary;
+    private final RequestScope requestScope;
     private Author author;
     private java.util.function.Predicate fn;
 
     OperatorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
+        requestScope = Mockito.mock(RequestScope.class);
+        when(requestScope.getDictionary()).thenReturn(dictionary);
     }
 
     @Test
@@ -52,40 +59,40 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // Test exact match
-        fn = Operator.IN.contextualize("id", Collections.singletonList(1), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(1), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // Test contains works
-        fn = Operator.IN.contextualize("id", Arrays.asList(1, 2), dictionary);
+        fn = Operator.IN.contextualize("id", Arrays.asList(1, 2), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Arrays.asList(1, 2), dictionary);
+        fn = Operator.NOT.contextualize("id", Arrays.asList(1, 2), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // Test type
-        fn = Operator.IN.contextualize("id", Collections.singletonList("1"), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList("1"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList("1"), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList("1"), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // Test not in
-        fn = Operator.IN.contextualize("id", Collections.singletonList(3), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(3), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(3), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(3), requestScope);
         Assert.assertTrue(fn.test(author));
 
         // Test empty
-        fn = Operator.IN.contextualize("id", Collections.emptyList(), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.emptyList(), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.emptyList(), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.emptyList(), requestScope);
         Assert.assertTrue(fn.test(author));
 
         // Test null
         author.setId(null);
-        fn = Operator.IN.contextualize("id", Collections.singletonList(1), dictionary);
+        fn = Operator.IN.contextualize("id", Collections.singletonList(1), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), dictionary);
+        fn = Operator.NOT.contextualize("id", Collections.singletonList(1), requestScope);
         Assert.assertTrue(fn.test(author));
     }
 
@@ -96,16 +103,16 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When name is not null
-        fn = Operator.ISNULL.contextualize("name", null, dictionary);
+        fn = Operator.ISNULL.contextualize("name", null, requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.NOTNULL.contextualize("name", null, dictionary);
+        fn = Operator.NOTNULL.contextualize("name", null, requestScope);
         Assert.assertTrue(fn.test(author));
 
         // When name is null
         author.setName(null);
-        fn = Operator.ISNULL.contextualize("name", null, dictionary);
+        fn = Operator.ISNULL.contextualize("name", null, requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.NOTNULL.contextualize("name", null, dictionary);
+        fn = Operator.NOTNULL.contextualize("name", null, requestScope);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -116,36 +123,36 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), requestScope);
         Assert.assertTrue(fn.test(author));
 
         // When prefix, infix, postfix are correctly matched if case-insensitive
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("author"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("for"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("for"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("test"), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // When prefix, infix, postfix are not matched
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("error"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("error"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("error"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("error"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("error"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("error"), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // When values is null
         author.setName(null);
-        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), dictionary);
+        fn = Operator.PREFIX.contextualize("name", Collections.singletonList("Author"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), dictionary);
+        fn = Operator.INFIX.contextualize("name", Collections.singletonList("For"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), dictionary);
+        fn = Operator.POSTFIX.contextualize("name", Collections.singletonList("Test"), requestScope);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -154,32 +161,32 @@ public class OperatorTest {
         author = new Author();
         author.setId(10L);
 
-        fn = Operator.LT.contextualize("id", Collections.singletonList("11"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("11"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("9"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("9"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("9"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("9"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("11"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("11"), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // when val is null
         author.setId(null);
-        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.LE.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), dictionary);
+        fn = Operator.GE.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertFalse(fn.test(author));
     }
 
@@ -190,14 +197,14 @@ public class OperatorTest {
         author.setId(1L);
         author.setName("AuthorForTest");
         try {
-            Operator.IN.contextualize("id", Collections.singletonList("a"), dictionary).test(author);
+            Operator.IN.contextualize("id", Collections.singletonList("a"), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidValueException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.NOT.contextualize("id", Collections.singletonList("a"), dictionary).test(author);
+            Operator.NOT.contextualize("id", Collections.singletonList("a"), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidValueException e) {
             Assert.assertTrue(true);
@@ -212,98 +219,98 @@ public class OperatorTest {
         author.setName("AuthorForTest");
 
         try {
-            Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), dictionary).test(author);
+            Operator.PREFIX.contextualize("name", Arrays.asList("Author", "Author"), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), dictionary).test(author);
+            Operator.INFIX.contextualize("name", Arrays.asList("For", "For"), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), dictionary).test(author);
+            Operator.POSTFIX.contextualize("name", Arrays.asList("Test", "Test"), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.PREFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
+            Operator.PREFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.INFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
+            Operator.INFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.POSTFIX.contextualize("name", Collections.emptyList(), dictionary).test(author);
+            Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LT.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.LT.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LE.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.LE.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GT.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.GT.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GE.contextualize("id", Arrays.asList(10, 10), dictionary).test(author);
+            Operator.GE.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LT.contextualize("id", Collections.emptyList(), dictionary).test(author);
+            Operator.LT.contextualize("id", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.LE.contextualize("id", Collections.emptyList(), dictionary).test(author);
+            Operator.LE.contextualize("id", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GT.contextualize("id", Collections.emptyList(), dictionary).test(author);
+            Operator.GT.contextualize("id", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
         }
 
         try {
-            Operator.GE.contextualize("id", Collections.emptyList(), dictionary).test(author);
+            Operator.GE.contextualize("id", Collections.emptyList(), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);

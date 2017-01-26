@@ -421,25 +421,25 @@ public class PersistentResourceTest extends PersistentResource {
         FunWithPermissions fun = new FunWithPermissions();
         fun.field3 = "testValue";
         String result;
-        result = (String) getValue(fun, "field3",  dictionary);
+        result = (String) getValue(fun, "field3",  getRequestScope());
         Assert.assertEquals(result, "testValue", "getValue should set the appropriate value in the resource");
 
         fun.setField1("testValue2");
 
-        result = (String) getValue(fun, "field1", dictionary);
+        result = (String) getValue(fun, "field1", getRequestScope());
         Assert.assertEquals(result, "testValue2", "getValue should set the appropriate value in the resource");
 
         Child testChild = newChild(3);
         fun.setRelation1(Sets.newHashSet(testChild));
 
         @SuppressWarnings("unchecked")
-        Set<Child> children = (Set<Child>) getValue(fun, "relation1", dictionary);
+        Set<Child> children = (Set<Child>) getValue(fun, "relation1", getRequestScope());
 
         Assert.assertTrue(children.contains(testChild), "getValue should set the correct relation.");
         Assert.assertEquals(children.size(), 1, "getValue should set the relation with the correct number of elements");
 
         try {
-            getValue(fun, "badRelation", dictionary);
+            getValue(fun, "badRelation", getRequestScope());
         } catch (InvalidAttributeException e) {
             return;
         }

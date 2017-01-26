@@ -158,9 +158,7 @@ public interface DataStoreTransaction extends Closeable {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-
-        return PersistentResource.getValue(entity, relationName, dictionary);
+        return PersistentResource.getValue(entity, relationName, requestScope);
     }
 
 
@@ -215,7 +213,7 @@ public interface DataStoreTransaction extends Closeable {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
 
-        Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
+        Object val = PersistentResource.getValue(entity, attributeName, requestScope);
         return val;
 
     }
