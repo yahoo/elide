@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when
 /**
  * Predicate test class.
  */
-public class PredicateTest {
+public class FilterPredicateTest {
     private DefaultFilterDialect strategy
 
     @BeforeSuite
@@ -40,7 +40,7 @@ public class PredicateTest {
         strategy = new DefaultFilterDialect(entityDictionary);
     }
 
-    private Map<String, Set<Predicate>> parse(MultivaluedMap<String, String> queryParams) {
+    private Map<String, Set<FilterPredicate>> parse(MultivaluedMap<String, String> queryParams) {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
 
         def expressionMap;
@@ -50,12 +50,12 @@ public class PredicateTest {
             throw new InvalidPredicateException(e.getMessage());
         }
 
-        def returnMap = new HashMap<String, Set<Predicate>>();
+        def returnMap = new HashMap<String, Set<FilterPredicate>>();
         for (entry in expressionMap) {
             def typeName = entry.key;
             def expression = entry.value;
             if (!returnMap.containsKey(typeName)) {
-                returnMap[typeName] = new HashSet<Predicate>();
+                returnMap[typeName] = new HashSet<FilterPredicate>();
             }
             returnMap[typeName].addAll(expression.accept(visitor));
         }
@@ -99,7 +99,7 @@ public class PredicateTest {
         def predicates = parse(queryParams)
         Assert.assertTrue(predicates.containsKey("type1"))
 
-        for (Predicate predicate : predicates.get("type1")) {
+        for (FilterPredicate predicate : predicates.get("type1")) {
             switch (predicate.getField()) {
                 case "field1":
                     Assert.assertEquals(predicate.getOperator(), Operator.IN)

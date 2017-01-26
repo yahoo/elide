@@ -7,7 +7,7 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -39,8 +39,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * @return
      * @throws ParseException
      */
-    private List<Predicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
-        List<Predicate> predicates = new ArrayList<>();
+    private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
+        List<FilterPredicate> filterPredicates = new ArrayList<>();
 
         for (MultivaluedMap.Entry<String, List<String>> entry : queryParams.entrySet()) {
             // Match "filter[<type>.<field>]" OR "filter[<type>.<field>][<operator>]"
@@ -60,8 +60,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 final Operator operator = (matcher.group(3) == null) ? Operator.IN
                         : Operator.fromString(matcher.group(3));
 
-                List<Predicate.PathElement> path = getPath(keyParts);
-                Predicate.PathElement last = path.get(path.size() - 1);
+                List<FilterPredicate.PathElement> path = getPath(keyParts);
+                FilterPredicate.PathElement last = path.get(path.size() - 1);
 
                 final List<Object> values = new ArrayList<>();
                 if (operator.isParameterized()) {
@@ -72,23 +72,23 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                     }
                 }
 
-                Predicate predicate = new Predicate(path, operator, values);
+                FilterPredicate filterPredicate = new FilterPredicate(path, operator, values);
 
-                predicates.add(predicate);
+                filterPredicates.add(filterPredicate);
             } else {
                 throw new ParseException("Invalid filter format: " + paramName);
             }
         }
 
-        return predicates;
+        return filterPredicates;
     }
 
     @Override
     public FilterExpression parseGlobalExpression(
             String path,
             MultivaluedMap<String, String> filterParams) throws ParseException {
-        List<Predicate> predicates;
-        predicates = extractPredicates(filterParams);
+        List<FilterPredicate> filterPredicates;
+        filterPredicates = extractPredicates(filterParams);
 
         /* Extract the first collection in the URL */
         path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
@@ -105,17 +105,17 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         /* Comma separated filter parameters are joined with logical AND. */
         FilterExpression joinedExpression = null;
 
-        for (Predicate predicate : predicates)  {
+        for (FilterPredicate filterPredicate : filterPredicates)  {
 
             /* The first type in the predicate must match the first collection in the URL */
-            if (! predicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
-                throw new ParseException(String.format("Invalid predicate: %s", predicate));
+            if (! filterPredicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
+                throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
             if (joinedExpression == null) {
-                joinedExpression = predicate;
+                joinedExpression = filterPredicate;
             } else {
-                joinedExpression = new AndFilterExpression(joinedExpression, predicate);
+                joinedExpression = new AndFilterExpression(joinedExpression, filterPredicate);
             }
         }
         return joinedExpression;
@@ -127,20 +127,20 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             MultivaluedMap<String, String> filterParams) throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();
 
-        List<Predicate> predicates = extractPredicates(filterParams);
+        List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
 
-        for (Predicate predicate : predicates) {
-            if (predicate.getPath().size() > 1) {
-                throw new ParseException("Invalid predicate: " + predicate);
+        for (FilterPredicate filterPredicate : filterPredicates) {
+            if (filterPredicate.getPath().size() > 1) {
+                throw new ParseException("Invalid predicate: " + filterPredicate);
             }
 
-            String entityType = predicate.getEntityType();
+            String entityType = filterPredicate.getEntityType();
 
             if (expressionMap.containsKey(entityType)) {
                 FilterExpression filterExpression = expressionMap.get(entityType);
-                expressionMap.put(entityType, new AndFilterExpression(filterExpression, predicate));
+                expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));
             } else {
-                expressionMap.put(entityType, predicate);
+                expressionMap.put(entityType, filterPredicate);
             }
         }
 
@@ -154,12 +154,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * @return [(author, books), (book, publisher), (publisher, name)]
      * @throws ParseException
      */
-    private List<Predicate.PathElement> getPath(final String[] keyParts) throws ParseException {
+    private List<FilterPredicate.PathElement> getPath(final String[] keyParts) throws ParseException {
         if (keyParts == null || keyParts.length <= 0) {
             throw new ParseException("Invalid filter expression");
         }
 
-        List<Predicate.PathElement> path = new ArrayList<>();
+        List<FilterPredicate.PathElement> path = new ArrayList<>();
 
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
@@ -189,7 +189,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             String typeName = dictionary.getJsonAliasFor(types[i]);
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
-            Predicate.PathElement pathElement = new Predicate.PathElement(typeClass, typeName, fieldClass, fieldName);
+            FilterPredicate.PathElement pathElement = new FilterPredicate.PathElement(typeClass, typeName, fieldClass, fieldName);
 
             path.add(pathElement);
         }

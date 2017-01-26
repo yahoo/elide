@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import com.google.common.base.Objects;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -19,9 +20,6 @@ import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Objects;
-
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
@@ -43,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -402,8 +401,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             FilterExpression filterExpression,
             com.yahoo.elide.core.RequestScope requestScope) {
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
