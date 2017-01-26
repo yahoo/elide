@@ -24,7 +24,7 @@ import java.util.function.Function;
  */
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Predicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
+public class FilterPredicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
 
     /**
      * The path taken through data model associations to
@@ -45,15 +45,15 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
 
-    public Predicate(PathElement pathElement, Operator op, List<Object> values) {
+    public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
         this(Collections.singletonList(pathElement), op, values);
     }
 
-    public Predicate(PathElement pathElement, Operator op) {
+    public FilterPredicate(PathElement pathElement, Operator op) {
         this(Collections.singletonList(pathElement), op, Collections.emptyList());
     }
 
-    public Predicate(List<PathElement> path, Operator op) {
+    public FilterPredicate(List<PathElement> path, Operator op) {
         this(path, op, Collections.emptyList());
     }
 

@@ -22,19 +22,19 @@ public class InMemoryFilterOperation implements FilterOperation<Set<java.util.fu
     }
 
     @Override
-    public Set<java.util.function.Predicate> apply(Predicate predicate) {
-        return Collections.singleton(this.applyOperator(predicate));
+    public Set<java.util.function.Predicate> apply(FilterPredicate filterPredicate) {
+        return Collections.singleton(this.applyOperator(filterPredicate));
     }
 
     @Override
-    public Set<java.util.function.Predicate> applyAll(Set<Predicate> predicates) {
-        return predicates.stream()
+    public Set<java.util.function.Predicate> applyAll(Set<FilterPredicate> filterPredicates) {
+        return filterPredicates.stream()
                 .map(this::applyOperator)
                 .collect(Collectors.toSet());
     }
 
-    private java.util.function.Predicate applyOperator(Predicate predicate) {
-        return predicate.apply(dictionary);
+    private java.util.function.Predicate applyOperator(FilterPredicate filterPredicate) {
+        return filterPredicate.apply(dictionary);
     }
 
     public EntityDictionary getDictionary() {

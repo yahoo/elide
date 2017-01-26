@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -15,32 +15,32 @@ import java.util.Set;
  * A Visitor which extracts the set of predicates from a filter FilterExpression.
  * Should only be used in Elide 2.0 scope
  */
-public class PredicateExtractionVisitor implements Visitor<Set<Predicate>> {
-    @Getter Set<Predicate> predicates = new HashSet<>();
+public class PredicateExtractionVisitor implements Visitor<Set<FilterPredicate>> {
+    @Getter Set<FilterPredicate> filterPredicates = new HashSet<>();
 
     @Override
-    public Set<Predicate> visitPredicate(Predicate predicate) {
-        predicates.add(predicate);
-        return predicates;
+    public Set<FilterPredicate> visitPredicate(FilterPredicate filterPredicate) {
+        filterPredicates.add(filterPredicate);
+        return filterPredicates;
     }
 
     @Override
-    public Set<Predicate> visitAndExpression(AndFilterExpression expression) {
-        predicates.addAll(expression.getLeft().accept(this));
-        predicates.addAll(expression.getRight().accept(this));
-        return predicates;
+    public Set<FilterPredicate> visitAndExpression(AndFilterExpression expression) {
+        filterPredicates.addAll(expression.getLeft().accept(this));
+        filterPredicates.addAll(expression.getRight().accept(this));
+        return filterPredicates;
     }
 
     @Override
-    public Set<Predicate> visitOrExpression(OrFilterExpression expression) {
-        predicates.addAll(expression.getLeft().accept(this));
-        predicates.addAll(expression.getRight().accept(this));
-        return predicates;
+    public Set<FilterPredicate> visitOrExpression(OrFilterExpression expression) {
+        filterPredicates.addAll(expression.getLeft().accept(this));
+        filterPredicates.addAll(expression.getRight().accept(this));
+        return filterPredicates;
     }
 
     @Override
-    public Set<Predicate> visitNotExpression(NotFilterExpression expression) {
-        predicates.addAll(expression.getNegated().accept(this));
-        return predicates;
+    public Set<FilterPredicate> visitNotExpression(NotFilterExpression expression) {
+        filterPredicates.addAll(expression.getNegated().accept(this));
+        return filterPredicates;
     }
 }

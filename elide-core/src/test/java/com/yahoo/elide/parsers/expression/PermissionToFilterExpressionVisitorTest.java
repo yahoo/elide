@@ -13,7 +13,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
@@ -417,22 +417,22 @@ public class PermissionToFilterExpressionVisitorTest {
         }
     }
 
-    public static Predicate createDummyPredicate() {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(Author.class, "Author", Book.class, "books");
-        Predicate.PathElement path2 = new Predicate.PathElement(Book.class, "Book", String.class, "title");
+    public static FilterPredicate createDummyPredicate() {
+        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books");
+        FilterPredicate.PathElement path2 = new FilterPredicate.PathElement(Book.class, "Book", String.class, "title");
         pathList.add(path1);
         pathList.add(path2);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add("Harry Potter");
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(pathList, op, value);
     }
 
     public static class FilterExpressionCheck1 extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createDummyPredicate();
         }
 
