@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 
 import java.util.function.Predicate;
 
@@ -13,15 +13,15 @@ import java.util.function.Predicate;
  * Visitor for in memory filterExpressions
  */
 public class InMemoryFilterVisitor implements Visitor<Predicate> {
-    private final EntityDictionary dictionary;
+    private final RequestScope requestScope;
 
-    public InMemoryFilterVisitor(EntityDictionary dictionary) {
-        this.dictionary = dictionary;
+    public InMemoryFilterVisitor(RequestScope requestScope) {
+        this.requestScope = requestScope;
     }
 
     @Override
     public Predicate visitPredicate(com.yahoo.elide.core.filter.Predicate predicate) {
-        return predicate.apply(dictionary);
+        return predicate.apply(requestScope);
     }
 
     @Override

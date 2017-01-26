@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.function.Function;
  */
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Predicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
+public class Predicate implements FilterExpression, Function<RequestScope, java.util.function.Predicate> {
 
     /**
      * The path taken through data model associations to
@@ -92,8 +92,8 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
     }
 
     @Override
-    public java.util.function.Predicate apply(EntityDictionary dictionary) {
-        return operator.contextualize(getFieldPath(), values, dictionary);
+    public java.util.function.Predicate apply(RequestScope requestScope) {
+        return operator.contextualize(getFieldPath(), values, requestScope);
     }
 
     @Override

@@ -6,10 +6,12 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.security.checks.Check;
 
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -19,6 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Tests InMemoryFilterVisitor
@@ -49,7 +53,9 @@ public class InMemoryFilterVisitorTest {
     InMemoryFilterVisitorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
-        visitor = new InMemoryFilterVisitor(dictionary);
+        RequestScope requestScope = Mockito.mock(RequestScope.class);
+        when(requestScope.getDictionary()).thenReturn(dictionary);
+        visitor = new InMemoryFilterVisitor(requestScope);
     }
 
     @Test

@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 
 import java.util.Collections;
 import java.util.Set;
@@ -15,10 +16,10 @@ import java.util.stream.Collectors;
  * InMemoryFilterOperation
  */
 public class InMemoryFilterOperation implements FilterOperation<Set<java.util.function.Predicate>> {
-    private final EntityDictionary dictionary;
+    private final RequestScope requestScope;
 
-    public InMemoryFilterOperation(EntityDictionary dictionary) {
-        this.dictionary = dictionary;
+    public InMemoryFilterOperation(RequestScope requestScope) {
+        this.requestScope = requestScope;
     }
 
     @Override
@@ -34,10 +35,10 @@ public class InMemoryFilterOperation implements FilterOperation<Set<java.util.fu
     }
 
     private java.util.function.Predicate applyOperator(Predicate predicate) {
-        return predicate.apply(dictionary);
+        return predicate.apply(requestScope);
     }
 
     public EntityDictionary getDictionary() {
-        return dictionary;
+        return requestScope.getDictionary();
     }
 }

@@ -217,14 +217,14 @@ public class HibernateTransaction implements DataStoreTransaction {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
         EntityDictionary dictionary = requestScope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, requestScope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
                 if (scope instanceof PatchRequestScope && filterExpression.isPresent()) {
                     Class relationClass = dictionary.getType(entity, relationName);
                     return patchRequestFilterCollection(filteredVal,
-                            relationClass, filterExpression.get(), ((PatchRequestScope) scope).getDictionary());
+                            relationClass, filterExpression.get(), (PatchRequestScope) scope);
                 }
 
                 @SuppressWarnings("unchecked")
@@ -257,15 +257,15 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param collection  the collection to filter
      * @param entityClass the class of the entities in the collection
      * @param filterExpression the filter expression
-     * @param dictionary  Entity dictionary
+     * @param requestScope  the request scope
      * @return the filtered collection
      */
     protected <T> Collection patchRequestFilterCollection(
             Collection collection,
             Class<T> entityClass,
             FilterExpression filterExpression,
-            EntityDictionary dictionary) {
-        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
+            com.yahoo.elide.core.RequestScope requestScope) {
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
         java.util.function.Predicate inMemoryFilterFn =
                 filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()

@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
@@ -60,9 +59,9 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     public boolean applyPredicateToObject(T object, Predicate predicate, RequestScope requestScope) {
         String fieldPath = predicate.getFieldPath();
-        EntityDictionary dictionary = ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary();
+        com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
         java.util.function.Predicate fn = predicate.getOperator()
-                .contextualize(fieldPath, predicate.getValues(), dictionary);
+                .contextualize(fieldPath, predicate.getValues(), scope);
         return fn.test(object);
     }
 }
