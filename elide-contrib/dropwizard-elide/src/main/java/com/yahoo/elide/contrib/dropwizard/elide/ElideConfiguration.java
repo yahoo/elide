@@ -19,13 +19,13 @@ import io.dropwizard.setup.Environment;
 import java.util.function.Function;
 
 /**
- * Elide Configuration
+ * Elide Configuration.
  *
  * @param <T> Dropwizard Configuration
  */
 public interface ElideConfiguration<T extends Configuration> {
     /**
-     * Get the AuditLogger for Elide
+     * Get the {@link AuditLogger} for Elide.
      *
      * Override this method to plug in your own AuditLogger
      *
@@ -38,7 +38,7 @@ public interface ElideConfiguration<T extends Configuration> {
     }
 
     /**
-     * Get the DefaultOpaqueUserFunction for Elide
+     * Get the {@link JsonApiEndpoint.DefaultOpaqueUserFunction} for Elide.
      *
      * Override this method to plug in your own DefaultOpaqueUserFunction
      *
@@ -51,7 +51,7 @@ public interface ElideConfiguration<T extends Configuration> {
     }
 
     /**
-     * Get the DataStore for Elide
+     * Get the DataStore for Elide.
      *
      * Override this method to plug in your own DataStore
      *
@@ -62,7 +62,7 @@ public interface ElideConfiguration<T extends Configuration> {
     DataStore getDataStore(T configuration, Environment environment);
 
     /**
-     * Get the EntityDictionary for Elide
+     * Get the {@link EntityDictionary} for Elide.
      *
      * Override this method to plug in your own EntityDictionary
      *
@@ -75,6 +75,7 @@ public interface ElideConfiguration<T extends Configuration> {
     }
 
     /**
+     * Get the {@link JsonApiMapper}.
      *
      * @param configuration Dropwizard Configuration
      * @param environment Dropwizard Environment
@@ -85,6 +86,7 @@ public interface ElideConfiguration<T extends Configuration> {
     }
 
     /**
+     * Get the {@link PermissionExecutor}.
      *
      * @param configuration Dropwizard Configuration
      * @param environment Dropwizard Environment

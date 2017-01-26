@@ -18,7 +18,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 /**
- * Model for Comments on Posts
+ * Model for Comments on Posts.
  */
 @Entity
 @Table(name = "comment")

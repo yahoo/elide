@@ -14,7 +14,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 /**
- * Dropwizard Configuration
+ * A Dropwizard Configuration for an Elide-Dropwizard setup.
  */
 public class DropwizardElideConfiguration extends Configuration {
     @Valid

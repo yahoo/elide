@@ -298,10 +298,11 @@ public enum Operator {
 
     /**
      * Return value of field/path for given entity.  For example this.book.author
+     *
      * @param entity Entity bean
      * @param fieldPath field value/path
      * @param requestScope Request scope
-     * @return
+     * @return the value of the field
      */
     public static <T> Object getFieldValue(T entity, String fieldPath, RequestScope requestScope) {
         Object val = entity;

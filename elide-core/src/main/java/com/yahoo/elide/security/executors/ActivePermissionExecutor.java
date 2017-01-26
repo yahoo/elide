@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.security.executors;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -23,12 +19,10 @@ import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-
-import org.apache.commons.lang3.tuple.Triple;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -38,6 +32,10 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 /**
  * Default permission executor.
@@ -64,7 +62,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param verbose True if executor should produce verbose output to caller
      * @param requestScope Request scope
@@ -111,8 +109,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @Override
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                       PersistentResource resource,
-                                                       ChangeSpec changeSpec) {
+                                                                   PersistentResource resource,
+                                                                   ChangeSpec changeSpec) {
         Expressions expressions;
         if (SharePermission.class == annotationClass) {
             expressions = expressionBuilder.buildSharePermissionExpressions(resource);
@@ -254,6 +252,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * Get permission filter on an entity.
      *
      * @param resourceClass Resource class
+     * @return the filter expression for the class, if any
      */
     public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
         FilterExpression filterExpression =
@@ -292,7 +291,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param expressions expressions to execute
      */
     private ExpressionResult executeExpressions(final Expressions expressions,
-                                    final Class<? extends Annotation> annotationClass) {
+                                                final Class<? extends Annotation> annotationClass) {
         Expression expression = expressions.getOperationExpression();
         ExpressionResult result = expression.evaluate();
 
@@ -303,7 +302,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             checkStats.put(checkKey, checkOccurrences);
         }
 
-       if (result == DEFERRED) {
+        if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
                 if (isInlineOnlyCheck(annotationClass)) {
@@ -346,13 +345,13 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @AllArgsConstructor
     private static class QueuedCheck {
-        @Getter
-        private final Expression expression;
+        @Getter private final Expression expression;
         @Getter private final Class<? extends Annotation> annotationClass;
     }
 
     /**
-     * Print the permission check statistics
+     * Print the permission check statistics.
+     *
      * @return the permission check statistics
      */
     @Override

@@ -11,7 +11,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import java.util.function.Predicate;
 
 /**
- * Visitor for in memory filterExpressions
+ * Visitor for in memory filterExpressions.
  */
 public class InMemoryFilterVisitor implements Visitor<Predicate> {
     private final RequestScope requestScope;

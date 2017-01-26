@@ -6,8 +6,9 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -35,6 +36,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
     /**
      * Coverts the query parameters to a list of predicates that are then conjoined or organized by type.
+     *
      * @param queryParams
      * @return
      * @throws ParseException
@@ -49,7 +51,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             List<String> paramValues = entry.getValue();
 
             Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?")
-                .matcher(paramName);
+                    .matcher(paramName);
             if (matcher.find()) {
                 final String[] keyParts = matcher.group(1).split("\\.");
 
@@ -60,8 +62,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 final Operator operator = (matcher.group(3) == null) ? Operator.IN
                         : Operator.fromString(matcher.group(3));
 
-                List<FilterPredicate.PathElement> path = getPath(keyParts);
-                FilterPredicate.PathElement last = path.get(path.size() - 1);
+                List<PathElement> path = getPath(keyParts);
+                PathElement last = path.get(path.size() - 1);
 
                 final List<Object> values = new ArrayList<>();
                 if (operator.isParameterized()) {
@@ -105,10 +107,10 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         /* Comma separated filter parameters are joined with logical AND. */
         FilterExpression joinedExpression = null;
 
-        for (FilterPredicate filterPredicate : filterPredicates)  {
+        for (FilterPredicate filterPredicate : filterPredicates) {
 
             /* The first type in the predicate must match the first collection in the URL */
-            if (! filterPredicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
+            if (!filterPredicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
                 throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
@@ -148,18 +150,18 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     /**
-     * Parses [ author, books, publisher, name ] into
-     * [(author, books), (book, publisher), (publisher, name)]
+     * Parses [ author, books, publisher, name ] into [(author, books), (book, publisher), (publisher, name)].
+     *
      * @param keyParts [ author, books, publisher, name ]
      * @return [(author, books), (book, publisher), (publisher, name)]
-     * @throws ParseException
+     * @throws ParseException if the filter cannot be parsed
      */
-    private List<FilterPredicate.PathElement> getPath(final String[] keyParts) throws ParseException {
+    private List<PathElement> getPath(final String[] keyParts) throws ParseException {
         if (keyParts == null || keyParts.length <= 0) {
             throw new ParseException("Invalid filter expression");
         }
 
-        List<FilterPredicate.PathElement> path = new ArrayList<>();
+        List<PathElement> path = new ArrayList<>();
 
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
@@ -170,7 +172,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         }
 
         /* Extract all the paths for the associations */
-        for (int i = 1 ; i < keyParts.length ; ++i) {
+        for (int i = 1; i < keyParts.length; ++i) {
             final String field = keyParts[i];
             final Class<?> entityClass = types[i - 1];
             final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
@@ -184,12 +186,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
 
         /* Build all the Predicate path elements */
-        for (int i = 0 ; i < types.length - 1 ; ++i) {
+        for (int i = 0; i < types.length - 1; ++i) {
             Class typeClass = types[i];
             String typeName = dictionary.getJsonAliasFor(types[i]);
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
-            FilterPredicate.PathElement pathElement = new FilterPredicate.PathElement(typeClass, typeName, fieldClass, fieldName);
+            PathElement pathElement = new PathElement(typeClass, typeName, fieldClass, fieldName);
 
             path.add(pathElement);
         }

@@ -124,7 +124,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Build the CriterionFilterOperation for provided criteria
+     * Build the CriterionFilterOperation for provided criteria.
+     *
      * @param criteria the criteria
      * @return the CriterionFilterOperation
      */
@@ -141,7 +142,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -175,6 +176,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     *
      * @param loadClass The hibernate class to build the query off of.
      * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
@@ -182,7 +184,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return The Iterable for Hibernate.
      */
     public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
-            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+                                final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }
@@ -211,7 +213,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -251,12 +253,13 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
+     * Use only inMemory tests during PatchRequest since objects in the collection may be new and unsaved.
+     *
+     * @param <T> the type parameter
+     * @param collection the collection to filter
      * @param entityClass the class of the entities in the collection
      * @param filterExpression the filter expression
-     * @param requestScope  the request scope
+     * @param requestScope the request scope
      * @return the filtered collection
      */
     protected <T> Collection patchRequestFilterCollection(

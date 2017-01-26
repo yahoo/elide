@@ -82,7 +82,7 @@ public class Data<T> {
     }
 
     /**
-     * Fetch the item if the data is toOne
+     * Fetch the item if the data is toOne.
      *
      * @return T if toOne
      * @throws IllegalAccessError when the data is not toOne

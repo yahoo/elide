@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.util.function.Function;
 
 /**
- * Elide Bundle
+ * An Elide Bundle for Dropwizard.
  *
  * @param <T> Dropwizard Configuration
  */
@@ -46,6 +46,8 @@ public abstract class ElideBundle<T extends Configuration>
     private final SessionFactoryFactory sessionFactoryFactory;
 
     /**
+     * Create a new ElideBundle.
+     *
      * @param pckg string with package containing Hibernate entities (classes annotated with Hibernate {@code @Entity}
      *             annotation) e. g. {@code com.codahale.fake.db.directory.entities}
      */
@@ -123,7 +125,7 @@ public abstract class ElideBundle<T extends Configuration>
     }
 
     /**
-     * By default created a HibernateStore
+     * By default created a HibernateStore.
      *
      * @param configuration Dropwizard configuration
      * @param environment Dropwizard environment
@@ -146,7 +148,7 @@ public abstract class ElideBundle<T extends Configuration>
     }
 
     /**
-     * Method scanning given directory for classes containing Hibernate @Entity annotation
+     * Method scanning given directory for classes containing Hibernate @Entity annotation.
      *
      * @param pckgs string array with packages containing Hibernate entities (classes annotated with @Entity annotation)
      *             e.g. com.codahale.fake.db.directory.entities

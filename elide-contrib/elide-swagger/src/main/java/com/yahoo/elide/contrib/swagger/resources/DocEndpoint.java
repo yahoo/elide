@@ -28,7 +28,8 @@ public class DocEndpoint {
     protected Map<String, String> documents;
 
     /**
-     * Constructs the resource
+     * Constructs the resource.
+     *
      * @param docs Map of path parameter name to swagger document.
      */
     @Inject
@@ -42,6 +43,7 @@ public class DocEndpoint {
 
     /**
      * Read handler.
+     *
      * @return response The Swagger JSON document
      */
     @GET

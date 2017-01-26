@@ -16,7 +16,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 /**
- * Example application for resource config
+ * Example application for resource config.
  */
 public class ElideResourceConfig extends ResourceConfig {
     public ElideResourceConfig() {

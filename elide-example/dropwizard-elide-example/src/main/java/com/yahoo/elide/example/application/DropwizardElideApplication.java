@@ -17,7 +17,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 /**
- * Dropwizard Application
+ * A Dropwizard Application for Elide.
  */
 public class DropwizardElideApplication extends Application<DropwizardElideConfiguration> {
     private final String name = "dropwizard-elide-example";
