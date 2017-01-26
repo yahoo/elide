@@ -134,7 +134,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Build the CriterionFilterOperation for provided criteria
+     * Build the CriterionFilterOperation for provided criteria.
+     *
      * @param criteria the criteria
      * @return the CriterionFilterOperation
      */
@@ -151,7 +152,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -186,14 +187,18 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     *
      * @param loadClass The hibernate class to build the query off of.
      * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @return The Iterable for Hibernate.
      */
-    public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
-            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination, RequestScope scope) {
+    public Iterable loadObjects(final Class<?> loadClass,
+                                final Criteria criteria,
+                                final Optional<Set<Order>> sortingRules,
+                                final Optional<Pagination> pagination,
+                                RequestScope scope) {
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }
@@ -240,7 +245,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     private <T> void joinCriteria(Criteria criteria, final Class<T> loadClass, RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -264,12 +269,13 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Parse include param into list of include fields.
+     *
      * @return list of include fields
      */
     public List<String> getIncludeList(RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -285,7 +291,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         ArrayList<String> list = new ArrayList<>();
         for (String includeList : includeParam) {
             for (String includeItem : includeList.split(",")) {
-                for (int idx = 0; idx != -1;) {
+                for (int idx = 0; idx != -1; ) {
                     idx = includeItem.indexOf('.', idx + 1);
                     String field = (idx == -1) ? includeItem : includeItem.substring(0, idx);
                     list.add(field);
@@ -299,7 +305,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         // wrap class as PersistentResource in order to check permission
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -353,7 +359,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -387,12 +393,13 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
+     * Use only inMemory tests during PatchRequest since objects in the collection may be new and unsaved.
+     *
+     * @param <T> the type parameter
+     * @param collection the collection to filter
      * @param entityClass the class of the entities in the collection
      * @param filterExpression the filter expression
-     * @param requestScope  The request scope
+     * @param requestScope The request scope
      * @return the filtered collection
      */
     protected <T> Collection patchRequestFilterCollection(
@@ -420,7 +427,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Overrideable default query limit for the data store
+     * Overrideable default query limit for the data store.
+     *
      * @return default limit
      */
     public Integer getQueryLimit() {

@@ -12,8 +12,9 @@ import java.lang.annotation.Target;
 
 /**
  * On Update trigger annotation.
- *
+ * <p>
  * The invoked function takes a RequestScope as parameter.
+ *
  * @see com.yahoo.elide.security.RequestScope
  */
 @Target({ElementType.METHOD})
@@ -22,6 +23,8 @@ public @interface OnUpdatePreSecurity {
     /**
      * Field name on which the annotated method is only triggered if that field is modified.
      * If value is empty string, then trigger for any modification of the object.
+     *
+     * @return the field name that triggers the method
      */
     String value() default "";
 }

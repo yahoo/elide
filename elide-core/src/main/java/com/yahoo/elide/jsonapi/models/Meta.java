@@ -26,7 +26,7 @@ public class Meta extends KeyValMap {
     }
 
     /**
-     * Expose the meta map so that it will be included in the returned JSON-API document
+     * Expose the meta map so that it will be included in the returned JSON-API document.
      *
      * @return the meta map
      */

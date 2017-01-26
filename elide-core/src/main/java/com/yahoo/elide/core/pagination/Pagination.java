@@ -110,10 +110,11 @@ public class Pagination {
     }
 
     /**
-     * Evaluates the pagination variables for default limits
+     * Evaluates the pagination variables for default limits.
      *
      * @param defaultLimit
      * @param maxLimit
+     * @return the calculated {@link Pagination}
      */
     public Pagination evaluate(int defaultLimit, int maxLimit) {
 
@@ -168,6 +169,7 @@ public class Pagination {
      * queried.
      *
      * @param entityClass
+     * @return the calculated {@link Pagination}
      */
     public Pagination evaluate(final Class entityClass) {
         Paginate paginate =

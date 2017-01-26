@@ -74,7 +74,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     /**
-     * get a unique name for this predicate to be used as a parameter name
+     * Get a unique name for this predicate to be used as a parameter name.
      * @return unique name
      */
     public String getParameterName() {

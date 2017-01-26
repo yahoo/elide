@@ -14,8 +14,9 @@ import java.lang.annotation.Target;
  * Pre-update hook. This annotation marks a callback that is triggered when a user performs a "update" action.
  * This hook will be triggered <em>after</em> all security checks have been run, but <em>before</em> the datastore
  * has been committed.
- *
+ * <p>
  * The invoked function takes a RequestScope as parameter.
+ *
  * @see com.yahoo.elide.security.RequestScope
  */
 @Target({ElementType.METHOD})
@@ -24,6 +25,8 @@ public @interface OnUpdatePreCommit {
     /**
      * Field name on which the annotated method is only triggered if that field is modified.
      * If value is empty string, then trigger for any modification of the object.
+     *
+     * @return the field name that triggers the method
      */
     String value() default "";
 }

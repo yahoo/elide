@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * InMemoryFilterOperation
+ * InMemoryFilterOperation.
  */
 public class InMemoryFilterOperation implements FilterOperation<Set<Predicate>> {
     private final RequestScope requestScope;

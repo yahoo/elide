@@ -17,6 +17,7 @@
   branches:
     only:
       - master
+      - elide-3.0-wip
       - "/^[0-9]+\\.[0-9]+\\.[0-9]+/"
   # build steps
   install: true

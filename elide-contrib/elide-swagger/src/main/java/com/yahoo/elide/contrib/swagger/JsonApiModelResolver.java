@@ -97,6 +97,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the class-level permission annotation value.
+     *
      * @param clazz the entity class
      * @return the create and delete permissions for the entity class.
      */
@@ -111,6 +113,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the field level permission annotation value.
+     *
      * @param clazz the entity class
      * @param fieldName the field
      * @return read and update permissions for a field.
@@ -125,6 +129,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the calculated {@link ReadPermission} value for the field.
+     *
      * @param clazz the entity class
      * @param fieldName the field
      * @return the read permissions for a field
@@ -144,6 +150,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the calculated {@link UpdatePermission} value for the field.
+     *
      * @param clazz the entity class
      * @param fieldName the field
      * @return the update permissions for a field
@@ -163,6 +171,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the calculated {@link CreatePermission} value for the field.
+     *
      * @param clazz the entity class
      * @return the create permissions for an entity
      */
@@ -176,6 +186,8 @@ public class JsonApiModelResolver extends ModelResolver {
     }
 
     /**
+     * Get the calculated {@link DeletePermission} value for the field.
+     *
      * @param clazz the entity class
      * @return the delete permissions for an entity
      */
