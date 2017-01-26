@@ -21,6 +21,7 @@ import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.security.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -49,6 +50,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Stream;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -269,10 +271,16 @@ class EntityBinding {
         } else {
             Method method = (Method) fieldOrMethod;
             String name = method.getName();
+            boolean isComputed = Stream.of(fieldOrMethod.getAnnotations())
+                    .map(Annotation::annotationType)
+                    .anyMatch(c -> ComputedAttribute.class == c || ComputedRelationship.class == c);
+            boolean hasValidParameterCount = method.getParameterCount() == 0
+                    || (isComputed && method.getParameterCount() == 1
+                        && com.yahoo.elide.security.RequestScope.class.isAssignableFrom(method.getParameterTypes()[0]));
 
-            if (name.startsWith("get") && method.getParameterCount() == 0) {
+            if (name.startsWith("get") && hasValidParameterCount) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
-            } else if (name.startsWith("is") && method.getParameterCount() == 0) {
+            } else if (name.startsWith("is") && hasValidParameterCount) {
                 name = WordUtils.uncapitalize(name.substring("is".length()));
             } else {
                 return null;

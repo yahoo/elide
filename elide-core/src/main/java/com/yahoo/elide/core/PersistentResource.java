@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
@@ -70,6 +72,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.ServerErrorException;
@@ -1602,6 +1605,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         AccessibleObject accessor = dictionary.getAccessibleObject(target, fieldName);
         try {
             if (accessor instanceof Method) {
+                // Pass RequestScope into @Computed fields if requested
+                if (Stream.of(accessor.getAnnotations())
+                        .map(Annotation::annotationType)
+                        .anyMatch(c -> c == ComputedAttribute.class || c == ComputedRelationship.class)
+                        && ((Method) accessor).getParameterCount() == 1
+                        && ((Method) accessor).getParameterTypes()[0].isAssignableFrom(RequestScope.class)) {
+                    return ((Method) accessor).invoke(target, requestScope);
+                }
                 return ((Method) accessor).invoke(target);
             } else if (accessor instanceof Field) {
                 return ((Field) accessor).get(target);

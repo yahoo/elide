@@ -44,6 +44,7 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
 import example.Child;
 import example.Color;
+import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Invoice;
@@ -125,6 +126,7 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(ChangeSpecChild.class);
         dictionary.bindEntity(Invoice.class);
         dictionary.bindEntity(LineItem.class);
+        dictionary.bindEntity(ComputedBean.class);
     }
 
     @Test
@@ -438,8 +440,26 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertTrue(children.contains(testChild), "getValue should set the correct relation.");
         Assert.assertEquals(children.size(), 1, "getValue should set the relation with the correct number of elements");
 
+        ComputedBean computedBean = new ComputedBean();
+
+        String computedTest1 = (String) getValue(computedBean, "test", getRequestScope());
+        String computedTest2 = (String) getValue(computedBean, "testWithScope", getRequestScope());
+        String computedTest3 = (String) getValue(computedBean, "testWithSecurityScope", getRequestScope());
+
+        Assert.assertEquals(computedTest1, "test1");
+        Assert.assertEquals(computedTest2, "test2");
+        Assert.assertEquals(computedTest3, "test3");
+
+        try {
+            getValue(computedBean, "NonComputedWithScope", getRequestScope());
+            Assert.fail("Getting a bad relation should throw an InvalidAttributeException.");
+        } catch (InvalidAttributeException e) {
+            // Do nothing
+        }
+
         try {
             getValue(fun, "badRelation", getRequestScope());
+            Assert.fail("Getting a bad relation should throw an InvalidAttributeException.");
         } catch (InvalidAttributeException e) {
             return;
         }
