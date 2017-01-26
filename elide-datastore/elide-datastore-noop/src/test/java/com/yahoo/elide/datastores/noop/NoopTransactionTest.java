@@ -7,16 +7,33 @@ package com.yahoo.elide.datastores.noop;
 
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.ObjectEntityCache;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
 import java.util.Optional;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class NoopTransactionTest {
     DataStoreTransaction tx = new NoopTransaction();
     NoopBean bean = new NoopBean();
+    RequestScope requestScope;
+
+    @BeforeClass
+    public void setup() {
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary.bindEntity(NoopBean.class);
+        requestScope = mock(RequestScope.class);
+        when(requestScope.getDictionary()).thenReturn(dictionary);
+        when(requestScope.getObjectEntityCache()).thenReturn(new ObjectEntityCache());
+    }
 
     @Test
     public void testSave() throws Exception {
@@ -48,10 +65,12 @@ public class NoopTransactionTest {
         tx.createObject(bean, null);
     }
 
-    @Test(expectedExceptions = InvalidOperationException.class)
+    @Test
     public void testLoadObject() throws Exception {
-        // Should throw
-        tx.loadObject(NoopBean.class, 1, Optional.empty(), null);
+
+        // Should return bean with id set
+        NoopBean bean = (NoopBean) tx.loadObject(NoopBean.class, 1, Optional.empty(), requestScope);
+        assertEquals(bean.getId(), (Long) 1L);
     }
 
     @Test(expectedExceptions = InvalidOperationException.class)
