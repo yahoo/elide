@@ -7,12 +7,13 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InMemoryFilterOperation;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import javax.persistence.Id;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -25,9 +26,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import javax.persistence.Id;
 
 /**
  * InMemoryDataStore transaction handler.
@@ -164,7 +164,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<FilterPredicate> filterPredicates) {
-        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(filterPredicates);
+        Set<Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(filterPredicates);
         return (Collection) collection.stream()
                 .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
                 .collect(Collectors.toList());

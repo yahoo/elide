@@ -13,6 +13,7 @@ import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor
 import com.yahoo.elide.security.checks.InlineCheck;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Check for FilterExpression. This is a super class for user defined FilterExpression check. The subclass should
@@ -61,8 +62,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
     public boolean applyPredicateToObject(T object, FilterPredicate filterPredicate, RequestScope requestScope) {
         String fieldPath = filterPredicate.getFieldPath();
         EntityDictionary dictionary = ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary();
-        java.util.function.Predicate fn = filterPredicate.getOperator()
-                .contextualize(fieldPath, filterPredicate.getValues(), dictionary);
+        Predicate fn = filterPredicate.getOperator().contextualize(fieldPath, filterPredicate.getValues(), dictionary);
         return fn.test(object);
     }
 }

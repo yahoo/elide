@@ -14,9 +14,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -497,8 +498,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             FilterExpression filterExpression) {
         final EntityDictionary dictionary = getRequestScope().getDictionary();
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
@@ -517,7 +517,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     protected <T> Collection patchRequestFilterCollection(Collection collection, Class<T> entityClass,
             Set<FilterPredicate> filterPredicates) {
         final EntityDictionary dictionary = getRequestScope().getDictionary();
-        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(filterPredicates);
+        Set<Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(filterPredicates);
         return (Collection) collection.stream()
                 .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
                 .collect(Collectors.toList());

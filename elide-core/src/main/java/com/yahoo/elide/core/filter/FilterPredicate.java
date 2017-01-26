@@ -11,20 +11,20 @@ import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 import lombok.NonNull;
-
+import lombok.ToString;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Predicate class.
  */
 @AllArgsConstructor
 @EqualsAndHashCode
-public class FilterPredicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
+public class FilterPredicate implements FilterExpression, Function<EntityDictionary, Predicate> {
 
     /**
      * The path taken through data model associations to
@@ -92,7 +92,7 @@ public class FilterPredicate implements FilterExpression, Function<EntityDiction
     }
 
     @Override
-    public java.util.function.Predicate apply(EntityDictionary dictionary) {
+    public Predicate apply(EntityDictionary dictionary) {
         return operator.contextualize(getFieldPath(), values, dictionary);
     }
 

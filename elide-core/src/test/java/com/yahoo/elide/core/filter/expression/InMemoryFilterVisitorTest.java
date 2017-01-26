@@ -6,19 +6,18 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.security.checks.Check;
-
+import example.Author;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import example.Author;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Tests InMemoryFilterVisitor
@@ -44,7 +43,7 @@ public class InMemoryFilterVisitorTest {
     private Author author;
     private final InMemoryFilterVisitor visitor;
     private FilterExpression expression;
-    private java.util.function.Predicate fn;
+    private Predicate fn;
 
     InMemoryFilterVisitorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());

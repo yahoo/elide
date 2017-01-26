@@ -9,12 +9,13 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * InMemoryFilterOperation
  */
-public class InMemoryFilterOperation implements FilterOperation<Set<java.util.function.Predicate>> {
+public class InMemoryFilterOperation implements FilterOperation<Set<Predicate>> {
     private final EntityDictionary dictionary;
 
     public InMemoryFilterOperation(EntityDictionary dictionary) {
@@ -22,18 +23,18 @@ public class InMemoryFilterOperation implements FilterOperation<Set<java.util.fu
     }
 
     @Override
-    public Set<java.util.function.Predicate> apply(FilterPredicate filterPredicate) {
+    public Set<Predicate> apply(FilterPredicate filterPredicate) {
         return Collections.singleton(this.applyOperator(filterPredicate));
     }
 
     @Override
-    public Set<java.util.function.Predicate> applyAll(Set<FilterPredicate> filterPredicates) {
+    public Set<Predicate> applyAll(Set<FilterPredicate> filterPredicates) {
         return filterPredicates.stream()
                 .map(this::applyOperator)
                 .collect(Collectors.toSet());
     }
 
-    private java.util.function.Predicate applyOperator(FilterPredicate filterPredicate) {
+    private Predicate applyOperator(FilterPredicate filterPredicate) {
         return filterPredicate.apply(dictionary);
     }
 
