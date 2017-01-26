@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.FilterPredicate;
 
 import java.util.function.Predicate;
 
@@ -20,8 +21,8 @@ public class InMemoryFilterVisitor implements Visitor<Predicate> {
     }
 
     @Override
-    public Predicate visitPredicate(com.yahoo.elide.core.filter.Predicate predicate) {
-        return predicate.apply(requestScope);
+    public Predicate visitPredicate(FilterPredicate filterPredicate) {
+        return filterPredicate.apply(requestScope);
     }
 
     @Override

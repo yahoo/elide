@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.hibernate3;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -37,7 +37,7 @@ public class HQLTransaction {
         private final Collection collection;
         private final Class<T> entityClass;
         private final EntityDictionary dictionary;
-        private Set<Predicate> filters = null;
+        private Set<FilterPredicate> filters = null;
         private String sortingRules = "";
         private Pagination pagination = null;
         private FilterExpression filterExpression = null;
@@ -64,14 +64,14 @@ public class HQLTransaction {
             return this;
         }
 
-        public Builder withPossibleFilters(final Optional<Set<Predicate>> possibleFilters) {
+        public Builder withPossibleFilters(final Optional<Set<FilterPredicate>> possibleFilters) {
             if (possibleFilters.isPresent()) {
                 return withFilters(possibleFilters.get());
             }
             return this;
         }
 
-        public Builder withFilters(final Set<Predicate> filters) {
+        public Builder withFilters(final Set<FilterPredicate> filters) {
             if (filters != null && !filters.isEmpty()) {
                 this.filters = filters;
             }
@@ -140,10 +140,10 @@ public class HQLTransaction {
                 query = session.createFilter(collection, filterString);
 
                 if (filters != null) {
-                    for (Predicate predicate : filters) {
-                        if (predicate.getOperator().isParameterized()) {
-                            String name = predicate.getParameterName();
-                            query = query.setParameterList(name, predicate.getValues());
+                    for (FilterPredicate filterPredicate : filters) {
+                        if (filterPredicate.getOperator().isParameterized()) {
+                            String name = filterPredicate.getParameterName();
+                            query = query.setParameterList(name, filterPredicate.getValues());
                         }
                     }
                 }

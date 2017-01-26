@@ -10,17 +10,16 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
-
+import example.Author;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import example.Author;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static org.mockito.Mockito.when;
 
@@ -43,7 +42,7 @@ public class OperatorTest {
     private final EntityDictionary dictionary;
     private final RequestScope requestScope;
     private Author author;
-    private java.util.function.Predicate fn;
+    private Predicate fn;
 
     OperatorTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());

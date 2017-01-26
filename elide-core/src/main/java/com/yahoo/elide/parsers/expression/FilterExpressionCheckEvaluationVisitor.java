@@ -7,7 +7,7 @@
 package com.yahoo.elide.parsers.expression;
 
 
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -33,8 +33,8 @@ public class FilterExpressionCheckEvaluationVisitor implements Visitor<Boolean> 
     }
 
     @Override
-    public Boolean visitPredicate(Predicate predicate) {
-        return filterExpressionCheck.applyPredicateToObject(object, predicate, requestScope);
+    public Boolean visitPredicate(FilterPredicate filterPredicate) {
+        return filterExpressionCheck.applyPredicateToObject(object, filterPredicate, requestScope);
     }
 
     @Override

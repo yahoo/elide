@@ -13,8 +13,8 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.Predicate.PathElement;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -149,7 +149,7 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new Predicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
         }
     }
 }

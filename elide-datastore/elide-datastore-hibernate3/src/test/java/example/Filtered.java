@@ -11,7 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
@@ -41,14 +41,14 @@ import javax.persistence.Entity;
 public class Filtered extends BaseId {
     @ReadPermission(expression = "deny all") public transient boolean init = false;
 
-    static private Predicate getPredicateOfId(long id) {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(Filtered.class, "filtered", long.class, "id");
+    static private FilterPredicate getPredicateOfId(long id) {
+        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Filtered.class, "filtered", long.class, "id");
         pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add(id);
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(pathList, op, value);
     }
 
     /**

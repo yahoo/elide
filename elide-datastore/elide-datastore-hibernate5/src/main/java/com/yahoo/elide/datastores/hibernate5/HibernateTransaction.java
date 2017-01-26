@@ -13,11 +13,9 @@ import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
-
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
-
-import com.yahoo.elide.extensions.PatchRequestScope;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -36,6 +34,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -266,8 +265,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             FilterExpression filterExpression,
             com.yahoo.elide.core.RequestScope requestScope) {
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());

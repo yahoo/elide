@@ -10,12 +10,13 @@ import com.yahoo.elide.core.RequestScope;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * InMemoryFilterOperation
  */
-public class InMemoryFilterOperation implements FilterOperation<Set<java.util.function.Predicate>> {
+public class InMemoryFilterOperation implements FilterOperation<Set<Predicate>> {
     private final RequestScope requestScope;
 
     public InMemoryFilterOperation(RequestScope requestScope) {
@@ -23,19 +24,19 @@ public class InMemoryFilterOperation implements FilterOperation<Set<java.util.fu
     }
 
     @Override
-    public Set<java.util.function.Predicate> apply(Predicate predicate) {
-        return Collections.singleton(this.applyOperator(predicate));
+    public Set<Predicate> apply(FilterPredicate filterPredicate) {
+        return Collections.singleton(this.applyOperator(filterPredicate));
     }
 
     @Override
-    public Set<java.util.function.Predicate> applyAll(Set<Predicate> predicates) {
-        return predicates.stream()
+    public Set<Predicate> applyAll(Set<FilterPredicate> filterPredicates) {
+        return filterPredicates.stream()
                 .map(this::applyOperator)
                 .collect(Collectors.toSet());
     }
 
-    private java.util.function.Predicate applyOperator(Predicate predicate) {
-        return predicate.apply(requestScope);
+    private Predicate applyOperator(FilterPredicate filterPredicate) {
+        return filterPredicate.apply(requestScope);
     }
 
     public EntityDictionary getDictionary() {

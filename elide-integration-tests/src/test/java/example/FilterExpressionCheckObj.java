@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.security.*;
 
 import javax.persistence.Entity;
@@ -66,9 +66,9 @@ public class FilterExpressionCheckObj {
     }
 
     //Predicate that restrict resource's id to be the same as cuurent User's id.
-    public static Predicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
+    public static FilterPredicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
+        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
         pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
@@ -78,13 +78,13 @@ public class FilterExpressionCheckObj {
         } else {
             value.add((long) userId);
         }
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(pathList, op, value);
     }
 
     public static class CheckRestrictUser extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createUserPredicate(requestScope, false, 1L);
         }
 
@@ -96,14 +96,14 @@ public class FilterExpressionCheckObj {
     public static class CheckLE extends FilterExpressionCheck {
 
         @Override
-        public Predicate getFilterExpression(Class entityClass, RequestScope requestScope) {
-            List<Predicate.PathElement> pathList = new ArrayList<>();
-            Predicate.PathElement path1 = new Predicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
+        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+            List<FilterPredicate.PathElement> pathList = new ArrayList<>();
+            FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
             pathList.add(path1);
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();
             value.add((long) 2);
-            return new Predicate(pathList, op, value);
+            return new FilterPredicate(pathList, op, value);
         }
 
         public CheckLE() {
