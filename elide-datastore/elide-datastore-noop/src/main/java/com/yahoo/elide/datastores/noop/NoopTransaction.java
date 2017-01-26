@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.noop;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -16,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -77,8 +77,8 @@ public class NoopTransaction implements DataStoreTransaction {
                                         Optional<Sorting> sorting,
                                         Optional<Pagination> pagination,
                                         RequestScope scope) {
-        // Loads unsupported since nothing is persisted in this store
-        throw new InvalidOperationException("Cannot load object of type: " + entityClass);
+        // Default behavior: load object 1 and return as an array
+        return Collections.singletonList(this.loadObject(entityClass, 1L, filterExpression, scope));
     }
 
     @Override

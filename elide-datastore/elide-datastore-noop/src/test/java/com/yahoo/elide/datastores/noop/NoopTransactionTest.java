@@ -10,7 +10,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.ObjectEntityCache;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -73,10 +72,11 @@ public class NoopTransactionTest {
         assertEquals(bean.getId(), (Long) 1L);
     }
 
-    @Test(expectedExceptions = InvalidOperationException.class)
+    @Test
     public void testLoadObjects() throws Exception {
-        // Should throw
-        tx.loadObjects(NoopBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
+        Iterable<NoopBean> iterable = (Iterable) tx.loadObjects(NoopBean.class, Optional.empty(), Optional.empty(), Optional.empty(), requestScope);
+        NoopBean bean = iterable.iterator().next();
+        assertEquals(bean.getId(), (Long) 1L);
     }
 
     @Test
