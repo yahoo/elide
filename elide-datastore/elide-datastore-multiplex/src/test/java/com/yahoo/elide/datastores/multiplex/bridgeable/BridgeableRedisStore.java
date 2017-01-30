@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.multiplex.bridgeable;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -19,6 +20,9 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.multiplex.BridgeableStoreIT;
+import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
+import com.yahoo.elide.datastores.multiplex.MultiplexTransaction;
+import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
 import com.yahoo.elide.security.User;
 import lombok.AllArgsConstructor;
@@ -28,6 +32,7 @@ import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class ExampleRedisStore implements DataStore {
+public class BridgeableRedisStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         dictionary.bindEntity(RedisActions.class);
@@ -51,7 +56,7 @@ public class ExampleRedisStore implements DataStore {
         return new ExampleRedisTransaction();
     }
 
-    public class ExampleRedisTransaction implements DataStoreTransaction {
+    public class ExampleRedisTransaction implements DataStoreTransaction, BridgeableTransaction {
 
         @Override
         public Object loadObject(Class<?> entityClass,
@@ -116,21 +121,58 @@ public class ExampleRedisStore implements DataStore {
         }
 
         @Override
+        public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
+            return PersistentResource.getValue(entity, attributeName, scope.getDictionary());
+        }
+
+        // ---- Bridgeable Interfaces ----
+
+        @Override
+        public Object bridgeableLoadObject(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpression, RequestScope scope) {
+            if (parent.getClass().equals(HibernateUser.class) && "specialAction".equals(relationName)) {
+                EntityDictionary dictionary = scope.getDictionary();
+                Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
+                HibernateUser user = (HibernateUser) parent;
+                return muxTx.loadObject(entityClass,
+                        String.valueOf(user.getSpecialActionId()),
+                        Optional.empty(),
+                        scope);
+            }
+            log.error("Tried to bridge from parent: {} to relation name: {}", parent, relationName);
+            throw new RuntimeException("Unsupported bridging attempted!");
+        }
+
+        @Override
+        public Object bridgeableLoadObjects(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpressionOptional, RequestScope scope) {
+            if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
+                EntityDictionary dictionary = scope.getDictionary();
+                Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
+                FilterExpression filterExpression = new Predicate(
+                        new Predicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
+                        Operator.IN,
+                        Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
+                );
+                return muxTx.loadObjects(entityClass,
+                        Optional.of(filterExpression),
+                        Optional.empty(),
+                        Optional.empty(),
+                        scope);
+            }
+            log.error("Tried to bridge from parent: {} to relation name: {}", parent, relationName);
+            throw new RuntimeException("Unsupported bridging attempted!");
+        }
+
+        // ---- Unsupported operations ----
+
+        @Override
         public Object getRelation(DataStoreTransaction relationTx,
                                   Object entity,
                                   String relationName,
                                   Optional<FilterExpression> filterExpression,
                                   Optional<Sorting> sorting,
                                   Optional<Pagination> pagination, RequestScope scope) {
-            return null;
+            throw new UnsupportedOperationException("No redis relationships currently supported.");
         }
-
-        @Override
-        public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-            return null;
-        }
-
-        // ---- Unsupported operations ----
 
         @Override
         public <T> Long getTotalRecords(Class<T> entityClass) {

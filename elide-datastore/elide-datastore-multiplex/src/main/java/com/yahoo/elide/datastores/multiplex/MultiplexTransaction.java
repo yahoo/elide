@@ -159,9 +159,9 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
 
         // If different transactions, check if bridgeable and try to bridge
-        if (entityTransaction != relationTx && entityTransaction instanceof BridgeableTransaction) {
+        if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
             RelationshipType relationType = scope.getDictionary().getRelationshipType(entity.getClass(), relationName);
-            BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) entityTransaction;
+            BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) relationTx;
             if (relationType.isToMany()) {
                 return bridgeableTransaction.bridgeableLoadObjects(this,
                         entity, relationName, filterExpression, scope);

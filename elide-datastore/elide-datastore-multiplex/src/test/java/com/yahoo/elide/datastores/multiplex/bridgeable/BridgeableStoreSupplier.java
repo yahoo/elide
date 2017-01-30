@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.multiplex.bridgeable;
 
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.example.beans.HibernateUser;
 import org.hibernate.ScrollMode;
@@ -18,7 +19,7 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import java.util.function.Supplier;
 
 public class BridgeableStoreSupplier implements Supplier<DataStore> {
-    public static BridgeableHibernateStore LATEST_HIBERNATE_STORE;
+    public static HibernateStore LATEST_HIBERNATE_STORE;
 
     @Override
     public DataStore get() {
@@ -46,11 +47,12 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
-        LATEST_HIBERNATE_STORE = new BridgeableHibernateStore(metadataImplementor.buildSessionFactory(),
-                true,
-                ScrollMode.FORWARD_ONLY);
+        LATEST_HIBERNATE_STORE = new HibernateStore.Builder(metadataImplementor.buildSessionFactory())
+            .withScrollEnabled(true)
+            .withScrollMode(ScrollMode.FORWARD_ONLY)
+            .build();
 
-        ExampleRedisStore hbaseStore = new ExampleRedisStore();
+        BridgeableRedisStore hbaseStore = new BridgeableRedisStore();
 
         return new MultiplexManager(LATEST_HIBERNATE_STORE, hbaseStore);
     }
