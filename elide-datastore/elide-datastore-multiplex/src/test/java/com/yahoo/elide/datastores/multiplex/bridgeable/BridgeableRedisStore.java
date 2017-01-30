@@ -9,8 +9,8 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -122,7 +122,7 @@ public class BridgeableRedisStore implements DataStore {
 
         @Override
         public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-            return PersistentResource.getValue(entity, attributeName, scope.getDictionary());
+            return PersistentResource.getValue(entity, attributeName, scope);
         }
 
         // ---- Bridgeable Interfaces ----
@@ -147,8 +147,8 @@ public class BridgeableRedisStore implements DataStore {
             if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
-                FilterExpression filterExpression = new Predicate(
-                        new Predicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
+                FilterExpression filterExpression = new FilterPredicate(
+                        new FilterPredicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
                         Operator.IN,
                         Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                 );
@@ -255,7 +255,7 @@ public class BridgeableRedisStore implements DataStore {
      */
     private static class FilterExpressionParser implements Visitor<RedisFilter> {
         @Override
-        public RedisFilter visitPredicate(Predicate predicate) {
+        public RedisFilter visitPredicate(FilterPredicate predicate) {
             return new RedisFilter(
                     predicate.getField(),
                     predicate.getOperator(),
