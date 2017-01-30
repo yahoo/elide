@@ -15,7 +15,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 /**
- * Example application for resource config
+ * Example application for resource config.
  */
 public class ElideResourceConfig extends ResourceConfig {
     public ElideResourceConfig() {

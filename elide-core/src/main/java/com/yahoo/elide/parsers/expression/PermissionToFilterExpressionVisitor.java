@@ -9,7 +9,7 @@ package com.yahoo.elide.parsers.expression;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -147,8 +147,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     private Operator operator(FilterExpression expression) {
-        if (expression instanceof Predicate) {
-            return ((Predicate) expression).getOperator();
+        if (expression instanceof FilterPredicate) {
+            return ((FilterPredicate) expression).getOperator();
         }
         return null;
     }

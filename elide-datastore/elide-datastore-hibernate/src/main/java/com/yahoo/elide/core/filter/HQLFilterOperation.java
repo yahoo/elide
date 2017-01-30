@@ -20,15 +20,15 @@ import java.util.Set;
  */
 public class HQLFilterOperation implements FilterOperation<String> {
     @Override
-    public String apply(Predicate predicate) {
-        String fieldPath = predicate.getFieldPath();
-        String alias = predicate.getParameterName();
-        switch (predicate.getOperator()) {
+    public String apply(FilterPredicate filterPredicate) {
+        String fieldPath = filterPredicate.getFieldPath();
+        String alias = filterPredicate.getParameterName();
+        switch (filterPredicate.getOperator()) {
             case IN:
-                Preconditions.checkState(!predicate.getValues().isEmpty());
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s IN (:%s)", fieldPath, alias);
             case NOT:
-                Preconditions.checkState(!predicate.getValues().isEmpty());
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s NOT IN (:%s)", fieldPath, alias);
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
@@ -54,22 +54,22 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return "(1 = 0)";
 
             default:
-                throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
+                throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
         }
     }
 
     @Override
-    public String applyAll(Set<Predicate> predicates) {
+    public String applyAll(Set<FilterPredicate> filterPredicates) {
         StringBuilder filterString = new StringBuilder();
 
-        for (Predicate predicate : predicates) {
+        for (FilterPredicate filterPredicate : filterPredicates) {
             if (filterString.length() == 0) {
                 filterString.append("WHERE ");
             } else {
                 filterString.append(" AND ");
             }
 
-            filterString.append(apply(predicate));
+            filterString.append(apply(filterPredicate));
         }
 
         return filterString.toString();
@@ -89,8 +89,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
         private String query;
 
         @Override
-        public String visitPredicate(Predicate predicate) {
-            query = apply(predicate);
+        public String visitPredicate(FilterPredicate filterPredicate) {
+            query = apply(filterPredicate);
             return query;
         }
 

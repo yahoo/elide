@@ -8,6 +8,7 @@ package com.yahoo.elide.beans;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 /**
  * Simple bean intended to not be persisted
@@ -15,7 +16,17 @@ import javax.persistence.Entity;
 @Entity
 @Include(type = "theNoopBean")
 public class NoopBean {
+    private Long id;
     private String test;
+
+    @Id
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getTest() {
         return test;

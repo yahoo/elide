@@ -74,7 +74,8 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
     }
 
     /**
-     * A dialect parse function
+     * A dialect parse function.
+     *
      * @param <T> The parser dialect
      * @param <R> the return type of the parser
      */

@@ -25,7 +25,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -848,8 +848,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
 
-            filterExpression = Optional.of(new Predicate(
-                    new Predicate.PathElement(
+            filterExpression = Optional.of(new FilterPredicate(
+                    new FilterPredicate.PathElement(
                             entityType,
                             relation,
                             idType,
@@ -1345,7 +1345,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         runTriggers(OnReadPreSecurity.class, "");
         runTriggers(OnReadPreSecurity.class, fieldName);
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
-        return getValue(getObject(), fieldName, dictionary);
+        return getValue(getObject(), fieldName, requestScope);
     }
 
     /**
@@ -1360,7 +1360,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // Run the pre-security checks:
         runTriggers(OnReadPreSecurity.class, "");
         runTriggers(OnReadPreSecurity.class, fieldName);
-        return getValue(getObject(), fieldName, dictionary);
+        return getValue(getObject(), fieldName, requestScope);
     }
 
     /**
@@ -1594,13 +1594,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
      * @param target the object to get
      * @param fieldName the field name to get or invoke equivalent get method
-     * @param dictionary the dictionary
+     * @param requestScope the request scope
      * @return the value
      */
-    public static Object getValue(Object target, String fieldName, EntityDictionary dictionary) {
+    public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
+        EntityDictionary dictionary = requestScope.getDictionary();
         AccessibleObject accessor = dictionary.getAccessibleObject(target, fieldName);
         try {
             if (accessor instanceof Method) {
+                // Pass RequestScope into @Computed fields if requested
+                if (dictionary.isMethodRequestScopeable(target, (Method) accessor)) {
+                    return ((Method) accessor).invoke(target, requestScope);
+                }
                 return ((Method) accessor).invoke(target);
             } else if (accessor instanceof Field) {
                 return ((Field) accessor).get(target);

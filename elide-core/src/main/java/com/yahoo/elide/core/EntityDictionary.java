@@ -288,6 +288,28 @@ public class EntityDictionary {
     }
 
     /**
+     * Determine whether or not a method is request scopeable.
+     *
+     * @param entity  Entity instance
+     * @param method  Method on entity to check
+     * @return True if method accepts a RequestScope, false otherwise.
+     */
+    public boolean isMethodRequestScopeable(Object entity, Method method) {
+        return isMethodRequestScopeable(entity.getClass(), method);
+    }
+
+    /**
+     * Determine whether or not a method is request scopeable.
+     *
+     * @param entityClass  Entity to check
+     * @param method  Method on entity to check
+     * @return True if method accepts a RequestScope, false otherwise.
+     */
+    public boolean isMethodRequestScopeable(Class<?> entityClass, Method method) {
+        return getEntityBinding(entityClass).requestScopeableMethods.getOrDefault(method, false);
+    }
+
+    /**
      * Get a list of all fields including both relationships and attributes.
      *
      * @param entityClass entity name

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import com.google.common.base.Objects;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -19,9 +20,6 @@ import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
-
-import com.google.common.base.Objects;
-
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
@@ -43,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -135,7 +134,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Build the CriterionFilterOperation for provided criteria
+     * Build the CriterionFilterOperation for provided criteria.
+     *
      * @param criteria the criteria
      * @return the CriterionFilterOperation
      */
@@ -181,14 +181,18 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     *
      * @param loadClass The hibernate class to build the query off of.
      * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
      * @param pagination The Optional pagination object.
      * @return The Iterable for Hibernate.
      */
-    public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
-            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination, RequestScope scope) {
+    public Iterable loadObjects(final Class<?> loadClass,
+                                final Criteria criteria,
+                                final Optional<Set<Order>> sortingRules,
+                                final Optional<Pagination> pagination,
+                                RequestScope scope) {
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }
@@ -253,6 +257,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Parse include param into list of include fields.
+     *
      * @return list of include fields
      */
     public List<String> getIncludeList(RequestScope scope) {
@@ -268,7 +273,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         ArrayList<String> list = new ArrayList<>();
         for (String includeList : includeParam) {
             for (String includeItem : includeList.split(",")) {
-                for (int idx = 0; idx != -1;) {
+                for (int idx = 0; idx != -1; ) {
                     idx = includeItem.indexOf('.', idx + 1);
                     String field = (idx == -1) ? includeItem : includeItem.substring(0, idx);
                     list.add(field);
@@ -329,14 +334,14 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
         EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
                 if (scope instanceof PatchRequestScope && filterExpression.isPresent()) {
                     Class relationClass = dictionary.getType(entity, relationName);
                     return patchRequestFilterCollection(filteredVal,
-                            relationClass, filterExpression.get(), ((PatchRequestScope) scope).getDictionary());
+                            relationClass, filterExpression.get(), (PatchRequestScope) scope);
                 }
 
                 @SuppressWarnings("unchecked")
@@ -358,22 +363,22 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
+     * Use only inMemory tests during PatchRequest since objects in the collection may be new and unsaved.
+     *
+     * @param <T> the type parameter
+     * @param collection the collection to filter
      * @param entityClass the class of the entities in the collection
      * @param filterExpression the filter expression
-     * @param dictionary  Entity dictionary
+     * @param requestScope The request scope
      * @return the filtered collection
      */
     protected <T> Collection patchRequestFilterCollection(
             Collection collection,
             Class<T> entityClass,
             FilterExpression filterExpression,
-            EntityDictionary dictionary) {
-        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+            com.yahoo.elide.core.RequestScope requestScope) {
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
@@ -392,7 +397,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Overrideable default query limit for the data store
+     * Overrideable default query limit for the data store.
+     *
      * @return default limit
      */
     public Integer getQueryLimit() {

@@ -32,6 +32,7 @@ public class PermissionCondition {
      * This function attempts to create the appropriate PermissionCondition based on parameters that may or may
      * not be null. This is a temporary workaround given that the caller functions duplicate data in their
      * signatures and pass nulls.  The calling code needs to be cleaned up - and then this function can be disposed of.
+     *
      * @param permission
      * @param resource
      * @param field

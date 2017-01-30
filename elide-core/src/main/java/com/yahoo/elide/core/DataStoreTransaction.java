@@ -65,7 +65,8 @@ public interface DataStoreTransaction extends Closeable {
      * 4. transaction.flush();
      * 5. transaction.commit();
      */
-    default void preCommit() { }
+    default void preCommit() {
+    }
 
     /**
      * Elide will create and populate the object with the attributes and relationships before
@@ -92,7 +93,7 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param id - the ID of the object to load.
      * @param filterExpression - security filters that can be evaluated in the data store.
-     *                         It is optional for the data store to attempt evaluation.
+     * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
     Object loadObject(Class<?> entityClass,
@@ -105,10 +106,11 @@ public interface DataStoreTransaction extends Closeable {
      * Loads a collection of objects.
      *
      * @param filterExpression - filters that can be evaluated in the data store.
-     *                         It is optional for the data store to attempt evaluation.
+     * It is optional for the data store to attempt evaluation.
      * @param sorting - sorting which can be pushed down to the data store.
      * @param pagination - pagination which can be pushed down to the data store.
      * @param scope - contains request level metadata.
+     * @return a collection of the loaded objects
      */
     Iterable<Object> loadObjects(
             Class<?> entityClass,
@@ -121,7 +123,7 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Get total count of entity records satisfying the given filter.
      *
-     * @param <T>         the type parameter
+     * @param <T> the type parameter
      * @param entityClass the entity class
      * @return total matching entities
      */
@@ -137,10 +139,11 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
      * @param filterExpression - filtering which can be pushed down to the data store.
-     *                         It is optional for the data store to attempt evaluation.
+     * It is optional for the data store to attempt evaluation.
      * @param sorting - sorting which can be pushed down to the data store.
      * @param pagination - pagination which can be pushed down to the data store.
      * @param scope - contains request level metadata.
+     * @return the object in the relation
      */
     default Object getRelation(
             DataStoreTransaction relationTx,
@@ -157,9 +160,7 @@ public interface DataStoreTransaction extends Closeable {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-
-        return PersistentResource.getValue(entity, relationName, dictionary);
+        return PersistentResource.getValue(entity, relationName, requestScope);
     }
 
 
@@ -175,11 +176,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      */
     default void updateToManyRelation(DataStoreTransaction relationTx,
-                              Object entity,
-                              String relationName,
-                              Set<Object> newRelationships,
-                              Set<Object> deletedRelationships,
-                              RequestScope scope) { }
+                                      Object entity,
+                                      String relationName,
+                                      Set<Object> newRelationships,
+                                      Set<Object> deletedRelationships,
+                                      RequestScope scope) {
+    }
 
     /**
      * Elide core will update the in memory representation of the objects to the requested state.
@@ -195,7 +197,8 @@ public interface DataStoreTransaction extends Closeable {
                                      Object entity,
                                      String relationName,
                                      Object relationshipValue,
-                                     RequestScope scope) { }
+                                     RequestScope scope) {
+    }
 
     /**
      * Get an attribute from an object.
@@ -203,25 +206,26 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the attribute.
      * @param attributeName - name of the attribute.
      * @param scope - contains request level metadata.
+     * @return the value of the attribute
      */
     default Object getAttribute(Object entity,
-                               String attributeName,
-                               RequestScope scope) {
+                                String attributeName,
+                                RequestScope scope) {
         com.yahoo.elide.core.RequestScope requestScope;
         try {
-            requestScope  = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = (com.yahoo.elide.core.RequestScope) scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
 
-        Object val = PersistentResource.getValue(entity, attributeName, requestScope.getDictionary());
+        Object val = PersistentResource.getValue(entity, attributeName, requestScope);
         return val;
 
     }
 
     /**
      * Set an attribute on an object in the data store.
-     *
+     * <p>
      * Elide core will update the in memory representation of the objects to the requested state.
      * This function allow a data store to optionally persist the attribute if needed.
      *
@@ -231,7 +235,8 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      */
     default void setAttribute(Object entity,
-                      String attributeName,
-                      Object attributeValue,
-                      RequestScope scope) { }
+                              String attributeName,
+                              Object attributeValue,
+                              RequestScope scope) {
+    }
 }

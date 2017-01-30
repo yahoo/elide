@@ -12,6 +12,6 @@ import java.util.Set;
  * @param <T> the return type for apply
  */
 public interface FilterOperation<T> {
-    T apply(Predicate predicate);
-    T applyAll(Set<Predicate> predicates);
+    T apply(FilterPredicate filterPredicate);
+    T applyAll(Set<FilterPredicate> filterPredicates);
 }

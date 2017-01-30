@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -197,10 +197,10 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             this.allowNestedAssociations = allowNestedAssociations;
         }
 
-        public List<Predicate.PathElement> buildPath(Class rootEntityType, String selector) {
+        public List<FilterPredicate.PathElement> buildPath(Class rootEntityType, String selector) {
             String[] associationNames = selector.split("\\.");
 
-            List<Predicate.PathElement> path = new ArrayList<>();
+            List<FilterPredicate.PathElement> path = new ArrayList<>();
             Class entityType = rootEntityType;
 
             for (String associationName : associationNames) {
@@ -213,7 +213,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                             String.format("No such association %s for type %s", associationName, typeName));
                 }
 
-                Predicate.PathElement pathElement = new Predicate.PathElement(
+                FilterPredicate.PathElement pathElement = new FilterPredicate.PathElement(
                         entityType,
                         typeName,
                         fieldType,
@@ -271,7 +271,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             String relationship = node.getSelector();
             List<String> arguments = node.getArguments();
 
-            List<Predicate.PathElement> path = buildPath(entityType, relationship);
+            List<FilterPredicate.PathElement> path = buildPath(entityType, relationship);
 
 
             if (path.size() > 1 && !allowNestedAssociations) {
@@ -295,35 +295,35 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 String argument = arguments.get(0);
                 if (argument.startsWith("*") && argument.endsWith("*") && argument.length() > 2) {
                     argument = argument.substring(1, argument.length() - 1);
-                    return new Predicate(path, Operator.INFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.INFIX, Collections.singletonList(argument));
                 } else if (argument.startsWith("*") && argument.length() > 1) {
                     argument = argument.substring(1, argument.length());
-                    return new Predicate(path, Operator.POSTFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.POSTFIX, Collections.singletonList(argument));
                 } else if (argument.endsWith("*") && argument.length() > 1) {
                     argument = argument.substring(0, argument.length() - 1);
-                    return new Predicate(path, Operator.PREFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.PREFIX, Collections.singletonList(argument));
                 } else {
-                    return new Predicate(path, Operator.IN, values);
+                    return new FilterPredicate(path, Operator.IN, values);
                 }
             } else if (op.equals(RSQLOperators.NOT_EQUAL)) {
                 String argument = arguments.get(0);
                 if (argument.startsWith("*") && argument.endsWith("*")) {
                     argument = argument.substring(1, argument.length() - 1);
                     return new NotFilterExpression(
-                            new Predicate(path, Operator.INFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.INFIX, Collections.singletonList(argument)));
                 } else if (argument.startsWith("*")) {
                     argument = argument.substring(1, argument.length());
                     return new NotFilterExpression(
-                            new Predicate(path, Operator.POSTFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.POSTFIX, Collections.singletonList(argument)));
                 } else if (argument.endsWith("*")) {
                     argument = argument.substring(0, argument.length() - 1);
                     return new NotFilterExpression(
-                            new Predicate(path, Operator.PREFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.PREFIX, Collections.singletonList(argument)));
                 } else {
-                    return new NotFilterExpression(new Predicate(path, Operator.IN, values));
+                    return new NotFilterExpression(new FilterPredicate(path, Operator.IN, values));
                 }
             } else if (OPERATOR_MAP.containsKey(op)) {
-                return new Predicate(path, OPERATOR_MAP.get(op), values);
+                return new FilterPredicate(path, OPERATOR_MAP.get(op), values);
             }
 
             throw new RSQLParseException(String.format("Invalid Operator %s", op.getSymbol()));
@@ -336,7 +336,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          *
          * @return Returns Predicate for '=isnull=' case depending on its arguments.
          */
-        private FilterExpression buildIsNullOperator(List<Predicate.PathElement> path, List<String> arguments) {
+        private FilterExpression buildIsNullOperator(List<FilterPredicate.PathElement> path, List<String> arguments) {
             Operator elideOP;
             try {
                 boolean argBool = (boolean) CoerceUtil.coerce(arguments.get(0), boolean.class);
@@ -345,7 +345,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 } else {
                     elideOP = Operator.NOTNULL;
                 }
-                return new Predicate(path, elideOP);
+                return new FilterPredicate(path, elideOP);
             } catch (InvalidValueException e) {
                 throw new RSQLParseException(String.format("Invalid value for operator =isnull="));
             }

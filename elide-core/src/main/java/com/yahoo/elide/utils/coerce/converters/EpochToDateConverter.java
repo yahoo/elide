@@ -15,7 +15,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Convert epoch(in string or long) to Date
+ * Convert epoch(in string or long) to Date.
  */
 public class EpochToDateConverter implements Converter {
 

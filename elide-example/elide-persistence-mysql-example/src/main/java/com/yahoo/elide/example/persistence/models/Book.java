@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Model for books
+ * Model for books.
  */
 @Entity
 @Table(name = "book")

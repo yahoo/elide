@@ -14,6 +14,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import javax.persistence.Id;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -25,9 +26,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import javax.persistence.Id;
 
 /**
  * InMemoryDataStore transaction handler.
@@ -162,8 +162,8 @@ public class InMemoryTransaction implements DataStoreTransaction {
         }
         // Support for filtering
         if (filterExpression.isPresent()) {
-            java.util.function.Predicate predicate = filterExpression.get()
-                    .accept(new InMemoryFilterVisitor(dictionary));
+            Predicate predicate = filterExpression.get()
+                    .accept(new InMemoryFilterVisitor((com.yahoo.elide.core.RequestScope) scope));
             return (Collection) objs.values().stream()
                     .filter(predicate::test)
                     .collect(Collectors.toList());

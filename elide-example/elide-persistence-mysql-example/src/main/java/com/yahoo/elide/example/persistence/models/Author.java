@@ -7,7 +7,6 @@ package com.yahoo.elide.example.persistence.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Model for authors
+ * Model for authors.
  */
 @Entity
 @SharePermission(expression = "Prefab.Role.All")

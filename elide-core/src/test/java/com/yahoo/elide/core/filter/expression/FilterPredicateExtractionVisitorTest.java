@@ -3,34 +3,27 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core.filter;
+package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.NotFilterExpression;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.google.common.collect.Sets;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import example.Author;
+import example.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Tests Building a HQL Filter.
+ * Tests PredicateExtractionVisitor
  */
-public class HQLFilterOperationTest {
-
-    class Book {
-        String name;
-        String genre;
-        Author author;
-    }
-
-    class Author {
-        String name;
-    }
+public class FilterPredicateExtractionVisitorTest {
 
     @Test
-    public void testHQLQueryVisitor() throws Exception {
+    public void testPredicateExtraction() throws Exception {
         List<FilterPredicate.PathElement> p1Path = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", Author.class, "authors"),
                 new FilterPredicate.PathElement(Author.class, "author", String.class, "name")
@@ -51,11 +44,10 @@ public class HQLFilterOperationTest {
         AndFilterExpression and = new AndFilterExpression(or, p1);
         NotFilterExpression not = new NotFilterExpression(and);
 
-        HQLFilterOperation filterOp = new HQLFilterOperation();
-        String query = filterOp.apply(not);
+        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
 
-        String expected = "WHERE NOT (((name IN (:" + p2.getParameterName() + ") OR genre IN (:"
-                + p3.getParameterName() + ")) AND authors.name IN (:" + p1.getParameterName() + ")))";
-        Assert.assertEquals(query, expected);
+        Set<FilterPredicate> filterPredicates = not.accept(visitor);
+
+        Assert.assertEquals(filterPredicates, Sets.newHashSet(p1, p2, p3));
     }
 }

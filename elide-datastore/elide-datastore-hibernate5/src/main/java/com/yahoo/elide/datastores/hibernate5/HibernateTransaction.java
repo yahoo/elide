@@ -14,10 +14,9 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
-
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
 
-import com.yahoo.elide.extensions.PatchRequestScope;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -36,6 +35,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -125,7 +125,8 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Build the CriterionFilterOperation for provided criteria
+     * Build the CriterionFilterOperation for provided criteria.
+     *
      * @param criteria the criteria
      * @return the CriterionFilterOperation
      */
@@ -170,6 +171,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     /**
      * Generates the Hibernate ScrollableIterator for Hibernate Query.
+     *
      * @param loadClass The hibernate class to build the query off of.
      * @param criteria The criteria to use for filters
      * @param sortingRules The possibly empty sorting rules.
@@ -177,7 +179,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return The Iterable for Hibernate.
      */
     public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
-            final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+                                final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }
@@ -205,14 +207,14 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
         EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, dictionary);
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
                 if (scope instanceof PatchRequestScope && filterExpression.isPresent()) {
                     Class relationClass = dictionary.getType(entity, relationName);
                     return patchRequestFilterCollection(filteredVal,
-                            relationClass, filterExpression.get(), ((PatchRequestScope) scope).getDictionary());
+                            relationClass, filterExpression.get(), (PatchRequestScope) scope);
                 }
 
                 @SuppressWarnings("unchecked")
@@ -240,22 +242,22 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
-     * @param <T>         the type parameter
-     * @param collection  the collection to filter
+     * Use only inMemory tests during PatchRequest since objects in the collection may be new and unsaved.
+     *
+     * @param <T> the type parameter
+     * @param collection the collection to filter
      * @param entityClass the class of the entities in the collection
      * @param filterExpression the filter expression
-     * @param dictionary  Entity dictionary
+     * @param requestScope the request scope
      * @return the filtered collection
      */
     protected <T> Collection patchRequestFilterCollection(
             Collection collection,
             Class<T> entityClass,
             FilterExpression filterExpression,
-            EntityDictionary dictionary) {
-        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+            com.yahoo.elide.core.RequestScope requestScope) {
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());

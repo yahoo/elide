@@ -5,26 +5,26 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 import lombok.NonNull;
-
+import lombok.ToString;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Predicate class.
  */
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Predicate implements FilterExpression, Function<EntityDictionary, java.util.function.Predicate> {
+public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
 
     /**
      * The path taken through data model associations to
@@ -45,15 +45,15 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
 
-    public Predicate(PathElement pathElement, Operator op, List<Object> values) {
+    public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
         this(Collections.singletonList(pathElement), op, values);
     }
 
-    public Predicate(PathElement pathElement, Operator op) {
+    public FilterPredicate(PathElement pathElement, Operator op) {
         this(Collections.singletonList(pathElement), op, Collections.emptyList());
     }
 
-    public Predicate(List<PathElement> path, Operator op) {
+    public FilterPredicate(List<PathElement> path, Operator op) {
         this(path, op, Collections.emptyList());
     }
 
@@ -74,7 +74,7 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
     }
 
     /**
-     * get a unique name for this predicate to be used as a parameter name
+     * Get a unique name for this predicate to be used as a parameter name.
      * @return unique name
      */
     public String getParameterName() {
@@ -92,7 +92,7 @@ public class Predicate implements FilterExpression, Function<EntityDictionary, j
     }
 
     @Override
-    public java.util.function.Predicate apply(EntityDictionary dictionary) {
+    public Predicate apply(RequestScope dictionary) {
         return operator.contextualize(getFieldPath(), values, dictionary);
     }
 

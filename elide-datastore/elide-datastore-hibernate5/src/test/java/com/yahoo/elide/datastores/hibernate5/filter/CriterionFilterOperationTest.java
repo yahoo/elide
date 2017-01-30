@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5.filter;
 
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -35,21 +35,21 @@ public class CriterionFilterOperationTest {
 
     @Test
     public void testNestedCriterion() throws Exception {
-        List<Predicate.PathElement> p1Path = Arrays.asList(
-                new Predicate.PathElement(Book.class, "book", Author.class, "authors"),
-                new Predicate.PathElement(Author.class, "author", String.class, "name")
+        List<FilterPredicate.PathElement> p1Path = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, "book", Author.class, "authors"),
+                new FilterPredicate.PathElement(Author.class, "author", String.class, "name")
         );
-        Predicate p1 = new Predicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
+        FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
 
-        List<Predicate.PathElement> p2Path = Arrays.asList(
-                new Predicate.PathElement(Book.class, "book", String.class, "name")
+        List<FilterPredicate.PathElement> p2Path = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, "book", String.class, "name")
         );
-        Predicate p2 = new Predicate(p2Path, Operator.IN, Arrays.asList("blah"));
+        FilterPredicate p2 = new FilterPredicate(p2Path, Operator.IN, Arrays.asList("blah"));
 
-        List<Predicate.PathElement> p3Path = Arrays.asList(
-                new Predicate.PathElement(Book.class, "book", String.class, "genre")
+        List<FilterPredicate.PathElement> p3Path = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
         );
-        Predicate p3 = new Predicate(p3Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and = new AndFilterExpression(or, p1);
@@ -69,12 +69,12 @@ public class CriterionFilterOperationTest {
 
     @Test
     public void testMultipartAlias() throws Exception {
-        List<Predicate.PathElement> p1Path = Arrays.asList(
-            new Predicate.PathElement(Person.class, "person", AddressFragment.class, "address"),
-            new Predicate.PathElement(AddressFragment.class, "addressFragment", AddressFragment.ZipCode.class, "zip"),
-            new Predicate.PathElement(AddressFragment.ZipCode.class, "zipCode", String.class, "zip")
+        List<FilterPredicate.PathElement> p1Path = Arrays.asList(
+            new FilterPredicate.PathElement(Person.class, "person", AddressFragment.class, "address"),
+            new FilterPredicate.PathElement(AddressFragment.class, "addressFragment", AddressFragment.ZipCode.class, "zip"),
+            new FilterPredicate.PathElement(AddressFragment.ZipCode.class, "zipCode", String.class, "zip")
         );
-        Predicate p1 = new Predicate(p1Path, Operator.IN, Arrays.asList("61820"));
+        FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("61820"));
 
         Criteria criteria = mock(Criteria.class);
         CriterionFilterOperation filterOp = new CriterionFilterOperation(criteria);
