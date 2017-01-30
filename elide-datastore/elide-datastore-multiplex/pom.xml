@@ -144,26 +144,21 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
-            <!-- TODO: Get the failsafe tests to run properly as part of build! -->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-failsafe-plugin</artifactId>-->
-                <!--<configuration>-->
-                    <!--&lt;!&ndash; Run our integration tests only &ndash;&gt;-->
-                    <!--<includes>-->
-                        <!--<include>com.yahoo.elide.datastores.multiplex.BridgeableStoreIT</include>-->
-                        <!--&lt;!&ndash;<include>com/yahoo/elide/datastores/multiplex/BridgeableStoreIT.java</include>&ndash;&gt;-->
-                    <!--</includes>-->
-                    <!--&lt;!&ndash;<excludesFile>**/*IT.java</excludesFile>&ndash;&gt;-->
-                    <!--&lt;!&ndash; Don't run elide-integration-test tests on multiplex manager &ndash;&gt;-->
-                    <!--<classpathDependencyExcludes>-->
-                        <!--<classpathDependencyExclude>com.yahoo.elide:elide-integration-tests</classpathDependencyExclude>-->
-                    <!--</classpathDependencyExcludes>-->
-                    <!--&lt;!&ndash;<excludes>&ndash;&gt;-->
-                        <!--&lt;!&ndash;<exclude>**/*</exclude>&ndash;&gt;-->
-                    <!--&lt;!&ndash;</excludes>&ndash;&gt;-->
-                <!--</configuration>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <!-- Run our integration tests only -->
+                    <test>**/*IT.*</test>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                    <!-- Don't run elide-integration-test tests on multiplex manager -->
+                    <excludes>
+                        <exclude>com.yahoo.elide.tests.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
