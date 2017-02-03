@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 /**
@@ -36,6 +37,13 @@ public enum Operator {
         }
     },
 
+    PREFIXI("prefixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.prefixi(field, values, requestScope);
+        }
+    },
+
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(
@@ -52,11 +60,25 @@ public enum Operator {
         }
     },
 
+    POSTFIXI("postfixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.postfixi(field, values, requestScope);
+        }
+    },
+
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(
                 String field, List<Object> values, RequestScope requestScope) {
             return Operator.infix(field, values, requestScope);
+        }
+    },
+
+    INFIXI("infixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.infixi(field, values, requestScope);
         }
     },
 
@@ -188,6 +210,23 @@ public enum Operator {
         };
     }
 
+    private static <T> Predicate<T> prefixi(
+            String field, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("PREFIXI can only take one argument");
+            }
+
+            Object val = getFieldValue(entity, field, requestScope);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.toLowerCase(Locale.ENGLISH).startsWith(filterStr.toLowerCase(Locale.ENGLISH));
+        };
+    }
+
     private static <T> Predicate<T> postfix(
             String field, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
@@ -205,6 +244,23 @@ public enum Operator {
         };
     }
 
+    private static <T> Predicate<T> postfixi(
+            String field, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("POSTFIXI can only take one argument");
+            }
+
+            Object val = getFieldValue(entity, field, requestScope);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.toLowerCase(Locale.ENGLISH).endsWith(filterStr.toLowerCase(Locale.ENGLISH));
+        };
+    }
+
     private static <T> Predicate<T> infix(String field, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
             if (values.size() != 1) {
@@ -218,6 +274,22 @@ public enum Operator {
             return valStr != null
                     && filterStr != null
                     && valStr.contains(filterStr);
+        };
+    }
+
+    private static <T> Predicate<T> infixi(String field, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 1) {
+                throw new InvalidPredicateException("INFIXI can only take one argument");
+            }
+
+            Object val = getFieldValue(entity, field, requestScope);
+            String valStr = CoerceUtil.coerce(val, String.class);
+            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
+
+            return valStr != null
+                    && filterStr != null
+                    && valStr.toLowerCase(Locale.ENGLISH).contains(filterStr.toLowerCase(Locale.ENGLISH));
         };
     }
 
