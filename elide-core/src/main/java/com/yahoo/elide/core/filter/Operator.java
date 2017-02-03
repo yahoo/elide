@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -36,6 +38,13 @@ public enum Operator {
         }
     },
 
+    PREFIX_CASE_INSENSITIVE("prefixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.prefix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+        }
+    },
+
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(
@@ -52,11 +61,25 @@ public enum Operator {
         }
     },
 
+    POSTFIX_CASE_INSENSITIVE("postfixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.postfix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+        }
+    },
+
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(
                 String field, List<Object> values, RequestScope requestScope) {
             return Operator.infix(field, values, requestScope);
+        }
+    },
+
+    INFIX_CASE_INSENSITIVE("infixi", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.infix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
         }
     },
 
@@ -173,6 +196,11 @@ public enum Operator {
 
     private static <T> Predicate<T> prefix(
             String field, List<Object> values, RequestScope requestScope) {
+        return prefix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> prefix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("PREFIX can only take one argument");
@@ -184,12 +212,17 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.startsWith(filterStr);
+                    && transform.apply(valStr).startsWith(transform.apply(filterStr));
         };
     }
 
     private static <T> Predicate<T> postfix(
             String field, List<Object> values, RequestScope requestScope) {
+        return postfix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> postfix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("POSTFIX can only take one argument");
@@ -201,11 +234,16 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.endsWith(filterStr);
+                    && transform.apply(valStr).endsWith(transform.apply(filterStr));
         };
     }
 
     private static <T> Predicate<T> infix(String field, List<Object> values, RequestScope requestScope) {
+        return infix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> infix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("INFIX can only take one argument");
@@ -217,7 +255,7 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.contains(filterStr);
+                    && transform.apply(valStr).contains(transform.apply(filterStr));
         };
     }
 
