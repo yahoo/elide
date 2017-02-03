@@ -32,10 +32,16 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return String.format("%s NOT IN (:%s)", fieldPath, alias);
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
+            case PREFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT(lower(:%s), '%%')", fieldPath, alias);
             case POSTFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
+            case POSTFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s))", fieldPath, alias);
             case INFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
+            case INFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s), '%%')", fieldPath, alias);
             case ISNULL:
                 return String.format("%s IS NULL", fieldPath);
             case NOTNULL:

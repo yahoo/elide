@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -39,6 +40,7 @@ public class Book {
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Collection<Chapter> chapters = new ArrayList<>();
+    private String editorName;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -97,5 +99,15 @@ public class Book {
 
     public void setAuthors(Collection<Author> authors) {
         this.authors = authors;
+    }
+
+    // Case sensitive collation for MySQL:
+    @Column(columnDefinition = "varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL")
+    public String getEditorName() {
+        return editorName;
+    }
+
+    public void setEditorName(String editorName) {
+        this.editorName = editorName;
     }
 }

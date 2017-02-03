@@ -294,7 +294,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                           "id": "12345681-1234-1234-1234-1234567890ac",
                           "attributes": {
                             "title": "Life with Null Ned",
-                            "language": "English"
+                            "language": "English",
+                            "editorName": "Ed"
                           }
                         }
                       },
@@ -307,7 +308,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                           "attributes": {
                             "title": "Life with Null Ned 2",
                             "genre": "Not Null",
-                            "language": "English"
+                            "language": "English",
+                            "editorName": "Eddy"
                           }
                         }
                       },
@@ -1012,6 +1014,96 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                 RestAssured.get("/author/${asimovId}/books?filter[book]=genre==*Fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
+    }
+
+    @Test
+    public void testNonRootFilterPostfixInsensitive() {
+        int editorEdBooks = 0
+        for (JsonNode node : nullNedBooks.get("data")) {
+            if (node.get("attributes").get("editorName").asText().endsWith("d")) {
+                editorEdBooks += 1
+            }
+        }
+
+        Assert.assertTrue(editorEdBooks > 0)
+
+        /* Test Default */
+        def editorNameEndsWithd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][postfix]=D").asString())
+
+        Assert.assertEquals(0, editorNameEndsWithd.get("data").size())
+
+        editorNameEndsWithd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][postfixi]=D").asString())
+
+        Assert.assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size())
+
+        /* Test RSQL Typed */
+        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
+//        editorNameEndsWithd = mapper.readTree(
+//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
+//
+//        Assert.assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size())
+    }
+
+    @Test
+    public void testNonRootFilterPrefixInsensitive() {
+        int editorEdBooks = 0
+        for (JsonNode node : nullNedBooks.get("data")) {
+            if (node.get("attributes").get("editorName").asText().startsWith("E")) {
+                editorEdBooks += 1
+            }
+        }
+
+        Assert.assertTrue(editorEdBooks > 0)
+
+        /* Test Default */
+        def editorNameStartsWithE = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][prefix]=e").asString())
+
+        Assert.assertEquals(0, editorNameStartsWithE.get("data").size())
+
+        editorNameStartsWithE = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][prefixi]=e").asString())
+
+        Assert.assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size())
+
+        /* Test RSQL Typed */
+        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
+//        editorNameStartsWithE = mapper.readTree(
+//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
+//
+//        Assert.assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size())
+    }
+
+    @Test
+    public void testNonRootFilterInfixInsensitive() {
+        int editorEditBooks = 0
+        for (JsonNode node : nullNedBooks.get("data")) {
+            if (node.get("attributes").get("editorName").asText().contains("Ed")) {
+                editorEditBooks += 1
+            }
+        }
+
+        Assert.assertTrue(editorEditBooks > 0)
+
+        /* Test Default */
+        def editorNameContainsEd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][infix]=eD").asString())
+
+        Assert.assertEquals(0, editorNameContainsEd.get("data").size())
+
+        editorNameContainsEd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book.editorName][infixi]=eD").asString())
+
+        Assert.assertEquals(editorEditBooks, editorNameContainsEd.get("data").size())
+
+        /* Test RSQL Typed */
+        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
+//        editorNameContainsEd = mapper.readTree(
+//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
+//
+//        Assert.assertEquals(editorEditBooks, editorNameContainsEd.get("data").size())
     }
 
     @Test

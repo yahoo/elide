@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -37,10 +38,10 @@ public enum Operator {
         }
     },
 
-    PREFIXI("prefixi", true) {
+    PREFIX_CASE_INSENSITIVE("prefixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.prefixi(field, values, requestScope);
+            return Operator.prefix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
         }
     },
 
@@ -60,10 +61,10 @@ public enum Operator {
         }
     },
 
-    POSTFIXI("postfixi", true) {
+    POSTFIX_CASE_INSENSITIVE("postfixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.postfixi(field, values, requestScope);
+            return Operator.postfix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
         }
     },
 
@@ -75,10 +76,10 @@ public enum Operator {
         }
     },
 
-    INFIXI("infixi", true) {
+    INFIX_CASE_INSENSITIVE("infixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.infixi(field, values, requestScope);
+            return Operator.infix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
         }
     },
 
@@ -195,6 +196,11 @@ public enum Operator {
 
     private static <T> Predicate<T> prefix(
             String field, List<Object> values, RequestScope requestScope) {
+        return prefix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> prefix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("PREFIX can only take one argument");
@@ -206,29 +212,17 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.startsWith(filterStr);
-        };
-    }
-
-    private static <T> Predicate<T> prefixi(
-            String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("PREFIXI can only take one argument");
-            }
-
-            Object val = getFieldValue(entity, field, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-
-            return valStr != null
-                    && filterStr != null
-                    && valStr.toLowerCase(Locale.ENGLISH).startsWith(filterStr.toLowerCase(Locale.ENGLISH));
+                    && transform.apply(valStr).startsWith(transform.apply(filterStr));
         };
     }
 
     private static <T> Predicate<T> postfix(
             String field, List<Object> values, RequestScope requestScope) {
+        return postfix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> postfix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("POSTFIX can only take one argument");
@@ -240,28 +234,16 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.endsWith(filterStr);
-        };
-    }
-
-    private static <T> Predicate<T> postfixi(
-            String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("POSTFIXI can only take one argument");
-            }
-
-            Object val = getFieldValue(entity, field, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-
-            return valStr != null
-                    && filterStr != null
-                    && valStr.toLowerCase(Locale.ENGLISH).endsWith(filterStr.toLowerCase(Locale.ENGLISH));
+                    && transform.apply(valStr).endsWith(transform.apply(filterStr));
         };
     }
 
     private static <T> Predicate<T> infix(String field, List<Object> values, RequestScope requestScope) {
+        return infix(field, values, requestScope, Function.identity());
+    }
+
+    private static <T> Predicate<T> infix(
+            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("INFIX can only take one argument");
@@ -273,23 +255,7 @@ public enum Operator {
 
             return valStr != null
                     && filterStr != null
-                    && valStr.contains(filterStr);
-        };
-    }
-
-    private static <T> Predicate<T> infixi(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("INFIXI can only take one argument");
-            }
-
-            Object val = getFieldValue(entity, field, requestScope);
-            String valStr = CoerceUtil.coerce(val, String.class);
-            String filterStr = CoerceUtil.coerce(values.get(0), String.class);
-
-            return valStr != null
-                    && filterStr != null
-                    && valStr.toLowerCase(Locale.ENGLISH).contains(filterStr.toLowerCase(Locale.ENGLISH));
+                    && transform.apply(valStr).contains(transform.apply(filterStr));
         };
     }
 
