@@ -37,6 +37,9 @@ public interface BridgeableTransaction {
     /**
      * Load a single object from a bridgeable store.
      *
+     * <em>NOTE:</em> The filter expression will be pre-populated with an ID-based lookup from Elide.
+     *       This filter expression is constructed with the id passed in the query URL.
+     *
      * @param muxTx  Multiplex transaction
      * @param parent  Parent object
      * @param relationName  Relation name on parent to expected entity
