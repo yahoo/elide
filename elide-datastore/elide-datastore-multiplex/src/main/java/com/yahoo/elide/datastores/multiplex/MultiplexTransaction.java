@@ -7,7 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -156,6 +157,21 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+
+        // If different transactions, check if bridgeable and try to bridge
+        if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
+            RelationshipType relationType = scope.getDictionary().getRelationshipType(entity.getClass(), relationName);
+            BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) relationTx;
+            if (relationType.isToMany()) {
+                return bridgeableTransaction.bridgeableLoadObjects(this,
+                        entity, relationName, filterExpression, scope);
+            } else {
+                return bridgeableTransaction.bridgeableLoadObject(this,
+                        entity, relationName, filterExpression, scope);
+            }
+        }
+
+        // Otherwise, rely on existing underlying transaction to call correctly into relationTx
         return entityTransaction.getRelation(relationTx, entity,
                 relationName, filterExpression, sorting, pagination, scope);
     }

@@ -14,11 +14,11 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.PersistentResource;
-import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.User;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -150,12 +150,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
         Criteria criteria = session.createCriteria(entityClass);
 
         if (filterExpression.isPresent()) {
@@ -166,7 +160,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         Set<Order> validatedSortingRules = null;
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
-                final EntityDictionary dictionary = requestScope.getDictionary();
+                final EntityDictionary dictionary = scope.getDictionary();
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -243,16 +237,10 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     private <T> void joinCriteria(Criteria criteria, final Class<T> loadClass, RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-        EntityDictionary dictionary = requestScope.getDictionary();
+        EntityDictionary dictionary = scope.getDictionary();
         String type = dictionary.getJsonAliasFor(loadClass);
         Set<String> fields = Objects.firstNonNull(
-                requestScope.getSparseFields().get(type), Collections.<String>emptySet());
+                scope.getSparseFields().get(type), Collections.<String>emptySet());
         for (String field : fields) {
             try {
                 checkFieldReadPermission(loadClass, field, scope);
@@ -273,17 +261,11 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return list of include fields
      */
     public List<String> getIncludeList(RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
         List<String> includeParam;
-        if (!requestScope.getQueryParams().isPresent()) {
+        if (!scope.getQueryParams().isPresent()) {
             return Collections.emptyList();
         }
-        includeParam = requestScope.getQueryParams().get().get("include");
+        includeParam = scope.getQueryParams().get().get("include");
         if (includeParam == null || includeParam.isEmpty()) {
             return Collections.emptyList();
         }
@@ -303,12 +285,6 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     private <T> void checkFieldReadPermission(final Class<T> loadClass, String field, RequestScope scope) {
         // wrap class as PersistentResource in order to check permission
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
         PersistentResource<T> resource = new PersistentResource<T>() {
             @Override
             public boolean matchesId(String id) {
@@ -342,11 +318,11 @@ public class HibernateTransaction implements DataStoreTransaction {
 
             @Override
             public com.yahoo.elide.security.RequestScope getRequestScope() {
-                return requestScope;
+                return scope;
             }
         };
 
-        requestScope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
+        scope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
     }
 
     public Object getRelation(
@@ -357,14 +333,8 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
-        try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-        EntityDictionary dictionary = requestScope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, requestScope);
+        EntityDictionary dictionary = scope.getDictionary();
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {

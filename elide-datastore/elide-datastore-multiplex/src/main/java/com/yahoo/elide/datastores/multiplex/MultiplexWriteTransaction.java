@@ -7,14 +7,12 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -116,7 +114,8 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
         if (transaction != lastDataStoreTransaction) {
-            ArrayList<T> newList = Lists.newArrayList(list);
+            ArrayList<T> newList = new ArrayList<>();
+            list.forEach(newList::add);
             for (T object : newList) {
                 hold(transaction, object);
             }

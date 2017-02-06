@@ -282,6 +282,9 @@ public class Elide {
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
+        } catch (RuntimeException | Error e) {
+            log.error("Exception uncaught by Elide", e);
+            throw e;
         } finally {
             auditLogger.clear();
         }
@@ -341,6 +344,9 @@ public class Elide {
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
+        } catch (RuntimeException | Error e) {
+            log.error("Exception uncaught by Elide", e);
+            throw e;
         } finally {
             auditLogger.clear();
         }
@@ -424,6 +430,9 @@ public class Elide {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e), isVerbose);
+        } catch (RuntimeException | Error e) {
+            log.error("Exception uncaught by Elide", e);
+            throw e;
         } finally {
             auditLogger.clear();
         }
@@ -488,6 +497,9 @@ public class Elide {
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ParseCancellationException e) {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
+        } catch (RuntimeException | Error e) {
+            log.error("Exception uncaught by Elide", e);
+            throw e;
         } finally {
             auditLogger.clear();
         }
