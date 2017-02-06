@@ -27,16 +27,40 @@ import java.util.Optional;
  *
  * <strong>NOTE:</strong> that since Elide binds a particular <em>type</em> to a datastore attributes will be looked up
  * using the datastore reasonable for managing that entity.
+ *
+ * <strong>N.B.</strong> this interface should be implemented on the relevant store in which a particular object lives.
+ *           That is, considering the example above, the Redis store would implement this interface to bridge
+ *           automagically from MySQL.
  */
 public interface BridgeableTransaction {
 
+    /**
+     * Load a single object from a bridgeable store.
+     *
+     * @param muxTx  Multiplex transaction
+     * @param parent  Parent object
+     * @param relationName  Relation name on parent to expected entity
+     * @param filterExpression  Filter expression to apply to query
+     * @param scope  Request scope
+     * @return Loaded object from bridgeable store.
+     */
     Object bridgeableLoadObject(MultiplexTransaction muxTx,
                                 Object parent,
                                 String relationName,
                                 Optional<FilterExpression> filterExpression,
                                 RequestScope scope);
 
-    Object bridgeableLoadObjects(MultiplexTransaction muxTx,
+    /**
+     * Load a collection of objects from a bridgeable store.
+     *
+     * @param muxTx  Multiplex transaction
+     * @param parent  Parent object
+     * @param relationName  Relation name on parent to expected entity
+     * @param filterExpression  Filter expression to apply to query
+     * @param scope  Request scope
+     * @return Loaded iterable of objects from bridgeable store.
+     */
+    Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx,
                                  Object parent,
                                  String relationName,
                                  Optional<FilterExpression> filterExpression,
