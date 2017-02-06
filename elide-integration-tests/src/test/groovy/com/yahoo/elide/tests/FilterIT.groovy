@@ -1380,6 +1380,26 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testGetBooksFilteredByAuthorsId() {
+        String nullNedIdStr = String.valueOf(nullNedId);
+        /* Test Default */
+        def result = mapper.readTree(RestAssured.get("book?filter[book.authors.id]=" + nullNedIdStr).asString());
+        Assert.assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            String authorId = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+            Assert.assertEquals(authorId, nullNedId);
+        }
+
+        /* Test RSQL Global */
+        result = mapper.readTree(RestAssured.get("book?filter=authors.id==" + nullNedIdStr).asString());
+        Assert.assertEquals(result.get("data").size(), nullNedBooks.get("data").size());
+        for (JsonNode book : result.get("data")) {
+            String authorId = book.get("relationships").get("authors").get("data").get(0).get("id").asText();
+            Assert.assertEquals(authorId, nullNedId);
+        }
+    }
+
+    @Test
     public void testGetBooksFilteredByAuthorAndTitle() {
         /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.authors.name]=Null Ned&filter[book.title]=Life with Null Ned").asString());
