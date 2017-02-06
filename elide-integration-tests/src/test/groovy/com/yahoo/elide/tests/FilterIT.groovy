@@ -1039,11 +1039,10 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size())
 
         /* Test RSQL Typed */
-        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
-//        editorNameEndsWithd = mapper.readTree(
-//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
-//
-//        Assert.assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size())
+        editorNameEndsWithd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=editorName==*D").asString())
+
+        Assert.assertEquals(editorEdBooks, editorNameEndsWithd.get("data").size())
     }
 
     @Test
@@ -1069,11 +1068,10 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size())
 
         /* Test RSQL Typed */
-        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
-//        editorNameStartsWithE = mapper.readTree(
-//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
-//
-//        Assert.assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size())
+        editorNameStartsWithE = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=editorName==e*").asString())
+
+        Assert.assertEquals(editorEdBooks, editorNameStartsWithE.get("data").size())
     }
 
     @Test
@@ -1099,11 +1097,10 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(editorEditBooks, editorNameContainsEd.get("data").size())
 
         /* Test RSQL Typed */
-        // TODO: Waiting for response https://github.com/jirutka/rsql-parser/issues/25
-//        editorNameContainsEd = mapper.readTree(
-//                RestAssured.get("/author/${nullNedId}/books?filter[book]=genre==*Fiction").asString())
-//
-//        Assert.assertEquals(editorEditBooks, editorNameContainsEd.get("data").size())
+        editorNameContainsEd = mapper.readTree(
+                RestAssured.get("/author/${nullNedId}/books?filter[book]=editorName==*eD*").asString())
+
+        Assert.assertEquals(editorEditBooks, editorNameContainsEd.get("data").size())
     }
 
     @Test
