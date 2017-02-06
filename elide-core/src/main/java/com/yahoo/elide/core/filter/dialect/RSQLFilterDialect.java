@@ -283,7 +283,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return buildIsNullOperator(path, arguments);
             }
 
-            Class<?> relationshipType = path.get(0).getFieldType();
+            Class<?> relationshipType = path.get(path.size() - 1).getFieldType();
 
             //Coerce arguments to their correct types
             List<Object> values = arguments

@@ -140,13 +140,13 @@ public class JsonApiPatch {
                 try {
                     return Pair.of(HttpStatus.SC_OK, mergeResponse(results));
                 } catch (HttpStatusException e) {
-                    throwErrorResponse(e, requestScope.getPermissionExecutor().isVerbose());
+                    throwErrorResponse();
                     // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
                     return null;
                 }
             };
         } catch (HttpStatusException e) {
-            throwErrorResponse(e, requestScope.getPermissionExecutor().isVerbose());
+            throwErrorResponse();
             // NOTE: This should never be called. throwErrorResponse should _always_ throw an exception
             return () -> null;
         }
@@ -279,11 +279,7 @@ public class JsonApiPatch {
     /**
      * Turn an exception into a proper error response from patch extension.
      */
-    private void throwErrorResponse(HttpStatusException e, boolean isVerbose) {
-        if (e.getStatus() == HttpStatus.SC_FORBIDDEN) {
-            throw new JsonPatchExtensionException(isVerbose ? e.getVerboseErrorResponse() : e.getErrorResponse());
-        }
-
+    private void throwErrorResponse() {
         ObjectNode errorContainer = getErrorContainer();
         ArrayNode errorList = (ArrayNode) errorContainer.get("errors");
 
