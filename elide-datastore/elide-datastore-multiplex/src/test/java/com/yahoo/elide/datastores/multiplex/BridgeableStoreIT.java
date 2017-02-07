@@ -15,7 +15,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import redis.clients.jedis.Jedis;
+import redis.embedded.RedisExecProvider;
 import redis.embedded.RedisServer;
+import redis.embedded.RedisServerBuilder;
+import redis.embedded.util.OS;
 
 import static com.jayway.restassured.RestAssured.*;
 
@@ -25,12 +28,26 @@ import java.util.HashMap;
 public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     public static RedisServer REDIS_SERVER;
     public static Jedis REDIS_CLIENT;
+    public static final String REDIS_SERVER_PROPERTY = "multiplex.redis.server.path";
 
     @BeforeClass
     public void setup() throws Exception {
         // Redis data
         int redisPort = getUnusedPort();
-        REDIS_SERVER = new RedisServer(redisPort);
+        RedisServerBuilder redisServerBuilder = new RedisServerBuilder()
+                .port(redisPort);
+
+        // Allow overriding the redis executable path with custom path on system
+        String redisServerPath = System.getProperty(REDIS_SERVER_PROPERTY);
+        if (redisServerPath != null) {
+            redisServerBuilder = redisServerBuilder
+                    .redisExecProvider(RedisExecProvider.defaultProvider()
+                            .override(OS.UNIX, redisServerPath)
+                            .override(OS.WINDOWS, redisServerPath)
+                            .override(OS.MAC_OS_X, redisServerPath));
+        }
+
+        REDIS_SERVER = redisServerBuilder.build();
         REDIS_SERVER.start();
 
         REDIS_CLIENT = new Jedis("localhost", redisPort);
