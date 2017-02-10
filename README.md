@@ -40,6 +40,10 @@ Additionally, if you do not plan to write your own data store, select the approp
 </dependency>
 ```
 
+## Development
+
+If you are contributing to Elide using IDE, such as IntelliJ, make sure to install [Lombok](https://projectlombok.org/) plugin.
+
 ##Tutorials
 [Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
 
