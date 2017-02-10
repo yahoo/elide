@@ -173,6 +173,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     /**
      * Create a new RequestScope with specified update status code
+     * 
      * @param path the URL path
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
