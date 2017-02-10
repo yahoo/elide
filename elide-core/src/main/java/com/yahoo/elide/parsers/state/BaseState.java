@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
@@ -14,10 +18,15 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
+import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
+import com.yahoo.elide.jsonapi.models.Data;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Resource;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.core.MultivaluedMap;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -149,5 +158,38 @@ public abstract class BaseState {
      */
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) throws HttpStatusException {
         throw new UnsupportedOperationException(this.getClass().toString());
+    }
+
+    /**
+     * Construct PATCH response
+     *
+     * @param record a resource that has been updated
+     * @param stateContext a state that contains reference to request scope where we can get status code for update
+     * @return a supplier of PATH response
+     */
+    protected static Supplier<Pair<Integer, JsonNode>> constructPatchResponse(
+            PersistentResource record,
+            StateContext stateContext) {
+        RequestScope requestScope = stateContext.getRequestScope();
+        int updateStatusCode = requestScope.getUpdateStatusCode();
+        return () -> Pair.of(
+                updateStatusCode,
+                updateStatusCode == HttpStatus.SC_NO_CONTENT ? null : getResponseBody(record, requestScope)
+        );
+    }
+
+    protected static JsonNode getResponseBody(PersistentResource resource, RequestScope requestScope) {
+        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+
+        //TODO Make this a document processor
+        Data<Resource> data = resource == null ? null : new Data<>(resource.toResource());
+        jsonApiDocument.setData(data);
+
+        //TODO Iterate over set of document processors
+        DocumentProcessor includedProcessor = new IncludedProcessor();
+        includedProcessor.execute(jsonApiDocument, resource, queryParams);
+
+        return requestScope.getMapper().toJsonObject(jsonApiDocument);
     }
 }

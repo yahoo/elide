@@ -71,7 +71,6 @@ import javax.ws.rs.core.MultivaluedMap;
 @Slf4j
 public class Elide {
 
-
     private final AuditLogger auditLogger;
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
@@ -80,6 +79,7 @@ public class Elide {
     private final List<JoinFilterDialect> joinFilterDialects;
     private final List<SubqueryFilterDialect> subqueryFilterDialects;
     private final boolean useFilterExpressions;
+    private final int updateStatusCode;
 
     /**
      * Instantiates a new Elide.
@@ -125,7 +125,8 @@ public class Elide {
                 ActivePermissionExecutor::new,
                 Collections.singletonList(new DefaultFilterDialect(dictionary)),
                 Collections.singletonList(new DefaultFilterDialect(dictionary)),
-                false
+                false,
+                HttpStatus.SC_NO_CONTENT
         );
     }
 
@@ -151,7 +152,8 @@ public class Elide {
             ActivePermissionExecutor::new,
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            false
+            false,
+            HttpStatus.SC_NO_CONTENT
         );
     }
 
@@ -174,7 +176,8 @@ public class Elide {
                   Function<RequestScope, PermissionExecutor> permissionExecutor,
                   List<JoinFilterDialect> joinFilterDialects,
                   List<SubqueryFilterDialect> subqueryFilterDialects,
-                  boolean useFilterExpressions) {
+                  boolean useFilterExpressions,
+                  int updateStatusCode) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -184,6 +187,7 @@ public class Elide {
         this.joinFilterDialects = joinFilterDialects;
         this.subqueryFilterDialects = subqueryFilterDialects;
         this.useFilterExpressions = useFilterExpressions;
+        this.updateStatusCode = updateStatusCode;
     }
 
     /**
@@ -198,6 +202,7 @@ public class Elide {
         private List<JoinFilterDialect> joinFilterDialects;
         private List<SubqueryFilterDialect> subqueryFilterDialects;
         private boolean useFilterExpressions;
+        private int updateStatusCode;
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -213,7 +218,7 @@ public class Elide {
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
             this.joinFilterDialects = new ArrayList<>();
             this.subqueryFilterDialects = new ArrayList<>();
-
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
         }
 
         /**
@@ -228,6 +233,7 @@ public class Elide {
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
             this.joinFilterDialects = new ArrayList<>();
             this.subqueryFilterDialects = new ArrayList<>();
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
         }
 
         public Elide build() {
@@ -247,7 +253,8 @@ public class Elide {
                     permissionExecutorFunction,
                     joinFilterDialects,
                     subqueryFilterDialects,
-                    useFilterExpressions);
+                    useFilterExpressions,
+                    updateStatusCode);
         }
 
         @Deprecated
@@ -325,6 +332,16 @@ public class Elide {
         public Builder withSubqueryFilterDialect(SubqueryFilterDialect dialect) {
             useFilterExpressions = true;
             subqueryFilterDialects.add(dialect);
+            return this;
+        }
+
+        public Builder withUpdate200Status() {
+            updateStatusCode = HttpStatus.SC_OK;
+            return this;
+        }
+
+        public Builder withUpdate204Status() {
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
             return this;
         }
     }
@@ -513,9 +530,18 @@ public class Elide {
             Supplier<Pair<Integer, JsonNode>> responder;
             if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
                 // build Outer RequestScope to be used for each action
-                PatchRequestScope patchRequestScope = new PatchRequestScope(path,
-                        transaction, user, dictionary, mapper, auditLogger, permissionExecutor,
-                        new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects), useFilterExpressions);
+                PatchRequestScope patchRequestScope = new PatchRequestScope(
+                        path,
+                        transaction,
+                        user,
+                        dictionary,
+                        mapper,
+                        auditLogger,
+                        permissionExecutor,
+                        new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
+                        useFilterExpressions,
+                        updateStatusCode
+                );
                 requestScope = patchRequestScope;
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 responder = JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, patchRequestScope);
@@ -533,7 +559,8 @@ public class Elide {
                         securityMode,
                         permissionExecutor,
                         new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects),
-                        useFilterExpressions);
+                        useFilterExpressions,
+                        updateStatusCode);
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
                 responder = visitor.visit(parse(path));

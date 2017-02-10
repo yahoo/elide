@@ -12,8 +12,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
-import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -21,7 +19,6 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +45,7 @@ public class RecordTerminalState extends BaseState {
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         ObjectMapper mapper = state.getRequestScope().getMapper().getObjectMapper();
-        return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope(), mapper));
+        return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(record, state.getRequestScope()));
     }
 
     @Override
@@ -79,28 +76,13 @@ public class RecordTerminalState extends BaseState {
         }
 
         patch(resource, state.getRequestScope());
-        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+        return constructPatchResponse(record, state);
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
         record.deleteResource();
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
-    }
-
-    private JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
-        JsonApiDocument jsonApiDocument = new JsonApiDocument();
-
-        //TODO Make this a document processor
-        Data<Resource> data = rec == null ? null : new Data<>(rec.toResource());
-        jsonApiDocument.setData(data);
-
-        //TODO Iterate over set of document processors
-        DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, rec, queryParams);
-
-        return mapper.convertValue(jsonApiDocument, JsonNode.class);
     }
 
     private boolean patch(Resource resource, RequestScope requestScope) {
