@@ -79,13 +79,13 @@ public class RecordTerminalState extends BaseState {
         }
 
         patch(resource, state.getRequestScope());
-        return constructResponse(record, state, "patch");
+        return constructPatchResponse(record, state);
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
         record.deleteResource();
-        return constructResponse(record, state, "delete");
+        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     private JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {

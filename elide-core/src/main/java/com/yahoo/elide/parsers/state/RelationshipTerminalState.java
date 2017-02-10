@@ -103,7 +103,9 @@ public class RelationshipTerminalState extends BaseState {
             String requestType) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.apply(data, state.getRequestScope());
-        return constructResponse(record, state, requestType);
+        return requestType.equals("patch")
+                ? constructPatchResponse(record, state)
+                : () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
     }
 
     private boolean patch(Data<Resource> data, RequestScope requestScope) {

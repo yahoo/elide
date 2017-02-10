@@ -80,7 +80,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams the query parameters
      * @param securityMode the current security mode
      * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
+     *
+     * @deprecated
      */
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
@@ -93,6 +96,51 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
                         MultipleFilterDialect filterDialect,
                         boolean useFilterExpressions) {
+        this(
+                path,
+                jsonApiDocument,
+                transaction,
+                user,
+                dictionary,
+                mapper,
+                auditLogger,
+                queryParams,
+                securityMode,
+                permissionExecutorGenerator,
+                filterDialect,
+                useFilterExpressions,
+                HttpStatus.SC_NO_CONTENT
+        );
+    }
+
+    /**
+     * Create a new RequestScope with specified update status code
+     *
+     * @param path the URL path
+     * @param jsonApiDocument the document for this request
+     * @param transaction the transaction for this request
+     * @param user the user making this request
+     * @param dictionary the entity dictionary
+     * @param mapper converts JsonApiDocuments to raw JSON
+     * @param auditLogger logger for this request
+     * @param queryParams the query parameters
+     * @param securityMode the current security mode
+     * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
+     * @param updateStatusCode the response status code on successful path request
+     */
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
+                        DataStoreTransaction transaction,
+                        User user,
+                        EntityDictionary dictionary,
+                        JsonApiMapper mapper,
+                        AuditLogger auditLogger,
+                        MultivaluedMap<String, String> queryParams,
+                        SecurityMode securityMode,
+                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+                        MultipleFilterDialect filterDialect,
+                        boolean useFilterExpressions,
+                        int updateStatusCode) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
@@ -103,6 +151,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.securityMode = securityMode;
         this.filterDialect = filterDialect;
         this.useFilterExpressions = useFilterExpressions;
+        this.updateStatusCode = updateStatusCode;
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -167,53 +216,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         if (transaction instanceof RequestScopedTransaction) {
             ((RequestScopedTransaction) transaction).setRequestScope(this);
         }
-
-        updateStatusCode = HttpStatus.SC_NO_CONTENT;
-    }
-
-    /**
-     * Create a new RequestScope with specified update status code
-     * 
-     * @param path the URL path
-     * @param jsonApiDocument the document for this request
-     * @param transaction the transaction for this request
-     * @param user the user making this request
-     * @param dictionary the entity dictionary
-     * @param mapper converts JsonApiDocuments to raw JSON
-     * @param auditLogger logger for this request
-     * @param queryParams the query parameters
-     * @param securityMode the current security mode
-     * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
-     * @param updateStatusCode the response status code on successful path request
-     */
-    public RequestScope(String path,
-                        JsonApiDocument jsonApiDocument,
-                        DataStoreTransaction transaction,
-                        User user,
-                        EntityDictionary dictionary,
-                        JsonApiMapper mapper,
-                        AuditLogger auditLogger,
-                        MultivaluedMap<String, String> queryParams,
-                        SecurityMode securityMode,
-                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
-                        MultipleFilterDialect filterDialect,
-                        boolean useFilterExpressions,
-                        int updateStatusCode) {
-        this(
-                path,
-                jsonApiDocument,
-                transaction,
-                user,
-                dictionary,
-                mapper,
-                auditLogger,
-                queryParams,
-                securityMode,
-                permissionExecutorGenerator,
-                filterDialect,
-                useFilterExpressions
-        );
-        this.updateStatusCode = updateStatusCode;
     }
 
     @Deprecated

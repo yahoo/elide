@@ -162,26 +162,27 @@ public abstract class BaseState {
         throw new UnsupportedOperationException(this.getClass().toString());
     }
 
-    protected static Supplier<Pair<Integer, JsonNode>> constructResponse(
+    /**
+     * Construct PATCH response
+     *
+     * @param record a resource that has been updated
+     * @param stateContext a state that contains reference to request scope where we can get status code for update
+     * @return a supplier of PATH response
+     */
+    protected static Supplier<Pair<Integer, JsonNode>> constructPatchResponse(
             PersistentResource record,
-            StateContext stateContext,
-            String requestType) {
-        switch (requestType) {
-            case "patch":
-                int updateStatusCode = stateContext.getRequestScope().getUpdateStatusCode();
-                return () -> Pair.of(
-                        updateStatusCode,
-                        updateStatusCode == HttpStatus.SC_NO_CONTENT
-                                ? null
-                                : getResponseBody(
-                                        record,
-                                        stateContext.getRequestScope(),
-                                        stateContext.getRequestScope().getMapper().getObjectMapper()
-                                )
-                );
-            default:
-                return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
-        }
+            StateContext stateContext) {
+        int updateStatusCode = stateContext.getRequestScope().getUpdateStatusCode();
+        return () -> Pair.of(
+                updateStatusCode,
+                updateStatusCode == HttpStatus.SC_NO_CONTENT
+                        ? null
+                        : getResponseBody(
+                        record,
+                        stateContext.getRequestScope(),
+                        stateContext.getRequestScope().getMapper().getObjectMapper()
+                )
+        );
     }
 
     private static JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {
