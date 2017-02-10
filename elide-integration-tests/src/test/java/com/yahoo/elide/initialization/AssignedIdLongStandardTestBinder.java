@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -21,10 +21,10 @@ import java.util.HashMap;
 /**
  * Typical-use test binder for integration test resource configs.
  */
-public class StandardTestBinder extends AbstractBinder {
+public class AssignedIdLongStandardTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
 
-    public StandardTestBinder(final AuditLogger auditLogger) {
+    public AssignedIdLongStandardTestBinder(final AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
     }
 
@@ -48,6 +48,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
+                        .withUpdate200Status()
                         .build();
             }
 

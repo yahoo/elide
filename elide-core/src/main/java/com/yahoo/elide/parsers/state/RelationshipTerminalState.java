@@ -84,55 +84,26 @@ public class RelationshipTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) {
-        return handlePatchRequest(state, this::patch);
-    }
-
-    private Supplier<Pair<Integer, JsonNode>> handlePatchRequest(StateContext state,
-                                                            BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
-        Data<Resource> data = state.getJsonApiDocument().getData();
-        handler.apply(data, state.getRequestScope());
-        return () -> Pair.of(
-                HttpStatus.SC_UPDATED,
-                HttpStatus.SC_UPDATED == HttpStatus.SC_NO_CONTENT
-                        ? null
-                        : getResponseBody(
-                        record,
-                        state.getRequestScope(),
-                        state.getRequestScope().getMapper().getObjectMapper()
-                )
-        );
-    }
-
-    private JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
-        JsonApiDocument jsonApiDocument = new JsonApiDocument();
-
-        //TODO Make this a document processor
-        Data<Resource> data = rec == null ? null : new Data<>(rec.toResource());
-        jsonApiDocument.setData(data);
-
-        //TODO Iterate over set of document processors
-        DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, rec, queryParams);
-
-        return mapper.convertValue(jsonApiDocument, JsonNode.class);
+        return handleRequest(state, this::patch, "patch");
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
-        return handleRequest(state, this::post);
+        return handleRequest(state, this::post, "post");
     }
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handleDelete(StateContext state) {
-        return handleRequest(state, this::delete);
+        return handleRequest(state, this::delete, "delete");
     }
 
-    private Supplier<Pair<Integer, JsonNode>> handleRequest(StateContext state,
-                                                           BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
+    private Supplier<Pair<Integer, JsonNode>> handleRequest(
+            StateContext state,
+            BiFunction<Data<Resource>, RequestScope, Boolean> handler,
+            String requestType) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.apply(data, state.getRequestScope());
-        return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+        return constructResponse(record, state, requestType);
     }
 
     private boolean patch(Data<Resource> data, RequestScope requestScope) {
