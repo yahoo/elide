@@ -295,13 +295,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 String argument = arguments.get(0);
                 if (argument.startsWith("*") && argument.endsWith("*") && argument.length() > 2) {
                     argument = argument.substring(1, argument.length() - 1);
-                    return new FilterPredicate(path, Operator.INFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.INFIX_CASE_INSENSITIVE,
+                            Collections.singletonList(argument));
                 } else if (argument.startsWith("*") && argument.length() > 1) {
                     argument = argument.substring(1, argument.length());
-                    return new FilterPredicate(path, Operator.POSTFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.POSTFIX_CASE_INSENSITIVE,
+                            Collections.singletonList(argument));
                 } else if (argument.endsWith("*") && argument.length() > 1) {
                     argument = argument.substring(0, argument.length() - 1);
-                    return new FilterPredicate(path, Operator.PREFIX, Collections.singletonList(argument));
+                    return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE,
+                            Collections.singletonList(argument));
                 } else {
                     return new FilterPredicate(path, Operator.IN, values);
                 }
@@ -310,15 +313,18 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 if (argument.startsWith("*") && argument.endsWith("*")) {
                     argument = argument.substring(1, argument.length() - 1);
                     return new NotFilterExpression(
-                            new FilterPredicate(path, Operator.INFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.INFIX_CASE_INSENSITIVE,
+                                    Collections.singletonList(argument)));
                 } else if (argument.startsWith("*")) {
                     argument = argument.substring(1, argument.length());
                     return new NotFilterExpression(
-                            new FilterPredicate(path, Operator.POSTFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.POSTFIX_CASE_INSENSITIVE,
+                                    Collections.singletonList(argument)));
                 } else if (argument.endsWith("*")) {
                     argument = argument.substring(0, argument.length() - 1);
                     return new NotFilterExpression(
-                            new FilterPredicate(path, Operator.PREFIX, Collections.singletonList(argument)));
+                            new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE,
+                                    Collections.singletonList(argument)));
                 } else {
                     return new NotFilterExpression(new FilterPredicate(path, Operator.IN, values));
                 }
