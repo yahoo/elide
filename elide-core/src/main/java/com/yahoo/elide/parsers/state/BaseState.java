@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.parsers.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -18,8 +18,6 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -172,31 +170,26 @@ public abstract class BaseState {
     protected static Supplier<Pair<Integer, JsonNode>> constructPatchResponse(
             PersistentResource record,
             StateContext stateContext) {
-        int updateStatusCode = stateContext.getRequestScope().getUpdateStatusCode();
+        RequestScope requestScope = stateContext.getRequestScope();
+        int updateStatusCode = requestScope.getUpdateStatusCode();
         return () -> Pair.of(
                 updateStatusCode,
-                updateStatusCode == HttpStatus.SC_NO_CONTENT
-                        ? null
-                        : getResponseBody(
-                        record,
-                        stateContext.getRequestScope(),
-                        stateContext.getRequestScope().getMapper().getObjectMapper()
-                )
+                updateStatusCode == HttpStatus.SC_NO_CONTENT ? null : getResponseBody(record, requestScope)
         );
     }
 
-    private static JsonNode getResponseBody(PersistentResource rec, RequestScope requestScope, ObjectMapper mapper) {
+    protected static JsonNode getResponseBody(PersistentResource resource, RequestScope requestScope) {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         //TODO Make this a document processor
-        Data<Resource> data = rec == null ? null : new Data<>(rec.toResource());
+        Data<Resource> data = resource == null ? null : new Data<>(resource.toResource());
         jsonApiDocument.setData(data);
 
         //TODO Iterate over set of document processors
         DocumentProcessor includedProcessor = new IncludedProcessor();
-        includedProcessor.execute(jsonApiDocument, rec, queryParams);
+        includedProcessor.execute(jsonApiDocument, resource, queryParams);
 
-        return mapper.convertValue(jsonApiDocument, JsonNode.class);
+        return requestScope.getMapper().toJsonObject(jsonApiDocument);
     }
 }
