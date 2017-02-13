@@ -164,7 +164,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) relationTx;
             if (relationType.isToMany()) {
                 return bridgeableTransaction.bridgeableLoadObjects(this,
-                        entity, relationName, filterExpression, scope);
+                        entity, relationName, filterExpression, sorting, pagination, scope);
             } else {
                 return bridgeableTransaction.bridgeableLoadObject(this,
                         entity, relationName, filterExpression, scope);
