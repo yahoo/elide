@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 
 import java.util.Optional;
 
@@ -60,6 +62,8 @@ public interface BridgeableTransaction {
      * @param parent  Parent object
      * @param relationName  Relation name on parent to expected entity
      * @param filterExpression  Filter expression to apply to query
+     * @param sorting  Sorting method for collection
+     * @param pagination  Pagination for collection
      * @param scope  Request scope
      * @return Loaded iterable of objects from bridgeable store.
      */
@@ -67,5 +71,7 @@ public interface BridgeableTransaction {
                                  Object parent,
                                  String relationName,
                                  Optional<FilterExpression> filterExpression,
+                                 Optional<Sorting> sorting,
+                                 Optional<Pagination> pagination,
                                  RequestScope scope);
 }

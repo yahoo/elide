@@ -143,7 +143,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpressionOptional, RequestScope scope) {
+        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpressionOptional, Optional<Sorting> sorting, Optional<Pagination> pagination, RequestScope scope) {
             if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
@@ -154,8 +154,8 @@ public class BridgeableRedisStore implements DataStore {
                 );
                 return muxTx.loadObjects(entityClass,
                         Optional.of(filterExpression),
-                        Optional.empty(),
-                        Optional.empty(),
+                        sorting,
+                        pagination,
                         scope);
             }
             log.error("Tried to bridge from parent: {} to relation name: {}", parent, relationName);
