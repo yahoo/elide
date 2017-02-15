@@ -1803,6 +1803,33 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(equalTo(expected));
     }
 
+    @Test
+    public void testPaginationLimitOverrides() {
+        // Well below the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=10")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        // At the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=100000")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        // Above the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=100001")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
     // TODO: Test that user checks still apply at commit time
 
     @Test

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -378,14 +379,14 @@ public class PermissionExecutorTest {
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         try {
             return new PersistentResource<>(cls.newInstance(), requestScope);
         } catch (InstantiationException | IllegalAccessException e) {

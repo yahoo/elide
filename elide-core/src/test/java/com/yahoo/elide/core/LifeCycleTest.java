@@ -165,7 +165,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
@@ -193,7 +193,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runQueuedPreSecurityTriggers();
@@ -220,7 +220,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
         scope.runQueuedPreSecurityTriggers();
@@ -246,7 +246,7 @@ public class LifeCycleTest {
     public void testOnRead() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         PersistentResource resource = new PersistentResource(book, scope);
 
         resource.getValueChecked("title");

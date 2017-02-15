@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.extensions;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -32,6 +33,7 @@ public class PatchRequestScope extends RequestScope {
      * @param dictionary  entity dictionary
      * @param mapper      Json API mapper
      * @param auditLogger      the logger
+     * @param elideSettings Elide settings object
      * @param filterDialect filter dialect
      */
     public PatchRequestScope(
@@ -42,6 +44,7 @@ public class PatchRequestScope extends RequestScope {
             JsonApiMapper mapper,
             AuditLogger auditLogger,
             Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+            Elide.ElideSettings elideSettings,
             MultipleFilterDialect filterDialect) {
         super(
                 path,
@@ -53,6 +56,7 @@ public class PatchRequestScope extends RequestScope {
                 auditLogger,
                 (MultivaluedMap<String, String>) null,
                 permissionExecutorGenerator,
+                elideSettings,
                 filterDialect
         );
     }

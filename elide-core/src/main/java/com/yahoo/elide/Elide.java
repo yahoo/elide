@@ -21,6 +21,7 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.generated.parsers.CoreLexer;
@@ -70,7 +71,6 @@ import javax.ws.rs.core.MultivaluedMap;
 @Slf4j
 public class Elide {
 
-
     private final AuditLogger auditLogger;
     private final DataStore dataStore;
     private final EntityDictionary dictionary;
@@ -78,6 +78,7 @@ public class Elide {
     private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     private final List<JoinFilterDialect> joinFilterDialects;
     private final List<SubqueryFilterDialect> subqueryFilterDialects;
+    private final ElideSettings elideSettings;
 
     /**
      * Instantiates a new Elide.
@@ -89,10 +90,10 @@ public class Elide {
      * @param permissionExecutor Custom permission executor implementation
      */
     protected Elide(AuditLogger auditLogger,
-                  DataStore dataStore,
-                  EntityDictionary dictionary,
-                  JsonApiMapper mapper,
-                  Function<RequestScope, PermissionExecutor> permissionExecutor) {
+                    DataStore dataStore,
+                    EntityDictionary dictionary,
+                    JsonApiMapper mapper,
+                    Function<RequestScope, PermissionExecutor> permissionExecutor) {
         this(
             auditLogger,
             dataStore,
@@ -100,7 +101,9 @@ public class Elide {
             mapper,
             ActivePermissionExecutor::new,
             Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Collections.singletonList(new DefaultFilterDialect(dictionary))
+            Collections.singletonList(new DefaultFilterDialect(dictionary)),
+            Pagination.MAX_PAGE_LIMIT,
+            Pagination.DEFAULT_PAGE_LIMIT
         );
     }
 
@@ -116,12 +119,14 @@ public class Elide {
      * @param subqueryFilterDialects A list of filter parsers to use for filtering by type
      */
     protected Elide(AuditLogger auditLogger,
-                  DataStore dataStore,
-                  EntityDictionary dictionary,
-                  JsonApiMapper mapper,
-                  Function<RequestScope, PermissionExecutor> permissionExecutor,
-                  List<JoinFilterDialect> joinFilterDialects,
-                  List<SubqueryFilterDialect> subqueryFilterDialects) {
+                    DataStore dataStore,
+                    EntityDictionary dictionary,
+                    JsonApiMapper mapper,
+                    Function<RequestScope, PermissionExecutor> permissionExecutor,
+                    List<JoinFilterDialect> joinFilterDialects,
+                    List<SubqueryFilterDialect> subqueryFilterDialects,
+                    int maxDefaultPageSize,
+                    int defaultPageSize) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -130,6 +135,7 @@ public class Elide {
         this.permissionExecutor = permissionExecutor;
         this.joinFilterDialects = joinFilterDialects;
         this.subqueryFilterDialects = subqueryFilterDialects;
+        this.elideSettings = new ElideSettings(maxDefaultPageSize, defaultPageSize);
     }
 
     /**
@@ -143,6 +149,8 @@ public class Elide {
         private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
         private List<JoinFilterDialect> joinFilterDialects;
         private List<SubqueryFilterDialect> subqueryFilterDialects;
+        private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
+        private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -174,7 +182,9 @@ public class Elide {
                     jsonApiMapper,
                     permissionExecutorFunction,
                     joinFilterDialects,
-                    subqueryFilterDialects);
+                    subqueryFilterDialects,
+                    defaultMaxPageSize,
+                    defaultPageSize);
         }
 
         public Builder withAuditLogger(AuditLogger auditLogger) {
@@ -227,6 +237,16 @@ public class Elide {
             subqueryFilterDialects.add(dialect);
             return this;
         }
+
+        public Builder withDefaultMaxPageSize(int maxPageSize) {
+            defaultMaxPageSize = maxPageSize;
+            return this;
+        }
+
+        public Builder withDefaultPageSize(int pageSize) {
+            defaultPageSize = pageSize;
+            return this;
+        }
     }
 
     /**
@@ -255,6 +275,7 @@ public class Elide {
                     auditLogger,
                     queryParams,
                     permissionExecutor,
+                    elideSettings,
                     new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -317,6 +338,7 @@ public class Elide {
                     auditLogger,
                     null,
                     permissionExecutor,
+                    elideSettings,
                     new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             PostVisitor visitor = new PostVisitor(requestScope);
@@ -384,6 +406,7 @@ public class Elide {
                         mapper,
                         auditLogger,
                         permissionExecutor,
+                        elideSettings,
                         new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
                 requestScope = patchRequestScope;
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -400,6 +423,7 @@ public class Elide {
                         auditLogger,
                         (MultivaluedMap) null,
                         permissionExecutor,
+                        elideSettings,
                         new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
                 isVerbose = requestScope.getPermissionExecutor().isVerbose();
                 PatchVisitor visitor = new PatchVisitor(requestScope);
@@ -470,6 +494,7 @@ public class Elide {
                     auditLogger,
                     null,
                     permissionExecutor,
+                    elideSettings,
                     new MultipleFilterDialect(joinFilterDialects, subqueryFilterDialects));
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             DeleteVisitor visitor = new DeleteVisitor(requestScope);
@@ -543,6 +568,19 @@ public class Elide {
             return new ElideResponse(responseCode, body);
         } catch (JsonProcessingException e) {
             return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
+        }
+    }
+
+    /**
+     * Object containing general Elide settings passed to RequestScope.
+     */
+    public static class ElideSettings {
+        public final int defaultMaxPageSize;
+        public final int defaultPageSize;
+
+        public ElideSettings(int defaultMaxPageSize, int defaultPageSize) {
+            this.defaultMaxPageSize = defaultMaxPageSize;
+            this.defaultPageSize = defaultPageSize;
         }
     }
 }

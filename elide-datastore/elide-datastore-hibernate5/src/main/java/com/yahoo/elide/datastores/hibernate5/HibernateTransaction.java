@@ -184,12 +184,12 @@ public class HibernateTransaction implements DataStoreTransaction {
             sortingRules.get().forEach(criteria::addOrder);
         }
 
-        if (pagination.isPresent()) {
-            final Pagination paginationData = pagination.get();
+        pagination.map(paginationData -> {
             paginationData.evaluate(loadClass);
             criteria.setFirstResult(paginationData.getOffset());
             criteria.setMaxResults(paginationData.getLimit());
-        }
+            return null;
+        });
 
         if (isScrollEnabled) {
             return new ScrollableIterator(criteria.scroll(scrollMode));
@@ -224,7 +224,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                                 dictionary)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
-                                .withPossiblePagination(pagination)
+                                .withPossiblePagination(pagination.map(p -> p.evaluate(relationClass)))
                                 .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();

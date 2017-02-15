@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -47,9 +48,9 @@ public class PermissionAnnotationTest {
 
         AuditLogger testLogger = new TestAuditLogger();
         funRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger, null, null, new MultipleFilterDialect(dictionary)));
+                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary)));
         badRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, badUser, dictionary, null, testLogger, null, null, new MultipleFilterDialect(dictionary)));
+                new RequestScope(null, null, null, badUser, dictionary, null, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary)));
     }
 
     @Test

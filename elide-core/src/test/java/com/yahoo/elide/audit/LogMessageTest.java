@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.audit;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -43,7 +44,7 @@ public class LogMessageTest {
         child.setFriends(Sets.newHashSet(friend));
 
         final RequestScope requestScope = new RequestScope(
-                null, null, null, null, dictionary, null, new TestAuditLogger(), null, null, new MultipleFilterDialect(dictionary));
+                null, null, null, null, dictionary, null, new TestAuditLogger(), null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);

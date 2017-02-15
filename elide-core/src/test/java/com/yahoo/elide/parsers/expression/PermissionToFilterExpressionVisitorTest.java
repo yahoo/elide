@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.parsers.expression;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -187,7 +188,7 @@ public class PermissionToFilterExpressionVisitorTest {
 
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null, null, null, new MultipleFilterDialect(dictionary));
+        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
     }
 
     @Entity
