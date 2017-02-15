@@ -10,6 +10,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -58,7 +59,7 @@ public class JsonApiTest {
         AuditLogger testLogger = new TestAuditLogger();
         userScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(0), dictionary, mapper, testLogger, null, null, new MultipleFilterDialect(dictionary));
+                new User(0), dictionary, mapper, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
     }
 
     @Test

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.pagination;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.Getter;
@@ -69,18 +70,24 @@ public class Pagination {
     @Getter
     private boolean generateTotals;
 
+    private final int defaultMaxPageSize;
+    private final int defaultPageSize;
 
-    private Pagination(Map<PaginationKey, Integer> pageData) {
+    private Pagination(Map<PaginationKey, Integer> pageData, int defaultMaxPageSize, int defaultPageSize) {
         this.pageData = pageData;
+        this.defaultMaxPageSize = defaultMaxPageSize;
+        this.defaultPageSize = defaultPageSize;
     }
 
     /**
      * Given json-api paging params, generate page and pageSize values from query params.
      *
      * @param queryParams The page queryParams (ImmuatableMultiValueMap).
+     * @param elideSettings Elide settings containing pagination default limits
      * @return The new Page object.
      */
-    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams)
+    public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams,
+                                              Elide.ElideSettings elideSettings)
             throws InvalidValueException {
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
         queryParams.entrySet()
@@ -106,7 +113,11 @@ public class Pagination {
                                 + PAGE_KEYS_CSV);
                     }
                 });
-        return new Pagination(pageData).evaluate(DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT);
+        // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
+        Pagination result = new Pagination(pageData, elideSettings.defaultMaxPageSize, elideSettings.defaultPageSize);
+        result.offset = 0;
+        result.limit = elideSettings.defaultPageSize;
+        return result;
     }
 
     /**
@@ -116,7 +127,7 @@ public class Pagination {
      * @param maxLimit
      * @return the calculated {@link Pagination}
      */
-    public Pagination evaluate(int defaultLimit, int maxLimit) {
+    private Pagination evaluate(int defaultLimit, int maxLimit) {
 
         if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
             // Page-based pagination strategy
@@ -168,15 +179,15 @@ public class Pagination {
      * Evaluates the pagination variables. Uses the Paginate annotation if it has been set for the entity to be
      * queried.
      *
-     * @param entityClass
+     * @param entityClass Entity class to paginate
      * @return the calculated {@link Pagination}
      */
     public Pagination evaluate(final Class entityClass) {
         Paginate paginate =
                 entityClass != null ? (Paginate) entityClass.getAnnotation(Paginate.class) : null;
 
-        int defaultLimit = paginate != null ? paginate.defaultLimit() : DEFAULT_PAGE_LIMIT;
-        int maxLimit = paginate != null ? paginate.maxLimit() : MAX_PAGE_LIMIT;
+        int defaultLimit = paginate != null ? paginate.defaultLimit() : defaultPageSize;
+        int maxLimit = paginate != null ? paginate.maxLimit() : defaultMaxPageSize;
 
         evaluate(defaultLimit, maxLimit);
 
@@ -205,8 +216,9 @@ public class Pagination {
      * Default Instance.
      * @return The default instance.
      */
-    public static Pagination getDefaultPagination() {
-        Pagination defaultPagination = new Pagination(new HashMap<>());
+    public static Pagination getDefaultPagination(Elide.ElideSettings elideSettings) {
+        Pagination defaultPagination = new Pagination(new HashMap<>(),
+                elideSettings.defaultMaxPageSize, elideSettings.defaultPageSize);
         defaultPagination.offset = DEFAULT_OFFSET;
         defaultPagination.limit = DEFAULT_PAGE_LIMIT;
         return defaultPagination;

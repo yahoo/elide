@@ -198,8 +198,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         if (pagination.isPresent()) {
-            final Pagination paginationData = pagination.get();
-            paginationData.evaluate(loadClass);
+            Pagination paginationData = pagination.get().evaluate(loadClass);
             criteria.setFirstResult(paginationData.getOffset());
             criteria.setMaxResults(paginationData.getLimit());
         } else {
@@ -351,7 +350,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                                 dictionary)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
-                                .withPossiblePagination(pagination)
+                                .withPossiblePagination(pagination.map(p -> p.evaluate(relationClass)))
                                 .build();
 
                 if (possibleQuery.isPresent()) {

@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.document.processors;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -59,7 +60,7 @@ public class IncludedProcessorTest {
 
         RequestScope goodUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), dictionary, null, new TestAuditLogger(), null, null, new MultipleFilterDialect(dictionary));
+                new User(1), dictionary, null, new TestAuditLogger(), null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
 
         //Create objects
         Parent parent1 = newParent(1);

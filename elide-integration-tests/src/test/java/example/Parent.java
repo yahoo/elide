@@ -8,6 +8,7 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -36,6 +37,7 @@ import java.util.Set;
 @DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
 @SharePermission(expression = "allow all")
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
+@Paginate(maxLimit = 100000)
 // Hibernate
 @Entity
 @ToString

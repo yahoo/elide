@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
@@ -68,6 +69,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final String path;
+    @Getter private final Elide.ElideSettings elideSettings;
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
@@ -87,6 +89,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param auditLogger logger for this request
      * @param queryParams the query parameters
      * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
+     * @param elideSettings Elide settings object
+     * @param filterDialect Filtering dialect to be used for request
      */
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
@@ -97,6 +101,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
                         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
+                        Elide.ElideSettings elideSettings,
                         MultipleFilterDialect filterDialect) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
@@ -106,6 +111,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.mapper = mapper;
         this.auditLogger = auditLogger;
         this.filterDialect = filterDialect;
+        this.elideSettings = elideSettings;
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -175,11 +181,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
             this.sparseFields = parseSparseFields(queryParams);
             this.sorting = Sorting.parseQueryParams(queryParams);
-            this.pagination = Pagination.parseQueryParams(queryParams);
+            this.pagination = Pagination.parseQueryParams(queryParams, this.getElideSettings());
         } else {
             this.sparseFields = Collections.emptyMap();
             this.sorting = Sorting.getDefaultEmptyInstance();
-            this.pagination = Pagination.getDefaultPagination();
+            this.pagination = Pagination.getDefaultPagination(this.getElideSettings());
         }
     }
 
@@ -200,7 +206,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.queryParams = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.sorting = Sorting.getDefaultEmptyInstance();
-        this.pagination = Pagination.getDefaultPagination();
+        this.pagination = Pagination.getDefaultPagination(outerRequestScope.getElideSettings());
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.queuedTriggers = outerRequestScope.queuedTriggers;
@@ -208,6 +214,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = outerRequestScope.dirtyResources;
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
+        this.elideSettings = outerRequestScope.elideSettings;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {

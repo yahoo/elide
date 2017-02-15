@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -164,7 +165,7 @@ public class PermissionExpressionBuilderTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
         return new PersistentResource<>(obj, requestScope);
     }
 }
