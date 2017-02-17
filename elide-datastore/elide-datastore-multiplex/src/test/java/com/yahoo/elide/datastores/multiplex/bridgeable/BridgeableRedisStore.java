@@ -70,9 +70,20 @@ public class BridgeableRedisStore implements DataStore {
 
             String key = RedisActions.class.getCanonicalName();
 
-            return filterExpression
-                    .map(fe -> { throw new UnsupportedOperationException("Filtering unsupported for test."); })
-                    .orElseGet(() -> fetchValues(key, v -> id.equals(v.split(":")[1])));
+            if (filterExpression.isPresent()) {
+                FilterExpression fe = filterExpression.get();
+                RedisFilter filter = fe.accept(new FilterExpressionParser());
+                if ("user_id".equals(filter.getFieldName())) {
+                    Iterable values = fetchValues(key,
+                            v -> v.equals("user" + filter.getValues().get(0).toString() + ":" + id.toString()));
+                    for (Object value : values) {
+                        return value;
+                    }
+                }
+                return null;
+            }
+
+            return fetchValues(key, v -> id.equals(v.split(":")[1]));
         }
 
         @Override
@@ -128,15 +139,28 @@ public class BridgeableRedisStore implements DataStore {
         // ---- Bridgeable Interfaces ----
 
         @Override
-        public Object bridgeableLoadObject(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpression, RequestScope scope) {
-            if (parent.getClass().equals(HibernateUser.class) && "specialAction".equals(relationName)) {
+        public Object bridgeableLoadObject(MultiplexTransaction muxTx, Object parent, String relationName, Serializable lookupId, Optional<FilterExpression> filterExpression, RequestScope scope) {
+            if (parent.getClass().equals(HibernateUser.class)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
                 HibernateUser user = (HibernateUser) parent;
-                return muxTx.loadObject(entityClass,
-                        String.valueOf(user.getSpecialActionId()),
-                        Optional.empty(),
-                        scope);
+                if ("specialAction".equals(relationName)) {
+                    return muxTx.loadObject(entityClass,
+                            String.valueOf(user.getSpecialActionId()),
+                            Optional.empty(),
+                            scope);
+                } else if ("redisActions".equals(relationName)) {
+                    FilterExpression updatedExpression = new FilterPredicate(
+                            new FilterPredicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
+                            Operator.IN,
+                            Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
+                    );
+
+                    return muxTx.loadObject(entityClass,
+                            String.valueOf(lookupId),
+                            Optional.of(updatedExpression),
+                            scope);
+                }
             }
             log.error("Tried to bridge from parent: {} to relation name: {}", parent, relationName);
             throw new RuntimeException("Unsupported bridging attempted!");

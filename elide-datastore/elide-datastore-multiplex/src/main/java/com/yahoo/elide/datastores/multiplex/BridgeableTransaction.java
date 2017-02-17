@@ -10,6 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -46,12 +47,17 @@ public interface BridgeableTransaction {
      * @param parent  Parent object
      * @param relationName  Relation name on parent to expected entity
      * @param filterExpression  Filter expression to apply to query
+     * @param lookupId  Id of entity intended to be looked up
+     *                  <strong>N.B.</strong> This value <em>may</em> be null if called through a to-one relationship
+     *                  and an explicit id was not provided. In such a case, it is expected that the datastore
+     *                  can derive the appropriate id with the other provided information.
      * @param scope  Request scope
      * @return Loaded object from bridgeable store.
      */
     Object bridgeableLoadObject(MultiplexTransaction muxTx,
                                 Object parent,
                                 String relationName,
+                                Serializable lookupId,
                                 Optional<FilterExpression> filterExpression,
                                 RequestScope scope);
 
