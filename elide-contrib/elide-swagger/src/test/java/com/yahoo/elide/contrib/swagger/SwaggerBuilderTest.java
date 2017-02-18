@@ -229,10 +229,10 @@ public class SwaggerBuilderTest {
         verifyData(response.getSchema(), "book");
 
         response = swagger.getPaths().get("/book").getPost().getResponses().get("201");
-        verifyDatum(response.getSchema(), "book");
+        verifyDatum(response.getSchema(), "book", false);
 
         response = swagger.getPaths().get("/book/{bookId}").getGet().getResponses().get("200");
-        verifyDatum(response.getSchema(), "book");
+        verifyDatum(response.getSchema(), "book", true);
 
         response = swagger.getPaths().get("/book/{bookId}").getPatch().getResponses().get("204");
         Assert.assertNull(response.getSchema());
@@ -587,13 +587,18 @@ public class SwaggerBuilderTest {
      * Verifies that the given property is of type 'Datum' containing a reference to the given model.
      * @param property The property to check
      * @param refTypeName The model name
+     * @param included Whether or not the datum should have an 'included' section.
      */
-    private void verifyDatum(Property property, String refTypeName) {
+    private void verifyDatum(Property property, String refTypeName, boolean included) {
         Assert.assertTrue((property instanceof Datum));
 
         RefProperty ref = (RefProperty) ((Datum) property).getProperties().get("data");
 
         Assert.assertEquals(ref.get$ref(), "#/definitions/" + refTypeName);
+
+        if (included) {
+            Assert.assertNotNull(((Datum) property).getProperties().get("included"));
+        }
     }
 
     /**
