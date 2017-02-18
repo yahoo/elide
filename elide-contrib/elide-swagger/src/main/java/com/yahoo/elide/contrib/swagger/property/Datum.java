@@ -20,13 +20,25 @@ public class Datum extends ObjectProperty {
      * @param definitionName The swagger model to reference in 'data'.
      */
     public Datum(String definitionName) {
+        this(definitionName, true);
+    }
+
+    /**
+     * Constructs a singular resource (referenced by type)
+     * @param definitionName The swagger model to reference in 'data'.
+     * @param included Whether or not to add the 'included' property to the schema.
+     */
+    public Datum(String definitionName, boolean included) {
         super();
         property("data", new RefProperty(definitionName));
-        property("included", new ArrayProperty()
-                .description("Included resources")
-                .uniqueItems()
-                .items(new IncludedResource())
-        );
+
+        if (included) {
+            property("included", new ArrayProperty()
+                            .description("Included resources")
+                            .uniqueItems()
+                            .items(new IncludedResource())
+            );
+        }
     }
 
     /**
