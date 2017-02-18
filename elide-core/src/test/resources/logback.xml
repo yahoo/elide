@@ -7,11 +7,13 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M\(%F:%L\) - %msg%n</pattern>
+      <pattern>%msg%n</pattern>
     </encoder>
   </appender>
 
-  <root level="error">
+  <logger name="com.yahoo.elide.graphql" level="DEBUG" />
+
+  <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>

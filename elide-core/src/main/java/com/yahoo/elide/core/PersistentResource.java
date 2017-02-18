@@ -112,7 +112,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
      * @param requestScope the request scope
-     * @param uuid the uuid
+     * @param uuid the (optional) uuid
      * @param <T> object type
      * @return persistent resource
      */
@@ -121,12 +121,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             PersistentResource<?> parent,
             Class<T> entityClass,
             RequestScope requestScope,
-            String uuid) {
+            Optional<String> uuid) {
 
         //instead of calling transcation.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
-        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
+        String id = uuid.orElse(null);
+
+        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
@@ -137,7 +139,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         requestScope.queueTriggers(newResource, CRUDAction.CREATE);
 
         String type = newResource.getType();
-        requestScope.setUUIDForObject(type, uuid, newResource.getObject());
+        requestScope.setUUIDForObject(type, id, newResource.getObject());
 
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
@@ -157,11 +159,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param <T> type of resource
      * @return persistent resource
      * @deprecated Will be removed in Elide 4. Instead use
-     *  {@link PersistentResource#createObject(PersistentResource, Class, RequestScope, String)}
+     *  {@link PersistentResource#createObject(PersistentResource, Class, RequestScope, Optional<String>)}
      */
     @Deprecated
     public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
-        return createObject(null, entityClass, requestScope, uuid);
+        return createObject(null, entityClass, requestScope, Optional.ofNullable(uuid));
     }
 
     /**
@@ -293,7 +295,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param requestScope the request scope
      * @return a filtered collection of resources loaded from the datastore.
      */
-    public static Set<PersistentResource> loadRecords(Class<?> loadClass, RequestScope requestScope) {
+    public static Set<PersistentResource> loadRecords(Class<?> loadClass, RequestScope requestScope,
+                                                      Optional<FilterExpression> filterExpression) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
@@ -301,9 +304,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable list;
-        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
+        Optional<FilterExpression> filter = filterExpression;
+        Optional<FilterExpression> loadFilterExpression = requestScope.getLoadFilterExpression(loadClass);
+        if(filterExpression.isPresent()) {
+            if(loadFilterExpression.isPresent()) {
+                filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
+            }
+        } else {
+            filter = loadFilterExpression;
+        }
 
-        list = tx.loadObjects(loadClass, filterExpression,
+        list = tx.loadObjects(loadClass, filter,
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources, false);

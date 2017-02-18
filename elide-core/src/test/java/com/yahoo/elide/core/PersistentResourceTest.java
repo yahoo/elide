@@ -358,7 +358,7 @@ public class PersistentResourceTest extends PersistentResource {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, "uuid"); // should throw here
+        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("uuid")); // should throw here
     }
 
     @Test
@@ -1504,7 +1504,7 @@ public class PersistentResourceTest extends PersistentResource {
                 .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class, goodScope);
+        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class, goodScope, Optional.empty());
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 
@@ -1566,7 +1566,7 @@ public class PersistentResourceTest extends PersistentResource {
         when(tx.createNewObject(Parent.class)).thenReturn(parent);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<Parent> created = PersistentResource.createObject(null, Parent.class, goodScope, "uuid");
+        PersistentResource<Parent> created = PersistentResource.createObject(null, Parent.class, goodScope, Optional.of("uuid"));
         parent.setChildren(new HashSet<>());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
@@ -1585,7 +1585,7 @@ public class PersistentResourceTest extends PersistentResource {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, "uuid");
+        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("uuid"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 

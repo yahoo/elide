@@ -129,7 +129,7 @@ public class CollectionTerminalState extends BaseState {
             if (hasSortingOrPagination) {
                 collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
             } else {
-                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope, Optional.empty());
             }
         }
 
@@ -171,7 +171,7 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PersistentResource pResource = PersistentResource.createObject(
-                parent.orElse(null), newObjectClass, requestScope, id);
+                parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
 
         assignId(pResource, id);
 
