@@ -1,7 +1,10 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
@@ -20,9 +23,26 @@ import static graphql.schema.GraphQLObjectType.newObject;
 
 public class ModelBuilder {
     private EntityDictionary dictionary;
+    private DataFetcher queryFetcher;
+    private DataFetcher mutationFetcher;
+    private GraphQLArgument relationshipOpArg;
+    private GraphQLArgument idArgument;
 
-    ModelBuilder(EntityDictionary dictionary ) {
+    ModelBuilder(EntityDictionary dictionary, DataFetcher queryFetcher, DataFetcher mutationFetcher) {
         this.dictionary = dictionary;
+        this.queryFetcher = queryFetcher;
+        this.mutationFetcher = mutationFetcher;
+
+        relationshipOpArg = GraphQLArgument.newArgument()
+                .name("op")
+                .type(RelationshipOp.toGraphQLType())
+                .defaultValue(RelationshipOp.FETCH)
+                .build();
+
+        idArgument = GraphQLArgument.newArgument()
+                .name("id")
+                .type(Scalars.GraphQLString)
+                .build();
     }
 
     GraphQLSchema build() {
@@ -39,6 +59,9 @@ public class ModelBuilder {
             String entityName = dictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
                     .name(entityName)
+                    .dataFetcher(queryFetcher)
+                    .argument(relationshipOpArg)
+                    .argument(idArgument)
                     .type(new GraphQLList(buildQueryObject(clazz))));
         }
 
@@ -81,6 +104,7 @@ public class ModelBuilder {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
             builder.field(newFieldDefinition()
                     .name(attribute)
+                    .dataFetcher(queryFetcher)
                     .type(classToType(attributeClass))
             );
         }
@@ -91,11 +115,24 @@ public class ModelBuilder {
             Class<?> relationshipClass = dictionary.getType(entityClass, relationship);
 
             String relationshipEntityName = dictionary.getJsonAliasFor(relationshipClass);
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
 
-            builder.field(newFieldDefinition()
-                    .name(relationship)
-                    .type(new GraphQLTypeReference(relationshipEntityName))
-            );
+            if (type.isToOne()) {
+                builder.field(newFieldDefinition()
+                                .name(relationship)
+                                .dataFetcher(queryFetcher)
+                                .argument(relationshipOpArg)
+                                .type(new GraphQLTypeReference(relationshipEntityName))
+                );
+            } else {
+                builder.field(newFieldDefinition()
+                                .name(relationship)
+                                .dataFetcher(queryFetcher)
+                                .argument(relationshipOpArg)
+                                .argument(idArgument)
+                                .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
+                );
+            }
         }
 
         return builder.build();
