@@ -82,7 +82,7 @@ public class ModelBuilder {
             visited.add(clazz);
 
             for (String relationship : dictionary.getRelationships(clazz)) {
-                Class<?> relationshipClass = dictionary.getType(clazz, relationship);
+                Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
                 if (!visited.contains(relationshipClass)) {
                     toVisit.add(clazz);
                 }
@@ -123,7 +123,7 @@ public class ModelBuilder {
         }
 
         for (String relationship : dictionary.getRelationships(entityClass)) {
-            Class<?> relationshipClass = dictionary.getType(entityClass, relationship);
+            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
 
             String relationshipEntityName = dictionary.getJsonAliasFor(relationshipClass);
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
@@ -158,7 +158,7 @@ public class ModelBuilder {
      * @return The constructed argument.
      */
     private GraphQLArgument buildInputObjectArgument(Class<?> entityClass, boolean asList) {
-        GraphQLInputObjectType argumentType = buildInputObject(entityClass, new HashSet<GraphQLInputObjectType>());
+        GraphQLInputObjectType argumentType = buildInputObject(entityClass, new HashSet<Class<?>>());
 
         if (asList) {
              return GraphQLArgument.newArgument()
@@ -179,7 +179,9 @@ public class ModelBuilder {
      * @param visited Entities already visited
      * @return Constructed graphql input object type.
      */
-    private GraphQLInputObjectType buildInputObject(Class<?> entityClass, Set<GraphQLInputObjectType> visited) {
+    private GraphQLInputObjectType buildInputObject(Class<?> entityClass, Set<Class<?>> visited) {
+        visited.add(entityClass);
+
         String entityName = dictionary.getJsonAliasFor(entityClass);
 
         GraphQLInputObjectType.Builder builder = newInputObject();
@@ -200,7 +202,7 @@ public class ModelBuilder {
         }
 
         for (String relationship : dictionary.getRelationships(entityClass)) {
-            Class<?> relationshipClass = dictionary.getType(entityClass, relationship);
+            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
 
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
 
@@ -222,7 +224,8 @@ public class ModelBuilder {
             }
         }
 
-        return builder.build();
+        GraphQLInputObjectType type = builder.build();
+        return type;
     }
 
     /**
