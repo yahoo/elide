@@ -11,14 +11,19 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,6 +31,7 @@ import java.util.Set;
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
  * If any commit fails in process, reverse any commits already completed.
  */
+@Slf4j
 public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
@@ -158,16 +164,37 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
 
+        EntityDictionary dictionary = scope.getDictionary();
+        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+        String idFieldName = dictionary.getIdFieldName(relationClass);
+
         // If different transactions, check if bridgeable and try to bridge
         if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
-            RelationshipType relationType = scope.getDictionary().getRelationshipType(entity.getClass(), relationName);
+            RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relationName);
             BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) relationTx;
             if (relationType.isToMany()) {
-                return bridgeableTransaction.bridgeableLoadObjects(this,
-                        entity, relationName, filterExpression, sorting, pagination, scope);
+                return filterExpression
+                        .map(fe -> {
+                            Serializable id = extractId(fe, idFieldName, entity, relationClass, dictionary);
+                            if (id == null) {
+                                return bridgeableTransaction.bridgeableLoadObjects(this,
+                                        entity, relationName, filterExpression, sorting, pagination, scope);
+                            } else {
+                                return bridgeableTransaction.bridgeableLoadObject(this,
+                                        entity, relationName, id, filterExpression, scope);
+                            }
+                        })
+                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObjects(this,
+                        entity, relationName, filterExpression, sorting, pagination, scope));
             } else {
-                return bridgeableTransaction.bridgeableLoadObject(this,
-                        entity, relationName, filterExpression, scope);
+                return filterExpression
+                        .map(fe -> {
+                            Serializable id = extractId(fe, idFieldName, entity, relationClass, dictionary);
+                            return bridgeableTransaction.bridgeableLoadObject(this,
+                                    entity, relationName, id, filterExpression, scope);
+                        })
+                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObject(this,
+                                entity, relationName, null, filterExpression, scope));
             }
         }
 
@@ -213,5 +240,24 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public <T> Long getTotalRecords(Class<T> entityClass) {
         return getTransaction(entityClass).getTotalRecords(entityClass);
+    }
+
+    private Serializable extractId(FilterExpression filterExpression,
+                                   String idFieldName,
+                                   Object parent,
+                                   Class<?> relationClass,
+                                   EntityDictionary dictionary) {
+        Set<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
+        for (FilterPredicate predicate : predicates) {
+            List<Object> values = predicate.getValues();
+            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getEntityType());
+            if (relationClass == entityClass
+                    && predicate.getOperator() == Operator.IN
+                    && idFieldName.equals(predicate.getField())
+                    && values.size() == 1) {
+                return (Serializable) values.get(0);
+            }
+        }
+        return null;
     }
 }
