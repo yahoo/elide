@@ -1,3 +1,9 @@
+/*
+ * Copyright 2017, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.graphql;
 
 import graphql.AssertException;
@@ -12,6 +18,11 @@ import java.util.Map;
 
 import static graphql.Assert.assertNotNull;
 
+/**
+ * Basically the same class as GraphQLInputObjectType except fields can be added after the
+ * object is constructed.  This mutable behavior is useful for constructing input objects from
+ * object graphs with cycles.
+ */
 public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
     private final Map<String, GraphQLInputObjectField> fieldMap = new LinkedHashMap<String, GraphQLInputObjectField>();
@@ -24,8 +35,9 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     private void buildMap(List<GraphQLInputObjectField> fields) {
         for (GraphQLInputObjectField field : fields) {
             String name = field.getName();
-            if (fieldMap.containsKey(name))
+            if (fieldMap.containsKey(name)) {
                 throw new AssertException("field " + name + " redefined");
+            }
             fieldMap.put(name, field);
         }
     }
@@ -47,6 +59,9 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
         return new Builder();
     }
 
+    /**
+     * Builder for constructing MutableGraphQLInputObjectType
+     */
     public static class Builder {
         private String name;
         private String description;
