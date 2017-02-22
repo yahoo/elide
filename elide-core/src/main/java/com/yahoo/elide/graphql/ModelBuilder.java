@@ -5,7 +5,6 @@ import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -15,14 +14,15 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 
 import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
-import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 public class ModelBuilder {
@@ -158,7 +158,7 @@ public class ModelBuilder {
      * @return The constructed argument.
      */
     private GraphQLArgument buildInputObjectArgument(Class<?> entityClass, boolean asList) {
-        GraphQLInputObjectType argumentType = buildInputObject(entityClass, new HashSet<Class<?>>());
+        GraphQLInputType argumentType = buildInputObject(entityClass);
 
         if (asList) {
              return GraphQLArgument.newArgument()
@@ -176,56 +176,69 @@ public class ModelBuilder {
     /**
      * Builds a nested GraphQL input object that traverses relationships but avoids cycles.
      * @param entityClass The starting entity type to build the input object from.
-     * @param visited Entities already visited
      * @return Constructed graphql input object type.
      */
-    private GraphQLInputObjectType buildInputObject(Class<?> entityClass, Set<Class<?>> visited) {
-        visited.add(entityClass);
+    private GraphQLInputType buildInputObject(Class<?> entityClass) {
+        Map<Class<?>, MutableGraphQLInputObjectType> constructing = new HashMap<>();
+        Queue < Class < ?>> toVisit = new ArrayDeque<>();
+        toVisit.add(entityClass);
 
-        String entityName = dictionary.getJsonAliasFor(entityClass);
+        /* First pass, construct all of the builders in the object graph without constructing relationships */
+        while (!toVisit.isEmpty()) {
+            Class<?> clazz = toVisit.remove();
 
-        GraphQLInputObjectType.Builder builder = newInputObject();
-        builder.name(entityName);
+            String entityName = dictionary.getJsonAliasFor(clazz);
 
-        String id = dictionary.getIdFieldName(entityClass);
+            MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
+            builder.name(entityName + "Input");
 
-        builder.field(newInputObjectField()
-                .name(id)
-                .type(Scalars.GraphQLID));
+            String id = dictionary.getIdFieldName(clazz);
 
-        for (String attribute : dictionary.getAttributes(entityClass)) {
-            Class<?> attributeClass = dictionary.getType(entityClass, attribute);
             builder.field(newInputObjectField()
-                            .name(attribute)
-                            .type((GraphQLInputType) classToType(attributeClass))
-            );
-        }
+                    .name(id)
+                    .type(Scalars.GraphQLID));
 
-        for (String relationship : dictionary.getRelationships(entityClass)) {
-            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
-
-            RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
-
-            //TODO - this is inadequate cycle protection but should cover the common cases for now.
-            if (visited.contains(relationshipClass)) {
-                continue;
+            for (String attribute : dictionary.getAttributes(clazz)) {
+                Class<?> attributeClass = dictionary.getType(clazz, attribute);
+                builder.field(newInputObjectField()
+                                .name(attribute)
+                                .type((GraphQLInputType) classToType(attributeClass))
+                );
             }
 
-            if (type.isToOne()) {
-                builder.field(newInputObjectField()
-                                .name(relationship)
-                                .type(buildInputObject(relationshipClass, visited))
-                );
-            } else {
-                builder.field(newInputObjectField()
-                                .name(relationship)
-                                .type(new GraphQLList(buildInputObject(relationshipClass, visited)))
-                );
+            constructing.put(clazz, builder.build());
+
+            for (String relationship : dictionary.getRelationships(clazz)) {
+                Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
+
+                if (!constructing.containsKey(relationshipClass)) {
+                    toVisit.add(relationshipClass);
+                }
             }
         }
 
-        GraphQLInputObjectType type = builder.build();
-        return type;
+        constructing.forEach((clazz, inputObj) -> {
+             for (String relationship : dictionary.getRelationships(clazz)) {
+                 Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
+                 RelationshipType type = dictionary.getRelationshipType(clazz, relationship);
+
+                 if (type.isToOne()) {
+                     inputObj.setField(relationship, newInputObjectField()
+                                     .name(relationship)
+                                     .type(constructing.get(relationshipClass))
+                                     .build()
+                     );
+                 } else {
+                     inputObj.setField(relationship, newInputObjectField()
+                                     .name(relationship)
+                                     .type(new GraphQLList(constructing.get(relationshipClass)))
+                                     .build()
+                     );
+                 }
+             }
+        });
+
+        return constructing.get(entityClass);
     }
 
     /**
