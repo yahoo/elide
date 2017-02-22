@@ -18,6 +18,7 @@ import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
 
 import org.hibernate.Criteria;
+import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -77,7 +78,9 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
-            session.flush();
+            if (session.getFlushMode() != FlushMode.COMMIT && session.getFlushMode() != FlushMode.NEVER) {
+                session.flush();
+            }
         } catch (HibernateException e) {
             throw new TransactionException(e);
         }
@@ -115,7 +118,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             Criteria criteria = session.createCriteria(entityClass).add(Restrictions.idEq(id));
             if (filterExpression.isPresent()) {
-                CriterionFilterOperation filterOpn = new CriterionFilterOperation(criteria);
+                CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
             }
             return criteria.uniqueResult();
