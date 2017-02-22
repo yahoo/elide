@@ -1,3 +1,9 @@
+/*
+ * Copyright 2017, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -25,6 +31,9 @@ import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+/**
+ * Constructs a GraphQL schema (query and mutation documents) from an Elide EntityDictionary.
+ */
 public class ModelBuilder {
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
@@ -76,7 +85,7 @@ public class ModelBuilder {
         /*
          * Search the object graph, avoid cycles, and construct the GraphQL output object types.
          */
-        Queue < Class < ?>> toVisit = new ArrayDeque<>(rootClasses);
+        Queue<Class<?>> toVisit = new ArrayDeque<>(rootClasses);
         while (! toVisit.isEmpty()) {
             Class<?> clazz = toVisit.remove();
             visited.add(clazz);
@@ -180,7 +189,7 @@ public class ModelBuilder {
      */
     private GraphQLInputType buildInputObject(Class<?> entityClass) {
         Map<Class<?>, MutableGraphQLInputObjectType> constructing = new HashMap<>();
-        Queue < Class < ?>> toVisit = new ArrayDeque<>();
+        Queue<Class<?>> toVisit = new ArrayDeque<>();
         toVisit.add(entityClass);
 
         /* First pass, construct all of the builders in the object graph without constructing relationships */
@@ -217,6 +226,7 @@ public class ModelBuilder {
             }
         }
 
+        /* Assign relationships to the partially constructed input objects */
         constructing.forEach((clazz, inputObj) -> {
              for (String relationship : dictionary.getRelationships(clazz)) {
                  Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
