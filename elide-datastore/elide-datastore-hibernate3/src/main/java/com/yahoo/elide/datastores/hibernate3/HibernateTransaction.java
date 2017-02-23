@@ -20,8 +20,10 @@ import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -83,7 +85,9 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
-            session.flush();
+            if (session.getFlushMode() != FlushMode.COMMIT && session.getFlushMode() != FlushMode.NEVER) {
+                session.flush();
+            }
         } catch (HibernateException e) {
             throw new TransactionException(e);
         }
@@ -324,6 +328,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         scope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
     }
 
+    @Override
     public Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
@@ -383,6 +388,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public void close() throws IOException {
         if (session.isOpen() && session.getTransaction().isActive()) {
             session.getTransaction().rollback();
