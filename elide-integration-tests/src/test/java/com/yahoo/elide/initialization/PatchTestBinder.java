@@ -21,10 +21,10 @@ import java.util.HashMap;
 /**
  * Typical-use test binder for integration test resource configs.
  */
-public class AssignedIdLongStandardTestBinder extends AbstractBinder {
+public class PatchTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
 
-    public AssignedIdLongStandardTestBinder(final AuditLogger auditLogger) {
+    public PatchTestBinder(final AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
     }
 
