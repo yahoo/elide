@@ -57,7 +57,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -88,33 +87,6 @@ public class Elide {
      * @param dictionary the dictionary
      * @param mapper Serializer/Deserializer for JSON API
      * @param permissionExecutor Custom permission executor implementation
-     */
-    protected Elide(AuditLogger auditLogger,
-                    DataStore dataStore,
-                    EntityDictionary dictionary,
-                    JsonApiMapper mapper,
-                    Function<RequestScope, PermissionExecutor> permissionExecutor) {
-        this(
-            auditLogger,
-            dataStore,
-            dictionary,
-            mapper,
-            ActivePermissionExecutor::new,
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Pagination.MAX_PAGE_LIMIT,
-            Pagination.DEFAULT_PAGE_LIMIT
-        );
-    }
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @param permissionExecutor Custom permission executor implementation
      * @param joinFilterDialects A list of filter parsers to use for filtering across types
      * @param subqueryFilterDialects A list of filter parsers to use for filtering by type
      */
@@ -126,7 +98,9 @@ public class Elide {
                     List<JoinFilterDialect> joinFilterDialects,
                     List<SubqueryFilterDialect> subqueryFilterDialects,
                     int maxDefaultPageSize,
-                    int defaultPageSize) {
+                    int defaultPageSize,
+                    boolean useFilterExpressions,
+                    int updateStatusCode) {
         this.auditLogger = auditLogger;
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -135,7 +109,8 @@ public class Elide {
         this.permissionExecutor = permissionExecutor;
         this.joinFilterDialects = joinFilterDialects;
         this.subqueryFilterDialects = subqueryFilterDialects;
-        this.elideSettings = new ElideSettings(maxDefaultPageSize, defaultPageSize);
+        this.elideSettings = new ElideSettings(maxDefaultPageSize,
+                defaultPageSize, useFilterExpressions, updateStatusCode);
     }
 
     /**
@@ -151,6 +126,25 @@ public class Elide {
         private List<SubqueryFilterDialect> subqueryFilterDialects;
         private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
         private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
+        private boolean useFilterExpressions;
+        private int updateStatusCode;
+
+        /**
+         * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
+         * providing a mapping of security checks.
+         *
+         * @param auditLogger the logger to use for audit annotations
+         * @param dataStore the datastore used to communicate with the persistence layer
+         * @deprecated 2.3 use {@link #Builder(DataStore)}
+         */
+        public Builder(AuditLogger auditLogger, DataStore dataStore) {
+            this.auditLogger = auditLogger;
+            this.dataStore = dataStore;
+            this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+            this.joinFilterDialects = new ArrayList<>();
+            this.subqueryFilterDialects = new ArrayList<>();
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
+        }
 
         /**
          * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -164,6 +158,7 @@ public class Elide {
             this.jsonApiMapper = new JsonApiMapper(entityDictionary);
             this.joinFilterDialects = new ArrayList<>();
             this.subqueryFilterDialects = new ArrayList<>();
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
         }
 
         public Elide build() {
@@ -184,7 +179,9 @@ public class Elide {
                     joinFilterDialects,
                     subqueryFilterDialects,
                     defaultMaxPageSize,
-                    defaultPageSize);
+                    defaultPageSize,
+                    useFilterExpressions,
+                    updateStatusCode);
         }
 
         public Builder withAuditLogger(AuditLogger auditLogger) {
@@ -245,6 +242,21 @@ public class Elide {
 
         public Builder withDefaultPageSize(int pageSize) {
             defaultPageSize = pageSize;
+            return this;
+        }
+
+        public Builder withUpdate200Status() {
+            updateStatusCode = HttpStatus.SC_OK;
+            return this;
+        }
+
+        public Builder withUpdate204Status() {
+            updateStatusCode = HttpStatus.SC_NO_CONTENT;
+            return this;
+        }
+
+        public Builder withUseFilterExpressions(boolean useFilterExpressions) {
+            this.useFilterExpressions = useFilterExpressions;
             return this;
         }
     }
@@ -577,10 +589,22 @@ public class Elide {
     public static class ElideSettings {
         public final int defaultMaxPageSize;
         public final int defaultPageSize;
+        public final boolean useFilterExpressions;
+        public final int updateStatusCode;
 
         public ElideSettings(int defaultMaxPageSize, int defaultPageSize) {
+            this(defaultMaxPageSize, defaultPageSize, true, HttpStatus.SC_NO_CONTENT);
+        }
+
+        public ElideSettings(int defaultMaxPageSize,
+                             int defaultPageSize,
+                             boolean useFilterExpressions,
+                             int updateStatusCode
+                             ) {
             this.defaultMaxPageSize = defaultMaxPageSize;
             this.defaultPageSize = defaultPageSize;
+            this.useFilterExpressions = useFilterExpressions;
+            this.updateStatusCode = updateStatusCode;
         }
     }
 }

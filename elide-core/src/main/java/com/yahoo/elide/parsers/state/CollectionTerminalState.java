@@ -7,7 +7,6 @@ package com.yahoo.elide.parsers.state;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
@@ -62,7 +61,6 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        ObjectMapper mapper = requestScope.getMapper().getObjectMapper();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection = getResourceCollection(requestScope);
@@ -96,7 +94,7 @@ public class CollectionTerminalState extends BaseState {
             jsonApiDocument.setMeta(meta);
         }
 
-        JsonNode responseBody = mapper.convertValue(jsonApiDocument, JsonNode.class);
+        JsonNode responseBody = requestScope.getMapper().toJsonObject(jsonApiDocument);
 
         return () -> Pair.of(HttpStatus.SC_OK, responseBody);
     }

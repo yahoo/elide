@@ -261,7 +261,7 @@ public class SwaggerBuilder {
 
             Response okSingularResponse = new Response()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.contrib.swagger.property.Datum(typeName));
+                    .schema(new com.yahoo.elide.contrib.swagger.property.Datum(typeName, false));
 
             Response okPluralResponse = new Response()
                     .description("Successful response")

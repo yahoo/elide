@@ -20,13 +20,25 @@ public class Data extends ObjectProperty {
      * @param definitionName The swagger model to reference in 'data'
      */
     public Data(String definitionName) {
+        this(definitionName, true);
+    }
+
+    /**
+     * Used to construct a collection of resources (referenced by the resource type)
+     * @param definitionName The swagger model to reference in 'data'
+     * @param included Whether or not to add the 'included' property to the schema.
+     */
+    public Data(String definitionName, boolean included) {
         super();
         property("data", new ArrayProperty().items(new RefProperty(definitionName)));
-        property("included", new ArrayProperty()
-            .description("Included resources")
-            .uniqueItems()
-            .items(new IncludedResource())
-        );
+
+        if (included) {
+            property("included", new ArrayProperty()
+                            .description("Included resources")
+                            .uniqueItems()
+                            .items(new IncludedResource())
+            );
+        }
     }
 
     /**
