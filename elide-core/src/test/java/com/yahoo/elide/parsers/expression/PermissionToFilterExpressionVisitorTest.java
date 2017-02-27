@@ -6,7 +6,8 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -15,7 +16,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
@@ -52,6 +52,7 @@ import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVis
 public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
     private RequestScope requestScope;
+    private ElideSettings elideSettings;
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -78,6 +79,11 @@ public class PermissionToFilterExpressionVisitorTest {
         dictionary.bindEntity(BAD4.class);
         dictionary.bindEntity(GOOD9.class);
         dictionary.bindEntity(GOOD10.class);
+
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(dictionary)
+                .build();
+
         requestScope = newRequestScope();
     }
 
@@ -188,7 +194,7 @@ public class PermissionToFilterExpressionVisitorTest {
 
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, null, elideSettings);
     }
 
     @Entity

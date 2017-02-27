@@ -14,6 +14,7 @@ import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -1712,11 +1713,11 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void elideBypassSecurity() {
         String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
-        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                 .withAuditLogger(new TestAuditLogger())
                 .withPermissionExecutor(BypassPermissionExecutor.class)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build();
+                .build());
         ElideResponse response =
                 elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
@@ -1725,10 +1726,10 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
-                .build();
+                .build());
         ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");

@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.security.permissions;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -13,7 +14,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -29,6 +29,7 @@ public class PermissionExpressionBuilderTest {
 
     private EntityDictionary dictionary;
     private PermissionExpressionBuilder builder;
+    private ElideSettings elideSettings;
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -40,6 +41,10 @@ public class PermissionExpressionBuilderTest {
 
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
+
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(dictionary)
+                .build();
     }
 
     @Test
@@ -165,7 +170,7 @@ public class PermissionExpressionBuilderTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings);
         return new PersistentResource<>(obj, requestScope);
     }
 }

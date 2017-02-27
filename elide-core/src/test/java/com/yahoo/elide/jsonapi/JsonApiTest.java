@@ -10,14 +10,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -58,8 +57,12 @@ public class JsonApiTest {
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
         userScope = new RequestScope(null, new JsonApiDocument(),
-                mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(0), dictionary, mapper, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+                mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS), new User(0), null,
+                new ElideSettingsBuilder(null)
+                        .withJsonApiMapper(mapper)
+                        .withAuditLogger(testLogger)
+                        .withEntityDictionary(dictionary)
+                        .build());
     }
 
     @Test

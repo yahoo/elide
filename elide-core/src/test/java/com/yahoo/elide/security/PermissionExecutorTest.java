@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.security;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -14,7 +15,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
@@ -379,19 +379,25 @@ public class PermissionExecutorTest {
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         return new PersistentResource<>(obj, requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         try {
             return new PersistentResource<>(cls.newInstance(), requestScope);
         } catch (InstantiationException | IllegalAccessException e) {
             return null;
         }
+    }
+
+    private ElideSettings getElideSettings(EntityDictionary dictionary) {
+        return new ElideSettingsBuilder(null)
+                    .withEntityDictionary(dictionary)
+                    .build();
     }
 
     public static final class SampleOperationCheck extends OperationCheck<Object> {

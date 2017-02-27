@@ -12,6 +12,7 @@ import static org.testng.Assert.assertFalse;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -53,10 +54,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithPassingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredPass.json");
 
-        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                 .withAuditLogger(new TestAuditLogger())
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build();
+                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -66,10 +67,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithFailingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredFail.json");
 
-        Elide elide = new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                 .withAuditLogger(new TestAuditLogger())
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build();
+                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);

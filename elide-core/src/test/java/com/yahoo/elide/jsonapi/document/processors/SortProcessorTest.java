@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -58,7 +57,13 @@ public class SortProcessorTest {
         sortProcessor = new SortProcessor();
         goodUserScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), dictionary, null, new TestAuditLogger(), null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+                new User(1), null,
+                new ElideSettingsBuilder(null)
+                        .withAuditLogger(new TestAuditLogger())
+                        .withEntityDictionary(dictionary)
+                        .withDefaultMaxPageSize(10)
+                        .withDefaultPageSize(10)
+                        .build());
 
         //Create objects
         Parent parent1 = newParent(1);

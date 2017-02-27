@@ -6,6 +6,7 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
@@ -43,13 +44,13 @@ public class AssignedIdLongStandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                return new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withUpdate200Status()
-                        .build();
+                        .build());
             }
 
             @Override

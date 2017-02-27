@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -19,8 +20,8 @@ import javax.ws.rs.core.MultivaluedMap;
  * Tests parsing the page params for json-api pagination.
  */
 public class PaginationLogicTest {
-    private final Elide.ElideSettings elideSettings =
-            new Elide.ElideSettings(Pagination.MAX_PAGE_LIMIT, Pagination.DEFAULT_PAGE_LIMIT);
+    private final ElideSettings elideSettings =
+            new ElideSettingsBuilder(null).build();
 
     @Test
     public void shouldParseQueryParamsForCurrentPageAndPageSize() {
@@ -142,7 +143,11 @@ public class PaginationLogicTest {
         Assert.assertEquals(pageData.getOffset(), 0);
         Assert.assertEquals(pageData.getLimit(), Pagination.DEFAULT_PAGE_LIMIT);
 
-        pageData = Pagination.parseQueryParams(queryParams, new Elide.ElideSettings(10, 10));
+        pageData = Pagination.parseQueryParams(queryParams,
+                new ElideSettingsBuilder(null)
+                    .withDefaultPageSize(10)
+                    .withDefaultMaxPageSize(10)
+                    .build());
         Assert.assertEquals(pageData.getOffset(), 0);
         Assert.assertEquals(pageData.getLimit(), 10);
     }
@@ -153,7 +158,11 @@ public class PaginationLogicTest {
         class PaginationOverrideTest { }
 
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();
-        Pagination pageData = Pagination.parseQueryParams(queryParams, new Elide.ElideSettings(0, 0));
+        Pagination pageData = Pagination.parseQueryParams(queryParams,
+                new ElideSettingsBuilder(null)
+                    .withDefaultPageSize(0)
+                    .withDefaultMaxPageSize(0)
+                    .build());
         Assert.assertEquals(pageData.getOffset(), 0);
         Assert.assertEquals(pageData.getLimit(), 0);
 

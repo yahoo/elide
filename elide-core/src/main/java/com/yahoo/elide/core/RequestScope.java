@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
@@ -69,9 +69,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final String path;
-    @Getter private final Elide.ElideSettings elideSettings;
-    @Getter private int updateStatusCode;
-    private final boolean useFilterExpressions;
+    @Getter private final ElideSettings elideSettings;
+    @Getter private final boolean useFilterExpressions;
+    @Getter private final int updateStatusCode;
 
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
@@ -88,36 +88,27 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
      * @param user the user making this request
-     * @param dictionary the entity dictionary
-     * @param mapper converts JsonApiDocuments to raw JSON
-     * @param auditLogger logger for this request
      * @param queryParams the query parameters
-     * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
      * @param elideSettings Elide settings object
-     * @param filterDialect Filter dialect
      */
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
-                        EntityDictionary dictionary,
-                        JsonApiMapper mapper,
-                        AuditLogger auditLogger,
                         MultivaluedMap<String, String> queryParams,
-                        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator,
-                        Elide.ElideSettings elideSettings,
-                        MultipleFilterDialect filterDialect) {
+                        ElideSettings elideSettings) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
         this.user = user;
-        this.dictionary = dictionary;
-        this.mapper = mapper;
-        this.auditLogger = auditLogger;
-        this.filterDialect = filterDialect;
+        this.dictionary = elideSettings.getDictionary();
+        this.mapper = elideSettings.getMapper();
+        this.auditLogger = elideSettings.getAuditLogger();
+        this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
+                elideSettings.getSubqueryFilterDialects());
         this.elideSettings = elideSettings;
-        this.useFilterExpressions = elideSettings.useFilterExpressions;
-        this.updateStatusCode = elideSettings.updateStatusCode;
+        this.useFilterExpressions = elideSettings.isUseFilterExpressions();
+        this.updateStatusCode = elideSettings.getUpdateStatusCode();
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -141,9 +132,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             }
         };
 
+        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
                 ? new ActivePermissionExecutor(this)
                 : permissionExecutorGenerator.apply(this);
+
 
         this.queryParams = (queryParams == null || queryParams.size() == 0)
                 ? Optional.empty()

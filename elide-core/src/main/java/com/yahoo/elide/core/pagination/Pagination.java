@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.pagination;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.Getter;
@@ -87,7 +87,7 @@ public class Pagination {
      * @return The new Page object.
      */
     public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams,
-                                              Elide.ElideSettings elideSettings)
+                                              ElideSettings elideSettings)
             throws InvalidValueException {
         final Map<PaginationKey, Integer> pageData = new HashMap<>();
         queryParams.entrySet()
@@ -114,9 +114,10 @@ public class Pagination {
                     }
                 });
         // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
-        Pagination result = new Pagination(pageData, elideSettings.defaultMaxPageSize, elideSettings.defaultPageSize);
+        Pagination result = new Pagination(pageData,
+                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
         result.offset = 0;
-        result.limit = elideSettings.defaultPageSize;
+        result.limit = elideSettings.getDefaultPageSize();
         return result;
     }
 
@@ -216,9 +217,9 @@ public class Pagination {
      * Default Instance.
      * @return The default instance.
      */
-    public static Pagination getDefaultPagination(Elide.ElideSettings elideSettings) {
+    public static Pagination getDefaultPagination(ElideSettings elideSettings) {
         Pagination defaultPagination = new Pagination(new HashMap<>(),
-                elideSettings.defaultMaxPageSize, elideSettings.defaultPageSize);
+                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
         defaultPagination.offset = DEFAULT_OFFSET;
         defaultPagination.limit = DEFAULT_PAGE_LIMIT;
         return defaultPagination;
