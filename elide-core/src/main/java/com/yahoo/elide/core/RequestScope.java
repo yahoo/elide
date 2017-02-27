@@ -70,6 +70,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
     @Getter private final String path;
     @Getter private final Elide.ElideSettings elideSettings;
+    @Getter private int updateStatusCode;
+    private final boolean useFilterExpressions;
+
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
@@ -79,7 +82,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     final private transient HashMap<Class, LinkedHashSet<Runnable>> queuedTriggers;
 
     /**
-     * Create a new RequestScope.
+     * Create a new RequestScope with specified update status code
+     *
      * @param path the URL path
      * @param jsonApiDocument the document for this request
      * @param transaction the transaction for this request
@@ -90,7 +94,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams the query parameters
      * @param permissionExecutorGenerator the user-provided function that will generate a permissionExecutor
      * @param elideSettings Elide settings object
-     * @param filterDialect Filtering dialect to be used for request
+     * @param filterDialect Filter dialect
      */
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
@@ -112,6 +116,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.auditLogger = auditLogger;
         this.filterDialect = filterDialect;
         this.elideSettings = elideSettings;
+        this.useFilterExpressions = elideSettings.useFilterExpressions;
+        this.updateStatusCode = elideSettings.updateStatusCode;
 
         this.globalFilterExpression = null;
         this.expressionsByType = new HashMap<>();
@@ -215,6 +221,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.elideSettings = outerRequestScope.elideSettings;
+        this.useFilterExpressions = outerRequestScope.useFilterExpressions;
+        this.updateStatusCode = outerRequestScope.updateStatusCode;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
