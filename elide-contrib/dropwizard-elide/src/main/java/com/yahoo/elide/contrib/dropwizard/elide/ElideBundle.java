@@ -8,6 +8,7 @@ package com.yahoo.elide.contrib.dropwizard.elide;
 
 import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
@@ -96,7 +97,7 @@ public abstract class ElideBundle<T extends Configuration>
         environment.jersey().register(new AbstractBinder() {
             @Override
             protected void configure() {
-                Elide.Builder builder = new Elide.Builder(dataStore);
+                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore);
                 if (auditLogger != null) {
                     builder = builder.withAuditLogger(auditLogger);
                 }
@@ -112,7 +113,7 @@ public abstract class ElideBundle<T extends Configuration>
                 if (permissionExecutor != null) {
                     builder = builder.withPermissionExecutor(permissionExecutor);
                 }
-                bind(builder.build()).to(Elide.class).named("elide");
+                bind(new Elide(builder.build())).to(Elide.class).named("elide");
 
                 bind(getUserFn)
                         .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
