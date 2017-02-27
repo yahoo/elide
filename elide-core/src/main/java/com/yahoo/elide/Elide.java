@@ -57,7 +57,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -79,37 +78,6 @@ public class Elide {
     private final List<JoinFilterDialect> joinFilterDialects;
     private final List<SubqueryFilterDialect> subqueryFilterDialects;
     private final ElideSettings elideSettings;
-    private final boolean useFilterExpressions;
-    private final int updateStatusCode;
-
-    /**
-     * Instantiates a new Elide.
-     *
-     * @param auditLogger the audit logger
-     * @param dataStore the dataStore
-     * @param dictionary the dictionary
-     * @param mapper Serializer/Deserializer for JSON API
-     * @param permissionExecutor Custom permission executor implementation
-     */
-    protected Elide(AuditLogger auditLogger,
-                    DataStore dataStore,
-                    EntityDictionary dictionary,
-                    JsonApiMapper mapper,
-                    Function<RequestScope, PermissionExecutor> permissionExecutor) {
-        this(
-            auditLogger,
-            dataStore,
-            dictionary,
-            mapper,
-            permissionExecutor,
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Collections.singletonList(new DefaultFilterDialect(dictionary)),
-            Pagination.MAX_PAGE_LIMIT,
-            Pagination.DEFAULT_PAGE_LIMIT,
-            false,
-            HttpStatus.SC_NO_CONTENT
-        );
-    }
 
     /**
      * Instantiates a new Elide.
@@ -143,8 +111,6 @@ public class Elide {
         this.subqueryFilterDialects = subqueryFilterDialects;
         this.elideSettings = new ElideSettings(maxDefaultPageSize,
                 defaultPageSize, useFilterExpressions, updateStatusCode);
-        this.useFilterExpressions = useFilterExpressions;
-        this.updateStatusCode = updateStatusCode;
     }
 
     /**
