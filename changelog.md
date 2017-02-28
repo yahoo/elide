@@ -5,13 +5,15 @@
 * Revised datastore interface 
     * Removed hibernate-isms
     * Made key-value persistence easier to support
-* New pre/post hook model
+* Changed lifecycle hook model
 * Updated audit logger interface
-* Removed all deprecated features
+* Removed all deprecated features, e.g.
     * SecurityMode
     * `any` and `all` permission syntax
-    * Must use Elide.Builder
-* InMemoryDataStore is now the reference datastore implementation
+    * Required use of `ElideSettingsBuilder`
+    * Removed `PersistenceStore` from Hibernate 5 datastore
+* Made `InMemoryDataStore` the reference datastore implementation
 
 **Fixes**
 * Close transactions properly
+* Updated all dependencies
