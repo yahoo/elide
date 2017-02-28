@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
 import com.google.common.collect.Sets;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import example.Child;
 import example.Parent;
 import org.testng.Assert;
@@ -43,8 +42,11 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(
-                null, null, null, null, dictionary, null, new TestAuditLogger(), null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        final RequestScope requestScope = new RequestScope(null, null, null, null, null,
+                new ElideSettingsBuilder(null)
+                        .withAuditLogger(new TestAuditLogger())
+                        .withEntityDictionary(dictionary)
+                        .build());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);

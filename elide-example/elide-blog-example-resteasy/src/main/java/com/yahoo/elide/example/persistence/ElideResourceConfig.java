@@ -6,6 +6,7 @@
 package com.yahoo.elide.example.persistence;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.datastores.hibernate5.PersistenceStore;
 import com.yahoo.elide.resources.JsonApiEndpoint;
@@ -26,9 +27,9 @@ public class ElideResourceConfig extends Application {
         EntityManagerFactory entityManagerFactory =
                 Persistence.createEntityManagerFactory("com.yahoo.elide.example");
 
-        Elide elide = new Elide.Builder(new PersistenceStore(entityManagerFactory))
+        Elide elide = new Elide(new ElideSettingsBuilder(new PersistenceStore(entityManagerFactory))
                 .withAuditLogger(new Slf4jLogger())
-                .build();
+                .build());
 
         Set<Object> set = new HashSet<>();
         set.add(new JsonApiEndpoint(elide, v -> null));

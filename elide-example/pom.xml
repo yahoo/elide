@@ -64,7 +64,6 @@
     </dependencyManagement>
 
     <modules>
-        <module>elide-persistence-mysql-example</module>
         <module>elide-hibernate3-mysql-example</module>
         <module>elide-blog-example</module>
         <module>dropwizard-elide-example</module>

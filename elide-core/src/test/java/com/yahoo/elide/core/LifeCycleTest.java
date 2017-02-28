@@ -14,8 +14,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
@@ -65,10 +66,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Book book = mock(Book.class);
 
-        Elide.Builder builder = new Elide.Builder(store);
-        builder.withAuditLogger(MOCK_AUDIT_LOGGER);
-        builder.withEntityDictionary(dictionary);
-        Elide elide = builder.build();
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         String bookBody = "{\"data\": {\"type\":\"book\",\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
@@ -90,10 +88,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Book book = mock(Book.class);
 
-        Elide.Builder builder = new Elide.Builder(store);
-        builder.withAuditLogger(MOCK_AUDIT_LOGGER);
-        builder.withEntityDictionary(dictionary);
-        Elide elide = builder.build();
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(store.beginReadTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
@@ -113,10 +108,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Book book = mock(Book.class);
 
-        Elide.Builder builder = new Elide.Builder(store);
-        builder.withAuditLogger(MOCK_AUDIT_LOGGER);
-        builder.withEntityDictionary(dictionary);
-        Elide elide = builder.build();
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
@@ -141,10 +133,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Book book = mock(Book.class);
 
-        Elide.Builder builder = new Elide.Builder(store);
-        builder.withAuditLogger(MOCK_AUDIT_LOGGER);
-        builder.withEntityDictionary(dictionary);
-        Elide elide = builder.build();
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
@@ -165,7 +154,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
@@ -193,7 +182,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.setValue("title", "new title");
         scope.runQueuedPreSecurityTriggers();
@@ -220,7 +209,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, scope);
         resource.deleteResource();
         scope.runQueuedPreSecurityTriggers();
@@ -246,7 +235,7 @@ public class LifeCycleTest {
     public void testOnRead() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), dictionary, null, MOCK_AUDIT_LOGGER, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary));
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, scope);
 
         resource.getValueChecked("title");
@@ -267,5 +256,16 @@ public class LifeCycleTest {
         verify(book, times(0)).postDeleteBook(scope);
         verify(book, times(0)).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
+    }
+
+    private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
+        return new Elide(getElideSettings(dataStore, dictionary, auditLogger));
+    }
+
+    private ElideSettings getElideSettings(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
+        return new ElideSettingsBuilder(dataStore)
+                .withEntityDictionary(dictionary)
+                .withAuditLogger(auditLogger)
+                .build();
     }
 }

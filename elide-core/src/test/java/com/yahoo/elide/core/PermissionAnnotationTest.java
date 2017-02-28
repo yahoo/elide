@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -13,7 +14,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 
@@ -47,10 +47,18 @@ public class PermissionAnnotationTest {
         fun.setId(1);
 
         AuditLogger testLogger = new TestAuditLogger();
+
+        ElideSettings elideSettings = new ElideSettingsBuilder(null)
+                .withDefaultPageSize(10)
+                .withDefaultMaxPageSize(10)
+                .withAuditLogger(testLogger)
+                .withEntityDictionary(dictionary)
+                .build();
+
         funRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary)));
+                new RequestScope(null, null, null, goodUser, null, elideSettings));
         badRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, badUser, dictionary, null, testLogger, null, null, new Elide.ElideSettings(10, 10), new MultipleFilterDialect(dictionary)));
+                new RequestScope(null, null, null, badUser, null, elideSettings));
     }
 
     @Test
