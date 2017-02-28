@@ -140,5 +140,4 @@ public class JsonApiEndpoint {
     private static Response build(ElideResponse response) {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
-
 }
