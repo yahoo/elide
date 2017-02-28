@@ -3,18 +3,17 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.example.persistence;
+package com.yahoo.elide.example;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.datastores.hibernate5.PersistenceStore;
+import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
 /**
  * Example application for resource config.
@@ -29,10 +28,9 @@ public class ElideResourceConfig extends ResourceConfig {
                         .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
                         .named("elideUserExtractionFunction");
 
-                EntityManagerFactory entityManagerFactory =
-                        Persistence.createEntityManagerFactory("com.yahoo.elide.example");
+                SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
-                bind(new Elide(new ElideSettingsBuilder(new PersistenceStore(entityManagerFactory))
+                bind(new Elide(new ElideSettingsBuilder(new HibernateStore.Builder(sessionFactory).build())
                         .withAuditLogger(new Slf4jLogger())
                         .build()))
                         .to(Elide.class).named("elide");

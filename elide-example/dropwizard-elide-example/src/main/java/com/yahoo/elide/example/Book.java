@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.example.persistence;
+package com.yahoo.elide.example;
 
 import com.yahoo.elide.annotation.Include;
 
