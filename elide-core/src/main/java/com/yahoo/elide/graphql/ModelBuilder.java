@@ -11,6 +11,7 @@ import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -27,6 +28,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
@@ -46,7 +48,7 @@ public class ModelBuilder {
 
         relationshipOpArg = GraphQLArgument.newArgument()
                 .name("op")
-                .type(RelationshipOp.toGraphQLType())
+                .type(toGraphQLType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -269,10 +271,25 @@ public class ModelBuilder {
             return Scalars.GraphQLShort;
         } else if (clazz.equals(String.class)) {
             return Scalars.GraphQLString;
+        } else if (clazz.isEnum()) {
+            return toGraphQLType((Class<Enum>) clazz);
         }
 
         //TODO - handle collections & embedded entities
 
         return null;
+    }
+
+    public static GraphQLEnumType toGraphQLType(Class<?> enumClazz) {
+        Enum [] values = (Enum []) enumClazz.getEnumConstants();
+
+        GraphQLEnumType.Builder builder = newEnum()
+                .name(enumClazz.getName());
+
+        for (Enum value : values) {
+            builder.value(value.name(), value);
+        }
+
+        return builder.build();
     }
 }

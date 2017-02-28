@@ -11,6 +11,7 @@ import example.Author;
 import example.Book;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -20,6 +21,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 
@@ -57,12 +60,16 @@ public class ModelBuilderTest {
         Assert.assertTrue(bookType.getFieldDefinition("language").getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition("publishDate").getType().equals(Scalars.GraphQLLong));
 
+
         GraphQLList authorsType = (GraphQLList) bookType.getFieldDefinition("authors").getType();
 
         Assert.assertTrue(authorsType.getWrappedType().equals(authorType));
 
         Assert.assertTrue(authorType.getFieldDefinition("id").getType().equals(Scalars.GraphQLID));
         Assert.assertTrue(authorType.getFieldDefinition("name").getType().equals(Scalars.GraphQLString));
+
+        Assert.assertTrue(validateEnum(Author.AuthorType.class,
+                (GraphQLEnumType) authorType.getFieldDefinition("type").getType()));
 
         GraphQLList booksType = (GraphQLList) authorType.getFieldDefinition("books").getType();
         Assert.assertTrue(booksType.getWrappedType().equals(bookType));
@@ -84,5 +91,20 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField("books").getType();
         Assert.assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+    private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
+        Enum [] values = (Enum []) expected.getEnumConstants();
+        Set<String> enumNames = actual.getValues().stream()
+                .map((value) -> value.getName())
+                .collect(Collectors.toSet());
+
+        for (Enum value : values) {
+            if (! enumNames.contains(value.name())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
