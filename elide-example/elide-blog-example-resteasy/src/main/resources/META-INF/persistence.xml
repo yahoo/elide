@@ -3,9 +3,9 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
     <persistence-unit name="com.yahoo.elide.example">
-        <class>com.yahoo.elide.example.persistence.models.User</class>
-        <class>com.yahoo.elide.example.persistence.models.Post</class>
-        <class>com.yahoo.elide.example.persistence.models.Comment</class>
+        <class>com.yahoo.elide.example.models.User</class>
+        <class>com.yahoo.elide.example.models.Post</class>
+        <class>com.yahoo.elide.example.models.Comment</class>
 
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />

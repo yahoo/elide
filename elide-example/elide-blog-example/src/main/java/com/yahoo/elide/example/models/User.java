@@ -3,8 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
-package com.yahoo.elide.example.persistence;
+package com.yahoo.elide.example.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
@@ -13,24 +12,23 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
- * Model for authors.
+ * Model for Users (author of posts and author of comments).
  */
 @Entity
-@SharePermission(expression = "Prefab.Role.All")
-@Table(name = "author")
+@Table(name = "user")
 @Include(rootLevel = true)
-public class Author {
+@SharePermission(expression = "Prefab.Role.All")
+//@CreatePermission(expression = "Prefab.Role.All")
+public class User {
     private long id;
     private String name;
-    private Collection<Book> books = new ArrayList<>();
+    private Role role;
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
         return id;
     }
@@ -47,12 +45,11 @@ public class Author {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "authors")
-    public Collection<Book> getBooks() {
-        return books;
+    public Role getRole() {
+        return role;
     }
 
-    public void setBooks(Collection<Book> books) {
-        this.books = books;
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

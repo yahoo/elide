@@ -3,32 +3,32 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.example.persistence.models;
+package com.yahoo.elide.example.models;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.util.Collection;
 
 /**
- * Model for Comments on Posts.
+ * Model for Posts
  */
 @Entity
-@Table(name = "comment")
-@Include
-@SharePermission(expression = "Prefab.Role.All")
-public class Comment {
+@Table(name = "post")
+@Include(rootLevel = true)
+public class Post {
     private long id;
-    private Post post;
     private User author;
     private String content;
+    private Collection<Comment> comments;
     private long me;
 
     @Id
@@ -39,15 +39,6 @@ public class Comment {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    @ManyToOne
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
     }
 
     @ManyToOne
@@ -67,6 +58,15 @@ public class Comment {
         this.content = content;
     }
 
+    @OneToMany(mappedBy = "post")
+    public Collection<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Collection<Comment> comments) {
+        this.comments = comments;
+    }
+
     @Transient
     @ComputedAttribute
     public long getMe() {
@@ -75,5 +75,6 @@ public class Comment {
 
     public void setMe(long me) {
         this.me = me;
+        System.out.println(me);
     }
 }
