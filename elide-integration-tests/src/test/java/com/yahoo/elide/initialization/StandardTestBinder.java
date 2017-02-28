@@ -12,7 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import example.TestCheckMappings;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -58,17 +58,17 @@ public class StandardTestBinder extends AbstractBinder {
         }).to(Elide.class).named("elide");
 
         // User function
-        bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
+        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
             private final Integer user = 1;
 
             @Override
-            public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {
+            public DefaultOpaqueUserFunction provide() {
                 return v -> user;
             }
 
             @Override
-            public void dispose(JsonApiEndpoint.DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
+            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
             }
-        }).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
     }
 }

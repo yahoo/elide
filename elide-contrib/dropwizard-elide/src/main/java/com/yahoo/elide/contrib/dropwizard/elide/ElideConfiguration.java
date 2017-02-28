@@ -11,7 +11,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.PermissionExecutor;
 import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
@@ -38,7 +38,7 @@ public interface ElideConfiguration<T extends Configuration> {
     }
 
     /**
-     * Get the {@link JsonApiEndpoint.DefaultOpaqueUserFunction} for Elide.
+     * Get the {@link DefaultOpaqueUserFunction} for Elide.
      *
      * Override this method to plug in your own DefaultOpaqueUserFunction
      *
@@ -46,7 +46,7 @@ public interface ElideConfiguration<T extends Configuration> {
      * @param environment Dropwizard environment
      * @return defaultOpaqueUserFunction to be used in Elide
      */
-    default JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn(T configuration, Environment environment) {
+    default DefaultOpaqueUserFunction getUserFn(T configuration, Environment environment) {
         return v -> null;
     }
 
