@@ -11,7 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -217,7 +217,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Set<Predicate> filters
+            Set<FilterPredicate> filters
     ) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
         Object relation = transaction
@@ -237,7 +237,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Set<Predicate> filters,
+            Set<FilterPredicate> filters,
             Sorting sorting,
             Pagination pagination
     ) {

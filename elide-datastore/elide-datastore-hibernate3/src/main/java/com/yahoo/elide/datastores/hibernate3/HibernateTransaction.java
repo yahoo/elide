@@ -14,9 +14,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.InMemoryFilterOperation;
-import com.yahoo.elide.core.filter.Predicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -457,22 +458,22 @@ public class HibernateTransaction implements RequestScopedTransaction {
 
     @Override
     @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        if ((collection instanceof AbstractPersistentCollection) && !predicates.isEmpty()) {
+    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<FilterPredicate> filterPredicates) {
+        if ((collection instanceof AbstractPersistentCollection) && !filterPredicates.isEmpty()) {
             // for PatchRequest use only inMemory tests since objects in the collection may be new and unsaved
             if (getRequestScope() instanceof PatchRequestScope) {
-                return patchRequestFilterCollection(collection, entityClass, predicates);
+                return patchRequestFilterCollection(collection, entityClass, filterPredicates);
             }
 
-            String filterString = new HQLFilterOperation().applyAll(predicates);
+            String filterString = new HQLFilterOperation().applyAll(filterPredicates);
 
             if (filterString.length() != 0) {
                 Query query = session.createFilter(collection, filterString);
 
-                for (Predicate predicate : predicates) {
-                    if (predicate.getOperator().isParameterized()) {
-                        String name = predicate.getParameterName();
-                        query = query.setParameterList(name, predicate.getValues());
+                for (FilterPredicate filterPredicate : filterPredicates) {
+                    if (filterPredicate.getOperator().isParameterized()) {
+                        String name = filterPredicate.getParameterName();
+                        query = query.setParameterList(name, filterPredicate.getValues());
                     }
                 }
 
@@ -497,8 +498,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
             FilterExpression filterExpression) {
         final EntityDictionary dictionary = getRequestScope().getDictionary();
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(dictionary);
-        java.util.function.Predicate inMemoryFilterFn =
-                filterExpression.accept(inMemoryFilterVisitor);
+        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
         return (Collection) collection.stream()
                 .filter(e -> inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
@@ -509,15 +509,15 @@ public class HibernateTransaction implements RequestScopedTransaction {
      * @param <T>         the type parameter
      * @param collection  the collection to filter
      * @param entityClass the class of the entities in the collection
-     * @param predicates  the set of Predicate's to filter by
+     * @param filterPredicates  the set of Predicate's to filter by
      * @return the filtered collection
      * @deprecated will be removed in Elide 3.0
      */
     @Deprecated
     protected <T> Collection patchRequestFilterCollection(Collection collection, Class<T> entityClass,
-            Set<Predicate> predicates) {
+            Set<FilterPredicate> filterPredicates) {
         final EntityDictionary dictionary = getRequestScope().getDictionary();
-        Set<java.util.function.Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(predicates);
+        Set<Predicate> filterFns = new InMemoryFilterOperation(dictionary).applyAll(filterPredicates);
         return (Collection) collection.stream()
                 .filter(e -> filterFns.stream().allMatch(fn -> fn.test(e)))
                 .collect(Collectors.toList());
@@ -528,7 +528,7 @@ public class HibernateTransaction implements RequestScopedTransaction {
     public <T> Collection filterCollectionWithSortingAndPagination(final Collection collection,
                                                                    final Class<T> entityClass,
                                                                    final EntityDictionary dictionary,
-                                                                   final Optional<Set<Predicate>> filters,
+                                                                   final Optional<Set<FilterPredicate>> filters,
                                                                    final Optional<Sorting> sorting,
                                                                    final Optional<Pagination> pagination) {
         if (((collection instanceof AbstractPersistentCollection))

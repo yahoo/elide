@@ -13,7 +13,7 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.RequestScopedTransaction;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -91,8 +91,8 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
 
     @Override
     @Deprecated
-    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<Predicate> predicates) {
-        return getTransaction(entityClass).filterCollection(collection, entityClass, predicates);
+    public <T> Collection filterCollection(Collection collection, Class<T> entityClass, Set<FilterPredicate> filterPredicates) {
+        return getTransaction(entityClass).filterCollection(collection, entityClass, filterPredicates);
     }
 
     @Override
@@ -171,7 +171,7 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Set<Predicate> filters
+            Set<FilterPredicate> filters
     ) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
         return transaction.getRelation(entity, relationshipType, relationName, relationClass, dictionary, filters);
@@ -184,7 +184,7 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
             String relationName,
             Class<T> relationClass,
             EntityDictionary dictionary,
-            Set<Predicate> filters,
+            Set<FilterPredicate> filters,
             Sorting sorting,
             Pagination pagination
     ) {
@@ -200,8 +200,8 @@ public abstract class MultiplexTransaction implements RequestScopedTransaction {
 
     @Override
     public <T> Collection filterCollectionWithSortingAndPagination(Collection collection, Class<T> entityClass,
-            EntityDictionary dictionary, Optional<Set<Predicate>> filters, Optional<Sorting> sorting,
-            Optional<Pagination> pagination) {
+                                                                   EntityDictionary dictionary, Optional<Set<FilterPredicate>> filters, Optional<Sorting> sorting,
+                                                                   Optional<Pagination> pagination) {
         return getTransaction(entityClass).filterCollectionWithSortingAndPagination(
                 collection, entityClass, dictionary, filters, sorting, pagination);
     }
