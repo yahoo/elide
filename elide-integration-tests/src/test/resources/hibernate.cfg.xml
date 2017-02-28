@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015, Yahoo Inc.
+  ~ Copyright 2017, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -13,7 +13,7 @@
     <session-factory>
         <!-- local connection properties -->
         <!-- this is what we normally use -->
-        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <!-- dialect for Mysql -->
         <property name="dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
 
