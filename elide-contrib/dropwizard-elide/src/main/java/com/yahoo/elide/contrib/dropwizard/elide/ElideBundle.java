@@ -15,7 +15,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.PermissionExecutor;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
@@ -92,7 +92,7 @@ public abstract class ElideBundle<T extends Configuration>
         final Function<RequestScope, PermissionExecutor> permissionExecutor
                 = getPermissionExecutor(configuration, environment);
 
-        final JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
+        final DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
 
         environment.jersey().register(new AbstractBinder() {
             @Override
@@ -116,7 +116,7 @@ public abstract class ElideBundle<T extends Configuration>
                 bind(new Elide(builder.build())).to(Elide.class).named("elide");
 
                 bind(getUserFn)
-                        .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
+                        .to(DefaultOpaqueUserFunction.class)
                         .named("elideUserExtractionFunction");
             }
         });

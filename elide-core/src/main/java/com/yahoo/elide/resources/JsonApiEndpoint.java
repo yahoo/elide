@@ -141,10 +141,4 @@ public class JsonApiEndpoint {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
 
-    /**
-     * Placeholder for injection frameworks.
-     */
-    public interface DefaultOpaqueUserFunction extends Function<SecurityContext, Object> {
-        // Empty
-    }
 }
