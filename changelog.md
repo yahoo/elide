@@ -13,6 +13,7 @@
     * Required use of `ElideSettingsBuilder`
     * Removed `PersistenceStore` from Hibernate 5 datastore
 * Made `InMemoryDataStore` the reference datastore implementation
+* Promoted `DefaultOpaqueUserFunction` to be a top-level class
 
 **Fixes**
 * Close transactions properly
