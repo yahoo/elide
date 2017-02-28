@@ -9,15 +9,14 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Model for authors.
@@ -31,9 +30,16 @@ import javax.persistence.Table;
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
 public class Author {
+    public enum AuthorType {
+        EXCLUSIVE,
+        CONTRACTED,
+        FREELANCE
+    }
+
     private Long id;
     private String name;
     private Collection<Book> books = new ArrayList<>();
+    private AuthorType type;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long getId() {
@@ -50,6 +56,14 @@ public class Author {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public AuthorType getType() {
+        return type;
+    }
+
+    public void setType(AuthorType type) {
+        this.type = type;
     }
 
     @ManyToMany(mappedBy = "authors")
