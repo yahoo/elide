@@ -126,10 +126,16 @@ public class ModelBuilder {
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
+            GraphQLType attributeType = classToType(attributeClass);
+
+            if (attributeType == null) {
+                continue;
+            }
+
             builder.field(newFieldDefinition()
                     .name(attribute)
                     .dataFetcher(dataFetcher)
-                    .type((GraphQLOutputType) classToType(attributeClass))
+                    .type((GraphQLOutputType) attributeType)
             );
         }
 
@@ -211,9 +217,16 @@ public class ModelBuilder {
 
             for (String attribute : dictionary.getAttributes(clazz)) {
                 Class<?> attributeClass = dictionary.getType(clazz, attribute);
+
+                GraphQLType attributeType = classToType(attributeClass);
+
+                if (attributeType == null) {
+                    continue;
+                }
+
                 builder.field(newInputObjectField()
                                 .name(attribute)
-                                .type((GraphQLInputType) classToType(attributeClass))
+                                .type((GraphQLInputType) attributeType)
                 );
             }
 
@@ -256,7 +269,7 @@ public class ModelBuilder {
     /**
      * Converts any non-entity type to a GraphQLType
      * @param clazz - the non-entity type.
-     * @return the GraphQLType
+     * @return the GraphQLType or null if there is a problem with the underlying model.
      */
     private GraphQLType classToType(Class<?> clazz) {
         if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
@@ -273,6 +286,9 @@ public class ModelBuilder {
             return Scalars.GraphQLString;
         } else if (clazz.isEnum()) {
             return toGraphQLType((Class<Enum>) clazz);
+        } else if (dictionary.getBindings().contains(clazz)) {
+            //Attributes can't also be entities.
+            return null;
         }
 
         //TODO - handle collections & embedded entities
