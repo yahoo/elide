@@ -119,19 +119,6 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Pagination> pagination,
             RequestScope scope);
 
-
-    /**
-     * Get total count of entity records satisfying the given filter.
-     *
-     * @param <T> the type parameter
-     * @param entityClass the entity class
-     * @return total matching entities
-     */
-    default <T> Long getTotalRecords(Class<T> entityClass) {
-        // default to no records
-        return 0L;
-    }
-
     /**
      * Retrieve a relation from an object.
      *

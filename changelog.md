@@ -20,3 +20,4 @@
 **Fixes**
 * Close transactions properly
 * Updated all dependencies
+* Fixed page totals to honor filter & security permissions evaluated in the DB.

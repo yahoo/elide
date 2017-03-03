@@ -199,11 +199,6 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public <T> Long getTotalRecords(Class<T> entityClass) {
-            return null;
-        }
-
-        @Override
         public void updateToManyRelation(DataStoreTransaction relationTx, Object entity, String relationName, Set<Object> newRelationships, Set<Object> deletedRelationships, RequestScope scope) {
 
         }
