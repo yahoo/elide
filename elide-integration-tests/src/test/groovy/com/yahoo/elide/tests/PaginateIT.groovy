@@ -603,7 +603,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testRelationshipPaginateAnnotationTotalsWithFilter() {
-        def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?page[size]=1&page[totals]&filter[book.title][infixi]=Foundation").asString())
+        def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?page[size]=1&page[totals]&filter[book.title][infixi]=FounDation").asString())
         Assert.assertEquals(result.get("data").size(), 1)
         JsonNode pageNode = result.get("meta").get("page")
         Assert.assertNotNull(pageNode)
