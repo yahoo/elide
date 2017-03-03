@@ -153,12 +153,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             RequestScope scope) {
 
         final EntityDictionary dictionary = scope.getDictionary();
-        if (pagination.isPresent()) {
-            pagination.get().evaluate(entityClass);
-            if (pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression));
+        pagination.ifPresent(p -> {
+            if (p.isGenerateTotals()) {
+                p.setPageTotals(getTotalRecords(entityClass, filterExpression));
             }
-        }
+        });
 
         Criteria criteria = session.createCriteria(entityClass);
 
@@ -238,14 +237,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
-                if (pagination.isPresent()) {
-                    pagination.get().evaluate(relationClass);
-                    if (pagination.get().isGenerateTotals()) {
-                        pagination.get().setPageTotals(
-                                getTotalRecords(entity, filterExpression, relationName, dictionary)
-                        );
+                pagination.ifPresent(p -> {
+                    if (p.isGenerateTotals()) {
+                        p.setPageTotals(getTotalRecords(entity, filterExpression, relationName, dictionary));
                     }
-                }
+                });
 
                 final Optional<Query> possibleQuery =
                         new HQLTransaction.Builder<>(session, filteredVal, relationClass,
