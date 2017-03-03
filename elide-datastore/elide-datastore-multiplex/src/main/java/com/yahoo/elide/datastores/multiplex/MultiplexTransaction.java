@@ -237,11 +237,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         transaction.setAttribute(entity, attributeName, attributeValue, scope);
     }
 
-    @Override
-    public <T> Long getTotalRecords(Class<T> entityClass) {
-        return getTransaction(entityClass).getTotalRecords(entityClass);
-    }
-
     private Serializable extractId(FilterExpression filterExpression,
                                    String idFieldName,
                                    Object parent,

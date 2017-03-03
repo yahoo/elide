@@ -7,11 +7,14 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -26,7 +29,6 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
@@ -145,6 +147,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
+
+        if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
+                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression));
+        }
+
         Criteria criteria = session.createCriteria(entityClass);
 
         if (filterExpression.isPresent()) {
@@ -209,6 +216,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
+
+        if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
+                pagination.get().setPageTotals(getTotalRecords(entity.getClass(), filterExpression, relationName));
+        }
+
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
@@ -237,11 +249,66 @@ public class HibernateTransaction implements DataStoreTransaction {
         return val;
     }
 
-    @Override
-    public <T> Long getTotalRecords(Class<T> entityClass) {
-        final Criteria sessionCriteria = session.createCriteria(entityClass);
-        sessionCriteria.setProjection(Projections.rowCount());
-        return (Long) sessionCriteria.uniqueResult();
+    /**
+     * Returns the total record count for a root entity and a given filter expression.
+     * @param entityClass The entity to count
+     * @param filterExpression security and request filters
+     * @param <T> The type of entity
+     * @return The total row count.
+     */
+    private <T> Long getTotalRecords(Class<T> entityClass,
+                                    Optional<FilterExpression> filterExpression) {
+        return getTotalRecords(entityClass, filterExpression, null);
+    }
+
+    /**
+     * Returns the total record count for a collection and a given filter expression.
+     * @param entityClass The entity which owns the collection
+     * @param filterExpression security and request filters
+     * @param relation The collection to count.
+     * @param <T> The type of entity
+     * @return The total row count.
+     */
+    private <T> Long getTotalRecords(Class<T> entityClass,
+                                    Optional<FilterExpression> filterExpression,
+                                    String relation) {
+        String queryString;
+
+        /* We are traversing a relationship */
+        if (relation != null & !relation.isEmpty()) {
+            queryString = "SELECT COUNT(*) FROM {parent} {parent} join {parent}.{child} {child}";
+            queryString = queryString.replaceAll("\\{parent\\}", entityClass.getSimpleName());
+            queryString = queryString.replaceAll("\\{child\\}", relation);
+
+        /* We are loading a root collection */
+        } else {
+            queryString = "SELECT COUNT(*) FROM {parent}";
+            queryString = queryString.replaceAll("\\{parent\\}", entityClass.getSimpleName());
+        }
+
+        Query query;
+
+        if (filterExpression.isPresent()) {
+            queryString = queryString + " " + new HQLFilterOperation().apply(filterExpression.get(), relation);
+
+            query = session.createQuery(queryString);
+
+            /* Extract the predicates from the expression */
+            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+            Set<FilterPredicate> predicates = filterExpression.get().accept(visitor);
+
+            /* Populate query parameters from each predicate*/
+            for (FilterPredicate filterPredicate : predicates) {
+                if (filterPredicate.getOperator().isParameterized()) {
+                    String name = filterPredicate.getParameterName();
+                    query = query.setParameterList(name, filterPredicate.getValues());
+                }
+            }
+        } else {
+            query = session.createQuery(queryString);
+        }
+
+        return (Long) query.uniqueResult();
     }
 
     /**

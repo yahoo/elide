@@ -8,13 +8,14 @@ package com.yahoo.elide.core.pagination;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Encapsulates the pagination strategy.
@@ -22,7 +23,6 @@ import java.util.stream.Collectors;
 
 @ToString
 public class Pagination {
-
     /**
      * Denotes the internal field names for paging.
      */
@@ -55,6 +55,8 @@ public class Pagination {
         PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
         PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
     }
+
+    private long pageTotals = 0;
 
     private static final String PAGE_KEYS_CSV = PAGE_KEYS.keySet().stream().collect(Collectors.joining(", "));
 
@@ -119,6 +121,22 @@ public class Pagination {
         result.offset = 0;
         result.limit = elideSettings.getDefaultPageSize();
         return result;
+    }
+
+    /**
+     * Sets the total number of records for the paginated query.
+     * @param total
+     */
+    public void setPageTotals(long total) {
+        this.pageTotals = total;
+    }
+
+    /**
+     * Fetches the total number of records of the paginated query.
+     * @return page totals
+     */
+    public long getPageTotals() {
+        return pageTotals;
     }
 
     /**
