@@ -156,7 +156,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (pagination.isPresent()) {
             pagination.get().evaluate(entityClass);
             if (pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression, dictionary));
+                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression));
             }
         }
 
@@ -263,18 +263,33 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     /**
-     * Returns the total record count for a root entity and a given filter expression.
-     * @param entityClass The entity to count
-     * @param filterExpression security and request filters
+     * Returns the total record count for a root entity and an optional filter expression.
+     * @param entityClass The entity type to count
+     * @param filterExpression optional security and request filters
      * @param <T> The type of entity
      * @return The total row count.
      */
     private <T> Long getTotalRecords(Class<T> entityClass,
-                                    Optional<FilterExpression> filterExpression,
-                                    EntityDictionary dictionary) {
-        return getTotalRecords(entityClass, filterExpression, null, dictionary);
+                                    Optional<FilterExpression> filterExpression) {
+        String queryString = "SELECT COUNT(*) FROM {parentType} {parentType}";
+        queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
+
+        Query query;
+        if (filterExpression.isPresent()) {
+            query = populateWhereClause(queryString, filterExpression.get());
+        } else {
+            query = session.createQuery(queryString);
+        }
+        return (Long) query.uniqueResult();
     }
 
+    /**
+     * Returns the total record count for a entity relationship
+     * @param entity The entity which owns the relationship
+     * @param filterExpression optional security and request filters
+     * @param <T> The type of entity
+     * @return The total row count.
+     */
     private <T> Long getTotalRecords(Object entity,
                                      Optional<FilterExpression> filterExpression,
                                      String relation,
@@ -298,63 +313,41 @@ public class HibernateTransaction implements DataStoreTransaction {
             idExpression = new AndFilterExpression(filterExpression.get(), idExpression);
         }
 
-        return getTotalRecords(entityType, Optional.of(idExpression), relation, dictionary);
+        Class<?> relationClass = dictionary.getParameterizedType(entityType, relation);
+        String queryString =
+                "SELECT COUNT(*) FROM {parentType} {parentType} join {parentType}.{relation} {relationType}";
+        queryString = queryString.replaceAll("\\{parentType\\}", entityType.getSimpleName());
+        queryString = queryString.replaceAll("\\{relation\\}", relation);
+        queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
+
+        Query query = populateWhereClause(queryString, idExpression);
+        return (Long) query.uniqueResult();
     }
 
     /**
-     * Returns the total record count for a collection and a given filter expression.
-     * @param entityClass The entity which owns the collection
-     * @param filterExpression security and request filters
-     * @param relation The collection to count.
-     * @param dictionary The entity dictionary.
-     * @param <T> The type of entity
-     * @return The total row count.
+     * Builds a Hibernate query from a HQL fragment (containing SELECT & FROM) and a filter expression.
+     * @param hqlQuery The HQL fragment
+     * @param expression the filter expression to expand into a WHERE clause.
+     * @return an executable query.
      */
-    private <T> Long getTotalRecords(Class<T> entityClass,
-                                    Optional<FilterExpression> filterExpression,
-                                    String relation,
-                                    EntityDictionary dictionary) {
+    private Query populateWhereClause(String hqlQuery, FilterExpression expression) {
+        hqlQuery = hqlQuery + " " + new HQLFilterOperation().apply(expression, true);
 
+        Query query = session.createQuery(hqlQuery);
 
-        String queryString;
+        /* Extract the predicates from the expression */
+        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+        Set<FilterPredicate> predicates = expression.accept(visitor);
 
-        /* We are traversing a relationship */
-        if (relation != null && !relation.isEmpty()) {
-            Class<?> relationClass = dictionary.getParameterizedType(entityClass, relation);
-            queryString = "SELECT COUNT(*) FROM {parentType} {parentType} join {parentType}.{relation} {relationType}";
-            queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
-            queryString = queryString.replaceAll("\\{relation\\}", relation);
-            queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
-
-        /* We are loading a root collection */
-        } else {
-            queryString = "SELECT COUNT(*) FROM {parentType} {parentType}";
-            queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
-        }
-
-        Query query;
-
-        if (filterExpression.isPresent()) {
-            queryString = queryString + " " + new HQLFilterOperation().apply(filterExpression.get(), true);
-
-            query = session.createQuery(queryString);
-
-            /* Extract the predicates from the expression */
-            PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-            Set<FilterPredicate> predicates = filterExpression.get().accept(visitor);
-
-            /* Populate query parameters from each predicate*/
-            for (FilterPredicate filterPredicate : predicates) {
-                if (filterPredicate.getOperator().isParameterized()) {
-                    String name = filterPredicate.getParameterName();
-                    query = query.setParameterList(name, filterPredicate.getValues());
-                }
+        /* Populate query parameters from each predicate*/
+        for (FilterPredicate filterPredicate : predicates) {
+            if (filterPredicate.getOperator().isParameterized()) {
+                String name = filterPredicate.getParameterName();
+                query = query.setParameterList(name, filterPredicate.getValues());
             }
-        } else {
-            query = session.createQuery(queryString);
         }
 
-        return (Long) query.uniqueResult();
+        return query;
     }
 
     /**
