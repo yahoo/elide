@@ -124,8 +124,7 @@ public class HQLTransaction {
             // apply filtering - eg where clause's
             if (filterExpression != null) {
                 filterString += new HQLFilterOperation().apply(filterExpression);
-            }
-            else if (filters != null) {
+            } else if (filters != null) {
                 filterString += new HQLFilterOperation().applyAll(filters);
             }
 

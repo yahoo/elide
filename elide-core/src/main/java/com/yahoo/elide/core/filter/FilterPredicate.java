@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
@@ -25,6 +27,12 @@ import java.util.function.Predicate;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
+
+    public static boolean toManyInPath(EntityDictionary dictionary, List<PathElement> path) {
+        return path.stream()
+                .map(element -> dictionary.getRelationshipType(element.getType(), element.getFieldName()))
+                .anyMatch(RelationshipType::isToMany);
+    }
 
     /**
      * The path taken through data model associations to
@@ -81,9 +89,12 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return getFieldPath().replace('.', '_') + '_' + Integer.toHexString(hashCode());
     }
 
-    public String getEntityType() {
-        PathElement last = path.get(path.size() - 1);
-        return last.getTypeName();
+    public String getLeafEntityType() {
+        return path.get(path.size() - 1).getTypeName();
+    }
+
+    public String getRootEntityType() {
+        return path.get(0).getTypeName();
     }
 
     @Override

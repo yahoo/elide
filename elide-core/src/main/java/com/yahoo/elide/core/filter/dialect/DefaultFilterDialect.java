@@ -38,8 +38,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * Coverts the query parameters to a list of predicates that are then conjoined or organized by type.
      *
      * @param queryParams
-     * @return
-     * @throws ParseException
+     * @return a list of the predicates from the query params
+     * @throws ParseException when a filter parameter cannot be parsed
      */
     private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
         List<FilterPredicate> filterPredicates = new ArrayList<>();
@@ -50,45 +50,43 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();
 
-            Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?")
-                    .matcher(paramName);
-            if (matcher.find()) {
-                final String[] keyParts = matcher.group(1).split("\\.");
-
-                if (keyParts.length < 2) {
-                    throw new ParseException("Invalid filter format: " + paramName);
-                }
-
-                final Operator operator = (matcher.group(3) == null) ? Operator.IN
-                        : Operator.fromString(matcher.group(3));
-
-                List<PathElement> path = getPath(keyParts);
-                PathElement last = path.get(path.size() - 1);
-
-                final List<Object> values = new ArrayList<>();
-                if (operator.isParameterized()) {
-                    for (String valueParams : paramValues) {
-                        for (String valueParam : valueParams.split(",")) {
-                            values.add(CoerceUtil.coerce(valueParam, last.getFieldType()));
-                        }
-                    }
-                }
-
-                FilterPredicate filterPredicate = new FilterPredicate(path, operator, values);
-
-                filterPredicates.add(filterPredicate);
-            } else {
+            Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?").matcher(paramName);
+            if (!matcher.find()) {
                 throw new ParseException("Invalid filter format: " + paramName);
             }
+
+            final String[] keyParts = matcher.group(1).split("\\.");
+
+            if (keyParts.length < 2) {
+                throw new ParseException("Invalid filter format: " + paramName);
+            }
+
+            final Operator operator = (matcher.group(3) == null) ? Operator.IN
+                    : Operator.fromString(matcher.group(3));
+
+            List<PathElement> path = getPath(keyParts);
+            PathElement last = path.get(path.size() - 1);
+
+            final List<Object> values = new ArrayList<>();
+            if (operator.isParameterized()) {
+                for (String valueParams : paramValues) {
+                    for (String valueParam : valueParams.split(",")) {
+                        values.add(CoerceUtil.coerce(valueParam, last.getFieldType()));
+                    }
+                }
+            }
+
+            FilterPredicate filterPredicate = new FilterPredicate(path, operator, values);
+
+            filterPredicates.add(filterPredicate);
         }
 
         return filterPredicates;
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(
-            String path,
-            MultivaluedMap<String, String> filterParams) throws ParseException {
+    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
+            throws ParseException {
         List<FilterPredicate> filterPredicates;
         filterPredicates = extractPredicates(filterParams);
 
@@ -124,20 +122,17 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(
-            String path,
-            MultivaluedMap<String, String> filterParams) throws ParseException {
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+            throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();
-
         List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
 
         for (FilterPredicate filterPredicate : filterPredicates) {
-            if (filterPredicate.getPath().size() > 1) {
-                throw new ParseException("Invalid predicate: " + filterPredicate);
+            if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
+                throw new ParseException("Invalid toMany join: " + filterPredicate);
             }
 
-            String entityType = filterPredicate.getEntityType();
-
+            String entityType = filterPredicate.getRootEntityType();
             if (expressionMap.containsKey(entityType)) {
                 FilterExpression filterExpression = expressionMap.get(entityType);
                 expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));
