@@ -354,7 +354,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
         Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
         Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
-        list = (Iterable<T>) tx.loadObjects(loadClass, filterExpression, sorting, pagination, requestScope);
+        list = (Iterable<T>) tx.loadObjects(loadClass, filterExpression, sorting,
+                pagination.map(p -> p.evaluate(loadClass)), requestScope);
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         return resources;
@@ -1034,7 +1035,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val = requestScope.getTransaction()
                 .getRelation(requestScope.getTransaction(), obj, relationName, filterExpression,
-                        sorting, pagination, requestScope);
+                        sorting, pagination.map(p -> p.evaluate(relationClass)), requestScope);
 
         if (val == null) {
             return Collections.emptySet();
