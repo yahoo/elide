@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -24,8 +21,8 @@ import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -42,6 +39,10 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -70,7 +71,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.WebApplicationException;
@@ -358,24 +358,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource<T>> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources);
         return resources;
-    }
-
-    /**
-     * Gets the total number of records that could be loaded from the data store ignoring any pagination limits
-     *
-     * @param <T> the type parameter
-     * @param loadClass the load class
-     * @param requestScope the request scope
-     * @return total number of records that could be loaded
-     */
-    public static <T> Long getTotalRecords(Class<T> loadClass, RequestScope requestScope) {
-        DataStoreTransaction tx = requestScope.getTransaction();
-
-        if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
-            return 0L;
-        }
-
-        return tx.getTotalRecords(loadClass);
     }
 
     /**

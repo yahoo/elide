@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Set;
 
@@ -21,7 +22,23 @@ import java.util.Set;
 public class HQLFilterOperation implements FilterOperation<String> {
     @Override
     public String apply(FilterPredicate filterPredicate) {
+        return apply(filterPredicate, false);
+    }
+
+    /**
+     * Transforms a filter predicate into a HQL query fragment.
+     * @param filterPredicate The predicate to transform.
+     * @param prefixWithType Whether or not to append the entity type to the predicate.
+     *                       This is useful for table aliases referenced in HQL for some kinds of joins.
+     * @return The hql query fragment.
+     */
+    public String apply(FilterPredicate filterPredicate, boolean prefixWithType) {
         String fieldPath = filterPredicate.getFieldPath();
+
+        if (prefixWithType) {
+            fieldPath = filterPredicate.getEntityType().getSimpleName() + "." + fieldPath;
+        }
+
         String alias = filterPredicate.getParameterName();
         switch (filterPredicate.getOperator()) {
             case IN:
@@ -87,16 +104,31 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
     }
 
+    public String apply(FilterExpression filterExpression, boolean prefixWithType) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithType);
+        return "WHERE " + filterExpression.accept(visitor);
+
+    }
+
     /**
      * Filter expression visitor which builds an HQL query.
      */
     public class HQLQueryVisitor implements Visitor<String> {
+        private boolean prefixWithType;
+
+        public HQLQueryVisitor(boolean prefixWithType) {
+            this.prefixWithType = prefixWithType;
+        }
+
+        public HQLQueryVisitor() {
+            this(false);
+        }
 
         private String query;
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            query = apply(filterPredicate);
+            query = apply(filterPredicate, prefixWithType);
             return query;
         }
 

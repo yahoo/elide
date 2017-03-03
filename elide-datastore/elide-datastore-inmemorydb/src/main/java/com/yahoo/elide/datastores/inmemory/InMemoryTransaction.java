@@ -7,14 +7,13 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import javax.persistence.Id;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -28,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.persistence.Id;
 
 /**
  * InMemoryDataStore transaction handler.
@@ -176,11 +176,5 @@ public class InMemoryTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         operations.clear();
-    }
-
-    @Override
-    public <T> Long getTotalRecords(Class<T> entityClass) {
-        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
-        return objs == null ? 0L : objs.size();
     }
 }
