@@ -81,9 +81,14 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return getFieldPath().replace('.', '_') + '_' + Integer.toHexString(hashCode());
     }
 
-    public String getEntityType() {
+    public String getEntityTypeName() {
         PathElement last = path.get(path.size() - 1);
         return last.getTypeName();
+    }
+
+    public Class getEntityType() {
+        PathElement last = path.get(path.size() - 1);
+        return last.getType();
     }
 
     @Override

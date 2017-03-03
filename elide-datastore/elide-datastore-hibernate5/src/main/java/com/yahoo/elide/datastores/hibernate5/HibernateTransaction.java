@@ -11,6 +11,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
@@ -19,6 +21,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
@@ -35,6 +38,7 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -148,10 +152,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
+        final EntityDictionary dictionary = scope.getDictionary();
         if (pagination.isPresent()) {
             pagination.get().evaluate(entityClass);
             if (pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression));
+                pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression, dictionary));
             }
         }
 
@@ -165,7 +170,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         Set<Order> validatedSortingRules = null;
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
-                final EntityDictionary dictionary = scope.getDictionary();
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -237,8 +241,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                 if (pagination.isPresent()) {
                     pagination.get().evaluate(relationClass);
                     if (pagination.get().isGenerateTotals()) {
-                        pagination.get().setPageTotals(getTotalRecords(entity.getClass(),
-                                filterExpression, relationName));
+                        pagination.get().setPageTotals(
+                                getTotalRecords(entity, filterExpression, relationName, dictionary)
+                        );
                     }
                 }
 
@@ -265,8 +270,35 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return The total row count.
      */
     private <T> Long getTotalRecords(Class<T> entityClass,
-                                    Optional<FilterExpression> filterExpression) {
-        return getTotalRecords(entityClass, filterExpression, null);
+                                    Optional<FilterExpression> filterExpression,
+                                    EntityDictionary dictionary) {
+        return getTotalRecords(entityClass, filterExpression, null, dictionary);
+    }
+
+    private <T> Long getTotalRecords(Object entity,
+                                     Optional<FilterExpression> filterExpression,
+                                     String relation,
+                                     EntityDictionary dictionary) {
+        Class<?> entityType = entity.getClass();
+
+        Class<?> idType = dictionary.getIdType(entityType);
+        Object idVal = CoerceUtil.coerce(dictionary.getId(entity), idType);
+        String idField = dictionary.getIdFieldName(entityType);
+
+        FilterExpression idExpression = new FilterPredicate(
+                new FilterPredicate.PathElement(
+                        entityType,
+                        entityType.getSimpleName(),
+                        idType,
+                        idField),
+                Operator.IN,
+                Collections.singletonList(idVal));
+
+        if (filterExpression.isPresent()) {
+            idExpression = new AndFilterExpression(filterExpression.get(), idExpression);
+        }
+
+        return getTotalRecords(entityType, Optional.of(idExpression), relation, dictionary);
     }
 
     /**
@@ -274,30 +306,36 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param entityClass The entity which owns the collection
      * @param filterExpression security and request filters
      * @param relation The collection to count.
+     * @param dictionary The entity dictionary.
      * @param <T> The type of entity
      * @return The total row count.
      */
     private <T> Long getTotalRecords(Class<T> entityClass,
                                     Optional<FilterExpression> filterExpression,
-                                    String relation) {
+                                    String relation,
+                                    EntityDictionary dictionary) {
+
+
         String queryString;
 
         /* We are traversing a relationship */
         if (relation != null && !relation.isEmpty()) {
-            queryString = "SELECT COUNT(*) FROM {parent} {parent} join {parent}.{child} {child}";
-            queryString = queryString.replaceAll("\\{parent\\}", entityClass.getSimpleName());
-            queryString = queryString.replaceAll("\\{child\\}", relation);
+            Class<?> relationClass = dictionary.getParameterizedType(entityClass, relation);
+            queryString = "SELECT COUNT(*) FROM {parentType} {parentType} join {parentType}.{relation} {relationType}";
+            queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
+            queryString = queryString.replaceAll("\\{relation\\}", relation);
+            queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
 
         /* We are loading a root collection */
         } else {
-            queryString = "SELECT COUNT(*) FROM {parent}";
-            queryString = queryString.replaceAll("\\{parent\\}", entityClass.getSimpleName());
+            queryString = "SELECT COUNT(*) FROM {parentType} {parentType}";
+            queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
         }
 
         Query query;
 
         if (filterExpression.isPresent()) {
-            queryString = queryString + " " + new HQLFilterOperation().apply(filterExpression.get(), relation);
+            queryString = queryString + " " + new HQLFilterOperation().apply(filterExpression.get(), true);
 
             query = session.createQuery(queryString);
 

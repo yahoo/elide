@@ -245,7 +245,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Set<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
         for (FilterPredicate predicate : predicates) {
             List<Object> values = predicate.getValues();
-            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getEntityType());
+            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getEntityTypeName());
             if (relationClass == entityClass
                     && predicate.getOperator() == Operator.IN
                     && idFieldName.equals(predicate.getField())
