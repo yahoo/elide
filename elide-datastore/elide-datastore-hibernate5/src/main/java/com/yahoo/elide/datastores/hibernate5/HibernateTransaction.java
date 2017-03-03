@@ -148,8 +148,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
+        if (pagination.isPresent()) {
+            pagination.get().evaluate(entityClass);
+            if (pagination.get().isGenerateTotals()) {
                 pagination.get().setPageTotals(getTotalRecords(entityClass, filterExpression));
+            }
         }
 
         Criteria criteria = session.createCriteria(entityClass);
@@ -196,7 +199,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         if (pagination.isPresent()) {
-            Pagination paginationData = pagination.get().evaluate(loadClass);
+            Pagination paginationData = pagination.get();
             criteria.setFirstResult(paginationData.getOffset());
             criteria.setMaxResults(paginationData.getLimit());
         }
@@ -217,10 +220,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(getTotalRecords(entity.getClass(), filterExpression, relationName));
-        }
-
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
@@ -234,12 +233,21 @@ public class HibernateTransaction implements DataStoreTransaction {
 
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+
+                if (pagination.isPresent()) {
+                    pagination.get().evaluate(relationClass);
+                    if (pagination.get().isGenerateTotals()) {
+                        pagination.get().setPageTotals(getTotalRecords(entity.getClass(),
+                                filterExpression, relationName));
+                    }
+                }
+
                 final Optional<Query> possibleQuery =
                         new HQLTransaction.Builder<>(session, filteredVal, relationClass,
                                 dictionary)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
-                                .withPossiblePagination(pagination.map(p -> p.evaluate(relationClass)))
+                                .withPossiblePagination(pagination)
                                 .build();
                 if (possibleQuery.isPresent()) {
                     return possibleQuery.get().list();
@@ -275,7 +283,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         String queryString;
 
         /* We are traversing a relationship */
-        if (relation != null & !relation.isEmpty()) {
+        if (relation != null && !relation.isEmpty()) {
             queryString = "SELECT COUNT(*) FROM {parent} {parent} join {parent}.{child} {child}";
             queryString = queryString.replaceAll("\\{parent\\}", entityClass.getSimpleName());
             queryString = queryString.replaceAll("\\{child\\}", relation);
