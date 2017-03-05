@@ -91,12 +91,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         filterPredicates = extractPredicates(filterParams);
 
         /* Extract the first collection in the URL */
-        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
+        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
+        if (normalizedPath.startsWith("/")) {
+            normalizedPath = normalizedPath.substring(1);
         }
 
-        String[] pathComponents = path.split("/");
+        String[] pathComponents = normalizedPath.split("/");
         String firstPathComponent = "";
         if (pathComponents.length > 0) {
             firstPathComponent = pathComponents[0];

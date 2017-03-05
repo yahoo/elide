@@ -203,7 +203,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
             for (String associationName : associationNames) {
                 String typeName = dictionary.getJsonAliasFor(entityType);
-
                 Class fieldType = dictionary.getParameterizedType(entityType, associationName);
 
                 if (fieldType == null) {
@@ -211,12 +210,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                             String.format("No such association %s for type %s", associationName, typeName));
                 }
 
-                PathElement pathElement = new PathElement(
-                        entityType,
-                        typeName,
-                        fieldType,
-                        associationName);
-                path.add(pathElement);
+                path.add(new PathElement(entityType, typeName, fieldType, associationName));
 
                 entityType = fieldType;
             }
@@ -268,9 +262,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             ComparisonOperator op = node.getOperator();
             String relationship = node.getSelector();
             List<String> arguments = node.getArguments();
-
             List<PathElement> path = buildPath(entityType, relationship);
-
 
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
