@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
@@ -25,25 +27,29 @@ import java.util.function.Predicate;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
+    @Getter @NonNull private List<PathElement> path;
+    @Getter @NonNull private Operator operator;
+    @Getter @NonNull private List<Object> values;
+
+    public static boolean toManyInPath(EntityDictionary dictionary, List<PathElement> path) {
+        return path.stream()
+                .map(element -> dictionary.getRelationshipType(element.getType(), element.getFieldName()))
+                .anyMatch(RelationshipType::isToMany);
+    }
 
     /**
-     * The path taken through data model associations to
-     * reference the field in the operator.
-     * Eg: author.books.publisher.name
+     * The path taken through data model associations to reference the field in the operator.
+     * eg. author.books.publisher.name
      */
     @AllArgsConstructor
     @ToString
     @EqualsAndHashCode
     public static class PathElement {
-        @Getter Class type;
-        @Getter String typeName;
-        @Getter Class fieldType;
-        @Getter String fieldName;
+        @Getter private Class type;
+        @Getter private String typeName;
+        @Getter private Class fieldType;
+        @Getter private String fieldName;
     }
-
-    @Getter @NonNull private List<PathElement> path;
-    @Getter @NonNull private Operator operator;
-    @Getter @NonNull private List<Object> values;
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
         this(Collections.singletonList(pathElement), op, values);
@@ -81,9 +87,12 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return getFieldPath().replace('.', '_') + '_' + Integer.toHexString(hashCode());
     }
 
-    public String getEntityType() {
-        PathElement last = path.get(path.size() - 1);
-        return last.getTypeName();
+    public String getLeafEntityType() {
+        return path.get(path.size() - 1).getTypeName();
+    }
+
+    public String getRootEntityType() {
+        return path.get(0).getTypeName();
     }
 
     @Override

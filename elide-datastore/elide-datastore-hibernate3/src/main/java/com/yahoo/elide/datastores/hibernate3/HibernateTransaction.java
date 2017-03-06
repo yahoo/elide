@@ -351,8 +351,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
                 final Optional<Query> possibleQuery =
-                        new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                                dictionary)
+                        new HQLTransaction.Builder<>(session, filteredVal, relationClass, dictionary)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
                                 .withPossiblePagination(pagination.map(p -> p.evaluate(relationClass)))

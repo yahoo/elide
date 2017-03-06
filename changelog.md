@@ -15,6 +15,7 @@
     * Required use of `ElideSettingsBuilder`
     * Removed `PersistenceStore` from Hibernate 5 datastore
 * Made `InMemoryDataStore` the reference datastore implementation
+* Allow filtering on nested to-one relationships
 
 **Fixes**
 * Close transactions properly

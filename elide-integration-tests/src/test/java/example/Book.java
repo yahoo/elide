@@ -16,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,6 +42,7 @@ public class Book {
     private Collection<Author> authors = new ArrayList<>();
     private Collection<Chapter> chapters = new ArrayList<>();
     private String editorName;
+    private Publisher publisher;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -109,5 +111,14 @@ public class Book {
 
     public void setEditorName(String editorName) {
         this.editorName = editorName;
+    }
+
+    @ManyToOne
+    public Publisher getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(Publisher publisher) {
+        this.publisher = publisher;
     }
 }
