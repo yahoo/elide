@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
@@ -27,6 +29,7 @@ public class PermissionExpressionBuilderTest {
 
     private EntityDictionary dictionary;
     private PermissionExpressionBuilder builder;
+    private ElideSettings elideSettings;
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -38,6 +41,10 @@ public class PermissionExpressionBuilderTest {
 
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
+
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(dictionary)
+                .build();
     }
 
     @Test
@@ -163,7 +170,7 @@ public class PermissionExpressionBuilderTest {
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, dictionary, null, null);
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings);
         return new PersistentResource<>(obj, requestScope);
     }
 }

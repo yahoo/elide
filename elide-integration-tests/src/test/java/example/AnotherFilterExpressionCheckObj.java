@@ -9,10 +9,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.*;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,9 +27,9 @@ import java.util.List;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 @Table(name = "anotherFilterExpressionCheckObj")
-@ReadPermission(any = {AnotherFilterExpressionCheckObj.CheckActsLikeFilter.class})
+@ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)
 public class AnotherFilterExpressionCheckObj {
     private long id;
@@ -74,16 +73,16 @@ public class AnotherFilterExpressionCheckObj {
         this.id = id;
     }
 
-    public static Predicate createFilterPredicate() {
-        List<Predicate.PathElement> pathList = new ArrayList<>();
-        Predicate.PathElement path1 = new Predicate.PathElement(AnotherFilterExpressionCheckObj.class,
+    public static FilterPredicate createFilterPredicate() {
+        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(AnotherFilterExpressionCheckObj.class,
                 "anotherFilterExpressionCheckObj",
                 long.class, "createDate");
         pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add(1999L);
-        return new Predicate(pathList, op, value);
+        return new FilterPredicate(pathList, op, value);
     }
 
     public static class CheckActsLikeFilter extends FilterExpressionCheck {

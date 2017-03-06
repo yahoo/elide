@@ -5,12 +5,19 @@
  */
 package com.yahoo.elide.tests;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Sets;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.startsWith;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -18,31 +25,32 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+
 import example.Child;
+import example.ExceptionThrowingBean;
 import example.FunWithPermissions;
 import example.Invoice;
 import example.LineItem;
 import example.Parent;
+import example.TestCheckMappings;
 import example.User;
+
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * The type Config resource test.
@@ -63,8 +71,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         parent.setSpouses(Sets.newHashSet());
         child.setParents(Sets.newHashSet(parent));
 
-        tx.save(parent);
-        tx.save(child);
+        tx.save(parent, null);
+        tx.save(child, null);
 
         // Single tests
         Parent p1 = new Parent(); // id 2
@@ -89,9 +97,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         p1.setChildren(childrenSet1);
 
-        tx.save(p1);
-        tx.save(c1);
-        tx.save(c2);
+        tx.save(p1, null);
+        tx.save(c1, null);
+        tx.save(c2, null);
 
         // List tests
         Parent p2 = new Parent(); // id 3
@@ -113,27 +121,31 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         p3.setSpouses(Sets.newHashSet());
         p3.setChildren(Sets.newHashSet());
 
-        tx.save(p2);
-        tx.save(p3);
-        tx.save(c3);
-        tx.save(c4);
+        tx.save(p2, null);
+        tx.save(p3, null);
+        tx.save(c3, null);
+        tx.save(c4, null);
 
         FunWithPermissions fun = new FunWithPermissions();
-        tx.save(fun);
+        tx.save(fun, null);
 
         User user = new User(); //ID 1
         user.setPassword("god");
-        tx.save(user);
+        tx.save(user, null);
 
         Invoice invoice = new Invoice();
         invoice.setId(1);
         LineItem item = new LineItem();
         invoice.setItems(Sets.newHashSet(item));
         item.setInvoice(invoice);
-        tx.save(invoice);
-        tx.save(item);
+        tx.save(invoice, null);
+        tx.save(item, null);
 
-        tx.commit();
+        ExceptionThrowingBean etb = new ExceptionThrowingBean();
+        etb.setId(1L);
+        tx.save(etb, null);
+
+        tx.commit(null);
     }
 
     @Test(priority = -1)
@@ -1601,6 +1613,16 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testExceptionThrowingBean() {
+        // Ensure web exception from bean gets bubbled up
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/exceptionThrowingBean/1")
+                .then()
+                .statusCode(Status.GONE.getStatusCode());
+    }
+
+    @Test
     public void assignedIdString() {
         String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
 
@@ -1691,9 +1713,11 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void elideBypassSecurity() {
         String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager())
-                .permissionExecutor(BypassPermissionExecutor.class)
-                .build();
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withPermissionExecutor(BypassPermissionExecutor.class)
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build());
         ElideResponse response =
                 elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
@@ -1702,7 +1726,10 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .withAuditLogger(new TestAuditLogger())
+                .build());
         ElideResponse response = elide.get("parent/1/children", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
@@ -1775,6 +1802,33 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN)
             .body(equalTo(expected));
+    }
+
+    @Test
+    public void testPaginationLimitOverrides() {
+        // Well below the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=10")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        // At the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=100000")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        // Above the limit
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .get("/parent?page[size]=100001")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     // TODO: Test that user checks still apply at commit time

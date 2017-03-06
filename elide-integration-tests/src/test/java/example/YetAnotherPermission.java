@@ -8,15 +8,14 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@CreatePermission(any = {Role.ALL.class })
-@ReadPermission(all = {Role.NONE.class })
+@CreatePermission(expression = "allow all")
+@ReadPermission(expression = "deny all")
 @Include(rootLevel = true)
 @Entity
 public class YetAnotherPermission {
@@ -42,7 +41,7 @@ public class YetAnotherPermission {
         this.hiddenName = hiddenName;
     }
 
-    @ReadPermission(any = {Role.ALL.class})
+    @ReadPermission(expression = "allow all")
     public String getYouShouldBeAbleToRead() {
         return youShouldBeAbleToRead;
     }

@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,11 +22,11 @@ import java.util.List;
 
 @Entity
 @Include(rootLevel = true)
-@ReadPermission(all = Role.ALL.class)
-@CreatePermission(all = Role.ALL.class)
-@UpdatePermission(all = Role.ALL.class)
-@DeletePermission(all = Role.ALL.class)
-@SharePermission(all = Role.ALL.class)
+@ReadPermission(expression = "allow all")
+@CreatePermission(expression = "allow all")
+@UpdatePermission(expression = "allow all")
+@DeletePermission(expression = "allow all")
+@SharePermission(expression = "allow all")
 public class AuditEntityInverse {
     private Long id;
     private List<AuditEntity> entities;

@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,7 +20,7 @@ import javax.persistence.Table;
  * A shareable bean.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 @Table(name = "shareable")
 @Include(rootLevel = true, type = "shareable")
 public class Shareable {

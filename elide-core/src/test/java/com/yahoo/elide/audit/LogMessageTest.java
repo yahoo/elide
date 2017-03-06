@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.audit;
 
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -41,8 +42,11 @@ public class LogMessageTest {
         friend.setId(9);
         child.setFriends(Sets.newHashSet(friend));
 
-        final RequestScope requestScope = new RequestScope(
-                null, null, null, null, dictionary, null, new TestAuditLogger());
+        final RequestScope requestScope = new RequestScope(null, null, null, null, null,
+                new ElideSettingsBuilder(null)
+                        .withAuditLogger(new TestAuditLogger())
+                        .withEntityDictionary(dictionary)
+                        .build());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
         childRecord = new PersistentResource<>(parentRecord, child, requestScope);
@@ -98,7 +102,7 @@ public class LogMessageTest {
         try {
             testAuditLogger.log(failMessage);
             Thread.sleep(Math.floorMod(new Random().nextInt(), 100));
-            testAuditLogger.commit();
+            testAuditLogger.commit((RequestScope) null);
             Assert.fail("Exception expected");
         } catch (TestLoggerException e) {
             Assert.assertSame(e, testException);
@@ -106,7 +110,7 @@ public class LogMessageTest {
 
         // should not cause another exception
         try {
-            testAuditLogger.commit();
+            testAuditLogger.commit((RequestScope) null);
         } catch (TestLoggerException e) {
             Assert.fail("Exception not cleared from previous logger commit");
         }

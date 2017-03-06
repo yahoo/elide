@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -26,7 +25,7 @@ import java.util.Map;
 @Entity
 @Table(name = "color_shape")
 @Include(rootLevel = true)
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 public class MapColorShape {
     private long id;
     private Map<Color, Shape> colorShapeMap = new LinkedHashMap<>();

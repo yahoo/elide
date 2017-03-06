@@ -5,22 +5,21 @@
  */
 package example;
 
-        import com.yahoo.elide.annotation.CreatePermission;
-        import com.yahoo.elide.annotation.Include;
-        import com.yahoo.elide.annotation.ReadPermission;
-        import com.yahoo.elide.annotation.UpdatePermission;
-        import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 
-        import javax.persistence.Entity;
-        import javax.persistence.GeneratedValue;
-        import javax.persistence.GenerationType;
-        import javax.persistence.Id;
-        import javax.persistence.OneToOne;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @Include(rootLevel = true)
-@ReadPermission(any = {Role.ALL.class})
-@CreatePermission(any = {Role.ALL.class})
-@UpdatePermission(any = {Role.ALL.class})
+@ReadPermission(expression = "allow all")
+@CreatePermission(expression = "allow all")
+@UpdatePermission(expression = "allow all")
 @Entity
 public class ResourceWithInvalidRelationship {
     private Long id;

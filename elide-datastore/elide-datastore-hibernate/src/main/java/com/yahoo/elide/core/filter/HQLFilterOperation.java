@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Set;
 
@@ -20,22 +21,44 @@ import java.util.Set;
  */
 public class HQLFilterOperation implements FilterOperation<String> {
     @Override
-    public String apply(Predicate predicate) {
-        String fieldPath = predicate.getFieldPath();
-        String alias = predicate.getParameterName();
-        switch (predicate.getOperator()) {
+    public String apply(FilterPredicate filterPredicate) {
+        return apply(filterPredicate, false);
+    }
+
+    /**
+     * Transforms a filter predicate into a HQL query fragment.
+     * @param filterPredicate The predicate to transform.
+     * @param prefixWithType Whether or not to append the entity type to the predicate.
+     *                       This is useful for table aliases referenced in HQL for some kinds of joins.
+     * @return The hql query fragment.
+     */
+    public String apply(FilterPredicate filterPredicate, boolean prefixWithType) {
+        String fieldPath = filterPredicate.getFieldPath();
+
+        if (prefixWithType) {
+            fieldPath = filterPredicate.getEntityType().getSimpleName() + "." + fieldPath;
+        }
+
+        String alias = filterPredicate.getParameterName();
+        switch (filterPredicate.getOperator()) {
             case IN:
-                Preconditions.checkState(!predicate.getValues().isEmpty());
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s IN (:%s)", fieldPath, alias);
             case NOT:
-                Preconditions.checkState(!predicate.getValues().isEmpty());
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s NOT IN (:%s)", fieldPath, alias);
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
+            case PREFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT(lower(:%s), '%%')", fieldPath, alias);
             case POSTFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
+            case POSTFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s))", fieldPath, alias);
             case INFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
+            case INFIX_CASE_INSENSITIVE:
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s), '%%')", fieldPath, alias);
             case ISNULL:
                 return String.format("%s IS NULL", fieldPath);
             case NOTNULL:
@@ -54,22 +77,22 @@ public class HQLFilterOperation implements FilterOperation<String> {
                 return "(1 = 0)";
 
             default:
-                throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
+                throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
         }
     }
 
     @Override
-    public String applyAll(Set<Predicate> predicates) {
+    public String applyAll(Set<FilterPredicate> filterPredicates) {
         StringBuilder filterString = new StringBuilder();
 
-        for (Predicate predicate : predicates) {
+        for (FilterPredicate filterPredicate : filterPredicates) {
             if (filterString.length() == 0) {
                 filterString.append("WHERE ");
             } else {
                 filterString.append(" AND ");
             }
 
-            filterString.append(apply(predicate));
+            filterString.append(apply(filterPredicate));
         }
 
         return filterString.toString();
@@ -81,16 +104,31 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
     }
 
+    public String apply(FilterExpression filterExpression, boolean prefixWithType) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithType);
+        return "WHERE " + filterExpression.accept(visitor);
+
+    }
+
     /**
      * Filter expression visitor which builds an HQL query.
      */
     public class HQLQueryVisitor implements Visitor<String> {
+        private boolean prefixWithType;
+
+        public HQLQueryVisitor(boolean prefixWithType) {
+            this.prefixWithType = prefixWithType;
+        }
+
+        public HQLQueryVisitor() {
+            this(false);
+        }
 
         private String query;
 
         @Override
-        public String visitPredicate(Predicate predicate) {
-            query = apply(predicate);
+        public String visitPredicate(FilterPredicate filterPredicate) {
+            query = apply(filterPredicate, prefixWithType);
             return query;
         }
 

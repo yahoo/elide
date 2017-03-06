@@ -6,12 +6,13 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
@@ -43,13 +44,13 @@ public class AssignedIdLongStandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                return new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withUpdate200Status()
-                        .build();
+                        .build());
             }
 
             @Override
@@ -59,17 +60,17 @@ public class AssignedIdLongStandardTestBinder extends AbstractBinder {
         }).to(Elide.class).named("elide");
 
         // User function
-        bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
+        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
             private final Integer user = 1;
 
             @Override
-            public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {
+            public DefaultOpaqueUserFunction provide() {
                 return v -> user;
             }
 
             @Override
-            public void dispose(JsonApiEndpoint.DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
+            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
             }
-        }).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
     }
 }

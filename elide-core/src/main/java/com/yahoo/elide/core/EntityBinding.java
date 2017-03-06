@@ -8,11 +8,18 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnRead;
-import com.yahoo.elide.annotation.OnUpdate;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,6 +49,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Stream;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -72,6 +80,7 @@ class EntityBinding {
     public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
@@ -113,11 +122,18 @@ class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
-            bindTriggerIfPresent(OnCreate.class, fieldOrMethod);
-            bindTriggerIfPresent(OnDelete.class, fieldOrMethod);
-            bindTriggerIfPresent(OnUpdate.class, fieldOrMethod);
-            bindTriggerIfPresent(OnCommit.class, fieldOrMethod);
-            bindTriggerIfPresent(OnRead.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPreSecurity.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPreCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnCreatePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnDeletePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnUpdatePostCommit.class, fieldOrMethod);
+            bindTriggerIfPresent(OnReadPostCommit.class, fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
                 bindEntityId(cls, type, fieldOrMethod);
@@ -202,6 +218,11 @@ class EntityBinding {
             return; // Reserved. Not attributes.
         }
 
+        if (fieldOrMethod instanceof Method) {
+            Method method = (Method) fieldOrMethod;
+            requestScopeableMethods.put(method, isRequestScopeableMethod(method));
+        }
+
         Class<?> fieldType = getFieldType(fieldOrMethod);
 
         ConcurrentLinkedDeque<String> fieldList;
@@ -255,16 +276,41 @@ class EntityBinding {
         } else {
             Method method = (Method) fieldOrMethod;
             String name = method.getName();
+            boolean hasValidParameterCount = method.getParameterCount() == 0
+                    || isRequestScopeableMethod((Method) fieldOrMethod);
 
-            if (name.startsWith("get") && method.getParameterCount() == 0) {
+            if (name.startsWith("get") && hasValidParameterCount) {
                 name = WordUtils.uncapitalize(name.substring("get".length()));
-            } else if (name.startsWith("is") && method.getParameterCount() == 0) {
+            } else if (name.startsWith("is") && hasValidParameterCount) {
                 name = WordUtils.uncapitalize(name.substring("is".length()));
             } else {
                 return null;
             }
             return name;
         }
+    }
+
+    /**
+     * Check whether or not method expects a RequestScope.
+     *
+     * @param method  Method to check
+     * @return True if accepts a RequestScope, false otherwise
+     */
+    public static boolean isRequestScopeableMethod(Method method) {
+        return isComputedMethod(method) && method.getParameterCount() == 1
+                && com.yahoo.elide.security.RequestScope.class.isAssignableFrom(method.getParameterTypes()[0]);
+    }
+
+    /**
+     * Check whether or not the provided method described a computed attribute or relationship.
+     *
+     * @param method  Method to check
+     * @return True if method is a computed type, false otherwise
+     */
+    public static boolean isComputedMethod(Method method) {
+        return Stream.of(method.getAnnotations())
+                .map(Annotation::annotationType)
+                .anyMatch(c -> ComputedAttribute.class == c || ComputedRelationship.class == c);
     }
 
     /**

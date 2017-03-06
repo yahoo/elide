@@ -16,7 +16,7 @@ import io.swagger.models.properties.RefProperty;
 public class Data extends ObjectProperty {
 
     /**
-     * Used to construct a collection of resources (referenced by the resource type)
+     * Used to construct a collection of resources (referenced by the resource type).
      * @param definitionName The swagger model to reference in 'data'
      */
     public Data(String definitionName) {

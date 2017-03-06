@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.RequestScope;
 
 /**
  * Multiplex transaction handler.
@@ -24,12 +25,12 @@ public class MultiplexReadTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public void save(Object object) {
+    public void save(Object entity, RequestScope scope) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void delete(Object object) {
+    public void delete(Object entity, RequestScope scope) {
         throw new UnsupportedOperationException();
     }
 }

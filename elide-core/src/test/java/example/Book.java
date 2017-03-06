@@ -7,13 +7,20 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCommit;
-import com.yahoo.elide.annotation.OnCreate;
-import com.yahoo.elide.annotation.OnDelete;
-import com.yahoo.elide.annotation.OnRead;
-import com.yahoo.elide.annotation.OnUpdate;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.security.RequestScope;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,7 +36,7 @@ import javax.persistence.Table;
  * Model for books.
  */
 @Entity
-@SharePermission(any = {Role.ALL.class})
+@SharePermission(expression = "allow all")
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
@@ -95,33 +102,63 @@ public class Book {
         this.authors = authors;
     }
 
-    @OnUpdate("title")
-    public void onUpdateTitle() {
+    @OnUpdatePreSecurity("title")
+    public void onUpdateTitle(RequestScope requestScope) {
        // title attribute updated
     }
 
-    @OnCommit("title")
-    public void onCommitTitle() {
-       // title attribute update committed
-    }
-
-    @OnCreate
-    public void onCreateBook() {
+    @OnCreatePreSecurity
+    public void onCreateBook(RequestScope requestScope) {
         // book entity created
     }
 
-    @OnCommit
-    public void onCommitBook() {
-       // book entity committed
-    }
-
-    @OnDelete
-    public void onDeleteBook() {
+    @OnDeletePreSecurity
+    public void onDeleteBook(RequestScope requestScope) {
        // book entity deleted
     }
 
-    @OnRead
-    public void onReadBook() {
-        // read book
+    @OnUpdatePreCommit("title")
+    public void preUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @OnCreatePreCommit
+    public void preCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @OnDeletePreCommit
+    public void preDeleteBook(RequestScope requestScope) {
+        // book entity deleted
+    }
+
+    @OnUpdatePostCommit("title")
+    public void postUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @OnCreatePostCommit
+    public void postCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @OnDeletePostCommit
+    public void postDeleteBook(RequestScope requestScope) {
+        // book entity deleted
+    }
+
+    @OnReadPreSecurity
+    public void preRead(RequestScope requestScope) {
+        // book being read pre security
+    }
+
+    @OnReadPreCommit("title")
+    public void preCommitRead(RequestScope requestScope) {
+        // book being read pre commit
+    }
+
+    @OnReadPostCommit
+    public void postRead(RequestScope requestScope) {
+        // book being read post commit
     }
 }

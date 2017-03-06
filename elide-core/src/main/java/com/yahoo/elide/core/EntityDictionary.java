@@ -60,15 +60,6 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
 
     /**
-     * Instantiates a new Entity dictionary.
-     * @deprecated As of 2.2, {@link #EntityDictionary(Map)} is preferred.
-     */
-    @Deprecated
-    public EntityDictionary() {
-        this(new ConcurrentHashMap<>());
-    }
-
-    /**
      * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
      * in {@link com.yahoo.elide.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
      * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
@@ -294,6 +285,28 @@ public class EntityDictionary {
      */
     public List<String> getRelationships(Object entity) {
         return getRelationships(entity.getClass());
+    }
+
+    /**
+     * Determine whether or not a method is request scopeable.
+     *
+     * @param entity  Entity instance
+     * @param method  Method on entity to check
+     * @return True if method accepts a RequestScope, false otherwise.
+     */
+    public boolean isMethodRequestScopeable(Object entity, Method method) {
+        return isMethodRequestScopeable(entity.getClass(), method);
+    }
+
+    /**
+     * Determine whether or not a method is request scopeable.
+     *
+     * @param entityClass  Entity to check
+     * @param method  Method on entity to check
+     * @return True if method accepts a RequestScope, false otherwise.
+     */
+    public boolean isMethodRequestScopeable(Class<?> entityClass, Method method) {
+        return getEntityBinding(entityClass).requestScopeableMethods.getOrDefault(method, false);
     }
 
     /**
@@ -803,6 +816,14 @@ public class EntityDictionary {
             }
         }
         return fields;
+    }
+
+    public boolean isRelation(Class<?> entityClass, String relationName) {
+        return getEntityBinding(entityClass).relationships.contains(relationName);
+    }
+
+    public boolean isAttribute(Class<?> entityClass, String attributeName) {
+        return getEntityBinding(entityClass).attributes.contains(attributeName);
     }
 
     /**

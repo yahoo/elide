@@ -7,8 +7,8 @@
 package com.yahoo.elide.example.application;
 
 import com.yahoo.elide.contrib.dropwizard.elide.ElideBundle;
-import com.yahoo.elide.example.persistence.Author;
-import com.yahoo.elide.example.persistence.Book;
+import com.yahoo.elide.example.Author;
+import com.yahoo.elide.example.Book;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import io.dropwizard.Application;
@@ -17,7 +17,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 /**
- * Dropwizard Application
+ * A Dropwizard Application for Elide.
  */
 public class DropwizardElideApplication extends Application<DropwizardElideConfiguration> {
     private final String name = "dropwizard-elide-example";

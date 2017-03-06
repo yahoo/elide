@@ -132,7 +132,7 @@ public class CanPaginateVisitor
         implements CheckInstantiator {
 
     /**
-     *  All states except for CANNOT_PAGINATE allow for pagination
+     *  All states except for CANNOT_PAGINATE allow for pagination.
      */
       public enum PaginationStatus {
         CAN_PAGINATE,

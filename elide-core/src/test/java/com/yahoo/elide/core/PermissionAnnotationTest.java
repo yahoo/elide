@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -17,10 +19,9 @@ import com.yahoo.elide.security.User;
 
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import example.FunWithPermissions;
+import example.TestCheckMappings;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-
-import java.util.HashMap;
 
 /**
  * Tests audit functions inside RecordDao.
@@ -35,7 +36,7 @@ public class PermissionAnnotationTest {
     public PermissionAnnotationTest() {
         goodUser = new User(3);
         badUser = new User(-1);
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
     }
 
     @BeforeTest
@@ -46,10 +47,18 @@ public class PermissionAnnotationTest {
         fun.setId(1);
 
         AuditLogger testLogger = new TestAuditLogger();
+
+        ElideSettings elideSettings = new ElideSettingsBuilder(null)
+                .withDefaultPageSize(10)
+                .withDefaultMaxPageSize(10)
+                .withAuditLogger(testLogger)
+                .withEntityDictionary(dictionary)
+                .build();
+
         funRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, goodUser, dictionary, null, testLogger));
+                new RequestScope(null, null, null, goodUser, null, elideSettings));
         badRecord = new PersistentResource<>(fun,
-                new RequestScope(null, null, null, badUser, dictionary, null, testLogger));
+                new RequestScope(null, null, null, badUser, null, elideSettings));
     }
 
     @Test

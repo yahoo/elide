@@ -582,6 +582,37 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testPaginateAnnotationTotalsWithFilter() {
+        def result = mapper.readTree(RestAssured.get("/entityWithoutPaginate?page[size]=2&page[totals]&filter[entityWithoutPaginate.id][le]=10").asString())
+        Assert.assertEquals(result.get("data").size(), 2)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 10)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), 5)
+    }
+
+    @Test
+    public void testRelationshipPaginateAnnotationTotals() {
+        def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?page[size]=1&page[totals]").asString())
+        Assert.assertEquals(result.get("data").size(), 1)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 2)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), 2)
+    }
+
+    @Test
+    public void testRelationshipPaginateAnnotationTotalsWithFilter() {
+        def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?page[size]=1&page[totals]&filter[book.title][infixi]=FounDation").asString())
+        Assert.assertEquals(result.get("data").size(), 1)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), 1)
+    }
+
+
+    @Test
     public void testPaginateAnnotationPreventTotals() {
         def result = mapper.readTree(RestAssured.get("/entityWithPaginateCountableFalse?page[size]=3&page[totals]").asString())
         Assert.assertEquals(result.get("data").size(), 3)

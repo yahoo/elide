@@ -16,7 +16,8 @@ import io.swagger.models.properties.RefProperty;
 public class Datum extends ObjectProperty {
 
     /**
-     * Constructs a singular resource (referenced by type)
+     * Constructs a singular resource (referenced by type).
+     *
      * @param definitionName The swagger model to reference in 'data'.
      */
     public Datum(String definitionName) {
@@ -42,7 +43,8 @@ public class Datum extends ObjectProperty {
     }
 
     /**
-     * Constructs a singular resource identifier
+     * Constructs a singular resource identifier.
+     *
      * @param relationship Added to the property 'data'.
      */
     public Datum(Relationship relationship) {

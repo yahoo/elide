@@ -454,7 +454,9 @@ public class SwaggerBuilder {
             params.add(new QueryParameter()
                     .name("page[totals]")
                     .description("For requesting total pages/records be included in the response page meta data")
-                    .type("null")
+                    /* Swagger UI doesn't support parameters that don't take args today.  We'll just make
+                     * this a string for now */
+                    .type("string")
             );
 
             return params;
@@ -709,7 +711,7 @@ public class SwaggerBuilder {
                 .filter(dictionary::isRoot)
                 .collect(Collectors.toSet());
 
-        /* Find all the paths starting from the root entities.  Filter to only the entities we care about. */
+        /* Find all the paths starting from the root entities. */
         Set<PathMetaData> pathData =  rootClasses.stream()
                 .map(this::find)
                 .flatMap(Collection::stream)

@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>2.5.3-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -48,7 +48,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>2.5.3-SNAPSHOT</version>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -64,7 +64,6 @@
     </dependencyManagement>
 
     <modules>
-        <module>elide-persistence-mysql-example</module>
         <module>elide-hibernate3-mysql-example</module>
         <module>elide-blog-example</module>
         <module>dropwizard-elide-example</module>

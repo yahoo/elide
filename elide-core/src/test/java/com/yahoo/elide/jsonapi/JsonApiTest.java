@@ -10,6 +10,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -26,6 +27,7 @@ import com.yahoo.elide.security.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 
+import example.TestCheckMappings;
 import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -36,7 +38,6 @@ import example.Parent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,15 +50,19 @@ public class JsonApiTest {
     private JsonApiMapper mapper;
     @BeforeTest
     void init() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
         dictionary.bindInitializer(Parent::doInit, Parent.class);
         mapper = new JsonApiMapper(dictionary);
         AuditLogger testLogger = new TestAuditLogger();
         userScope = new RequestScope(null, new JsonApiDocument(),
-                mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(0), dictionary, mapper, testLogger);
+                mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS), new User(0), null,
+                new ElideSettingsBuilder(null)
+                        .withJsonApiMapper(mapper)
+                        .withAuditLogger(testLogger)
+                        .withEntityDictionary(dictionary)
+                        .build());
     }
 
     @Test

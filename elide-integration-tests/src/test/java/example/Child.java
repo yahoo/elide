@@ -13,16 +13,14 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.core.filter.Predicate;
-import com.yahoo.elide.core.filter.Predicate.PathElement;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import example.Child.InitCheck;
 
 import java.util.Optional;
 import java.util.Set;
@@ -41,9 +39,9 @@ import javax.persistence.OneToOne;
  * Child test bean.
  */
 @Entity
-@CreatePermission(any = { InitCheck.class })
-@SharePermission(any = { Role.ALL.class })
-@ReadPermission(all = {NegativeChildIdCheck.class, NegativeIntegerUserCheck.class, Child.InitCheckOp.class, Child.InitCheckFilter.class})
+@CreatePermission(expression = "initCheck")
+@SharePermission(expression = "allow all")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
@@ -81,7 +79,7 @@ public class Child {
             targetEntity = Parent.class
         )
     // Contrived check for regression example. Should clean this up. No updating child 4 via parent 10
-    @UpdatePermission(all = Child4Parent10Check.class)
+    @UpdatePermission(expression = "child4Parent10")
     public Set<Parent> getParents() {
         return parents;
     }
@@ -116,7 +114,7 @@ public class Child {
     }
 
     @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
-    @ReadPermission(all = {Role.NONE.class})
+    @ReadPermission(expression = "deny all")
     public Child getNoReadAccess() {
         return noReadAccess;
     }
@@ -151,7 +149,7 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new Predicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
         }
     }
 }

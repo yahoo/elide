@@ -133,9 +133,6 @@ public class JsonApiPatch {
 
             postProcessRelationships(requestScope);
 
-            // Avoid any lazy loading issues
-            results.forEach(Supplier::get);
-
             return () -> {
                 try {
                     return Pair.of(HttpStatus.SC_OK, mergeResponse(results));

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -17,6 +18,7 @@ import com.yahoo.elide.security.User;
 import example.Child;
 import example.Parent;
 import example.Post;
+import example.TestCheckMappings;
 import org.mockito.Answers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -27,7 +29,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -49,14 +50,20 @@ public class SortProcessorTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 
         sortProcessor = new SortProcessor();
         goodUserScope = new RequestScope(null, new JsonApiDocument(),
                 mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), dictionary, null, new TestAuditLogger());
+                new User(1), null,
+                new ElideSettingsBuilder(null)
+                        .withAuditLogger(new TestAuditLogger())
+                        .withEntityDictionary(dictionary)
+                        .withDefaultMaxPageSize(10)
+                        .withDefaultPageSize(10)
+                        .build());
 
         //Create objects
         Parent parent1 = newParent(1);

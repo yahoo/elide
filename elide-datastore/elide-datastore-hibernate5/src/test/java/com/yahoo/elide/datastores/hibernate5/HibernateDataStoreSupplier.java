@@ -7,8 +7,11 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.utils.ClassScanner;
+import example.Filtered;
 import example.Parent;
+import example.TestCheckMappings;
 import org.hibernate.MappingException;
+import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
@@ -24,6 +27,11 @@ import java.util.function.Supplier;
 public class HibernateDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
+        // Add additional checks to our static check mappings map.
+        // NOTE: This is a bit hacky. We need to do a major overhaul on our test architecture
+        TestCheckMappings.MAPPINGS.put("filterCheck", Filtered.FilterCheck.class);
+        TestCheckMappings.MAPPINGS.put("filterCheck3", Filtered.FilterCheck3.class);
+
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
                 new StandardServiceRegistryBuilder()
@@ -53,6 +61,6 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
-        return new HibernateStore(metadataImplementor.buildSessionFactory());
+        return new HibernateStore(metadataImplementor.buildSessionFactory(), true, ScrollMode.FORWARD_ONLY);
     }
 }

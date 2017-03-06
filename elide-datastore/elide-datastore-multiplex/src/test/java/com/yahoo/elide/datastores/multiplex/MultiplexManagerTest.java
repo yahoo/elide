@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.google.common.collect.Lists;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -13,18 +18,16 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
+
+import com.google.common.collect.Lists;
+
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import java.util.Optional;
 
 /**
  * MultiplexManager tests.
@@ -54,16 +57,18 @@ public class MultiplexManagerTest {
         object.id = null;
         object.name = "Test";
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.save(object);
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.commit();
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+                    .iterator().hasNext());
+            t.createObject(object, null);
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+                    .iterator().hasNext());
+            t.commit(null);
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
+            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
-            FirstBean bean = beans.iterator().next();
+            FirstBean bean = (FirstBean) beans.iterator().next();
             assertTrue(bean.id != null && bean.name.equals("Test"));
         }
     }
@@ -80,33 +85,44 @@ public class MultiplexManagerTest {
         assertEquals(multiplexManager.getSubManager(OtherBean.class), ds2);
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            FirstBean firstBean = t.createObject(FirstBean.class);
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+
+            FirstBean firstBean = FirstBean.class.newInstance();
             firstBean.name = "name";
-            t.save(firstBean);
-            assertFalse(t.loadObjects(FirstBean.class).iterator().hasNext());
-            t.commit();
+            t.createObject(firstBean, null);
+            //t.save(firstBean);
+            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            t.commit(null);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            FirstBean firstBean = t.loadObjects(FirstBean.class).iterator().next();
+            FirstBean firstBean = (FirstBean) t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().next();
             firstBean.name = "update";
-            t.save(firstBean);
-            OtherBean otherBean = t.createObject(OtherBean.class);
-            t.save(otherBean);
+            t.save(firstBean, null);
+            OtherBean otherBean = OtherBean.class.newInstance();
+            t.createObject(otherBean, null);
+            //t.save(firstBean);
             try {
-                t.commit();
+                t.commit(null);
                 fail("TransactionException expected");
             } catch (TransactionException expected) {
                 // expected
             }
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         // verify state
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            Iterable<FirstBean> beans = t.loadObjects(FirstBean.class);
+            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
             assertNotNull(beans);
-            ArrayList<FirstBean> list = Lists.newArrayList(beans.iterator());
+            ArrayList<Object> list = Lists.newArrayList(beans.iterator());
             assertEquals(list.size(), 1);
-            assertEquals(list.get(0).name, "name");
+            assertEquals(((FirstBean) list.get(0)).name, "name");
         }
     }
 }

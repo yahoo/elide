@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.hibernate5.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterOperation;
-import com.yahoo.elide.core.filter.Predicate;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -44,16 +44,16 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
      * @param path
      * @return
      */
-    private static String getAlias(List<Predicate.PathElement> path) {
+    private static String getAlias(List<FilterPredicate.PathElement> path) {
         StringBuilder sb = new StringBuilder();
 
-        Predicate.PathElement first = path.get(0);
+        FilterPredicate.PathElement first = path.get(0);
         sb.append(first.getTypeName());
         sb.append(ALIAS_DELIM);
         sb.append(first.getFieldName());
 
         for (int i = 1; i < path.size() - 1; i++) {
-            Predicate.PathElement element = path.get(i);
+            FilterPredicate.PathElement element = path.get(i);
             sb.append(ALIAS_DELIM);
             sb.append(element.getFieldName());
         }
@@ -66,14 +66,14 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
      * @param path
      * @return
      */
-    private static String getAssociationPath(List<Predicate.PathElement> path) {
+    private static String getAssociationPath(List<FilterPredicate.PathElement> path) {
         StringBuilder sb = new StringBuilder();
 
-        Predicate.PathElement first = path.get(0);
+        FilterPredicate.PathElement first = path.get(0);
         sb.append(first.getFieldName());
 
         for (int i = 1; i < path.size() - 1; i++) {
-            Predicate.PathElement element = path.get(i);
+            FilterPredicate.PathElement element = path.get(i);
             sb.append(".");
             sb.append(element.getFieldName());
         }
@@ -81,8 +81,8 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
     }
 
     @Override
-    public Criterion apply(Predicate predicate) {
-        List<Predicate.PathElement> path = predicate.getPath();
+    public Criterion apply(FilterPredicate filterPredicate) {
+        List<FilterPredicate.PathElement> path = filterPredicate.getPath();
 
         /* If the predicate refers to a nested association, the restriction should be 'alias.fieldName' */
         String alias;
@@ -94,53 +94,59 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
             alias = path.get(0).getFieldName();
         }
 
-        switch (predicate.getOperator()) {
+        switch (filterPredicate.getOperator()) {
             case IN:
-                if (predicate.getValues().isEmpty()) {
+                if (filterPredicate.getValues().isEmpty()) {
                     return Restrictions.sqlRestriction("(false)");
                 }
-                return Restrictions.in(alias, predicate.getValues());
+                return Restrictions.in(alias, filterPredicate.getValues());
             case NOT:
-                if (predicate.getValues().isEmpty()) {
+                if (filterPredicate.getValues().isEmpty()) {
                     return Restrictions.sqlRestriction("(true)");
                 }
-                return Restrictions.not(Restrictions.in(alias, predicate.getValues()));
+                return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
-                return Restrictions.like(alias, predicate.getValues().get(0) + "%");
+                return Restrictions.like(alias, filterPredicate.getValues().get(0) + "%");
+            case PREFIX_CASE_INSENSITIVE:
+                return Restrictions.ilike(alias, filterPredicate.getValues().get(0) + "%");
             case POSTFIX:
-                return Restrictions.like(alias, "%" + predicate.getValues().get(0));
+                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0));
+            case POSTFIX_CASE_INSENSITIVE:
+                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0));
             case INFIX:
-                return Restrictions.like(alias, "%" + predicate.getValues().get(0) + "%");
+                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0) + "%");
+            case INFIX_CASE_INSENSITIVE:
+                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0) + "%");
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:
                 return Restrictions.isNotNull(alias);
             case LT:
-                return Restrictions.lt(alias, predicate.getValues().get(0));
+                return Restrictions.lt(alias, filterPredicate.getValues().get(0));
             case LE:
-                return Restrictions.le(alias, predicate.getValues().get(0));
+                return Restrictions.le(alias, filterPredicate.getValues().get(0));
             case GT:
-                return Restrictions.gt(alias, predicate.getValues().get(0));
+                return Restrictions.gt(alias, filterPredicate.getValues().get(0));
             case GE:
-                return Restrictions.ge(alias, predicate.getValues().get(0));
+                return Restrictions.ge(alias, filterPredicate.getValues().get(0));
             case TRUE:
                 return Restrictions.sqlRestriction("(true)");
             case FALSE:
                 return Restrictions.sqlRestriction("(false)");
             default:
-                throw new InvalidPredicateException("Operator not implemented: " + predicate.getOperator());
+                throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
         }
     }
 
     @Override
-    public Criterion applyAll(Set<Predicate> predicates) {
+    public Criterion applyAll(Set<FilterPredicate> filterPredicates) {
         Criterion result = null;
 
-        for (Predicate predicate : predicates) {
+        for (FilterPredicate filterPredicate : filterPredicates) {
             if (result == null) {
-                result = apply(predicate);
+                result = apply(filterPredicate);
             }
-            result = Restrictions.and(result, apply(predicate));
+            result = Restrictions.and(result, apply(filterPredicate));
         }
 
         return result;
@@ -152,12 +158,12 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
         Set<String> createdAliases = new HashSet<>();
 
-        for (Predicate predicate : visitor.getPredicates()) {
-            List<Predicate.PathElement> path = predicate.getPath();
+        for (FilterPredicate filterPredicate : visitor.getFilterPredicates()) {
+            List<FilterPredicate.PathElement> path = filterPredicate.getPath();
 
             /* We only create aliases (joins) for associations outside the root entity */
             if (path.size() >= 2) {
-                List<Predicate.PathElement> copy = new ArrayList<>(path);
+                List<FilterPredicate.PathElement> copy = new ArrayList<>(path);
                 while (copy.size() > 1) {
                     String alias = getAlias(copy);
                     String associationPath = getAssociationPath(copy);
@@ -181,16 +187,16 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         private Criterion criterion;
 
         @Getter
-        private final Set<Predicate> predicates;
+        private final Set<FilterPredicate> filterPredicates;
 
         public CriteriaVisitor() {
-            predicates = new HashSet<>();
+            filterPredicates = new HashSet<>();
         }
 
         @Override
-        public Criterion visitPredicate(Predicate predicate) {
-            predicates.add(predicate);
-            criterion = apply(predicate);
+        public Criterion visitPredicate(FilterPredicate filterPredicate) {
+            filterPredicates.add(filterPredicate);
+            criterion = apply(filterPredicate);
             return criterion;
         }
 

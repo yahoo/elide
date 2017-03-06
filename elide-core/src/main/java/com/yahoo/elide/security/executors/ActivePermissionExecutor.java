@@ -5,33 +5,24 @@
  */
 package com.yahoo.elide.security.executors;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.parsers.expression.CriterionExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
-import com.yahoo.elide.security.SecurityMode;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.security.permissions.PermissionExpressionBuilder.Expressions;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.commons.lang3.tuple.Triple;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -41,8 +32,10 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 /**
  * Default permission executor.
@@ -57,13 +50,24 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
     private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
     private final Map<String, Long> checkStats;
+    private final boolean verbose;
 
     /**
      * Constructor.
      *
-     * @param requestScope Request scope.
+     * @param requestScope Request scope
      */
     public ActivePermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
+        this(false, requestScope);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param verbose True if executor should produce verbose output to caller
+     * @param requestScope Request scope
+     */
+    public ActivePermissionExecutor(boolean verbose, final com.yahoo.elide.core.RequestScope requestScope) {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
@@ -71,6 +75,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         userPermissionCheckCache = new HashMap<>();
         expressionResultShortCircuit = new HashSet<>();
         checkStats = new HashMap<>();
+        this.verbose = verbose;
     }
 
     /**
@@ -104,12 +109,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @Override
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                       PersistentResource resource,
-                                                       ChangeSpec changeSpec) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
+                                                                   PersistentResource resource,
+                                                                   ChangeSpec changeSpec) {
         Expressions expressions;
         if (SharePermission.class == annotationClass) {
             expressions = expressionBuilder.buildSharePermissionExpressions(resource);
@@ -137,10 +138,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                  ChangeSpec changeSpec,
                                                                                  Class<A> annotationClass,
                                                                                  String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
         if (expressionResult == PASS) {
             return expressionResult;
@@ -169,10 +166,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
         if (expressionResult == PASS) {
             return expressionResult;
@@ -203,10 +196,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                         Class<A> annotationClass,
                                                                         String field) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
                 = userPermissionCheckCache.get(Triple.of(annotationClass, resource.getResourceClass(), field));
@@ -236,10 +225,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
                                                                         Class<A> annotationClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return ExpressionResult.PASS; // Bypass
-        }
-
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
                 = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, null));
@@ -267,11 +252,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * Get permission filter on an entity.
      *
      * @param resourceClass Resource class
+     * @return the filter expression for the class, if any
      */
     public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
-        if (requestScope.getSecurityMode() == SecurityMode.SECURITY_INACTIVE) {
-            return Optional.empty(); // Bypass
-        }
         FilterExpression filterExpression =
                 expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);
 
@@ -296,36 +279,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         commitCheckQueue.clear();
     }
 
-    /**
-     * Build criterion check.
-     *
-     * @param permissions Permissions to visit
-     * @param criterionNegater Function to apply negation to a criterion
-     * @param andCriterionJoiner Function to combine criteria with an and condition
-     * @param orCriterionJoiner Function to combine criteria with an or condition
-     * @param <T> type parameter
-     * @return
-     */
-    @Override
-    public <T> T getCriterion(final ParseTree permissions,
-                              final Function<T, T> criterionNegater,
-                              final BiFunction<T, T, T> andCriterionJoiner,
-                              final BiFunction<T, T, T> orCriterionJoiner) {
-        if (permissions == null) {
-            return null;
-        }
-
-        CriterionExpressionVisitor<T> visitor = new CriterionExpressionVisitor<>(
-                requestScope,
-                requestScope.getDictionary(),
-                criterionNegater,
-                orCriterionJoiner,
-                andCriterionJoiner
-        );
-
-        return visitor.visit(permissions);
-    }
-
     @Override
     public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                       Class resourceClass, String field) {
@@ -338,7 +291,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param expressions expressions to execute
      */
     private ExpressionResult executeExpressions(final Expressions expressions,
-                                    final Class<? extends Annotation> annotationClass) {
+                                                final Class<? extends Annotation> annotationClass) {
         Expression expression = expressions.getOperationExpression();
         ExpressionResult result = expression.evaluate();
 
@@ -349,7 +302,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             checkStats.put(checkKey, checkOccurrences);
         }
 
-       if (result == DEFERRED) {
+        if (result == DEFERRED) {
             Expression commitExpression = expressions.getCommitExpression();
             if (commitExpression != null) {
                 if (isInlineOnlyCheck(annotationClass)) {
@@ -392,13 +345,13 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @AllArgsConstructor
     private static class QueuedCheck {
-        @Getter
-        private final Expression expression;
+        @Getter private final Expression expression;
         @Getter private final Class<? extends Annotation> annotationClass;
     }
 
     /**
-     * Print the permission check statistics
+     * Print the permission check statistics.
+     *
      * @return the permission check statistics
      */
     @Override
@@ -417,6 +370,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     @Override
     public boolean isVerbose() {
-        return requestScope.getSecurityMode() == SecurityMode.SECURITY_ACTIVE_VERBOSE;
+        return verbose;
     }
 }

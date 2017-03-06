@@ -8,13 +8,14 @@ package com.yahoo.elide.contrib.dropwizard.elide;
 
 import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.PermissionExecutor;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
@@ -33,7 +34,7 @@ import java.io.InputStream;
 import java.util.function.Function;
 
 /**
- * Elide Bundle
+ * An Elide Bundle for Dropwizard.
  *
  * @param <T> Dropwizard Configuration
  */
@@ -46,6 +47,8 @@ public abstract class ElideBundle<T extends Configuration>
     private final SessionFactoryFactory sessionFactoryFactory;
 
     /**
+     * Create a new ElideBundle.
+     *
      * @param pckg string with package containing Hibernate entities (classes annotated with Hibernate {@code @Entity}
      *             annotation) e. g. {@code com.codahale.fake.db.directory.entities}
      */
@@ -89,12 +92,12 @@ public abstract class ElideBundle<T extends Configuration>
         final Function<RequestScope, PermissionExecutor> permissionExecutor
                 = getPermissionExecutor(configuration, environment);
 
-        final JsonApiEndpoint.DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
+        final DefaultOpaqueUserFunction getUserFn = getUserFn(configuration, environment);
 
         environment.jersey().register(new AbstractBinder() {
             @Override
             protected void configure() {
-                Elide.Builder builder = new Elide.Builder(dataStore);
+                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore);
                 if (auditLogger != null) {
                     builder = builder.withAuditLogger(auditLogger);
                 }
@@ -110,10 +113,10 @@ public abstract class ElideBundle<T extends Configuration>
                 if (permissionExecutor != null) {
                     builder = builder.withPermissionExecutor(permissionExecutor);
                 }
-                bind(builder.build()).to(Elide.class).named("elide");
+                bind(new Elide(builder.build())).to(Elide.class).named("elide");
 
                 bind(getUserFn)
-                        .to(JsonApiEndpoint.DefaultOpaqueUserFunction.class)
+                        .to(DefaultOpaqueUserFunction.class)
                         .named("elideUserExtractionFunction");
             }
         });
@@ -123,7 +126,7 @@ public abstract class ElideBundle<T extends Configuration>
     }
 
     /**
-     * By default created a HibernateStore
+     * By default created a HibernateStore.
      *
      * @param configuration Dropwizard configuration
      * @param environment Dropwizard environment
@@ -134,7 +137,7 @@ public abstract class ElideBundle<T extends Configuration>
         final PooledDataSourceFactory dbConfig = getDataSourceFactory(configuration);
         SessionFactory sessionFactory = sessionFactoryFactory.build(this, environment, dbConfig, entities, name());
 
-        return new HibernateStore(sessionFactory);
+        return new HibernateStore.Builder(sessionFactory).build();
     }
 
     public ImmutableList<Class<?>> getEntities() {
@@ -146,7 +149,7 @@ public abstract class ElideBundle<T extends Configuration>
     }
 
     /**
-     * Method scanning given directory for classes containing Hibernate @Entity annotation
+     * Method scanning given directory for classes containing Hibernate @Entity annotation.
      *
      * @param pckgs string array with packages containing Hibernate entities (classes annotated with @Entity annotation)
      *             e.g. com.codahale.fake.db.directory.entities

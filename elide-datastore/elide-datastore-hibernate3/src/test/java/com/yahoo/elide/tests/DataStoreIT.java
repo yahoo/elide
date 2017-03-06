@@ -12,16 +12,21 @@ import static org.testng.Assert.assertFalse;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.hibernate3.HibernateTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
-import example.Filtered;
+
+import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import example.Filtered;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,19 +42,22 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public static void setup() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.save(tx.createObject(Filtered.class));
-            tx.save(tx.createObject(Filtered.class));
-            tx.save(tx.createObject(Filtered.class));
+            tx.save(tx.createNewObject(Filtered.class), null);
+            tx.save(tx.createNewObject(Filtered.class), null);
+            tx.save(tx.createNewObject(Filtered.class), null);
 
-            tx.commit();
+            tx.commit(null);
         }
     }
 
     @Test
     public void testFilteredWithPassingCheck() {
-        String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
+        String expected = jsonParser.getJson("/ResourceIT/testFilteredPass.json");
 
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -57,9 +65,12 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testFilteredWithFailingCheck() {
-        String expected = jsonParser.getJson("/ResourceIT/testFiltered.json");
+        String expected = jsonParser.getJson("/ResourceIT/testFilteredFail.json");
 
-        Elide elide = new Elide.Builder(new TestAuditLogger(), AbstractIntegrationTestInitializer.getDatabaseManager()).build();
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -75,9 +86,8 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             params.add("include", "car");
             when(requestScope.getQueryParams()).thenReturn(Optional.of(params));
 
-            tx.setRequestScope(requestScope);
-            List<String> includes = tx.getIncludeList();
-            tx.commit();
+            List<String> includes = tx.getIncludeList(requestScope);
+            tx.commit(requestScope);
             assertEquals(includes, Arrays.asList("foo", "bar", "car"));
         }
     }
@@ -90,7 +100,6 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             MultivaluedHashMap<String, String> params = new MultivaluedHashMap();
             when(requestScope.getQueryParams()).thenReturn(Optional.of(params));
 
-            tx.setRequestScope(requestScope);
             assertFalse(tx.isJoinQuery());
 
             params.add("join", "true");
@@ -107,7 +116,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             params.add("join", "false");
             assertFalse(tx.isJoinQuery());
 
-            tx.commit();
+            tx.commit(requestScope);
         }
     }
 }

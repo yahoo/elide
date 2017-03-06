@@ -6,17 +6,17 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
+import example.TestCheckMappings;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
-
 import java.util.Arrays;
-import java.util.HashMap;
 
 /**
  * Typical-use test binder for integration test resource configs.
@@ -34,7 +34,7 @@ public class StandardTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
@@ -43,12 +43,12 @@ public class StandardTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide.Builder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                return new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
-                        .build();
+                        .build());
             }
 
             @Override
@@ -58,17 +58,17 @@ public class StandardTestBinder extends AbstractBinder {
         }).to(Elide.class).named("elide");
 
         // User function
-        bindFactory(new Factory<JsonApiEndpoint.DefaultOpaqueUserFunction>() {
+        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
             private final Integer user = 1;
 
             @Override
-            public JsonApiEndpoint.DefaultOpaqueUserFunction provide() {
+            public DefaultOpaqueUserFunction provide() {
                 return v -> user;
             }
 
             @Override
-            public void dispose(JsonApiEndpoint.DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
+            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
             }
-        }).to(JsonApiEndpoint.DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
     }
 }

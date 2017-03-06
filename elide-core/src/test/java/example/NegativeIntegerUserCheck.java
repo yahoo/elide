@@ -17,4 +17,9 @@ public class NegativeIntegerUserCheck extends UserCheck {
         Integer id = (Integer) user.getOpaqueUser();
         return id >= 0;
     }
+
+    @Override
+    public String checkIdentifier() {
+        return "negativeIntegerUser";
+    }
 }

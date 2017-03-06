@@ -8,6 +8,7 @@ package example;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -15,7 +16,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.ToString;
 
 import javax.persistence.CascadeType;
@@ -31,12 +31,13 @@ import java.util.Set;
 /**
  * Parent test bean.
  */
-@CreatePermission(any = { Parent.InitCheck.class, Role.ALL.class })
-@ReadPermission(any = { Parent.InitCheckOp.class, Role.ALL.class })
-@SharePermission(any = { Role.ALL.class })
-@UpdatePermission(any = { Parent.InitCheck.class, Role.ALL.class, Role.NONE.class })
-@DeletePermission(any = { Parent.InitCheckOp.class, Role.ALL.class, Role.NONE.class })
+@CreatePermission(expression = "parentInitCheck OR allow all")
+@ReadPermission(expression = "parentInitCheckOp OR allow all")
+@UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
+@DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
+@SharePermission(expression = "allow all")
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
+@Paginate(maxLimit = 100000)
 // Hibernate
 @Entity
 @ToString
@@ -45,15 +46,14 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    @ReadPermission(all = { Role.NONE.class }) public transient boolean init = false;
+    @ReadPermission(expression = "deny all") public transient boolean init = false;
 
     public void doInit() {
         init = true;
     }
 
-    @ReadPermission(any = { Role.ALL.class, Role.NONE.class })
-    @UpdatePermission(any = { Role.ALL.class, Role.NONE.class })
-
+    @ReadPermission(expression = "allow all OR deny all")
+    @UpdatePermission(expression = "allow all OR deny all")
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class,
@@ -93,8 +93,8 @@ public class Parent extends BaseId {
         this.firstName = name;
     }
     // Special attribute is to catch a corner case for patch extension
-    @ReadPermission(all = {Role.NONE.class})
-    @UpdatePermission(all = {SpecialValue.class})
+    @ReadPermission(expression = "deny all")
+    @UpdatePermission(expression = "parentSpecialValue")
     public String getSpecialAttribute() {
         return specialAttribute;
     }
