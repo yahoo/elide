@@ -3,10 +3,10 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.assignedIdLongTests;
+package com.yahoo.elide.patchTests;
 
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.AssignedIdLongIntegrationTestApplicationResourceConfig;
+import com.yahoo.elide.initialization.PatchIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
@@ -19,10 +19,10 @@ public class AssignedIdLongIT extends AbstractIntegrationTestInitializer {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     public AssignedIdLongIT() {
-        super(AssignedIdLongIntegrationTestApplicationResourceConfig.class);
+        super(PatchIntegrationTestApplicationResourceConfig.class);
     }
 
-    @Test(priority = 0)
+    @Test
     public void testResponseCodeOnUpdate() {
         String request = jsonParser.getJson("/AssignedIdLongIT/createAssignedIdLongEntity.req.json");
         String expected = jsonParser.getJson("/AssignedIdLongIT/createAssignedIdLongEntity.resp.json");

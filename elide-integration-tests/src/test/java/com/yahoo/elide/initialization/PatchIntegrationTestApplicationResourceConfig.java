@@ -11,8 +11,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 /**
  * Resource config for AssignedIdLong IT tests.
  */
-public class AssignedIdLongIntegrationTestApplicationResourceConfig extends ResourceConfig {
-    public AssignedIdLongIntegrationTestApplicationResourceConfig() {
-        register(new AssignedIdLongStandardTestBinder(new TestAuditLogger()));
+public class PatchIntegrationTestApplicationResourceConfig extends ResourceConfig {
+    public PatchIntegrationTestApplicationResourceConfig() {
+        register(new PatchTestBinder(new TestAuditLogger()));
     }
 }

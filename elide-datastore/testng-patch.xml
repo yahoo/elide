@@ -5,10 +5,10 @@
   ~ See LICENSE file in project root for terms.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Audit Test Suite">
-    <test name="com.yahoo.elide.assignedIdLongTests.assignedIdLongIT">
+<suite name="Patch Test Suite">
+    <test name="Patch Test Suite">
         <packages>
-            <package name="com.yahoo.elide.assignedIdLongTests" />
+            <package name="com.yahoo.elide.patchTests" />
         </packages>
     </test>
 </suite>
