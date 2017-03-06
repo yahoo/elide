@@ -68,6 +68,7 @@
         <module>elide-hibernate3-mysql-example</module>
         <module>elide-blog-example</module>
         <module>dropwizard-elide-example</module>
+        <module>elide-hibernate5-redis-example</module>
     </modules>
 
     <dependencies>

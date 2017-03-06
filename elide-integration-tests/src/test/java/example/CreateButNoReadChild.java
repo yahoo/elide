@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 /**
- * A model intended to be ONLY created and read, but never updated
+ * A model intended to be ONLY created and read, but never updated.
  */
 @Include(rootLevel = true)
 @Entity

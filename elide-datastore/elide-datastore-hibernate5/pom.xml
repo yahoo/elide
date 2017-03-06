@@ -72,6 +72,11 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Hibernate 5 -->
         <dependency>
@@ -149,6 +154,12 @@
             <artifactId>jetty-webapp</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.kstyrc</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>0.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -179,4 +190,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>redis</id>
+            <properties>
+                <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateRedisDataStoreSupplier</dataStoreSupplier>
+            </properties>
+        </profile>
+    </profiles>
 </project>
