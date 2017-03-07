@@ -1,5 +1,9 @@
 #Change Log
 
+## 3.1
+**Fixes**
+* Updated HQL query aliases for page total calculation in hibernate3 and hibernate5 data stores.
+
 ## 3.0
 **Features**
 * Promoted `DefaultOpaqueUserFunction` to be a top-level class
