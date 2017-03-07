@@ -69,6 +69,14 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                                   "id": "12345678-1234-1234-1234-1234567890ad"
                                 }
                               ]
+                            },
+                            "spouses" : {
+                              "data": [
+                                {
+                                  "type": "parent",
+                                  "id": "12345678-1234-1234-1234-1234567890af"
+                                }
+                              ]
                             }
                           }
                         }
@@ -87,6 +95,14 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                         "value": {
                           "type": "child",
                           "id": "12345678-1234-1234-1234-1234567890ad"
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/parent",
+                        "value": {
+                          "type": "parent",
+                          "id": "12345678-1234-1234-1234-1234567890af"
                         }
                       }
                     ]
@@ -634,6 +650,17 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
         Assert.assertEquals(pageNode.get("totalPages").asInt(), 1)
     }
+
+    @Test
+    public void testPageTotalsForSameTypedRelationship() {
+        def result = mapper.readTree(RestAssured.get("/parent/${parentId}/spouses?page[totals]").asString())
+        Assert.assertEquals(result.get("data").size(), 1)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), 1)
+    }
+
 
     @Test
     public void testRelationshipPaginateAnnotationTotalsWithNestedFilter() {
