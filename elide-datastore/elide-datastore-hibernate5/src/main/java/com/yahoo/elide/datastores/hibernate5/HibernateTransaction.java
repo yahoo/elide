@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -296,6 +297,8 @@ public class HibernateTransaction implements DataStoreTransaction {
         Object idVal = CoerceUtil.coerce(dictionary.getId(entity), idType);
         String idField = dictionary.getIdFieldName(entityType);
 
+        String parentTypeAlias = getRandomAlias(entityType);
+
         FilterPredicate idExpression = new FilterPredicate(
                 new FilterPredicate.PathElement(
                         entityType,
@@ -305,7 +308,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Operator.IN,
                 Collections.singletonList(idVal));
 
-        idExpression.setAlias(getUniqueAlias(entityType));
+        idExpression.setAlias(parentTypeAlias);
 
         FilterExpression joinedExpression = idExpression;
         if (filterExpression.isPresent()) {
@@ -316,7 +319,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         String queryString =
                 "SELECT COUNT(*) FROM {parentType} {parentTypeAlias} join {parentTypeAlias}.{relation} {relationType}";
         queryString = queryString.replaceAll("\\{parentType\\}", entityType.getSimpleName());
-        queryString = queryString.replaceAll("\\{parentTypeAlias\\}", getUniqueAlias(entityType));
+        queryString = queryString.replaceAll("\\{parentTypeAlias\\}", parentTypeAlias);
         queryString = queryString.replaceAll("\\{relation\\}", relation);
         queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
 
@@ -385,7 +388,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         return new User(opaqueUser);
     }
 
-    private static String getUniqueAlias(Class<?> entityType) {
-        return entityType.getSimpleName() + "1";
+    private static String getRandomAlias(Class<?> entityType) {
+        return entityType.getSimpleName() + ThreadLocalRandom.current().nextInt(1, 1000);
     }
 }
