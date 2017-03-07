@@ -401,4 +401,38 @@
             </extension>
         </extensions>
     </build>
+    <profiles>
+        <profile>
+            <id>codecoverage</id>
+            <activation>
+                <property><name>env.TRAVIS</name></property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.gavinmogan</groupId>
+                        <artifactId>codacy-maven-plugin</artifactId>
+                        <version>1.0.3</version>
+                        <configuration>
+                            <apiToken>${env.CODACY_API_TOKEN}</apiToken>
+                            <projectToken>${env.CODACY_PROJECT_TOKEN}</projectToken>
+                            <coverageReportFile>${project.reporting.outputDirectory}/jacoco.xml</coverageReportFile>
+                            <commit>${env.TRAVIS_COMMIT}</commit>
+                            <codacyApiBaseUrl>https://api.codacy.com</codacyApiBaseUrl>
+                            <failOnMissingReportFile>false</failOnMissingReportFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>post-test</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>coverage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
