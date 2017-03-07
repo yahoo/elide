@@ -23,6 +23,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     private JsonNode books = null
     private JsonNode authors = null
     private String asimovId = null
+    private String hemingwayId = null
     private JsonNode asimovBooks = null
     private String nullNedId = null
     private JsonNode nullNedBooks = null
@@ -133,6 +134,14 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                             "title": "The Old Man and the Sea",
                             "genre": "Literary Fiction",
                             "language": "English"
+                          },
+                          "relationships": {
+                            "publisher": {
+                                "data": {
+                                    "type": "publisher",
+                                    "id": "12345678-1234-1234-1234-1234567890ae"
+                                }
+                            }
                           }
                         }
                       },
@@ -147,6 +156,17 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
                             "genre": "Literary Fiction",
                             "language": "English"
                           }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book/12345678-1234-1234-1234-1234567890ac/publisher",
+                        "value": {
+                            "type": "publisher",
+                            "id": "12345678-1234-1234-1234-1234567890ae",
+                            "attributes": {
+                                "name": "Default publisher"
+                            }
                         }
                       }
                     ]
@@ -359,6 +379,10 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
             if (author.get("attributes").get("name").asText() == "Orson Scott Card") {
                 orsonCardId = author.get("id").asText();
+            }
+
+            if (author.get("attributes").get("name").asText() == "Ernest Hemingway") {
+                hemingwayId = author.get("id").asText()
             }
         }
 
@@ -611,6 +635,15 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(pageNode.get("totalPages").asInt(), 1)
     }
 
+    @Test
+    public void testRelationshipPaginateAnnotationTotalsWithNestedFilter() {
+        def result = mapper.readTree(RestAssured.get("/author/${hemingwayId}/books?filter[book.publisher.name]=Default publisher&page[totals]").asString())
+        Assert.assertEquals(result.get("data").size(), 1)
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
+        Assert.assertEquals(pageNode.get("totalPages").asInt(), 1)
+    }
 
     @Test
     public void testPaginateAnnotationPreventTotals() {

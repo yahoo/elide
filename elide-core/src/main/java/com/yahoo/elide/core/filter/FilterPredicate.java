@@ -96,8 +96,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public Class getEntityType() {
-        PathElement last = path.get(path.size() - 1);
-        return last.getType();
+        PathElement first = path.get(0);
+        return first.getType();
     }
 
     @Override
