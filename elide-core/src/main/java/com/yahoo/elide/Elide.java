@@ -15,6 +15,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
+import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -209,6 +210,9 @@ public class Elide {
             log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
 
+        } catch (JsonPatchExtensionException e) {
+            return buildResponse(e.getResponse());
+
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, isVerbose);
 
@@ -244,7 +248,7 @@ public class Elide {
         lexer.addErrorListener(new BaseErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-                    int charPositionInLine, String msg, RecognitionException e) {
+                                    int charPositionInLine, String msg, RecognitionException e) {
                 throw new ParseCancellationException(msg, e);
             }
         });
