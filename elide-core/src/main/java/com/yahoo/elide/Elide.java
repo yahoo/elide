@@ -238,11 +238,11 @@ public class Elide {
      * @return AST parse tree
      */
     public static ParseTree parse(String path) {
-        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
+        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
+        if (normalizedPath.startsWith("/")) {
+            normalizedPath = normalizedPath.substring(1);
         }
-        ANTLRInputStream is = new ANTLRInputStream(path);
+        ANTLRInputStream is = new ANTLRInputStream(normalizedPath);
         CoreLexer lexer = new CoreLexer(is);
         lexer.removeErrorListeners();
         lexer.addErrorListener(new BaseErrorListener() {
