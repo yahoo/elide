@@ -48,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -416,7 +417,9 @@ public class HibernateTransaction implements DataStoreTransaction {
         Object idVal = CoerceUtil.coerce(dictionary.getId(entity), idType);
         String idField = dictionary.getIdFieldName(entityType);
 
-        FilterExpression idExpression = new FilterPredicate(
+        String parentTypeAlias = getRandomAlias(entityType);
+
+        FilterPredicate idExpression = new FilterPredicate(
                 new FilterPredicate.PathElement(
                         entityType,
                         entityType.getSimpleName(),
@@ -425,18 +428,22 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Operator.IN,
                 Collections.singletonList(idVal));
 
+        idExpression.setAlias(parentTypeAlias);
+
+        FilterExpression joinedExpression = idExpression;
         if (filterExpression.isPresent()) {
-            idExpression = new AndFilterExpression(filterExpression.get(), idExpression);
+            joinedExpression = new AndFilterExpression(filterExpression.get(), idExpression);
         }
 
         Class<?> relationClass = dictionary.getParameterizedType(entityType, relation);
         String queryString =
-                "SELECT COUNT(*) FROM {parentType} {parentType} join {parentType}.{relation} {relationType}";
+                "SELECT COUNT(*) FROM {parentType} {parentTypeAlias} join {parentTypeAlias}.{relation} {relationType}";
         queryString = queryString.replaceAll("\\{parentType\\}", entityType.getSimpleName());
+        queryString = queryString.replaceAll("\\{parentTypeAlias\\}", parentTypeAlias);
         queryString = queryString.replaceAll("\\{relation\\}", relation);
         queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
 
-        Query query = populateWhereClause(queryString, idExpression);
+        Query query = populateWhereClause(queryString, joinedExpression);
         return (Long) query.uniqueResult();
     }
 
@@ -509,5 +516,9 @@ public class HibernateTransaction implements DataStoreTransaction {
     public Integer getQueryLimit() {
         // no limit
         return null;
+    }
+
+    private static String getRandomAlias(Class<?> entityType) {
+        return entityType.getSimpleName() + ThreadLocalRandom.current().nextInt(1, 1000);
     }
 }

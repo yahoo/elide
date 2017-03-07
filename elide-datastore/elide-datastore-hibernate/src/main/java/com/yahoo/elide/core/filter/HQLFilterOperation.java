@@ -28,15 +28,15 @@ public class HQLFilterOperation implements FilterOperation<String> {
     /**
      * Transforms a filter predicate into a HQL query fragment.
      * @param filterPredicate The predicate to transform.
-     * @param prefixWithType Whether or not to append the entity type to the predicate.
+     * @param prefixWithAlias Whether or not to append the entity type to the predicate.
      *                       This is useful for table aliases referenced in HQL for some kinds of joins.
      * @return The hql query fragment.
      */
-    public String apply(FilterPredicate filterPredicate, boolean prefixWithType) {
+    public String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
         String fieldPath = filterPredicate.getFieldPath();
 
-        if (prefixWithType) {
-            fieldPath = filterPredicate.getEntityType().getSimpleName() + "." + fieldPath;
+        if (prefixWithAlias) {
+            fieldPath = filterPredicate.getAlias() + "." + fieldPath;
         }
 
         String alias = filterPredicate.getParameterName();
@@ -104,8 +104,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
     }
 
-    public String apply(FilterExpression filterExpression, boolean prefixWithType) {
-        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithType);
+    public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
         return "WHERE " + filterExpression.accept(visitor);
 
     }
@@ -114,10 +114,10 @@ public class HQLFilterOperation implements FilterOperation<String> {
      * Filter expression visitor which builds an HQL query.
      */
     public class HQLQueryVisitor implements Visitor<String> {
-        private boolean prefixWithType;
+        private boolean prefixWithAlias;
 
-        public HQLQueryVisitor(boolean prefixWithType) {
-            this.prefixWithType = prefixWithType;
+        public HQLQueryVisitor(boolean prefixWithAlias) {
+            this.prefixWithAlias = prefixWithAlias;
         }
 
         public HQLQueryVisitor() {
@@ -128,7 +128,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            query = apply(filterPredicate, prefixWithType);
+            query = apply(filterPredicate, prefixWithAlias);
             return query;
         }
 

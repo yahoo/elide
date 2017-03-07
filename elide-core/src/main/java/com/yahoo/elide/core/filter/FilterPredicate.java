@@ -10,10 +10,12 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Collections;
@@ -24,12 +26,12 @@ import java.util.function.Predicate;
 /**
  * Predicate class.
  */
-@AllArgsConstructor
 @EqualsAndHashCode
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
     @Getter @NonNull private List<PathElement> path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
+    @Getter @Setter private String alias;
 
     public static boolean toManyInPath(EntityDictionary dictionary, List<PathElement> path) {
         return path.stream()
@@ -61,6 +63,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     public FilterPredicate(List<PathElement> path, Operator op) {
         this(path, op, Collections.emptyList());
+    }
+
+    public FilterPredicate(List<PathElement> path, Operator op, List<Object> values) {
+        this.path = path;
+        this.operator = op;
+        this.values = values;
+        alias = getEntityType().getSimpleName();
     }
 
     public String getField() {
@@ -96,8 +105,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public Class getEntityType() {
-        PathElement last = path.get(path.size() - 1);
-        return last.getType();
+        PathElement first = path.get(0);
+        return first.getType();
     }
 
     @Override
