@@ -24,5 +24,15 @@ public class GraphQLContext {
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
 
-
+    public GraphQLContext(DataStoreTransaction transaction,
+                          User user,
+                          EntityDictionary dictionary,
+                          Set<PersistentResource> newPersistentResources,
+                          LinkedHashSet<PersistentResource> dirtyResources) {
+        this.transaction = transaction;
+        this.user = user;
+        this.dictionary = dictionary;
+        this.newPersistentResources = newPersistentResources;
+        this.dirtyResources = dirtyResources;
+    }
 }
