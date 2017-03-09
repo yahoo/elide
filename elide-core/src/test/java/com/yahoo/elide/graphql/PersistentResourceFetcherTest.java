@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -28,7 +29,7 @@ public class PersistentResourceFetcherTest extends AbstractGraphQLTest {
     @Test
     public void testFetchRootObject() {
         String graphQLRequest = "{ book { title } }";
-        ExecutionResult result = api.execute(graphQLRequest);
+        ExecutionResult result = api.execute(graphQLRequest, Mockito.mock(GraphQLContext.class));
         Assert.assertEquals(result.getData(), "");
     }
 }
