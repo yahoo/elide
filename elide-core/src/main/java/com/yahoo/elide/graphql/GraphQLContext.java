@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.security.User;
-import lombok.Getter;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -18,11 +17,11 @@ import java.util.Set;
  * The equivalent of {@link com.yahoo.elide.core.RequestScope} for GraphQL.
  */
 public class GraphQLContext {
-    @Getter private final DataStoreTransaction transaction;
-    @Getter private final User user;
-    @Getter private final EntityDictionary dictionary;
-    @Getter private final Set<PersistentResource> newPersistentResources;
-    @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
+    public final DataStoreTransaction transaction;
+    public final User user;
+    public final EntityDictionary dictionary;
+    public final Set<PersistentResource> newPersistentResources;
+    public final LinkedHashSet<PersistentResource> dirtyResources;
 
     public GraphQLContext(DataStoreTransaction transaction,
                           User user,

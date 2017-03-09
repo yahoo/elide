@@ -8,10 +8,11 @@ package com.yahoo.elide.graphql;
 
 import graphql.ExecutionResult;
 import graphql.GraphQL;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.LinkedHashSet;
 
 /**
  * Test our data fetcher.
@@ -29,7 +30,8 @@ public class PersistentResourceFetcherTest extends AbstractGraphQLTest {
     @Test
     public void testFetchRootObject() {
         String graphQLRequest = "{ book { title } }";
-        ExecutionResult result = api.execute(graphQLRequest, Mockito.mock(GraphQLContext.class));
+        GraphQLContext context = new GraphQLContext(null, null, dictionary, new LinkedHashSet<>(), new LinkedHashSet<>());
+        ExecutionResult result = api.execute(graphQLRequest, context);
         Assert.assertEquals(result.getData(), "");
     }
 }
