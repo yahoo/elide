@@ -18,6 +18,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ElideConverter;
 
 import java.lang.reflect.Constructor;
@@ -70,6 +71,8 @@ public class ElideSettingsBuilder {
             subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
         }
 
+        CoerceUtil.setup(converter);
+
         return new ElideSettings(
                 auditLogger,
                 dataStore,
@@ -81,7 +84,8 @@ public class ElideSettingsBuilder {
                 defaultMaxPageSize,
                 defaultPageSize,
                 useFilterExpressions,
-                updateStatusCode);
+                updateStatusCode,
+                converter);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -161,6 +165,13 @@ public class ElideSettingsBuilder {
         return this;
     }
 
+    /**
+     * You should strongly consider extending the map build by {@code ElideConverter.defaultConverters}. If you
+     * do not then you will lose Elide's default behavior for Maps and Enums
+     *
+     * @param converters
+     * @return
+     */
     public ElideSettingsBuilder withConverters(Map<Integer, ElideConverter.TypeCoercer> converters) {
         this.converter = new ElideConverter(converters);
         return this;

@@ -19,7 +19,7 @@ public class CoerceUtil {
 
     //static block for setup and registering new converters
     static {
-        setup();
+        setup(new ElideConverter());
     }
 
     /**
@@ -43,8 +43,9 @@ public class CoerceUtil {
 
     /**
      * Perform CoerceUtil setup.
+     * @param elideConverter the converter to register
      */
-    private static void setup() {
-        BeanUtilsBean.setInstance(new BeanUtilsBean(new ElideConverter()));
+    public static void setup(ElideConverter elideConverter) {
+        BeanUtilsBean.setInstance(new BeanUtilsBean(elideConverter));
     }
 }

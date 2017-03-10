@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.utils.coerce.converters.ElideConverter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -35,4 +36,5 @@ public class ElideSettings {
     @Getter private final int defaultPageSize;
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
+    @Getter private final ElideConverter converter;
 }

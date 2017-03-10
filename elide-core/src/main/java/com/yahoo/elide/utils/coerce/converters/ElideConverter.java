@@ -35,6 +35,9 @@ public class ElideConverter extends ConvertUtilsBean {
     public static final BiFunction<Class<?>, Class<?>, Boolean> STR_NUM_TO_DATE = (source, target) ->
             (String.class.isAssignableFrom(source) || Number.class.isAssignableFrom(source))
                     && ClassUtils.isAssignable(target, Date.class);
+    public static final int HIGH_PRIORITY = 10;
+    public static final int MEDIUM_PRIORITY = 20;
+    public static final int LOW_PRIORITY = 30;
 
     private static SortedSetMultimap<Integer, TypeCoercer> CONVERTERS = Multimaps.synchronizedSortedSetMultimap(
             TreeMultimap.<Integer, TypeCoercer>create());
@@ -71,9 +74,9 @@ public class ElideConverter extends ConvertUtilsBean {
 
     public static Map<Integer, TypeCoercer> defaultConverters() {
         Map<Integer, TypeCoercer> converters = new HashMap<>();
-        converters.put(10, new TypeCoercer(TARGET_IS_ENUM, TO_ENUM_CONVERTER));
-        converters.put(20, new TypeCoercer(SOURCE_IS_MAP, FROM_MAP_CONVERTER));
-        converters.put(30, new TypeCoercer(STR_NUM_TO_DATE, EPOCH_TO_DATE_CONVERTER));
+        converters.put(HIGH_PRIORITY, new TypeCoercer(TARGET_IS_ENUM, TO_ENUM_CONVERTER));
+        converters.put(MEDIUM_PRIORITY, new TypeCoercer(SOURCE_IS_MAP, FROM_MAP_CONVERTER));
+        converters.put(LOW_PRIORITY, new TypeCoercer(STR_NUM_TO_DATE, EPOCH_TO_DATE_CONVERTER));
         return converters;
     }
 
