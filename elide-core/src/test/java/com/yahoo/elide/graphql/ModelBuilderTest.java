@@ -6,7 +6,10 @@
 
 package com.yahoo.elide.graphql;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.EntityDictionary;
+
 import example.Author;
 import example.Book;
 import graphql.Scalars;
@@ -23,8 +26,6 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.mock;
 
 public class ModelBuilderTest {
     EntityDictionary dictionary;
@@ -59,6 +60,10 @@ public class ModelBuilderTest {
         Assert.assertTrue(bookType.getFieldDefinition("genre").getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition("language").getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition("publishDate").getType().equals(Scalars.GraphQLLong));
+
+        //GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
+        //Assert.assertTrue(addressType.getFieldDefinition("street1").getType().equals(Scalars.GraphQLString));
+        //Assert.assertTrue(addressType.getFieldDefinition("street2").getType().equals(Scalars.GraphQLString));
 
 
         GraphQLList authorsType = (GraphQLList) bookType.getFieldDefinition("authors").getType();
