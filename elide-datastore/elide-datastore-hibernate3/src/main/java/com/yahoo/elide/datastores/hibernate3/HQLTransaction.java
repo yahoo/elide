@@ -98,7 +98,7 @@ public class HQLTransaction {
                                     ? "desc"
                                     : "asc"))
                     );
-                    sortingRules += "order by " + StringUtils.join(ordering, ",");
+                    sortingRules += " order by " + StringUtils.join(ordering, ",");
                 }
             }
             return this;

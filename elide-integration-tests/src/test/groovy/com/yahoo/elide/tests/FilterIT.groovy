@@ -1626,6 +1626,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                         "Invalid query parameter: filter")
     }
 
+    /*
+     * Verify that a combination of filters and order by generate working SQL.
+     */
+    @Test
+    void testFilterWithSort() {
+        def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?filter[book.title][notnull]=true&sort=title").asString())
+        JsonNode data = result.get("data")
+        Assert.assertEquals(data.size(), 2)
+    }
 
     @AfterTest
     void cleanUp() {
