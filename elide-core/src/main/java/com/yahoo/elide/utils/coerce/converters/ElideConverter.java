@@ -6,12 +6,17 @@
 
 package com.yahoo.elide.utils.coerce.converters;
 
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -23,17 +28,25 @@ public class ElideConverter extends ConvertUtilsBean {
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
     private static final EpochToDateConverter EPOCH_TO_DATE_CONVERTER = new EpochToDateConverter();
 
-    private LinkedHashMap<BiFunction<Class<?>, Class<?>, Boolean>, Converter> converters;
+    public static final BiFunction<Class<?>, Class<?>, Boolean> SOURCE_IS_MAP = (source, target) ->
+            Map.class.isAssignableFrom(source);
+    public static final BiFunction<Class<?>, Class<?>, Boolean> TARGET_IS_ENUM = (source, target) ->
+            target.isEnum();
+    public static final BiFunction<Class<?>, Class<?>, Boolean> STR_NUM_TO_DATE = (source, target) ->
+            (String.class.isAssignableFrom(source) || Number.class.isAssignableFrom(source))
+                    && ClassUtils.isAssignable(target, Date.class);
+
+    private static SortedSetMultimap<Integer, TypeCoercer> CONVERTERS = Multimaps.synchronizedSortedSetMultimap(
+            TreeMultimap.<Integer, TypeCoercer>create());
 
     /**
      * Create a new ElideConverter with a set of converters.
      *
      * @param converters extra converters to consider before the default converters fire
      */
-    public ElideConverter(LinkedHashMap<BiFunction<Class<?>, Class<?>, Boolean>, Converter> converters) {
-        // yahoo/elide#260 - enable throwing exceptions when conversion fails
-        register(true, false, 0);
-        this.converters = converters;
+    public ElideConverter(Map<Integer, TypeCoercer> converters) {
+        register(true, false, 0); // #260 - throw exceptions when conversion fails
+        converters.forEach((key, value) -> CONVERTERS.put(key, value));
     }
 
     /**
@@ -43,28 +56,41 @@ public class ElideConverter extends ConvertUtilsBean {
         this(defaultConverters());
     }
 
-    @Override
     /*
      * Overriding lookup to execute enum converter if target is enum
      * or map convert if source is map
      */
+    @Override
     public Converter lookup(Class<?> sourceType, Class<?> targetType) {
-        for (Map.Entry<BiFunction<Class<?>, Class<?>, Boolean>, Converter> entry : converters.entrySet()) {
-            if (entry.getKey().apply(sourceType, targetType)) {
-                return entry.getValue();
-            }
-        }
-        return super.lookup(sourceType, targetType);
+        return CONVERTERS.values().stream()
+                .filter(tc ->  tc.discriminator.apply(sourceType, targetType))
+                .map(TypeCoercer::getConverter)
+                .findFirst()
+                .orElse(super.lookup(sourceType, targetType));
     }
 
-    public static LinkedHashMap<BiFunction<Class<?>, Class<?>, Boolean>, Converter> defaultConverters() {
-        LinkedHashMap<BiFunction<Class<?>, Class<?>, Boolean>, Converter> converters = new LinkedHashMap<>();
-        converters.put((source, target) -> target.isEnum(), TO_ENUM_CONVERTER);
-        converters.put((source, target) -> Map.class.isAssignableFrom(source), FROM_MAP_CONVERTER);
-        converters.put(
-                (source, target) -> (String.class.isAssignableFrom(source) || Number.class.isAssignableFrom(source))
-                        && ClassUtils.isAssignable(target, Date.class),
-                EPOCH_TO_DATE_CONVERTER);
+    public static Map<Integer, TypeCoercer> defaultConverters() {
+        Map<Integer, TypeCoercer> converters = new HashMap<>();
+        converters.put(10, new TypeCoercer(TARGET_IS_ENUM, TO_ENUM_CONVERTER));
+        converters.put(20, new TypeCoercer(SOURCE_IS_MAP, FROM_MAP_CONVERTER));
+        converters.put(30, new TypeCoercer(STR_NUM_TO_DATE, EPOCH_TO_DATE_CONVERTER));
         return converters;
+    }
+
+    /**
+     * Value type for registering converter with ElideConverter.
+     */
+    @RequiredArgsConstructor
+    public static class TypeCoercer implements Comparable<TypeCoercer> {
+        public final BiFunction<Class<?>, Class<?>, Boolean> discriminator;
+        @Getter public final Converter converter;
+
+        @Override
+        public int compareTo(TypeCoercer o) {
+            if (this == o) {
+                return 0;
+            }
+            return Integer.compare(hashCode(), o.hashCode());
+        }
     }
 }

@@ -18,12 +18,14 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.utils.coerce.converters.ElideConverter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -33,14 +35,16 @@ public class ElideSettingsBuilder {
     private final DataStore dataStore;
     private AuditLogger auditLogger;
     private JsonApiMapper jsonApiMapper;
-    private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
-    private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
-    private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
-    private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
     private boolean useFilterExpressions;
     private int updateStatusCode;
+
+    private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+    private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
+    private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
+    private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
+    private ElideConverter converter = new ElideConverter();
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -154,6 +158,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withUseFilterExpressions(boolean useFilterExpressions) {
         this.useFilterExpressions = useFilterExpressions;
+        return this;
+    }
+
+    public ElideSettingsBuilder withConverters(Map<Integer, ElideConverter.TypeCoercer> converters) {
+        this.converter = new ElideConverter(converters);
         return this;
     }
 }
