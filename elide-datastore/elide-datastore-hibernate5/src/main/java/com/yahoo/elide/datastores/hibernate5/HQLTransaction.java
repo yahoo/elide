@@ -36,8 +36,9 @@ public class HQLTransaction {
         private final Collection collection;
         private final Class<T> entityClass;
         private final EntityDictionary dictionary;
+
         private Set<FilterPredicate> filters = null;
-        private String sortingRules = "";
+        private String sortingRules;
         private Pagination pagination = null;
         private FilterExpression filterExpression = null;
 
@@ -50,10 +51,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
-            if (filterExpression.isPresent()) {
-                return withFilterExpression(filterExpression.get());
-            }
-            return this;
+            return filterExpression.map(this::withFilterExpression)
+                    .orElse(this);
         }
 
         public Builder withFilterExpression(FilterExpression filterExpression) {
@@ -64,10 +63,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleFilters(final Optional<Set<FilterPredicate>> possibleFilters) {
-            if (possibleFilters.isPresent()) {
-                return withFilters(possibleFilters.get());
-            }
-            return this;
+            return possibleFilters.map(this::withFilters)
+                    .orElse(this);
         }
 
         public Builder withFilters(final Set<FilterPredicate> filters) {
@@ -78,10 +75,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleSorting(final Optional<Sorting> possibleSorting) {
-            if (possibleSorting.isPresent()) {
-                return withSorting(possibleSorting.get());
-            }
-            return this;
+            return possibleSorting.map(this::withSorting)
+                    .orElse(this);
         }
 
         public Builder withSorting(final Sorting sorting) {
@@ -97,17 +92,15 @@ public class HQLTransaction {
                                     ? "desc"
                                     : "asc"))
                     );
-                    sortingRules += " order by " + StringUtils.join(ordering, ",");
+                    sortingRules = " order by " + StringUtils.join(ordering, ",");
                 }
             }
             return this;
         }
 
         public Builder withPossiblePagination(final Optional<Pagination> possiblePagination) {
-            if (possiblePagination.isPresent()) {
-                return withPagination(possiblePagination.get());
-            }
-            return this;
+            return possiblePagination.map(this::withPagination)
+                    .orElse(this);
         }
 
         public Builder withPagination(final Pagination pagination) {
@@ -129,7 +122,7 @@ public class HQLTransaction {
             }
 
             // add sorting into HQL string query generation
-            if (sortingRules != null && !sortingRules.isEmpty()) {
+            if (!StringUtils.isEmpty(sortingRules)) {
                 filterString += sortingRules;
             }
 
