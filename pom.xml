@@ -21,6 +21,7 @@
         <module>elide-integration-tests</module>
         <module>elide-example</module>
         <module>elide-contrib</module>
+        <module>graphql-java-type-generator</module>
     </modules>
 
     <issueManagement>

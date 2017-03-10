@@ -6,9 +6,17 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.schema.GraphQLEnumType.newEnum;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLObjectType.newObject;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+
 import graphql.Scalars;
+import graphql.java.generator.BuildContext;
+import graphql.java.generator.DefaultBuildContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
@@ -28,11 +36,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static graphql.schema.GraphQLEnumType.newEnum;
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
-import static graphql.schema.GraphQLObjectType.newObject;
-
 /**
  * Constructs a GraphQL schema (query and mutation documents) from an Elide EntityDictionary.
  */
@@ -41,10 +44,14 @@ public class ModelBuilder {
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
+    private BuildContext inputBuildContext;
+    private BuildContext outputBuildContext;
 
     ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
+        this.inputBuildContext = DefaultBuildContext.newReflectionContext();
+        this.outputBuildContext = DefaultBuildContext.newReflectionContext();
 
         relationshipOpArg = GraphQLArgument.newArgument()
                 .name("op")
@@ -126,7 +133,8 @@ public class ModelBuilder {
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
-            GraphQLType attributeType = classToType(attributeClass);
+            //GraphQLType attributeType = classToType(attributeClass);
+            GraphQLType attributeType = outputBuildContext.getOutputType(attributeClass);
 
             if (attributeType == null) {
                 continue;
@@ -218,7 +226,7 @@ public class ModelBuilder {
             for (String attribute : dictionary.getAttributes(clazz)) {
                 Class<?> attributeClass = dictionary.getType(clazz, attribute);
 
-                GraphQLType attributeType = classToType(attributeClass);
+                GraphQLType attributeType = inputBuildContext.getInputType(attributeClass);
 
                 if (attributeType == null) {
                     continue;
