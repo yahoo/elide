@@ -51,10 +51,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
-            if (filterExpression.isPresent()) {
-                return withFilterExpression(filterExpression.get());
-            }
-            return this;
+            return filterExpression.map(this::withFilterExpression)
+                    .orElse(this);
         }
 
         public Builder withFilterExpression(FilterExpression filterExpression) {
@@ -65,10 +63,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleFilters(final Optional<Set<FilterPredicate>> possibleFilters) {
-            if (possibleFilters.isPresent()) {
-                return withFilters(possibleFilters.get());
-            }
-            return this;
+            return possibleFilters.map(this::withFilters)
+                    .orElse(this);
         }
 
         public Builder withFilters(final Set<FilterPredicate> filters) {
@@ -79,10 +75,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossibleSorting(final Optional<Sorting> possibleSorting) {
-            if (possibleSorting.isPresent()) {
-                return withSorting(possibleSorting.get());
-            }
-            return this;
+            return possibleSorting.map(this::withSorting)
+                    .orElse(this);
         }
 
         public Builder withSorting(final Sorting sorting) {
@@ -105,10 +99,8 @@ public class HQLTransaction {
         }
 
         public Builder withPossiblePagination(final Optional<Pagination> possiblePagination) {
-            if (possiblePagination.isPresent()) {
-                return withPagination(possiblePagination.get());
-            }
-            return this;
+            return possiblePagination.map(this::withPagination)
+                    .orElse(this);
         }
 
         public Builder withPagination(final Pagination pagination) {
