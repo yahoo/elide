@@ -37,8 +37,9 @@ public class HQLTransaction {
         private final Collection collection;
         private final Class<T> entityClass;
         private final EntityDictionary dictionary;
+
         private Set<FilterPredicate> filters = null;
-        private String sortingRules = "";
+        private String sortingRules;
         private Pagination pagination = null;
         private FilterExpression filterExpression = null;
 
@@ -98,7 +99,7 @@ public class HQLTransaction {
                                     ? "desc"
                                     : "asc"))
                     );
-                    sortingRules += "order by " + StringUtils.join(ordering, ",");
+                    sortingRules = " order by " + StringUtils.join(ordering, ",");
                 }
             }
             return this;
@@ -129,7 +130,7 @@ public class HQLTransaction {
             }
 
             // add sorting into HQL string query generation
-            if (sortingRules != null && !sortingRules.isEmpty()) {
+            if (!StringUtils.isEmpty(sortingRules)) {
                 filterString += sortingRules;
             }
 
