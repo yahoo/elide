@@ -59,6 +59,8 @@ import java.util.stream.Stream;
 class EntityBinding {
 
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
+    private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
+            Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class);
 
     public final Class<?> entityClass;
     public final String jsonApiType;
@@ -204,18 +206,14 @@ class EntityBinding {
      * @param fieldOrMethod Field or method to bind
      */
     private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
-        boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
-        boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
-        boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
-        boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
-        boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
-        boolean isRelation = manyToMany || manyToOne || oneToMany || oneToOne;
+        boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
+        Class<?> fieldType = getFieldType(fieldOrMethod);
 
-        if (fieldName == null || fieldName.equals("id")
-                || fieldName.equals("class") || OBJ_METHODS.contains(fieldOrMethod)) {
-            return; // Reserved. Not attributes.
+        if (fieldName == null || fieldName.equals("id") || fieldName.equals("class")
+                || OBJ_METHODS.contains(fieldOrMethod)) {
+            return; // Reserved
         }
 
         if (fieldOrMethod instanceof Method) {
@@ -223,43 +221,52 @@ class EntityBinding {
             requestScopeableMethods.put(method, isRequestScopeableMethod(method));
         }
 
-        Class<?> fieldType = getFieldType(fieldOrMethod);
-
-        ConcurrentLinkedDeque<String> fieldList;
         if (isRelation) {
-            fieldList = relationshipsDeque;
-            RelationshipType type;
-            String mappedBy;
-            CascadeType [] cascadeTypes;
-            if (oneToMany) {
-                type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_MANY : RelationshipType.ONE_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
-                cascadeTypes = fieldOrMethod.getAnnotation(OneToMany.class).cascade();
-            } else if (oneToOne) {
-                type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_ONE : RelationshipType.ONE_TO_ONE;
-                mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
-                cascadeTypes = fieldOrMethod.getAnnotation(OneToOne.class).cascade();
-            } else if (manyToMany) {
-                type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_MANY : RelationshipType.MANY_TO_MANY;
-                mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
-                cascadeTypes = fieldOrMethod.getAnnotation(ManyToMany.class).cascade();
-            } else if (manyToOne) {
-                type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
-                mappedBy = "";
-                cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
-            } else {
-                type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE;
-                mappedBy = "";
-                cascadeTypes = new CascadeType[0];
-            }
-            relationshipTypes.put(fieldName, type);
-            relationshipToInverse.put(fieldName, mappedBy);
-            relationshipToCascadeTypes.put(fieldName, cascadeTypes);
+            bindRelation(fieldOrMethod, fieldName, fieldType);
         } else {
-            fieldList = attributesDeque;
+            bindAttr(fieldOrMethod, fieldName, fieldType);
         }
+    }
 
-        fieldList.push(fieldName);
+    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+        boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
+        boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
+        boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
+        boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
+        boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
+
+        RelationshipType type;
+        String mappedBy = "";
+        CascadeType[] cascadeTypes = new CascadeType[0];
+        if (oneToMany) {
+            type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_MANY : RelationshipType.ONE_TO_MANY;
+            mappedBy = fieldOrMethod.getAnnotation(OneToMany.class).mappedBy();
+            cascadeTypes = fieldOrMethod.getAnnotation(OneToMany.class).cascade();
+        } else if (oneToOne) {
+            type = computedRelationship ? RelationshipType.COMPUTED_ONE_TO_ONE : RelationshipType.ONE_TO_ONE;
+            mappedBy = fieldOrMethod.getAnnotation(OneToOne.class).mappedBy();
+            cascadeTypes = fieldOrMethod.getAnnotation(OneToOne.class).cascade();
+        } else if (manyToMany) {
+            type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_MANY : RelationshipType.MANY_TO_MANY;
+            mappedBy = fieldOrMethod.getAnnotation(ManyToMany.class).mappedBy();
+            cascadeTypes = fieldOrMethod.getAnnotation(ManyToMany.class).cascade();
+        } else if (manyToOne) {
+            type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
+            cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
+        } else {
+            type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE
+        }
+        relationshipTypes.put(fieldName, type);
+        relationshipToInverse.put(fieldName, mappedBy);
+        relationshipToCascadeTypes.put(fieldName, cascadeTypes);
+
+        relationshipsDeque.push(fieldName);
+        fieldsToValues.put(fieldName, fieldOrMethod);
+        fieldsToTypes.put(fieldName, fieldType);
+    }
+
+    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
+        attributesDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
         fieldsToTypes.put(fieldName, fieldType);
     }

@@ -146,43 +146,10 @@ public class Pagination {
      * @return the calculated {@link Pagination}
      */
     private Pagination evaluate(int defaultLimit, int maxLimit) {
-
         if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
-            // Page-based pagination strategy
-
-            if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
-                throw new InvalidValueException("Invalid usage of pagination parameters.");
-            }
-
-            limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
-            if (limit > maxLimit) {
-                throw new InvalidValueException(
-                        "page[size] value must be less than or equal to " + maxLimit);
-            } else if (limit < 0) {
-                throw new InvalidValueException("page[size] must contain a positive value.");
-            }
-
-            int pageNumber = pageData.containsKey(PaginationKey.number) ? pageData.get(PaginationKey.number) : 1;
-            if (pageNumber < 1) {
-                throw new InvalidValueException("page[number] must contain a positive value.");
-            }
-
-            offset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
+            pageByPages(defaultLimit, maxLimit);
         } else if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
-
-            // Offset-based pagination strategy
-            limit = pageData.containsKey(PaginationKey.limit)
-                    ? pageData.get(PaginationKey.limit) : defaultLimit;
-            if (limit > maxLimit) {
-                throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
-            }
-
-            offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
-
-            if (limit < 0 || offset < 0) {
-                throw new InvalidValueException("page[offset] and page[limit] must contain positive values.");
-            }
-
+            pageByOffset(defaultLimit, maxLimit);
         } else {
             limit = defaultLimit;
             offset = 0;
@@ -191,6 +158,42 @@ public class Pagination {
         generateTotals = pageData.containsKey(PaginationKey.totals);
 
         return this;
+    }
+
+    private void pageByOffset(int defaultLimit, int maxLimit) {
+        limit = pageData.containsKey(PaginationKey.limit)
+                ? pageData.get(PaginationKey.limit)
+                : defaultLimit;
+
+        if (limit > maxLimit) {
+            throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
+        }
+
+        offset = pageData.containsKey(PaginationKey.offset) ? pageData.get(PaginationKey.offset) : 0;
+
+        if (limit < 0 || offset < 0) {
+            throw new InvalidValueException("page[offset] and page[limit] must contain positive values.");
+        }
+    }
+
+    private void pageByPages(int defaultLimit, int maxLimit) {
+        if (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset)) {
+            throw new InvalidValueException("Invalid usage of pagination parameters.");
+        }
+
+        limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
+        if (limit > maxLimit) {
+            throw new InvalidValueException("page[size] value must be less than or equal to " + maxLimit);
+        } else if (limit < 0) {
+            throw new InvalidValueException("page[size] must contain a positive value.");
+        }
+
+        int pageNumber = pageData.containsKey(PaginationKey.number) ? pageData.get(PaginationKey.number) : 1;
+        if (pageNumber < 1) {
+            throw new InvalidValueException("page[number] must contain a positive value.");
+        }
+
+        offset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
     }
 
     /**
