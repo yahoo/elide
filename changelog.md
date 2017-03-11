@@ -1,5 +1,8 @@
 #Change Log
 
+**Fixes**
+* Fix HQL for order by clauses preceded by filters.
+
 ## 3.1
 **Fixes**
 * Updated HQL query aliases for page total calculation in hibernate3 and hibernate5 data stores.
