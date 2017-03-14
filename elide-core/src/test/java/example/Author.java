@@ -81,4 +81,9 @@ public class Author {
     public void setBooks(Collection<Book> books) {
         this.books = books;
     }
+
+    @Override
+    public String toString() {
+        return "Author{id=" + id + ", name='" + name + "\'}";
+    }
 }

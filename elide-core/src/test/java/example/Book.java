@@ -171,4 +171,9 @@ public class Book {
     public void postRead(RequestScope requestScope) {
         // book being read post commit
     }
+
+    @Override
+    public String toString() {
+        return "Book{id=" + id + ", title='" + title + "\'}";
+    }
 }
