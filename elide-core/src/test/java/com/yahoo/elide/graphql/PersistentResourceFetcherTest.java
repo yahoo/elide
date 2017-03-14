@@ -29,9 +29,28 @@ public class PersistentResourceFetcherTest extends AbstractGraphQLTest {
 
     @Test
     public void testFetchRootObject() {
-        String graphQLRequest = "{ book { title } }";
+        String graphQLRequest = "{ book(id: '1') { id title } }";
         GraphQLContext context = new GraphQLContext(null, null, dictionary, new LinkedHashSet<>(), new LinkedHashSet<>());
         ExecutionResult result = api.execute(graphQLRequest, context);
+        Assert.assertEquals(result.getErrors().size(), 0);
+        Assert.assertEquals(result.getData(), "");
+    }
+
+    @Test
+    public void testFetchRootCollection() {
+        String graphQLRequest = "{ book { id title genre language } }";
+        GraphQLContext context = new GraphQLContext(null, null, dictionary, new LinkedHashSet<>(), new LinkedHashSet<>());
+        ExecutionResult result = api.execute(graphQLRequest, context);
+        Assert.assertEquals(result.getErrors().size(), 0);
+        Assert.assertEquals(result.getData(), "");
+    }
+
+    @Test
+    public void testFetchNestedCollection() {
+        String graphQLRequest = "{ author { id name books { id title genre language } } }";
+        GraphQLContext context = new GraphQLContext(null, null, dictionary, new LinkedHashSet<>(), new LinkedHashSet<>());
+        ExecutionResult result = api.execute(graphQLRequest, context);
+        Assert.assertEquals(result.getErrors().size(), 0);
         Assert.assertEquals(result.getData(), "");
     }
 }
