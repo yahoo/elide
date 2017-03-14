@@ -39,7 +39,15 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ModelBuilder {
-    private static final String DATA = "data";
+    public static final String ARGUMENT_DATA = "data";
+    public static final String ARGUMENT_FILTER = "filter";
+    public static final String ARGUMENT_FIRST = "first";
+    public static final String ARGUMENT_ID = "id";
+    public static final String ARGUMENT_OFFSET = "offset";
+    public static final String ARGUMENT_OPERATION = "op";
+    public static final String ARGUMENT_SORT = "sort";
+
+
     private static final String INPUT = "Input";
 
     private EntityDictionary dictionary;
@@ -63,33 +71,33 @@ public class ModelBuilder {
         this.dataFetcher = dataFetcher;
 
         relationshipOpArg = newArgument()
-                .name("op")
+                .name(ARGUMENT_OPERATION)
                 .type(generator.classToEnumType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
         idArgument = newArgument()
-                .name("id")
+                .name(ARGUMENT_ID)
                 .type(Scalars.GraphQLString)
                 .build();
 
         filterArgument = newArgument()
-                .name("filter")
+                .name(ARGUMENT_FILTER)
                 .type(Scalars.GraphQLString)
                 .build();
 
         sortArgument = newArgument()
-                .name("sort")
+                .name(ARGUMENT_SORT)
                 .type(Scalars.GraphQLString)
                 .build();
 
         pageFirstArgument = newArgument()
-                .name("first")
+                .name(ARGUMENT_FIRST)
                 .type(Scalars.GraphQLString)
                 .build();
 
         pageOffsetArgument = newArgument()
-                .name("offset")
+                .name(ARGUMENT_OFFSET)
                 .type(Scalars.GraphQLString)
                 .build();
 
@@ -276,12 +284,12 @@ public class ModelBuilder {
 
         if (asList) {
             return newArgument()
-                .name(DATA)
+                .name(ARGUMENT_DATA)
                 .type(new GraphQLList(argumentType))
                 .build();
         } else {
             return newArgument()
-                .name(DATA)
+                .name(ARGUMENT_DATA)
                 .type(argumentType)
                 .build();
         }
