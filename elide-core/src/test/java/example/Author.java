@@ -9,6 +9,9 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.Entity;
@@ -42,8 +45,8 @@ public class Author {
     private AuthorType type;
 
 
-    //@Getter @Setter
-    //private Address homeAddress;
+    @Getter @Setter
+    private Address homeAddress;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long getId() {

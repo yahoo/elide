@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.Assert.assertNotNull;
+
 import graphql.AssertException;
 import graphql.schema.BuilderFunction;
 import graphql.schema.GraphQLInputObjectField;
@@ -16,8 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static graphql.Assert.assertNotNull;
-
 /**
  * Basically the same class as GraphQLInputObjectType except fields can be added after the
  * object is constructed.  This mutable behavior is useful for constructing input objects from
@@ -26,10 +26,21 @@ import static graphql.Assert.assertNotNull;
 public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
     private final Map<String, GraphQLInputObjectField> fieldMap = new LinkedHashMap<String, GraphQLInputObjectField>();
+    private String name;
 
     public MutableGraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
         super(name, description, fields);
+        this.name = name;
         buildMap(fields);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     private void buildMap(List<GraphQLInputObjectField> fields) {

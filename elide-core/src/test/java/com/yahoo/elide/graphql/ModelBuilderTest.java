@@ -61,9 +61,9 @@ public class ModelBuilderTest {
         Assert.assertTrue(bookType.getFieldDefinition("language").getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition("publishDate").getType().equals(Scalars.GraphQLLong));
 
-        //GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
-        //Assert.assertTrue(addressType.getFieldDefinition("street1").getType().equals(Scalars.GraphQLString));
-        //Assert.assertTrue(addressType.getFieldDefinition("street2").getType().equals(Scalars.GraphQLString));
+        GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
+        Assert.assertTrue(addressType.getFieldDefinition("street1").getType().equals(Scalars.GraphQLString));
+        Assert.assertTrue(addressType.getFieldDefinition("street2").getType().equals(Scalars.GraphQLString));
 
 
         GraphQLList authorsType = (GraphQLList) bookType.getFieldDefinition("authors").getType();
