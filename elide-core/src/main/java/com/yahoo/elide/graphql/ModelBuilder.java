@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
@@ -19,7 +18,7 @@ import graphql.java.generator.BuildContext;
 import graphql.java.generator.DefaultBuildContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -44,18 +43,16 @@ public class ModelBuilder {
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
-    private BuildContext inputBuildContext;
-    private BuildContext outputBuildContext;
+    private BuildContext buildContext;
 
     ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
-        this.inputBuildContext = DefaultBuildContext.newReflectionContext();
-        this.outputBuildContext = DefaultBuildContext.newReflectionContext();
+        this.buildContext = DefaultBuildContext.newReflectionContext();
 
         relationshipOpArg = GraphQLArgument.newArgument()
                 .name("op")
-                .type(toGraphQLType(RelationshipOp.class))
+                .type(buildContext.getInputType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -133,8 +130,7 @@ public class ModelBuilder {
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
-            //GraphQLType attributeType = classToType(attributeClass);
-            GraphQLType attributeType = outputBuildContext.getOutputType(attributeClass);
+            GraphQLType attributeType = buildContext.getOutputType(attributeClass);
 
             if (attributeType == null) {
                 continue;
@@ -226,7 +222,18 @@ public class ModelBuilder {
             for (String attribute : dictionary.getAttributes(clazz)) {
                 Class<?> attributeClass = dictionary.getType(clazz, attribute);
 
-                GraphQLType attributeType = inputBuildContext.getInputType(attributeClass);
+                GraphQLInputType attributeType = buildContext.getInputType(attributeClass);
+                if (attributeType instanceof GraphQLInputObjectType) {
+                    MutableGraphQLInputObjectType wrappedType =
+                            new MutableGraphQLInputObjectType(
+                                    attributeType.getName() + "Input",
+                                    ((GraphQLInputObjectType) attributeType).getDescription(),
+                                    ((GraphQLInputObjectType) attributeType).getFields()
+                                    );
+                    attributeType = wrappedType;
+
+                }
+
 
                 if (attributeType == null) {
                     continue;
@@ -234,7 +241,7 @@ public class ModelBuilder {
 
                 builder.field(newInputObjectField()
                                 .name(attribute)
-                                .type((GraphQLInputType) attributeType)
+                                .type(attributeType)
                 );
             }
 
@@ -272,48 +279,5 @@ public class ModelBuilder {
         });
 
         return constructing.get(entityClass);
-    }
-
-    /**
-     * Converts any non-entity type to a GraphQLType
-     * @param clazz - the non-entity type.
-     * @return the GraphQLType or null if there is a problem with the underlying model.
-     */
-    private GraphQLType classToType(Class<?> clazz) {
-        if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
-            return Scalars.GraphQLInt;
-        } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
-            return Scalars.GraphQLBoolean;
-        } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
-            return Scalars.GraphQLLong;
-        } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
-            return Scalars.GraphQLFloat;
-        } else if (clazz.equals(short.class) || clazz.equals(Short.class)) {
-            return Scalars.GraphQLShort;
-        } else if (clazz.equals(String.class)) {
-            return Scalars.GraphQLString;
-        } else if (clazz.isEnum()) {
-            return toGraphQLType((Class<Enum>) clazz);
-        } else if (dictionary.getBindings().contains(clazz)) {
-            //Attributes can't also be entities.
-            return null;
-        }
-
-        //TODO - handle collections & embedded entities
-
-        return null;
-    }
-
-    public static GraphQLEnumType toGraphQLType(Class<?> enumClazz) {
-        Enum [] values = (Enum []) enumClazz.getEnumConstants();
-
-        GraphQLEnumType.Builder builder = newEnum()
-                .name(enumClazz.getName());
-
-        for (Enum value : values) {
-            builder.value(value.name(), value);
-        }
-
-        return builder.build();
     }
 }
