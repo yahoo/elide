@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.utils.ClassScanner;
+
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
@@ -17,8 +18,8 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
-import javax.persistence.Entity;
 import java.util.function.Supplier;
+import javax.persistence.Entity;
 
 /**
  * Supplier of Hibernate 3 Data Store.
@@ -42,8 +43,9 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
 
         SessionFactory sessionFactory = configuration.configure("hibernate.cfg.xml")
                 .setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                .setProperty(Environment.URL,
-                        "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
+                .setProperty(Environment.URL, "jdbc:mysql://localhost:"
+                                + System.getProperty("mysql.port", "3306")
+                                + "/root?serverTimezone=UTC")
                 .setProperty(Environment.USER, "root")
                 .setProperty(Environment.PASS, "root")
                 .buildSessionFactory();
