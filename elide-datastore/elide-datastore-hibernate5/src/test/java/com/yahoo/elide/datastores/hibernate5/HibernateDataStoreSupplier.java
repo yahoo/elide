@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.utils.ClassScanner;
+
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
@@ -18,8 +19,8 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
-import javax.persistence.Entity;
 import java.util.function.Supplier;
+import javax.persistence.Entity;
 
 /**
  * Supplier of Hibernate 5 Data Store.
@@ -37,8 +38,9 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL,
-                                "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
+                        .applySetting(Environment.URL, "jdbc:mysql://localhost:"
+                                + System.getProperty("mysql.port", "3306")
+                                + "/root?serverTimezone=UTC")
                         .applySetting(Environment.USER, "root")
                         .applySetting(Environment.PASS, "root")
                         .build());

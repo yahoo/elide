@@ -28,8 +28,9 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL,
-                                "jdbc:mysql://localhost:" + System.getProperty("mysql.port", "3306") + "/root")
+                        .applySetting(Environment.URL, "jdbc:mysql://localhost:"
+                                + System.getProperty("mysql.port", "3306")
+                                + "/root?serverTimezone=UTC")
                         .applySetting(Environment.USER, "root")
                         .applySetting(Environment.PASS, "root")
                         .build());
