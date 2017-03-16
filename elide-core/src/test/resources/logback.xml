@@ -11,6 +11,8 @@
     </encoder>
   </appender>
 
+  <logger name="com.yahoo.elide.graphql" level="DEBUG" />
+
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

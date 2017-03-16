@@ -14,7 +14,16 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import graphql.Scalars;
+
 import graphql.schema.*;
+
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -131,7 +140,7 @@ public class ModelBuilderTest {
     private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
         Enum [] values = (Enum []) expected.getEnumConstants();
         Set<String> enumNames = actual.getValues().stream()
-                .map((value) -> value.getName())
+                .map(GraphQLEnumValueDefinition::getName)
                 .collect(Collectors.toSet());
 
         for (Enum value : values) {
