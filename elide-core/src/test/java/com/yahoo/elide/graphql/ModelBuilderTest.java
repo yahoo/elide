@@ -12,6 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 
 import example.Author;
 import example.Book;
+import example.Publisher;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -36,8 +37,8 @@ public class ModelBuilderTest {
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Publisher.class);
     }
-
 
     @Test
     public void testBuild() {
