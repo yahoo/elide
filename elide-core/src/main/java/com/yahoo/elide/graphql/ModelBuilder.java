@@ -28,11 +28,14 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -92,22 +95,10 @@ public class ModelBuilder {
                     .type(new GraphQLList(buildQueryObject(clazz))));
         }
 
-
         /*
          * Search the object graph, avoid cycles, and construct the GraphQL output object types.
          */
-        Queue<Class<?>> toVisit = new ArrayDeque<>(rootClasses);
-        while (! toVisit.isEmpty()) {
-            Class<?> clazz = toVisit.remove();
-            buildQueryObject(clazz);
-
-            for (String relationship : dictionary.getRelationships(clazz)) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
-                if (!queryObjectRegistry.containsKey(relationshipClass)) {
-                    toVisit.add(relationshipClass);
-                }
-            }
-        }
+        walkEntityGraph(rootClasses, this::buildQueryObject);
 
         Set<GraphQLType> allTypes = new HashSet<>(inputObjectRegistry.values());
         allTypes.addAll(queryObjectRegistry.values());
@@ -301,5 +292,32 @@ public class ModelBuilder {
         MutableGraphQLInputObjectType constructed = constructing.get(entityClass);
         inputObjectRegistry.put(entityClass, constructed);
         return constructed;
+    }
+
+
+    /**
+     * Walks the entity graph and performs a transform function on each element.
+     * @param entities The roots of the entity graph.
+     * @param transform The function to transform each entity class into a result.
+     * @param <T> The result type.
+     * @return The collection of results.
+     */
+    private <T> List<T> walkEntityGraph(Set<Class<?>> entities,  Function<Class<?>, T> transform) {
+        ArrayList<T> results = new ArrayList<>();
+        Queue<Class<?>> toVisit = new ArrayDeque<>(entities);
+        Set<Class<?>> visited = new HashSet<>();
+        while (! toVisit.isEmpty()) {
+            Class<?> clazz = toVisit.remove();
+            results.add(transform.apply(clazz));
+            visited.add(clazz);
+
+            for (String relationship : dictionary.getRelationships(clazz)) {
+                Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
+                if (!visited.contains(relationshipClass)) {
+                    toVisit.add(relationshipClass);
+                }
+            }
+        }
+        return results;
     }
 }
