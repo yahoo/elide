@@ -16,7 +16,7 @@
 
         ~/elide $ mvn install
         ~/elide $ cd elide-example/elide-blog-example
-        ~/elide/elide-example/elide-blog-example $ mvn exec:java -Dexec.mainClass="com.yahoo.elide.example.persistence.Main"
+        ~/elide/elide-example/elide-blog-example $ mvn exec:java -Dexec.mainClass="com.yahoo.elide.example.Main"
 
 5. Create an admin user
 

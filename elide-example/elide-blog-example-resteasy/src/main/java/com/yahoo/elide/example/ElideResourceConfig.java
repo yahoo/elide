@@ -8,11 +8,11 @@ package com.yahoo.elide.example;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.datastores.hibernate5.PersistenceStore;
+import com.yahoo.elide.datastores.hibernate5.HibernateStore;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,10 +24,9 @@ public class ElideResourceConfig extends Application {
 
     @Override
     public Set<Object> getSingletons() {
-        EntityManagerFactory entityManagerFactory =
-                Persistence.createEntityManagerFactory("com.yahoo.elide.example");
+        SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
-        Elide elide = new Elide(new ElideSettingsBuilder(new PersistenceStore(entityManagerFactory))
+        Elide elide = new Elide(new ElideSettingsBuilder(new HibernateStore.Builder(sessionFactory).build())
                 .withAuditLogger(new Slf4jLogger())
                 .build());
 
