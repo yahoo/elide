@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-blog-example</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Example: Persistence API with Security</name>
+    <name>Elide Example: Hibernate5 API with Security</name>
     <description>Elide example using javax.persistence, MySQL and Elide Security</description>
     <parent>
         <groupId>com.yahoo.elide</groupId>
@@ -56,6 +56,12 @@
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-jetty-servlet</artifactId>
             <version>RELEASE</version>
+        </dependency>
+        <!-- JAX RS -->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1-m05</version>
         </dependency>
         <!-- Logging -->
         <dependency>
