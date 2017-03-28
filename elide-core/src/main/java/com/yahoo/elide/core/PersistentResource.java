@@ -1622,7 +1622,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
             if (inverseRelation instanceof Collection) {
                 inverseResource.delFromCollection((Collection) inverseRelation, inverseRelationName, this, true);
-            } else if (inverseRelationType.equals(this.getResourceClass())) {
+            } else if (inverseRelationType.isAssignableFrom(this.getResourceClass())) {
                 inverseResource.nullValue(inverseRelationName, this);
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
@@ -1673,7 +1673,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 } else {
                     inverseResource.setValueChecked(inverseRelationName, Collections.singleton(this.getObject()));
                 }
-            } else if (inverseRelationType.equals(this.getResourceClass())) {
+            } else if (inverseRelationType.isAssignableFrom(this.getResourceClass())) {
                 inverseResource.setValueChecked(inverseRelationName, this.getObject());
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
