@@ -121,21 +121,6 @@ public class JsonApiEndpoint {
         return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
     }
 
-    /**
-     * Delete resource handler (expects no body and no content-type header).
-     *
-     * @param path request path
-     * @param securityContext security context
-     * @return response
-     */
-    @DELETE
-    @Path("{path:.*}")
-    public Response deleteWithoutBody(
-            @PathParam("path") String path,
-            @Context SecurityContext securityContext) {
-        return build(elide.delete(path, null, getUser.apply(securityContext)));
-    }
-
     private static Response build(ElideResponse response) {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
