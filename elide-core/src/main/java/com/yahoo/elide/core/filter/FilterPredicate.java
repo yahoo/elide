@@ -119,17 +119,27 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return operator.contextualize(getFieldPath(), values, dictionary);
     }
 
-    public String getStringValueEscaped(String specialCharacter, String escapeCharacter){
+    public String getStringValueEscaped(String specialCharacter, String escapeCharacter) {
         return getValues().get(0).toString().replace(specialCharacter, escapeCharacter + specialCharacter);
     }
 
     public boolean isMatchingOperator() {
-        return operator == Operator.INFIX ||
-                operator == Operator.INFIX_CASE_INSENSITIVE ||
-                operator == Operator.PREFIX ||
-                operator == Operator.PREFIX_CASE_INSENSITIVE ||
-                operator == Operator.POSTFIX ||
-                operator == Operator.POSTFIX_CASE_INSENSITIVE;
+        return isInfix() || isPrefix() || isPostfix();
+    }
+
+    public boolean isInfix() {
+        return operator == Operator.INFIX
+                || operator == Operator.INFIX_CASE_INSENSITIVE;
+    }
+
+    public boolean isPrefix() {
+        return operator == Operator.PREFIX
+                || operator == Operator.PREFIX_CASE_INSENSITIVE;
+    }
+
+    public boolean isPostfix() {
+        return operator == Operator.POSTFIX
+                || operator == Operator.POSTFIX_CASE_INSENSITIVE;
     }
 
     @Override

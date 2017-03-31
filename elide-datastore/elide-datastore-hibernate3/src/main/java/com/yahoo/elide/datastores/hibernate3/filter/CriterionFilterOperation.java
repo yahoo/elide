@@ -112,17 +112,17 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 }
                 return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
-                return Restrictions.like(alias, filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER) + MATCHALL_CHARACTER);
+                return Restrictions.like(alias, getRegexPattern(filterPredicate));
             case PREFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER) + MATCHALL_CHARACTER);
+                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
             case POSTFIX:
-                return Restrictions.like(alias, MATCHALL_CHARACTER + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
+                return Restrictions.like(alias, getRegexPattern(filterPredicate));
             case POSTFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, MATCHALL_CHARACTER + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
+                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
             case INFIX:
-                return Restrictions.like(alias, MATCHALL_CHARACTER + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER) + MATCHALL_CHARACTER);
+                return Restrictions.like(alias, getRegexPattern(filterPredicate));
             case INFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, MATCHALL_CHARACTER + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER) + MATCHALL_CHARACTER);
+                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:
@@ -141,6 +141,22 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.sqlRestriction("(false)");
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+        }
+    }
+
+    private String getRegexPattern(FilterPredicate predicate) {
+        if (predicate.isPrefix()) {
+            return MATCHALL_CHARACTER
+                    + predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER);
+        } else if (predicate.isPostfix()) {
+            return predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                    + MATCHALL_CHARACTER;
+        } else if (predicate.isInfix()) {
+            return MATCHALL_CHARACTER
+                    + predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                    + MATCHALL_CHARACTER;
+        } else {
+            return null;
         }
     }
 
