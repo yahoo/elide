@@ -106,17 +106,17 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 }
                 return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
-                return Restrictions.like(alias, filterPredicate.getValues().get(0) + "%");
+                return Restrictions.like(alias, filterPredicate.getStringValueEscaped("%", "\\") + "%");
             case PREFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, filterPredicate.getValues().get(0) + "%");
+                return Restrictions.ilike(alias, filterPredicate.getStringValueEscaped("%", "\\") + "%");
             case POSTFIX:
-                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0));
+                return Restrictions.like(alias, "%" + filterPredicate.getStringValueEscaped("%", "\\"));
             case POSTFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0));
+                return Restrictions.ilike(alias, "%" + filterPredicate.getStringValueEscaped("%", "\\"));
             case INFIX:
-                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0) + "%");
+                return Restrictions.like(alias, "%" + filterPredicate.getStringValueEscaped("%", "\\") + "%");
             case INFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0) + "%");
+                return Restrictions.ilike(alias, "%" + filterPredicate.getStringValueEscaped("%", "\\") + "%");
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:

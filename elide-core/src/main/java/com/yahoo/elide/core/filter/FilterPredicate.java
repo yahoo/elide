@@ -119,6 +119,10 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return operator.contextualize(getFieldPath(), values, dictionary);
     }
 
+    public String getStringValueEscaped(String specialCharacter, String escapeCharacter){
+        return getValues().get(0).toString().replace(specialCharacter, escapeCharacter + specialCharacter);
+    }
+
     @Override
     public String toString() {
         String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
