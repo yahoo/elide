@@ -466,12 +466,9 @@ public class HibernateTransaction implements DataStoreTransaction {
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
                 String name = filterPredicate.getParameterName();
-                if(filterPredicate.getOperator() == Operator.INFIX || filterPredicate.getOperator() == Operator.INFIX_CASE_INSENSITIVE ||
-                        filterPredicate.getOperator() == Operator.PREFIX || filterPredicate.getOperator() == Operator.PREFIX_CASE_INSENSITIVE ||
-                        filterPredicate.getOperator() == Operator.POSTFIX || filterPredicate.getOperator() == Operator.POSTFIX_CASE_INSENSITIVE){
+                if (filterPredicate.isMatchingOperator()) {
                     query = query.setParameter(name, filterPredicate.getStringValueEscaped("%", "\\"));
-                }
-                else{
+                } else {
                     query = query.setParameterList(name, filterPredicate.getValues());
                 }
             }

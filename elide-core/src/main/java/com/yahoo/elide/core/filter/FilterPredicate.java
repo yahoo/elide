@@ -123,6 +123,15 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return getValues().get(0).toString().replace(specialCharacter, escapeCharacter + specialCharacter);
     }
 
+    public boolean isMatchingOperator() {
+        return operator == Operator.INFIX ||
+                operator == Operator.INFIX_CASE_INSENSITIVE ||
+                operator == Operator.PREFIX ||
+                operator == Operator.PREFIX_CASE_INSENSITIVE ||
+                operator == Operator.POSTFIX ||
+                operator == Operator.POSTFIX_CASE_INSENSITIVE;
+    }
+
     @Override
     public String toString() {
         String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
