@@ -36,7 +36,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
     private static String SPECIAL_CHARACTER = "%";
 
-    private static String MATCHALL_CHARACTER = "%";
+    private static String MATCHALL_CHARACTER = SPECIAL_CHARACTER;
 
     private static String ESCAPE_CHARACTER = "\\";
 
