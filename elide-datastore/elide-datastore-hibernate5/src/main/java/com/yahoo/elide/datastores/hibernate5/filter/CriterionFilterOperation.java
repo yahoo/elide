@@ -36,7 +36,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
     private static String SPECIAL_CHARACTER = "%";
 
-    private static String MATCHALL_CHARACTER = SPECIAL_CHARACTER;
+    private static String MATCHALL_CHARACTER = "%";
 
     private static String ESCAPE_CHARACTER = "\\";
 
@@ -112,17 +112,17 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 }
                 return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
-                return Restrictions.like(alias, getRegexPattern(filterPredicate));
+                return Restrictions.like(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case PREFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
+                return Restrictions.ilike(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case POSTFIX:
-                return Restrictions.like(alias, getRegexPattern(filterPredicate));
+                return Restrictions.like(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case POSTFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
+                return Restrictions.ilike(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case INFIX:
-                return Restrictions.like(alias, getRegexPattern(filterPredicate));
+                return Restrictions.like(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case INFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, getRegexPattern(filterPredicate));
+                return Restrictions.ilike(alias, filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:
@@ -144,24 +144,6 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
         }
     }
 
-    private String getRegexPattern(FilterPredicate predicate) {
-        if (predicate.isPrefix()) {
-            return MATCHALL_CHARACTER
-                    + predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER);
-        }
-        else if (predicate.isPostfix()) {
-            return predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
-                    + MATCHALL_CHARACTER;
-        }
-        else if (predicate.isInfix()) {
-            return MATCHALL_CHARACTER
-                    + predicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
-                    + MATCHALL_CHARACTER;
-        }
-        else {
-            return null;
-        }
-    }
 
     @Override
     public Criterion applyAll(Set<FilterPredicate> filterPredicates) {
