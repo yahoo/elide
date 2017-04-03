@@ -756,6 +756,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
         requestScope.queueTriggers(this, CRUDAction.DELETE);
+        requestScope.getDeletedResources().add(this);
     }
 
     /**

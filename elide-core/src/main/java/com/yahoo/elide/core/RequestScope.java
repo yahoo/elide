@@ -68,6 +68,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
     @Getter private final LinkedHashSet<PersistentResource> dirtyResources;
+    @Getter private final LinkedHashSet<PersistentResource> deletedResources;
     @Getter private final String path;
     @Getter private final ElideSettings elideSettings;
     @Getter private final boolean useFilterExpressions;
@@ -115,6 +116,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.objectEntityCache = new ObjectEntityCache();
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
+        this.deletedResources = new LinkedHashSet<>();
         this.queuedTriggers = new HashMap<Class, LinkedHashSet<Runnable>>() {
             {
                 put(OnCreatePreSecurity.class, new LinkedHashSet<>());
@@ -210,6 +212,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.queuedTriggers = outerRequestScope.queuedTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.dirtyResources = outerRequestScope.dirtyResources;
+        this.deletedResources = outerRequestScope.deletedResources;
         this.filterDialect = outerRequestScope.filterDialect;
         this.expressionsByType = outerRequestScope.expressionsByType;
         this.elideSettings = outerRequestScope.elideSettings;
@@ -395,6 +398,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     public void saveOrCreateObjects() {
         dirtyResources.removeAll(newPersistentResources);
+        // Delete has already been called on these objects
+        dirtyResources.removeAll(deletedResources);
         newPersistentResources
                 .stream()
                 .map(PersistentResource::getObject)
