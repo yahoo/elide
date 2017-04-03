@@ -19,6 +19,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.mockito.*;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -87,5 +88,29 @@ public class CriterionFilterOperationTest {
         verify(criteria).createAlias("address.zip", "person__address__zip");
 
         Assert.assertEquals(argument.getValue().toString(), "person__address__zip.zip in (61820)");
+    }
+
+    @DataProvider(name="like_queries")
+    Object [][] likeQueryPredicateDataProvider(){
+        List<FilterPredicate.PathElement> p1Path = Arrays.asList(
+                new FilterPredicate.PathElement(Person.class, "person", String.class, "name")
+        );
+        return new Object[][]{
+                {new FilterPredicate(p1Path, Operator.POSTFIX, Arrays.asList("%bi%ll%")), "name like %\\%bi\\%ll\\%"},
+                {new FilterPredicate(p1Path, Operator.PREFIX, Arrays.asList("%bi%ll%")), "name like \\%bi\\%ll\\%%"},
+                {new FilterPredicate(p1Path, Operator.INFIX, Arrays.asList("%bi%ll%")), "name like %\\%bi\\%ll\\%%"}
+        };
+    }
+
+    @Test(dataProvider = "like_queries")
+    public void testEscapingPercentageSign(FilterPredicate predicate, String outputCriteria) throws Exception {
+        Criteria criteria = mock(Criteria.class);
+        CriterionFilterOperation filterOp = new CriterionFilterOperation(criteria);
+
+        ArgumentCaptor<Criterion> argument = ArgumentCaptor.forClass(Criterion.class);
+        filterOp.apply((FilterExpression) predicate);
+
+        verify(criteria, times(1)).add(argument.capture());
+        Assert.assertEquals(argument.getValue().toString(), outputCriteria);
     }
 }
