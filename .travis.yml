@@ -23,11 +23,12 @@
   before_install:
     - curl -sL https://github.com/jpm4j/jpm4j.installers/raw/master/dist/biz.aQute.jpm.run.jar >jpm4j.jar
     - java -jar jpm4j.jar -u init
-  #  - ~/jpm/bin/jpm install com.codacy:codacy-coverage-reporter:assembly
+
+    #- ~/jpm/bin/jpm install com.codacy:codacy-coverage-reporter:assembly
   install: true
   script: mvn -B -q clean verify # coveralls:report
   after_success:
-  #  - ~/jpm/bin/codacy-coverage-reporter -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
+    #- ~/jpm/bin/codacy-coverage-reporter -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
     - test "${TRAVIS_PULL_REQUEST}" == "false" && mvn -B versioneye:update
     - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn -B deploy --settings travis/settings.xml
 #  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/g > travis/release.json

@@ -1,13 +1,26 @@
 #Change Log
 
+## 3.0.4
+**Fixes**
+* Do not save deleted objects even if referenced as an inverse from a relationship.
+
+## 3.0.3
 **Fixes**
 * Fix HQL for order by clauses preceded by filters.
+* Remove extra `DELETE` endpoint from `JsonApiEndpoint` since it's not compliant across all JAX-RS implementations.
+* Add support for matching inherited types while type checking.
+* Fix tests to automatically set UTC timestamp.
+* Fix README information and various examples.
 
-## 3.1
+## 3.0.2
+**Misc**
+* Clean up Elide request handler.
+
+## 3.0.1
 **Fixes**
 * Updated HQL query aliases for page total calculation in hibernate3 and hibernate5 data stores.
 
-## 3.0
+## 3.0.0
 **Features**
 * Promoted `DefaultOpaqueUserFunction` to be a top-level class
 * Promoted `Elide.Builder` to be a top-level class `ElideSettingsBuilder` 
