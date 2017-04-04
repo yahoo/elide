@@ -91,8 +91,8 @@ public class CriterionFilterOperationTest {
         Assert.assertEquals(argument.getValue().toString(), "person__address__zip.zip in (61820)");
     }
 
-    @DataProvider(name="like_queries")
-    Object [][] likeQueryPredicateDataProvider(){
+    @DataProvider(name = "like_queries")
+    Object [][] likeQueryPredicateDataProvider() {
         List<FilterPredicate.PathElement> p1Path = Arrays.asList(
                 new FilterPredicate.PathElement(Person.class, "person", String.class, "name")
         );
@@ -110,7 +110,6 @@ public class CriterionFilterOperationTest {
 
         ArgumentCaptor<Criterion> argument = ArgumentCaptor.forClass(Criterion.class);
         filterOp.apply((FilterExpression) predicate);
-
         verify(criteria, times(1)).add(argument.capture());
         Assert.assertEquals(argument.getValue().toString(), outputCriteria);
     }
