@@ -78,10 +78,48 @@ public class PersistentResourceFetcher implements DataFetcher {
                 return createObject(requestScope, source, output, fields, id, relationships);
 
             case DELETE:
+                return deleteObject(requestScope, source, fields, id);
 
             case REPLACE:
+                return updateObject(requestScope, source, output, fields, id, relationships);
         }
         throw new UnsupportedOperationException("Not implemented.");
+    }
+
+    private Object deleteObject(RequestScope requestScope, Object source, List<Field> fields, String id) {
+        assertOneField(fields);
+
+        Field field = fields.get(0);
+        PersistentResource deleteObject = load(field.getName(), id, requestScope);
+
+        deleteObject.deleteResource();
+
+        return Collections.singleton(deleteObject);
+    }
+
+    private Object updateObject(RequestScope requestScope, Object source,
+                                GraphQLType output, List<Field> fields,
+                                String id, List<Map<String, Object>> relationships) {
+        assertOneField(fields);
+
+        Field field = fields.get(0);
+        EntityDictionary dictionary = requestScope.getDictionary();
+
+        PersistentResource updateObject = load(field.getName(), id, requestScope);
+
+        if (output instanceof GraphQLList) {
+            GraphQLObjectType objectType = objectType = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
+            List<PersistentResource> container = new ArrayList<>();
+            for (Map<String, Object> input : relationships) {
+                Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
+                input.entrySet().stream()
+                        .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
+                        .forEach(entry -> updateObject.updateAttribute(entry.getKey(), entry.getValue()));
+                container.add(updateObject);
+            }
+            return container;
+        }
+        throw new IllegalStateException("Not sure what to create " + output.getName());
     }
 
     private Object createObject(RequestScope requestScope, Object source,
@@ -91,18 +129,21 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         Field field = fields.get(0);
         EntityDictionary dictionary = requestScope.getDictionary();
-        DataStoreTransaction transaction = requestScope.getTransaction();
 
         GraphQLObjectType objectType;
         if (output instanceof GraphQLObjectType) {
+            // No parent
+            // TODO: These UUID's should not be random. They should be whatever id's are specified by the user so they can be referenced throughout the document
             objectType = (GraphQLObjectType) output;
-            return transaction.createNewObject(dictionary.getEntityClass(objectType.getName()));
+            return PersistentResource.createObject(null, dictionary.getEntityClass(objectType.getName()), requestScope, UUID.randomUUID().toString());
 
         } else if (output instanceof GraphQLList) {
+            // Has parent
             objectType = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
             List<PersistentResource> container = new ArrayList<>();
             for (Map<String, Object> input : relationships) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
+                // TODO: See above comment about UUID's.
                 PersistentResource toCreate = PersistentResource.createObject(entityClass, requestScope, UUID.randomUUID().toString());
                 input.entrySet().stream()
                         .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
@@ -164,7 +205,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         return PersistentResource.loadRecords(recordType, requestScope);
     }
 
-    protected Object load(String type, String id, RequestScope requestScope) {
+    protected PersistentResource load(String type, String id, RequestScope requestScope) {
         Class<?> recordType = requestScope.getDictionary().getEntityClass(type);
         if (recordType == null) {
             throw new UnknownEntityException(type);
