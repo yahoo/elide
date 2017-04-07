@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import example.Author;
 import example.Book;
+import example.Publisher;
 import org.testng.annotations.BeforeSuite;
 
 import java.util.Collections;
@@ -25,5 +26,6 @@ public class AbstractGraphQLTest {
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Publisher.class);
     }
 }
