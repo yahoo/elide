@@ -6,13 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
-import static graphql.schema.GraphQLObjectType.newObject;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
-
 import graphql.Scalars;
 import graphql.java.generator.BuildContext;
 import graphql.java.generator.DefaultBuildContext;
@@ -29,6 +24,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLObjectType.newObject;
 
 /**
  * Constructs a GraphQL schema (query and mutation documents) from an Elide EntityDictionary.

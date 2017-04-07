@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -22,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,7 +49,9 @@ public class PersistentResourceFetcher implements DataFetcher {
         Map<String, Object> args = environment.getArguments();
 
         String id = (String) args.get(ID_ARGUMENT);
-        List<Map<String, Object>> relationships = (List<Map<String, Object>>) args.getOrDefault(RELATIONSHIP_ARGUMENT, Collections.singletonList(new HashMap<>()));
+        List<HashMap<Object, Object>> empty = Collections.singletonList(new HashMap<>());
+        List<Map<String, Object>> relationships =
+                (List<Map<String, Object>>) args.getOrDefault(RELATIONSHIP_ARGUMENT, empty);
         RelationshipOp operation = (RelationshipOp) args.getOrDefault(OPERATION_ARGUMENT, RelationshipOp.FETCH);
 
         if (log.isDebugEnabled()) {
@@ -131,11 +131,14 @@ public class PersistentResourceFetcher implements DataFetcher {
         EntityDictionary dictionary = requestScope.getDictionary();
 
         GraphQLObjectType objectType;
+        String uuid = UUID.randomUUID().toString();
         if (output instanceof GraphQLObjectType) {
             // No parent
-            // TODO: These UUID's should not be random. They should be whatever id's are specified by the user so they can be referenced throughout the document
+            // TODO: These UUID's should not be random. They should be whatever id's are specified by the user so they
+            // can be referenced throughout the document
             objectType = (GraphQLObjectType) output;
-            return PersistentResource.createObject(null, dictionary.getEntityClass(objectType.getName()), requestScope, UUID.randomUUID().toString());
+            return PersistentResource.createObject(null, dictionary.getEntityClass(objectType.getName()), requestScope,
+                    uuid);
 
         } else if (output instanceof GraphQLList) {
             // Has parent
@@ -144,7 +147,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             for (Map<String, Object> input : relationships) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
                 // TODO: See above comment about UUID's.
-                PersistentResource toCreate = PersistentResource.createObject(entityClass, requestScope, UUID.randomUUID().toString());
+                PersistentResource toCreate = PersistentResource.createObject(entityClass, requestScope,
+                        uuid);
                 input.entrySet().stream()
                         .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
                         .forEach(entry -> toCreate.updateAttribute(entry.getKey(), entry.getValue()));

@@ -91,11 +91,20 @@ public class PersistentResourceFetcherTest extends AbstractGraphQLTest {
 
     @Test
     public void testFetchNestedCollection() throws JsonProcessingException {
-        String graphQLRequest = "{ author(id: \"1\") { books { id title genre language } } }";
-        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\",\"genre\":null,\"language\":null}]}]}";
+        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
+
+    @Test
+    public void testFetchNestedObject() throws JsonProcessingException {
+        String graphQLRequest = "{ author(id: \"1\") { books(id: \"1\") { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
+
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
 
     @Test
     public void testCreateRootObject() throws JsonProcessingException {
