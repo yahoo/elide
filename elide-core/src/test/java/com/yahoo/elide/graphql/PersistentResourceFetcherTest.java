@@ -105,6 +105,22 @@ public class PersistentResourceFetcherTest extends AbstractGraphQLTest {
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
+    @Test
+    public void testUpdateRootObject() throws JsonProcessingException {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", relationship: { title: \"abc\" }) { id, title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"abc\"}]}";
+
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testDeleteRootObject() throws JsonProcessingException {
+        String graphQLRequest = "mutation { book(op:DELETE, id: \"1\"){ id, title }}";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}";
+
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
     private void assertQueryEquals(String graphQLRequest, String expectedResponse) throws JsonProcessingException {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, errorsToString(result.getErrors()));
