@@ -22,8 +22,8 @@ import java.util.Map;
  * A convenience endpoint to expose a swagger document.
  */
 
-@Produces("application/json")
 @Path("/doc")
+@Produces("application/json")
 public class DocEndpoint {
     protected Map<String, String> documents;
 
@@ -41,6 +41,12 @@ public class DocEndpoint {
         });
     }
 
+    @GET
+    @Path("/")
+    public Response list() {
+        return Response.ok(documents.keySet()).build();
+    }
+
     /**
      * Read handler.
      *
@@ -50,7 +56,7 @@ public class DocEndpoint {
     @Path("/{name}")
     public Response get(@PathParam("name") String name) {
         if (documents.containsKey(name)) {
-            return Response.status(200).entity(documents.get(name)).build();
+            return Response.ok(documents.get(name)).build();
         } else {
             return Response.status(404).entity("Unknown document: " + name).build();
         }
