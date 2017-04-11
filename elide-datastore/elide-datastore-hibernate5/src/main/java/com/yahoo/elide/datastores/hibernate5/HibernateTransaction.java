@@ -346,7 +346,11 @@ public class HibernateTransaction implements DataStoreTransaction {
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
                 String name = filterPredicate.getParameterName();
-                query = query.setParameterList(name, filterPredicate.getValues());
+                if (filterPredicate.isMatchingOperator()) {
+                    query = query.setParameter(name, filterPredicate.getStringValueEscaped("%", "\\"));
+                } else {
+                    query = query.setParameterList(name, filterPredicate.getValues());
+                }
             }
         }
 

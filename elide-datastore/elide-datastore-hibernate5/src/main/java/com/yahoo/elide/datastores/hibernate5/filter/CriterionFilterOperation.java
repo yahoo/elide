@@ -34,6 +34,12 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
     private static String ALIAS_DELIM = "__";
 
+    private static String SPECIAL_CHARACTER = "%";
+
+    private static String MATCHALL_CHARACTER = "%";
+
+    private static String ESCAPE_CHARACTER = "\\";
+
     public CriterionFilterOperation(Criteria criteria) {
         this.criteria = criteria;
     }
@@ -106,17 +112,31 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 }
                 return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
-                return Restrictions.like(alias, filterPredicate.getValues().get(0) + "%");
+                return Restrictions.like(alias,
+                        filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case PREFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, filterPredicate.getValues().get(0) + "%");
+                return Restrictions.ilike(alias,
+                        filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case POSTFIX:
-                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0));
+                return Restrictions.like(alias,
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
             case POSTFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0));
+                return Restrictions.ilike(alias,
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
             case INFIX:
-                return Restrictions.like(alias, "%" + filterPredicate.getValues().get(0) + "%");
+                return Restrictions.like(alias,
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case INFIX_CASE_INSENSITIVE:
-                return Restrictions.ilike(alias, "%" + filterPredicate.getValues().get(0) + "%");
+                return Restrictions.ilike(alias,
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:
@@ -137,6 +157,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
         }
     }
+
 
     @Override
     public Criterion applyAll(Set<FilterPredicate> filterPredicates) {

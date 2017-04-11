@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.startsWith;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -18,11 +19,16 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
@@ -37,10 +43,12 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
+import example.Book;
 
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -48,6 +56,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.HashMap;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
@@ -125,6 +137,14 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         tx.save(p3, null);
         tx.save(c3, null);
         tx.save(c4, null);
+
+        Book bookWithPercentage = new Book();
+        bookWithPercentage.setTitle("titlewith%percentage");
+        Book bookWithoutPercentage = new Book();
+        bookWithoutPercentage.setTitle("titlewithoutpercentage");
+
+        tx.save(bookWithPercentage, null);
+        tx.save(bookWithoutPercentage, null);
 
         FunWithPermissions fun = new FunWithPermissions();
         tx.save(fun, null);
@@ -1802,6 +1822,49 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN)
             .body(equalTo(expected));
+    }
+
+    @DataProvider (name = "like_queries")
+    public Object[][] likeQueryProvider() {
+        return new Object[][]{
+                {"filter[book.title][infix]=with%perce", 1},
+                {"filter[book.title][prefix]=titlewith%perce", 1},
+                {"filter[book.title][postfix]=with%percentage", 1}
+        };
+    }
+
+    @Test(dataProvider = "like_queries")
+    public void testSpecialCharacterLikeQuery(String filterParam, int noOfRecords) throws Exception {
+        String actual = given().when().get(String.format("/book?%s", filterParam)).then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
+        assertEquals(doc.getData().get().size(), noOfRecords);
+
+    }
+
+    @DataProvider (name = "like_queries_hql")
+    public Object[][] queryProviderHQL() {
+        List<FilterPredicate.PathElement> pathToTitle = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, "book", String.class, "title")
+        );
+        return new Object[][]{
+                {new FilterPredicate(pathToTitle, Operator.INFIX, Arrays.asList("with%perce")), 1},
+                {new FilterPredicate(pathToTitle, Operator.PREFIX, Arrays.asList("titlewith%perce")), 1},
+                {new FilterPredicate(pathToTitle, Operator.POSTFIX, Arrays.asList("with%percentage")), 1}
+        };
+    }
+
+    @Test (dataProvider = "like_queries_hql")
+    public void testSpecialCharacterLikeQueryHQL(FilterPredicate filterPredicate, int noOfRecords) throws Exception {
+        DataStoreTransaction tx = dataStore.beginReadTransaction();
+        RequestScope scope = mock(RequestScope.class);
+        when(scope.getDictionary()).thenReturn(new EntityDictionary(new HashMap<String, Class<? extends Check>>()));
+        Pagination pagination = mock(Pagination.class);
+        when(pagination.isGenerateTotals()).thenReturn(true);
+        tx.loadObjects(Book.class, Optional.of(filterPredicate), Optional.empty(), Optional.of(pagination), scope);
+        tx.commit(scope);
+        tx.close();
+        verify(pagination).setPageTotals(noOfRecords);
     }
 
     @Test
