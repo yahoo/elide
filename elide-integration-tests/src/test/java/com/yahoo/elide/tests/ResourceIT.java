@@ -37,6 +37,7 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
+import example.Book;
 
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
@@ -125,6 +126,14 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         tx.save(p3, null);
         tx.save(c3, null);
         tx.save(c4, null);
+
+        Book bookWithPercentage = new Book();
+        bookWithPercentage.setTitle("titlewith%percentage");
+        Book bookWithoutPercentage = new Book();
+        bookWithoutPercentage.setTitle("titlewithoutpercentage");
+
+        tx.save(bookWithPercentage, null);
+        tx.save(bookWithoutPercentage, null);
 
         FunWithPermissions fun = new FunWithPermissions();
         tx.save(fun, null);
@@ -1802,6 +1811,15 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN)
             .body(equalTo(expected));
+    }
+
+    @Test
+    public void testSpecialCharacterLikeQuery() throws Exception {
+        String actual = given().when().get("/book?filter[book.title][infix]=with%perce").then().statusCode(HttpStatus.SC_OK)
+                .extract().body().asString();
+        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
+        assertEquals(doc.getData().get().size(), 1);
+
     }
 
     @Test

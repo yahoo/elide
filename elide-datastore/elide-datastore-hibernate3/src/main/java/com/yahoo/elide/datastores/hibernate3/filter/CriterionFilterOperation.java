@@ -113,22 +113,30 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
                 return Restrictions.not(Restrictions.in(alias, filterPredicate.getValues()));
             case PREFIX:
                 return Restrictions.like(alias,
-                        filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER) + "%");
+                        filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case PREFIX_CASE_INSENSITIVE:
                 return Restrictions.ilike(alias,
-                        filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER) + "%");
+                        filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case POSTFIX:
                 return Restrictions.like(alias,
-                        "%" + filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
             case POSTFIX_CASE_INSENSITIVE:
                 return Restrictions.ilike(alias,
-                        "%" + filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER));
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER));
             case INFIX:
                 return Restrictions.like(alias,
-                        "%" + filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER) + "%");
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case INFIX_CASE_INSENSITIVE:
                 return Restrictions.ilike(alias,
-                        "%" + filterPredicate.getStringValueEscaped(MATCHALL_CHARACTER, ESCAPE_CHARACTER) + "%");
+                        MATCHALL_CHARACTER
+                                + filterPredicate.getStringValueEscaped(SPECIAL_CHARACTER, ESCAPE_CHARACTER)
+                                + MATCHALL_CHARACTER);
             case ISNULL:
                 return Restrictions.isNull(alias);
             case NOTNULL:
