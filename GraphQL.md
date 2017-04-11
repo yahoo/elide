@@ -112,3 +112,28 @@ mutation book(op: DELETE, id: 1) {
   id
 }
 ```
+
+# Semantics
+
+Below is a chart of expected behavior from GraphQL queries:
+
+| Operation | Id Parameter | Id in Body | Behavior |
+| --------- | ------------ | ---------- | -------- |
+| Add       | True         | True       |  Must match. Implies update. |
+|           | True         | False      | Update on persisted object with specified id |
+|           | False        | True       | Create new object (referenced by id in body within request) |
+|           | False        | False      | Create new object |
+| Replace   | True         | True       | Overwrite all specified values in body (including id) |
+|           | True         | False      | Overwrite all specified values (no id in body to overwrite) |
+|           | False        | True       | Remove from collection except if id exists, it won't be created |
+|           | False        | False      | Totally new collection values |
+| Fetch     | True         | True       | Boom. |
+|           | True         | False      | Find single id. |
+|           | False        | True       | Boom. |
+|           | False        | False      | Find all. |
+| Delete    | True         | True       | Must match. Remove single. |
+|           | True         | False      | Must match. Remove single. |
+|           | False        | True       | Remove matching id's |
+|           | False        | False      | Boom. |
+
+**NOTE:** If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object.
