@@ -16,16 +16,7 @@ import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
 import graphql.java.generator.BuildContext;
 import graphql.java.generator.DefaultBuildContext;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInputType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLTypeReference;
+import graphql.schema.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayDeque;
@@ -47,6 +38,10 @@ public class ModelBuilder {
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
     private GraphQLArgument idArgument;
+    private GraphQLArgument filterArgument;
+    private GraphQLArgument pageOffsetArgument;
+    private GraphQLArgument pageFirstArgument;
+    private GraphQLObjectType metaObject;
     private BuildContext buildContext;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
@@ -67,6 +62,42 @@ public class ModelBuilder {
                 .name("id")
                 .type(Scalars.GraphQLString)
                 .build();
+
+        filterArgument = GraphQLArgument.newArgument()
+                .name("filter")
+                .type(Scalars.GraphQLString)
+                .build();
+
+        pageFirstArgument = GraphQLArgument.newArgument()
+                .name("first")
+                .type(Scalars.GraphQLString)
+                .build();
+
+        pageOffsetArgument = GraphQLArgument.newArgument()
+                .name("offset")
+                .type(Scalars.GraphQLString)
+                .build();
+
+        metaObject = GraphQLObjectType.newObject()
+                .name("__metaObject")
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                    .name("page")
+                    .dataFetcher(dataFetcher)
+                    .type(GraphQLObjectType.newObject()
+                        .name("__pageObject")
+                        .field(GraphQLFieldDefinition.newFieldDefinition()
+                            .name("totalPages")
+                            .dataFetcher(dataFetcher)
+                            .type(Scalars.GraphQLLong)
+                            .build()
+                        ).field(GraphQLFieldDefinition.newFieldDefinition()
+                            .name("totalRecords")
+                            .dataFetcher(dataFetcher)
+                            .type(Scalars.GraphQLLong)
+                            .build()
+                        ).build()
+                    )
+                ).build();
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
@@ -100,6 +131,9 @@ public class ModelBuilder {
                     .dataFetcher(dataFetcher)
                     .argument(relationshipOpArg)
                     .argument(idArgument)
+                    .argument(filterArgument)
+                    .argument(pageFirstArgument)
+                    .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
                     .type(new GraphQLList(buildQueryObject(clazz))));
         }
@@ -141,6 +175,10 @@ public class ModelBuilder {
                     .name(id)
                     .type(Scalars.GraphQLID));
 
+        builder.field(newFieldDefinition()
+                    .name("__meta")
+                    .type(metaObject));
+
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
             GraphQLType attributeType = buildContext.getOutputType(attributeClass);
@@ -175,6 +213,9 @@ public class ModelBuilder {
                                 .name(relationship)
                                 .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
+                                .argument(filterArgument)
+                                .argument(pageOffsetArgument)
+                                .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
                                 .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
@@ -198,12 +239,12 @@ public class ModelBuilder {
 
         if (asList) {
              return GraphQLArgument.newArgument()
-                    .name("relationship")
+                    .name("data")
                     .type(new GraphQLList(argumentType))
                     .build();
         } else {
             return GraphQLArgument.newArgument()
-                    .name("relationship")
+                    .name("data")
                     .type(argumentType)
                     .build();
         }
