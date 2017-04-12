@@ -6,10 +6,12 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -24,8 +26,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,6 +45,8 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        // TODO: May want to consider wrapping these all up in an object that gets passed to the functions.
+        //       then a single helper method implemented in the object can take place of our many private methods.
         RequestScope requestScope = (RequestScope) environment.getContext();
         Object source = environment.getSource();
         GraphQLType parent = environment.getParentType();
@@ -50,7 +56,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         String id = (String) args.get(ID_ARGUMENT);
         List<HashMap<Object, Object>> empty = Collections.singletonList(new HashMap<>());
-        List<Map<String, Object>> relationships =
+        List<Map<String, Object>> data =
                 (List<Map<String, Object>>) args.getOrDefault(RELATIONSHIP_ARGUMENT, empty);
         RelationshipOp operation = (RelationshipOp) args.getOrDefault(OPERATION_ARGUMENT, RelationshipOp.FETCH);
 
@@ -72,29 +78,71 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         switch (operation) {
             case FETCH:
+                if (args.containsKey(RELATIONSHIP_ARGUMENT)) {
+                    throw new WebApplicationException("Data argument invalid on FETCH operation.",
+                            HttpStatus.SC_BAD_REQUEST);
+                }
                 return fetchObject(requestScope, source, output, fields, id);
 
             case ADD:
-                return createObject(requestScope, source, output, fields, id, relationships);
+                return createObject(requestScope, source, output, fields, id, data);
 
             case DELETE:
-                return deleteObject(requestScope, source, fields, id);
+                return deleteObject(requestScope, source, fields, id, data);
 
             case REPLACE:
-                return updateObject(requestScope, source, output, fields, id, relationships);
+                return updateObject(requestScope, source, output, fields, id, data);
         }
         throw new UnsupportedOperationException("Not implemented.");
     }
 
-    private Object deleteObject(RequestScope requestScope, Object source, List<Field> fields, String id) {
-        assertOneField(fields);
+    private Object deleteObject(RequestScope requestScope, Object source, List<Field> fields, String id,
+                                List<Map<String, Object>> data) {
+        Set<Object> deleted = new HashSet<>();
 
-        Field field = fields.get(0);
-        PersistentResource deleteObject = load(field.getName(), id, requestScope);
+        if (id != null && !id.isEmpty() && fields.size() > 1) {
+            throw new WebApplicationException("Id argument specification with an additional list of id's to delete " +
+                    "is unsupported", HttpStatus.SC_BAD_REQUEST);
+        }
 
-        deleteObject.deleteResource();
+        EntityDictionary dictionary = requestScope.getDictionary();
 
-        return Collections.singleton(deleteObject);
+        for (Field field : fields) {
+            String loadType = field.getName();
+            // TODO: This works at the root-level, but will it blow up in nested deletes?
+            String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(loadType));
+            String loadId = field.getArguments().stream()
+                    .filter(arg -> RELATIONSHIP_ARGUMENT.equals(arg.getName()))
+                    .findFirst()
+                    .map(Argument::getChildren)
+                    // TODO: Iterate over children and determine which contains id.
+                    .map(List::toString) // TODO: place holder. remove this line.
+//                    .map(arg -> {
+//                        String specifiedId = arg.getValue().toString();
+//                        if (id != null && !id.isEmpty() && !id.equals(specifiedId)) {
+//                            throw new WebApplicationException("Specified non-matching id's as argument and data.",
+//                                    HttpStatus.SC_BAD_REQUEST);
+//                        }
+//                        return specifiedId;
+//                    })
+                    .orElse(id);
+
+            if (loadId == null) {
+                throw new WebApplicationException("Did not specify id of object type to delete.",
+                        HttpStatus.SC_BAD_REQUEST);
+            }
+
+            PersistentResource deleteObject = load(loadType, loadId, requestScope);
+
+            if (deleteObject == null || deleteObject.getObject() == null) {
+                throw new WebApplicationException("Attempted to delete non-existent id.", HttpStatus.SC_BAD_REQUEST);
+            }
+
+            deleteObject.deleteResource();
+            deleted.add(deleteObject);
+        }
+
+        return deleted;
     }
 
     private Object updateObject(RequestScope requestScope, Object source,
@@ -113,8 +161,34 @@ public class PersistentResourceFetcher implements DataFetcher {
             for (Map<String, Object> input : relationships) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
                 input.entrySet().stream()
-                        .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
-                        .forEach(entry -> updateObject.updateAttribute(entry.getKey(), entry.getValue()));
+                        .forEach(entry -> {
+                            String fieldName = entry.getKey();
+                            Object value = entry.getValue();
+                            if (dictionary.isAttribute(entityClass, fieldName)) {
+                                // Update attribute value
+                                updateObject.updateAttribute(fieldName, value);
+                            } else if (dictionary.isRelation(entityClass, fieldName)) {
+                                // Replace relationship
+                                String relName = dictionary.getJsonAliasFor(
+                                        dictionary.getParameterizedType(entityClass, fieldName));
+                                Set<PersistentResource> newRelationships = new HashSet<>();
+                                if (value != null) {
+                                    // TODO: For a to-many relationship this would be a list... Need to handle that case
+                                    newRelationships.add(load(relName, value.toString(), requestScope));
+                                }
+                                updateObject.updateRelation(fieldName, newRelationships);
+                            } else if (fieldName.equals(dictionary.getIdFieldName(entityClass))) {
+                                // Set id value
+                                if (value == null) {
+                                    throw new WebApplicationException("Cannot set object identifier to null",
+                                            HttpStatus.SC_BAD_REQUEST);
+                                }
+                                updateObject.setId(value.toString());
+                            } else {
+                                throw new WebApplicationException("Attempt to update unknown field: '"
+                                        + fieldName + "'", HttpStatus.SC_BAD_REQUEST);
+                            }
+                        });
                 container.add(updateObject);
             }
             return container;
@@ -161,8 +235,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     private Object fetchObject(RequestScope requestScope, Object source,
                                GraphQLType output, List<Field> fields, String id) {
-        assertOneField(fields);
-
         if (output instanceof GraphQLList) {
             GraphQLObjectType type = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
             String entityType = type.getName();
