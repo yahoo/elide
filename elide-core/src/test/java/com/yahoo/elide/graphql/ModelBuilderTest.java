@@ -14,12 +14,7 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import graphql.Scalars;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -38,6 +33,40 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
+    }
+
+    @Test
+    public void testMetaObject() {
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType("book");
+        Assert.assertNotNull(bookType.getFieldDefinition("__meta"));
+        GraphQLObjectType metaObject = (GraphQLObjectType) bookType.getFieldDefinition("__meta").getType();
+        Assert.assertNotNull(metaObject.getFieldDefinition("page"));
+        GraphQLObjectType pageObject = (GraphQLObjectType) metaObject.getFieldDefinition("page").getType();
+        Assert.assertNotNull(pageObject.getFieldDefinition("totalPages"));
+        Assert.assertNotNull(pageObject.getFieldDefinition("totalRecords"));
+    }
+
+    @Test
+    public void testRelationshipParameters() {
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
+
+        GraphQLSchema schema = builder.build();
+        GraphQLObjectType root = schema.getQueryType();
+        Assert.assertNotNull(root);
+        Assert.assertNotNull(root.getFieldDefinition("book"));
+
+        GraphQLFieldDefinition bookField = root.getFieldDefinition("book");
+        Assert.assertNotNull(bookField.getArgument("id"));
+        Assert.assertNotNull(bookField.getArgument("data"));
+        Assert.assertNotNull(bookField.getArgument("filter"));
+        Assert.assertNotNull(bookField.getArgument("first"));
+        Assert.assertNotNull(bookField.getArgument("offset"));
     }
 
     @Test
