@@ -100,9 +100,9 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit(RequestScope requestScope) {
+    public void commit(RequestScope scope) {
         try {
-            this.flush(requestScope);
+            this.flush(scope);
             this.session.getTransaction().commit();
         } catch (HibernateException e) {
             throw new TransactionException(e);

@@ -105,10 +105,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit(RequestScope requestScope) {
+    public void commit(RequestScope scope) {
         // flush all before commit
-        flush(requestScope);
-        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.commit(requestScope));
+        flush(scope);
+        transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.commit(scope));
     }
 
     @Override

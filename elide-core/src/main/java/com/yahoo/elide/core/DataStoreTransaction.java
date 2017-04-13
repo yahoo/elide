@@ -48,13 +48,17 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Write any outstanding entities before processing response.
+     *
+     * @param scope the request scope for the current request
      */
     void flush(RequestScope scope);
 
     /**
      * End the current transaction.
+     *
+     * @param scope the request scope for the current request
      */
-    void commit(RequestScope requestScope);
+    void commit(RequestScope scope);
 
     /**
      * Called before commit checks are evaluated and before save, flush, and commit are called.
@@ -78,6 +82,13 @@ public interface DataStoreTransaction extends Closeable {
      */
     void createObject(Object entity, RequestScope scope);
 
+    /**
+     * Create a new instance of an object.
+     *
+     * @param entityClass the class
+     * @param <T> the class to create
+     * @return a new instance of type T
+     */
     default <T> T createNewObject(Class<T> entityClass) {
         T obj = null;
         try {
@@ -91,8 +102,10 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads an object by ID.
      *
+     * @param entityClass the type of class to load
      * @param id - the ID of the object to load.
      * @param filterExpression - security filters that can be evaluated in the data store.
+     * @param scope - the current request scope
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
@@ -105,6 +118,7 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads a collection of objects.
      *
+     * @param entityClass - the class to load
      * @param filterExpression - filters that can be evaluated in the data store.
      * It is optional for the data store to attempt evaluation.
      * @param sorting - sorting which can be pushed down to the data store.

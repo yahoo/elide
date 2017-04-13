@@ -59,21 +59,21 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public void commit(RequestScope requestScope) {
+    public void commit(RequestScope scope) {
         // flush all before commits
-        flush(requestScope);
+        flush(scope);
 
         ArrayList<DataStore> commitList = new ArrayList<>();
         for (Entry<DataStore, DataStoreTransaction> entry : transactions.entrySet()) {
             try {
-                entry.getValue().commit(requestScope);
+                entry.getValue().commit(scope);
                 commitList.add(entry.getKey());
             } catch (HttpStatusException | WebApplicationException e) {
-                reverseTransactions(commitList, e, requestScope);
+                reverseTransactions(commitList, e, scope);
                 throw e;
             } catch (Error | RuntimeException e) {
                 TransactionException transactionException = new TransactionException(e);
-                reverseTransactions(commitList, transactionException, requestScope);
+                reverseTransactions(commitList, transactionException, scope);
                 throw transactionException;
             }
         }

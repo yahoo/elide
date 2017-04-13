@@ -380,7 +380,7 @@ public class PermissionExecutorTest {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
-        return new PersistentResource<>(obj, requestScope);
+        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
@@ -388,7 +388,8 @@ public class PermissionExecutorTest {
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         try {
-            return new PersistentResource<>(cls.newInstance(), requestScope);
+            Object obj = cls.newInstance();
+            return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
         } catch (InstantiationException | IllegalAccessException e) {
             return null;
         }

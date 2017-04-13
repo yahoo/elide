@@ -66,6 +66,7 @@ public class EntityPermissions implements CheckInstantiator {
 
     /**
      * Create bindings for entity class to its permission checks.
+     * @param dictionary the entity dictionary to look up permissions from
      * @param cls entity class
      * @param fieldOrMethodList list of fields/methods
      */

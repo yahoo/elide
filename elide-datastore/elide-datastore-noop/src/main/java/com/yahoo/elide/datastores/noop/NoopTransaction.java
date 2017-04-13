@@ -40,7 +40,7 @@ public class NoopTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit(RequestScope requestScope) {
+    public void commit(RequestScope scope) {
 
     }
 
@@ -67,7 +67,8 @@ public class NoopTransaction implements DataStoreTransaction {
 
         // Side-effecting method of the PersistentResource :( however, it enables us to do this without reinventing
         // the wheel. Should probably be refactored eventually nonetheless.
-        new PersistentResource<>(entity, (com.yahoo.elide.core.RequestScope) scope).setId(id.toString());
+        String uuid = ((RequestScope) scope).getUUIDFor(entity);
+        new PersistentResource<>(entity, null, uuid, scope).setId(id.toString());
 
         return entity;
     }

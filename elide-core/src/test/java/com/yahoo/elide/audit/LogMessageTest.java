@@ -48,9 +48,9 @@ public class LogMessageTest {
                         .withEntityDictionary(dictionary)
                         .build());
 
-        final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, requestScope);
-        childRecord = new PersistentResource<>(parentRecord, child, requestScope);
-        friendRecord = new PersistentResource<>(childRecord, friend, requestScope);
+        final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, null, requestScope.getUUIDFor(parent), requestScope);
+        childRecord = new PersistentResource<>(child, parentRecord, requestScope.getUUIDFor(child), requestScope);
+        friendRecord = new PersistentResource<>(friend, childRecord, requestScope.getUUIDFor(friend), requestScope);
     }
 
     @Test

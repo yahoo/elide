@@ -20,7 +20,6 @@ import javax.el.ValueExpression;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -29,12 +28,7 @@ import java.util.stream.Collectors;
 public class LogMessage {
     //Supposedly this is thread safe.
     private static final ExpressionFactory EXPRESSION_FACTORY = new ExpressionFactoryImpl();
-    private static final String CACHE_SIZE = "5000";
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
-    static {
-        Properties properties = new Properties();
-        properties.put("javax.el.cacheSize", CACHE_SIZE);
-    }
 
     private final String template;
     private final PersistentResource record;
@@ -69,6 +63,7 @@ public class LogMessage {
      * @param record - The record which will serve as the data to substitute.
      * @param expressions - A set of UEL expressions that reference record.
      * @param code - The operation code of the auditable action.
+     * @param changeSpec - the change spec that we want to log
      * @throws InvalidSyntaxException the invalid syntax exception
      */
     public LogMessage(String template,

@@ -74,7 +74,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void commit(RequestScope requestScope) {
+    public void commit(RequestScope scope) {
         operations.forEach(op -> {
             Class<?> cls = op.getType();
             ConcurrentHashMap<String, Object> data = dataStore.get(cls);
