@@ -7,6 +7,8 @@
 package com.yahoo.elide.graphql;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import graphql.ExecutionResult;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -43,5 +45,12 @@ public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
         String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testFailuresWithBody() throws JsonProcessingException {
+        String graphQLRequest = "{ book(id: \"1\", data: [{\"id\": \"1\"}]) { id title } }";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        Assert.assertTrue(!result.getErrors().isEmpty());
     }
 }
