@@ -41,6 +41,7 @@ public class ModelBuilder {
     private GraphQLArgument filterArgument;
     private GraphQLArgument pageOffsetArgument;
     private GraphQLArgument pageFirstArgument;
+    private GraphQLArgument sortArgument;
     private GraphQLObjectType metaObject;
     private BuildContext buildContext;
 
@@ -65,6 +66,11 @@ public class ModelBuilder {
 
         filterArgument = GraphQLArgument.newArgument()
                 .name("filter")
+                .type(Scalars.GraphQLString)
+                .build();
+
+        sortArgument = GraphQLArgument.newArgument()
+                .name("sort")
                 .type(Scalars.GraphQLString)
                 .build();
 
@@ -132,6 +138,7 @@ public class ModelBuilder {
                     .argument(relationshipOpArg)
                     .argument(idArgument)
                     .argument(filterArgument)
+                    .argument(sortArgument)
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
@@ -214,6 +221,7 @@ public class ModelBuilder {
                                 .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(filterArgument)
+                                .argument(sortArgument)
                                 .argument(pageOffsetArgument)
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
