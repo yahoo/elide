@@ -33,9 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.graphql.ModelBuilder.ID_ARGUMENT;
-import static com.yahoo.elide.graphql.ModelBuilder.OPERATION_ARGUMENT;
-import static com.yahoo.elide.graphql.ModelBuilder.RELATIONSHIP_ARGUMENT;
+import static com.yahoo.elide.graphql.ModelBuilder.*;
 
 /**
  * Interacts with {@link PersistentResource} to fetch data for GraphQL.
@@ -57,7 +55,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         String id = (String) args.get(ID_ARGUMENT);
         List<HashMap<Object, Object>> empty = Collections.singletonList(new HashMap<>());
         List<Map<String, Object>> data =
-                (List<Map<String, Object>>) args.getOrDefault(RELATIONSHIP_ARGUMENT, empty);
+                (List<Map<String, Object>>) args.getOrDefault(DATA_ARGUMENT, empty);
         RelationshipOp operation = (RelationshipOp) args.getOrDefault(OPERATION_ARGUMENT, RelationshipOp.FETCH);
 
         if (log.isDebugEnabled()) {
@@ -78,7 +76,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         switch (operation) {
             case FETCH:
-                if (args.containsKey(RELATIONSHIP_ARGUMENT)) {
+                if (data != null && data.stream().filter(m -> !m.isEmpty()).count() > 0) {
                     throw new WebApplicationException("Data argument invalid on FETCH operation.",
                             HttpStatus.SC_BAD_REQUEST);
                 }
@@ -112,7 +110,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             // TODO: This works at the root-level, but will it blow up in nested deletes?
             String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(loadType));
             String loadId = field.getArguments().stream()
-                    .filter(arg -> RELATIONSHIP_ARGUMENT.equals(arg.getName()))
+                    .filter(arg -> DATA_ARGUMENT.equals(arg.getName()))
                     .findFirst()
                     .map(Argument::getChildren)
                     // TODO: Iterate over children and determine which contains id.
