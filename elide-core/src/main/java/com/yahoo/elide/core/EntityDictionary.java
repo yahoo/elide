@@ -34,17 +34,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -939,5 +933,31 @@ public class EntityDictionary {
             }
         }
         return false;
+    }
+
+    /**
+     * Walks the entity graph and performs a transform function on each element.
+     * @param entities The roots of the entity graph.
+     * @param transform The function to transform each entity class into a result.
+     * @param <T> The result type.
+     * @return The collection of results.
+     */
+    public <T> List<T> walkEntityGraph(Set<Class<?>> entities,  Function<Class<?>, T> transform) {
+        ArrayList<T> results = new ArrayList<>();
+        Queue<Class<?>> toVisit = new ArrayDeque<>(entities);
+        Set<Class<?>> visited = new HashSet<>();
+        while (! toVisit.isEmpty()) {
+            Class<?> clazz = toVisit.remove();
+            results.add(transform.apply(clazz));
+            visited.add(clazz);
+
+            for (String relationship : getRelationships(clazz)) {
+                Class<?> relationshipClass = getParameterizedType(clazz, relationship);
+                if (!visited.contains(relationshipClass)) {
+                    toVisit.add(relationshipClass);
+                }
+            }
+        }
+        return results;
     }
 }
