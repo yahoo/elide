@@ -61,12 +61,33 @@ public class ModelBuilderTest {
         Assert.assertNotNull(root);
         Assert.assertNotNull(root.getFieldDefinition("book"));
 
+        /* The root 'book' should have all query parameters defined */
         GraphQLFieldDefinition bookField = root.getFieldDefinition("book");
         Assert.assertNotNull(bookField.getArgument("id"));
         Assert.assertNotNull(bookField.getArgument("data"));
         Assert.assertNotNull(bookField.getArgument("filter"));
+        Assert.assertNotNull(bookField.getArgument("sort"));
         Assert.assertNotNull(bookField.getArgument("first"));
         Assert.assertNotNull(bookField.getArgument("offset"));
+
+        /* book.publisher is a 'to one' relationship so it should be missing all but the data parameter */
+        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType("book");
+        GraphQLFieldDefinition publisherField = bookType.getFieldDefinition("publisher");
+        Assert.assertNull(publisherField.getArgument("id"));
+        Assert.assertNotNull(publisherField.getArgument("data"));
+        Assert.assertNull(publisherField.getArgument("filter"));
+        Assert.assertNull(publisherField.getArgument("sort"));
+        Assert.assertNull(publisherField.getArgument("first"));
+        Assert.assertNull(publisherField.getArgument("offset"));
+
+        /* book.authors is a 'to many' relationship so it should have all query parameters defined */
+        GraphQLFieldDefinition authorField = bookType.getFieldDefinition("authors");
+        Assert.assertNotNull(authorField.getArgument("id"));
+        Assert.assertNotNull(authorField.getArgument("data"));
+        Assert.assertNotNull(authorField.getArgument("filter"));
+        Assert.assertNotNull(authorField.getArgument("sort"));
+        Assert.assertNotNull(authorField.getArgument("first"));
+        Assert.assertNotNull(authorField.getArgument("offset"));
     }
 
     @Test
