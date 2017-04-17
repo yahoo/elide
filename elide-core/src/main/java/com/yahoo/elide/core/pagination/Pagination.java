@@ -164,8 +164,8 @@ public class Pagination {
     }
 
     private boolean hasInvalidCombiation(Map<PaginationKey, Integer> pageData) {
-        return (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) ^
-                (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset));
+        return (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number))
+                && (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset));
     }
 
     private void pageByOffset(int defaultLimit, int maxLimit) {

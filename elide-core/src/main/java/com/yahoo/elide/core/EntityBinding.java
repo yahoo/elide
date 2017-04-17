@@ -254,7 +254,7 @@ class EntityBinding {
             type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
             cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
         } else {
-            type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE
+            type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE;
         }
         relationshipTypes.put(fieldName, type);
         relationshipToInverse.put(fieldName, mappedBy);
