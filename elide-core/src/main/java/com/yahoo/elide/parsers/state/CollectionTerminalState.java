@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -23,14 +26,10 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.security.User;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Preconditions;
 import lombok.ToString;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Collection State.
@@ -66,7 +64,7 @@ public class CollectionTerminalState extends BaseState {
 
         Set<PersistentResource> collection = getResourceCollection(requestScope);
         // Set data
-        jsonApiDocument.setData(getData(requestScope, collection));
+        jsonApiDocument.setData(getData(collection));
 
         // Run include processor
         DocumentProcessor includedProcessor = new IncludedProcessor();
@@ -106,9 +104,7 @@ public class CollectionTerminalState extends BaseState {
         JsonApiMapper mapper = requestScope.getMapper();
 
         newObject = createObject(requestScope);
-        if (parent.isPresent()) {
-            parent.get().addRelation(relationName.get(), newObject);
-        }
+        parent.ifPresent(persistentResource -> persistentResource.addRelation(relationName.get(), newObject));
         return () -> {
             JsonApiDocument returnDoc = new JsonApiDocument();
             returnDoc.setData(new Data(newObject.toResource()));
@@ -140,12 +136,9 @@ public class CollectionTerminalState extends BaseState {
         return collection;
     }
 
-    private Data getData(RequestScope requestScope, Set<PersistentResource> collection) {
-        User user = requestScope.getUser();
+    private Data getData(Set<PersistentResource> collection) {
         Preconditions.checkNotNull(collection);
-
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
-
         return new Data<>(resources);
     }
 
@@ -177,12 +170,8 @@ public class CollectionTerminalState extends BaseState {
                     + " to type: " + entityClass);
         }
 
-        PersistentResource pResource;
-        if (parent.isPresent()) {
-            pResource = PersistentResource.createObject(parent.get(), newObjectClass, requestScope, id);
-        } else {
-            pResource = PersistentResource.createObject(newObjectClass, requestScope, id);
-        }
+        PersistentResource pResource = PersistentResource.createObject(
+                parent.orElse(null), newObjectClass, requestScope, id);
 
         assignId(pResource, id);
 

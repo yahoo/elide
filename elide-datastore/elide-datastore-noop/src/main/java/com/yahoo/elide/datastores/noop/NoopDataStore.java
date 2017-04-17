@@ -20,7 +20,7 @@ public class NoopDataStore implements DataStore {
     protected final ArrayList<Class> entityClasses;
 
     /**
-     * Constructor
+     * Create a new no-op data store.
      *
      * @param entityClasses Entity classes controlled by this datastore.
      */

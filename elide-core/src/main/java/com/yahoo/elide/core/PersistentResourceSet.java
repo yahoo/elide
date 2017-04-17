@@ -41,10 +41,8 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
 
             @Override
             public PersistentResource<T> next() {
-                if (parent == null) {
-                    return new PersistentResource<>(iterator.next(), requestScope);
-                }
-                return new PersistentResource<>(parent, iterator.next(), requestScope);
+                T obj = iterator.next();
+                return new PersistentResource<>(obj, parent, requestScope.getUUIDFor(obj), requestScope);
             }
         };
     }

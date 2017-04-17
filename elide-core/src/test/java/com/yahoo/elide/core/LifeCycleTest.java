@@ -5,32 +5,29 @@
  */
 package com.yahoo.elide.core;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
-
+import example.Author;
+import example.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import example.Author;
-import example.Book;
-
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
@@ -74,7 +71,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         elide.post("/book", bookBody, null);
-        verify(tx).accessUser(anyObject());
+        verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
         verify(tx).flush(isA(RequestScope.class));
@@ -91,14 +88,14 @@ public class LifeCycleTest {
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(store.beginReadTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
-        verify(tx).accessUser(anyObject());
+        verify(tx).accessUser(any());
         verify(tx).preCommit();
-        verify(tx).flush(anyObject());
-        verify(tx).commit(anyObject());
+        verify(tx).flush(any());
+        verify(tx).commit(any());
         verify(tx).close();
     }
 
@@ -112,13 +109,13 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
         String contentType = "application/vnd.api+json";
         elide.patch(contentType, contentType, "/book/1", bookBody, null);
-        verify(tx).accessUser(anyObject());
+        verify(tx).accessUser(any());
         verify(tx).preCommit();
 
         verify(tx).save(eq(book), isA(RequestScope.class));
@@ -137,10 +134,10 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(new Long(1));
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), anyObject(), anyObject())).thenReturn(book);
+        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
         elide.delete("/book/1", "", null);
-        verify(tx).accessUser(anyObject());
+        verify(tx).accessUser(any());
         verify(tx).preCommit();
 
         verify(tx).delete(eq(book), isA(RequestScope.class));
@@ -155,7 +152,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = PersistentResource.createObject(Book.class, scope, "uuid");
+        PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, "uuid");
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
         scope.runQueuedPreSecurityTriggers();
@@ -183,7 +180,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = new PersistentResource(book, scope);
+        PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.setValue("title", "new title");
         scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
@@ -210,7 +207,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = new PersistentResource(book, scope);
+        PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.deleteResource();
         scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
@@ -236,7 +233,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = new PersistentResource(book, scope);
+        PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         resource.getValueChecked("title");
         scope.runQueuedPreSecurityTriggers();

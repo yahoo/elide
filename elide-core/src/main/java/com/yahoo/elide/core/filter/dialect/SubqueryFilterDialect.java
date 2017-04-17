@@ -28,6 +28,8 @@ import java.util.Map;
  */
 public interface SubqueryFilterDialect {
     /**
+     * Parse a filter that is scoped to a particular type.
+     *
      * @param path The URL path
      * @param filterParams The subset of queryParams that start with 'filter'
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.

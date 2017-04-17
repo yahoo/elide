@@ -406,4 +406,16 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .forEach(s -> transaction.createObject(s, this));
         dirtyResources.stream().map(PersistentResource::getObject).forEach(obj -> transaction.save(obj, this));
     }
+
+    public String getUUIDFor(Object o) {
+        return objectEntityCache.getUUID(o);
+    }
+
+    public Object getObjectById(String type, String id) {
+        return objectEntityCache.get(type, id);
+    }
+
+    public void setUUIDForObject(String type, String id, Object object) {
+        objectEntityCache.put(type, id, object);
+    }
 }

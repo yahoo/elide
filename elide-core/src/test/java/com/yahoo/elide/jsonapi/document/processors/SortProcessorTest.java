@@ -79,9 +79,9 @@ public class SortProcessorTest {
         parent4.setFirstName("Alex");
 
         //Create Persistent Resources
-        parentRecord1 = new PersistentResource<>(parent1, goodUserScope);
-        parentRecord2 = new PersistentResource<>(parent2, goodUserScope);
-        parentRecord3 = new PersistentResource<>(parent3, goodUserScope);
+        parentRecord1 = new PersistentResource<>(parent1, null, goodUserScope.getUUIDFor(parent1), goodUserScope);
+        parentRecord2 = new PersistentResource<>(parent2, null, goodUserScope.getUUIDFor(parent2), goodUserScope);
+        parentRecord3 = new PersistentResource<>(parent3, null, goodUserScope.getUUIDFor(parent3), goodUserScope);
     }
 
     @Test
@@ -157,9 +157,9 @@ public class SortProcessorTest {
         post3.setCreated(10);
 
         //Create Persistent Resources
-        PersistentResource<Post> postRecord1 = new PersistentResource<>(post1, goodUserScope);
-        PersistentResource<Post> postRecord2 = new PersistentResource<>(post2, goodUserScope);
-        PersistentResource<Post> postRecord3 = new PersistentResource<>(post3, goodUserScope);
+        PersistentResource postRecord1 = new PersistentResource(post1, null, goodUserScope.getUUIDFor(post1), goodUserScope);
+        PersistentResource postRecord2 = new PersistentResource(post2, null, goodUserScope.getUUIDFor(post2), goodUserScope);
+        PersistentResource postRecord3 = new PersistentResource(post3, null, goodUserScope.getUUIDFor(post3), goodUserScope);
 
         // Mock parents
         Set<PersistentResource> posts = new HashSet<>();

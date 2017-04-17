@@ -8,14 +8,13 @@ package com.yahoo.elide.core.pagination;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
 import lombok.Getter;
 import lombok.ToString;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Encapsulates the pagination strategy.
@@ -125,7 +124,7 @@ public class Pagination {
 
     /**
      * Sets the total number of records for the paginated query.
-     * @param total
+     * @param total the total number of records found
      */
     public void setPageTotals(long total) {
         this.pageTotals = total;
@@ -142,8 +141,8 @@ public class Pagination {
     /**
      * Evaluates the pagination variables for default limits.
      *
-     * @param defaultLimit
-     * @param maxLimit
+     * @param defaultLimit the default page size
+     * @param maxLimit a hard upper limit on page size
      * @return the calculated {@link Pagination}
      */
     private Pagination evaluate(int defaultLimit, int maxLimit) {
