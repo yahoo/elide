@@ -964,8 +964,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination())
-                .map(p -> p.evaluate(relationClass));
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
         Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
@@ -978,7 +977,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val = transaction.getRelation(transaction, obj, relationName, filterExpression,
                 sortedAndPaginated ? sorting : Optional.empty(),
-                sortedAndPaginated ? pagination : Optional.empty(), requestScope);
+                sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(), requestScope);
 
         if (val == null) {
             return Collections.emptySet();
