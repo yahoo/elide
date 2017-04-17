@@ -185,7 +185,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param obj the obj
      * @param requestScope the request scope
      * @deprecated Will be removed in Elide 4, instead use
-     *  {@link PersistentResource#PersistentResource(T,PersistentResource,String,RequestScope)}
+     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
      */
     public PersistentResource(PersistentResource<?> parent, T obj, RequestScope requestScope) {
         this(obj, parent, requestScope.getUUIDFor(obj), requestScope);
@@ -197,7 +197,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param obj the obj
      * @param requestScope the request scope
      * @deprecated Will be removed in Elide 4, instead use
-     *  {@link PersistentResource#PersistentResource(T,PersistentResource,String,RequestScope)}
+     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
      */
     public PersistentResource(T obj, RequestScope requestScope) {
         this(obj, null, requestScope.getUUIDFor(obj), requestScope);
@@ -210,7 +210,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param parent the parent
      * @param requestScope the request scope
      * @deprecated Will be removed in Elide 4, instead use
-     *  {@link PersistentResource#PersistentResource(T,PersistentResource,String,RequestScope)}
+     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
      */
     protected PersistentResource(T obj, PersistentResource<?> parent, RequestScope requestScope) {
         this(obj, parent, requestScope.getUUIDFor(obj), requestScope);
@@ -1186,6 +1186,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Get relationship mappings.
      *
+     * @param relationshipFunction a function to load the value of a relationship. Takes a string of the relationship
+     * name and returns the relationship's value.
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationshipsWithRelationshipFunction(
@@ -1812,6 +1814,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Audit an action on an entity.
      *
      * @param action the action
+     * @param changeSpec the change that occurred
      */
     protected void auditClass(Audit.Action action, ChangeSpec changeSpec) {
         Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
@@ -1852,9 +1855,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Handle an invocation target exception
+     * Handle an invocation target exception.
      *
-     * @param e Exception
+     * @param e Exception the exception encountered while reflecting on an object's field
      * @return Equivalent runtime exception
      */
     private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {

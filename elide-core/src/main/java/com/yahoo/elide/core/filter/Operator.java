@@ -337,6 +337,7 @@ public enum Operator {
     /**
      * Return value of field/path for given entity.  For example this.book.author
      *
+     * @param <T> the type of entity to retrieve a value from
      * @param entity Entity bean
      * @param fieldPath field value/path
      * @param requestScope Request scope

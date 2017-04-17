@@ -24,31 +24,62 @@ import java.util.Optional;
  */
 @Slf4j
 public class NoopTransaction implements DataStoreTransaction {
+    /**
+     * No-op transaction, do nothing.
+     * @param entity - the object to save.
+     * @param scope - contains request level metadata.
+     */
     @Override
     public void save(Object entity, RequestScope scope) {
 
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param entity - the object to delete.
+     * @param scope - contains request level metadata.
+     */
     @Override
     public void delete(Object entity, RequestScope scope) {
 
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param scope the request scope for the current request
+     */
     @Override
     public void flush(RequestScope scope) {
 
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param scope the request scope for the current request
+     */
     @Override
     public void commit(RequestScope scope) {
 
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param entity - the object to create in the data store.
+     * @param scope - contains request level metadata.
+     */
     @Override
     public void createObject(Object entity, RequestScope scope) {
 
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param entityClass the type of class to load
+     * @param id - the ID of the object to load.
+     * @param filterExpression - security filters that can be evaluated in the data store.
+     * @param scope - the current request scope. It is optional for the data store to attempt evaluation.
+     * @return a new persistent resource with a new instance of {@code entityClass}
+     */
     @Override
     public Object loadObject(Class<?> entityClass,
                              Serializable id,
@@ -73,6 +104,16 @@ public class NoopTransaction implements DataStoreTransaction {
         return entity;
     }
 
+    /**
+     * No-op transaction, do nothing.
+     * @param entityClass - the class to load
+     * @param filterExpression - filters that can be evaluated in the data store.
+     * It is optional for the data store to attempt evaluation.
+     * @param sorting - sorting which can be pushed down to the data store.
+     * @param pagination - pagination which can be pushed down to the data store.
+     * @param scope - contains request level metadata.
+     * @return a {@link Collections#singletonList} with a new persistent resource with id 1
+     */
     @Override
     public Iterable<Object> loadObjects(Class<?> entityClass,
                                         Optional<FilterExpression> filterExpression,
@@ -83,6 +124,9 @@ public class NoopTransaction implements DataStoreTransaction {
         return Collections.singletonList(this.loadObject(entityClass, 1L, filterExpression, scope));
     }
 
+    /**
+     * No-op transaction, do nothing.
+     */
     @Override
     public void close() throws IOException {
 
