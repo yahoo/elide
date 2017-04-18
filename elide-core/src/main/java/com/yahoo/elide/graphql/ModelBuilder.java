@@ -43,7 +43,7 @@ public class ModelBuilder {
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
 
-    ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
+    public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
         this.buildContext = DefaultBuildContext.newReflectionContext();
