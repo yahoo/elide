@@ -75,7 +75,9 @@ public class Sorting {
     }
 
     /**
-     * @return Fetches the base rules, ignoring validation against an entity class.
+     * Fetches the base rules, ignoring validation against an entity class.
+     *
+     * @return a map of the sorting rules to be applied
      */
     public Map<String, SortOrder> getSortingRules() {
         return this.sortRules;

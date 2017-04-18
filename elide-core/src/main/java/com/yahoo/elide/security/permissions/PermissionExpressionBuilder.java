@@ -86,9 +86,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         final Function<Function<Check, Expression>, Expression> buildExpressionFn =
                 (checkFn) -> buildSpecificFieldExpression(
-                        PermissionCondition.create(
-                                annotationClass, resource, field, changeSpec
-                        ),
+                        PermissionCondition.create(annotationClass, resource, field, changeSpec),
                         checkFn
                 );
 
@@ -156,11 +154,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> buildAnyFieldExpression(
-                        PermissionCondition.create(
-                                annotationClass,
-                                resource,
-                                (String) null,
-                                changeSpec),
+                        PermissionCondition.create(annotationClass, resource, (String) null, changeSpec),
                         checkFn,
                         (RequestScope) resource.getRequestScope()
                 );

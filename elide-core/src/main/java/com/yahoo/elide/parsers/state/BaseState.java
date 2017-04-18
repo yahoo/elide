@@ -161,7 +161,7 @@ public abstract class BaseState {
     }
 
     /**
-     * Construct PATCH response
+     * Construct PATCH response.
      *
      * @param record a resource that has been updated
      * @param stateContext a state that contains reference to request scope where we can get status code for update

@@ -29,15 +29,15 @@ public class PermissionCondition {
     @Getter final Optional<String> field;
 
     /**
-     * This function attempts to create the appropriate PermissionCondition based on parameters that may or may
+     * This function attempts to create the appropriate {@link PermissionCondition} based on parameters that may or may
      * not be null. This is a temporary workaround given that the caller functions duplicate data in their
      * signatures and pass nulls.  The calling code needs to be cleaned up - and then this function can be disposed of.
      *
-     * @param permission
-     * @param resource
-     * @param field
-     * @param changes
-     * @return
+     * @param permission the permission to inspect
+     * @param resource the resource to evalute the permission on
+     * @param field the name of the field to be checked
+     * @param changes the changes that happened
+     * @return a {@link PermissionCondition} if one can be created, null otherwise
      */
     public static PermissionCondition create(
             Class<? extends Annotation> permission,

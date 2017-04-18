@@ -27,6 +27,7 @@ public interface PermissionExecutor {
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass, PersistentResource resource);
 
@@ -41,6 +42,7 @@ public interface PermissionExecutor {
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                             PersistentResource resource,
@@ -54,6 +56,7 @@ public interface PermissionExecutor {
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
                                                                           ChangeSpec changeSpec,
@@ -68,6 +71,7 @@ public interface PermissionExecutor {
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
                                                                                   ChangeSpec changeSpec,
@@ -81,6 +85,7 @@ public interface PermissionExecutor {
      * @param resource Resource
      * @param annotationClass Annotation class
      * @param field Field
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                  Class<A> annotationClass,
@@ -92,21 +97,41 @@ public interface PermissionExecutor {
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
+     * @return the results of evaluating the permission
      */
     <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
 
+    /**
+     * Get the read filter, if defined.
+     *
+     * @param resourceClass the class to check for a filter
+     * @return the an optional containg the filter
+     */
     Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass);
 
     /**
-     * Execute commmit checks.
+     * Execute commit checks.
      */
     void executeCommitChecks();
 
+    /**
+     * Determine if we should skip checking a permission for a particular field on an entity.
+     *
+     * @param annotationClass the permission to be skipped
+     * @param resourceClass the entity type being checked
+     * @param field the field being checked
+     * @return true if we should not evaluate the given permission, false if we should
+     */
     default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
-                                               Class resourceClass, String field) {
+                                                       Class resourceClass, String field) {
         return false;
     }
 
+    /**
+     * Return useful information about the check evaluation.
+     *
+     * @return a description describing check execution
+     */
     default String printCheckStats() {
         return null;
     }

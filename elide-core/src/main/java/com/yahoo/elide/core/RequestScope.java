@@ -6,18 +6,18 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnReadPostCommit;
 import com.yahoo.elide.annotation.OnReadPreCommit;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -32,10 +32,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -45,9 +46,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
@@ -83,7 +81,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     final private transient HashMap<Class, LinkedHashSet<Runnable>> queuedTriggers;
 
     /**
-     * Create a new RequestScope with specified update status code
+     * Create a new RequestScope with specified update status code.
      *
      * @param path the URL path
      * @param jsonApiDocument the document for this request
@@ -337,7 +335,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Run any queued triggers for a specific type
+     * Run any queued triggers for a specific type.
      *
      * @param triggerType Class representing the trigger type (i.e. OnCreatePreSecurity.class, etc.)
      */
@@ -352,7 +350,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
-     * Queue a trigger for a particular resource
+     * Queue a trigger for a particular resource.
      *
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
