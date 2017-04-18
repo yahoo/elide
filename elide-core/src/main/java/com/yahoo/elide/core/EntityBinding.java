@@ -155,7 +155,7 @@ class EntityBinding {
                         && Modifier.isStatic(((Field) fieldOrMethod).getModifiers())) {
                     continue; // Field must have Column annotation?
                 }
-                bindAttrOrRelation(cls, fieldOrMethod);
+                bindAttrOrRelation(fieldOrMethod);
             }
         }
     }
@@ -202,10 +202,9 @@ class EntityBinding {
     /**
      * Bind an attribute or relationship.
      *
-     * @param cls Class type to bind fields
      * @param fieldOrMethod Field or method to bind
      */
-    private void bindAttrOrRelation(Class<?> cls, AccessibleObject fieldOrMethod) {
+    private void bindAttrOrRelation(AccessibleObject fieldOrMethod) {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);

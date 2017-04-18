@@ -146,7 +146,7 @@ public class Pagination {
      * @return the calculated {@link Pagination}
      */
     private Pagination evaluate(int defaultLimit, int maxLimit) {
-        if (hasInvalidCombiation(pageData)) {
+        if (hasInvalidCombination(pageData)) {
             throw new InvalidValueException("Invalid usage of pagination parameters.");
         }
         if (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number)) {
@@ -163,7 +163,7 @@ public class Pagination {
         return this;
     }
 
-    private boolean hasInvalidCombiation(Map<PaginationKey, Integer> pageData) {
+    private boolean hasInvalidCombination(Map<PaginationKey, Integer> pageData) {
         return (pageData.containsKey(PaginationKey.size) || pageData.containsKey(PaginationKey.number))
                 && (pageData.containsKey(PaginationKey.limit) || pageData.containsKey(PaginationKey.offset));
     }
