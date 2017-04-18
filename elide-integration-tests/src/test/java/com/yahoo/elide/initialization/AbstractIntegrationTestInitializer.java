@@ -9,6 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.testng.annotations.BeforeClass;
 
@@ -24,6 +25,8 @@ import static org.testng.Assert.fail;
  *
  */
 public abstract class AbstractIntegrationTestInitializer extends AbstractApiResourceInitializer {
+    public static final String JSONAPI_CONTENT_TYPE = JsonApiEndpoint.JSONAPI_CONTENT_TYPE;
+
     /**
      * The constant dataStore.
      */

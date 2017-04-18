@@ -18,12 +18,14 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static com.yahoo.elide.resources.JsonApiEndpoint.JSONAPI_CONTENT_TYPE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -113,8 +115,7 @@ public class LifeCycleTest {
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
-        String contentType = "application/vnd.api+json";
-        elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        elide.patch(JSONAPI_CONTENT_TYPE, JSONAPI_CONTENT_TYPE, "/book/1", bookBody, null);
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 

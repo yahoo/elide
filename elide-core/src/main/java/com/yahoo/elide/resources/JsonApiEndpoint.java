@@ -32,9 +32,10 @@ import javax.ws.rs.core.UriInfo;
  * Default endpoint/servlet for using Elide and JSONAPI.
  */
 @Singleton
-@Produces("application/vnd.api+json")
+@Produces(JsonApiEndpoint.JSONAPI_CONTENT_TYPE)
 @Path("/")
 public class JsonApiEndpoint {
+    public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 
@@ -55,7 +56,7 @@ public class JsonApiEndpoint {
      */
     @POST
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response post(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,
@@ -93,7 +94,7 @@ public class JsonApiEndpoint {
      */
     @PATCH
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
         @HeaderParam("accept") String accept,
@@ -113,7 +114,7 @@ public class JsonApiEndpoint {
      */
     @DELETE
     @Path("{path:.*}")
-    @Consumes("application/vnd.api+json")
+    @Consumes(JSONAPI_CONTENT_TYPE)
     public Response delete(
         @PathParam("path") String path,
         @Context SecurityContext securityContext,

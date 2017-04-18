@@ -23,8 +23,8 @@ class MapEnumIT extends AbstractIntegrationTestInitializer {
     public void testPostColorShape() {
         // Create MapColorShape using Post
         def postRequest = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -45,8 +45,8 @@ class MapEnumIT extends AbstractIntegrationTestInitializer {
 
         // Update MapColorShape using Patch
         def patchRequest = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                       {
                         "data": {
@@ -66,7 +66,7 @@ class MapEnumIT extends AbstractIntegrationTestInitializer {
 
         // Get MapColorShape
         def getRequest = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/mapColorShape/${postResponse['data']['id'].asText()}/")
         def getResponse = mapper.readTree(getRequest.asString())
         Assert.assertEquals(getResponse["data"]["attributes"]["colorShapeMap"]["Blue"].asText(), "Square")
