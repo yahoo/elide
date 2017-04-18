@@ -12,13 +12,10 @@ import org.testng.annotations.Test;
  * Test the Delete operation.
  */
 public class FetcherDeleteTest extends AbstractPersistentResourceFetcherTest {
-
     @Test
-    public void testRootBadInput() throws JsonProcessingException {
+    public void testRootBadInput() {
         String graphQLRequest = "mutation { author(op:DELETE) { id } }";
-        String expectedResponse = "{}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryFails(graphQLRequest);
     }
 
     @Test
@@ -38,19 +35,15 @@ public class FetcherDeleteTest extends AbstractPersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootIdWithBadData() throws JsonProcessingException {
+    public void testRootIdWithBadData() {
         String graphQLRequest = "mutation { author(op:DELETE, id: \"1\", data: {id: \"2\"}) { id } }";
-        String expectedResponse = "{}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryFails(graphQLRequest);
     }
 
     @Test
-    public void testRootIdWithExtraData() throws JsonProcessingException {
+    public void testRootIdWithExtraData() {
         String graphQLRequest = "mutation { author(op:DELETE, id: \"1\", data: [{id: \"1\"}, {id: \"2\"}]) { id } }";
-        String expectedResponse = "{}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryFails(graphQLRequest);
     }
 
     @Test
@@ -62,11 +55,9 @@ public class FetcherDeleteTest extends AbstractPersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedBadInput() throws JsonProcessingException {
+    public void testNestedBadInput() {
         String graphQLRequest = "mutation { author(id: \"1\") { books(op:DELETE) { id } } }";
-        String expectedResponse = "{}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryFails(graphQLRequest);
     }
 
 
@@ -92,5 +83,46 @@ public class FetcherDeleteTest extends AbstractPersistentResourceFetcherTest {
         String expectedResponse = "{}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testRootSingleFailPagination() {
+        String graphQLRequest = "mutation { author(op:DELETE, id: \"1\", first: 1) { id } }";
+        assertQueryFails(graphQLRequest);
+
+        graphQLRequest = "mutation { author(op:DELETE, id: \"1\", offset: 10) { id } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionFailPagination() {
+        String graphQLRequest = "mutation { author(op:DELETE, data: [{id: \"1\"}, {id: \"2\"}], first: 1) { id } }";
+        assertQueryFails(graphQLRequest);
+
+        graphQLRequest = "mutation { author(op:DELETE, data: [{id: \"1\"}, {id: \"2\"}], offset: 10) { id } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootSingleFailSorting() {
+        String graphQLRequest = "mutation { author(op:DELETE, id: \"1\", sort=\"name\") { id } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionFailSorting() {
+        String graphQLRequest = "mutation { author(op:DELETE, data: [{id: \"1\"}, {id: \"2\"}], sort=\"name\") { id } }";
+        assertQueryFails(graphQLRequest);
+    }
+    @Test
+    public void testRootSingleFailFiltering() {
+        String graphQLRequest = "mutation { author(op:DELETE, id: \"1\", filter=\"name=\\\"Author\\\"\") { id } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionFailFiltering() {
+        String graphQLRequest = "mutation { author(op:DELETE, data: [{id: \"1\"}, {id: \"2\"}], filter=\"name=\\\"Author\\\"\") { id } }";
+        assertQueryFails(graphQLRequest);
     }
 }
