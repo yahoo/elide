@@ -83,8 +83,13 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws JsonProcessingException {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        Assert.assertEquals(result.getErrors().size(), 0, errorsToString(result.getErrors()));
+        Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
+    }
+
+    void assertQueryFails(String graphQLRequest) {
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        Assert.assertNotEquals(result.getErrors().size(), 0);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {

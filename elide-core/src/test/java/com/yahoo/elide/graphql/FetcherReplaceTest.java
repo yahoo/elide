@@ -79,4 +79,45 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
 
     }
 
+    @Test
+    public void testRootSingleWithIdFailFilter() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: {id: \"42\", title: \"abc\"}, filter: \"title=\\\"Book Dos\\\"\") { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootSingleWithIdFailPaginate() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: {id: \"42\", title: \"abc\"}, first: 1) { id, title } }";
+        assertQueryFails(graphQLRequest);
+
+        graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: {id: \"42\", title: \"abc\"}, offset: 1) { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootSingleWithIdFailSort() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: {id: \"42\", title: \"abc\"}, sort: \"-title\") { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionWithIdFailFilter() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: [{id: \"42\", title: \"abc\"},{id: \"42\", title: \"abc\"}], filter: \"title=\\\"Book Dos\\\"\") { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionWithIdFailPaginate() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: [{id: \"42\", title: \"abc\"},{id: \"42\", title: \"abc\"}], first: 1) { id, title } }";
+        assertQueryFails(graphQLRequest);
+
+        graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: [{id: \"42\", title: \"abc\"},{id: \"42\", title: \"abc\"}], offset: 1) { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
+
+    @Test
+    public void testRootCollectionWithIdFailSort() {
+        String graphQLRequest = "mutation { book(op:REPLACE, id: \"1\", data: [{id: \"42\", title: \"abc\"},{id: \"42\", title: \"abc\"}] sort: \"-title\") { id, title } }";
+        assertQueryFails(graphQLRequest);
+    }
 }

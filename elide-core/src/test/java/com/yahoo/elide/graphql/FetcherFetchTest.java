@@ -32,6 +32,34 @@ public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
     }
 
     @Test
+    public void testRootCollectionFilter() throws JsonProcessingException {
+        String graphQLRequest = "{ book(filter: \"title=\\\"Book*\\\"\") { id title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}";
+
+        Assert.fail("Not implemented");
+    }
+
+    @Test
+    public void testRootCollectionSort() throws JsonProcessingException {
+        String graphQLRequest = "{ book(sort: \"-title\") { id title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}";
+
+        Assert.fail("Not implemented");
+    }
+
+    @Test
+    public void testRootCollectionPaginate() throws JsonProcessingException {
+        String graphQLRequest = "{ book(first: 1) { id title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}";
+
+
+        graphQLRequest = "{ book(first: 1, offset: 1) { id title } }";
+        expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Book Numero Dos\"}]}";
+
+        Assert.fail("Not implemented");
+    }
+
+    @Test
     public void testNestedSingle() throws JsonProcessingException {
         String graphQLRequest = "{ author(id: \"1\") { books(id: \"1\") { id title } } }";
         String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
@@ -45,6 +73,30 @@ public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
         String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testNestedCollectionFilter() throws JsonProcessingException {
+        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
+
+        Assert.fail("Not Implemented");
+    }
+
+    @Test
+    public void testNestedCollectionSort() throws JsonProcessingException {
+        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
+
+        Assert.fail("Not Implemented");
+    }
+
+    @Test
+    public void testNestedCollectionPaginate() throws JsonProcessingException {
+        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Book Numero Uno\"}]}]}";
+
+        Assert.fail("Not Implemented");
     }
 
     @Test
