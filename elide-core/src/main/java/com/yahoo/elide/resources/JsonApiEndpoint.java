@@ -36,6 +36,9 @@ import javax.ws.rs.core.UriInfo;
 @Path("/")
 public class JsonApiEndpoint {
     public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
+    public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
+        "application/vnd.api+json; ext=jsonpatch";
+
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 

@@ -40,8 +40,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void setup() {
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -120,8 +120,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -164,8 +164,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -209,8 +209,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -281,8 +281,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -1641,13 +1641,13 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         for (int id : authorIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/author/"+id)
         }
         for (int id : bookIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/book/"+id)
         }
     }

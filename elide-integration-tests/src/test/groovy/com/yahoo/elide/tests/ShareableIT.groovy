@@ -305,8 +305,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testCreateContainerAndUnshareables() {
         def patchResponse = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("""
                     [
                       {
@@ -367,8 +367,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testCreateContainerAndShareables() {
         def patchResponse = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("""
                     [
                       {

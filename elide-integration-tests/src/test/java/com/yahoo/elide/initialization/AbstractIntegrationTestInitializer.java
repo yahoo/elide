@@ -26,6 +26,8 @@ import static org.testng.Assert.fail;
  */
 public abstract class AbstractIntegrationTestInitializer extends AbstractApiResourceInitializer {
     public static final String JSONAPI_CONTENT_TYPE = JsonApiEndpoint.JSONAPI_CONTENT_TYPE;
+    public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
+        JsonApiEndpoint.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 
     /**
      * The constant dataStore.

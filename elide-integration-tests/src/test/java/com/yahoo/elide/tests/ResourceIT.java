@@ -67,8 +67,6 @@ import static org.testng.Assert.assertTrue;
  * The type Config resource test.
  */
 public class ResourceIT extends AbstractIntegrationTestInitializer {
-    private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
-            "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
     @BeforeClass

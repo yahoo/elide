@@ -47,8 +47,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     public void setup() {
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -111,8 +111,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -191,8 +191,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -254,8 +254,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -315,8 +315,8 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         RestAssured
                 .given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
@@ -726,48 +726,48 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
         for (int id : authorIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/author/"+id)
         }
         for (int id : bookIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/book/"+id)
         }
         for (int id : childIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/parent/"+parentId +"/"+id)
         }
         RestAssured
             .given()
-            .accept("application/vnd.api+json; ext=jsonpatch")
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .delete("/parent/"+parentId)
 
         for (int id : entityWithoutPaginateIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/entityWithoutPaginate/"+id)
         }
         for (int id : entityWithPaginateCountableFalseIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/entityWithPaginateCountableFalse/"+id)
         }
         for (int id : entityWithPaginateDefaultLimitIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/entityWithPaginateDefaultLimit/"+id)
         }
         for (int id : entityWithPaginateMaxLimitIds) {
             RestAssured
                     .given()
-                    .accept("application/vnd.api+json; ext=jsonpatch")
+                    .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                     .delete("/entityWithPaginateMaxLimit/"+id)
         }
     }

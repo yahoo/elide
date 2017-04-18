@@ -76,8 +76,8 @@ class MapEnumIT extends AbstractIntegrationTestInitializer {
     public void testPatchExtensionColorShape() {
         // Create MapColorShape using Patch extension
         def request = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body('''
                     [
                       {
