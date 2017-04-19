@@ -24,16 +24,14 @@ import java.util.function.Predicate;
 public enum Operator {
     IN("in", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.in(field, values, requestScope);
         }
     },
 
     NOT("not", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.notIn(field, values, requestScope);
         }
     },
@@ -47,16 +45,14 @@ public enum Operator {
 
     PREFIX("prefix", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.prefix(field, values, requestScope);
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.postfix(field, values, requestScope);
         }
     },
@@ -70,8 +66,7 @@ public enum Operator {
 
     INFIX("infix", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.infix(field, values, requestScope);
         }
     },
@@ -85,32 +80,28 @@ public enum Operator {
 
     ISNULL("isnull", false) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.isNull(field, requestScope);
         }
     },
 
     NOTNULL("notnull", false) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.isNotNull(field, requestScope);
         }
     },
 
     LT("lt", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.lt(field, values, requestScope);
         }
     },
 
     LE("le", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.le(field, values, requestScope);
         }
     },
@@ -125,24 +116,21 @@ public enum Operator {
 
     GE("ge", true) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.ge(field, values, requestScope);
         }
     },
 
     TRUE("true", false) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.isTrue();
         }
     },
 
     FALSE("false", false) {
         @Override
-        public <T> Predicate<T> contextualize(
-                String field, List<Object> values, RequestScope requestScope) {
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.isFalse();
         }
     };
@@ -166,15 +154,12 @@ public enum Operator {
         throw new InvalidPredicateException("Unknown operator in filter: " + string);
     }
 
-    public abstract <T> Predicate<T> contextualize(
-            String field, List<Object> values, RequestScope requestScope);
+    public abstract <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope);
 
     //
     // Predicate generation
     //
-
-    private static <T> Predicate<T> in(
-            String field, List<Object> values, RequestScope requestScope) {
+    private static <T> Predicate<T> in(String field, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
             Object val = getFieldValue(entity, field, requestScope);
 
@@ -194,13 +179,12 @@ public enum Operator {
         };
     }
 
-    private static <T> Predicate<T> prefix(
-            String field, List<Object> values, RequestScope requestScope) {
+    private static <T> Predicate<T> prefix(String field, List<Object> values, RequestScope requestScope) {
         return prefix(field, values, requestScope, Function.identity());
     }
 
-    private static <T> Predicate<T> prefix(
-            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
+    private static <T> Predicate<T> prefix(String field, List<Object> values,
+                                           RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("PREFIX can only take one argument");
@@ -216,13 +200,12 @@ public enum Operator {
         };
     }
 
-    private static <T> Predicate<T> postfix(
-            String field, List<Object> values, RequestScope requestScope) {
+    private static <T> Predicate<T> postfix(String field, List<Object> values, RequestScope requestScope) {
         return postfix(field, values, requestScope, Function.identity());
     }
 
-    private static <T> Predicate<T> postfix(
-            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
+    private static <T> Predicate<T> postfix(String field, List<Object> values,
+                                            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("POSTFIX can only take one argument");
@@ -242,8 +225,8 @@ public enum Operator {
         return infix(field, values, requestScope, Function.identity());
     }
 
-    private static <T> Predicate<T> infix(
-            String field, List<Object> values, RequestScope requestScope, Function<String, String> transform) {
+    private static <T> Predicate<T> infix(String field, List<Object> values,
+                                          RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new InvalidPredicateException("INFIX can only take one argument");

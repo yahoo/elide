@@ -1,5 +1,10 @@
 #Change Log
 
+## 3.0.5
+**Features**
+* Move `InMemoryDataStore` to Elide core. The `InMemoryDataStore` from the `elide-datastore-inmemorydb` package has
+    been deprecated and will be removed in Elide 4.0
+
 ## 3.0.4
 **Fixes**
 * Do not save deleted objects even if referenced as an inverse from a relationship.
