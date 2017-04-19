@@ -60,7 +60,7 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testNestedSingleUpdate() throws JsonProcessingException {
-        String graphQLRequest = "mutation { author(id: \"1\") { id books(op:REPLACE, data: {id: 1, title: \"abc\"}) { id, title } } }";
+        String graphQLRequest = "mutation { author(id: \"1\") { id books(op:REPLACE, data: {id: \"1\", title: \"abc\"}) { id, title } } }";
         String expectedResponse = "{\"author\":[{\"id\":\"1\",\"books\":[{\"id\":\"1\",\"title\":\"abc\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
@@ -68,8 +68,8 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testNestedSingleReplace() throws JsonProcessingException {
-        String graphQLRequest = "mutation { author(id: \"1\") { id books(op:REPLACE, data: {id: 1, title: \"abc\"}) { id, title } } }";
-        String expectedResponse = "{\"author\":[{\"id\":\"1\",\"name\":\"abc\"}]}";
+        String graphQLRequest = "mutation { author(id: \"1\") { id name books(op:REPLACE, id:\"1\", data: {id: \"1\", title: \"abc\"}) { id title } } }";
+        String expectedResponse = "{\"author\":[{\"id\":\"1\",\"name\":\"The People's Author\",\"books\":[{\"id\":\"1\",\"title\":\"abc\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
