@@ -14,16 +14,12 @@ import io.swagger.models.properties.StringProperty;
  * specific and just has the skeleton structure of a resource.
  */
 public class IncludedResource extends ObjectProperty {
-
-    ObjectProperty attributes;
-    ObjectProperty relationships;
-
     public IncludedResource() {
         super();
 
         /* These will always be empty. */
-        attributes = new ObjectProperty();
-        relationships = new ObjectProperty();
+        ObjectProperty attributes = new ObjectProperty();
+        ObjectProperty relationships = new ObjectProperty();
 
         property("type", new StringProperty());
         property("id", new StringProperty());

@@ -31,7 +31,7 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void save(Object entity, RequestScope scope) {
-
+        // No-op transaction, do nothing.
     }
 
     /**
@@ -41,7 +41,7 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void delete(Object entity, RequestScope scope) {
-
+        // No-op transaction, do nothing.
     }
 
     /**
@@ -50,7 +50,7 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void flush(RequestScope scope) {
-
+        // No-op transaction, do nothing.
     }
 
     /**
@@ -59,7 +59,7 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void commit(RequestScope scope) {
-
+        // No-op transaction, do nothing.
     }
 
     /**
@@ -69,7 +69,7 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void createObject(Object entity, RequestScope scope) {
-
+        // No-op transaction, do nothing.
     }
 
     /**
@@ -86,8 +86,7 @@ public class NoopTransaction implements DataStoreTransaction {
                              Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
         // Loads are supported but empty object (with specified id) is returned.
-        // NOTE: This is primarily useful for enabling objects of solely computed properties
-        //       to be fetched.
+        // NOTE: This is primarily useful for enabling objects of solely computed properties to be fetched.
         Object entity;
         try {
             entity = entityClass.newInstance();
@@ -96,9 +95,9 @@ public class NoopTransaction implements DataStoreTransaction {
             throw new RuntimeException(e);
         }
 
+        String uuid = ((RequestScope) scope).getUUIDFor(entity);
         // Side-effecting method of the PersistentResource :( however, it enables us to do this without reinventing
         // the wheel. Should probably be refactored eventually nonetheless.
-        String uuid = ((RequestScope) scope).getUUIDFor(entity);
         new PersistentResource<>(entity, null, uuid, scope).setId(id.toString());
 
         return entity;
@@ -129,6 +128,6 @@ public class NoopTransaction implements DataStoreTransaction {
      */
     @Override
     public void close() throws IOException {
-
+        // No-op transaction, do nothing.
     }
 }
