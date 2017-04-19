@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.graphql;
 
+import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
@@ -43,69 +44,88 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
 
+    public static final List<Map<Object, Object>> EMPTY_DATA = Collections.singletonList(new HashMap<>());
+
+    private static class Environment {
+        public final RequestScope requestScope;
+        public final String id;
+        public final Object source;
+        public final GraphQLType parentType;
+        public final GraphQLType outputType;
+        public final List<Field> fields;
+        public final List<Map<String, Object>> data;
+
+        public Environment(DataFetchingEnvironment environment) {
+            requestScope = (RequestScope) environment.getContext();
+            source = environment.getSource();
+            parentType = environment.getParentType();
+            outputType = environment.getFieldType();
+            fields = ImmutableList.copyOf(environment.getFields());
+
+            Map<String, Object> args = environment.getArguments();
+            id = (String) args.get(ARGUMENT_ID);
+            data = ImmutableList.copyOf((List<Map<String, Object>>) args.getOrDefault(ARGUMENT_DATA, EMPTY_DATA));
+        }
+    }
+
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        // TODO: May want to consider wrapping these all up in an object that gets passed to the functions.
-        //       then a single helper method implemented in the object can take place of our many private methods.
-        RequestScope requestScope = (RequestScope) environment.getContext();
-        Object source = environment.getSource();
-        GraphQLType parent = environment.getParentType();
-        GraphQLType output = environment.getFieldType();
-        List<Field> fields = environment.getFields();
         Map<String, Object> args = environment.getArguments();
-
-        String id = (String) args.get(ARGUMENT_ID);
-        List<HashMap<Object, Object>> empty = Collections.singletonList(new HashMap<>());
-        List<Map<String, Object>> data = (List<Map<String, Object>>) args.getOrDefault(ARGUMENT_DATA, empty);
-        RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
+        Environment context = new Environment(environment);
+        RelationshipOp operation = (RelationshipOp) args.getOrDefault(OPERATION_ARGUMENT, RelationshipOp.FETCH);
 
         if (log.isDebugEnabled()) {
-            List<String> requestedFields = fields.stream().map(field -> {
-                List<Field> children = field.getSelectionSet() != null
-                        ? (List) field.getSelectionSet().getChildren()
-                        : new ArrayList<>();
-                return field.getName() + (
-                        children.size() > 0
-                                ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")"
-                                : ""
-                );
-            }).collect(Collectors.toList());
-            log.debug("{} {} fields for {} with parent {}<{}>",
-                    operation, requestedFields, source, parent.getClass().getSimpleName(), parent.getName());
+            logContext(operation, context);
         }
 
         switch (operation) {
             case FETCH:
-                if (args.containsKey(ARGUMENT_DATA)) {
+                if (context.data != null && context.data.stream().filter(m -> !m.isEmpty()).count() > 0) {
                     throw new WebApplicationException("Data argument invalid on FETCH operation.",
                             HttpStatus.SC_BAD_REQUEST);
                 }
-                return fetchObject(requestScope, source, output, fields, id);
+                return fetchObject(context);
 
             case ADD:
-                return createObject(requestScope, source, output, fields, id, data);
+                return createObject(context);
 
             case DELETE:
-                return deleteObject(requestScope, source, fields, id, data);
+                return deleteObject(context);
 
             case REPLACE:
-                return updateObject(requestScope, source, output, fields, id, data);
+                return updateObject(context);
         }
+
         throw new UnsupportedOperationException("Not implemented.");
     }
 
-    private Object deleteObject(RequestScope requestScope, Object source, List<Field> fields, String id,
-                                List<Map<String, Object>> data) {
+    private void logContext(RelationshipOp operation, Environment environment) {
+        List<String> requestedFields = environment.fields.stream().map(field -> {
+            List<Field> children = field.getSelectionSet() != null
+                    ? (List) field.getSelectionSet().getChildren()
+                    : new ArrayList<>();
+            return field.getName() + (
+                    children.size() > 0
+                            ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")"
+                            : ""
+            );
+        }).collect(Collectors.toList());
+        GraphQLType parent = environment.parentType;
+        log.debug("{} {} fields for {} with parent {}<{}>",
+                operation, requestedFields, environment.source, parent.getClass().getSimpleName(), parent.getName());
+    }
+
+    private Object deleteObject(Environment request) {
         Set<Object> deleted = new HashSet<>();
 
-        if (id != null && !id.isEmpty() && fields.size() > 1) {
+        if (request.id != null && !request.id.isEmpty() && request.fields.size() > 1) {
             throw new WebApplicationException("Id argument specification with an additional list of id's to delete "
                     + "is unsupported", HttpStatus.SC_BAD_REQUEST);
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
+        EntityDictionary dictionary = request.requestScope.getDictionary();
 
-        for (Field field : fields) {
+        for (Field field : request.fields) {
             String loadType = field.getName();
             // TODO: This works at the root-level, but will it blow up in nested deletes?
             String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(loadType));
@@ -123,14 +143,14 @@ public class PersistentResourceFetcher implements DataFetcher {
 //                        }
 //                        return specifiedId;
 //                    })
-                    .orElse(id);
+                    .orElse(request.id);
 
             if (loadId == null) {
                 throw new WebApplicationException("Did not specify id of object type to delete.",
                         HttpStatus.SC_BAD_REQUEST);
             }
 
-            PersistentResource deleteObject = load(loadType, loadId, requestScope);
+            PersistentResource deleteObject = load(loadType, loadId, request.requestScope);
 
             if (deleteObject == null || deleteObject.getObject() == null) {
                 throw new WebApplicationException("Attempted to delete non-existent id.", HttpStatus.SC_BAD_REQUEST);
@@ -143,20 +163,18 @@ public class PersistentResourceFetcher implements DataFetcher {
         return deleted;
     }
 
-    private Object updateObject(RequestScope requestScope, Object source,
-                                GraphQLType output, List<Field> fields,
-                                String id, List<Map<String, Object>> relationships) {
-        assertOneField(fields);
+    private Object updateObject(Environment request) {
+        assertOneField(request.fields);
 
-        Field field = fields.get(0);
-        EntityDictionary dictionary = requestScope.getDictionary();
+        Field field = request.fields.get(0);
+        EntityDictionary dictionary = request.requestScope.getDictionary();
 
-        PersistentResource updateObject = load(field.getName(), id, requestScope);
+        PersistentResource updateObject = load(field.getName(), request.id, request.requestScope);
 
-        if (output instanceof GraphQLList) {
-            GraphQLObjectType objectType = objectType = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
+        if (request.outputType instanceof GraphQLList) {
+            GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
             List<PersistentResource> container = new ArrayList<>();
-            for (Map<String, Object> input : relationships) {
+            for (Map<String, Object> input : request.data) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
                 input.entrySet().stream()
                         .forEach(entry -> {
@@ -172,7 +190,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                                 Set<PersistentResource> newRelationships = new HashSet<>();
                                 if (value != null) {
                                     // TODO: For a to-many relationship this would be a list... Need to handle that case
-                                    newRelationships.add(load(relName, value.toString(), requestScope));
+                                    newRelationships.add(load(relName, value.toString(), request.requestScope));
                                 }
                                 updateObject.updateRelation(fieldName, newRelationships);
                             } else if (fieldName.equals(dictionary.getIdFieldName(entityClass))) {
@@ -191,35 +209,33 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
             return container;
         }
-        throw new IllegalStateException("Not sure what to create " + output.getName());
+        throw new IllegalStateException("Not sure what to create " + request.outputType.getName());
     }
 
-    private Object createObject(RequestScope requestScope, Object source,
-                                GraphQLType output, List<Field> fields,
-                                String id, List<Map<String, Object>> relationships) {
-        assertOneField(fields);
+    private Object createObject(Environment request) {
+        assertOneField(request.fields);
 
-        Field field = fields.get(0);
-        EntityDictionary dictionary = requestScope.getDictionary();
+        Field field = request.fields.get(0);
+        EntityDictionary dictionary = request.requestScope.getDictionary();
 
         GraphQLObjectType objectType;
         String uuid = UUID.randomUUID().toString();
-        if (output instanceof GraphQLObjectType) {
+        if (request.outputType instanceof GraphQLObjectType) {
             // No parent
             // TODO: These UUID's should not be random. They should be whatever id's are specified by the user so they
             // can be referenced throughout the document
-            objectType = (GraphQLObjectType) output;
-            return PersistentResource.createObject(null, dictionary.getEntityClass(objectType.getName()), requestScope,
-                    uuid);
+            objectType = (GraphQLObjectType) request.outputType;
+            return PersistentResource.createObject(null, dictionary.getEntityClass(objectType.getName()),
+                    request.requestScope, uuid);
 
-        } else if (output instanceof GraphQLList) {
+        } else if (request.outputType instanceof GraphQLList) {
             // Has parent
-            objectType = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
+            objectType = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
             List<PersistentResource> container = new ArrayList<>();
-            for (Map<String, Object> input : relationships) {
+            for (Map<String, Object> input : request.data) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
                 // TODO: See above comment about UUID's.
-                PersistentResource toCreate = PersistentResource.createObject(entityClass, requestScope,
+                PersistentResource toCreate = PersistentResource.createObject(entityClass, request.requestScope,
                         uuid);
                 input.entrySet().stream()
                         .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
@@ -228,43 +244,43 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
             return container;
         }
-        throw new IllegalStateException("Not sure what to create " + output.getName());
+        throw new IllegalStateException("Not sure what to create " + request.outputType.getName());
     }
 
-    private Object fetchObject(RequestScope requestScope, Object source,
-                               GraphQLType output, List<Field> fields, String id) {
-        if (output instanceof GraphQLList) {
-            GraphQLObjectType type = (GraphQLObjectType) ((GraphQLList) output).getWrappedType();
+    private Object fetchObject(Environment request) {
+        if (request.outputType instanceof GraphQLList) {
+            GraphQLObjectType type = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
             String entityType = type.getName();
-            if (id == null) {
-                return loadCollectionOf(entityType, requestScope);
+            if (request.id == null) {
+                return loadCollectionOf(entityType, request.requestScope);
             }
-            return Collections.singletonList(load(entityType, id, requestScope));
+            return Collections.singletonList(load(entityType, request.id, request.requestScope));
 
-        } else if (output instanceof GraphQLObjectType) {
-            return load(output.getName(), id, requestScope);
+        } else if (request.outputType instanceof GraphQLObjectType) {
+            return load(request.outputType.getName(), request.id, request.requestScope);
 
-        } else if (output instanceof GraphQLScalarType) {
-            return fetchProperty((PersistentResource) source, fields, requestScope);
+        } else if (request.outputType instanceof GraphQLScalarType) {
+            return fetchProperty(request);
 
         }
 
-        throw new IllegalStateException("WTF is a " + output.getClass().getName() + " mate?");
+        throw new IllegalStateException("WTF is a " + request.outputType.getClass().getName() + " mate?");
     }
 
-    protected Object fetchProperty(PersistentResource source, List<Field> fields, RequestScope requestScope) {
-        assertOneField(fields);
+    protected Object fetchProperty(Environment request) {
+        assertOneField(request.fields);
 
-        EntityDictionary dictionary = requestScope.getDictionary();
-        Class<?> sourceClass = source.getResourceClass();
-        Field field = fields.get(0);
+        EntityDictionary dictionary = request.requestScope.getDictionary();
+        PersistentResource resource = (PersistentResource) request.source;
+        Class<?> sourceClass = resource.getResourceClass();
+        Field field = request.fields.get(0);
 
         String fieldName = field.getName();
         if (dictionary.isAttribute(sourceClass, fieldName)) {
-            return source.getAttribute(fieldName);
+            return resource.getAttribute(fieldName);
         } else {
             log.debug("Tried to fetch property off of invalid loaded object.");
-            throw new InvalidAttributeException(fieldName, source.getType());
+            throw new InvalidAttributeException(fieldName, resource.getType());
         }
     }
 
