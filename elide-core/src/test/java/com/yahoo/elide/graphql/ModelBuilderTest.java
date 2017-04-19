@@ -6,10 +6,10 @@
 
 package com.yahoo.elide.graphql;
 
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
+import com.yahoo.books.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
-import example.Author;
-import example.Book;
-import example.Publisher;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;

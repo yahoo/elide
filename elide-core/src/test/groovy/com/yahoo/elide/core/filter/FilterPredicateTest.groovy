@@ -12,8 +12,8 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect
 import com.yahoo.elide.core.filter.dialect.ParseException
 import com.yahoo.elide.core.filter.expression.FilterExpression
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor
-import example.Author
-import example.Book
+import com.yahoo.books.Author
+import com.yahoo.books.Book
 import org.testng.Assert
 import org.testng.annotations.BeforeSuite
 import org.testng.annotations.Test

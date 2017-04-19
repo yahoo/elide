@@ -10,7 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.security.checks.Check;
-import example.Author;
+import com.yahoo.books.Author;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;

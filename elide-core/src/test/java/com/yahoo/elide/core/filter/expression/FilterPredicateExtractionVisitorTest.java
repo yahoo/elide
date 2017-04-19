@@ -8,8 +8,8 @@ package com.yahoo.elide.core.filter.expression;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import example.Author;
-import example.Book;
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

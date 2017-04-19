@@ -7,27 +7,22 @@ package com.yahoo.elide.graphql;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
-import example.Author;
-import example.Book;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.
@@ -39,11 +34,13 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
 
     @BeforeMethod
     public void setup() {
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
-        ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
-        api = new GraphQL(builder.build());
-        DataStoreTransaction tx = Mockito.mock(DataStoreTransaction.class);
+        InMemoryDataStore store = new InMemoryDataStore(Author.class.getPackage());
+        store.populateEntityDictionary(dictionary);
 
+        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher());
+        api = new GraphQL(builder.build());
+
+        InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
         requestScope = new RequestScope("/", null, tx, null, null,
@@ -52,7 +49,7 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
                         .build());
     }
 
-    private void initTestData(DataStoreTransaction tx) {
+    private void initTestData(InMemoryTransaction tx) {
         Author author1 = new Author();
         author1.setId(1L);
         author1.setName("The People's Author");
@@ -70,15 +67,10 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
 
         author1.setBooks(Arrays.asList(book1, book2));
 
-
-        when(tx.createNewObject(any())).thenCallRealMethod();
-        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book1);
-        when(tx.loadObject(eq(Book.class), eq(2L), any(), any())).thenReturn(book1);
-        when(tx.loadObject(eq(Author.class), eq(1L), any(), any())).thenReturn(author1);
-        when(tx.loadObjects(eq(Book.class), any(), any(), any(), any()))
-                .thenReturn(new LinkedHashSet<>(Arrays.asList(book1, book2)));
-        when(tx.loadObjects(eq(Author.class), any(), any(), any(), any()))
-                .thenReturn(new LinkedHashSet<>(Collections.singletonList(author1)));
+        tx.save(author1, null);
+        tx.save(book1, null);
+        tx.save(book2, null);
+        tx.commit(null);
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws JsonProcessingException {

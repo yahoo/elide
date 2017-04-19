@@ -7,9 +7,9 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import example.Author;
-import example.Book;
-import example.Publisher;
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
+import com.yahoo.books.Publisher;
 import org.testng.annotations.BeforeSuite;
 
 import java.util.Collections;

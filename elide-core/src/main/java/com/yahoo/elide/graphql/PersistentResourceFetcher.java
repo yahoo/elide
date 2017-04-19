@@ -99,8 +99,8 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<Object> deleted = new HashSet<>();
 
         if (id != null && !id.isEmpty() && fields.size() > 1) {
-            throw new WebApplicationException("Id argument specification with an additional list of id's to delete " +
-                    "is unsupported", HttpStatus.SC_BAD_REQUEST);
+            throw new WebApplicationException("Id argument specification with an additional list of id's to delete "
+                    + "is unsupported", HttpStatus.SC_BAD_REQUEST);
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
@@ -274,7 +274,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
     }
 
-    protected Collection<Object> loadCollectionOf(String type, RequestScope requestScope) {
+    protected Collection<PersistentResource> loadCollectionOf(String type, RequestScope requestScope) {
         Class recordType = (Class) requestScope.getDictionary().getEntityClass(type);
         return PersistentResource.loadRecords(recordType, requestScope);
     }

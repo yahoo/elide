@@ -10,7 +10,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
-import example.Author;
+import com.yahoo.books.Author;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
