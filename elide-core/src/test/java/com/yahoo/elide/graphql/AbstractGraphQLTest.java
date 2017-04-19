@@ -6,11 +6,11 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.books.Author;
 import com.yahoo.books.Book;
 import com.yahoo.books.Publisher;
-import org.testng.annotations.BeforeSuite;
+import com.yahoo.elide.core.EntityDictionary;
+import org.testng.annotations.BeforeClass;
 
 import java.util.Collections;
 
@@ -20,7 +20,7 @@ import java.util.Collections;
 public class AbstractGraphQLTest {
     protected EntityDictionary dictionary;
 
-    @BeforeSuite
+    @BeforeClass
     public void init() {
         dictionary = new EntityDictionary(Collections.EMPTY_MAP);
 
