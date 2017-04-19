@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryTransaction implements DataStoreTransaction {
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
+    public static final Random RANDOM = new Random();
 
     private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore;
     private final List<Operation> operations;
@@ -69,67 +69,54 @@ public class InMemoryTransaction implements DataStoreTransaction {
         if (object == null) {
             return;
         }
+
         String id = dictionary.getId(object);
         operations.add(new Operation(id, object, object.getClass(), true));
     }
 
     @Override
     public void commit(RequestScope scope) {
-        operations.forEach(op -> {
-            Class<?> cls = op.getType();
-            ConcurrentHashMap<String, Object> data = dataStore.get(cls);
-            Object instance = op.getInstance();
-            if (instance == null) {
-                return;
-            }
-            String id = op.getId();
-            if (op.getDelete()) {
-                if (data != null) {
-                    data.remove(id);
-                }
-            } else {
-                if (data == null) {
-                    data = new ConcurrentHashMap<>();
-                    dataStore.put(cls, data);
-                }
-                data.put(id, instance);
-            }
-        });
+        operations.stream()
+                .filter(op -> op.getInstance() != null)
+                .forEach(op -> {
+                    Object instance = op.getInstance();
+                    String id = op.getId();
+                    ConcurrentHashMap<String, Object> data = dataStore.get(op.getType());
+                    if (op.getDelete()) {
+                        data.remove(id);
+                    } else {
+                        data.put(id, instance);
+                    }
+                });
         operations.clear();
     }
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
-        if (dataStore.get(entityClass) == null) {
-            dataStore.putIfAbsent(entityClass, new ConcurrentHashMap<>());
-        }
-        AtomicLong idValue = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
-        String id = String.valueOf(idValue.getAndIncrement());
+        AtomicLong nextId = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
+        String id = String.valueOf(nextId.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));
     }
 
-    private AtomicLong newRandomId(Class<?> entityClass) {
-        return new AtomicLong(new Random().nextLong());
+    private AtomicLong newRandomId(Class<?> ignored) {
+        return new AtomicLong(RANDOM.nextLong());
     }
 
     public void setId(Object value, String id) {
         for (Class<?> cls = value.getClass(); cls != null; cls = cls.getSuperclass()) {
             for (Method method : cls.getMethods()) {
-                if (method.isAnnotationPresent(Id.class)) {
-                    if (method.getName().startsWith("get")) {
-                        String setName = "set" + method.getName().substring(3);
-                        for (Method setMethod : cls.getMethods()) {
-                            if (setMethod.getName().equals(setName) && setMethod.getParameterCount() == 1) {
-                                try {
-                                    setMethod.invoke(value,
-                                            CoerceUtil.coerce(id, setMethod.getParameters()[0].getType()));
-                                } catch (ReflectiveOperationException e) {
-                                    e.printStackTrace();
-                                }
-                                return;
+                if (method.isAnnotationPresent(Id.class) && method.getName().startsWith("get")) {
+                    String setName = "set" + method.getName().substring(3);
+                    for (Method setMethod : cls.getMethods()) {
+                        if (setMethod.getName().equals(setName) && setMethod.getParameterCount() == 1) {
+                            try {
+                                setMethod.invoke(value, CoerceUtil.coerce(id, setMethod.getParameters()[0].getType()));
+                            } catch (ReflectiveOperationException e) {
+                                e.printStackTrace();
                             }
+                            return;
                         }
                     }
                 }
@@ -138,38 +125,27 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object loadObject(Class<?> entityClass,
-                             Serializable id,
-                             Optional<FilterExpression> filterExpression,
-                             RequestScope scope) {
-        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
-        if (objs == null) {
-            return null;
-        }
-        return objs.get(id.toString());
+    public Object loadObject(Class<?> entityClass, Serializable id,
+                             Optional<FilterExpression> filterExpression, RequestScope scope) {
+        return dataStore.get(entityClass).get(id.toString());
     }
 
     @Override
-    public Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
-            RequestScope scope) {
-        ConcurrentHashMap<String, Object> objs = dataStore.get(entityClass);
-        if (objs == null) {
-            return Collections.emptyList();
-        }
+    public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
+                                        Optional<Sorting> sorting, Optional<Pagination> pagination,
+                                        RequestScope scope) {
+        ConcurrentHashMap<String, Object> data = dataStore.get(entityClass);
+
         // Support for filtering
         if (filterExpression.isPresent()) {
-            Predicate predicate = filterExpression.get()
-                    .accept(new InMemoryFilterVisitor((com.yahoo.elide.core.RequestScope) scope));
-            return (Collection) objs.values().stream()
+            Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
+            return (Collection<Object>) data.values().stream()
                     .filter(predicate::test)
                     .collect(Collectors.toList());
         }
+
         List<Object> results = new ArrayList<>();
-        objs.forEachValue(1, results::add);
+        data.forEachValue(1, results::add);
         return results;
     }
 

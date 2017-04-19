@@ -154,9 +154,9 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
+        RequestScope requestScope;
         try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }
@@ -212,9 +212,9 @@ public interface DataStoreTransaction extends Closeable {
     default Object getAttribute(Object entity,
                                 String attributeName,
                                 RequestScope scope) {
-        com.yahoo.elide.core.RequestScope requestScope;
+        RequestScope requestScope;
         try {
-            requestScope = (com.yahoo.elide.core.RequestScope) scope;
+            requestScope = scope;
         } catch (ClassCastException e) {
             throw new ClassCastException("Fail trying to cast requestscope");
         }

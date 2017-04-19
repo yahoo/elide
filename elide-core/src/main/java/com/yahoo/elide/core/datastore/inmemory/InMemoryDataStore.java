@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple non-persistent in-memory database.
+ * Simple in-memory only database.
  */
 public class InMemoryDataStore implements DataStore {
     private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore = new ConcurrentHashMap<>();
@@ -39,7 +39,10 @@ public class InMemoryDataStore implements DataStore {
         reflections.getTypesAnnotatedWith(Entity.class).stream()
                 .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
                         .startsWith(beanPackage.getName()))
-                .forEach(dictionary::bindEntity);
+                .forEach((cls) -> {
+                    dictionary.bindEntity(cls);
+                    dataStore.put(cls, new ConcurrentHashMap<>());
+                });
         this.dictionary = dictionary;
     }
 
