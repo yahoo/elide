@@ -50,12 +50,17 @@ public class ImmediateCheckExpression implements Expression {
                                     final ExpressionResultCache cache) {
         this.check = check;
         this.requestScope = requestScope;
-        this.changeSpec = Optional.ofNullable(changeSpec);
         this.cache = cache;
         this.result = UNEVALUATED;
 
-        // UserCheck does not use resource
-        this.resource = (check instanceof UserCheck) ? null : resource;
+        // UserCheck does not use resource or changeSpec
+        if (check instanceof UserCheck) {
+            this.resource = null;
+            this.changeSpec = Optional.empty();
+        } else {
+            this.resource = resource;
+            this.changeSpec = Optional.ofNullable(changeSpec);
+        }
     }
 
     @Override
