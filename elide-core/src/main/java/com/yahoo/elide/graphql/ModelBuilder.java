@@ -17,6 +17,7 @@ import graphql.Scalars;
 import graphql.java.generator.BuildContext;
 import graphql.java.generator.DefaultBuildContext;
 import graphql.schema.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Constructs a GraphQL schema (query and mutation documents) from an Elide EntityDictionary.
  */
+@Slf4j
 public class ModelBuilder {
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
@@ -42,6 +44,7 @@ public class ModelBuilder {
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
+    private Set<Class<?>> excludedEntities;
 
     public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.dictionary = dictionary;
@@ -102,6 +105,11 @@ public class ModelBuilder {
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
+        excludedEntities = new HashSet<>();
+    }
+
+    public void withExcludedEntities(Set<Class<?>> excludedEntities) {
+        this.excludedEntities = excludedEntities;
     }
 
     /**
@@ -167,6 +175,8 @@ public class ModelBuilder {
             return queryObjectRegistry.get(entityClass);
         }
 
+        log.info("Building query object for {}", entityClass.getName());
+
         String entityName = dictionary.getJsonAliasFor(entityClass);
 
         GraphQLObjectType.Builder builder = newObject();
@@ -183,6 +193,15 @@ public class ModelBuilder {
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
+            if (excludedEntities.contains(attributeClass)) {
+                continue;
+            }
+
+            log.info("Building query attribute {} {} for entity {}",
+                    attribute,
+                    attributeClass.getName(),
+                    entityClass.getName());
+
             GraphQLType attributeType = buildContext.getOutputType(attributeClass);
 
             if (attributeType == null) {
@@ -198,6 +217,9 @@ public class ModelBuilder {
 
         for (String relationship : dictionary.getRelationships(entityClass)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
+            if (excludedEntities.contains(relationshipClass)) {
+                continue;
+            }
 
             String relationshipEntityName = dictionary.getJsonAliasFor(relationshipClass);
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
@@ -259,6 +281,8 @@ public class ModelBuilder {
      * @return The constructed input object stub.
      */
     private GraphQLInputType buildInputObjectStub(Class<?> clazz) {
+        log.info("Building input object for {}", clazz.getName());
+
         String entityName = dictionary.getJsonAliasFor(clazz);
 
         MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
@@ -272,6 +296,15 @@ public class ModelBuilder {
 
         for (String attribute : dictionary.getAttributes(clazz)) {
             Class<?> attributeClass = dictionary.getType(clazz, attribute);
+
+            if (excludedEntities.contains(attributeClass)) {
+                continue;
+            }
+
+            log.info("Building input attribute {} {} for entity {}",
+                    attribute,
+                    attributeClass.getName(),
+                    clazz.getName());
 
             GraphQLInputType attributeType = buildContext.getInputType(attributeClass);
 
@@ -304,7 +337,12 @@ public class ModelBuilder {
     private void resolveInputObjectRelationships() {
          inputObjectRegistry.forEach((clazz, inputObj) -> {
              for (String relationship : dictionary.getRelationships(clazz)) {
+                 log.info("Resolving relationship {} for {}", relationship, clazz.getName());
                  Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
+                 if (excludedEntities.contains(relationshipClass)) {
+                    continue;
+                 }
+
                  RelationshipType type = dictionary.getRelationshipType(clazz, relationship);
 
                  if (type.isToOne()) {

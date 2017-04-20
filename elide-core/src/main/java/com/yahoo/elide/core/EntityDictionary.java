@@ -953,6 +953,15 @@ public class EntityDictionary {
 
             for (String relationship : getRelationships(clazz)) {
                 Class<?> relationshipClass = getParameterizedType(clazz, relationship);
+
+                try {
+                    lookupEntityClass(relationshipClass);
+                } catch (IllegalArgumentException e) {
+
+                    /* The relationship hasn't been bound */
+                    continue;
+                }
+
                 if (!visited.contains(relationshipClass)) {
                     toVisit.add(relationshipClass);
                 }
