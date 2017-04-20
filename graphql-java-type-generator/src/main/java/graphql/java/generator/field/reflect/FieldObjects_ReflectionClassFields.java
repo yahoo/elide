@@ -35,6 +35,12 @@ public class FieldObjects_ReflectionClassFields implements FieldObjectsStrategy 
                 if (!Modifier.isPublic(field.getModifiers())) {
                     continue;
                 }
+
+                /* Skip static fields */
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+
                 if (field.isSynthetic()) {
                     //The compiler added this field.
                     continue;

@@ -1,6 +1,7 @@
 package graphql.java.generator.field.reflect;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +28,28 @@ public class FieldObjects_ReflectionClassMethods implements FieldObjectsStrategy
         
         List<Object> fieldObjects = new ArrayList<Object>();
         Method[] methods = clazz.getMethods();
+
+        methodloop:
         for (int index = 0; index < methods.length; ++index) {
             Method method = methods[index];
             if (method.isSynthetic()) {
                 continue;
             }
+
+            /* Skip static methods */
+            if (Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+
+            /* Skip any methods that take parameters that cycle */
+            if (method.getParameterCount() > 0) {
+                for (Class<?> parameterType : method.getParameterTypes()) {
+                    if (parameterType.equals(clazz)) {
+                        continue methodloop;
+                    }
+                }
+            }
+
             String methodName = method.getName();
             if (!(methodName.startsWith("get") || methodName.startsWith("is"))) {
                 continue;

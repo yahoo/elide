@@ -14,12 +14,16 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import graphql.Scalars;
+import graphql.java.generator.BuildContext;
+import graphql.java.generator.DefaultBuildContext;
 import graphql.schema.*;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.Currency;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -147,6 +151,18 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField("books").getType();
         Assert.assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+    @Test
+    public void testCurrency() {
+        BuildContext buildContext = DefaultBuildContext.newReflectionContext();
+        GraphQLType attributeType = buildContext.getOutputType(Currency.class);
+    }
+
+    @Test
+    public void testLocale() {
+        BuildContext buildContext = DefaultBuildContext.newReflectionContext();
+        GraphQLType attributeType = buildContext.getOutputType(Locale.class);
     }
 
     private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
