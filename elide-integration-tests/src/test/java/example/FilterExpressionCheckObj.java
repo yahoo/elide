@@ -8,9 +8,10 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.security.*;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.RequestScope;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,6 +19,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
