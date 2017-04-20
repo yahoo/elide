@@ -20,8 +20,8 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
         assertQueryEquals(graphQLRequest, expectedResponse);
 
         // Ensure we don't accidentally null values
-        graphQLRequest = "{ author(id: \"1\") { id, type, books { id } }";
-        expectedResponse = "{\"author\":[{\"id\":\"1\",\"type\":\"EXCLUSIVE\",\"books\":[{\"id\": 1},{\"id\": 2}]}";
+        graphQLRequest = "{ author(id: \"1\") { id, type, books { id } } }";
+        expectedResponse = "{\"author\":[{\"id\":\"1\",\"type\":\"EXCLUSIVE\",\"books\":[{\"id\":\"1\"},{\"id\":\"2\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
@@ -76,7 +76,7 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testNestedCollection() {
-
+        // TODO: Test nested update.
     }
 
     @Test

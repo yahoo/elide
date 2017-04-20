@@ -18,6 +18,7 @@ import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
@@ -27,12 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 import javax.ws.rs.WebApplicationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -181,10 +184,15 @@ public class PersistentResourceFetcher implements DataFetcher {
         RequestScope requestScope = request.requestScope;
 
         Collection<PersistentResource> objectsToUpdate;
-        if (source instanceof PersistentResource) {
+        Class entityClass;
+        boolean isRoot = !(source instanceof PersistentResource);
+
+        if (!isRoot) {
             PersistentResource resource = (PersistentResource) source;
+            entityClass = dictionary
+                    .getParameterizedType(resource.getObject(), field.getName());
             // NOTE: Currently only handles _single_ object update
-            String dataId = (id != null) ? id : field.getArguments().stream()
+            Optional<String> dataId = (id != null) ? Optional.of(id) : field.getArguments().stream()
                     .filter(arg -> ARGUMENT_DATA.equalsIgnoreCase(arg.getName()))
                     .findFirst()
                     .map(data -> {
@@ -195,25 +203,39 @@ public class PersistentResourceFetcher implements DataFetcher {
                                     .filter(f -> "id".equalsIgnoreCase(f.getName()))
                                     .findFirst()
                                     .map(f -> ((StringValue) f.getValue()).getValue())
-                                    .orElse(null);
+                                    .orElseGet(() -> {
+                                        String uuid = UUID.randomUUID().toString();
+                                        PersistentResource.createObject(resource, entityClass, requestScope, uuid);
+                                        return uuid;
+                                    });
                         }
-                        return "";
-                    })
-                    .orElse(null);
-            objectsToUpdate = (dataId == null)
-                             ? resource.getRelationCheckedFiltered(field.getName())
-                             : Collections.singleton(resource.getRelation(field.getName(), dataId));
+                        return null;
+                    });
+            objectsToUpdate = dataId
+                    .map(dId -> Collections.singleton(resource.getRelation(field.getName(), dId)))
+                    .orElseGet(() -> resource.getRelationCheckedFiltered(field.getName()));
         } else {
             objectsToUpdate = (id != null)
                              ? Collections.singleton(load(field.getName(), id, requestScope))
                              : loadCollectionOf(field.getName(), requestScope);
+            entityClass = dictionary.getEntityClass(field.getName());
         }
 
         if (request.outputType instanceof GraphQLList) {
             GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
             List<PersistentResource> container = new ArrayList<>();
             for (Map<String, Object> input : request.data) {
-                Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
+                // Find the id's that we're trying to update
+                Set<String> objectIds = input.entrySet().stream()
+                        .filter(entry -> ARGUMENT_ID.equalsIgnoreCase(entry.getKey()))
+                        .map(entry -> (String) entry.getValue())
+                        .collect(Collectors.toSet());
+                if (isRoot) {
+                    // Delete all the things we don't want to keep...
+                    PersistentResource.loadRecords(entityClass, requestScope).stream()
+                            .filter(p -> !objectIds.contains(p.getId()))
+                            .forEach(PersistentResource::deleteResource);
+                }
                 input.entrySet().stream()
                         .forEach(entry -> {
                             String fieldName = entry.getKey();
@@ -277,7 +299,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             for (Map<String, Object> input : request.data) {
                 Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
                 // TODO: See above comment about UUID's.
-                PersistentResource toCreate = PersistentResource.createObject(entityClass, request.requestScope,
+                PersistentResource toCreate = PersistentResource.createObject(null, entityClass, request.requestScope,
                         uuid);
                 input.entrySet().stream()
                         .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
@@ -296,14 +318,15 @@ public class PersistentResourceFetcher implements DataFetcher {
             if (request.id == null) {
                 return loadCollectionOf(entityType, request.requestScope);
             }
-            return Collections.singletonList(load(entityType, request.id, request.requestScope));
+            return Arrays.asList(load(entityType, request.id, request.requestScope));
 
         } else if (request.outputType instanceof GraphQLObjectType) {
             return load(request.outputType.getName(), request.id, request.requestScope);
 
         } else if (request.outputType instanceof GraphQLScalarType) {
             return fetchProperty(request);
-
+        } else if (request.outputType instanceof GraphQLEnumType) {
+            return fetchProperty(request);
         }
 
         throw new IllegalStateException("WTF is a " + request.outputType.getClass().getName() + " mate?");
