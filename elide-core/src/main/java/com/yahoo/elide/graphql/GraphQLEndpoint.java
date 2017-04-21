@@ -6,6 +6,8 @@
 package com.yahoo.elide.graphql;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -38,7 +41,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Singleton
-@Produces(MediaType.TEXT_PLAIN)
+@Produces(MediaType.APPLICATION_JSON)
 @Path("/graphQLx")
 public class GraphQLEndpoint {
 
@@ -56,7 +59,6 @@ public class GraphQLEndpoint {
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
-        throw new RuntimeException();
     }
 
     /**
@@ -67,17 +69,23 @@ public class GraphQLEndpoint {
      * @return response
      */
     @POST
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
             @Context SecurityContext securityContext,
             String graphQLDocument) {
         String path = "/";
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+            ObjectMapper mapper = elide.getMapper().getObjectMapper();
+            JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
             RequestScope requestScope = new RequestScope(path, null, tx, user, null, elide.getElideSettings());
-            ExecutionResult result = api.execute(graphQLDocument, requestScope);
-            return Response.ok(elide.getMapper().getObjectMapper().writeValueAsString(result.getData())).build();
+            ExecutionResult result = api.execute(
+                    jsonDocument.get("query").asText(),
+                    jsonDocument.get("operationName").asText(),
+                    requestScope,
+                    mapper.convertValue(jsonDocument.get("variables"), Map.class));
+            return Response.ok(mapper.writeValueAsString(result.getData())).build();
         } catch (JsonProcessingException e) {
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
