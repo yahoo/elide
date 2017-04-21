@@ -3,7 +3,7 @@
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
-##What Is Elide?
+## What Is Elide?
 
 Elide is a Java library that lets you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API). 
 Elide is designed to quickly build and deploy **production quality** web services that expose data models as services.  Elide provides:
@@ -16,11 +16,11 @@ Elide is designed to quickly build and deploy **production quality** web service
   7. **Test** Elide includes a test framework that explores the full surface of the API looking for security vulnerabilities.
   8. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.  Alternatively, Elide can be used with any [JSON API client library](http://jsonapi.org/implementations/).
 
-##Documentation
+## Documentation
 
 More information about Elide can be found at [elide.io](http://elide.io/).
 
-##Elide on Maven
+## Elide on Maven
 
 To integrate Elide into your project, simply include elide-core into your project's pom.xml:
 
@@ -43,9 +43,9 @@ Additionally, if you do not plan to write your own data store, select the approp
 
 ## Development
 
-If you are contributing to Elide using IDE, such as IntelliJ, make sure to install [Lombok](https://projectlombok.org/) plugin.
+If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
-##Tutorials
+## Tutorials
 [Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
 
 [Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
@@ -58,6 +58,6 @@ If you are contributing to Elide using IDE, such as IntelliJ, make sure to insta
 
 [Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
 
-##License
+## License
 
 The use and distribution terms for this software are covered by the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html).
