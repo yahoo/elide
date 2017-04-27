@@ -3,14 +3,16 @@
 
 ![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
 
+*Read this in other languages: [中文](./README-zh.md).*
+
 ## What Is Elide?
 
-Elide is a Java library that lets you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API). 
+Elide is a Java library that lets you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
 Elide is designed to quickly build and deploy **production quality** web services that expose data models as services.  Elide provides:
   1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
   2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.
   3. **Atomic Requests** All requests to the library (including the patch extension) can be embedded in transactions to ensure operational integrity.
-  4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data. 
+  4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data.
   5. **Audit** Logging can be customized for any operation on any entity.
   6. **Extension** Elide allows the ability to customize business logic for any CRUD operation on the model.  Any persistence backend can be skinned with JSON-API by wiring in a JPA provider or by implementing a custom `DataStore`.
   7. **Test** Elide includes a test framework that explores the full surface of the API looking for security vulnerabilities.
