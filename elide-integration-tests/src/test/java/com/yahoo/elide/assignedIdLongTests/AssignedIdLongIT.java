@@ -16,8 +16,6 @@ import static com.jayway.restassured.RestAssured.given;
 public class AssignedIdLongIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
     public AssignedIdLongIT() {
         super(AssignedIdLongIntegrationTestApplicationResourceConfig.class);
     }

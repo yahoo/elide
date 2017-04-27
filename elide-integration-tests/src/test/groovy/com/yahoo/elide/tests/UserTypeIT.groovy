@@ -38,16 +38,16 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
         """;
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body(person)
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         String resp = given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/1")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().body().asString();
@@ -98,24 +98,24 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
         """;
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body(originalPerson)
             .post("/person")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body(updatedPerson)
             .patch("/person/2")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
 
         String resp = given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/2")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().body().asString();
@@ -126,8 +126,8 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
     public void testUserTypeMissingUserTypeField() {
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body( """
             {
                 "data": {
@@ -144,8 +144,8 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             .statusCode(HttpStatus.SC_CREATED);
 
         String resp = given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/3")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().body().asString();
@@ -167,8 +167,8 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
     public void testUserTypeMissingUserTypeProperties() {
 
         given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .body( """
             {
                 "data": {
@@ -191,8 +191,8 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             .statusCode(HttpStatus.SC_CREATED);
 
         String resp = given()
-            .contentType("application/vnd.api+json")
-            .accept("application/vnd.api+json")
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/4")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().body().asString();

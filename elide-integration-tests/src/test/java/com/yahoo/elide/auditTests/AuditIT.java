@@ -22,8 +22,6 @@ public class AuditIT extends AbstractIntegrationTestInitializer {
     private final InMemoryLogger logger = AuditIntegrationTestApplicationResourceConfig.LOGGER;
     private final JsonParser jsonParser = new JsonParser();
 
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
     public AuditIT() {
         super(AuditIntegrationTestApplicationResourceConfig.class);
     }

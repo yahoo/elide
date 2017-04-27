@@ -89,7 +89,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=redisActions")
                 .then()
                 .statusCode(200)
@@ -103,14 +103,14 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/1")
                 .then()
                 .statusCode(200)
                 .extract().body().asString();
 
         given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/redisActions/3")
                 .then()
                 .statusCode(200)
@@ -124,7 +124,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToMany() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
                 .statusCode(404)
@@ -134,7 +134,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreToOne() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=specialAction")
                 .then()
                 .statusCode(200)
@@ -148,14 +148,14 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToOne() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/specialAction")
                 .then()
                 .statusCode(200)
                 .extract().body().asString();
 
         given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/specialAction")
                 .then()
                 .statusCode(200)
@@ -169,7 +169,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToOne() {
         String result = given()
-                .accept("application/vnd.api+json")
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
                 .statusCode(404)

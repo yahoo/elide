@@ -32,8 +32,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     public void testUnshareableForbiddenAccess() {
         // Create container
         def container = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -46,8 +46,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Create unshareable
         def unshareable = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -61,8 +61,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to add unshareable to container's unshareables (unshareable is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -77,8 +77,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to replace container's unshareables collection (unshareable is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -93,8 +93,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to update unshareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -109,8 +109,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to set unshareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -128,8 +128,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     public void testShareableForbiddenAccess() {
         // Create container
         def container = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -142,8 +142,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Create shareable
         def shareable = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -157,8 +157,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to update shareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -173,8 +173,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Fail to set shareable's container (container is not shareable)
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -192,8 +192,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     public void testShareablePost() {
         // Create container
         def container = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -206,8 +206,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Create shareable
         def shareable = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -221,8 +221,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Add shareable to container's shareables
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -236,8 +236,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
 
         def result = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/container/${containerJson['data']['id'].asText()}")
         result.then().statusCode(HttpStatus.SC_OK)
 
@@ -249,8 +249,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     public void testShareablePatch() {
         // Create container
         def container = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -263,8 +263,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Create shareable
         def shareable = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body('''
                     {
                       "data": {
@@ -278,8 +278,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
 
         // Add shareable to container's shareables
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                       "data": {
@@ -293,8 +293,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
 
         def result = given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .get("/container/${containerJson['data']['id'].asText()}")
         result.then().statusCode(HttpStatus.SC_OK)
 
@@ -305,8 +305,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testCreateContainerAndUnshareables() {
         def patchResponse = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("""
                     [
                       {
@@ -367,8 +367,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     @Test
     public void testCreateContainerAndShareables() {
         def patchResponse = given()
-                .contentType("application/vnd.api+json; ext=jsonpatch")
-                .accept("application/vnd.api+json; ext=jsonpatch")
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body("""
                     [
                       {
@@ -430,8 +430,8 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     @Test(priority = 3)
     public void addUnsharedRelationship() {
         given()
-                .contentType("application/vnd.api+json")
-                .accept("application/vnd.api+json")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
                 .body("""
                     {
                         "data":{

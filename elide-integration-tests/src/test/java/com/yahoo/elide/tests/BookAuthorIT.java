@@ -17,8 +17,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 
 public class BookAuthorIT extends AbstractIntegrationTestInitializer {
-    private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
     private static final String ATTRIBUTES = "attributes";
     private static final String RELATIONSHIPS = "relationships";
     private static final String INCLUDED = "included";
