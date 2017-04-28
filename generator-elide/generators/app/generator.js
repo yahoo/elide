@@ -1,8 +1,16 @@
+/*
+Copyright 2017, Yahoo Inc.
+
+Licensed under the Apache License, Version 2.0
+
+The use and distribution terms for this software are covered by the Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html.
+*/
+
 const generateExampleProject = (yo, groupId) => {
-  var pomObj = { artifactId: 'elide-blog-example', 
-    groupId: 'com.yahoo.elide', 
-    projectName: 'Elide Example: Hibernate5 API with Security', 
-    version: '3.0.5-SNAPSHOT', 
+  var pomObj = { artifactId: 'elide-blog-example',
+    groupId: 'com.yahoo.elide',
+    projectName: 'Elide Example: Hibernate5 API with Security',
+    version: '3.0.5-SNAPSHOT',
     description: 'Elide example using javax.persistence, MySQL and Elide Security'
   };
   generateNewProject(yo, pomObj);

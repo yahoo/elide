@@ -1,3 +1,11 @@
+/*
+Copyright 2017, Yahoo Inc.
+
+Licensed under the Apache License, Version 2.0
+
+The use and distribution terms for this software are covered by the Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html.
+*/
+
 const generator = require('./generator');
 
 const srcJavaPath = 'src/main/java';
@@ -9,7 +17,6 @@ const choices = [
   'Float',
   'Double',
   'Long',
-  'Long long',
   'Boolean',
   'Char'
 ];

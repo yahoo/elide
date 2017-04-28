@@ -1,3 +1,11 @@
+/*
+Copyright 2017, Yahoo Inc.
+
+Licensed under the Apache License, Version 2.0
+
+The use and distribution terms for this software are covered by the Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html.
+*/
+
 const showInfo = () => {
   const logo = `
  _____ _ _   _        _____         _
