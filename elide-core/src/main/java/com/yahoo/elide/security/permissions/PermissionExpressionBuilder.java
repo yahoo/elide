@@ -179,7 +179,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                          final Class<A> annotationClass,
                                                                          final RequestScope requestScope) {
 
-        final Function<Check, Expression> leafBuilderFn = getExpressionFor(null, null);
+        final Function<Check, Expression> leafBuilderFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
 
         return buildAnyFieldExpression(
                         new PermissionCondition(annotationClass, resourceClass), leafBuilderFn, requestScope);
@@ -189,7 +190,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return (check) -> new CheckExpression(
                 check,
                 resource,
-                resource.getRequestScope(),
+                (resource != null) ? resource.getRequestScope() : null,
                 changeSpec,
                 cache
         );
