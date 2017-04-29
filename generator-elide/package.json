@@ -4,7 +4,7 @@
   "description": "This is a generator for the elide boot feature",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shaneneary/generator-elide.git"
+    "url": "git+https://github.com/yahoo/elide.git"
   },
   "keywords": [
     "yeoman-generator"
@@ -15,9 +15,9 @@
   "author": "cs397",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/shaneneary/generator-elide/issues"
+    "url": "https://github.com/yahoo/elide/issues"
   },
-  "homepage": "https://github.com/shaneneary/generator-elide",
+  "homepage": "https://github.com/yahoo/elide",
   "dependencies": {
     "yeoman-generator": "^1.1.1"
   },
