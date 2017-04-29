@@ -278,7 +278,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             ExpressionResult result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
             if (result == FAIL) {
                 ForbiddenAccessException e = new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName(),
-                        expression);
+                        expression, Expression.EvaluationMode.ALL_CHECKS);
                 log.trace("{}", e.getLoggedMessage());
                 throw e;
             }
@@ -320,7 +320,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     if (result == FAIL) {
                         ForbiddenAccessException e = new ForbiddenAccessException(
                                 annotationClass.getSimpleName(),
-                                expression);
+                                expression,
+                                Expression.EvaluationMode.ALL_CHECKS);
                         log.trace("{}", e.getLoggedMessage());
                         throw e;
                     }
@@ -330,7 +331,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
             return DEFERRED;
         } else if (result == FAIL) {
-            ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(), expression);
+            ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(),
+                    expression, mode);
             log.trace("{}", e.getLoggedMessage());
             throw e;
         }

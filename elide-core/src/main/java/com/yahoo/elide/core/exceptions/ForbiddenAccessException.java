@@ -20,20 +20,24 @@ public class ForbiddenAccessException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     @Getter private final Optional<Expression> expression;
+    @Getter private final Optional<Expression.EvaluationMode> evaluationMode;
 
     public ForbiddenAccessException(String message) {
         super(HttpStatus.SC_FORBIDDEN, null, message);
         this.expression = Optional.empty();
+        this.evaluationMode = Optional.empty();
     }
 
-    public ForbiddenAccessException(String message, Expression expression) {
+    public ForbiddenAccessException(String message, Expression expression, Expression.EvaluationMode mode) {
         super(HttpStatus.SC_FORBIDDEN, null, message);
         this.expression = Optional.of(expression);
+        this.evaluationMode = Optional.of(mode);
     }
 
     public String getLoggedMessage() {
-        return String.format("ForbiddenAccessException : Message[%s] Expression [%s]",
+        return String.format("ForbiddenAccessException : Message[%s] Mode[%s] Expression [%s]",
                 getVerboseMessage(),
+                getEvaluationMode(),
                 getExpression());
     }
 }
