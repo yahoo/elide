@@ -75,6 +75,5 @@ public class Post {
 
     public void setMe(long me) {
         this.me = me;
-        System.out.println(me);
     }
 }
