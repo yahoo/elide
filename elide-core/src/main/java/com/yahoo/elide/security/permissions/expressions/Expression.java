@@ -15,10 +15,13 @@ import static org.fusesource.jansi.Ansi.ansi;
  */
 public interface Expression {
 
+    /**
+     * Different modes of evaluating security expressions
+     */
     public enum EvaluationMode {
-        USER_CHECKS_ONLY,
-        INLINE_CHECKS_ONLY,
-        ALL_CHECKS
+        USER_CHECKS_ONLY,   /* Only the user checks are evaluated */
+        INLINE_CHECKS_ONLY, /* Only the inline checks are evaluated */
+        ALL_CHECKS          /* Everything is evaluated */
     }
 
     /**

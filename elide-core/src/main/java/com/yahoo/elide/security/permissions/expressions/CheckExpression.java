@@ -20,6 +20,9 @@ import java.util.Optional;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.*;
 
+/**
+ * An expression in the security evaluation AST that wraps an actual check.
+ */
 @Slf4j
 public class CheckExpression implements Expression {
 

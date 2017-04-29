@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -33,7 +33,7 @@ public class SharePermissionExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
+    public ExpressionResult evaluate(EvaluationMode mode) {
         PersistentResource resource = condition.getResource().get();
         EntityDictionary dictionary = ((com.yahoo.elide.core.PersistentResource) resource).getDictionary();
 
@@ -41,7 +41,7 @@ public class SharePermissionExpression implements Expression {
             return FAIL;
         }
 
-        return entityExpression.get().evaluate();
+        return entityExpression.get().evaluate(mode);
     }
 
     @Override

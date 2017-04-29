@@ -18,8 +18,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.expressions.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;

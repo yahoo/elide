@@ -53,39 +53,39 @@ public class PermissionExpressionVisitorTest {
     @Test
     public void testAndExpression() {
         Expression expression = getExpressionForPermission(ReadPermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     @Test
     public void testOrExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     @Test
     public void testNotExpression() {
         Expression expression = getExpressionForPermission(DeletePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     @Test
     public void testComplexExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     @Test
     public void testComplexModelCreate() {
         Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     @Test
     public void testNamesWithSpaces() {
         Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
         Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(), ExpressionResult.PASS);
-        Assert.assertEquals(expression2.evaluate(), ExpressionResult.PASS);
+        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        Assert.assertEquals(expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
@@ -137,7 +137,7 @@ public class PermissionExpressionVisitorTest {
         Check check;
 
         @Override
-        public ExpressionResult evaluate() {
+        public ExpressionResult evaluate(EvaluationMode ignored) {
             boolean result;
             if (check instanceof UserCheck) {
                 result = ((UserCheck) check).ok(null);
