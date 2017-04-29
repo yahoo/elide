@@ -20,6 +20,7 @@ public class TestCheckMappings {
                 {
                     put("allow all", Role.ALL.class);
                     put("deny all", Role.NONE.class);
+                    put("adminRoleCheck", User.AdminRoleCheck.class);
                     put("initCheck", Child.InitCheck.class);
                     put("initCheckOp", Child.InitCheckOp.class);
                     put("initCheckFilter", Child.InitCheckFilter.class);
