@@ -303,7 +303,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         if (result == DEFERRED) {
             if (expression != null) {
-                if (isInlineOnlyCheck(annotationClass)) {
+                if (isInlineOnlyCheck(annotationClass) && mode != Expression.EvaluationMode.USER_CHECKS_ONLY) {
                     // Force evaluation of checks that can only be executed inline.
                     result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
                     if (result == FAIL) {
