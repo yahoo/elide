@@ -324,7 +324,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                         log.trace("{}", e.getLoggedMessage());
                         throw e;
                     }
-                } else {
+                } else if (mode == Expression.EvaluationMode.INLINE_CHECKS_ONLY) {
                     commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
                 }
             }
