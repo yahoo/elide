@@ -146,7 +146,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 changeSpec
         );
 
-        ExpressionResult expressionResult = this.checkUserPermissions(resource, annotationClass, field);
+        ExpressionResult expressionResult = this.checkUserPermissions(resource.getResourceClass(),
+                annotationClass, expression);
         if (expressionResult == PASS) {
             return expressionResult;
         }
