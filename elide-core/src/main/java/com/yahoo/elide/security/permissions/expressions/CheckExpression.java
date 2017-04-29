@@ -80,7 +80,7 @@ public class CheckExpression implements Expression {
         // If we have a valid change spec, do not cache the result or look for a cached result.
         if (changeSpec.isPresent()) {
             log.trace("-- Check has changespec: {}", changeSpec);
-            ExpressionResult result = computeCheck();
+            result = computeCheck();
             log.trace("-- Check returned with result: {}", result);
             return result;
         }
@@ -89,7 +89,6 @@ public class CheckExpression implements Expression {
         log.trace("-- Check does NOT have changespec");
         Class<? extends Check> checkClass = check.getClass();
 
-        final ExpressionResult result;
         if (cache.hasStoredResultFor(checkClass, resource)) {
             result = cache.getResultFor(checkClass, resource);
         } else {
@@ -99,7 +98,6 @@ public class CheckExpression implements Expression {
         }
 
         log.trace("-- Check returned with result: {}", result);
-
         return result;
     }
 
