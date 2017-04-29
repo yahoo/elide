@@ -69,7 +69,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = getExpressionFor(resource, changeSpec);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                changeSpec,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> buildExpressionFn =
                 (checkFn) -> buildSpecificFieldExpression(
@@ -96,7 +102,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return unshared;
         }
 
-        final Function<Check, Expression> leafBuilderFn = getExpressionFor(resource, null);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                null,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> {
@@ -128,7 +140,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = getExpressionFor(resource, changeSpec);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                changeSpec,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> buildAnyFieldExpression(
@@ -159,7 +177,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = getExpressionFor(resource, null);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                null,
+                cache
+        );
 
         return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resource, field), leafBuilderFn);
     }
@@ -184,16 +208,6 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         return buildAnyFieldExpression(
                         new PermissionCondition(annotationClass, resourceClass), leafBuilderFn, requestScope);
-    }
-
-    private Function<Check, Expression> getExpressionFor(PersistentResource resource, ChangeSpec changeSpec) {
-        return (check) -> new CheckExpression(
-                check,
-                resource,
-                (resource != null) ? resource.getRequestScope() : null,
-                changeSpec,
-                cache
-        );
     }
 
     /**
