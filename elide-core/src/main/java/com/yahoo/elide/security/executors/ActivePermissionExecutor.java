@@ -313,21 +313,30 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         }
 
         if (result == DEFERRED) {
-            if (expression != null) {
-                if (isInlineOnlyCheck(annotationClass) && mode != Expression.EvaluationMode.USER_CHECKS_ONLY) {
-                    // Force evaluation of checks that can only be executed inline.
-                    result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
-                    if (result == FAIL) {
-                        ForbiddenAccessException e = new ForbiddenAccessException(
-                                annotationClass.getSimpleName(),
-                                expression,
-                                Expression.EvaluationMode.ALL_CHECKS);
-                        log.trace("{}", e.getLoggedMessage());
-                        throw e;
-                    }
-                } else if (mode == Expression.EvaluationMode.INLINE_CHECKS_ONLY) {
-                    commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+
+            /*
+             * Checking user checks only are an optimization step.  We don't need to defer these checks because
+             * INLINE_ONLY checks will be evaluated later.  Also, the user checks don't have
+             * the correct context to evaluate as COMMIT checks later.
+             */
+            if (mode == Expression.EvaluationMode.USER_CHECKS_ONLY) {
+                return DEFERRED;
+            }
+
+
+            if (isInlineOnlyCheck(annotationClass)) {
+                // Force evaluation of checks that can only be executed inline.
+                result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
+                if (result == FAIL) {
+                    ForbiddenAccessException e = new ForbiddenAccessException(
+                        annotationClass.getSimpleName(),
+                        expression,
+                        Expression.EvaluationMode.ALL_CHECKS);
+                    log.trace("{}", e.getLoggedMessage());
+                    throw e;
                 }
+            } else {
+                commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
             }
             return DEFERRED;
         } else if (result == FAIL) {
