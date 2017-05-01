@@ -35,7 +35,7 @@ public class ForbiddenAccessException extends HttpStatusException {
     }
 
     public String getLoggedMessage() {
-        return String.format("ForbiddenAccessException: Message=%s\tMode=%s\tExpression=[%s]", 
-                             getVerboseMessage(), getEvaluationMode(), getExpression());    
+        return String.format("ForbiddenAccessException: Message=%s\tMode=%s\tExpression=[%s]",
+                             getVerboseMessage(), getEvaluationMode(), getExpression());
     }
 }
