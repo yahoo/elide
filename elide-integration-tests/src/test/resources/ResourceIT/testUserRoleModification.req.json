@@ -1,0 +1,9 @@
+{
+    "data":{
+        "type":"user",
+        "id":"1",
+        "attributes":{
+            "role":1
+        }
+    }
+}
