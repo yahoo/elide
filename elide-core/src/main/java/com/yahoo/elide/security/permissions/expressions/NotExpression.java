@@ -29,8 +29,8 @@ public class NotExpression implements Expression {
 
 
     @Override
-    public ExpressionResult evaluate() {
-        ExpressionResult result = logical.evaluate();
+    public ExpressionResult evaluate(EvaluationMode mode) {
+        ExpressionResult result = logical.evaluate(mode);
 
         if (result == FAIL) {
             return PASS;

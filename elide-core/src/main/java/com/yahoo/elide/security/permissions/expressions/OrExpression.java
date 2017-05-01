@@ -32,15 +32,15 @@ public class OrExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
-        ExpressionResult leftResult = left.evaluate();
+    public ExpressionResult evaluate(EvaluationMode mode) {
+        ExpressionResult leftResult = left.evaluate(mode);
 
         // Short-circuit
         if (leftResult == PASS) {
             return PASS;
         }
 
-        ExpressionResult rightResult = (right == null) ? leftResult : right.evaluate();
+        ExpressionResult rightResult = (right == null) ? leftResult : right.evaluate(mode);
 
         if (leftResult == FAIL && rightResult == FAIL) {
             return leftResult;

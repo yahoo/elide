@@ -32,14 +32,14 @@ public class AnyFieldExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
-        ExpressionResult fieldResult = fieldExpression.evaluate();
+    public ExpressionResult evaluate(EvaluationMode mode) {
+        ExpressionResult fieldResult = fieldExpression.evaluate(mode);
 
         if (fieldResult != FAIL) {
             return fieldResult;
         }
 
-        ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate();
+        ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
         return entityResult;
     }
 

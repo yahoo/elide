@@ -14,12 +14,22 @@ import static org.fusesource.jansi.Ansi.ansi;
  * Interface describing an expression.
  */
 public interface Expression {
+
+    /**
+     * Different modes of evaluating security expressions
+     */
+    public enum EvaluationMode {
+        USER_CHECKS_ONLY,   /* Only the user checks are evaluated */
+        INLINE_CHECKS_ONLY, /* Only the inline checks are evaluated */
+        ALL_CHECKS          /* Everything is evaluated */
+    }
+
     /**
      * Evaluate an expression.
      *
      * @return The result of the fully evaluated expression.
      */
-    ExpressionResult evaluate();
+    ExpressionResult evaluate(EvaluationMode mode);
 
     /**
      * Static Expressions that return PASS or FAIL.
@@ -27,7 +37,7 @@ public interface Expression {
     public static class Results {
         public static final Expression SUCCESS = new Expression() {
             @Override
-            public ExpressionResult evaluate() {
+            public ExpressionResult evaluate(EvaluationMode ignored) {
                 return ExpressionResult.PASS;
             }
 
@@ -38,7 +48,7 @@ public interface Expression {
         };
         public static final Expression FAILURE = new Expression() {
             @Override
-            public ExpressionResult evaluate() {
+            public ExpressionResult evaluate(EvaluationMode ignored) {
                 return ExpressionResult.FAIL;
             }
 

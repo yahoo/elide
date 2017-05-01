@@ -17,6 +17,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
+import com.yahoo.elide.security.permissions.expressions.Expression;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -57,20 +58,20 @@ public class PermissionExpressionBuilderTest {
 
         PersistentResource resource = newResource(new Model(), Model.class);
 
-        PermissionExpressionBuilder.Expressions expressions = builder.buildAnyFieldExpressions(
+        Expression expression = builder.buildAnyFieldExpressions(
                 resource,
                 ReadPermission.class,
                 (ChangeSpec) null);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
                         + "FOR EXPRESSION [FIELDS(\u001B[31mFAILURE\u001B[m) OR ENTITY(((user has all access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)) AND ((user has no access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
-        expressions.getCommitExpression().evaluate();
+        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
                         + "FOR EXPRESSION [FIELDS(\u001B[31mFAILURE\u001B[m) OR ENTITY(((user has all access "
                         + "\u001B[32mPASSED\u001B[m)) AND ((user has no access "
@@ -93,22 +94,22 @@ public class PermissionExpressionBuilderTest {
         PersistentResource resource = newResource(new Model(), Model.class);
         ChangeSpec changes = new ChangeSpec(resource, "foo", 1, 2);
 
-        PermissionExpressionBuilder.Expressions expressions = builder.buildSpecificFieldExpressions(
+        Expression expression = builder.buildSpecificFieldExpressions(
                 resource,
                 UpdatePermission.class,
                 "foo",
                 changes);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null} WITH CHANGES ChangeSpec { "
                         + "resource=PersistentResource{type=model, id=null}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)) OR ((user has no access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
 
-        expressions.getCommitExpression().evaluate();
+        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null} WITH CHANGES ChangeSpec { "
                         + "resource=PersistentResource{type=model, id=null}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
@@ -129,16 +130,16 @@ public class PermissionExpressionBuilderTest {
 
         PersistentResource resource = newResource(new Model(), Model.class);
 
-        PermissionExpressionBuilder.Expressions expressions = builder.buildSharePermissionExpressions(resource);
+        Expression expression = builder.buildSharePermissionExpressions(resource);
 
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION [SHARE "
                         + "ENTITY((user has no access \u001B[34mWAS UNEVALUATED\u001B[m))]");
 
-        expressions.getCommitExpression().evaluate();
+        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION [SHARE "
                         + "ENTITY((user has no access \u001B[31mFAILED\u001B[m))]");
 
@@ -155,16 +156,15 @@ public class PermissionExpressionBuilderTest {
 
         PersistentResource resource = newResource(new Model(), Model.class);
 
-        PermissionExpressionBuilder.Expressions expressions = builder.buildSharePermissionExpressions(resource);
+        Expression expression = builder.buildSharePermissionExpressions(resource);
 
-
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION "
                         + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
 
-        expressions.getCommitExpression().evaluate();
+        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
-        Assert.assertEquals(expressions.getCommitExpression().toString(),
+        Assert.assertEquals(expression.toString(),
                 "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION "
                         + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
     }

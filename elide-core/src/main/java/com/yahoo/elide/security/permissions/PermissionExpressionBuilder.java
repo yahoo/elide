@@ -18,15 +18,11 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
-import com.yahoo.elide.security.permissions.expressions.DeferredCheckExpression;
+import com.yahoo.elide.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-import com.yahoo.elide.security.permissions.expressions.ImmediateCheckExpression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
-import com.yahoo.elide.security.permissions.expressions.UserCheckOnlyExpression;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -45,10 +41,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     private final EntityDictionary entityDictionary;
     private final ExpressionResultCache cache;
 
-    private static final Expressions SUCCESSFUL_EXPRESSIONS = new Expressions(
-            OrExpression.SUCCESSFUL_EXPRESSION,
-            OrExpression.SUCCESSFUL_EXPRESSION
-    );
+    private static final Expression SUCCESSFUL_EXPRESSION = OrExpression.SUCCESSFUL_EXPRESSION;
 
     /**
      * Constructor.
@@ -71,18 +64,23 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             Type parameter
      * @return Commit and operation expressions
      */
-    public <A extends Annotation> Expressions buildSpecificFieldExpressions(final PersistentResource resource,
-                                                                            final Class<A> annotationClass,
-                                                                            final String field,
-                                                                            final ChangeSpec changeSpec) {
+    public <A extends Annotation> Expression buildSpecificFieldExpressions(final PersistentResource resource,
+                                                                           final Class<A> annotationClass,
+                                                                           final String field,
+                                                                           final ChangeSpec changeSpec) {
 
         Class<?> resourceClass = resource.getResourceClass();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSIONS;
+            return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> deferredCheckFn = getDeferredExpressionFor(resource, changeSpec);
-        final Function<Check, Expression> immediateCheckFn = getImmediateExpressionFor(resource, changeSpec);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                changeSpec,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> buildExpressionFn =
                 (checkFn) -> buildSpecificFieldExpression(
@@ -90,11 +88,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                         checkFn
                 );
 
-        return new Expressions(
-                buildExpressionFn.apply(deferredCheckFn),
-                buildExpressionFn.apply(immediateCheckFn)
-        );
-
+        return buildExpressionFn.apply(leafBuilderFn);
     }
 
     /**
@@ -103,18 +97,23 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param resource        Resource
      * @return Commit and operation expressions
      */
-    public <A extends Annotation> Expressions buildSharePermissionExpressions(final PersistentResource resource) {
+    public <A extends Annotation> Expression buildSharePermissionExpressions(final PersistentResource resource) {
 
         PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);
 
         Class<?> resourceClass = resource.getResourceClass();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, SharePermission.class)) {
             SharePermissionExpression unshared = new SharePermissionExpression(condition);
-            return new Expressions(unshared, unshared);
+            return unshared;
         }
 
-        final Function<Check, Expression> deferredCheckFn = getDeferredExpressionFor(resource, null);
-        final Function<Check, Expression> immediateCheckFn = getImmediateExpressionFor(resource, null);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                null,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> {
@@ -124,10 +123,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                     return new SharePermissionExpression(condition, entityExpression);
                 };
 
-        return new Expressions(
-                expressionFunction.apply(deferredCheckFn),
-                expressionFunction.apply(immediateCheckFn)
-        );
+        return expressionFunction.apply(leafBuilderFn);
     }
 
     /**
@@ -139,18 +135,23 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             type parameter
      * @return Commit and operation expressions
      */
-    public <A extends Annotation> Expressions buildAnyFieldExpressions(final PersistentResource resource,
+    public <A extends Annotation> Expression buildAnyFieldExpressions(final PersistentResource resource,
                                                                        final Class<A> annotationClass,
                                                                        final ChangeSpec changeSpec) {
 
 
         Class<?> resourceClass = resource.getResourceClass();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSIONS;
+            return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> deferredCheckFn = getDeferredExpressionFor(resource, changeSpec);
-        final Function<Check, Expression> immediateCheckFn = getImmediateExpressionFor(resource, changeSpec);
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                changeSpec,
+                cache
+        );
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> buildAnyFieldExpression(
@@ -159,10 +160,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                         (RequestScope) resource.getRequestScope()
                 );
 
-        return new Expressions(
-                expressionFunction.apply(deferredCheckFn),
-                expressionFunction.apply(immediateCheckFn)
-        );
+        return expressionFunction.apply(leafBuilderFn);
     }
 
     /**
@@ -176,27 +174,23 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             type parameter
      * @return User check expression to evaluate
      */
-    public <A extends Annotation> Expressions buildUserCheckFieldExpressions(final PersistentResource resource,
+    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final PersistentResource resource,
                                                                              final Class<A> annotationClass,
                                                                              final String field) {
         Class<?> resourceClass = resource.getResourceClass();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSIONS;
+            return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> userCheckFn =
-                (check) -> new UserCheckOnlyExpression(
-                        check,
-                        resource,
-                        resource.getRequestScope(),
-                        (ChangeSpec) null,
-                        cache
-                );
-
-        return new Expressions(
-                buildSpecificFieldExpression(new PermissionCondition(annotationClass, resource, field), userCheckFn),
-                null
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                null,
+                cache
         );
+
+        return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resource, field), leafBuilderFn);
     }
 
     /**
@@ -210,41 +204,15 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             type parameter
      * @return User check expression to evaluate
      */
-    public <A extends Annotation> Expressions buildUserCheckAnyExpression(final Class<?> resourceClass,
-                                                                          final Class<A> annotationClass,
-                                                                          final RequestScope requestScope) {
-        final Function<Check, Expression> userCheckFn =
-                (check) -> new UserCheckOnlyExpression(
-                        check,
-                        (PersistentResource) null,
-                        requestScope,
-                        (ChangeSpec) null,
-                        cache
-                );
+    public <A extends Annotation> Expression buildUserCheckAnyExpression(final Class<?> resourceClass,
+                                                                         final Class<A> annotationClass,
+                                                                         final RequestScope requestScope) {
 
-        return new Expressions(
-                buildAnyFieldExpression(
-                        new PermissionCondition(annotationClass, resourceClass), userCheckFn, requestScope), null);
-    }
+        final Function<Check, Expression> leafBuilderFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
 
-    private Function<Check, Expression> getImmediateExpressionFor(PersistentResource resource, ChangeSpec changeSpec) {
-        return (check) -> new ImmediateCheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                changeSpec,
-                cache
-        );
-    }
-
-    private Function<Check, Expression> getDeferredExpressionFor(PersistentResource resource, ChangeSpec changeSpec) {
-        return (check) -> new DeferredCheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                changeSpec,
-                cache
-        );
+        return buildAnyFieldExpression(
+                        new PermissionCondition(annotationClass, resourceClass), leafBuilderFn, requestScope);
     }
 
     /**
@@ -376,14 +344,5 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
                 requestScope, entityClass).visit(permissions);
         return permissionFilter;
-    }
-
-    /**
-     * Structure containing operation-time and commit-time expressions.
-     */
-    @AllArgsConstructor
-    public static class Expressions {
-        @Getter private final Expression operationExpression;
-        @Getter private final Expression commitExpression;
     }
 }

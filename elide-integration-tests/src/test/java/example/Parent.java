@@ -92,6 +92,7 @@ public class Parent extends BaseId {
     public void setFirstName(String name) {
         this.firstName = name;
     }
+
     // Special attribute is to catch a corner case for patch extension
     @ReadPermission(expression = "deny all")
     @UpdatePermission(expression = "parentSpecialValue")
