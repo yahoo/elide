@@ -27,13 +27,11 @@ public class ForbiddenAccessException extends HttpStatusException {
     }
 
     public ForbiddenAccessException(String message, Expression expression) {
-        super(HttpStatus.SC_FORBIDDEN, null, message);
+        super(HttpStatus.SC_FORBIDDEN, null, message + ':' + expression);
         this.expression = Optional.of(expression);
     }
 
     public String getLoggedMessage() {
-        return String.format("ForbiddenAccessException : Message[%s] Expression [%s]",
-                getVerboseMessage(),
-                getExpression());
+        return String.format("ForbiddenAccessException: Message=%s\tExpression=%s", getVerboseMessage(), getExpression());
     }
 }
