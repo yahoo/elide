@@ -2,6 +2,7 @@
 
 ## 3.0.5
 **Features**
+* Security fix for inline checks being deferred when used in conjunction with commit checks.
 * Move `InMemoryDataStore` to Elide core. The `InMemoryDataStore` from the `elide-datastore-inmemorydb` package has
     been deprecated and will be removed in Elide 4.0
 
