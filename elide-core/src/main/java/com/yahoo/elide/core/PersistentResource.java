@@ -802,8 +802,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Optional<FilterExpression> filterExpression;
         boolean skipNew = false;
-        // Criteria filtering not supported in Patch extension
-        if (requestScope instanceof PatchRequestScope) {
+
+        Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+
+        /* If this is a patch extension request and the ID we are fetching for is newly created... */
+        if (requestScope instanceof PatchRequestScope
+                        && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
             filterExpression = Optional.empty();
             // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
             // NEWLY created objects. We assume a user can READ their object in the midst of creation.
@@ -812,7 +816,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             // already).
             skipNew = true;
         } else {
-            Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
             if (entityType == null) {
                 throw new InvalidAttributeException(relation, type);
             }
