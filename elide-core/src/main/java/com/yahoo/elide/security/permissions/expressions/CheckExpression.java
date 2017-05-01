@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -10,6 +10,7 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.security.checks.InlineCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
@@ -17,15 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 /**
- * Expression for executing all specified checks.
+ * An expression in the security evaluation AST that wraps an actual check.
  */
 @Slf4j
-public class ImmediateCheckExpression implements Expression {
+public class CheckExpression implements Expression {
+
     protected final Check check;
     protected final PersistentResource resource;
     protected final RequestScope requestScope;
@@ -43,11 +46,11 @@ public class ImmediateCheckExpression implements Expression {
      * @param changeSpec The changeSpec to pass to the check
      * @param cache The cache of previous expression results
      */
-    public ImmediateCheckExpression(final Check check,
-                                    final PersistentResource resource,
-                                    final RequestScope requestScope,
-                                    final ChangeSpec changeSpec,
-                                    final ExpressionResultCache cache) {
+    public CheckExpression(final Check check,
+                           final PersistentResource resource,
+                           final RequestScope requestScope,
+                           final ChangeSpec changeSpec,
+                           final ExpressionResultCache cache) {
         this.check = check;
         this.requestScope = requestScope;
         this.changeSpec = Optional.ofNullable(changeSpec);
@@ -59,13 +62,28 @@ public class ImmediateCheckExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
-        log.trace("Evaluating check: {}", check);
+    public ExpressionResult evaluate(EvaluationMode mode) {
+        log.trace("Evaluating check: {} in mode {}", check, mode);
+
+        /* Result evaluation is sticky once evaluated to PASS or FAIL */
+        if (result == PASS || result == FAIL) {
+            return result;
+        }
+
+        if (mode == EvaluationMode.USER_CHECKS_ONLY && ! (check instanceof UserCheck)) {
+            result = DEFERRED;
+            return result;
+        }
+
+        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && ! (check instanceof InlineCheck)) {
+            result = DEFERRED;
+            return result;
+        }
 
         // If we have a valid change spec, do not cache the result or look for a cached result.
         if (changeSpec.isPresent()) {
             log.trace("-- Check has changespec: {}", changeSpec);
-            ExpressionResult result = computeCheck();
+            result = computeCheck();
             log.trace("-- Check returned with result: {}", result);
             return result;
         }
@@ -74,7 +92,6 @@ public class ImmediateCheckExpression implements Expression {
         log.trace("-- Check does NOT have changespec");
         Class<? extends Check> checkClass = check.getClass();
 
-        final ExpressionResult result;
         if (cache.hasStoredResultFor(checkClass, resource)) {
             result = cache.getResultFor(checkClass, resource);
         } else {
@@ -84,7 +101,6 @@ public class ImmediateCheckExpression implements Expression {
         }
 
         log.trace("-- Check returned with result: {}", result);
-
         return result;
     }
 

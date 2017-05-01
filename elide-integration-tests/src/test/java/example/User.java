@@ -8,12 +8,17 @@ package example;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.security.checks.OperationCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+import java.util.Optional;
 
 
 /**
@@ -24,6 +29,8 @@ import javax.persistence.Transient;
 public class User {
     @JsonIgnore
     private long id;
+
+    private int role;
 
     private String reversedPassword;
 
@@ -69,5 +76,28 @@ public class User {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    @UpdatePermission(expression = "adminRoleCheck OR updateOnCreate")
+    public int getRole() {
+        return role;
+    }
+
+    public void setRole(int role) {
+        this.role = role;
+    }
+
+    static public class AdminRoleCheck extends OperationCheck<User> {
+        @Override
+        public boolean ok(User object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            User user = (User) object;
+
+            return (user.getRole() == 1);
+        }
+
+        @Override
+        public String checkIdentifier() {
+            return "adminRoleCheck";
+        }
     }
 }

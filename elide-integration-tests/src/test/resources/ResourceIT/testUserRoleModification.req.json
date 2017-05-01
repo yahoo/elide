@@ -3,9 +3,7 @@
         "type":"user",
         "id":"1",
         "attributes":{
-            "password":"",
-            "reversedPassword":"dog",
-            "role":0
+            "role":1
         }
     }
 }

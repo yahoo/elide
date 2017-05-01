@@ -33,12 +33,12 @@ public class SpecificFieldExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
+    public ExpressionResult evaluate(EvaluationMode mode) {
         if (!fieldExpression.isPresent()) {
-            ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate();
+            ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
             return entityResult;
         } else {
-            ExpressionResult fieldResult = fieldExpression.get().evaluate();
+            ExpressionResult fieldResult = fieldExpression.get().evaluate(mode);
             return fieldResult;
         }
     }

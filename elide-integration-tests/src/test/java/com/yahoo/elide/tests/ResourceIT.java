@@ -1773,6 +1773,20 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(equalTo(expected));
     }
 
+    @Test
+    public void testPrivilegeEscalation() throws Exception {
+        String request = jsonParser.getJson("/ResourceIT/testUserRoleModification.req.json");
+
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(request)
+            .patch("/user/1")
+            .then()
+            .statusCode(HttpStatus.SC_FORBIDDEN)
+            .header("content-lenth", (String) null);
+    }
+
     // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.
     @Test
     public void testUpdateDeferredOnCreate() {

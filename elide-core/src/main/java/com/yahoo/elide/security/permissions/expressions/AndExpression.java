@@ -30,15 +30,15 @@ public class AndExpression implements Expression {
     }
 
     @Override
-    public ExpressionResult evaluate() {
-        ExpressionResult leftStatus = left.evaluate();
+    public ExpressionResult evaluate(EvaluationMode mode) {
+        ExpressionResult leftStatus = left.evaluate(mode);
 
         // Short-circuit
         if (leftStatus == FAIL) {
             return leftStatus;
         }
 
-        ExpressionResult rightStatus = (right == null) ? PASS : right.evaluate();
+        ExpressionResult rightStatus = (right == null) ? PASS : right.evaluate(mode);
 
         if (rightStatus == FAIL) {
             return rightStatus;
