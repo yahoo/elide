@@ -133,8 +133,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             }
 
             String entityType = filterPredicate.getRootEntityType();
-            if (expressionMap.containsKey(entityType)) {
-                FilterExpression filterExpression = expressionMap.get(entityType);
+            FilterExpression filterExpression = expressionMap.get(entityType);
+            if (filterExpression != null) {
                 expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));
             } else {
                 expressionMap.put(entityType, filterPredicate);

@@ -70,6 +70,9 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
                 }
             }
         }
+        if (lastFailure == null) {
+            lastFailure = new ParseException("No dialects");
+        }
         throw lastFailure;
     }
 

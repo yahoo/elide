@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.persistence.CascadeType;
@@ -286,9 +286,9 @@ class EntityBinding {
                     || isRequestScopeableMethod((Method) fieldOrMethod);
 
             if (name.startsWith("get") && hasValidParameterCount) {
-                name = WordUtils.uncapitalize(name.substring("get".length()));
+                name = StringUtils.uncapitalize(name.substring("get".length()));
             } else if (name.startsWith("is") && hasValidParameterCount) {
-                name = WordUtils.uncapitalize(name.substring("is".length()));
+                name = StringUtils.uncapitalize(name.substring("is".length()));
             } else {
                 return null;
             }

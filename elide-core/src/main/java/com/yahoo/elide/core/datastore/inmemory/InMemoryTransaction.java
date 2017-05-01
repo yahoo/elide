@@ -15,6 +15,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import javax.persistence.Id;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -22,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
  */
 public class InMemoryTransaction implements DataStoreTransaction {
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
-    public static final Random RANDOM = new Random();
 
     private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore;
     private final List<Operation> operations;
@@ -101,7 +101,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     private AtomicLong newRandomId(Class<?> ignored) {
-        return new AtomicLong(RANDOM.nextLong());
+        return new AtomicLong(ThreadLocalRandom.current().nextLong());
     }
 
     public void setId(Object value, String id) {

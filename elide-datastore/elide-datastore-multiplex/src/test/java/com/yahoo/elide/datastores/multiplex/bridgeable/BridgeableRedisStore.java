@@ -75,7 +75,7 @@ public class BridgeableRedisStore implements DataStore {
                 RedisFilter filter = fe.accept(new FilterExpressionParser());
                 if ("user_id".equals(filter.getFieldName())) {
                     Iterable values = fetchValues(key,
-                            v -> v.equals("user" + filter.getValues().get(0).toString() + ":" + id.toString()));
+                            v -> v.equals("user" + filter.getValues().get(0) + ":" + id));
                     for (Object value : values) {
                         return value;
                     }
@@ -104,7 +104,7 @@ public class BridgeableRedisStore implements DataStore {
                         RedisFilter filter = fe.accept(new FilterExpressionParser());
                         if ("user_id".equals(filter.getFieldName())) {
                             return fetchValues(key,
-                                    v -> v.startsWith("user" + filter.getValues().get(0).toString() + ":"));
+                                    v -> v.startsWith("user" + filter.getValues().get(0) + ":"));
                         }
                         log.error("Received bad filter: {} for type: {}", filter, entityClass);
                         throw new UnsupportedOperationException("Cannot filter object of that type");

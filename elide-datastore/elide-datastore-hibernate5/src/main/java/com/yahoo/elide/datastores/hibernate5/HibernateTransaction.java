@@ -22,7 +22,6 @@ import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
 import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -86,7 +85,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
             FlushMode flushMode = session.getFlushMode();
-            if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
+            if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL && flushMode != FlushMode.NEVER) {
                 session.flush();
             }
         } catch (HibernateException e) {
@@ -153,7 +152,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             Optional<Pagination> pagination,
             RequestScope scope) {
 
-        final EntityDictionary dictionary = scope.getDictionary();
         pagination.ifPresent(p -> {
             if (p.isGenerateTotals()) {
                 p.setPageTotals(getTotalRecords(entityClass, filterExpression));
@@ -170,6 +168,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         Set<Order> validatedSortingRules = null;
         if (sorting.isPresent()) {
             if (!sorting.get().isDefaultInstance()) {
+                final EntityDictionary dictionary = scope.getDictionary();
                 validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
                         .stream()
                         .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
@@ -196,8 +195,10 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param pagination The Optional pagination object.
      * @return The Iterable for Hibernate.
      */
-    public Iterable loadObjects(final Class<?> loadClass, final Criteria criteria,
-                                final Optional<Set<Order>> sortingRules, final Optional<Pagination> pagination) {
+    public Iterable loadObjects(final Class<?> loadClass,
+                                final Criteria criteria,
+                                final Optional<Set<Order>> sortingRules,
+                                final Optional<Pagination> pagination) {
         if (sortingRules.isPresent()) {
             sortingRules.get().forEach(criteria::addOrder);
         }
@@ -267,7 +268,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @return The total row count.
      */
     private <T> Long getTotalRecords(Class<T> entityClass,
-                                    Optional<FilterExpression> filterExpression) {
+                                     Optional<FilterExpression> filterExpression) {
         String queryString = "SELECT COUNT(*) FROM {parentType} {parentType}";
         queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
 
