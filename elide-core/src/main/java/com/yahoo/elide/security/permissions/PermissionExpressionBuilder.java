@@ -17,7 +17,12 @@ import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.permissions.expressions.*;
+import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
+import com.yahoo.elide.security.permissions.expressions.CheckExpression;
+import com.yahoo.elide.security.permissions.expressions.Expression;
+import com.yahoo.elide.security.permissions.expressions.OrExpression;
+import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
+import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;

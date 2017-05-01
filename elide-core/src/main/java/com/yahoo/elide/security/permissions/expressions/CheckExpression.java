@@ -18,7 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
-import static com.yahoo.elide.security.permissions.ExpressionResult.*;
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 /**
  * An expression in the security evaluation AST that wraps an actual check.
