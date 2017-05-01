@@ -4,8 +4,7 @@
   ~ See LICENSE file in project root for terms.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-datastore-inmemorydb</artifactId>
     <packaging>jar</packaging>
@@ -15,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>3.0.5-SNAPSHOT</version>
+        <version>3.0.5</version>
     </parent>
 
     <licenses>
@@ -36,7 +35,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>3.0.5</tag>
     </scm>
 
     <dependencies>
@@ -47,7 +46,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>3.0.5</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
