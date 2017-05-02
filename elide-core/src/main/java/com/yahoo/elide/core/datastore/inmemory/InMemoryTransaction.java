@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 /**
  * InMemoryDataStore transaction handler.
  */
+@Slf4j
 public class InMemoryTransaction implements DataStoreTransaction {
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
 
@@ -114,7 +116,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
                             try {
                                 setMethod.invoke(value, CoerceUtil.coerce(id, setMethod.getParameters()[0].getType()));
                             } catch (ReflectiveOperationException e) {
-                                e.printStackTrace();
+                                log.error("set {}", setMethod, e);
                             }
                             return;
                         }

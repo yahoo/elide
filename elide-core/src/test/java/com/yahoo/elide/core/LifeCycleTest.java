@@ -21,9 +21,9 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -107,7 +107,7 @@ public class LifeCycleTest {
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-        when(book.getId()).thenReturn(new Long(1));
+        when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
@@ -132,7 +132,7 @@ public class LifeCycleTest {
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
-        when(book.getId()).thenReturn(new Long(1));
+        when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 

@@ -11,13 +11,13 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
-
+import example.Filtered;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import example.Filtered;
-
+@Slf4j
 public class DataStoreIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
@@ -35,10 +35,8 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             tx.createObject(filtered3, null);
             tx.save(filtered3, null);
             tx.commit(null);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
         }
     }
 
