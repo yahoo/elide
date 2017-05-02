@@ -11,6 +11,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -18,9 +19,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
-
-import com.google.common.collect.Lists;
-
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -32,6 +31,7 @@ import java.util.Optional;
 /**
  * MultiplexManager tests.
  */
+@Slf4j
 public class MultiplexManagerTest {
     private MultiplexManager multiplexManager;
 
@@ -93,10 +93,8 @@ public class MultiplexManagerTest {
             //t.save(firstBean);
             assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
             t.commit(null);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             FirstBean firstBean = (FirstBean) t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().next();
@@ -111,10 +109,8 @@ public class MultiplexManagerTest {
             } catch (TransactionException expected) {
                 // expected
             }
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
         }
         // verify state
         try (DataStoreTransaction t = ds1.beginTransaction()) {

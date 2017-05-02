@@ -97,7 +97,6 @@ public class PermissionToFilterExpressionVisitorTest {
         Class g6 = Good6.class;
         Class g7 = Good7.class;
         Class g8 = GOOD8.class;
-        Class b1 = BAD1.class;
         Class b2 = BAD2.class;
         Class b4 = BAD4.class;
         Class g9 = GOOD9.class;

@@ -21,7 +21,7 @@ import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -583,7 +583,7 @@ public class EntityDictionary {
 
         String type;
         if ("".equals(include.type())) {
-            type = WordUtils.uncapitalize(cls.getSimpleName());
+            type = StringUtils.uncapitalize(cls.getSimpleName());
         } else {
             type = include.type();
         }

@@ -10,7 +10,6 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -69,7 +68,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         this.path = path;
         this.operator = op;
         this.values = values;
-        alias = getEntityType().getSimpleName();
     }
 
     public String getField() {

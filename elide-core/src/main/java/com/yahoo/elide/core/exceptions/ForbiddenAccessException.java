@@ -29,7 +29,7 @@ public class ForbiddenAccessException extends HttpStatusException {
     }
 
     public ForbiddenAccessException(String message, Expression expression, Expression.EvaluationMode mode) {
-        super(HttpStatus.SC_FORBIDDEN, null, message + ": " + expression);
+        super(HttpStatus.SC_FORBIDDEN, null, null, () -> message + ": " + expression);
         this.expression = Optional.of(expression);
         this.evaluationMode = Optional.of(mode);
     }

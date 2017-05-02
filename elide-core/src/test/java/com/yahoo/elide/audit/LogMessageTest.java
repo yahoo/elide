@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.audit;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-
-import com.google.common.collect.Sets;
 import example.Child;
 import example.Parent;
 import org.testng.Assert;
@@ -20,7 +19,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class LogMessageTest {
     private transient PersistentResource<Child> childRecord;
@@ -101,7 +100,7 @@ public class LogMessageTest {
         };
         try {
             testAuditLogger.log(failMessage);
-            Thread.sleep(Math.floorMod(new Random().nextInt(), 100));
+            Thread.sleep(Math.floorMod(ThreadLocalRandom.current().nextInt(), 100));
             testAuditLogger.commit((RequestScope) null);
             Assert.fail("Exception expected");
         } catch (TestLoggerException e) {

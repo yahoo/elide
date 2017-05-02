@@ -80,7 +80,7 @@ public class CriterionFilterOperation implements FilterOperation<Criterion> {
 
         for (int i = 1; i < path.size() - 1; i++) {
             FilterPredicate.PathElement element = path.get(i);
-            sb.append(".");
+            sb.append('.');
             sb.append(element.getFieldName());
         }
         return sb.toString();

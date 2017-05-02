@@ -14,11 +14,11 @@ import com.yahoo.elide.core.HttpStatus;
 public class InvalidValueException extends HttpStatusException {
 
     public InvalidValueException(Object value) {
-        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value.toString());
+        this(value, null);
     }
 
     public InvalidValueException(Object value, String verboseMessage) {
-        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value.toString(), verboseMessage);
+        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value, verboseMessage);
     }
 
     public InvalidValueException(String message, Throwable cause) {

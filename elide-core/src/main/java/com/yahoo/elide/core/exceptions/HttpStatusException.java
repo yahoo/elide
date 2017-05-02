@@ -13,6 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Superclass for exceptions that return a Http error status.
@@ -23,29 +24,30 @@ public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     protected final int status;
-
-    public int getStatus() {
-        return status;
-    }
-
-    private final String verboseMessage;
+    private final Supplier<String> verboseMessageSupplier;
 
     public HttpStatusException(int status) {
         this(status, null);
     }
 
     public HttpStatusException(int status, String message) {
-        this(status, message, null);
+        this(status, message, (Throwable) null, null);
     }
 
+    @Deprecated
     public HttpStatusException(int status, String message, String verboseMessage) {
         this(status, message, verboseMessage, null);
     }
 
+    @Deprecated
     public HttpStatusException(int status, String message, String verboseMessage, Throwable cause) {
+        this(status, message, cause, () -> verboseMessage);
+    }
+
+    public HttpStatusException(int status, String message, Throwable cause, Supplier<String> verboseMessageSupplier) {
         super(message, cause, true, log.isTraceEnabled());
         this.status = status;
-        this.verboseMessage = verboseMessage;
+        this.verboseMessageSupplier = verboseMessageSupplier;
     }
 
     protected static String formatExceptionCause(Throwable e) {
@@ -78,9 +80,14 @@ public abstract class HttpStatusException extends RuntimeException {
     }
 
     public String getVerboseMessage() {
+        String verboseMessage = (verboseMessageSupplier == null) ? null : verboseMessageSupplier.get();
         return verboseMessage != null
                 ? verboseMessage
                 : toString();
+    }
+
+    public int getStatus() {
+        return status;
     }
 
     @Override
