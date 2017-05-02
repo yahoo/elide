@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -56,48 +55,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     public PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
-    }
-
-    private static class Environment {
-        public static final List<Map<String, Object>> EMPTY_DATA = ImmutableList.of();
-
-        public final RequestScope requestScope;
-        public final Optional<String> id;
-        public final Object source;
-        public final PersistentResource parentResource;
-        public final GraphQLType parentType;
-        public final GraphQLType outputType;
-        public final Field field;
-        public final List<Map<String, Object>> data;
-        public final Optional<String> filters;
-
-        public Environment(DataFetchingEnvironment environment) {
-            if (environment.getFields().size() != 1) {
-                throw new WebApplicationException("Resource fetcher contract has changed");
-            }
-            Map<String, Object> args = environment.getArguments();
-
-            requestScope = (RequestScope) environment.getContext();
-            source = environment.getSource();
-            parentResource = isRoot() ? null : (PersistentResource) source;
-            parentType = environment.getParentType();
-            outputType = environment.getFieldType();
-            field = environment.getFields().get(0);
-
-            id = Optional.ofNullable((String) args.get(ARGUMENT_ID));
-            filters = Optional.ofNullable((String) args.get(ModelBuilder.FILTER_ARGUMENT));
-
-            List<Map<String, Object>> data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
-            if (data == null) {
-                this.data = EMPTY_DATA;
-            } else {
-                this.data = ImmutableList.copyOf(data);
-            }
-        }
-
-        public boolean isRoot() {
-            return source instanceof RequestScope;
-        }
     }
 
     @Override
