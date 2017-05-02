@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.books.Author;
 import com.yahoo.books.Book;
+import com.yahoo.books.Pseudonym;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
@@ -34,26 +36,31 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
 
     @BeforeMethod
     public void setup() {
+        ElideSettings settings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(dictionary).build();
+
         InMemoryDataStore store = new InMemoryDataStore(Author.class.getPackage());
         store.populateEntityDictionary(dictionary);
 
-        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher());
+        ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(settings));
         api = new GraphQL(builder.build());
 
         InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
         requestScope = new RequestScope("/", null, tx, null, null,
-                new ElideSettingsBuilder(null)
-                        .withEntityDictionary(dictionary)
-                        .build());
+                settings);
     }
 
     private void initTestData(InMemoryTransaction tx) {
         Author author1 = new Author();
         author1.setId(1L);
-        author1.setName("The People's Author");
+        author1.setName("Mark Twain");
         author1.setType(Author.AuthorType.EXCLUSIVE);
+
+        Pseudonym authorOne = new Pseudonym();
+        authorOne.setId(1L);
+        authorOne.setName("The People's Author");
 
         Book book1 = new Book();
         book1.setId(1L);
@@ -65,9 +72,12 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
         book2.setTitle("Libro Dos");
         book2.setAuthors(Collections.singletonList(author1));
 
+        author1.setPenName(authorOne);
         author1.setBooks(Arrays.asList(book1, book2));
+        authorOne.setAuthor(author1);
 
         tx.save(author1, null);
+        tx.save(authorOne, null);
         tx.save(book1, null);
         tx.save(book2, null);
         tx.commit(null);

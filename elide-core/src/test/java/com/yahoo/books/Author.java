@@ -8,7 +8,6 @@ package com.yahoo.books;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
-import example.Address;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,11 +40,13 @@ public class Author {
     }
 
     private Long id;
-    private String name;
+    private Pseudonym penName;
     private Collection<Book> books = new ArrayList<>();
+
+    @Getter @Setter
+    private String name;
+    @Getter @Setter
     private AuthorType type;
-
-
     @Getter @Setter
     private Address homeAddress;
 
@@ -52,34 +54,24 @@ public class Author {
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public AuthorType getType() {
-        return type;
-    }
-
-    public void setType(AuthorType type) {
-        this.type = type;
     }
 
     @ManyToMany(mappedBy = "authors")
     public Collection<Book> getBooks() {
         return books;
     }
-
     public void setBooks(Collection<Book> books) {
         this.books = books;
+    }
+
+    @OneToOne(mappedBy = "author")
+    public Pseudonym getPenName() {
+        return penName;
+    }
+    public void setPenName(Pseudonym penName) {
+        this.penName = penName;
     }
 
     @Override

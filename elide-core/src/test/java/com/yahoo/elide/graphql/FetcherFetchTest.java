@@ -61,8 +61,8 @@ public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testNestedSingle() throws JsonProcessingException {
-        String graphQLRequest = "{ author(id: \"1\") { books(id: \"1\") { id title } } }";
-        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
+        String graphQLRequest = "{ author(id: \"1\") { name penName { name } } }";
+        String expectedResponse = "{\"author\":[{\"name\":\"Mark Twain\",\"penName\":{\"name\":\"The People's Author\"}}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }

@@ -69,7 +69,7 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
     @Test
     public void testNestedSingleReplace() throws JsonProcessingException {
         String graphQLRequest = "mutation { author(id: \"1\") { id name books(op:REPLACE, id:\"1\", data: {id: \"1\", title: \"abc\"}) { id title } } }";
-        String expectedResponse = "{\"author\":[{\"id\":\"1\",\"name\":\"The People's Author\",\"books\":[{\"id\":\"1\",\"title\":\"abc\"}]}]}";
+        String expectedResponse = "{\"author\":[{\"id\":\"1\",\"name\":\"Mark Twain\",\"books\":[{\"id\":\"1\",\"title\":\"abc\"}]}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }

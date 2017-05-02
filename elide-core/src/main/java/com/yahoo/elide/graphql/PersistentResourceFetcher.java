@@ -6,12 +6,18 @@
 package com.yahoo.elide.graphql;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.ObjectValue;
@@ -26,12 +32,9 @@ import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.WebApplicationException;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,32 +52,51 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
  */
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
+    private final ElideSettings settings;
 
-    public static final List<Map<Object, Object>> EMPTY_DATA = Collections.singletonList(new HashMap<>());
+    public PersistentResourceFetcher(ElideSettings settings) {
+        this.settings = settings;
+    }
 
     private static class Environment {
+        public static final List<Map<String, Object>> EMPTY_DATA = ImmutableList.of();
+
         public final RequestScope requestScope;
-        public final String id;
+        public final Optional<String> id;
         public final Object source;
+        public final PersistentResource parentResource;
         public final GraphQLType parentType;
         public final GraphQLType outputType;
-        public final List<Field> fields;
+        public final Field field;
         public final List<Map<String, Object>> data;
+        public final Optional<String> filters;
 
         public Environment(DataFetchingEnvironment environment) {
+            if (environment.getFields().size() != 1) {
+                throw new WebApplicationException("Resource fetcher contract has changed");
+            }
+            Map<String, Object> args = environment.getArguments();
+
             requestScope = (RequestScope) environment.getContext();
             source = environment.getSource();
+            parentResource = isRoot() ? null : (PersistentResource) source;
             parentType = environment.getParentType();
             outputType = environment.getFieldType();
-            fields = ImmutableList.copyOf(environment.getFields());
+            field = environment.getFields().get(0);
 
-            Map<String, Object> args = environment.getArguments();
-            id = (String) args.get(ARGUMENT_ID);
-            List<Map<String, Object>> dataList = (List<Map<String, Object>>) args.get(ARGUMENT_DATA);
-            if (dataList == null) {
-                dataList = (List) EMPTY_DATA;
+            id = Optional.ofNullable((String) args.get(ARGUMENT_ID));
+            filters = Optional.ofNullable((String) args.get(ModelBuilder.FILTER_ARGUMENT));
+
+            List<Map<String, Object>> data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
+            if (data == null) {
+                this.data = EMPTY_DATA;
+            } else {
+                this.data = ImmutableList.copyOf(data);
             }
-            data = ImmutableList.copyOf(dataList);
+        }
+
+        public boolean isRoot() {
+            return source instanceof RequestScope;
         }
     }
 
@@ -90,10 +112,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         switch (operation) {
             case FETCH:
-                if (context.data != null && context.data.stream().filter(m -> !m.isEmpty()).count() > 0) {
-                    throw new WebApplicationException("Data argument invalid on FETCH operation.",
-                            HttpStatus.SC_BAD_REQUEST);
-                }
                 return fetchObject(context);
 
             case ADD:
@@ -106,20 +124,15 @@ public class PersistentResourceFetcher implements DataFetcher {
                 return updateObject(context);
         }
 
-        throw new UnsupportedOperationException("Not implemented.");
+        throw new UnsupportedOperationException("Unknown operation: " + operation);
     }
 
     private void logContext(RelationshipOp operation, Environment environment) {
-        List<String> requestedFields = environment.fields.stream().map(field -> {
-            List<Field> children = field.getSelectionSet() != null
-                    ? (List) field.getSelectionSet().getChildren()
-                    : new ArrayList<>();
-            return field.getName() + (
-                    children.size() > 0
-                            ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")"
-                            : ""
-            );
-        }).collect(Collectors.toList());
+        List<Field> children = environment.field.getSelectionSet() != null
+                ? (List) environment.field.getSelectionSet().getChildren()
+                : new ArrayList<>();
+        String requestedFields = environment.field.getName() + (children.size() > 0
+                ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")" : "");
         GraphQLType parent = environment.parentType;
         log.debug("{} {} fields for {} with parent {}<{}>",
                 operation, requestedFields, environment.source, parent.getClass().getSimpleName(), parent.getName());
@@ -128,23 +141,22 @@ public class PersistentResourceFetcher implements DataFetcher {
     private Object deleteObject(Environment request) {
         Set<Object> deleted = new HashSet<>();
 
-        if (request.id != null && !request.id.isEmpty() && request.fields.size() > 1) {
+        if (!request.id.isPresent() && request.data.size() > 1) {
             throw new WebApplicationException("Id argument specification with an additional list of id's to delete "
                     + "is unsupported", HttpStatus.SC_BAD_REQUEST);
         }
 
         EntityDictionary dictionary = request.requestScope.getDictionary();
 
-        for (Field field : request.fields) {
-            String loadType = field.getName();
-            // TODO: This works at the root-level, but will it blow up in nested deletes?
-            String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(loadType));
-            String loadId = field.getArguments().stream()
-                    .filter(arg -> ARGUMENT_DATA.equals(arg.getName()))
-                    .findFirst()
-                    .map(Argument::getChildren)
-                    // TODO: Iterate over children and determine which contains id.
-                    .map(List::toString) // TODO: place holder. remove this line.
+        String loadType = request.field.getName();
+        // TODO: This works at the root-level, but will it blow up in nested deletes?
+        String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(loadType));
+        String loadId = request.field.getArguments().stream()
+                .filter(arg -> ARGUMENT_DATA.equals(arg.getName()))
+                .findFirst()
+                .map(Argument::getChildren)
+                // TODO: Iterate over children and determine which contains id.
+                .map(List::toString) // TODO: place holder. remove this line.
 //                    .map(arg -> {
 //                        String specifiedId = arg.getValue().toString();
 //                        if (id != null && !id.isEmpty() && !id.equals(specifiedId)) {
@@ -153,34 +165,31 @@ public class PersistentResourceFetcher implements DataFetcher {
 //                        }
 //                        return specifiedId;
 //                    })
-                    .orElse(request.id);
+                .orElseGet(request.id::get);
 
-            if (loadId == null) {
-                throw new WebApplicationException("Did not specify id of object type to delete.",
-                        HttpStatus.SC_BAD_REQUEST);
-            }
-
-            PersistentResource deleteObject = load(loadType, loadId, request.requestScope);
-
-            if (deleteObject == null || deleteObject.getObject() == null) {
-                throw new WebApplicationException("Attempted to delete non-existent id.", HttpStatus.SC_BAD_REQUEST);
-            }
-
-            deleteObject.deleteResource();
-            deleted.add(deleteObject);
+        if (loadId == null) {
+            throw new WebApplicationException("Did not specify id of object type to delete.",
+                    HttpStatus.SC_BAD_REQUEST);
         }
+
+        PersistentResource deleteObject = load(loadType, loadId, request.requestScope);
+
+        if (deleteObject == null || deleteObject.getObject() == null) {
+            throw new WebApplicationException("Attempted to delete non-existent id.", HttpStatus.SC_BAD_REQUEST);
+        }
+
+        deleteObject.deleteResource();
+        deleted.add(deleteObject);
 
         return deleted;
     }
 
     private Object updateObject(Environment request) {
-        assertOneField(request.fields);
-
-        Field field = request.fields.get(0);
+        Field field = request.field;
         EntityDictionary dictionary = request.requestScope.getDictionary();
 
         Object source = request.source;
-        String id = request.id;
+        String id = request.id.orElse(null);
         RequestScope requestScope = request.requestScope;
 
         Collection<PersistentResource> objectsToUpdate;
@@ -189,8 +198,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         if (!isRoot) {
             PersistentResource resource = (PersistentResource) source;
-            entityClass = dictionary
-                    .getParameterizedType(resource.getObject(), field.getName());
+            entityClass = dictionary.getParameterizedType(resource.getObject(), field.getName());
             // NOTE: Currently only handles _single_ object update
             Optional<String> dataId = (id != null) ? Optional.of(id) : field.getArguments().stream()
                     .filter(arg -> ARGUMENT_DATA.equalsIgnoreCase(arg.getName()))
@@ -277,9 +285,6 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     private Object createObject(Environment request) {
-        assertOneField(request.fields);
-
-        Field field = request.fields.get(0);
         EntityDictionary dictionary = request.requestScope.getDictionary();
 
         GraphQLObjectType objectType;
@@ -312,16 +317,43 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     private Object fetchObject(Environment request) {
-        if (request.outputType instanceof GraphQLList) {
-            GraphQLObjectType type = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
-            String entityType = type.getName();
-            if (request.id == null) {
-                return loadCollectionOf(entityType, request.requestScope);
-            }
-            return Arrays.asList(load(entityType, request.id, request.requestScope));
+        if (!request.data.isEmpty()) {
+            throw new WebApplicationException("FETCH must not include data.", HttpStatus.SC_BAD_REQUEST);
+        }
 
+        Optional<FilterExpression> filters = Optional.empty();
+        Optional<Sorting> sorting = Optional.empty();
+        Optional<Pagination> pagination = Optional.empty();
+
+        RequestScope requestScope = request.requestScope;
+        if (request.outputType instanceof GraphQLList) {
+            if (request.id.isPresent() && request.filters.isPresent()) {
+                throw new WebApplicationException("You may not filter when loading by id");
+            }
+
+            GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
+            String entityType = graphQLType.getName();
+            Class recordType = (Class) requestScope.getDictionary().getEntityClass(entityType);
+
+            if (recordType == null) {
+                throw new UnknownEntityException(entityType);
+            }
+
+            return request.id
+                    .<Set>map((id) -> Sets.newHashSet(PersistentResource.loadRecord(recordType, id, requestScope)))
+                    .orElse(PersistentResource.loadRecords(recordType, requestScope));
         } else if (request.outputType instanceof GraphQLObjectType) {
-            return load(request.outputType.getName(), request.id, request.requestScope);
+            if (request.parentResource == null) {
+                throw new IllegalStateException("Do we have a singleton root object?");
+            }
+
+            // we are loading a toOne relationship
+            DataStoreTransaction tx = request.requestScope.getTransaction();
+            PersistentResource resource = request.parentResource;
+            String relationName = request.field.getName();
+            Object obj =
+                    tx.getRelation(tx, resource.getObject(), relationName, filters, sorting, pagination, requestScope);
+            return new PersistentResource(obj, resource, requestScope.getUUIDFor(obj), requestScope);
 
         } else if (request.outputType instanceof GraphQLScalarType) {
             return fetchProperty(request);
@@ -333,25 +365,16 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     protected Object fetchProperty(Environment request) {
-        assertOneField(request.fields);
-
         EntityDictionary dictionary = request.requestScope.getDictionary();
-        PersistentResource resource = (PersistentResource) request.source;
+        PersistentResource resource = (PersistentResource) request.parentResource;
         Class<?> sourceClass = resource.getResourceClass();
-        Field field = request.fields.get(0);
 
-        String fieldName = field.getName();
+        String fieldName = request.field.getName();
         if (dictionary.isAttribute(sourceClass, fieldName)) {
             return resource.getAttribute(fieldName);
         } else {
             log.debug("Tried to fetch property off of invalid loaded object.");
             throw new InvalidAttributeException(fieldName, resource.getType());
-        }
-    }
-
-    private void assertOneField(List<Field> fields) {
-        if (fields.size() != 1) {
-            throw new WebApplicationException("Resource fetcher contract has changed");
         }
     }
 
@@ -362,9 +385,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     protected PersistentResource load(String type, String id, RequestScope requestScope) {
         Class<?> recordType = requestScope.getDictionary().getEntityClass(type);
-        if (recordType == null) {
-            throw new UnknownEntityException(type);
-        }
         return PersistentResource.loadRecord(recordType, id, requestScope);
     }
 }

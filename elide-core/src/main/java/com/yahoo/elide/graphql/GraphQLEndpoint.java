@@ -56,7 +56,7 @@ public class GraphQLEndpoint {
         log.error("Started ~~");
         this.elide = elide;
         this.getUser = getUser;
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
     }

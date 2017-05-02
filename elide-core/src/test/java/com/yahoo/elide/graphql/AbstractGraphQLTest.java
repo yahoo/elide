@@ -6,8 +6,10 @@
 
 package com.yahoo.elide.graphql;
 
+import com.yahoo.books.Address;
 import com.yahoo.books.Author;
 import com.yahoo.books.Book;
+import com.yahoo.books.Pseudonym;
 import com.yahoo.books.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
 import org.testng.annotations.BeforeClass;
@@ -27,5 +29,7 @@ public class AbstractGraphQLTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Pseudonym.class);
+        dictionary.bindEntity(Address.class);
     }
 }
