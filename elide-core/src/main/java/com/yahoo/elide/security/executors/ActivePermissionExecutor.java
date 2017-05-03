@@ -283,11 +283,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                       Class resourceClass, String field) {
         ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));
 
-        if (result == PASS) {
-            return true;
-        }
-
-        return false;
+        return (result == PASS);
     }
 
     /**
