@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class CoerceUtilTest {
 
@@ -52,6 +53,15 @@ public class CoerceUtilTest {
 
         assertEquals(CoerceUtil.coerce(1, Seasons.class), Seasons.SPRING,
                 "ToEnumConverter is called when target class is Enum");
+    }
+
+    @Test
+    public void testToUUIDConversion() throws Exception {
+        String uuidString = "11111111-2222-3333-4444-555555555555";
+
+        assertEquals(CoerceUtil.coerce(uuidString, UUID.class),
+                         UUID.fromString(uuidString),
+                "ToUUIDConverter is called when target class is UUID");
     }
 
     @Test

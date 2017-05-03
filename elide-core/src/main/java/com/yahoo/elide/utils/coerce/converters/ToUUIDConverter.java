@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.beanutils.Converter;
 
+import java.util.UUID;
+
 /**
- * Uses Jackson to Convert from Map to target object.
+ * Converter to UUID.
  */
-public class FromMapConverter implements Converter {
+public class ToUUIDConverter implements Converter {
     /**
-     * Convert value from map to target object.
+     * Convert value to UUID.
      *
      * @param cls class to convert to
      * @param value value to convert
@@ -22,7 +23,10 @@ public class FromMapConverter implements Converter {
      */
     @Override
     public <T> T convert(Class<T> cls, Object value) {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.convertValue(value, cls);
+        if (cls == UUID.class) {
+            return (T) UUID.fromString(String.valueOf(value));
+        } else {
+            throw new UnsupportedOperationException("Cannot convert to " + cls.getSimpleName());
+        }
     }
 }

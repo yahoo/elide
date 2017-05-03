@@ -10,6 +10,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
+import com.yahoo.elide.utils.coerce.converters.ToUUIDConverter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.ClassUtils;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Class for coercing a value to a target class.
@@ -26,6 +28,7 @@ import java.util.Map;
 public class CoerceUtil {
 
     private static final ToEnumConverter TO_ENUM_CONVERTER = new ToEnumConverter();
+    private static final ToUUIDConverter TO_UUID_CONVERTER = new ToUUIDConverter();
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
     private static final EpochToDateConverter EPOCH_TO_DATE_CONVERTER = new EpochToDateConverter();
 
@@ -38,7 +41,7 @@ public class CoerceUtil {
      * Convert value to target class.
      *
      * @param value value to convert
-     * @param cls class to convert to
+     * @param cls   class to convert to
      * @return coerced value
      */
     public static <T> T coerce(Object value, Class<T> cls) {
@@ -72,7 +75,10 @@ public class CoerceUtil {
             public Converter lookup(Class<?> sourceType, Class<?> targetType) {
                 if (targetType.isEnum()) {
                     return TO_ENUM_CONVERTER;
-                } else if (Map.class.isAssignableFrom(sourceType)) {
+                } else if (targetType == UUID.class) {
+                    return TO_UUID_CONVERTER;
+                }
+                else if (Map.class.isAssignableFrom(sourceType)) {
                     return FROM_MAP_CONVERTER;
                 } else if ((String.class.isAssignableFrom(sourceType) || Number.class.isAssignableFrom(sourceType))
                         && ClassUtils.isAssignable(targetType, Date.class)) {
