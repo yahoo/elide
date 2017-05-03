@@ -4,6 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
+
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.restassured.RestAssured
@@ -13,6 +14,7 @@ import org.testng.Assert
 import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
+
 /**
  * Tests for Filters
  */
@@ -434,7 +436,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
 
-         /* Test RSQL Global */
+        /* Test RSQL Global */
         RestAssured
                 .get("/book?filter=title=invalid=Ignored")
                 .then()
@@ -1459,15 +1461,15 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         def result = mapper.readTree(RestAssured.get("book?filter[book.author12.name]=Null Ned").asString())
         Assert.assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Unknown field in filter: author12\n" +
-                "Invalid query parameter: filter[book.author12.name]")
+                        "Invalid query parameter: filter[book.author12.name]")
 
         /* Test RSQL Global */
         result = mapper.readTree(RestAssured.get("book?filter=author12.name=='Null Ned'").asString())
         Assert.assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n" +
-                "No such association author12 for type book\n" +
-                "Invalid filter format: filter\n" +
-                "Invalid query parameter: filter")
+                        "No such association author12 for type book\n" +
+                        "Invalid filter format: filter\n" +
+                        "Invalid query parameter: filter")
     }
 
     @Test
@@ -1587,9 +1589,9 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         result = mapper.readTree(RestAssured.get("/author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString())
         Assert.assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n" +
-                "No such association idontexist for type author\n" +
-                "Invalid filter format: filter\n" +
-                "Invalid query parameter: filter")
+                        "No such association idontexist for type author\n" +
+                        "Invalid filter format: filter\n" +
+                        "Invalid query parameter: filter")
     }
 
     @Test
@@ -1604,9 +1606,9 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         result = mapper.readTree(RestAssured.get("/author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')").asString())
         Assert.assertEquals(result.get("errors").get(0).asText(),
                 "InvalidPredicateException: Invalid filter format: filter\n" +
-                "No such association idontexist for type author\n" +
-                "Invalid filter format: filter\n" +
-                "Invalid query parameter: filter")
+                        "No such association idontexist for type author\n" +
+                        "Invalid filter format: filter\n" +
+                        "Invalid query parameter: filter")
     }
 
     @Test
@@ -1642,13 +1644,13 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             RestAssured
                     .given()
                     .accept("application/vnd.api+json ext=jsonpatch")
-                    .delete("/author/"+id)
+                    .delete("/author/" + id)
         }
         for (int id : bookIds) {
             RestAssured
                     .given()
                     .accept("application/vnd.api+json ext=jsonpatch")
-                    .delete("/book/"+id)
+                    .delete("/book/" + id)
         }
     }
 }

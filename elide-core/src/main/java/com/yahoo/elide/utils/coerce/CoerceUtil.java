@@ -7,31 +7,19 @@ package com.yahoo.elide.utils.coerce;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
-import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
-import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
+import com.yahoo.elide.utils.coerce.converters.ElideConverter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.apache.commons.beanutils.Converter;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.Date;
-import java.util.Map;
 
 /**
  * Class for coercing a value to a target class.
  */
 public class CoerceUtil {
 
-    private static final ToEnumConverter TO_ENUM_CONVERTER = new ToEnumConverter();
-    private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
-    private static final EpochToDateConverter EPOCH_TO_DATE_CONVERTER = new EpochToDateConverter();
-
     //static block for setup and registering new converters
     static {
-        setup();
+        setup(new ElideConverter());
     }
 
     /**
@@ -55,32 +43,9 @@ public class CoerceUtil {
 
     /**
      * Perform CoerceUtil setup.
+     * @param elideConverter the converter to register
      */
-    private static void setup() {
-        BeanUtilsBean.setInstance(new BeanUtilsBean(new ConvertUtilsBean() {
-            {
-                // https://github.com/yahoo/elide/issues/260
-                // enable throwing exceptions when conversion fails
-                register(true, false, 0);
-            }
-
-            @Override
-            /*
-             * Overriding lookup to execute enum converter if target is enum
-             * or map convert if source is map
-             */
-            public Converter lookup(Class<?> sourceType, Class<?> targetType) {
-                if (targetType.isEnum()) {
-                    return TO_ENUM_CONVERTER;
-                } else if (Map.class.isAssignableFrom(sourceType)) {
-                    return FROM_MAP_CONVERTER;
-                } else if ((String.class.isAssignableFrom(sourceType) || Number.class.isAssignableFrom(sourceType))
-                        && ClassUtils.isAssignable(targetType, Date.class)) {
-                    return EPOCH_TO_DATE_CONVERTER;
-                } else {
-                    return super.lookup(sourceType, targetType);
-                }
-            }
-        }));
+    public static void setup(ElideConverter elideConverter) {
+        BeanUtilsBean.setInstance(new BeanUtilsBean(elideConverter));
     }
 }
