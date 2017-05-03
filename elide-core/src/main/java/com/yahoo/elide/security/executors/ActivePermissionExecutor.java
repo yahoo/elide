@@ -227,7 +227,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         expressionResult = executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
 
-        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, null), expressionResult);
+        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, field.orElse(null)), expressionResult);
 
         if (expressionResult == PASS) {
             expressionResultShortCircuit.add(Triple.of(annotationClass, resourceClass, field.orElse(null)));
