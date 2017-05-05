@@ -5,12 +5,9 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.google.common.base.Objects;
-import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
@@ -23,11 +20,9 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
 import com.yahoo.elide.extensions.PatchRequestScope;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -130,9 +125,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         try {
             Criteria criteria = session.createCriteria(entityClass).add(Restrictions.idEq(id));
-            if (scope != null && isJoinQuery()) {
-                joinCriteria(criteria, entityClass, scope);
-            }
+
             if (filterExpression.isPresent()) {
                 CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());
@@ -225,43 +218,11 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
 
-        if (isJoinQuery()) {
-            joinCriteria(criteria, loadClass, scope);
-        }
-
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        if (!isScrollEnabled || isJoinQuery()) {
+        if (!isScrollEnabled) {
             return criteria.list();
         }
         return new ScrollableIterator(criteria.scroll(scrollMode));
-    }
-
-    /**
-     * Should this transaction use JOINs. Override to force joins.
-     *
-     * @return true to use join logic
-     */
-    public boolean isJoinQuery() {
-        return false;
-    }
-
-    private <T> void joinCriteria(Criteria criteria, final Class<T> loadClass, RequestScope scope) {
-        EntityDictionary dictionary = scope.getDictionary();
-        String type = dictionary.getJsonAliasFor(loadClass);
-        Set<String> fields = Objects.firstNonNull(
-                scope.getSparseFields().get(type), Collections.<String>emptySet());
-        for (String field : fields) {
-            try {
-                checkFieldReadPermission(loadClass, field, scope);
-                criteria.setFetchMode(field, FetchMode.JOIN);
-            } catch (ForbiddenAccessException e) {
-                // continue
-            }
-        }
-
-        for (String include : getIncludeList(scope)) {
-            criteria.setFetchMode(include, FetchMode.JOIN);
-        }
     }
 
     /**
@@ -290,48 +251,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
         return list;
-    }
-
-    private <T> void checkFieldReadPermission(final Class<T> loadClass, String field, RequestScope scope) {
-        // wrap class as PersistentResource in order to check permission
-        PersistentResource<T> resource = new PersistentResource<T>() {
-            @Override
-            public boolean matchesId(String id) {
-                return false;
-            }
-
-            @Override
-            public Optional<String> getUUID() {
-                return Optional.empty();
-            }
-
-            @Override
-            public String getId() {
-                return null;
-            }
-
-            @Override
-            public String getType() {
-                return null;
-            }
-
-            @Override
-            public T getObject() {
-                return null;
-            }
-
-            @Override
-            public Class<T> getResourceClass() {
-                return loadClass;
-            }
-
-            @Override
-            public com.yahoo.elide.security.RequestScope getRequestScope() {
-                return scope;
-            }
-        };
-
-        scope.getPermissionExecutor().checkUserPermissions(resource, ReadPermission.class, field);
     }
 
     @Override
