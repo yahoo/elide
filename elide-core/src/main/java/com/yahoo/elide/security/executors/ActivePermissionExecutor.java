@@ -25,11 +25,9 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
@@ -46,7 +44,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     private final RequestScope requestScope;
     private final PermissionExpressionBuilder expressionBuilder;
-    private final Set<Triple<Class<? extends Annotation>, Class, String>> expressionResultShortCircuit;
     private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
     private final Map<String, Long> checkStats;
     private final boolean verbose;
@@ -72,7 +69,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         this.requestScope = requestScope;
         this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
         userPermissionCheckCache = new HashMap<>();
-        expressionResultShortCircuit = new HashSet<>();
         checkStats = new HashMap<>();
         this.verbose = verbose;
     }
@@ -227,11 +223,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         expressionResult = executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
 
-        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, null), expressionResult);
-
-        if (expressionResult == PASS) {
-            expressionResultShortCircuit.add(Triple.of(annotationClass, resourceClass, field.orElse(null)));
-        }
+        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, field.orElse(null)), expressionResult);
 
         return expressionResult;
     }
@@ -289,7 +281,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                       Class resourceClass, String field) {
-        return expressionResultShortCircuit.contains(Triple.of(annotationClass, resourceClass, field));
+        ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));
+
+        return (result == PASS);
     }
 
     /**
