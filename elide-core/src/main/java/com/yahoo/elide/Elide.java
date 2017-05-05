@@ -159,9 +159,12 @@ public class Elide {
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-
-            return new HandlerResult(requestScope, responder);
+            try {
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                return new HandlerResult(requestScope, responder);
+            } catch (RuntimeException e) {
+                return new HandlerResult(requestScope, e);
+            }
         });
     }
 
@@ -181,10 +184,9 @@ public class Elide {
         try (DataStoreTransaction tx = transaction.get()) {
             final User user = tx.accessUser(opaqueUser);
             HandlerResult result = handler.handle(tx, user);
-            RequestScope requestScope = result.requestScope;
-            Supplier<Pair<Integer, JsonNode>> responder = result.result;
-
+            RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
+            Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
@@ -290,10 +292,27 @@ public class Elide {
     protected static class HandlerResult {
         protected RequestScope requestScope;
         protected Supplier<Pair<Integer, JsonNode>> result;
+        protected RuntimeException cause;
 
         protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
             this.requestScope = requestScope;
             this.result = result;
+        }
+
+        public HandlerResult(RequestScope requestScope, RuntimeException cause) {
+            this.requestScope = requestScope;
+            this.cause = cause;
+        }
+
+        public Supplier<Pair<Integer, JsonNode>> getResponder() {
+            if (cause != null) {
+                throw cause;
+            }
+            return result;
+        }
+
+        public RequestScope getRequestScope() {
+            return requestScope;
         }
     }
 }
