@@ -122,6 +122,7 @@ public interface PermissionExecutor {
      * @param field the field being checked
      * @return true if we should not evaluate the given permission, false if we should
      */
+    @Deprecated
     default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                        Class resourceClass, String field) {
         return false;

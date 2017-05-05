@@ -1678,20 +1678,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                     Set<PersistentResource> resources, boolean skipNew) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
-            PermissionExecutor permissionExecutor = resource.getRequestScope().getPermissionExecutor();
             try {
-                if (!(skipNew && resource.getRequestScope().getNewResources().contains(resource))) {
-                    Class resourceClass = resource.getResourceClass();
-                    if (!permissionExecutor
-                            .shouldShortCircuitPermissionChecks(permission, resourceClass, null)) {
-                        ExpressionResult expressionResult
-                                = permissionExecutor.checkUserPermissions(resourceClass, permission);
-                        if (expressionResult == ExpressionResult.PASS) {
-                            filteredSet.add(resource);
-                            continue;
-                        }
-                        resource.checkFieldAwarePermissions(permission);
-                    }
+                if (!skipNew || !resource.getRequestScope().getNewResources().contains(resource)) {
+                    resource.checkFieldAwarePermissions(permission);
                 }
                 filteredSet.add(resource);
             } catch (ForbiddenAccessException e) {
@@ -1716,20 +1705,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
-                    if (requestScope.getPermissionExecutor()
-                            .shouldShortCircuitPermissionChecks(ReadPermission.class, getResourceClass(), field)) {
-                        filteredSet.add(field);
-                        continue;
-                    }
-
-                    ExpressionResult expressionResult = requestScope.getPermissionExecutor()
-                            .checkUserPermissions(this, ReadPermission.class, field);
-
-                    if (expressionResult == ExpressionResult.PASS) {
-                        filteredSet.add(field);
-                        continue;
-                    }
-
                     checkFieldAwarePermissions(ReadPermission.class, field, (Object) null, (Object) null);
                     filteredSet.add(field);
                 }
