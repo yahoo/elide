@@ -38,7 +38,6 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
@@ -933,15 +932,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
-        final PermissionExecutor executor = requestScope.getPermissionExecutor();
-        try {
-            //The collection can be skipped if the User check for the objects inside the relationship evaluates to false
-            executor.checkUserPermissions(dictionary.getParameterizedType(obj, relationName), ReadPermission.class);
-        } catch (ForbiddenAccessException e) {
-            return false;
-        }
-
-        return true;
+        return !shouldSkipCollection(
+                dictionary.getParameterizedType(obj, relationName),
+                ReadPermission.class,
+                requestScope);
     }
 
     /**

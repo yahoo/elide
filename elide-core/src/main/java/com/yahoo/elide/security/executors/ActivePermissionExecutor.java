@@ -35,7 +35,6 @@ import java.util.function.Supplier;
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
-import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 /**
  * Default permission executor.
@@ -197,6 +196,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param annotationClass Annotation class
      * @param field Field
      */
+    @Deprecated
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                         Class<A> annotationClass,
@@ -205,16 +205,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
         };
 
-        Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            return DEFERRED;
-        };
-
-        return checkPermissions(
+        return checkOnlyUserPermissions(
                 resource.getResourceClass(),
                 annotationClass,
                 Optional.of(field),
-                expressionSupplier,
-                expressionExecutor);
+                expressionSupplier);
     }
 
     /**
@@ -234,33 +229,31 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     requestScope);
         };
 
-        Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            return DEFERRED;
-        };
-
-        return checkPermissions(
+        return checkOnlyUserPermissions(
                 resourceClass,
                 annotationClass,
                 Optional.empty(),
-                expressionSupplier,
-                expressionExecutor);
+                expressionSupplier);
     }
 
 
     /**
-     * Check strictly user permissions on an entity.
+     * First attempts to check user permissions (by looking in the cache and if not present by executing user
+     * permissions).  If user permissions don't short circuit the check, run the provided expression executor.
      *
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
      * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     * @param expressionExecutor Evaluates the expression (post user check evaluation)
      */
     protected <A extends Annotation> ExpressionResult checkPermissions(
             Class<?> resourceClass,
             Class<A> annotationClass,
             Optional<String> field,
             Supplier<Expression> expressionSupplier,
-            Function<Expression, ExpressionResult> expressionExecutor) {
+            Optional<Function<Expression, ExpressionResult>> expressionExecutor) {
 
         // If the user check has already been evaluated before, return the result directly and save the building cost
         ExpressionResult expressionResult
@@ -273,7 +266,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         Expression expression = expressionSupplier.get();
 
         if (expressionResult == null) {
-
             expressionResult = executeExpressions(
                     expression,
                     annotationClass,
@@ -287,7 +279,62 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         }
 
-        return expressionExecutor.apply(expression);
+        if (expressionExecutor.isPresent()) {
+            return expressionExecutor.get().apply(expression);
+        } else {
+            return expressionResult;
+        }
+    }
+
+    /**
+     * Only executes user permissions.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     */
+    protected <A extends Annotation> ExpressionResult checkOnlyUserPermissions(
+            Class<?> resourceClass,
+            Class<A> annotationClass,
+            Optional<String> field,
+            Supplier<Expression> expressionSupplier) {
+
+        return checkPermissions(
+                resourceClass,
+                annotationClass,
+                field,
+                expressionSupplier,
+                Optional.empty()
+        );
+    }
+
+    /**
+     * First attempts to check user permissions (by looking in the cache and if not present by executing user
+     * permissions).  If user permissions don't short circuit the check, run the provided expression executor.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     * @param expressionExecutor Evaluates the expression (post user check evaluation)
+     */
+    protected <A extends Annotation> ExpressionResult checkPermissions(
+            Class<?> resourceClass,
+            Class<A> annotationClass,
+            Optional<String> field,
+            Supplier<Expression> expressionSupplier,
+            Function<Expression, ExpressionResult> expressionExecutor) {
+
+        return checkPermissions(
+                resourceClass,
+                annotationClass,
+                field,
+                expressionSupplier,
+                Optional.of(expressionExecutor)
+        );
     }
 
 
@@ -323,6 +370,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     @Override
+    @Deprecated
     public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                       Class resourceClass, String field) {
         ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));
@@ -429,17 +477,5 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public boolean isVerbose() {
         return verbose;
-    }
-
-    protected <A extends Annotation> boolean shouldShortCircuitPermissionChecks(Class<?> resourceClass,
-                                                                                Class<A> annotationClass,
-                                                                                Optional<String> field) {
-        ExpressionResult result =
-                userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field.orElse(null)));
-
-        if (result == null || result == DEFERRED || result == UNEVALUATED) {
-            return false;
-        }
-        return true;
     }
 }

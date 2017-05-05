@@ -87,6 +87,7 @@ public interface PermissionExecutor {
      * @param field Field
      * @return the results of evaluating the permission
      */
+    @Deprecated
     <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                  Class<A> annotationClass,
                                                                  String field);
