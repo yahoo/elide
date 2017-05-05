@@ -969,4 +969,13 @@ public class EntityDictionary {
         }
         return results;
     }
+
+    /**
+     * Returns whether or not a class is already bound.
+     * @param cls
+     * @return
+     */
+    public boolean hasBinding(Class<?> cls) {
+        return bindJsonApiToEntity.contains(cls);
+    }
 }

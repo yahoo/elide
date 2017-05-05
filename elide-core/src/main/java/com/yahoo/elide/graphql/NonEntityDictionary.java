@@ -1,5 +1,6 @@
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import graphql.schema.GraphQLOutputType;
@@ -34,14 +35,7 @@ public class NonEntityDictionary extends EntityDictionary {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
-    }
 
-    /**
-     * Returns whether or not a class is already bound.
-     * @param cls
-     * @return
-     */
-    public boolean hasBinding(Class<?> cls) {
-        return bindJsonApiToEntity.contains(cls);
+        entityBindings.put(cls, new EntityBinding(this, cls, type));
     }
 }
