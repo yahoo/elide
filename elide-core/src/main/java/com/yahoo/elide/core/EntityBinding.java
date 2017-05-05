@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  *
  * @see com.yahoo.elide.annotation.Include#type
  */
-class EntityBinding {
+public class EntityBinding {
 
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =

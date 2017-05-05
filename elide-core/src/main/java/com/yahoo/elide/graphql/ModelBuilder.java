@@ -14,8 +14,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 
 import graphql.Scalars;
-import graphql.java.generator.BuildContext;
-import graphql.java.generator.DefaultBuildContext;
 import graphql.schema.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,20 +38,20 @@ public class ModelBuilder {
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
     private GraphQLObjectType metaObject;
-    private BuildContext buildContext;
+    private ObjectGenerator generator;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
     public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
+        this.generator = new ObjectGenerator(dictionary);
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
-        this.buildContext = DefaultBuildContext.newReflectionContext();
 
         relationshipOpArg = GraphQLArgument.newArgument()
                 .name("op")
-                .type(buildContext.getInputType(RelationshipOp.class))
+                .type(generator.classToInputObject(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -202,7 +200,7 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     entityClass.getName());
 
-            GraphQLType attributeType = buildContext.getOutputType(attributeClass);
+            GraphQLType attributeType = generator.classToQueryType(entityClass, attributeClass, attribute, dataFetcher);
 
             if (attributeType == null) {
                 continue;
@@ -306,7 +304,7 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     clazz.getName());
 
-            GraphQLInputType attributeType = buildContext.getInputType(attributeClass);
+            GraphQLInputType attributeType = generator.classToInputType(clazz, attributeClass, attribute);
 
             /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {

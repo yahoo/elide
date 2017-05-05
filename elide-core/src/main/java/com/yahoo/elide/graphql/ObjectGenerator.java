@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.core.EntityBinding;
+import com.yahoo.elide.core.EntityDictionary;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -18,8 +20,10 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,8 +34,14 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+@Slf4j
 public class ObjectGenerator {
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+    protected EntityDictionary entityDictionary;
+
+    public ObjectGenerator(EntityDictionary dictionary) {
+        this.entityDictionary = dictionary;
+    }
 
     public class GeneratorContext {
         @Getter
@@ -115,7 +125,61 @@ public class ObjectGenerator {
         return classToQueryObject(clazz, new GeneratorContext(), fetcher);
     }
 
+    public GraphQLOutputType classToQueryType(Class<?> parentClass,
+                                              Class<?> attributeClass,
+                                              String attribute,
+                                              DataFetcher fetcher) {
+
+        GeneratorContext ctx = new GeneratorContext();
+
+        if (Map.class.isAssignableFrom(attributeClass)) {
+            Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+            Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
+
+            return classToQueryMap(keyType, valueType, fetcher, ctx);
+        } else if (Collection.class.isAssignableFrom(attributeClass)) {
+            Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+
+            return (new GraphQLList(classToQueryObject(listType, ctx, fetcher)));
+        } else if (attributeClass.isEnum()) {
+            return classToEnumType(attributeClass);
+        } else {
+            GraphQLOutputType outputType = classToScalarType(attributeClass);
+            if (outputType == null) {
+                outputType = classToQueryObject(attributeClass, ctx, fetcher);
+            }
+            return outputType;
+        }
+    }
+
+    public GraphQLInputType classToInputType(Class<?> parentClass,
+                                             Class<?> attributeClass,
+                                             String attribute) {
+
+        GeneratorContext ctx = new GeneratorContext();
+
+        if (Map.class.isAssignableFrom(attributeClass)) {
+                Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+                Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
+
+                return classToInputMap(keyType, valueType, ctx);
+        } else if (Collection.class.isAssignableFrom(attributeClass)) {
+                Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+
+                return new GraphQLList(classToInputObject(listType, ctx));
+        } else if (attributeClass.isEnum()) {
+                return classToEnumType(attributeClass);
+        } else {
+                GraphQLInputType inputType = classToScalarType(attributeClass);
+                if (inputType == null) {
+                    inputType = classToInputObject(attributeClass, ctx);
+                }
+                return inputType;
+        }
+    }
+
     public GraphQLObjectType classToQueryObject(Class<?> clazz, GeneratorContext ctx, DataFetcher fetcher) {
+        log.info("Building query object for type: {}", clazz.getName());
         if (ctx.hasConflict(clazz)) {
             throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
         }
@@ -128,6 +192,10 @@ public class ObjectGenerator {
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+
+            if (Class.class.isAssignableFrom(attributeClass)) {
+                continue;
+            }
 
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
                     .name(attribute)
@@ -147,7 +215,7 @@ public class ObjectGenerator {
             } else {
                 GraphQLOutputType outputType = classToScalarType(attributeClass);
                 if (outputType == null) {
-                    outputType = classToQueryObject(clazz, ctx, fetcher);
+                    outputType = classToQueryObject(attributeClass, ctx, fetcher);
                 }
                 fieldBuilder.type(outputType);
             }
@@ -163,6 +231,7 @@ public class ObjectGenerator {
     }
 
     public GraphQLInputObjectType classToInputObject(Class<?> clazz, GeneratorContext ctx) {
+        log.info("Building input object for type: {}", clazz.getName());
         if (ctx.hasConflict(clazz)) {
             throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
         }
@@ -176,6 +245,10 @@ public class ObjectGenerator {
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+
+            if (Class.class.isAssignableFrom(attributeClass)) {
+                continue;
+            }
 
             GraphQLInputObjectField.Builder fieldBuilder = newInputObjectField()
                     .name(attribute);
@@ -194,7 +267,7 @@ public class ObjectGenerator {
             } else {
                 GraphQLInputType inputType = classToScalarType(attributeClass);
                 if (inputType == null) {
-                    inputType = classToInputObject(clazz, ctx);
+                    inputType = classToInputObject(attributeClass, ctx);
                 }
                 fieldBuilder.type(inputType);
             }
