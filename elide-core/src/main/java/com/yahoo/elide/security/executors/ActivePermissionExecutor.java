@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
@@ -106,19 +108,23 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                                    PersistentResource resource,
                                                                    ChangeSpec changeSpec) {
-        Expression expression;
-        if (SharePermission.class == annotationClass) {
-            expression = expressionBuilder.buildSharePermissionExpressions(resource);
-        } else {
-            expression = expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
-
-            ExpressionResult expressionResult = this.checkUserPermissions(resource.getResourceClass(),
-                    annotationClass, Optional.empty(), expression);
-            if (expressionResult == PASS) {
-                return expressionResult;
+        Supplier<Expression> expressionSupplier = () -> {
+            if (SharePermission.class == annotationClass) {
+                return expressionBuilder.buildSharePermissionExpressions(resource);
             }
-        }
-        return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+            return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
+        };
+
+        Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
+            return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+        };
+
+        return checkPermissions(
+                annotationClass,
+                resource.getResourceClass(),
+                Optional.empty(),
+                expressionSupplier,
+                expressionExecutor);
     }
 
     /**
@@ -135,20 +141,20 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                  ChangeSpec changeSpec,
                                                                                  Class<A> annotationClass,
                                                                                  String field) {
-        Expression expression = expressionBuilder.buildSpecificFieldExpressions(
-                resource,
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+        };
+
+        Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
+            return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+        };
+
+        return checkPermissions(
+                resource.getResourceClass(),
                 annotationClass,
-                field,
-                changeSpec
-        );
-
-        ExpressionResult expressionResult = this.checkUserPermissions(resource.getResourceClass(),
-                annotationClass, Optional.of(field), expression);
-        if (expressionResult == PASS) {
-            return expressionResult;
-        }
-
-        return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+                Optional.of(field),
+                expressionSupplier,
+                expressionExecutor);
     }
 
     /**
@@ -165,22 +171,21 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
-        Expression expression = expressionBuilder.buildSpecificFieldExpressions(
-                resource,
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+        };
+
+        Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
+            commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+            return ExpressionResult.DEFERRED;
+        };
+
+        return checkPermissions(
+                resource.getResourceClass(),
                 annotationClass,
-                field,
-                changeSpec
-        );
-
-        ExpressionResult expressionResult = this.checkUserPermissions(resource.getResourceClass(),
-                annotationClass, Optional.of(field), expression);
-
-        if (expressionResult == PASS) {
-            return expressionResult;
-        }
-
-        commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
-        return ExpressionResult.DEFERRED;
+                Optional.of(field),
+                expressionSupplier,
+                expressionExecutor);
     }
 
     /**
@@ -191,41 +196,20 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param annotationClass Annotation class
      * @param field Field
      */
+    @Deprecated
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                         Class<A> annotationClass,
                                                                         String field) {
-        Expression expression = expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
-        return checkUserPermissions(resource.getResourceClass(), annotationClass, Optional.of(field), expression);
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
+        };
 
-    }
-
-    /**
-     * Check strictly user permissions on an entity.
-     *
-     * @param <A> type parameter
-     * @param resourceClass Resource class
-     * @param annotationClass Annotation class
-     * @param field Optional field name that is being accessed
-     * @param expression The expression to evaluate as a user check
-     */
-    protected <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
-                                                                        Class<A> annotationClass,
-                                                                        Optional<String> field,
-                                                                        Expression expression) {
-
-        // If the user check has already been evaluated before, return the result directly and save the building cost
-        ExpressionResult expressionResult
-                = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field.orElse(null)));
-        if (expressionResult != null) {
-            return expressionResult;
-        }
-
-        expressionResult = executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
-
-        userPermissionCheckCache.put(Triple.of(annotationClass, resourceClass, field.orElse(null)), expressionResult);
-
-        return expressionResult;
+        return checkOnlyUserPermissions(
+                resource.getResourceClass(),
+                annotationClass,
+                Optional.of(field),
+                expressionSupplier);
     }
 
     /**
@@ -238,14 +222,121 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
                                                                         Class<A> annotationClass) {
-        Expression expression = expressionBuilder.buildUserCheckAnyExpression(
+        Supplier<Expression> expressionSupplier = () -> {
+            return expressionBuilder.buildUserCheckAnyExpression(
+                    resourceClass,
+                    annotationClass,
+                    requestScope);
+        };
+
+        return checkOnlyUserPermissions(
                 resourceClass,
                 annotationClass,
-                requestScope
-        );
-
-        return checkUserPermissions(resourceClass, annotationClass, Optional.empty(), expression);
+                Optional.empty(),
+                expressionSupplier);
     }
+
+
+    /**
+     * First attempts to check user permissions (by looking in the cache and if not present by executing user
+     * permissions).  If user permissions don't short circuit the check, run the provided expression executor.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     * @param expressionExecutor Evaluates the expression (post user check evaluation)
+     */
+    protected <A extends Annotation> ExpressionResult checkPermissions(
+            Class<?> resourceClass,
+            Class<A> annotationClass,
+            Optional<String> field,
+            Supplier<Expression> expressionSupplier,
+            Optional<Function<Expression, ExpressionResult>> expressionExecutor) {
+
+        // If the user check has already been evaluated before, return the result directly and save the building cost
+        ExpressionResult expressionResult
+                = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field.orElse(null)));
+
+        if (expressionResult == PASS) {
+            return expressionResult;
+        }
+
+        Expression expression = expressionSupplier.get();
+
+        if (expressionResult == null) {
+            expressionResult = executeExpressions(
+                    expression,
+                    annotationClass,
+                    Expression.EvaluationMode.USER_CHECKS_ONLY);
+
+            userPermissionCheckCache.put(
+                    Triple.of(annotationClass, resourceClass, field.orElse(null)), expressionResult);
+
+            if (expressionResult == PASS) {
+                return expressionResult;
+            }
+        }
+
+        if (expressionExecutor.isPresent()) {
+            return expressionExecutor.get().apply(expression);
+        } else {
+            return expressionResult;
+        }
+    }
+
+    /**
+     * Only executes user permissions.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     */
+    protected <A extends Annotation> ExpressionResult checkOnlyUserPermissions(
+            Class<?> resourceClass,
+            Class<A> annotationClass,
+            Optional<String> field,
+            Supplier<Expression> expressionSupplier) {
+
+        return checkPermissions(
+                resourceClass,
+                annotationClass,
+                field,
+                expressionSupplier,
+                Optional.empty()
+        );
+    }
+
+    /**
+     * First attempts to check user permissions (by looking in the cache and if not present by executing user
+     * permissions).  If user permissions don't short circuit the check, run the provided expression executor.
+     *
+     * @param <A> type parameter
+     * @param resourceClass Resource class
+     * @param annotationClass Annotation class
+     * @param field Optional field name that is being accessed
+     * @param expressionSupplier Builds a permission expression.
+     * @param expressionExecutor Evaluates the expression (post user check evaluation)
+     */
+    protected <A extends Annotation> ExpressionResult checkPermissions(
+            Class<?> resourceClass,
+            Class<A> annotationClass,
+            Optional<String> field,
+            Supplier<Expression> expressionSupplier,
+            Function<Expression, ExpressionResult> expressionExecutor) {
+
+        return checkPermissions(
+                resourceClass,
+                annotationClass,
+                field,
+                expressionSupplier,
+                Optional.of(expressionExecutor)
+        );
+    }
+
 
     /**
      * Get permission filter on an entity.
@@ -279,6 +370,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     @Override
+    @Deprecated
     public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                       Class resourceClass, String field) {
         ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));

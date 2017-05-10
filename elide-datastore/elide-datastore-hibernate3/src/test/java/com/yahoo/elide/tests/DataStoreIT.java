@@ -8,7 +8,6 @@ package com.yahoo.elide.tests;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -89,34 +88,6 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             List<String> includes = tx.getIncludeList(requestScope);
             tx.commit(requestScope);
             assertEquals(includes, Arrays.asList("foo", "bar", "car"));
-        }
-    }
-
-    @Test
-    public void testJoinQuery() throws IOException {
-        try (HibernateTransaction tx = (HibernateTransaction) dataStore.beginTransaction()) {
-            RequestScope requestScope = mock(RequestScope.class);
-
-            MultivaluedHashMap<String, String> params = new MultivaluedHashMap();
-            when(requestScope.getQueryParams()).thenReturn(Optional.of(params));
-
-            assertFalse(tx.isJoinQuery());
-
-            params.add("join", "true");
-            assertFalse(tx.isJoinQuery());
-
-            params.remove("join");
-            params.add("join", "false");
-            assertFalse(tx.isJoinQuery());
-
-            params.remove("join");
-            params.add("include", "foo,bar");
-            assertFalse(tx.isJoinQuery());
-
-            params.add("join", "false");
-            assertFalse(tx.isJoinQuery());
-
-            tx.commit(requestScope);
         }
     }
 }

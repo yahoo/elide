@@ -80,13 +80,14 @@ public interface PermissionExecutor {
 
     /**
      * Check strictly user permissions on a specific field and entity.
-     *
+     * @deprecated because unused.
      * @param <A> type parameter
      * @param resource Resource
      * @param annotationClass Annotation class
      * @param field Field
      * @return the results of evaluating the permission
      */
+    @Deprecated
     <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
                                                                  Class<A> annotationClass,
                                                                  String field);
@@ -116,12 +117,14 @@ public interface PermissionExecutor {
 
     /**
      * Determine if we should skip checking a permission for a particular field on an entity.
+     * @deprecated because unused and redundant with any user permission check.
      *
      * @param annotationClass the permission to be skipped
      * @param resourceClass the entity type being checked
      * @param field the field being checked
      * @return true if we should not evaluate the given permission, false if we should
      */
+    @Deprecated
     default boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
                                                        Class resourceClass, String field) {
         return false;
