@@ -1,18 +1,17 @@
 #Change Log
 
 ## 3.0.6
-**Features**
-* Added UUID type coercion
-
-**Fixes**
-* Fixed caching of security checks (performance optimization)
+**Misc**
+* Cleanup active permission executor. 
 
 ## 3.0.5
 **Fixes**
+* Fixed caching of security checks (performance optimization)
 * Security fix for inline checks being deferred when used in conjunction with commit checks.
 * Security fix to not bypass collection filtering for patch extension requests.
 
 **Features**
+* Added UUID type coercion
 * Move `InMemoryDataStore` to Elide core. The `InMemoryDataStore` from the `elide-datastore-inmemorydb` package has
     been deprecated and will be removed in Elide 4.0
 
