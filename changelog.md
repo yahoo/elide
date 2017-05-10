@@ -1,9 +1,5 @@
 #Change Log
 
-## 3.0.6
-**Misc**
-* Cleanup active permission executor. 
-
 ## 3.0.5
 **Fixes**
 * Fixed caching of security checks (performance optimization)
