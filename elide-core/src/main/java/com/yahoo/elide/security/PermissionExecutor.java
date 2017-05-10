@@ -80,7 +80,7 @@ public interface PermissionExecutor {
 
     /**
      * Check strictly user permissions on a specific field and entity.
-     *
+     * @Deprecated because unused.
      * @param <A> type parameter
      * @param resource Resource
      * @param annotationClass Annotation class
@@ -117,6 +117,7 @@ public interface PermissionExecutor {
 
     /**
      * Determine if we should skip checking a permission for a particular field on an entity.
+     * @Deprecated because unused and redundant with any user permission check.
      *
      * @param annotationClass the permission to be skipped
      * @param resourceClass the entity type being checked
