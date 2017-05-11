@@ -414,7 +414,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         Object result = objectEntityCache.get(type, id);
 
         // Check inheritance too
-        Iterator<String> it = dictionary.getInheritedEntityNames(type).iterator();
+        Iterator<String> it = dictionary.getSubclassingEntityNames(type).iterator();
         while (result == null && it.hasNext()) {
             String newType = getInheritanceKey(it.next(), type);
             result = objectEntityCache.get(newType, id);
@@ -432,7 +432,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 .forEach((newType) -> objectEntityCache.put(newType, id, object));
     }
 
-    private String getInheritanceKey(String rootType, String superClass) {
-        return rootType + "!" + superClass;
+    private String getInheritanceKey(String subClass, String superClass) {
+        return subClass + "!" + superClass;
     }
 }

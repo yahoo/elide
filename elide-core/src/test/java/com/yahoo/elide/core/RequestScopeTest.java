@@ -42,6 +42,20 @@ public class RequestScopeTest {
         //       otherwise it is possible to create an inherited type and when performing introspection on a
         //       superclass we will miss that the object is newly created and then we'll attempt to query
         //       the datastore.
+
+        @Entity
+        @Include
+        class MyBaseClass {
+            @Id
+            public long id;
+        }
+
+        @Entity
+        @Include
+        class MyInheritedClass extends MyBaseClass {
+            public String myField;
+        }
+
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
         dictionary.bindEntity(MyBaseClass.class);
@@ -56,18 +70,5 @@ public class RequestScopeTest {
         // Test that a new inherited class is counted for base type
         requestScope.setUUIDForObject(dictionary.getJsonAliasFor(MyInheritedClass.class), myId, new MyInheritedClass());
         Assert.assertNotNull(requestScope.getObjectById(dictionary.getJsonAliasFor(MyBaseClass.class), myId));
-    }
-
-    @Entity
-    @Include
-    public static class MyBaseClass {
-        @Id
-        public long id;
-    }
-
-    @Entity
-    @Include
-    public static class MyInheritedClass extends MyBaseClass {
-        public String myField;
     }
 }

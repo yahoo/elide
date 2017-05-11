@@ -58,7 +58,7 @@ public class EntityDictionary {
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
-    protected final ConcurrentHashMap<Class<?>, List<Class<?>>> inheritedEntities = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
 
     /**
@@ -214,8 +214,8 @@ public class EntityDictionary {
      * @param entityName Json alias name for entity
      * @return  List of all inherited entity type names
      */
-    public List<String> getInheritedEntityNames(String entityName) {
-        return getInheritedEntityNames(getEntityClass(entityName));
+    public List<String> getSubclassingEntityNames(String entityName) {
+        return getSubclassingEntityNames(getEntityClass(entityName));
     }
 
     /**
@@ -224,8 +224,8 @@ public class EntityDictionary {
      * @param entityClass Entity class
      * @return  List of all inherited entity type names
      */
-    public List<String> getInheritedEntityNames(Class entityClass) {
-        List<Class<?>> entities = getInheritedEntities(entityClass);
+    public List<String> getSubclassingEntityNames(Class entityClass) {
+        List<Class<?>> entities = getSubclassingEntities(entityClass);
         return entities.stream().map(this::getJsonAliasFor).collect(Collectors.toList());
     }
 
@@ -236,8 +236,8 @@ public class EntityDictionary {
      * @param entityName Json alias name for entity
      * @return  List of all inherited entity types
      */
-    public List<Class<?>> getInheritedEntities(String entityName) {
-        return getInheritedEntities(getEntityClass(entityName));
+    public List<Class<?>> getSubclassingEntities(String entityName) {
+        return getSubclassingEntities(getEntityClass(entityName));
     }
 
     /**
@@ -247,8 +247,8 @@ public class EntityDictionary {
      * @param entityClass Entity class
      * @return  List of all inherited entity types
      */
-    public List<Class<?>> getInheritedEntities(Class entityClass) {
-        return inheritedEntities.computeIfAbsent(entityClass, (unused) -> {
+    public List<Class<?>> getSubclassingEntities(Class entityClass) {
+        return subclassingEntities.computeIfAbsent(entityClass, (unused) -> {
             return entityBindings.keySet().stream()
                     .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
                     .collect(Collectors.toList());
