@@ -68,6 +68,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         this.path = path;
         this.operator = op;
         this.values = values;
+        alias = getEntityType().getSimpleName();
     }
 
     public String getField() {
