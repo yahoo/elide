@@ -1,8 +1,11 @@
 #Change Log
 
 ## 3.0.7
+**Fixes**
+* Account for inheritance when performing new entity detection during a PATCH Extension request.
+
 **Misc**
-Always setting HQL 'alias' in FilterPredicate Constructor
+* Always setting HQL 'alias' in FilterPredicate Constructor
 
 ## 3.0.6
 **Misc**

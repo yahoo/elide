@@ -72,6 +72,7 @@ class EntityBinding {
     public final EntityPermissions entityPermissions;
     public final List<String> attributes;
     public final List<String> relationships;
+    public final List<Class<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
@@ -96,6 +97,7 @@ class EntityBinding {
         attributes = null;
         relationships = null;
         entityClass = null;
+        inheritedTypes = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
@@ -112,6 +114,7 @@ class EntityBinding {
 
         attributes = dequeToList(attributesDeque);
         relationships = dequeToList(relationshipsDeque);
+        inheritedTypes = getInheritedTypes(cls);
         entityPermissions = new EntityPermissions(dictionary, cls, fieldOrMethodList);
     }
 
@@ -378,5 +381,17 @@ class EntityBinding {
             annotations.putIfAbsent(annotationClass, annotation);
         }
         return annotation == NO_ANNOTATION ? null : (A) annotation;
+    }
+
+    public static List<Class<?>> getInheritedTypes(Class<?> entityClass) {
+        Class<?> cls = entityClass.getSuperclass();
+        ArrayList<Class<?>> results = new ArrayList<>();
+
+        while (cls != null && cls != Object.class) {
+            results.add(cls);
+            cls = cls.getSuperclass();
+        }
+
+        return results;
     }
 }

@@ -39,6 +39,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -410,10 +411,28 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     public Object getObjectById(String type, String id) {
-        return objectEntityCache.get(type, id);
+        Object result = objectEntityCache.get(type, id);
+
+        // Check inheritance too
+        Iterator<String> it = dictionary.getInheritedEntityNames(type).iterator();
+        while (result == null && it.hasNext()) {
+            String newType = getInheritanceKey(it.next(), type);
+            result = objectEntityCache.get(newType, id);
+        }
+
+        return result;
     }
 
     public void setUUIDForObject(String type, String id, Object object) {
         objectEntityCache.put(type, id, object);
+
+        // Insert for all inherited entities as well
+        dictionary.getSuperClassEntityNames(type).stream()
+                .map(i -> getInheritanceKey(type, i))
+                .forEach((newType) -> objectEntityCache.put(newType, id, object));
+    }
+
+    private String getInheritanceKey(String rootType, String superClass) {
+        return rootType + "!" + superClass;
     }
 }

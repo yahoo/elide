@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -57,6 +58,7 @@ public class EntityDictionary {
     protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
+    protected final ConcurrentHashMap<Class<?>, List<Class<?>>> inheritedEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
 
     /**
@@ -204,6 +206,101 @@ public class EntityDictionary {
         }
 
         return checkCls;
+    }
+
+    /**
+     * Get inherited entity names for a particular entity.
+     *
+     * @param entityName Json alias name for entity
+     * @return  List of all inherited entity type names
+     */
+    public List<String> getInheritedEntityNames(String entityName) {
+        return getInheritedEntityNames(getEntityClass(entityName));
+    }
+
+    /**
+     * Get inherited entity names for a particular entity.
+     *
+     * @param entityClass Entity class
+     * @return  List of all inherited entity type names
+     */
+    public List<String> getInheritedEntityNames(Class entityClass) {
+        List<Class<?>> entities = getInheritedEntities(entityClass);
+        return entities.stream().map(this::getJsonAliasFor).collect(Collectors.toList());
+    }
+
+    /**
+     * Get a list of inherited entities from a particular entity.
+     * Namely, the list of entities inheriting from the provided class.
+     *
+     * @param entityName Json alias name for entity
+     * @return  List of all inherited entity types
+     */
+    public List<Class<?>> getInheritedEntities(String entityName) {
+        return getInheritedEntities(getEntityClass(entityName));
+    }
+
+    /**
+     * Get a list of inherited entities from a particular entity.
+     * Namely, the list of entities inheriting from the provided class.
+     *
+     * @param entityClass Entity class
+     * @return  List of all inherited entity types
+     */
+    public List<Class<?>> getInheritedEntities(Class entityClass) {
+        return inheritedEntities.computeIfAbsent(entityClass, (unused) -> {
+            return entityBindings.keySet().stream()
+                    .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    /**
+     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
+     * but excluding Object).
+     *
+     * @param entityName Json alias name for entity
+     * @return  List of all super class entity json names
+     */
+    public List<String> getSuperClassEntityNames(String entityName) {
+        return getSuperClassEntityNames(getEntityClass(entityName));
+    }
+
+    /**
+     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
+     * but excluding Object).
+     *
+     * @param entityClass Entity class
+     * @return  List of all super class entity json names
+     */
+    public List<String> getSuperClassEntityNames(Class entityClass) {
+        return getSuperClassEntities(entityClass).stream()
+                .map(this::getJsonAliasFor)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Fetch all entity classes that the provided entity inherits from (i.e. all superclass entities down to,
+     * but excluding Object).
+     *
+     * @param entityName Json alias name for entity
+     * @return  List of all super class entity classes
+     */
+    public List<Class<?>> getSuperClassEntities(String entityName) {
+        return getSuperClassEntities(getEntityClass(entityName));
+    }
+
+    /**
+     * Fetch all entity classes that provided entity inherits from (i.e. all superclass entities down to,
+     * but excluding Object).
+     *
+     * @param entityClass Entity class
+     * @return  List of all super class entity classes
+     */
+    public List<Class<?>> getSuperClassEntities(Class entityClass) {
+        return getEntityBinding(entityClass).inheritedTypes.stream()
+                .filter(entityBindings::containsKey)
+                .collect(Collectors.toList());
     }
 
     /**
