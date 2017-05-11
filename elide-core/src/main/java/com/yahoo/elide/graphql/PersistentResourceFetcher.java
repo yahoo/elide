@@ -17,10 +17,9 @@ import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.graphql.operations.UpdateOperation;
 import graphql.language.Argument;
 import graphql.language.Field;
-import graphql.language.ObjectValue;
-import graphql.language.StringValue;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLEnumType;
@@ -33,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +41,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_DATA;
-import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_ID;
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 
 /**
@@ -78,7 +75,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 return deleteObject(context);
 
             case REPLACE:
-                return updateObject(context);
+                return new UpdateOperation(context).execute();
         }
 
         throw new UnsupportedOperationException("Unknown operation: " + operation);
@@ -139,106 +136,6 @@ public class PersistentResourceFetcher implements DataFetcher {
         deleted.add(deleteObject);
 
         return deleted;
-    }
-
-    private Object updateObject(Environment request) {
-        Field field = request.field;
-        EntityDictionary dictionary = request.requestScope.getDictionary();
-
-        Object source = request.source;
-        String id = request.id.orElse(null);
-        RequestScope requestScope = request.requestScope;
-
-        Collection<PersistentResource> objectsToUpdate;
-        Class entityClass;
-        boolean isRoot = !(source instanceof PersistentResource);
-
-        if (!isRoot) {
-            PersistentResource resource = (PersistentResource) source;
-            entityClass = dictionary.getParameterizedType(resource.getObject(), field.getName());
-            // NOTE: Currently only handles _single_ object update
-            Optional<String> dataId = (id != null) ? Optional.of(id) : field.getArguments().stream()
-                    .filter(arg -> ARGUMENT_DATA.equalsIgnoreCase(arg.getName()))
-                    .findFirst()
-                    .map(data -> {
-                        // TODO: Handle lists?
-                        if (data.getValue() instanceof ObjectValue) {
-                            ObjectValue object = (ObjectValue) data.getValue();
-                            return object.getObjectFields().stream()
-                                    .filter(f -> "id".equalsIgnoreCase(f.getName()))
-                                    .findFirst()
-                                    .map(f -> ((StringValue) f.getValue()).getValue())
-                                    .orElseGet(() -> {
-                                        String uuid = UUID.randomUUID().toString();
-                                        PersistentResource.createObject(resource, entityClass, requestScope, uuid);
-                                        return uuid;
-                                    });
-                        }
-                        return null;
-                    });
-            objectsToUpdate = dataId
-                    .map(dId -> Collections.singleton(resource.getRelation(field.getName(), dId)))
-                    .orElseGet(() -> resource.getRelationCheckedFiltered(field.getName()));
-        } else {
-            objectsToUpdate = (id != null)
-                             ? Collections.singleton(load(field.getName(), id, requestScope))
-                             : loadCollectionOf(field.getName(), requestScope);
-            entityClass = dictionary.getEntityClass(field.getName());
-        }
-
-        if (request.outputType instanceof GraphQLList) {
-            GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) request.outputType).getWrappedType();
-            List<PersistentResource> container = new ArrayList<>();
-            for (Map<String, Object> input : request.data) {
-                // Find the id's that we're trying to update
-                Set<String> objectIds = input.entrySet().stream()
-                        .filter(entry -> ARGUMENT_ID.equalsIgnoreCase(entry.getKey()))
-                        .map(entry -> (String) entry.getValue())
-                        .collect(Collectors.toSet());
-                if (isRoot) {
-                    // Delete all the things we don't want to keep...
-                    PersistentResource.loadRecords(entityClass, requestScope).stream()
-                            .filter(p -> !objectIds.contains(p.getId()))
-                            .forEach(PersistentResource::deleteResource);
-                }
-                input.entrySet().stream()
-                        .forEach(entry -> {
-                            String fieldName = entry.getKey();
-                            Object value = entry.getValue();
-                            if (dictionary.isAttribute(entityClass, fieldName)) {
-                                // Update attribute value
-                                objectsToUpdate.stream().forEach(o -> o.updateAttribute(fieldName, value));
-                            } else if (dictionary.isRelation(entityClass, fieldName)) {
-                                // Replace relationship
-                                String relName = dictionary.getJsonAliasFor(
-                                        dictionary.getParameterizedType(entityClass, fieldName));
-                                Set<PersistentResource> newRelationships = new HashSet<>();
-                                if (value != null) {
-                                    // TODO: For a to-many relationship this would be a list... Need to handle that case
-                                    newRelationships.add(load(relName, value.toString(), request.requestScope));
-                                }
-                                objectsToUpdate.stream().forEach(o -> o.updateRelation(fieldName, newRelationships));
-                            } else if (fieldName.equals(dictionary.getIdFieldName(entityClass))) {
-                                if (id == null) {
-                                    // TODO: In case of list, should ensure we're modifying the correct object instance
-                                    return; // Not updating id
-                                }
-                                // Set id value
-                                if (value == null) {
-                                    throw new WebApplicationException("Cannot set object identifier to null",
-                                            HttpStatus.SC_BAD_REQUEST);
-                                }
-                                objectsToUpdate.stream().forEach(o -> o.setId(value.toString()));
-                            } else {
-                                throw new WebApplicationException("Attempt to update unknown field: '"
-                                        + fieldName + "'", HttpStatus.SC_BAD_REQUEST);
-                            }
-                        });
-                container.addAll(objectsToUpdate);
-            }
-            return container;
-        }
-        throw new IllegalStateException("Not sure what to create " + request.outputType.getName());
     }
 
     private Object createObject(Environment request) {
@@ -335,12 +232,12 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
     }
 
-    protected Collection<PersistentResource> loadCollectionOf(String type, RequestScope requestScope) {
+    public static Collection<PersistentResource> loadCollectionOf(String type, RequestScope requestScope) {
         Class recordType = (Class) requestScope.getDictionary().getEntityClass(type);
         return PersistentResource.loadRecords(recordType, requestScope);
     }
 
-    protected PersistentResource load(String type, String id, RequestScope requestScope) {
+    public static PersistentResource load(String type, String id, RequestScope requestScope) {
         Class<?> recordType = requestScope.getDictionary().getEntityClass(type);
         return PersistentResource.loadRecord(recordType, id, requestScope);
     }
