@@ -35,7 +35,7 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
     protected ObjectMapper mapper = new ObjectMapper();
 
     @BeforeMethod
-    public void setup() {
+    public void setupFetcherTest() {
         ElideSettings settings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary).build();
 
@@ -83,10 +83,14 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
         tx.commit(null);
     }
 
-    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws JsonProcessingException {
+    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
-        Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
+        try {
+            Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
+        } catch (JsonProcessingException e) {
+            Assert.fail("JSON parsing exception", e);
+        }
     }
 
     void assertQueryFails(String graphQLRequest) {

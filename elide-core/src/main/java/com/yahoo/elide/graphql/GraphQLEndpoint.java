@@ -85,6 +85,10 @@ public class GraphQLEndpoint {
                     jsonDocument.get("operationName").asText(),
                     requestScope,
                     mapper.convertValue(jsonDocument.get("variables"), Map.class));
+            if (!result.getErrors().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(mapper.writeValueAsString(result.getErrors())).build();
+            }
             return Response.ok(mapper.writeValueAsString(result.getData())).build();
         } catch (JsonProcessingException e) {
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
