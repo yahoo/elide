@@ -42,7 +42,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -208,6 +210,9 @@ public class Elide {
             }
 
             return response;
+
+        } catch (WebApplicationException e) {
+            throw e;
 
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
