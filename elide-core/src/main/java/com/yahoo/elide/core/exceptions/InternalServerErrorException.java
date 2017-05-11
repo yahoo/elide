@@ -18,7 +18,7 @@ public class InternalServerErrorException extends HttpStatusException {
     public InternalServerErrorException(String message) {
         super(HttpStatus.SC_INTERNAL_SERVER_ERROR, message);
     }
-    public InternalServerErrorException(Exception e) {
+    public InternalServerErrorException(Throwable e) {
         super(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString(), e, null);
     }
 }
