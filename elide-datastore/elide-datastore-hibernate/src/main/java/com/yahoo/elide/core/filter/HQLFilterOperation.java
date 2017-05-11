@@ -36,11 +36,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         String fieldPath = filterPredicate.getFieldPath();
 
         if (prefixWithAlias) {
-            String alias = filterPredicate.getAlias();
-            if (alias == null) {
-                alias = filterPredicate.getEntityType().getSimpleName();
-            }
-            fieldPath = alias + "." + fieldPath;
+            fieldPath = filterPredicate.getAlias() + "." + fieldPath;
         }
 
         String alias = filterPredicate.getParameterName();
