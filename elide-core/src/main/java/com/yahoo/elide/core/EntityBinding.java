@@ -383,13 +383,11 @@ class EntityBinding {
         return annotation == NO_ANNOTATION ? null : (A) annotation;
     }
 
-    public static List<Class<?>> getInheritedTypes(Class<?> entityClass) {
-        Class<?> cls = entityClass.getSuperclass();
+    private List<Class<?>> getInheritedTypes(Class<?> entityClass) {
         ArrayList<Class<?>> results = new ArrayList<>();
 
-        while (cls != null && cls != Object.class) {
+        for (Class<?> cls = entityClass.getSuperclass() ; cls != Object.class ; cls = cls.getSuperclass()) {
             results.add(cls);
-            cls = cls.getSuperclass();
         }
 
         return results;
