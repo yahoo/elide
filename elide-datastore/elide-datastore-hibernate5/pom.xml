@@ -40,6 +40,7 @@
 
     <properties>
         <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>
+        <hibernate5.version>5.0.2.Final</hibernate5.version>
     </properties>
 
     <dependencies>
@@ -77,7 +78,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.0.2.Final</version>
+            <version>${hibernate5.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-api</artifactId>
@@ -100,6 +101,11 @@
                     <groupId>tomcat</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>${hibernate5.version}</version>
         </dependency>
         <!-- For proper serialization in elide-core -->
         <dependency>
