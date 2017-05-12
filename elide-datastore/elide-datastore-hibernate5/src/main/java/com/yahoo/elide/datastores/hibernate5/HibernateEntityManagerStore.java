@@ -6,9 +6,12 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
+
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.jpa.HibernateEntityManager;
+import org.hibernate.metadata.ClassMetadata;
 
 /**
  * Hibernate5 store supporting the EntityManager.
@@ -42,6 +45,21 @@ public class HibernateEntityManagerStore extends HibernateStore {
     @Override
     @SuppressWarnings("deprecation")
     public DataStoreTransaction beginTransaction() {
-        return transactionSupplier.get(getSession(), isScrollEnabled, scrollMode);
+        Session session = getSession();
+        session.beginTransaction();
+        return transactionSupplier.get(session, isScrollEnabled, scrollMode);
+    }
+
+    /**
+     * Populate the entity dictionary from hibernate entities.
+     *
+     * @param dictionary Entity dictionary to populate
+     */
+    @Override
+    public void populateEntityDictionary(EntityDictionary dictionary) {
+        /* bind all entities */
+        for (ClassMetadata meta : getSession().getSessionFactory().getAllClassMetadata().values()) {
+            dictionary.bindEntity(meta.getMappedClass());
+        }
     }
 }

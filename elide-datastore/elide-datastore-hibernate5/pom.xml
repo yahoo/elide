@@ -39,7 +39,6 @@
     </scm>
 
     <properties>
-        <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>
         <hibernate5.version>5.0.2.Final</hibernate5.version>
     </properties>
 
@@ -174,6 +173,32 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <!--<execution>-->
+                        <!--<id>test-hibernatesessionfactory-store</id>-->
+                        <!--<phase>pre-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>integration-test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<systemPropertyVariables>-->
+                                <!--<dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>-->
+                            <!--</systemPropertyVariables>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <execution>
+                        <id>test-hibernateentitymanager-store</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateEntityManagerDataStoreSupplier</dataStoreSupplier>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
