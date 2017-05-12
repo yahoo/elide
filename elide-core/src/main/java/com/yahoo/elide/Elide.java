@@ -14,6 +14,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -41,7 +42,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -208,6 +211,9 @@ public class Elide {
 
             return response;
 
+        } catch (WebApplicationException e) {
+            throw e;
+
         } catch (ForbiddenAccessException e) {
             log.debug("{}", e.getLoggedMessage());
             return buildErrorResponse(e, isVerbose);
@@ -224,8 +230,11 @@ public class Elide {
         } catch (ParseCancellationException e) {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
-        } catch (RuntimeException | Error e) {
-            log.error("Exception uncaught by Elide", e);
+        } catch (Exception e) {
+            return buildErrorResponse(new InternalServerErrorException(e), isVerbose);
+
+        } catch (Error e) {
+            log.error("Error uncaught by Elide", e);
             throw e;
 
         } finally {
@@ -260,6 +269,9 @@ public class Elide {
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+        if (error instanceof InternalServerErrorException) {
+            log.error("Internal Server Error", error);
+        }
         return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
     }
 
