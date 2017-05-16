@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.core.RequestScope;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,7 +16,7 @@ import java.io.IOException;
 public class Slf4jLogger extends AuditLogger {
 
     @Override
-    public void commit(RequestScope requestScope) throws IOException {
+    public void commit() throws IOException {
         try {
             for (LogMessage message : messages.get()) {
                 log.info("{} {} {}", System.currentTimeMillis(), message.getOperationCode(), message.getMessage());

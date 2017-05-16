@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.core.RequestScope;
-
 import java.io.IOException;
 
 /**
@@ -23,7 +21,7 @@ public class TestAuditLogger extends AuditLogger {
     }
 
     @Override
-    public void commit(RequestScope requestScope) throws IOException {
+    public void commit() throws IOException {
         commitCount++;
     }
 }
