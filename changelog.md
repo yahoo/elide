@@ -1,6 +1,9 @@
 #Change Log
 
 ## 3.0.7
+**Features**
+ * Add support for sorting by id values
+
 **Fixes**
 * Account for inheritance when performing new entity detection during a PATCH Extension request.
 

@@ -27,6 +27,7 @@ public class Sorting {
 
     private final Map<String, SortOrder> sortRules = new LinkedHashMap<>();
     private static final Sorting DEFAULT_EMPTY_INSTANCE = new Sorting(null);
+    private static final String JSONAPI_ID_KEYWORD = "id";
 
     /**
      * Constructs a new Sorting instance.
@@ -51,7 +52,7 @@ public class Sorting {
 
         final List<String> entities = dictionary.getAttributes(entityClass);
         sortRules.keySet().stream().forEachOrdered(sortRule -> {
-            if (!entities.contains(sortRule)) {
+            if (!entities.contains(sortRule) && !JSONAPI_ID_KEYWORD.equals(sortRule)) {
                 throw new InvalidValueException(entityClass.getSimpleName()
                         + " doesn't contain the field " + sortRule);
             }
@@ -71,7 +72,7 @@ public class Sorting {
                                                            final EntityDictionary dictionary)
             throws InvalidValueException {
         hasValidSortingRules(entityClass, dictionary);
-        return sortRules;
+        return replaceIdRule(dictionary.getIdFieldName(entityClass));
     }
 
     /**
@@ -130,6 +131,26 @@ public class Sorting {
             sortRule = sortRule.substring(1);
         }
         sortingRules.put(sortRule, isDesc ? SortOrder.desc : SortOrder.asc);
+    }
+
+    /**
+     * Replace id with proper field for object.
+     *
+     * @param idFieldName Name of the object's id field.
+     * @return Sort rules with id field name replaced
+     */
+    private LinkedHashMap<String, SortOrder> replaceIdRule(String idFieldName) {
+        LinkedHashMap<String, SortOrder> result = new LinkedHashMap<>();
+        for (Map.Entry<String, SortOrder> entry : sortRules.entrySet()) {
+            String key = entry.getKey();
+            SortOrder value = entry.getValue();
+            if (JSONAPI_ID_KEYWORD.equals(key)) {
+                result.put(idFieldName, value);
+            } else {
+                result.put(key, value);
+            }
+        }
+        return result;
     }
 
     /**

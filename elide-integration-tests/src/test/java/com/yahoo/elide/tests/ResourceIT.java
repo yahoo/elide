@@ -1632,6 +1632,23 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
+    @Test(priority = 42)
+    public void testSortByIdTopLevel() {
+        String sortByIdAscendingTopLevel = jsonParser.getJson("/ResourceIT/sortByTopLevelAscending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent?sort=id")
+                .then()
+                .body(equalTo(sortByIdAscendingTopLevel));
+
+        String sortByIdDescendingTopLevel = jsonParser.getJson("/ResourceIT/sortByTopLevelDescending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent?sort=-id")
+                .then()
+                .body(equalTo(sortByIdDescendingTopLevel));
+    }
+
     @Test
     public void testExceptionThrowingBean() {
         // Ensure web exception from bean gets bubbled up
