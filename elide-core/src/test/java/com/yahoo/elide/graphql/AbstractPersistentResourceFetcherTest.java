@@ -21,6 +21,7 @@ import graphql.GraphQLError;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -65,15 +66,15 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
         Book book1 = new Book();
         book1.setId(1L);
         book1.setTitle("Libro Uno");
-        book1.setAuthors(Collections.singletonList(author1));
+        book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
 
         Book book2 = new Book();
         book2.setId(2L);
         book2.setTitle("Libro Dos");
-        book2.setAuthors(Collections.singletonList(author1));
+        book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
 
         author1.setPenName(authorOne);
-        author1.setBooks(Arrays.asList(book1, book2));
+        author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
         authorOne.setAuthor(author1);
 
         tx.save(author1, null);

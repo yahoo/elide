@@ -44,8 +44,9 @@ public class FetcherReplaceTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testRootCollectionMixedIds() throws JsonProcessingException {
-        String graphQLRequest = "mutation { book(op:REPLACE, data: [{id: \"1\", title: \"abc\"}, {id: \"42\", title: \"abc\"}, {title: \"abc\"}]) { id, title } }"; // create 2, update 1
-        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"abc\"},{\"id\":\"42\",\"title\":\"abc\"},{\"id\":\"43\",\"title\":\"abc\"}]}";
+        // Update 1, create for id 42, replace all titles with "abc"
+        String graphQLRequest = "mutation { book(op:REPLACE, data: [{id: \"1\", title: \"my id\"}, {id: \"42\", title: \"xyz\"}, {title: \"abc\"}]) { id, title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"abc\"},{\"id\":\"2\",\"title\":\"abc\"},{\"id\":\"42\",\"title\":\"abc\"}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }

@@ -59,4 +59,5 @@ public class Environment {
 
     public boolean isRoot() {
         return source instanceof RequestScope;
-    }}
+    }
+}
