@@ -92,26 +92,25 @@ public class UpdateOperation {
 
     private void processActions(Collection<PersistentResource> objectsToUpdate, Map<String, Object> input) {
         String entityId = (String) input.get(idFieldName);
-        boolean foundEntityId = entityId == null;
+        boolean foundEntityId = entityId != null;
         if (!foundEntityId) {
             entityId = UUID.randomUUID().toString();
         }
+        final String entityIdCapture = entityId;
         input.entrySet().stream()
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     Object value = entry.getValue();
                     // TODO: Should be able to reuse this logic for non-rootable objects as well. Perhaps store parent?
-                    // This happens when we didn't load the objet (i.e. not in our datastore).
-                    if ((isRoot && entityId != null && !objectsToUpdate.stream()
-                            .map(PersistentResource::getId).anyMatch(p -> entityId.equals(p)))
-                            || (!isRoot && !foundEntityId)) {
+                    // This happens when we didn't load the object (i.e. not in our datastore).
+                    if ((isRoot && !foundEntityId)
+                            || (objectsToUpdate.stream().noneMatch(p -> p.matchesId(entityIdCapture)))) {
                         PersistentResource result =
-                                PersistentResource.createObject(null, entityClass, requestScope, entityId);
-                        result.setId(entityId);
+                                PersistentResource.createObject(null, entityClass, requestScope, entityIdCapture);
                         objectsToUpdate.add(result);
                     }
                     Stream<PersistentResource> objects = objectsToUpdate.stream()
-                            .filter(p -> (entityId == null) ? true : entityId.equals(p.getId()));
+                            .filter(p -> (entityIdCapture == null) ? true : p.matchesId(entityIdCapture));
                     if (dictionary.isAttribute(entityClass, fieldName)) {
                         // Update attribute value
                         objects.forEach(o -> o.updateAttribute(fieldName, value));
@@ -174,9 +173,9 @@ public class UpdateOperation {
 
     private Collection<PersistentResource> fetchResourceCollection() {
         if (isRoot) {
-            return fetchRootableResourceCollection();
+            return new ArrayList<>(fetchRootableResourceCollection());
         }
-        return fetchNonRootableResourceCollection();
+        return new ArrayList<>(fetchNonRootableResourceCollection());
     }
 
     private Collection<PersistentResource> fetchNonRootableResourceCollection() {
