@@ -5,10 +5,11 @@
  * Add support for sorting by id values
 
 **Fixes**
-* Account for inheritance when performing new entity detection during a PATCH Extension request.
+  * Account for inheritance when performing new entity detection during a PATCH Extension request.
+  * Upgrade examples to behave properly with latest jersey release.
 
 **Misc**
-* Always setting HQL 'alias' in FilterPredicate Constructor
+  * Always setting HQL 'alias' in FilterPredicate Constructor
 
 ## 3.0.6
 **Misc**
