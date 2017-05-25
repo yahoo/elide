@@ -43,7 +43,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.ServerErrorException;
@@ -1397,7 +1397,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> fieldClass = dictionary.getType(targetClass, fieldName);
             String realName = dictionary.getNameFromAlias(obj, fieldName);
             fieldName = (realName != null) ? realName : fieldName;
-            String setMethod = "set" + StringUtils.capitalize(fieldName);
+            String setMethod = "set" + WordUtils.capitalize(fieldName);
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
             method.invoke(obj, coerce(value, fieldName, fieldClass));
         } catch (IllegalAccessException e) {
