@@ -10,7 +10,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.datastores.hibernate3.HibernateStore;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;

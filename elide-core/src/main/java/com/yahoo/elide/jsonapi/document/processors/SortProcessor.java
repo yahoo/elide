@@ -32,7 +32,12 @@ import javax.ws.rs.core.MultivaluedMap;
  *
  * Example:
  *  /posts?sort=title,-created
+ *
+ *  @deprecated since Elide 3.0.7 and will be removed in Elide 4.0. Sorting should be offloaded as a responsibility
+ *              of the datastore since this concept and pagination are tightly coupled.
+ *  @see com.yahoo.elide.core.sort.Sorting
  */
+@Deprecated
 public class SortProcessor implements DocumentProcessor {
 
     /**

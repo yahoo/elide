@@ -1632,6 +1632,40 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
+    @Test(priority = 42)
+    public void testSortByIdRootableTopLevel() {
+        String sortByIdAscendingTopLevel = jsonParser.getJson("/ResourceIT/sortByIdRootableTopLevelAscending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent?sort=id")
+                .then()
+                .body(equalTo(sortByIdAscendingTopLevel));
+
+        String sortByIdDescendingTopLevel = jsonParser.getJson("/ResourceIT/sortByIdRootableTopLevelDescending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent?sort=-id")
+                .then()
+                .body(equalTo(sortByIdDescendingTopLevel));
+    }
+
+    @Test(priority = 42)
+    public void testSortByIdNonRootableTopLevel() {
+        String sortByIdAscendingTopLevel = jsonParser.getJson("/ResourceIT/sortByIdNonRootableTopLevelAscending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2/children?sort=id")
+                .then()
+                .body(equalTo(sortByIdAscendingTopLevel));
+
+        String sortByIdDescendingTopLevel = jsonParser.getJson("/ResourceIT/sortByIdNonRootableTopLevelDescending.json");
+        given()
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/parent/2/children?sort=-id")
+                .then()
+                .body(equalTo(sortByIdDescendingTopLevel));
+    }
+
     @Test
     public void testExceptionThrowingBean() {
         // Ensure web exception from bean gets bubbled up
