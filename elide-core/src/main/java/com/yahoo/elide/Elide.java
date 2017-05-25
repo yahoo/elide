@@ -201,7 +201,7 @@ public class Elide {
             ElideResponse response = buildResponse(responder.get());
 
             requestScope.runQueuedPreCommitTriggers();
-            auditLogger.commit(requestScope);
+            auditLogger.commit();
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
 

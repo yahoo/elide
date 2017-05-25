@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
@@ -18,7 +17,7 @@ public class InMemoryLogger extends AuditLogger {
     public final ConcurrentHashSet<String> logMessages = new ConcurrentHashSet<>();
 
     @Override
-    public void commit(RequestScope requestScope) throws IOException {
+    public void commit() throws IOException {
         for (LogMessage message : messages.get()) {
             if (message.getChangeSpec().isPresent()) {
                 logMessages.add(changeSpecToString(message.getChangeSpec().get()));
