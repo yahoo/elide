@@ -141,7 +141,13 @@ public class ObjectGenerator {
                                                     Class<?> attributeClass,
                                                     String attribute,
                                                     DataFetcher fetcher) {
-        return attributeToQueryObject(parentClass, attributeClass, attribute, fetcher, new GeneratorContext());
+        return attributeToQueryObject(
+                parentClass,
+                attributeClass,
+                attribute,
+                fetcher,
+                entityDictionary,
+                new GeneratorContext());
     }
 
 
@@ -149,6 +155,7 @@ public class ObjectGenerator {
                                                     Class<?> attributeClass,
                                                     String attribute,
                                                     DataFetcher fetcher,
+                                                    EntityDictionary dictionary,
                                                     GeneratorContext ctx) {
 
         if (ctx.hasConflict(attributeClass)) {
@@ -161,8 +168,8 @@ public class ObjectGenerator {
         }
 
         if (Map.class.isAssignableFrom(attributeClass)) {
-            Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
-            Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
+            Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
 
             if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
                 log.error("Cycle detected: Map {} {}", keyType, valueType);
@@ -171,7 +178,7 @@ public class ObjectGenerator {
 
             return classToQueryMap(keyType, valueType, fetcher, ctx);
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
-            Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
             if (ctx.hasConflict(listType)) {
                 log.error("Cycle detected: {}", listType);
@@ -192,12 +199,13 @@ public class ObjectGenerator {
     public GraphQLInputType attributeToInputObject(Class<?> parentClass,
                                                    Class<?> attributeClass,
                                                    String attribute) {
-        return attributeToInputObject(parentClass, attributeClass, attribute, new GeneratorContext());
+        return attributeToInputObject(parentClass, attributeClass, attribute, entityDictionary, new GeneratorContext());
     }
 
     public GraphQLInputType attributeToInputObject(Class<?> parentClass,
                                                    Class<?> attributeClass,
                                                    String attribute,
+                                                   EntityDictionary dictionary,
                                                    GeneratorContext ctx) {
 
         if (ctx.hasConflict(attributeClass)) {
@@ -210,8 +218,8 @@ public class ObjectGenerator {
         }
 
         if (Map.class.isAssignableFrom(attributeClass)) {
-                Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
-                Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
+                Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
+                Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
 
                 if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
                     log.error("Cycle detected: Map {} {}", keyType, valueType);
@@ -220,7 +228,7 @@ public class ObjectGenerator {
 
                 return classToInputMap(keyType, valueType, ctx);
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
-                Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+                Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
                 if (ctx.hasConflict(listType)) {
                     log.error("Cycle detected: {}", listType);
@@ -260,7 +268,8 @@ public class ObjectGenerator {
                     .name(attribute)
                     .dataFetcher(fetcher);
 
-            GraphQLOutputType attributeType = attributeToQueryObject(clazz, attributeClass, attribute, fetcher, ctx);
+            GraphQLOutputType attributeType =
+                    attributeToQueryObject(clazz, attributeClass, attribute, fetcher, nonEntityDictionary, ctx);
             if (attributeType == null) {
                 continue;
             }
@@ -293,7 +302,8 @@ public class ObjectGenerator {
             GraphQLInputObjectField.Builder fieldBuilder = newInputObjectField()
                     .name(attribute);
 
-            GraphQLInputType attributeType = attributeToInputObject(clazz, attributeClass, attribute, ctx);
+            GraphQLInputType attributeType =
+                    attributeToInputObject(clazz, attributeClass, attribute, nonEntityDictionary, ctx);
 
             if (attributeType == null) {
                 continue;
