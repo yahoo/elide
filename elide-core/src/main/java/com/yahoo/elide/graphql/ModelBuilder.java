@@ -51,7 +51,7 @@ public class ModelBuilder {
 
         relationshipOpArg = GraphQLArgument.newArgument()
                 .name("op")
-                .type(generator.classToInputObject(RelationshipOp.class))
+                .type(generator.classToEnumType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
