@@ -49,6 +49,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -107,8 +108,15 @@ public class EntityBinding {
 
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
-        fieldOrMethodList.addAll(Arrays.asList(cls.getFields()));
-        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods()));
+        fieldOrMethodList.addAll(Arrays.asList(cls.getFields())
+                .stream()
+                .filter((field) -> ! Modifier.isStatic(field.getModifiers()))
+                .collect(Collectors.toList()));
+
+        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
+                .stream()
+                .filter((method) -> ! Modifier.isStatic(method.getModifiers()))
+                .collect(Collectors.toList()));
 
         bindEntityFields(cls, type, fieldOrMethodList);
 

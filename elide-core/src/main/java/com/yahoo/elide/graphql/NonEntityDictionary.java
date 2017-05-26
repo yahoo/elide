@@ -1,15 +1,18 @@
+/*
+ * Copyright 2017, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A set of reflection utilities for non-Elide entities.
