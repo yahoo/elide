@@ -200,7 +200,8 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     entityClass.getName());
 
-            GraphQLType attributeType = generator.classToQueryType(entityClass, attributeClass, attribute, dataFetcher);
+            GraphQLType attributeType =
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
 
             if (attributeType == null) {
                 continue;
@@ -304,7 +305,7 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     clazz.getName());
 
-            GraphQLInputType attributeType = generator.classToInputType(clazz, attributeClass, attribute);
+            GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
 
             /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {

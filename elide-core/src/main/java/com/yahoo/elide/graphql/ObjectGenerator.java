@@ -137,20 +137,46 @@ public class ObjectGenerator {
         );
     }
 
-    public GraphQLOutputType classToQueryType(Class<?> parentClass,
-                                              Class<?> attributeClass,
-                                              String attribute,
-                                              DataFetcher fetcher) {
+    public GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
+                                                    Class<?> attributeClass,
+                                                    String attribute,
+                                                    DataFetcher fetcher) {
+        return attributeToQueryObject(parentClass, attributeClass, attribute, fetcher, new GeneratorContext());
+    }
 
-        GeneratorContext ctx = new GeneratorContext();
+
+    public GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
+                                                    Class<?> attributeClass,
+                                                    String attribute,
+                                                    DataFetcher fetcher,
+                                                    GeneratorContext ctx) {
+
+        if (ctx.hasConflict(attributeClass)) {
+            log.error("Cycle detected: {}", attributeClass);
+            return null;
+        }
+
+        if (Class.class.isAssignableFrom(attributeClass)) {
+            return null;
+        }
 
         if (Map.class.isAssignableFrom(attributeClass)) {
             Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
             Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
 
+            if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
+                log.error("Cycle detected: Map {} {}", keyType, valueType);
+                return null;
+            }
+
             return classToQueryMap(keyType, valueType, fetcher, ctx);
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
             Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+
+            if (ctx.hasConflict(listType)) {
+                log.error("Cycle detected: {}", listType);
+                return null;
+            }
 
             return (new GraphQLList(classToQueryObject(listType, ctx, fetcher)));
         } else if (attributeClass.isEnum()) {
@@ -163,20 +189,43 @@ public class ObjectGenerator {
             return outputType;
         }
     }
+    public GraphQLInputType attributeToInputObject(Class<?> parentClass,
+                                                   Class<?> attributeClass,
+                                                   String attribute) {
+        return attributeToInputObject(parentClass, attributeClass, attribute, new GeneratorContext());
+    }
 
-    public GraphQLInputType classToInputType(Class<?> parentClass,
-                                             Class<?> attributeClass,
-                                             String attribute) {
+    public GraphQLInputType attributeToInputObject(Class<?> parentClass,
+                                                   Class<?> attributeClass,
+                                                   String attribute,
+                                                   GeneratorContext ctx) {
 
-        GeneratorContext ctx = new GeneratorContext();
+        if (ctx.hasConflict(attributeClass)) {
+            log.error("Cycle detected: {}", attributeClass);
+            return null;
+        }
+
+        if (Class.class.isAssignableFrom(attributeClass)) {
+            return null;
+        }
 
         if (Map.class.isAssignableFrom(attributeClass)) {
                 Class<?> keyType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
                 Class<?> valueType = entityDictionary.getParameterizedType(parentClass, attribute, 1);
 
+                if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
+                    log.error("Cycle detected: Map {} {}", keyType, valueType);
+                    return null;
+                }
+
                 return classToInputMap(keyType, valueType, ctx);
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
                 Class<?> listType = entityDictionary.getParameterizedType(parentClass, attribute, 0);
+
+                if (ctx.hasConflict(listType)) {
+                    log.error("Cycle detected: {}", listType);
+                    return null;
+                }
 
                 return new GraphQLList(classToInputObject(listType, ctx));
         } else if (attributeClass.isEnum()) {
@@ -207,47 +256,16 @@ public class ObjectGenerator {
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
-            if (ctx.hasConflict(attributeClass)) {
-                log.error("Cycle detected: {}", attributeClass);
-                continue;
-            }
-
-            if (Class.class.isAssignableFrom(attributeClass)) {
-                continue;
-            }
-
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
                     .name(attribute)
                     .dataFetcher(fetcher);
 
-            if (Map.class.isAssignableFrom(attributeClass)) {
-                Class<?> keyType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
-                Class<?> valueType = nonEntityDictionary.getParameterizedType(clazz, attribute, 1);
-
-                if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
-                    log.error("Cycle detected: Map {} {}", keyType, valueType);
-                    continue;
-                }
-
-                fieldBuilder.type(classToQueryMap(keyType, valueType, fetcher, ctx));
-            } else if (Collection.class.isAssignableFrom(attributeClass)) {
-                Class<?> listType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
-
-                if (ctx.hasConflict(listType)) {
-                    log.error("Cycle detected: {}", listType);
-                    continue;
-                }
-
-                fieldBuilder.type(new GraphQLList(classToQueryObject(listType, ctx, fetcher)));
-            } else if (attributeClass.isEnum()) {
-                fieldBuilder.type(classToEnumType(attributeClass));
-            } else {
-                GraphQLOutputType outputType = classToScalarType(attributeClass);
-                if (outputType == null) {
-                    outputType = classToQueryObject(attributeClass, ctx, fetcher);
-                }
-                fieldBuilder.type(outputType);
+            GraphQLOutputType attributeType = attributeToQueryObject(clazz, attributeClass, attribute, fetcher, ctx);
+            if (attributeType == null) {
+                continue;
             }
+
+            fieldBuilder.type(attributeType);
 
             objectBuilder.field(fieldBuilder);
         }
@@ -272,45 +290,15 @@ public class ObjectGenerator {
             log.info("Building input object attribute: {}", attribute);
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
-            if (ctx.hasConflict(attributeClass)) {
-                log.error("Cycle detected: {}", attributeClass);
-                continue;
-            }
-
-            if (Class.class.isAssignableFrom(attributeClass)) {
-                continue;
-            }
-
             GraphQLInputObjectField.Builder fieldBuilder = newInputObjectField()
                     .name(attribute);
 
-            if (Map.class.isAssignableFrom(attributeClass)) {
-                Class<?> keyType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
-                Class<?> valueType = nonEntityDictionary.getParameterizedType(clazz, attribute, 1);
-                if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
-                    log.error("Cycle detected: Map {} {}", keyType, valueType);
-                    continue;
-                }
+            GraphQLInputType attributeType = attributeToInputObject(clazz, attributeClass, attribute, ctx);
 
-                fieldBuilder.type(classToInputMap(keyType, valueType, ctx));
-            } else if (Collection.class.isAssignableFrom(attributeClass)) {
-                Class<?> listType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
-                if (ctx.hasConflict(listType)) {
-                    log.error("Cycle detected: {}", listType);
-                    continue;
-                }
-
-                fieldBuilder.type(new GraphQLList(classToInputObject(listType, ctx)));
-            } else if (attributeClass.isEnum()) {
-                fieldBuilder.type(classToEnumType(attributeClass));
-            } else {
-                GraphQLInputType inputType = classToScalarType(attributeClass);
-                if (inputType == null) {
-                    inputType = classToInputObject(attributeClass, ctx);
-                }
-                fieldBuilder.type(inputType);
+            if (attributeType == null) {
+                continue;
             }
-
+            fieldBuilder.type(attributeType);
             objectBuilder.field(fieldBuilder);
         }
 
