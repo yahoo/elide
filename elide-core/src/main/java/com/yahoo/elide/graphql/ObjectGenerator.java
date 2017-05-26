@@ -137,10 +137,6 @@ public class ObjectGenerator {
         );
     }
 
-    public GraphQLObjectType classToQueryObject(Class<?> clazz, DataFetcher fetcher) {
-        return classToQueryObject(clazz, new GeneratorContext(), fetcher);
-    }
-
     public GraphQLOutputType classToQueryType(Class<?> parentClass,
                                               Class<?> attributeClass,
                                               String attribute,
@@ -256,10 +252,6 @@ public class ObjectGenerator {
             objectBuilder.field(fieldBuilder);
         }
         return objectBuilder.build();
-    }
-
-    public GraphQLInputObjectType classToInputObject(Class<?> clazz) {
-        return classToInputObject(clazz, new GeneratorContext());
     }
 
     public GraphQLInputObjectType classToInputObject(Class<?> clazz, GeneratorContext ctx) {
