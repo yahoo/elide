@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityBinding;
 import com.yahoo.elide.core.EntityDictionary;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -19,11 +18,10 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ClassUtils;
 
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +32,9 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
 
+/**
+ * Generates Objects
+ */
 @Slf4j
 public class ObjectGenerator {
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
@@ -43,12 +44,23 @@ public class ObjectGenerator {
         this.entityDictionary = dictionary;
     }
 
+    /**
+     * Context
+     */
     public class GeneratorContext {
-        @Getter
         private Set<Class<?>> generatedTypes = new HashSet<>();
 
         public boolean hasConflict(Class<?> candidate) {
             return generatedTypes.contains(candidate);
+        }
+
+        public boolean addConflict(Class<?> candidate) {
+            if (ClassUtils.isPrimitiveOrWrapper(candidate) || String.class.isAssignableFrom(candidate)) {
+                return false;
+            }
+
+            generatedTypes.add(candidate);
+            return true;
         }
     }
 
@@ -65,6 +77,8 @@ public class ObjectGenerator {
         } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
             return Scalars.GraphQLLong;
         } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
+            return Scalars.GraphQLFloat;
+        } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(short.class) || clazz.equals(Short.class)) {
             return Scalars.GraphQLShort;
@@ -94,6 +108,7 @@ public class ObjectGenerator {
                                         GeneratorContext ctx) {
         return new GraphQLList(
             GraphQLObjectType.newObject()
+                .name(keyClazz.getName() + valueClazz.getCanonicalName() + "Map")
                 .field(newFieldDefinition()
                         .name("key")
                         .dataFetcher(fetcher)
@@ -111,6 +126,7 @@ public class ObjectGenerator {
                                        GeneratorContext ctx) {
         return new GraphQLList(
             newInputObject()
+                .name(keyClazz.getName() + valueClazz.getCanonicalName() + "Map")
                 .field(newInputObjectField()
                         .name("key")
                         .type(classToInputObject(keyClazz, ctx)))
@@ -183,6 +199,8 @@ public class ObjectGenerator {
         if (ctx.hasConflict(clazz)) {
             throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
         }
+        ctx.addConflict(clazz);
+
         if (!nonEntityDictionary.hasBinding(clazz)) {
             nonEntityDictionary.bindEntity(clazz);
         }
@@ -192,6 +210,11 @@ public class ObjectGenerator {
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+
+            if (ctx.hasConflict(attributeClass)) {
+                log.error("Cycle detected: {}", attributeClass);
+                continue;
+            }
 
             if (Class.class.isAssignableFrom(attributeClass)) {
                 continue;
@@ -205,9 +228,19 @@ public class ObjectGenerator {
                 Class<?> keyType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
                 Class<?> valueType = nonEntityDictionary.getParameterizedType(clazz, attribute, 1);
 
+                if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
+                    log.error("Cycle detected: Map {} {}", keyType, valueType);
+                    continue;
+                }
+
                 fieldBuilder.type(classToQueryMap(keyType, valueType, fetcher, ctx));
             } else if (Collection.class.isAssignableFrom(attributeClass)) {
                 Class<?> listType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
+
+                if (ctx.hasConflict(listType)) {
+                    log.error("Cycle detected: {}", listType);
+                    continue;
+                }
 
                 fieldBuilder.type(new GraphQLList(classToQueryObject(listType, ctx, fetcher)));
             } else if (attributeClass.isEnum()) {
@@ -222,7 +255,6 @@ public class ObjectGenerator {
 
             objectBuilder.field(fieldBuilder);
         }
-        ctx.getGeneratedTypes().add(clazz);
         return objectBuilder.build();
     }
 
@@ -233,8 +265,9 @@ public class ObjectGenerator {
     public GraphQLInputObjectType classToInputObject(Class<?> clazz, GeneratorContext ctx) {
         log.info("Building input object for type: {}", clazz.getName());
         if (ctx.hasConflict(clazz)) {
-            throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
+            throw new IllegalArgumentException("Cycle2 detected when generating type for class" + clazz.getName());
         }
+        ctx.addConflict(clazz);
 
         if (!nonEntityDictionary.hasBinding(clazz)) {
             nonEntityDictionary.bindEntity(clazz);
@@ -244,7 +277,13 @@ public class ObjectGenerator {
         objectBuilder.name(clazz.getName() + "Input");
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
+            log.info("Building input object attribute: {}", attribute);
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+
+            if (ctx.hasConflict(attributeClass)) {
+                log.error("Cycle detected: {}", attributeClass);
+                continue;
+            }
 
             if (Class.class.isAssignableFrom(attributeClass)) {
                 continue;
@@ -256,10 +295,18 @@ public class ObjectGenerator {
             if (Map.class.isAssignableFrom(attributeClass)) {
                 Class<?> keyType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
                 Class<?> valueType = nonEntityDictionary.getParameterizedType(clazz, attribute, 1);
+                if (ctx.hasConflict(keyType) || ctx.hasConflict(valueType)) {
+                    log.error("Cycle detected: Map {} {}", keyType, valueType);
+                    continue;
+                }
 
                 fieldBuilder.type(classToInputMap(keyType, valueType, ctx));
             } else if (Collection.class.isAssignableFrom(attributeClass)) {
                 Class<?> listType = nonEntityDictionary.getParameterizedType(clazz, attribute, 0);
+                if (ctx.hasConflict(listType)) {
+                    log.error("Cycle detected: {}", listType);
+                    continue;
+                }
 
                 fieldBuilder.type(new GraphQLList(classToInputObject(listType, ctx)));
             } else if (attributeClass.isEnum()) {
@@ -275,7 +322,6 @@ public class ObjectGenerator {
             objectBuilder.field(fieldBuilder);
         }
 
-        ctx.getGeneratedTypes().add(clazz);
         return objectBuilder.build();
     }
 }
