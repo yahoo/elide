@@ -124,6 +124,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         try {
             Criteria criteria = session.createCriteria(entityClass).add(Restrictions.idEq(id));
+            criteria.setFlushMode(FlushMode.MANUAL);
             if (filterExpression.isPresent()) {
                 CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
                 criteria = filterOpn.apply(filterExpression.get());

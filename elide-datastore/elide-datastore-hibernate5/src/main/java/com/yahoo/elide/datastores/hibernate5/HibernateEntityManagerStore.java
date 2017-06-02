@@ -47,6 +47,7 @@ public class HibernateEntityManagerStore extends HibernateStore {
     public DataStoreTransaction beginTransaction() {
         Session session = getSession();
         session.beginTransaction();
+        session.clear();
         return transactionSupplier.get(session, isScrollEnabled, scrollMode);
     }
 

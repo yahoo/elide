@@ -174,18 +174,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
-                    <!--<execution>-->
-                        <!--<id>test-hibernatesessionfactory-store</id>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>integration-test</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<systemPropertyVariables>-->
-                                <!--<dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>-->
-                            <!--</systemPropertyVariables>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
+                    <execution>
+                        <id>test-hibernatesessionfactory-store</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>test-hibernateentitymanager-store</id>
                         <phase>pre-integration-test</phase>
