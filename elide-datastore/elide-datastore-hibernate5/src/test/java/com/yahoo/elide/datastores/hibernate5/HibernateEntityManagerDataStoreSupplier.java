@@ -33,6 +33,12 @@ import javax.persistence.Persistence;
  * Supplier of Hibernate 5 Data Store.
  */
 public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataStore> {
+    private static final String JDBC_PREFIX = "jdbc:mysql://localhost:";
+    private static final String JDBC_SUFFIX = "/root?serverTimezone=UTC";
+    private static final String MYSQL_PORT_PROPERTY = "mysql.port";
+    private static final String MYSQL_PORT = "3306";
+    private static final String ROOT = "root";
+
     @Override
     public DataStore get() {
         // Add additional checks to our static check mappings map.
@@ -46,15 +52,15 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
         try {
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
         } catch (MappingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
-        options.put("javax.persistence.jdbc.url", "jdbc:mysql://localhost:"
-                                + System.getProperty("mysql.port", "3306")
-                                + "/root?serverTimezone=UTC");
-        options.put("javax.persistence.jdbc.user", "root");
-        options.put("javax.persistence.jdbc.password", "root");
+        options.put("javax.persistence.jdbc.url", JDBC_PREFIX
+                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
+                                + JDBC_SUFFIX);
+        options.put("javax.persistence.jdbc.user", ROOT);
+        options.put("javax.persistence.jdbc.password", ROOT);
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
@@ -65,18 +71,18 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL, "jdbc:mysql://localhost:"
-                                + System.getProperty("mysql.port", "3306")
-                                + "/root?serverTimezone=UTC")
-                        .applySetting(Environment.USER, "root")
-                        .applySetting(Environment.PASS, "root")
+                        .applySetting(Environment.URL, JDBC_PREFIX
+                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
+                                + JDBC_SUFFIX)
+                        .applySetting(Environment.USER, ROOT)
+                        .applySetting(Environment.PASS, ROOT)
                         .build());
 
         try {
             ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
@@ -87,7 +93,7 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
         schemaExport.execute(false, true, false, true);
 
         if (!schemaExport.getExceptions().isEmpty()) {
-            throw new RuntimeException(schemaExport.getExceptions().toString());
+            throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
 
         return new HibernateStore.Builder(em)

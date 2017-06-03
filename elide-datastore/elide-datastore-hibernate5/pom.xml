@@ -199,6 +199,11 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <forkMode>once</forkMode>
+                    <reuseForks>false</reuseForks>
+                    <trimStackTrace>false</trimStackTrace>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
