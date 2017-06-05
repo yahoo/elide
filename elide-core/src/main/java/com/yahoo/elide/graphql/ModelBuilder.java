@@ -38,14 +38,14 @@ public class ModelBuilder {
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
     private GraphQLObjectType metaObject;
-    private ObjectGenerator generator;
+    private GraphQLConversionUtils generator;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
     public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
-        this.generator = new ObjectGenerator(dictionary);
+        this.generator = new GraphQLConversionUtils(dictionary);
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
 
