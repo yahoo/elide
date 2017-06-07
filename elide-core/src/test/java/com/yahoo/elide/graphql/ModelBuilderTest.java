@@ -32,7 +32,7 @@ public class ModelBuilderTest {
     private static final String SORT = "sort";
     private static final String FIRST = "first";
     private static final String OFFSET = "offset";
-    private static final String __META = "__meta";
+    private static final String META = "__meta";
     private static final String PAGE = "page";
     private static final String TYPE = "type";
 
@@ -65,8 +65,8 @@ public class ModelBuilderTest {
         GraphQLSchema schema = builder.build();
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
-        Assert.assertNotNull(bookType.getFieldDefinition(__META));
-        GraphQLObjectType metaObject = (GraphQLObjectType) bookType.getFieldDefinition(__META).getType();
+        Assert.assertNotNull(bookType.getFieldDefinition(META));
+        GraphQLObjectType metaObject = (GraphQLObjectType) bookType.getFieldDefinition(META).getType();
         Assert.assertNotNull(metaObject.getFieldDefinition(PAGE));
         GraphQLObjectType pageObject = (GraphQLObjectType) metaObject.getFieldDefinition(PAGE).getType();
         Assert.assertNotNull(pageObject.getFieldDefinition("totalPages"));
