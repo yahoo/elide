@@ -48,7 +48,7 @@ public class GraphQLConversionUtils {
      * Keeps track of which non-primitive classes have been converted to GraphQL already.
      * This is primarily used to detect and avoid cycles.
      */
-    public class ConversionLedger {
+    public static class ConversionLedger {
         private Set<Class<?>> generatedTypes = new HashSet<>();
 
         /**
@@ -129,7 +129,7 @@ public class GraphQLConversionUtils {
                                         DataFetcher fetcher,
                                         ConversionLedger ledger) {
         return new GraphQLList(
-            GraphQLObjectType.newObject()
+            newObject()
                 .name(keyClazz.getName() + valueClazz.getCanonicalName() + "Map")
                 .field(newFieldDefinition()
                         .name("key")
@@ -359,7 +359,7 @@ public class GraphQLConversionUtils {
      * @param fetcher The data fetcher to assign the newly created GraphQL object
      * @return A newly created GraphQL object.
      */
-    protected GraphQLObjectType classToQueryObject(Class<?> clazz, ConversionLedger ledger, DataFetcher fetcher) {
+    public GraphQLObjectType classToQueryObject(Class<?> clazz, ConversionLedger ledger, DataFetcher fetcher) {
         log.info("Building query object for type: {}", clazz.getName());
         if (ledger.isAlreadyConverted(clazz)) {
             throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
@@ -399,7 +399,7 @@ public class GraphQLConversionUtils {
      * @param ledger Keeps track of cycles
      * @return A newly created GraphQL object.
      */
-    protected GraphQLInputObjectType classToInputObject(Class<?> clazz, ConversionLedger ledger) {
+    public GraphQLInputObjectType classToInputObject(Class<?> clazz, ConversionLedger ledger) {
         log.info("Building input object for type: {}", clazz.getName());
         if (ledger.isAlreadyConverted(clazz)) {
             throw new IllegalArgumentException("Cycle2 detected when generating type for class" + clazz.getName());
