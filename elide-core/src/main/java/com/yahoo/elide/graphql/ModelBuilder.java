@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
@@ -14,7 +15,16 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 
 import graphql.Scalars;
-import graphql.schema.*;
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -49,33 +59,33 @@ public class ModelBuilder {
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
 
-        relationshipOpArg = GraphQLArgument.newArgument()
+        relationshipOpArg = newArgument()
                 .name("op")
                 .type(generator.classToEnumType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
-        idArgument = GraphQLArgument.newArgument()
+        idArgument = newArgument()
                 .name("id")
                 .type(Scalars.GraphQLString)
                 .build();
 
-        filterArgument = GraphQLArgument.newArgument()
+        filterArgument = newArgument()
                 .name("filter")
                 .type(Scalars.GraphQLString)
                 .build();
 
-        sortArgument = GraphQLArgument.newArgument()
+        sortArgument = newArgument()
                 .name("sort")
                 .type(Scalars.GraphQLString)
                 .build();
 
-        pageFirstArgument = GraphQLArgument.newArgument()
+        pageFirstArgument = newArgument()
                 .name("first")
                 .type(Scalars.GraphQLString)
                 .build();
 
-        pageOffsetArgument = GraphQLArgument.newArgument()
+        pageOffsetArgument = newArgument()
                 .name("offset")
                 .type(Scalars.GraphQLString)
                 .build();
@@ -262,15 +272,15 @@ public class ModelBuilder {
         GraphQLInputType argumentType = inputObjectRegistry.get(entityClass);
 
         if (asList) {
-             return GraphQLArgument.newArgument()
-                    .name("data")
-                    .type(new GraphQLList(argumentType))
-                    .build();
+            return newArgument()
+                .name("data")
+                .type(new GraphQLList(argumentType))
+                .build();
         } else {
-            return GraphQLArgument.newArgument()
-                    .name("data")
-                    .type(argumentType)
-                    .build();
+            return newArgument()
+                .name("data")
+                .type(argumentType)
+                .build();
         }
     }
 
@@ -334,28 +344,28 @@ public class ModelBuilder {
      * Constructs relationship links for input objects.
      */
     private void resolveInputObjectRelationships() {
-         inputObjectRegistry.forEach((clazz, inputObj) -> {
-             for (String relationship : dictionary.getRelationships(clazz)) {
-                 log.info("Resolving relationship {} for {}", relationship, clazz.getName());
-                 Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
-                 if (excludedEntities.contains(relationshipClass)) {
+        inputObjectRegistry.forEach((clazz, inputObj) -> {
+            for (String relationship : dictionary.getRelationships(clazz)) {
+                log.info("Resolving relationship {} for {}", relationship, clazz.getName());
+                Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
+                if (excludedEntities.contains(relationshipClass)) {
                     continue;
-                 }
+                }
 
-                 RelationshipType type = dictionary.getRelationshipType(clazz, relationship);
+                RelationshipType type = dictionary.getRelationshipType(clazz, relationship);
 
-                 if (type.isToOne()) {
-                     inputObj.setField(relationship, newInputObjectField()
-                                     .name(relationship)
-                                     .type(inputObjectRegistry.get(relationshipClass))
-                                     .build()
-                     );
-                 } else {
-                     inputObj.setField(relationship, newInputObjectField()
-                                     .name(relationship)
-                                     .type(new GraphQLList(inputObjectRegistry.get(relationshipClass)))
-                                     .build()
-                     );
+                if (type.isToOne()) {
+                    inputObj.setField(relationship, newInputObjectField()
+                        .name(relationship)
+                        .type(inputObjectRegistry.get(relationshipClass))
+                        .build()
+                    );
+                } else {
+                    inputObj.setField(relationship, newInputObjectField()
+                        .name(relationship)
+                        .type(new GraphQLList(inputObjectRegistry.get(relationshipClass)))
+                        .build()
+                    );
                  }
              }
         });

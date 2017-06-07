@@ -310,45 +310,45 @@ public class GraphQLConversionUtils {
         /* If the attribute is a map */
         if (Map.class.isAssignableFrom(attributeClass)) {
 
-                /* Extract the key and value types */
-                Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
-                Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
+            /* Extract the key and value types */
+            Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
 
-                /* Detect cycles on key and value types */
-                if (ledger.isAlreadyConverted(keyType) || ledger.isAlreadyConverted(valueType)) {
-                    log.error("Cycle detected: Map {} {}", keyType, valueType);
-                    return null;
-                }
+            /* Detect cycles on key and value types */
+            if (ledger.isAlreadyConverted(keyType) || ledger.isAlreadyConverted(valueType)) {
+                log.error("Cycle detected: Map {} {}", keyType, valueType);
+                return null;
+            }
 
-                return classToInputMap(keyType, valueType, ledger);
+            return classToInputMap(keyType, valueType, ledger);
 
         /* If the attribute is a collection */
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
 
-                /* Extract the collection type */
-                Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            /* Extract the collection type */
+            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
-                /* Detect Cycles */
-                if (ledger.isAlreadyConverted(listType)) {
-                    log.error("Cycle detected: {}", listType);
-                    return null;
-                }
+            /* Detect Cycles */
+            if (ledger.isAlreadyConverted(listType)) {
+                log.error("Cycle detected: {}", listType);
+                return null;
+            }
 
-                return new GraphQLList(classToInputObject(listType, ledger));
+            return new GraphQLList(classToInputObject(listType, ledger));
 
         /* If the attribute is an enum */
         } else if (attributeClass.isEnum()) {
                 return classToEnumType(attributeClass);
         } else {
 
-                /* Attempt to convert a scalar type */
-                GraphQLInputType inputType = classToScalarType(attributeClass);
-                if (inputType == null) {
+            /* Attempt to convert a scalar type */
+            GraphQLInputType inputType = classToScalarType(attributeClass);
+            if (inputType == null) {
 
-                    /* Attempt to convert an object type */
-                    inputType = classToInputObject(attributeClass, ledger);
-                }
-                return inputType;
+                /* Attempt to convert an object type */
+                inputType = classToInputObject(attributeClass, ledger);
+            }
+            return inputType;
         }
     }
 
