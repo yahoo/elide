@@ -59,11 +59,11 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
     @Override
     public List<GraphQLInputObjectField> getFields() {
-            return new ArrayList<GraphQLInputObjectField>(fieldMap.values());
+        return new ArrayList<GraphQLInputObjectField>(fieldMap.values());
     }
 
     public GraphQLInputObjectField getField(String name) {
-            return fieldMap.get(name);
+        return fieldMap.get(name);
     }
 
     public static Builder newMutableInputObject() {

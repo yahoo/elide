@@ -37,6 +37,10 @@ import static graphql.schema.GraphQLObjectType.newObject;
  */
 @Slf4j
 public class GraphQLConversionUtils {
+    protected static final String MAP = "Map";
+    protected static final String KEY = "key";
+    protected static final String VALUE = "value";
+
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     protected EntityDictionary entityDictionary;
 
@@ -56,6 +60,7 @@ public class GraphQLConversionUtils {
          * @return
          */
         public boolean isAlreadyConverted(Class<?> candidate) {
+            log.warn("Cycle detected: {}", candidate);
             return generatedTypes.contains(candidate);
         }
 
@@ -106,7 +111,7 @@ public class GraphQLConversionUtils {
         Enum [] values = (Enum []) enumClazz.getEnumConstants();
 
         GraphQLEnumType.Builder builder = newEnum()
-                .name(enumClazz.getName());
+            .name(enumClazz.getName());
 
         for (Enum value : values) {
             builder.value(value.name(), value);
@@ -130,13 +135,13 @@ public class GraphQLConversionUtils {
                                         ConversionLedger ledger) {
         return new GraphQLList(
             newObject()
-                .name(keyClazz.getName() + valueClazz.getCanonicalName() + "Map")
+                .name(keyClazz.getName() + valueClazz.getCanonicalName() + MAP)
                 .field(newFieldDefinition()
-                        .name("key")
+                        .name(KEY)
                         .dataFetcher(fetcher)
                         .type(classToQueryObject(keyClazz, ledger, fetcher)))
                 .field(newFieldDefinition()
-                        .name("value")
+                        .name(VALUE)
                         .dataFetcher(fetcher)
                         .type(classToQueryObject(valueClazz, ledger, fetcher)))
                 .build()
@@ -156,12 +161,12 @@ public class GraphQLConversionUtils {
                                        ConversionLedger ledger) {
         return new GraphQLList(
             newInputObject()
-                .name(keyClazz.getName() + valueClazz.getCanonicalName() + "Map")
+                .name(keyClazz.getName() + valueClazz.getCanonicalName() + MAP)
                 .field(newInputObjectField()
-                        .name("key")
+                        .name(KEY)
                         .type(classToInputObject(keyClazz, ledger)))
                 .field(newInputObjectField()
-                        .name("value")
+                        .name(VALUE)
                         .type(classToInputObject(valueClazz, ledger)))
                 .build()
         );
@@ -208,7 +213,6 @@ public class GraphQLConversionUtils {
 
         /* Detect cycles */
         if (ledger.isAlreadyConverted(attributeClass)) {
-            log.error("Cycle detected: {}", attributeClass);
             return null;
         }
 
@@ -226,7 +230,6 @@ public class GraphQLConversionUtils {
 
             /* Detect cycles on key and value types */
             if (ledger.isAlreadyConverted(keyType) || ledger.isAlreadyConverted(valueType)) {
-                log.error("Cycle detected: Map {} {}", keyType, valueType);
                 return null;
             }
 
@@ -234,13 +237,11 @@ public class GraphQLConversionUtils {
 
         /* If the attribute is a collection */
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
-
             /* Extract the collection type */
             Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
             /* Detect cycles */
             if (ledger.isAlreadyConverted(listType)) {
-                log.error("Cycle detected: {}", listType);
                 return null;
             }
 
@@ -298,7 +299,6 @@ public class GraphQLConversionUtils {
 
         /* Detect cycles */
         if (ledger.isAlreadyConverted(attributeClass)) {
-            log.error("Cycle detected: {}", attributeClass);
             return null;
         }
 
@@ -316,7 +316,6 @@ public class GraphQLConversionUtils {
 
             /* Detect cycles on key and value types */
             if (ledger.isAlreadyConverted(keyType) || ledger.isAlreadyConverted(valueType)) {
-                log.error("Cycle detected: Map {} {}", keyType, valueType);
                 return null;
             }
 
@@ -330,7 +329,6 @@ public class GraphQLConversionUtils {
 
             /* Detect Cycles */
             if (ledger.isAlreadyConverted(listType)) {
-                log.error("Cycle detected: {}", listType);
                 return null;
             }
 

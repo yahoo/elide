@@ -39,6 +39,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ModelBuilder {
+    private static final String DATA = "data";
+    private static final String INPUT = "Input";
+
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
     private GraphQLArgument relationshipOpArg;
@@ -273,12 +276,12 @@ public class ModelBuilder {
 
         if (asList) {
             return newArgument()
-                .name("data")
+                .name(DATA)
                 .type(new GraphQLList(argumentType))
                 .build();
         } else {
             return newArgument()
-                .name("data")
+                .name(DATA)
                 .type(argumentType)
                 .build();
         }
@@ -295,7 +298,7 @@ public class ModelBuilder {
         String entityName = dictionary.getJsonAliasFor(clazz);
 
         MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
-        builder.name(entityName + "Input");
+        builder.name(entityName + INPUT);
 
         String id = dictionary.getIdFieldName(clazz);
 
@@ -321,7 +324,7 @@ public class ModelBuilder {
             if (attributeType instanceof GraphQLInputObjectType) {
                 MutableGraphQLInputObjectType wrappedType =
                     new MutableGraphQLInputObjectType(
-                        attributeType.getName() + "Input",
+                        attributeType.getName() + INPUT,
                             ((GraphQLInputObjectType) attributeType).getDescription(),
                             ((GraphQLInputObjectType) attributeType).getFields()
                         );
@@ -366,8 +369,8 @@ public class ModelBuilder {
                         .type(new GraphQLList(inputObjectRegistry.get(relationshipClass)))
                         .build()
                     );
-                 }
-             }
+                }
+            }
         });
     }
 }
