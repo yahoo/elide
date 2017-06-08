@@ -18,8 +18,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_ID;
-import static com.yahoo.elide.graphql.ModelBuilder.ID_ARGUMENT;
 
+/**
+ * Encapsulate the GraphQL request environment.
+ */
 public class Environment {
     public static final List<Map<String, Object>> EMPTY_DATA = ImmutableList.of();
 

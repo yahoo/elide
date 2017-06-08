@@ -34,6 +34,9 @@ import java.util.stream.Stream;
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_DATA;
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_ID;
 
+/**
+ * Encapsulate the GraphQL update logic.
+ */
 public class UpdateOperation {
     private final Field field;
     private final RequestScope requestScope;
@@ -121,7 +124,8 @@ public class UpdateOperation {
                         Set<PersistentResource> newRelationships = new HashSet<>();
                         if (value != null) {
                             // TODO: For a to-many relationship this would be a list... Need to handle that case
-                            newRelationships.add(PersistentResourceFetcher.load(relName, value.toString(), requestScope));
+                            newRelationships.add(PersistentResourceFetcher
+                                    .load(relName, value.toString(), requestScope));
                         }
                         objects.forEach(o -> o.updateRelation(fieldName, newRelationships));
                     } else if (fieldName.equals(dictionary.getIdFieldName(entityClass))) {
