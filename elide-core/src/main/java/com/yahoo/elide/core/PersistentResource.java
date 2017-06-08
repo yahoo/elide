@@ -248,8 +248,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @throws InvalidObjectIdentifierException the invalid object identifier exception
      */
     @SuppressWarnings("resource")
-    @NonNull public static <T> PersistentResource<T> loadRecord(
-            Class<T> loadClass, String id, RequestScope requestScope)
+    @NonNull public static <T> PersistentResource<T> loadRecord(Class<T> loadClass, String id,
+                                                                RequestScope requestScope)
             throws InvalidObjectIdentifierException {
         Preconditions.checkNotNull(loadClass);
         Preconditions.checkNotNull(id);
@@ -339,7 +339,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
-        if (! requestScope.getPagination().isDefaultInstance()
+        if (!requestScope.getPagination().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
@@ -972,6 +972,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
         Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
+
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
                 FilterExpression mergedExpression =
                         new AndFilterExpression(filterExpression.get(), permissionFilter.get());
@@ -982,7 +983,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Object val = transaction.getRelation(transaction, obj, relationName, filterExpression,
                 sortedAndPaginated ? sorting : Optional.empty(),
-                sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(), requestScope);
+                sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(),
+                requestScope);
 
         if (val == null) {
             return Collections.emptySet();

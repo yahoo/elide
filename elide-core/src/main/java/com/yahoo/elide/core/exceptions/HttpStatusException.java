@@ -52,12 +52,8 @@ public abstract class HttpStatusException extends RuntimeException {
 
     protected static String formatExceptionCause(Throwable e) {
         // if the throwable has a cause use that, otherwise the throwable is the cause
-        Throwable error = e.getCause() == null
-                ? e
-                : e.getCause();
-        return error == null
-                ? null : error.getMessage() == null ? error.toString()
-                : error.getMessage();
+        Throwable error = e.getCause() == null ? e : e.getCause();
+        return error == null ? null : error.getMessage() == null ? error.toString() : error.getMessage();
     }
 
     public Pair<Integer, JsonNode> getErrorResponse() {

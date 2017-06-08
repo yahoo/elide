@@ -20,10 +20,10 @@ import redis.embedded.RedisServer;
 import redis.embedded.RedisServerBuilder;
 import redis.embedded.util.OS;
 
-import static com.jayway.restassured.RestAssured.*;
-
 import java.net.ServerSocket;
 import java.util.HashMap;
+
+import static com.jayway.restassured.RestAssured.given;
 
 public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     public static RedisServer REDIS_SERVER;

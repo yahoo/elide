@@ -287,6 +287,38 @@ public class Elide {
     }
 
     /**
+     * Get ElideSettings.
+     * @return settings
+     */
+    public ElideSettings getElideSettings() {
+        return elideSettings;
+    }
+
+    /**
+     * Get AuditLogger.
+     * @return AuditLogger
+     */
+    public AuditLogger getAuditLogger() {
+        return auditLogger;
+    }
+
+    /**
+     * Get DataStore.
+     * @return DataStore
+     */
+    public DataStore getDataStore() {
+        return dataStore;
+    }
+
+    /**
+     * Get JsonApiMapper.
+     * @return JsonApiMapper
+     */
+    public JsonApiMapper getMapper() {
+        return mapper;
+    }
+
+    /**
      * A function that sets up the request handling objects.
      *
      * @param <DataStoreTransaction> the request's transaction

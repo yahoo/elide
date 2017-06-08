@@ -17,7 +17,6 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -127,8 +126,7 @@ import java.util.Set;
  *  - The filtered (2) result set will be returned
  *
  */
-public class CanPaginateVisitor
-        extends ExpressionBaseVisitor<CanPaginateVisitor.PaginationStatus>
+public class CanPaginateVisitor extends ExpressionBaseVisitor<CanPaginateVisitor.PaginationStatus>
         implements CheckInstantiator {
 
     /**
@@ -234,11 +232,9 @@ public class CanPaginateVisitor
      * @return true if the data store can paginate.  false otherwise.
      */
     public static boolean canPaginate(Class<?> resourceClass, EntityDictionary dictionary, RequestScope scope) {
-
         CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary, scope);
 
-        Class<? extends Annotation> annotationClass = ReadPermission.class;
-        ParseTree classPermissions = dictionary.getPermissionsForClass(resourceClass, annotationClass);
+        ParseTree classPermissions = dictionary.getPermissionsForClass(resourceClass, ReadPermission.class);
         PaginationStatus canPaginateClass = PaginationStatus.CAN_PAGINATE;
 
         if (classPermissions != null) {
@@ -256,7 +252,7 @@ public class CanPaginateVisitor
             }
 
             PaginationStatus canPaginateField = canPaginateClass;
-            ParseTree fieldPermissions = dictionary.getPermissionsForField(resourceClass, field, annotationClass);
+            ParseTree fieldPermissions = dictionary.getPermissionsForField(resourceClass, field, ReadPermission.class);
             if (fieldPermissions != null) {
                 canPaginateField = visitor.visit(fieldPermissions);
             }
