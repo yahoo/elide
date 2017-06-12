@@ -112,7 +112,82 @@ mutation book(op: DELETE, id: 1) {
   id
 }
 ```
-
+## Complex Queries
+### Replacing a particular nested field
+Let's assume that in a complex scenario, we want to update the name of the 18th author of the 9th book. The corresponding query would be,
+```
+mutation book(op: REPLACE, id: 9,  data: {authors: [{id: 18, name: "New author"}]}) {
+    id,
+    authors
+}
+```
+The above payload structure helps us manipulate a specific entity amongst several different entities linked with to same parent as under.
+```
+book
+| \ \
+.. .. authors(id = 18)
+      |
+      name
+```
+### Replacing two seperate fields linked to the same parent
+Let's say we want to replace the title of two seperate books associated with the same author. The corresponding query would look like,
+```
+mutation author(op: REPLACE, id: 1,
+                data: {books: [{id: 1, title: "New title"}, {id: 2, title: "New title"}]}) {
+    id,
+    books
+}
+```
+The above payload structure helps us manipulate attributes associated with two different entities having the same parent entity as under.
+```
+author
+|     \
+|      \
+books   books
+|  \    |  \
+|   \  ...  title
+...  title
+```
+### Replacing fields of two seperate entities associated to the same parent
+In an ideal scenario, an application might support several different data models. Let us add the following entity ```Publisher``` to our existing data model.
+```java
+@Include(rootLevel = false)
+@Entity
+public class Publisher {
+    @Id public long id;
+    public String name;
+    public Set<Book> books;
+}
+```
+Now an author can be linked to more than one ```Publisher```. Consider the modified ```Author``` entity as under.
+```java
+@Include(rootLevel = false)
+@Entity
+public class Author {
+    @Id public long id;
+    public String name;
+    public Set<Book> books;
+    public Set<Publisher> publishers;
+}
+```
+Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
+```
+mutation author(op: REPLACE, id: 1,
+                data: {books: [{id: 1, title: "New title"}],
+                       publishers: [{id: 1, name: "New name"}]}) {
+    id,
+    books,
+    publishers
+}
+```
+The above payload structure helps us manipulate attributes of two seperate entities associated with the same parent in a single transaction as under.
+```
+author
+|     \
+books  publishers
+|      |
+title  name
+```
 # Semantics
 
 Below is a chart of expected behavior from GraphQL queries:
