@@ -3,10 +3,12 @@
 ## 3.0.7
 **Features**
  * Add support for sorting by id values
+ * Implement functionality for Hibernate5 to support `EntityManager`'s.
 
 **Fixes**
-  * Account for inheritance when performing new entity detection during a PATCH Extension request.
-  * Upgrade examples to behave properly with latest jersey release.
+ * Account for inheritance when performing new entity detection during a PATCH Extension request.
+ * Upgrade examples to behave properly with latest jersey release.
+ * Rethrow `WebApplicationException` exceptions from error response handler.
 
 **Misc**
   * Always setting HQL 'alias' in FilterPredicate Constructor

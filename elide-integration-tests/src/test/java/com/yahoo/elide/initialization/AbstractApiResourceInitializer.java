@@ -21,7 +21,7 @@ import org.testng.annotations.BeforeSuite;
  */
 @Slf4j
 public abstract class AbstractApiResourceInitializer {
-    private Server server;
+    private static Server server = null;
     private final String resourceConfig;
     private String packageName;
 
@@ -40,6 +40,10 @@ public abstract class AbstractApiResourceInitializer {
 
     @BeforeSuite
     public final void setUpServer() throws Exception {
+        if (server != null) {
+            server.stop();
+        }
+
         // setup RestAssured
         RestAssured.baseURI = "http://localhost/";
         RestAssured.basePath = "/";

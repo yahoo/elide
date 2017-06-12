@@ -27,6 +27,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class ElideBundleIT {
+    private static final String ELIDE_BUNDLE = "elide-bundle";
+
     private final DataSourceFactory dbConfig = new DataSourceFactory();
     private final ImmutableList<Class<?>> entities = ImmutableList.of(Author.class, Book.class);
     private final SessionFactoryFactory factory = mock(SessionFactoryFactory.class);
@@ -53,14 +55,14 @@ public class ElideBundleIT {
                 any(Environment.class),
                 any(DataSourceFactory.class),
                 anyList(),
-                eq("hibernate"))).thenReturn(sessionFactory);
+                eq(ELIDE_BUNDLE))).thenReturn(sessionFactory);
     }
 
     @Test
     public void buildsASessionFactory() throws Exception {
         bundle.run(configuration, environment);
 
-        verify(factory).build(bundle, environment, dbConfig, entities, "elide-bundle");
+        verify(factory).build(bundle, environment, dbConfig, entities, ELIDE_BUNDLE);
     }
 
     @Test

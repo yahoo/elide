@@ -16,16 +16,17 @@ import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.jpa.HibernateEntityManager;
 import org.hibernate.metadata.ClassMetadata;
 
 /**
  * Hibernate interface library.
  */
 public class HibernateStore implements DataStore {
-    private final SessionFactory sessionFactory;
-    private final boolean isScrollEnabled;
-    private final ScrollMode scrollMode;
-    private final HibernateTransactionSupplier transactionSupplier;
+    protected final SessionFactory sessionFactory;
+    protected final boolean isScrollEnabled;
+    protected final ScrollMode scrollMode;
+    protected final HibernateTransactionSupplier transactionSupplier;
 
     /**
      * Constructor.
@@ -64,6 +65,7 @@ public class HibernateStore implements DataStore {
      */
     public static class Builder {
         private final SessionFactory sessionFactory;
+        private final HibernateEntityManager entityManager;
         private boolean isScrollEnabled;
         private ScrollMode scrollMode;
 
@@ -71,6 +73,14 @@ public class HibernateStore implements DataStore {
             this.sessionFactory = sessionFactory;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
+            this.entityManager = null;
+        }
+
+        public Builder(final HibernateEntityManager entityManager) {
+            this.sessionFactory = null;
+            this.isScrollEnabled = true;
+            this.scrollMode = ScrollMode.FORWARD_ONLY;
+            this.entityManager = entityManager;
         }
 
         public Builder withScrollEnabled(final boolean isScrollEnabled) {
@@ -84,7 +94,12 @@ public class HibernateStore implements DataStore {
         }
 
         public HibernateStore build() {
-            return new HibernateStore(sessionFactory, isScrollEnabled, scrollMode);
+            if (sessionFactory != null) {
+                return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
+            } else if (entityManager != null) {
+                return new HibernateEntityManagerStore(entityManager, isScrollEnabled, scrollMode);
+            }
+            throw new IllegalStateException("Either an EntityManager or SessionFactory is required!");
         }
     }
 
@@ -100,7 +115,10 @@ public class HibernateStore implements DataStore {
      * Get current Hibernate session.
      *
      * @return session
+     * @deprecated since 3.0.7. This functionality has been moved to HibernateSessionFactoryStore and
+     *             HibernateEntityManagerStore. This will become _abstract_ in Elide 4.0.
      */
+    @Deprecated
     public Session getSession() {
         try {
             Session session = sessionFactory.getCurrentSession();
@@ -116,8 +134,11 @@ public class HibernateStore implements DataStore {
      * Start Hibernate transaction.
      *
      * @return transaction
+     * @deprecated since 3.0.7. This functionality has been moved to HibernateSessionFactoryStore and
+     *             HibernateEntityManagerStore. This will become _abstract_ in Elide 4.0.
      */
     @Override
+    @Deprecated
     public DataStoreTransaction beginTransaction() {
         Session session = sessionFactory.getCurrentSession();
         Preconditions.checkNotNull(session);
