@@ -170,7 +170,7 @@ public class Author {
     public Set<Publisher> publishers;
 }
 ```
-Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
+Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query like so.
 ```
 mutation author(op: REPLACE, id: 1,
                 data: {books: [{id: 1, title: "New title"}],
