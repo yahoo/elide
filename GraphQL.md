@@ -33,7 +33,7 @@ where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pa
 Finally, the `exposedFields` is a specified list of values for the object(s) that the caller expects to be returned.
 
 # Examples
-Below are several examples. For each, assume a simple model of `Book` and `Author`. Particularly, the schema for each can be considered:
+Below are several examples. For each, assume a simple model of `Book`, `Author` and `Publisher`. Particularly, the schema for each can be considered:
 
 ```java
 @Include(rootLevel = true)
@@ -44,11 +44,20 @@ public class Book {
     public Set<Author> authors;
 }
 ```
-
 ```java
 @Include(rootLevel = false)
 @Entity
 public class Author {
+    @Id public long id;
+    public String name;
+    public Set<Book> books;
+    public Set<Publisher> publishers;
+}
+```
+```java
+@Include(rootLevel = false)
+@Entity
+public class Publisher {
     @Id public long id;
     public String name;
     public Set<Book> books;
@@ -116,14 +125,16 @@ mutation book(op: DELETE, id: 1) {
 ### Replacing a particular nested field
 Let's assume that in a complex scenario, we want to update the name of the 18th author of the 9th book. The corresponding query would be,
 ```
-mutation book(op: REPLACE, id: 9,  data: {authors: [{id: 18, name: "New author"}]}) {
+book(id: 9) {
     id,
-    authors
+    authors(op: REPLACE, id: 18, data: {name: "New author"}) {
+        title
+    }
 }
 ```
 The above payload structure helps us manipulate a specific entity amongst several different entities linked with to same parent as under.
 ```
-book
+book(id = 9)
 | \ \
 .. .. authors(id = 18)
       |
@@ -132,10 +143,11 @@ book
 ### Replacing two seperate fields linked to the same parent
 Let's say we want to replace the title of two seperate books associated with the same author. The corresponding query would look like,
 ```
-mutation author(op: REPLACE, id: 1,
-                data: {books: [{id: 1, title: "New title"}, {id: 2, title: "New title"}]}) {
-    id,
-    books
+author(id: 1) {
+    id, 
+    books(op: REPLACE, data: [{id: 1, title: "New title"}, {id: 2, title: "New title"}]) {
+        id
+    }
 }
 ```
 The above payload structure helps us manipulate attributes associated with two different entities having the same parent entity as under.
@@ -149,44 +161,38 @@ books   books
 ...  title
 ```
 ### Replacing fields of two seperate entities associated to the same parent
-In an ideal scenario, an application might support several different data models. Let us add the following entity ```Publisher``` to our existing data model.
-```java
-@Include(rootLevel = false)
-@Entity
-public class Publisher {
-    @Id public long id;
-    public String name;
-    public Set<Book> books;
+Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
+```
+author(id: 1) {
+    id, 
+    books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
+        id
+    }, 
+    publishers(op: REPLACE, data: [{id: 1, name: "New name"}]) {
+        id
+    }
 }
 ```
-Now an author can be linked to more than one ```Publisher```. Consider the modified ```Author``` entity as under.
-```java
-@Include(rootLevel = false)
-@Entity
-public class Author {
-    @Id public long id;
-    public String name;
-    public Set<Book> books;
-    public Set<Publisher> publishers;
-}
-```
-Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query like so.
-```
-mutation author(op: REPLACE, id: 1,
-                data: {books: [{id: 1, title: "New title"}],
-                       publishers: [{id: 1, name: "New name"}]}) {
-    id,
-    books,
-    publishers
-}
-```
-The above payload structure helps us manipulate attributes of two seperate entities associated with the same parent in a single transaction as under.
+The above payload structure helps us manipulate attributes of two seperate entities associated with the same parent in a single transaction as under. 
 ```
 author
-|     \
+|     \ 
 books  publishers
 |      |
 title  name
+```
+### Allowing multiple operations in a single transaction
+We can get fancy and allow for multiple operations, like replacing title of a book and deleting a publisher, all in a single transaction. 
+```
+author(id: 1) {
+    id, 
+    books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
+        id
+    }, 
+    publishers(op: DELETE, id: 1) {
+        id
+    }
+}
 ```
 # Semantics
 
