@@ -41,9 +41,8 @@ public class Common {
     public static class FieldSetToNull<T> extends CommitCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return changeSpec.isPresent()
-                    && changeSpec.get().getOriginal() != null
-                    && changeSpec.get().getModified() == null;
+            return changeSpec.map((c) -> { return c.getOriginal() != null && c.getModified() == null; })
+                    .orElse(false);
         }
     }
 }
