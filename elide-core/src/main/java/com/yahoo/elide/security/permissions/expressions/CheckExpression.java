@@ -118,6 +118,6 @@ public class CheckExpression implements Expression {
     @Override
     public String toString() {
         EntityDictionary dictionary = ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary();
-        return String.format("(%s {%s})", dictionary.getCheckIdentifier(check.getClass()), result);
+        return String.format("(%s %s)", dictionary.getCheckIdentifier(check.getClass()), result);
     }
 }
