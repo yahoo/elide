@@ -11,7 +11,7 @@ This section will describe various use cases and examples on how to interact wit
 All calls must be `POST` requests made to the root endpoint. This specific endpoint will depend on where you mount the provided servlet, however, let's assume we have it mounted at `/graphql` for sake of argument. In this case, all requests should be sent as:
 
 ```
-POST https://yourdomain.com/graphqlx
+POST https://yourdomain.com/graphql
 ```
 
 ## Payload Structure
@@ -29,14 +29,14 @@ where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pa
 
   * `op` (abbreviated for `operation`) is one of `UPSERT`, `REPLACE`, `REMOVE` or `DELETE`. The default value is `UPSERT` when unspecified.
 
-     * `UPSERT` - allows a relationship/collection to be modified. It is the primary mechanism by which any updates will be made to the model.
+     * `UPSERT` - inserts new or edits existing members of a relationship. It is the primary mechanism by which any updates will be made to the model.
      * `REPLACE` - can be thought as a combination of `UPSERT` and `REMOVE`, wherein, any objects not specified in the data argument (that are visible to the user) will be removed.
      * `REMOVE` - only disassociates a relationship. If the underlying store automatically deletes orphans, it will still be deleted.
      * `DELETE` - both disassociates the relationship and it deletes the entity from the persistence store.
 
   
   * `ids` are used as the ientifier for object(s). This field can hold a singleton value (for a single object) or a list of values to specify multiple ids. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified id.
-  *  `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unused in the case of `REMOVE` and `DELETE`.
+  *  `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unsupported in the case of `REMOVE`, `DELETE` or while _fetching_ an existing object.
 
 Finally, the `exposedFields` is a specified list of values for the object(s) that the caller expects to be returned.
 
