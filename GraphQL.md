@@ -20,7 +20,8 @@ The structure for our GraphQL payloads is generated and, therefore, uniform acro
 
 ```
 rootObjectTypeName([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ]) {
-  exposedFields
+  exposedFields,
+  objectName([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ])
 }
 ```
 
@@ -85,7 +86,7 @@ book {
 
 #### Single Book with Title and Authors
 ```
-book(id: 1) {
+book(ids: 1) {
   title,
   authors
 }
@@ -96,7 +97,7 @@ This request would return a single book with `id: 1` along with its title and al
 ### Add
 #### Create and Add a New Author to a Book
 ```
-mutation book(op: UPSERT, id: 1, data: {authors: [{name: "The added author"}]}) {
+mutation book(op: UPSERT, ids: 1, data: {authors: [{name: "The added author"}]}) {
   id,
   authors
 }
@@ -108,7 +109,7 @@ A set of `DELETE` examples.
 
 ### Delete a Book
 ```
-mutation book(op: DELETE, id: 1) {
+mutation book(op: DELETE, ids: 1) {
   id
 }
 ```
@@ -116,8 +117,8 @@ Deletes the book with `id = 1` and removes disassociates all relationships other
 
 ## REMOVE 
 ```
-book(id: 1) {
-    authors(op: REMOVE, id: 3)
+book(ids: 1) {
+    authors(op: REMOVE, ids: 3)
 }
 ```
 Removes the _association_ between book with `id = 1` and author with `id = 3`, however, the author is still present in the persistence store.
@@ -126,7 +127,7 @@ A set of `REPLACE` examples.
 
 ### Replace All Book Authors
 ```
-mutation book(op: REPLACE, id: 1, data: {authors:[{ name: "The New Author" }]}) {
+mutation book(op: REPLACE, ids: 1, data: {authors:[{ name: "The New Author" }]}) {
   id,
   authors
 }
@@ -136,9 +137,9 @@ mutation book(op: REPLACE, id: 1, data: {authors:[{ name: "The New Author" }]}) 
 ### Replacing a particular nested field
 Let's assume that in a complex scenario, we want to update the name of the 18th author of the 9th book. The corresponding query would be,
 ```
-book(id: 9) {
+book(ids: 9) {
     id,
-    authors(op: REPLACE, id: 18, data: {name: "New author"}) {
+    authors(op: REPLACE, ids: 18, data: {name: "New author"}) {
         title
     }
 }
@@ -154,7 +155,7 @@ book(id = 9)
 ### Replacing two seperate fields linked to the same parent
 Let's say we want to replace the title of two seperate books associated with the same author. The corresponding query would look like,
 ```
-author(id: 1) {
+author(ids: 1) {
     id, 
     books(op: REPLACE, data: [{id: 1, title: "New title"}, {id: 2, title: "New title"}]) {
         id
@@ -174,7 +175,7 @@ books   books
 ### Replacing fields of two seperate entities associated to the same parent
 Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
 ```
-author(id: 1) {
+author(ids: 1) {
     id, 
     books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
         id
@@ -195,7 +196,7 @@ title  name
 ### Allowing multiple operations in a single transaction
 We can get fancy and allow for multiple operations, like replacing title of a book and deleting a publisher, all in a single transaction. 
 ```
-author(id: 1) {
+author(ids: 1) {
     id, 
     books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
         id
