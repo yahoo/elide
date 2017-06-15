@@ -11,7 +11,7 @@ This section will describe various use cases and examples on how to interact wit
 All calls must be `POST` requests made to the root endpoint. This specific endpoint will depend on where you mount the provided servlet, however, let's assume we have it mounted at `/graphql` for sake of argument. In this case, all requests should be sent as:
 
 ```
-POST https://yourdomain.com/graphql
+POST https://yourdomain.com/graphqlx
 ```
 
 ## Payload Structure
@@ -19,16 +19,23 @@ POST https://yourdomain.com/graphql
 The structure for our GraphQL payloads is generated and, therefore, uniform across all data types. To understand our format, it is strongly recommended that you first have a [basic understanding of GraphQL](http://graphql.org/learn/). The general structure is as follows:
 
 ```
-rootObjectTypeName([op: FETCH|ADD|REPLACE|DELETE, id: ID-VALUE, data: DATA-OBJ]) {
+rootObjectTypeName([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ]) {
   exposedFields
 }
 ```
 
 where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pages/guide/01-start.html) object. Any object then can take any of 3 optional arguments.
 
-  * `op` (abbreviated for `operation`) is one of `FETCH`, `REPLACE`, `ADD`, or `DELETE`. The default value is `FETCH` when unspecified.
-  * `id` is the identifier for an object. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified id.
-  * `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unused in the case of `FETCH` and `DELETE`.
+  * `op` (abbreviated for `operation`) is one of `UPSERT`, `REPLACE`, `REMOVE` or `DELETE`. The default value is `UPSERT` when unspecified.
+
+     * `UPSERT` - allows a relationship/collection to be modified. It is the primary mechanism by which any updates will be made to the model.
+     * `REPLACE` - can be thought as a combination of `UPSERT` and `REMOVE`, wherein, any objects not specified in the data argument (that are visible to the user) will be removed.
+     * `REMOVE` - only disassociates a relationship. If the underlying store automatically deletes orphans, it will still be deleted.
+     * `DELETE` - both disassociates the relationship and it deletes the entity from the persistence store.
+
+  
+  * `ids` are used as the ientifier for object(s). This field can hold a singleton value (for a single object) or a list of values to specify multiple ids. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified id.
+  *  `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unused in the case of `REMOVE` and `DELETE`.
 
 Finally, the `exposedFields` is a specified list of values for the object(s) that the caller expects to be returned.
 
@@ -64,11 +71,10 @@ public class Publisher {
 }
 ```
 
-## Fetches
-
-A set of `FETCH` examples.
-
-### Collection of Books with ID, Title, and Authors
+## UPSERT
+A set of `UPSERT` examples.
+### Fetch
+#### Collection of Books with ID, Title, and Authors
 ```
 book {
   id,
@@ -77,7 +83,7 @@ book {
 }
 ```
 
-### Single Book with Title and Authors
+#### Single Book with Title and Authors
 ```
 book(id: 1) {
   title,
@@ -87,8 +93,35 @@ book(id: 1) {
 
 This request would return a single book with `id: 1` along with its title and all of its authors.
 
-## Replaces
+### Add
+#### Create and Add a New Author to a Book
+```
+mutation book(op: UPSERT, id: 1, data: {authors: [{name: "The added author"}]}) {
+  id,
+  authors
+}
+```
 
+## DELETE
+
+A set of `DELETE` examples. 
+
+### Delete a Book
+```
+mutation book(op: DELETE, id: 1) {
+  id
+}
+```
+Deletes the book with `id = 1` and removes disassociates all relationships other entities might have with this object. 
+
+## REMOVE 
+```
+book(id: 1) {
+    authors(op: REMOVE, id: 3)
+}
+```
+Removes the _association_ between book with `id = 1` and author with `id = 3`, however, the author is still present in the persistence store.
+## REPLACE
 A set of `REPLACE` examples.
 
 ### Replace All Book Authors
@@ -99,28 +132,6 @@ mutation book(op: REPLACE, id: 1, data: {authors:[{ name: "The New Author" }]}) 
 }
 ```
 
-## Adds
-
-A set of `ADD` examples.
-
-### Create and Add a New Author to a Book
-```
-mutation book(op: ADD, id: 1, data: {authors: [{name: "The added author"}]}) {
-  id,
-  authors
-}
-```
-
-## Deletes
-
-A set of `DELETE` examples.
-
-### Delete a Book
-```
-mutation book(op: DELETE, id: 1) {
-  id
-}
-```
 ## Complex Queries
 ### Replacing a particular nested field
 Let's assume that in a complex scenario, we want to update the name of the 18th author of the 9th book. The corresponding query would be,
@@ -189,7 +200,7 @@ author(id: 1) {
     books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
         id
     }, 
-    publishers(op: DELETE, id: 1) {
+    publishers(op: REMOVE, id: 1) {
         id
     }
 }
@@ -200,7 +211,7 @@ Below is a chart of expected behavior from GraphQL queries:
 
 | Operation | Id Parameter | Id in Body | Behavior |
 | --------- | ------------ | ---------- | -------- |
-| Add       | True         | True       |  Must match. Implies update. |
+| Upsert    | True         | True       |  Must match. Implies update. |
 |           | True         | False      | Update on persisted object with specified id |
 |           | False        | True       | Create new object (referenced by id in body within request) |
 |           | False        | False      | Create new object |
@@ -208,13 +219,13 @@ Below is a chart of expected behavior from GraphQL queries:
 |           | True         | False      | Overwrite all specified values (no id in body to overwrite) |
 |           | False        | True       | Remove from collection except if id exists, it won't be created |
 |           | False        | False      | Totally new collection values |
-| Fetch     | True         | True       | Boom. |
-|           | True         | False      | Find single id. |
+| Remove    | True         | True       | Removes the association with parent root object. |
+|           | True         | False      | Boom. |
 |           | False        | True       | Boom. |
-|           | False        | False      | Find all. |
-| Delete    | True         | True       | Must match. Remove single. |
-|           | True         | False      | Must match. Remove single. |
-|           | False        | True       | Remove matching id's |
+|           | False        | False      | Boom. |
+| Delete    | True         | True       | Must match. Delete single. |
+|           | True         | False      | Must match. Delete single. |
+|           | False        | True       | Delete matching id's |
 |           | False        | False      | Boom. |
 
 **NOTE:** If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object.
