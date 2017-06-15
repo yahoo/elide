@@ -10,7 +10,6 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
-
 import java.util.Optional;
 
 /**
@@ -32,6 +31,18 @@ public class Common {
                 }
             }
             return false;
+        }
+    }
+
+    /**
+     * A check that enables Only teh removal of an object from a relationship.
+     * @param <T> the type of object that this check guards
+     */
+    public static class FieldSetToNull<T> extends CommitCheck<T> {
+        @Override
+        public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            return changeSpec.map((c) -> { return c.getOriginal() != null && c.getModified() == null; })
+                    .orElse(false);
         }
     }
 }
