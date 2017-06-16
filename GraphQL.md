@@ -214,32 +214,15 @@ author(ids: 1) {
 }
 ```
 # Semantics
+While writing custom queries, you must take care of operations which do and do not allow the `data` and `ids` parameter fields as under.
 
-Below is a chart of expected behavior from GraphQL queries:
-
-| Operation | Id Parameter | Id in Body | Behavior |
-| --------- | ------------ | ---------- | -------- |
-| Upsert    | True         | True       |  Must match. Implies update. |
-|           | True         | False      | Update on persisted object with specified id |
-|           | False        | True       | Create new object (referenced by id in body within request) |
-|           | False        | False      | Create new object |
-| Fetch     | True         | True       | Boom. |
-|           | True         | False      | Find single id. |
-|           | False        | True       | Boom. |
-|           | False        | False      | Find all. |
-| Replace   | True         | True       | Overwrite all specified values in body (including id) |
-|           | True         | False      | Overwrite all specified values (no id in body to overwrite) |
-|           | False        | True       | Remove from collection except if id exists, it won't be created |
-|           | False        | False      | Totally new collection values |
-| Remove    | True         | True       | Removes the association with parent root object. |
-|           | True         | False      | Boom. |
-|           | False        | True       | Boom. |
-|           | False        | False      | Boom. |
-| Delete    | True         | True       | Must match. Delete single. |
-|           | True         | False      | Must match. Delete single. |
-|           | False        | True       | Delete matching id's |
-|           | False        | False      | Boom. |
-
+| Operation | Data | Ids |
+| --------- |------|----| 
+| Upsert    | ✓   | X   | 
+| Fetch     | X    | ✓    |
+| Replace   | ✓   | X     | 
+| Remove    | X   | ✓     | 
+| Delete    | X   | ✓      |
 **NOTE:** 
 * Creating objects with _UPSERT_ behave much like sql UPSERT, wherein, we first attempt to load the object, and if not present, we create it. 
 * If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object. 
