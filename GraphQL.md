@@ -44,30 +44,37 @@ Finally, the `exposedFields` is a specified list of values for the object(s) tha
 Below are several examples. For each, assume a simple model of `Book`, `Author` and `Publisher`. Particularly, the schema for each can be considered:
 
 ```java
-@Include(rootLevel = true)
 @Entity
+@Table(name = "book")
+@Include(rootLevel = true)
 public class Book {
     @Id public long id;
     public String title;
+    @OneToMany
     public Set<Author> authors;
 }
 ```
 ```java
-@Include(rootLevel = false)
 @Entity
+@Table(name = "author")
+@Include(rootLevel = false)
 public class Author {
     @Id public long id;
     public String name;
+    @OneToMany
     public Set<Book> books;
+    @OneToMany
     public Set<Publisher> publishers;
 }
 ```
 ```java
-@Include(rootLevel = false)
 @Entity
+@Table(name = "publisher")
+@Include(rootLevel = false)
 public class Publisher {
     @Id public long id;
     public String name;
+    @OneToMany
     public Set<Book> books;
 }
 ```
@@ -216,6 +223,10 @@ Below is a chart of expected behavior from GraphQL queries:
 |           | True         | False      | Update on persisted object with specified id |
 |           | False        | True       | Create new object (referenced by id in body within request) |
 |           | False        | False      | Create new object |
+| Fetch     | True         | True       | Boom. |
+|           | True         | False      | Find single id. |
+|           | False        | True       | Boom. |
+|           | False        | False      | Find all. |
 | Replace   | True         | True       | Overwrite all specified values in body (including id) |
 |           | True         | False      | Overwrite all specified values (no id in body to overwrite) |
 |           | False        | True       | Remove from collection except if id exists, it won't be created |
@@ -229,4 +240,9 @@ Below is a chart of expected behavior from GraphQL queries:
 |           | False        | True       | Delete matching id's |
 |           | False        | False      | Boom. |
 
-**NOTE:** If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object.
+**NOTE:** 
+* Creating objects with _UPSERT_ behave much like sql UPSERT, wherein, we first attempt to load the object, and if not present, we create it. 
+* If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object. 
+## graphQL Map Type 
+Elide supports [graphQL map query type](https://github.com/yahoo/elide/blob/add-data-fetcher/elide-core/src/main/java/com/yahoo/elide/graphql/GraphQLConversionUtils.java#L132). GraphQL inherently doesn't support map query types. We mimic
+maps by creating a list of key/value pairs and supplying it to native `GraphQLList` object type. 
