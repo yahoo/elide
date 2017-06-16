@@ -12,6 +12,7 @@ package com.yahoo.elide.graphql;
 public enum RelationshipOp {
     FETCH,
     DELETE,
-    ADD,
-    REPLACE;
+    UPSERT,
+    REPLACE,
+    REMOVE;
 }
