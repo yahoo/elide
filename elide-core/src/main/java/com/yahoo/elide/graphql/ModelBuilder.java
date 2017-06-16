@@ -69,8 +69,8 @@ public class ModelBuilder {
                 .build();
 
         idArgument = newArgument()
-                .name("id")
-                .type(Scalars.GraphQLString)
+                .name("ids")
+                .type(new GraphQLList(Scalars.GraphQLID))
                 .build();
 
         filterArgument = newArgument()
