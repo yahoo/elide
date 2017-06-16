@@ -19,47 +19,74 @@ POST https://yourdomain.com/graphql
 The structure for our GraphQL payloads is generated and, therefore, uniform across all data types. To understand our format, it is strongly recommended that you first have a [basic understanding of GraphQL](http://graphql.org/learn/). The general structure is as follows:
 
 ```
-rootObjectTypeName([op: FETCH|ADD|REPLACE|DELETE, id: ID-VALUE, data: DATA-OBJ]) {
-  exposedFields
+rootObjectTypeName([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ]) {
+    attributeName1,
+    attributeName2,
+    ...
+    attributeNameN,
+    relationshipName1([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ]),
+    relationshipName2([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ]),
+    ...
+    relationshipNameN([op: UPSERT|REPLACE|REMOVE|DELETE, ids: [ID-VALUES], data: DATA-OBJ])
 }
 ```
 
-where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pages/guide/01-start.html) object. Any object then can take any of 3 optional arguments.
+where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pages/guide/01-start.html) object. Any object then can take any of the 4 optional arguments.
 
-  * `op` (abbreviated for `operation`) is one of `FETCH`, `REPLACE`, `ADD`, or `DELETE`. The default value is `FETCH` when unspecified.
-  * `id` is the identifier for an object. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified id.
-  * `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unused in the case of `FETCH` and `DELETE`.
+  * `op` (abbreviated for `operation`) is one of `UPSERT`, `REPLACE`, `REMOVE` or `DELETE`. The default value is `FETCH` when unspecified.
 
-Finally, the `exposedFields` is a specified list of values for the object(s) that the caller expects to be returned.
+     * `UPSERT` - inserts new or edits existing members of a relationship. It is the primary mechanism by which any updates will be made to the model.
+     * `REPLACE` - can be thought as a combination of `UPSERT` and `REMOVE`, wherein, any objects not specified in the data argument (that are visible to the user) will be removed.
+     * `REMOVE` - only disassociates a relationship. If the underlying store automatically deletes orphans, it will still be deleted.
+     * `DELETE` - both disassociates the relationship and it deletes the entity from the persistence store.
+     * `FETCH` - fetches an already existing entity from the persistent datastore. 
+  
+  * `ids` are used as the identifier for object(s). This field holds a list of ids. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified ids. This argument is unsupported in the case of `UPSERT` and `REPLACE`.
+  *  `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unsupported in the case of `REMOVE`, `DELETE` or while _fetching_ an existing object.
+
+Finally, the `attributeName` is a specified list of values for the object(s) that the caller expects to be returned. 
 
 # Examples
-Below are several examples. For each, assume a simple model of `Book` and `Author`. Particularly, the schema for each can be considered:
+Below are several examples. For each, assume a simple model of `Book`, `Author` and `Publisher`. Particularly, the schema for each can be considered:
 
 ```java
-@Include(rootLevel = true)
 @Entity
+@Table(name = "book")
+@Include(rootLevel = true)
 public class Book {
     @Id public long id;
     public String title;
+    @ManyToMany
     public Set<Author> authors;
+    @ManyToOne
+    Publisher publisher;
 }
 ```
-
 ```java
-@Include(rootLevel = false)
 @Entity
+@Table(name = "author")
+@Include(rootLevel = false)
 public class Author {
     @Id public long id;
     public String name;
+    @ManyToMany
+    public Set<Book> books;
+}
+```
+```java
+@Entity
+@Table(name = "publisher")
+@Include(rootLevel = false)
+public class Publisher {
+    @Id public long id;
+    public String name;
+    @OneToMany
     public Set<Book> books;
 }
 ```
 
-## Fetches
-
-A set of `FETCH` examples.
-
-### Collection of Books with ID, Title, and Authors
+## FETCH
+#### Collection of Books with ID, Title, and Authors
 ```
 book {
   id,
@@ -68,9 +95,9 @@ book {
 }
 ```
 
-### Single Book with Title and Authors
+#### Single Book with Title and Authors
 ```
-book(id: 1) {
+book(ids: [1]) {
   title,
   authors
 }
@@ -78,62 +105,133 @@ book(id: 1) {
 
 This request would return a single book with `id: 1` along with its title and all of its authors.
 
-## Replaces
+## UPSERT
+A set of `UPSERT` examples.
+#### Create and Add a New Author to a Book
+```
+mutation book(op: UPSERT, data: {authors: [{name: "The added author"}]}) {
+  id,
+  authors
+}
+```
 
+## DELETE
+
+A set of `DELETE` examples. 
+
+### Delete a Book
+```
+mutation book(op: DELETE, ids: [1]) {
+  id
+}
+```
+Deletes the book with `id = 1` and removes disassociates all relationships other entities might have with this object. 
+
+## REMOVE 
+```
+book(ids: [1]) {
+    authors(op: REMOVE, ids: [3])
+}
+```
+Removes the _association_ between book with `id = 1` and author with `id = 3`, however, the author is still present in the persistence store.
+## REPLACE
 A set of `REPLACE` examples.
 
 ### Replace All Book Authors
 ```
-mutation book(op: REPLACE, id: 1, data: {authors:[{ name: "The New Author" }]}) {
+mutation book(op: REPLACE, data: {authors:[{ name: "The New Author" }]}) {
   id,
   authors
 }
 ```
 
-## Adds
-
-A set of `ADD` examples.
-
-### Create and Add a New Author to a Book
+## Complex Queries
+### Replacing a particular nested field
+Let's assume that in a complex scenario, we want to update the name of the 18th author of the 9th book. The corresponding query would be,
 ```
-mutation book(op: ADD, id: 1, data: {authors: [{name: "The added author"}]}) {
-  id,
-  authors
+book(ids: [9]) {
+    id,
+    authors(op: REPLACE, data: {name: "New author"}) {
+        title
+    }
 }
 ```
-
-## Deletes
-
-A set of `DELETE` examples.
-
-### Delete a Book
+The above payload structure helps us manipulate a specific entity amongst several different entities linked with to same parent as under.
 ```
-mutation book(op: DELETE, id: 1) {
-  id
+book(id = 9)
+| \ \
+.. .. authors(id = 18)
+      |
+      name
+```
+### Replacing two seperate fields linked to the same parent
+Let's say we want to replace the title of two seperate books associated with the same author. The corresponding query would look like,
+```
+author(ids: [1]) {
+    id, 
+    books(op: REPLACE, data: [{id: 1, title: "New title"}, {id: 2, title: "New title"}]) {
+        id
+    }
 }
 ```
-
+The above payload structure helps us manipulate attributes associated with two different entities having the same parent entity as under.
+```
+author
+|     \
+|      \
+books   books
+|  \    |  \
+|   \  ...  title
+...  title
+```
+### Replacing fields of two seperate entities associated to the same parent
+Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
+```
+books(ids: [1]) {
+    id, 
+    authors(op: REPLACE, data: [{id: 1, name: "New author"}]) {
+        id
+    }, 
+    publisher(op: REPLACE, data: [{id: 1, name: "New name"}]) {
+        id
+    }
+}
+```
+The above payload structure helps us manipulate attributes of two seperate entities associated with the same parent in a single transaction as under. 
+```
+books
+|      \ 
+authors  publisher
+|      |
+name  name
+```
+### Allowing multiple operations in a single transaction
+We can get fancy and allow for multiple operations, like replacing title of a book and deleting a publisher, all in a single transaction. 
+```
+books(ids: [1]) {
+    id, 
+    authors(op: REPLACE, data: [{id: 1, name: "New author"}]) {
+        id
+    }, 
+    publisher(op: REMOVE, ids: [1]) {
+        id
+    }
+}
+```
 # Semantics
+While writing custom queries, you must take care of operations which do and do not allow the `data` and `ids` parameter fields as under.
 
-Below is a chart of expected behavior from GraphQL queries:
+| Operation | Data | Ids |
+| --------- |------|-----| 
+| Upsert    | ✓    | X   | 
+| Fetch     | X    | ✓   |
+| Replace   | ✓    | X   | 
+| Remove    | X    | ✓   | 
+| Delete    | X    | ✓   |
 
-| Operation | Id Parameter | Id in Body | Behavior |
-| --------- | ------------ | ---------- | -------- |
-| Add       | True         | True       |  Must match. Implies update. |
-|           | True         | False      | Update on persisted object with specified id |
-|           | False        | True       | Create new object (referenced by id in body within request) |
-|           | False        | False      | Create new object |
-| Replace   | True         | True       | Overwrite all specified values in body (including id) |
-|           | True         | False      | Overwrite all specified values (no id in body to overwrite) |
-|           | False        | True       | Remove from collection except if id exists, it won't be created |
-|           | False        | False      | Totally new collection values |
-| Fetch     | True         | True       | Boom. |
-|           | True         | False      | Find single id. |
-|           | False        | True       | Boom. |
-|           | False        | False      | Find all. |
-| Delete    | True         | True       | Must match. Remove single. |
-|           | True         | False      | Must match. Remove single. |
-|           | False        | True       | Remove matching id's |
-|           | False        | False      | Boom. |
-
-**NOTE:** If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object.
+**NOTE:**
+* Creating objects with _UPSERT_ behave much like sql UPSERT, wherein, we first attempt to load the object, and if not present, we create it. 
+* If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object. 
+## graphQL Map Type 
+Elide provides [map input types for graphQL queries](https://github.com/yahoo/elide/blob/add-data-fetcher/elide-core/src/main/java/com/yahoo/elide/graphql/GraphQLConversionUtils.java#L132). GraphQL inherently doesn't support map input types. We mimic
+maps by creating a list of key/value pairs from parent and attribute classes and supplying it to native `GraphQLList` object type. 
