@@ -41,9 +41,8 @@ where `rootObjectTypeName` is the name of an [Elide rootable](http://elide.io/pa
      * `DELETE` - both disassociates the relationship and it deletes the entity from the persistence store.
      * `FETCH` - fetches an already existing entity from the persistent datastore. 
   
-  * `ids` are used as the identifier for object(s). This field holds a list of ids. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified ids.
+  * `ids` are used as the identifier for object(s). This field holds a list of ids. If this value is unspecified the system assumes to be working on a collection of these objects. Otherwise, it is working on the specified ids. This argument is unsupported in the case of `UPSERT` and `REPLACE`.
   *  `data` is the data input object that is used as the argument to the specified `op` argument. This argument is unsupported in the case of `REMOVE`, `DELETE` or while _fetching_ an existing object.
-  *  `ids` is the id input object list that is used as the argument to the specified `op` argument. This argument is unsupported in the case of `UPSERT` and `REPLACE`.
 
 Finally, the `attributeName` is a specified list of values for the object(s) that the caller expects to be returned. 
 
@@ -57,8 +56,10 @@ Below are several examples. For each, assume a simple model of `Book`, `Author` 
 public class Book {
     @Id public long id;
     public String title;
-    @OneToMany
+    @ManyToMany
     public Set<Author> authors;
+    @ManyToOne
+    Publisher publisher;
 }
 ```
 ```java
@@ -68,10 +69,8 @@ public class Book {
 public class Author {
     @Id public long id;
     public String name;
-    @OneToMany
+    @ManyToMany
     public Set<Book> books;
-    @OneToMany
-    public Set<Publisher> publishers;
 }
 ```
 ```java
@@ -188,33 +187,33 @@ books   books
 ### Replacing fields of two seperate entities associated to the same parent
 Now lets say we want to modify a ``Book`` and a `Publisher` name. This can be accomplished in a single query as under.
 ```
-author(ids: [1]) {
+books(ids: [1]) {
     id, 
-    books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
+    authors(op: REPLACE, data: [{id: 1, name: "New author"}]) {
         id
     }, 
-    publishers(op: REPLACE, data: [{id: 1, name: "New name"}]) {
+    publisher(op: REPLACE, data: [{id: 1, name: "New name"}]) {
         id
     }
 }
 ```
 The above payload structure helps us manipulate attributes of two seperate entities associated with the same parent in a single transaction as under. 
 ```
-author
-|     \ 
-books  publishers
+books
+|      \ 
+authors  publisher
 |      |
-title  name
+name  name
 ```
 ### Allowing multiple operations in a single transaction
 We can get fancy and allow for multiple operations, like replacing title of a book and deleting a publisher, all in a single transaction. 
 ```
-author(ids: [1]) {
+books(ids: [1]) {
     id, 
-    books(op: REPLACE, data: [{id: 1, title: "New title"}]) {
+    authors(op: REPLACE, data: [{id: 1, name: "New author"}]) {
         id
     }, 
-    publishers(op: REMOVE, ids: [1]) {
+    publisher(op: REMOVE, ids: [1]) {
         id
     }
 }
@@ -224,12 +223,13 @@ While writing custom queries, you must take care of operations which do and do n
 
 | Operation | Data | Ids |
 | --------- |------|-----| 
-| Upsert    | ✓   | X   | 
-| Fetch     | X    | ✓  |
-| Replace   | ✓   | X   | 
-| Remove    | X   | ✓   | 
-| Delete    | X   | ✓   |
-**NOTE:** 
+| Upsert    | ✓    | X   | 
+| Fetch     | X    | ✓   |
+| Replace   | ✓    | X   | 
+| Remove    | X    | ✓   | 
+| Delete    | X    | ✓   |
+
+**NOTE:**
 * Creating objects with _UPSERT_ behave much like sql UPSERT, wherein, we first attempt to load the object, and if not present, we create it. 
 * If the id parameter is specified, it is always used as a **lookup** key for an already persisted object. Additionally, if the id parameter is specified outside of the data body, then the data must be a _single_ element list containing the proper object. 
 ## graphQL Map Type 
