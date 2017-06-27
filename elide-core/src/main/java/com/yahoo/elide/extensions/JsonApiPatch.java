@@ -95,14 +95,17 @@ public class JsonApiPatch {
      * @param patchDoc the patch doc
      * @param requestScope request scope
      * @return pair
-     * @throws IOException the iO exception
      */
     public static Supplier<Pair<Integer, JsonNode>> processJsonPatch(DataStore dataStore,
             String uri,
             String patchDoc,
-            PatchRequestScope requestScope)
-            throws IOException {
-        List<Patch> actions = requestScope.getMapper().readJsonApiPatchExtDoc(patchDoc);
+            PatchRequestScope requestScope) {
+        List<Patch> actions;
+        try {
+            actions = requestScope.getMapper().readJsonApiPatchExtDoc(patchDoc);
+        } catch (IOException e) {
+            throw new InvalidEntityBodyException(patchDoc);
+        }
         JsonApiPatch processor = new JsonApiPatch(dataStore, actions, uri, requestScope);
         return processor.processActions(requestScope);
     }
