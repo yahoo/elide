@@ -86,9 +86,12 @@ public class Elide {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new GetVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-
-            return new HandlerResult(requestScope, responder);
+            try {
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                return new HandlerResult(requestScope, responder);
+            } catch (RuntimeException e) {
+                return new HandlerResult(requestScope, e);
+            }
         });
 
     }
@@ -106,9 +109,12 @@ public class Elide {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new PostVisitor(requestScope);
-            Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-
-            return new HandlerResult(requestScope, responder);
+            try {
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                return new HandlerResult(requestScope, responder);
+            } catch (RuntimeException e) {
+                return new HandlerResult(requestScope, e);
+            }
         });
     }
 
@@ -129,18 +135,25 @@ public class Elide {
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
                 PatchRequestScope requestScope = new PatchRequestScope(path, tx, user, elideSettings);
-                Supplier<Pair<Integer, JsonNode>> responder =
-                        JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
-                return new HandlerResult(requestScope, responder);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder =
+                            JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
+                }
             };
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
                 RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
-                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
-
-                return new HandlerResult(requestScope, responder);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
+                }
             };
         }
 
