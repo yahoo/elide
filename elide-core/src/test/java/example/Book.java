@@ -161,4 +161,9 @@ public class Book {
     public void postRead(RequestScope requestScope) {
         // book being read post commit
     }
+
+    @OnUpdatePreCommit
+    public void alwaysOnUpdate() {
+        // should be called on _any_ update
+    }
 }

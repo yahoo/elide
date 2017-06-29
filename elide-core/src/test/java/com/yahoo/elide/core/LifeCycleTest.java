@@ -187,18 +187,21 @@ public class LifeCycleTest {
         verify(book, times(0)).onDeleteBook(scope);
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
+        verify(book, times(0)).alwaysOnUpdate();
 
         scope.runQueuedPreCommitTriggers();
         verify(book, times(0)).preCreateBook(scope);
         verify(book, times(0)).preDeleteBook(scope);
         verify(book, times(1)).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
+        verify(book, times(1)).alwaysOnUpdate();
 
         scope.runQueuedPostCommitTriggers();
         verify(book, times(0)).postCreateBook(scope);
         verify(book, times(0)).postDeleteBook(scope);
         verify(book, times(1)).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
+        verify(book, times(1)).alwaysOnUpdate();
     }
 
     @Test
