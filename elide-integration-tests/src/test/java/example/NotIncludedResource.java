@@ -9,7 +9,10 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @ReadPermission(expression = "allow all")
 @CreatePermission(expression = "allow all")

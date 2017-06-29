@@ -7,8 +7,8 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import example.Author;
-import example.Book;
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

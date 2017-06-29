@@ -5,14 +5,8 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -31,10 +25,7 @@ import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Sets;
-
+import example.Book;
 import example.Child;
 import example.ExceptionThrowingBean;
 import example.FunWithPermissions;
@@ -43,26 +34,34 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
-import example.Book;
-
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.HashMap;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * The type Config resource test.

@@ -5,8 +5,12 @@
  */
 package com.yahoo.elide.datastores.hibernate3.filter;
 
-import com.yahoo.elide.core.filter.Operator;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -17,17 +21,13 @@ import example.Book;
 import example.Person;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * Tests CriteriaFilterOperation.

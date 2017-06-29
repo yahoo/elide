@@ -48,11 +48,22 @@ public class InMemoryTransaction implements DataStoreTransaction {
         this.operations = new ArrayList<>();
     }
 
+    /**
+     * Do nothing.
+     *
+     * @param requestScope ignored in this method
+     */
     @Override
     public void flush(RequestScope requestScope) {
         // Do nothing
     }
 
+    /**
+     * Queue an insert into the backing store.
+     *
+     * @param object the object to insert
+     * @param requestScope ignored in this method
+     */
     @Override
     public void save(Object object, RequestScope requestScope) {
         if (object == null) {
@@ -66,6 +77,12 @@ public class InMemoryTransaction implements DataStoreTransaction {
         operations.add(new Operation(id, object, object.getClass(), false));
     }
 
+    /**
+     * Remove an object from the backing store.
+     *
+     * @param object the object to remove
+     * @param requestScope ignored in this method
+     */
     @Override
     public void delete(Object object, RequestScope requestScope) {
         if (object == null) {
@@ -76,6 +93,11 @@ public class InMemoryTransaction implements DataStoreTransaction {
         operations.add(new Operation(id, object, object.getClass(), true));
     }
 
+    /**
+     * Insert any object into the backing store as needed.
+     *
+     * @param scope ignored in this method
+     */
     @Override
     public void commit(RequestScope scope) {
         operations.stream()
@@ -93,6 +115,12 @@ public class InMemoryTransaction implements DataStoreTransaction {
         operations.clear();
     }
 
+    /**
+     * Persist an object.
+     *
+     * @param entity - the object to create in the data store.
+     * @param scope - contains request level metadata.
+     */
     @Override
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
@@ -106,6 +134,12 @@ public class InMemoryTransaction implements DataStoreTransaction {
         return new AtomicLong(ThreadLocalRandom.current().nextLong());
     }
 
+    /**
+     * Set the id of an object.
+     *
+     * @param value the object
+     * @param id the new id value
+     */
     public void setId(Object value, String id) {
         for (Class<?> cls = value.getClass(); cls != null; cls = cls.getSuperclass()) {
             for (Method method : cls.getMethods()) {
@@ -126,12 +160,32 @@ public class InMemoryTransaction implements DataStoreTransaction {
         }
     }
 
+    /**
+     * Fetch an object from the backing store.
+     *
+     * @param entityClass the type of class to load
+     * @param id - the ID of the object to load.
+     * @param filterExpression - security filters that can be evaluated in the data store.
+     * @param scope ignored in this method
+     * @return the loaded object
+     */
     @Override
     public Object loadObject(Class<?> entityClass, Serializable id,
                              Optional<FilterExpression> filterExpression, RequestScope scope) {
         return dataStore.get(entityClass).get(id.toString());
     }
 
+    /**
+     * Load a collection of objects from the backing store.
+     *
+     * @param entityClass - the class to load
+     * @param filterExpression - filters that can be evaluated in the data store.
+     * It is optional for the data store to attempt evaluation.
+     * @param sorting - sorting which can be pushed down to the data store.
+     * @param pagination - pagination which can be pushed down to the data store.
+     * @param scope - ignored in this method
+     * @return the loaded objects
+     */
     @Override
     public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
                                         Optional<Sorting> sorting, Optional<Pagination> pagination,
@@ -151,6 +205,11 @@ public class InMemoryTransaction implements DataStoreTransaction {
         return results;
     }
 
+    /**
+     * Clear any pending operations.
+     *
+     * @throws IOException never
+     */
     @Override
     public void close() throws IOException {
         operations.clear();

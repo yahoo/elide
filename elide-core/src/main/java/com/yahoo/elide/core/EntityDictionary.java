@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -46,8 +47,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.

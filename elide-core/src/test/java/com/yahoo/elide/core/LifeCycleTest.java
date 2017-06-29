@@ -11,8 +11,8 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
-import example.Author;
-import example.Book;
+import com.yahoo.books.Author;
+import com.yahoo.books.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
