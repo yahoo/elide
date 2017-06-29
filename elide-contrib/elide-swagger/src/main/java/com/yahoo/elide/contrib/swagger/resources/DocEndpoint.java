@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A convenience endpoint to expose a swagger document.
@@ -44,7 +45,11 @@ public class DocEndpoint {
     @GET
     @Path("/")
     public Response list() {
-        return Response.ok(documents.keySet()).build();
+        String body = "[" + documents.keySet().stream()
+                .map(key -> '"' + key + '"')
+                .collect(Collectors.joining(",")) + "]";
+
+        return Response.ok(body).build();
     }
 
     /**
