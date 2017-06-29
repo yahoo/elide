@@ -1,5 +1,14 @@
 # Change Log
 
+## 3.0.9
+Fixes
+ * Fix exception handler to pass verbose log even with unexpected exceptions.
+ * Fix life cycle hooks to trigger "general" hooks even when specific field acted upon.
+
+## 3.0.8
+Features
+ * Add support for FieldSetToNull check.
+
 ## 3.0.7
 **Features**
  * Add support for sorting by id values
