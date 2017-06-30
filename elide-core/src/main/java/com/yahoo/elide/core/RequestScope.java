@@ -368,14 +368,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param crudAction CRUD Action
      */
     protected void queueTriggers(PersistentResource resource, String fieldName, CRUDAction crudAction) {
-        Consumer<Class> queueTrigger = (cls) -> {
-            // Queue trigger for specific field
-            queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
-            if (!fieldName.isEmpty()) {
-                // Ensure to queue trigger for all fields as well
-                queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, ""));
-            }
-        };
+        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
 
         switch (crudAction) {
             case CREATE:
