@@ -1416,6 +1416,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
         requestScope.queueTriggers(this, fieldName, (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE);
+        requestScope.queueTriggers(this, (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE);
         auditField(new ChangeSpec(this, fieldName, original, value));
     }
 

@@ -1,5 +1,9 @@
 # Change Log
 
+## 3.0.10
+**Fixes**
+ * Miscellaneous cleanup.
+
 ## 3.0.9
 **Fixes**
  * Fix exception handler to pass verbose log even with unexpected exceptions.
