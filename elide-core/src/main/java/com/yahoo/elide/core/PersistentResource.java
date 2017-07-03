@@ -1358,21 +1358,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             // Compute the ChangeSpec for the inverse relation and check whether or not we have access
             // to apply this change to that field.
             final Object originalValue = toDelete.getValueUnchecked(inverseField);
-            final Collection originalBidirectional;
+            final Object originalBidirectional;
+            final Object removedBidirectional;
 
             if (originalValue instanceof Collection) {
                 originalBidirectional = copyCollection((Collection) originalValue);
+                removedBidirectional = CollectionUtils
+                        .disjunction(Collections.singleton(this.getObject()), (Collection) originalBidirectional);
             } else {
-                originalBidirectional = Collections.singleton(originalValue);
+                originalBidirectional = originalValue;
+                removedBidirectional = null;
             }
-
-            final Collection removedBidrectional = CollectionUtils
-                    .disjunction(Collections.singleton(this.getObject()), originalBidirectional);
 
             toDelete.checkFieldAwareDeferPermissions(
                     UpdatePermission.class,
                     inverseField,
-                    removedBidrectional,
+                    removedBidirectional,
                     originalBidirectional
             );
         }
