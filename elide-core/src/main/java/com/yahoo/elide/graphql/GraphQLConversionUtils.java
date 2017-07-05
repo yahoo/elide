@@ -121,7 +121,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Creates a GraphQL Map Query type.  PersistentResourceFetcher doesn't support this natively.  We mimic
+     * Creates a GraphQL Map Query type.  GraphQL doesn't support this natively.  We mimic
      * maps by creating a list of key/value pairs.
      * @param keyClazz The map key class
      * @param valueClazz The map value class
@@ -149,7 +149,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Creates a GraphQL Map Input type.  PersistentResourceFetcher doesn't support this natively.  We mimic
+     * Creates a GraphQL Map Input type.  GraphQL doesn't support this natively.  We mimic
      * maps by creating a list of key/value pairs.
      * @param keyClazz The map key class
      * @param valueClazz The map value class
