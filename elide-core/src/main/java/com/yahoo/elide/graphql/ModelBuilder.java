@@ -39,8 +39,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ModelBuilder {
-    private static final String DATA = "data";
-    private static final String INPUT = "Input";
+    public static final String ARGUMENT_DATA = "data";
+    public static final String ARGUMENT_INPUT = "Input";
+    public static final String ARGUMENT_IDS = "ids";
+    public static final String ARGUMENT_FILTER = "filter";
+    public static final String ARGUMENT_SORT = "sort";
+    public static final String ARGUMENT_FIRST = "first";
+    public static final String ARGUMENT_OFFSET = "offset";
+    public static final String ARGUMENT_OPERATION = "op";
 
     private EntityDictionary dictionary;
     private DataFetcher dataFetcher;
@@ -57,39 +63,44 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
+    /**
+     * Class constructor, constructs the custom arguments to handle mutations
+     * @param dictionary elide entity dictionary
+     * @param dataFetcher graphQL data fetcher
+     */
     public ModelBuilder(EntityDictionary dictionary, DataFetcher dataFetcher) {
         this.generator = new GraphQLConversionUtils(dictionary);
         this.dictionary = dictionary;
         this.dataFetcher = dataFetcher;
 
         relationshipOpArg = newArgument()
-                .name("op")
+                .name(ARGUMENT_OPERATION)
                 .type(generator.classToEnumType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
         idArgument = newArgument()
-                .name("id")
-                .type(Scalars.GraphQLString)
+                .name(ARGUMENT_IDS)
+                .type(new GraphQLList(Scalars.GraphQLString))
                 .build();
 
         filterArgument = newArgument()
-                .name("filter")
+                .name(ARGUMENT_FILTER)
                 .type(Scalars.GraphQLString)
                 .build();
 
         sortArgument = newArgument()
-                .name("sort")
+                .name(ARGUMENT_SORT)
                 .type(Scalars.GraphQLString)
                 .build();
 
         pageFirstArgument = newArgument()
-                .name("first")
+                .name(ARGUMENT_FIRST)
                 .type(Scalars.GraphQLString)
                 .build();
 
         pageOffsetArgument = newArgument()
-                .name("offset")
+                .name(ARGUMENT_OFFSET)
                 .type(Scalars.GraphQLString)
                 .build();
 
@@ -276,12 +287,12 @@ public class ModelBuilder {
 
         if (asList) {
             return newArgument()
-                .name(DATA)
+                .name(ARGUMENT_DATA)
                 .type(new GraphQLList(argumentType))
                 .build();
         } else {
             return newArgument()
-                .name(DATA)
+                .name(ARGUMENT_DATA)
                 .type(argumentType)
                 .build();
         }
@@ -298,7 +309,7 @@ public class ModelBuilder {
         String entityName = dictionary.getJsonAliasFor(clazz);
 
         MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
-        builder.name(entityName + INPUT);
+        builder.name(entityName + ARGUMENT_INPUT);
 
         String id = dictionary.getIdFieldName(clazz);
 
@@ -324,7 +335,7 @@ public class ModelBuilder {
             if (attributeType instanceof GraphQLInputObjectType) {
                 MutableGraphQLInputObjectType wrappedType =
                     new MutableGraphQLInputObjectType(
-                        attributeType.getName() + INPUT,
+                        attributeType.getName() + ARGUMENT_INPUT,
                             ((GraphQLInputObjectType) attributeType).getDescription(),
                             ((GraphQLInputObjectType) attributeType).getFields()
                         );
