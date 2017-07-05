@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class ModelBuilderTest {
     private EntityDictionary dictionary;
 
-    private static final String ID = "id";
+    private static final String IDS = "ids";
     private static final String DATA = "data";
     private static final String FILTER = "filter";
     private static final String SORT = "sort";
@@ -91,7 +91,7 @@ public class ModelBuilderTest {
 
         /* The root 'book' should have all query parameters defined */
         GraphQLFieldDefinition bookField = root.getFieldDefinition(BOOK);
-        Assert.assertNotNull(bookField.getArgument(ID));
+        Assert.assertNotNull(bookField.getArgument(IDS));
         Assert.assertNotNull(bookField.getArgument(DATA));
         Assert.assertNotNull(bookField.getArgument(FILTER));
         Assert.assertNotNull(bookField.getArgument(SORT));
@@ -101,7 +101,7 @@ public class ModelBuilderTest {
         /* book.publisher is a 'to one' relationship so it should be missing all but the data parameter */
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
         GraphQLFieldDefinition publisherField = bookType.getFieldDefinition("publisher");
-        Assert.assertNull(publisherField.getArgument(ID));
+        Assert.assertNull(publisherField.getArgument(IDS));
         Assert.assertNotNull(publisherField.getArgument(DATA));
         Assert.assertNull(publisherField.getArgument(FILTER));
         Assert.assertNull(publisherField.getArgument(SORT));
@@ -110,7 +110,7 @@ public class ModelBuilderTest {
 
         /* book.authors is a 'to many' relationship so it should have all query parameters defined */
         GraphQLFieldDefinition authorField = bookType.getFieldDefinition(AUTHORS);
-        Assert.assertNotNull(authorField.getArgument(ID));
+        Assert.assertNotNull(authorField.getArgument(IDS));
         Assert.assertNotNull(authorField.getArgument(DATA));
         Assert.assertNotNull(authorField.getArgument(FILTER));
         Assert.assertNotNull(authorField.getArgument(SORT));
@@ -134,7 +134,7 @@ public class ModelBuilderTest {
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
         GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(AUTHOR);
 
-        Assert.assertTrue(bookType.getFieldDefinition(ID).getType().equals(Scalars.GraphQLID));
+        Assert.assertTrue(bookType.getFieldDefinition(IDS).getType().equals(Scalars.GraphQLID));
         Assert.assertTrue(bookType.getFieldDefinition(TITLE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition(GENRE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition(LANGUAGE).getType().equals(Scalars.GraphQLString));
@@ -149,7 +149,7 @@ public class ModelBuilderTest {
 
         Assert.assertTrue(authorsType.getWrappedType().equals(authorType));
 
-        Assert.assertTrue(authorType.getFieldDefinition(ID).getType().equals(Scalars.GraphQLID));
+        Assert.assertTrue(authorType.getFieldDefinition(IDS).getType().equals(Scalars.GraphQLID));
         Assert.assertTrue(authorType.getFieldDefinition(NAME).getType().equals(Scalars.GraphQLString));
 
         Assert.assertTrue(validateEnum(Author.AuthorType.class,
@@ -161,7 +161,7 @@ public class ModelBuilderTest {
         GraphQLInputObjectType bookInputType = (GraphQLInputObjectType) schema.getType(BOOK_INPUT);
         GraphQLInputObjectType authorInputType = (GraphQLInputObjectType) schema.getType(AUTHOR_INPUT);
 
-        Assert.assertTrue(bookInputType.getField(ID).getType().equals(Scalars.GraphQLID));
+        Assert.assertTrue(bookInputType.getField(IDS).getType().equals(Scalars.GraphQLID));
         Assert.assertTrue(bookInputType.getField(TITLE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookInputType.getField(GENRE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookInputType.getField(LANGUAGE).getType().equals(Scalars.GraphQLString));
@@ -170,7 +170,7 @@ public class ModelBuilderTest {
         GraphQLList authorsInputType = (GraphQLList) bookInputType.getField(AUTHORS).getType();
         Assert.assertTrue(authorsInputType.getWrappedType().equals(authorInputType));
 
-        Assert.assertTrue(authorInputType.getField(ID).getType().equals(Scalars.GraphQLID));
+        Assert.assertTrue(authorInputType.getField(IDS).getType().equals(Scalars.GraphQLID));
         Assert.assertTrue(authorInputType.getField(NAME).getType().equals(Scalars.GraphQLString));
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(BOOKS).getType();
