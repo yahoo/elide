@@ -57,9 +57,10 @@ public class PersistentResourceFetcher implements DataFetcher {
 
             case REPLACE:
                 return replaceObjects(context);
-        }
 
-        throw new UnsupportedOperationException("Unknown operation: " + operation);
+            default:
+                throw new UnsupportedOperationException("Unknown operation: " + operation);
+        }
     }
 
     /**
