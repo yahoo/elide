@@ -191,6 +191,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                                Optional<String> first, Optional<String> filters) {
 
         //TODO: Do we need P/F/S? If so, do it!
+        
         if(outputType instanceof GraphQLObjectType) {
             DataStoreTransaction tx = requestScope.getTransaction();
             Object obj =
