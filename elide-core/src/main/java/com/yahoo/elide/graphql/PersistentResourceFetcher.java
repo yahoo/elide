@@ -210,7 +210,6 @@ public class PersistentResourceFetcher implements DataFetcher {
                 throw new InvalidAttributeException(field.getName(), parentResource.getType());
             }
         }
-
         throw new IllegalStateException("Unrecognized object type: " + outputType.getClass().getName());
     }
 
