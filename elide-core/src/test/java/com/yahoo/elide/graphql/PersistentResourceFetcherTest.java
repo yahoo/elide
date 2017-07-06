@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Base functionality required to test the PersistentResourceFetcher.
  */
-public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
+public class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
     protected RequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
@@ -98,7 +98,7 @@ public class AbstractPersistentResourceFetcherTest extends AbstractGraphQLTest {
         }
     }
 
-    void assertQueryFails(String graphQLRequest) {
+    protected void assertQueryFails(String graphQLRequest) {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
         //debug for errors

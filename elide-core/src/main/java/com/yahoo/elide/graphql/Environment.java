@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import graphql.schema.DataFetchingEnvironment;

@@ -14,11 +14,25 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import graphql.language.Field;
-import graphql.schema.*;
+
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLEnumType;
+
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.HashSet;
+
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
@@ -112,7 +126,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object fetchObjects(Environment context) {
         /* sanity check for data argument w FETCH */
-        if(context.data.isPresent()) throw new BadRequestException("FETCH must not include data");
+        if(context.data.isPresent()) {
+            throw new BadRequestException("FETCH must not include data");
+        }
 
         /* check whether current object has a parent or not */
         if (context.isRoot() || context.outputType instanceof GraphQLList) {
@@ -160,7 +176,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             List<String> idList = ids.get();
 
             /* handle empty list of ids */
-            if(idList.isEmpty()) throw new IllegalArgumentException("Empty list passed to ids");
+            if(idList.isEmpty()) {
+                throw new IllegalArgumentException("Empty list passed to ids");
+            }
 
             /* access records from internal db and return */
             HashSet recordSet = new HashSet();

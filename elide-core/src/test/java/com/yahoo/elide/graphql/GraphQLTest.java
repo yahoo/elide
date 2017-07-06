@@ -19,7 +19,7 @@ import java.util.Collections;
 /**
  * Bootstrap for GraphQL tests
  */
-public class AbstractGraphQLTest {
+public class GraphQLTest {
     protected EntityDictionary dictionary;
 
     @BeforeClass

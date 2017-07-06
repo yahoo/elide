@@ -14,7 +14,9 @@ import org.testng.annotations.Test;
 /**
  * Test the Fetch operation.
  */
-public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
+public class FetcherFetchTest extends PersistentResourceFetcherTest {
+    String NOT_IMPLEMENTED = "not implemented";
+
     @Test
     public void testRootSingle() throws JsonProcessingException {
         String graphQLRequest =
@@ -253,18 +255,18 @@ public class FetcherFetchTest extends AbstractPersistentResourceFetcherTest {
 
     @Test
     public void testNestedCollectionFilter() throws JsonProcessingException { //fails
-        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
-        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
+//        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
+//        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
 
-        Assert.fail("Not Implemented");
+        Assert.fail(NOT_IMPLEMENTED);
     }
 
     @Test
     public void testRootCollectionFilter() throws JsonProcessingException { //fails
-        String graphQLRequest = "{ book(filter: \"title=\\\"Libro U*\\\"\") { id title } }";
-        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}";
+//        String graphQLRequest = "{ book(filter: \"title=\\\"Libro U*\\\"\") { id title } }";
+//        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}";
 
-        Assert.fail("Not Implemented");
+        Assert.fail(NOT_IMPLEMENTED);
     }
 
     @Test
