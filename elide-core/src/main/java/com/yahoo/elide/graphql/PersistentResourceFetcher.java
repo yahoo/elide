@@ -13,7 +13,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import graphql.GraphQL;
 import graphql.language.Field;
 import graphql.schema.*;
 import lombok.extern.slf4j.Slf4j;
@@ -213,6 +212,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         throw new IllegalStateException("Unrecognized object type: " + outputType.getClass().getName());
     }
 
+    /** stub code **/
     private Object replaceObjects(Environment context) { return null; }
 
     private Object upsertObjects(Environment context) { return null; }
