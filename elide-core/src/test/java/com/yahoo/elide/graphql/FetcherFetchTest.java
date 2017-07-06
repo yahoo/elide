@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
  * Test the Fetch operation.
  */
 public class FetcherFetchTest extends PersistentResourceFetcherTest {
-    String NOT_IMPLEMENTED = "not implemented";
+    private String NOT_IMPLEMENTED = "not implemented";
 
     @Test
     public void testRootSingle() throws JsonProcessingException {
