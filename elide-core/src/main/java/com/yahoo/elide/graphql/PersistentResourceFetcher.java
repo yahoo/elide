@@ -11,8 +11,11 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 
 import graphql.schema.DataFetcher;
@@ -20,18 +23,12 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLEnumType;
 
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashSet;
+import java.util.*;
 
 import java.util.stream.Collectors;
 
@@ -99,7 +96,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     private void filterSortPaginateSanityCheck(Environment environment) {
         if(environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
                 || environment.first.isPresent()) {
-            throw new IllegalArgumentException("Pagination/Filtering/Sorting is only supported with FETCH operation");
+            throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
         }
     }
 
@@ -131,23 +128,52 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         /* check whether current object has a parent or not */
-        if (context.isRoot() || context.outputType instanceof GraphQLList) {
-            /* top level entity */
-            GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) context.outputType).getWrappedType();
-            String entityType = graphQLType.getName();
-            Class recordType = context.requestScope.getDictionary().getEntityClass(entityType);
+        if (context.isRoot()) {
+            return fetchEntity(context);
 
-            if (recordType == null) {
-                throw new UnknownEntityException(entityType);
-            }
-
-            return fetchObject(context.requestScope, recordType, context.ids, context.sort,
-                    context.offset, context.first, context.filters);
         } else {
-            /* fetch properties */
-            return fetchObject(context.requestScope, context.parentResource, context.field,
-                    context.outputType, context.ids, context.sort, context.offset, context.first, context.filters);
+            EntityDictionary dictionary = context.requestScope.getDictionary();
+            Class parentClass = context.parentResource.getResourceClass();
+            String fieldName = context.field.getName();
+
+            if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+                return fetchAttribute(context.parentResource, context.field);
+
+            } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
+                return fetchRelationship(context);
+            } else {
+                throw new IllegalStateException("Unrecognized object type: " + context.outputType.getClass().getName());
+            }
         }
+    }
+
+    /**
+     * Returns the binding record type for a given entity
+     * @param requestScope request scope
+     * @param outputType GraphQL output type
+     * @return record type
+     */
+    private Class getRecordType(RequestScope requestScope, GraphQLType outputType) {
+        GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
+        String entityType = graphQLType.getName();
+        Class recordType = requestScope.getDictionary().getEntityClass(entityType);
+        if (recordType == null) {
+            throw new UnknownEntityException(entityType);
+        } else {
+            return recordType;
+        }
+    }
+
+    /**
+     * Fetches an entity, can be root or a nested entity
+     * @param context environment encapsulating graphQL's request environment
+     * @return persistent resource object(s)
+     */
+    private Object fetchEntity(Environment context) {
+        Class recordType = getRecordType(context.requestScope, context.outputType);
+        return fetchObject(context.requestScope, recordType, context.ids, context.outputType,
+                context.requestScope.getDictionary(), context.sort,
+                context.offset, context.first, context.filters);
     }
 
     /**
@@ -162,12 +188,13 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return list of persistent resource objects
      */
     private Object fetchObject(RequestScope requestScope, Class recordType, Optional<List<String>> ids,
+                               GraphQLType outputType, EntityDictionary dictionary,
                                Optional<String> sort, Optional<String> offset,
                                Optional<String> first, Optional<String> filters) {
         /* fetching a collection */
         if(!ids.isPresent()) {
             List<PersistentResource> records = new ArrayList<>(PersistentResource.
-                    loadRecords(recordType, requestScope));
+                    loadRecords(recordType, requestScope, Optional.empty()));
 
             //TODO: paginate/filter/sort
             return records;
@@ -181,53 +208,63 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
 
             /* access records from internal db and return */
-            HashSet recordSet = new HashSet();
-            for (String id : idList) {
-                recordSet.add(PersistentResource.loadRecord(recordType, id, requestScope));
-            }
-            return recordSet;
+            Optional<FilterExpression> filterExpression;
+            GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
+            String entityType = graphQLType.getName();
+            Class entityClass = dictionary.getEntityClass(entityType);
+
+            Class<?> idType = dictionary.getIdType(entityClass);
+
+            String idField = dictionary.getIdFieldName(entityClass);
+
+            String relation = dictionary.getJsonAliasFor(entityClass);
+
+            /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
+            filterExpression = Optional.of(new FilterPredicate(
+                    new FilterPredicate.PathElement(
+                            entityClass,
+                            relation,
+                            idType,
+                            idField),
+                    Operator.IN,
+                    new ArrayList<>(idList)));
+
+            return PersistentResource.loadRecords(recordType, requestScope, filterExpression);
         }
     }
 
     /**
      * FETCH attributes of top level entity
-     * @param requestScope request scope
      * @param parentResource parent object
      * @param field Field type
-     * @param outputType GraphQL object output type
-     * @param ids list of ids
-     * @param sort sort by ASC/DESC
-     * @param offset pagination offset argument
-     * @param first pagination first argument
-     * @param filters filter params
      * @return list of persistent resource objects
      */
-    private Object fetchObject(RequestScope requestScope, PersistentResource parentResource, Field field,
-                               GraphQLType outputType, Optional<List<String>> ids,
-                               Optional<String> sort, Optional<String> offset,
-                               Optional<String> first, Optional<String> filters) {
+    private Object fetchAttribute(PersistentResource parentResource, Field field) {
+        return parentResource.getAttribute(field.getName());
+    }
 
-        //TODO: Do we need P/F/S? If so, do it!
+    /**
+     * Fetches a relationship for a top-level entity
+     * @param context environment encapsulating graphQL's request environment
+     * @return persistence resource object(s)
+     */
+    private Object fetchRelationship(Environment context) {
+        EntityDictionary dictionary = context.requestScope.getDictionary();
+        Class parentClass = context.parentResource.getResourceClass();
+        String fieldName = context.field.getName();
 
-        if(outputType instanceof GraphQLObjectType) {
-            DataStoreTransaction tx = requestScope.getTransaction();
+        /* check for toOne relationships */
+        if(dictionary.getRelationshipType(parentClass, fieldName).isToOne()) {
+            DataStoreTransaction tx = context.requestScope.getTransaction();
             Object obj =
-                    tx.getRelation(tx, parentResource.getObject(), field.getName(),
-                            null, null, null, requestScope);
-            return new PersistentResource(obj, parentResource, requestScope.getUUIDFor(obj), requestScope);
-        }
+                    tx.getRelation(tx, context.parentResource.getObject(), context.field.getName(),
+                            null, null, null, context.requestScope);
+            return new PersistentResource(obj, context.parentResource,
+                    context.requestScope.getUUIDFor(obj), context.requestScope);
 
-        else if(outputType instanceof GraphQLScalarType || outputType instanceof GraphQLEnumType) {
-            EntityDictionary dictionary = requestScope.getDictionary();
-
-            if (dictionary.isAttribute(parentResource.getResourceClass(), field.getName())) {
-                return parentResource.getAttribute(field.getName());
-            } else {
-                log.debug("Tried to fetch property off of invalid loaded object.");
-                throw new InvalidAttributeException(field.getName(), parentResource.getType());
-            }
+        } else {
+            return fetchEntity(context);
         }
-        throw new IllegalStateException("Unrecognized object type: " + outputType.getClass().getName());
     }
 
     /** stub code **/
