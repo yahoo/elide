@@ -7,7 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
