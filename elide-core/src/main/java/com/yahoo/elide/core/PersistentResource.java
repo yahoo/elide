@@ -298,17 +298,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable list;
-
+        Optional<FilterExpression> filter = filterExpression;
         if(filterExpression.isPresent()) {
             if(requestScope.getLoadFilterExpression(loadClass).isPresent()) {
-                filterExpression = Optional.of(new AndFilterExpression(filterExpression.get(),
+                filter = Optional.of(new AndFilterExpression(filterExpression.get(),
                         requestScope.getLoadFilterExpression(loadClass).get()));
             }
         } else {
-            filterExpression = requestScope.getLoadFilterExpression(loadClass);
+            filter = requestScope.getLoadFilterExpression(loadClass);
         }
 
-        list = tx.loadObjects(loadClass, filterExpression,
+        list = tx.loadObjects(loadClass, filter,
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources, false);

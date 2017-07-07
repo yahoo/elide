@@ -201,7 +201,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             //TODO: paginate/filter/sort
             return records;
 
-        } else { /* fetching by id */
+        } else { /* fetching by id(s) */
             List<String> idList = ids.get();
 
             /* handle empty list of ids */
