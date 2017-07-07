@@ -15,7 +15,6 @@ import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 
 import graphql.schema.DataFetcher;
@@ -28,7 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
 
-import java.util.*;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Optional;
 
 import java.util.stream.Collectors;
 
