@@ -72,6 +72,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Filter;
 import java.util.stream.Collectors;
 
 /**
@@ -299,10 +300,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Iterable list;
         Optional<FilterExpression> filter = filterExpression;
+        Optional<FilterExpression> loadFilterExpression = requestScope.getLoadFilterExpression(loadClass);
         if(filterExpression.isPresent()) {
-            if(requestScope.getLoadFilterExpression(loadClass).isPresent()) {
-                filter = Optional.of(new AndFilterExpression(filterExpression.get(),
-                        requestScope.getLoadFilterExpression(loadClass).get()));
+            if(loadFilterExpression.isPresent()) {
+                filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
             }
         } else {
             filter = requestScope.getLoadFilterExpression(loadClass);

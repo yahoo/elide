@@ -144,7 +144,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
                 return fetchRelationship(context);
             } else {
-                throw new IllegalStateException("Unrecognized object type: " + context.outputType.getClass().getName());
+                throw new BadRequestException("Unrecognized object type: " + context.outputType.getClass().getName());
             }
         }
     }
@@ -173,8 +173,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object fetchEntity(Environment context) {
         Class recordType = getRecordType(context.requestScope, context.outputType);
-        return fetchObject(context.requestScope, recordType, context.ids, context.outputType,
-                context.requestScope.getDictionary(), context.sort,
+        return fetchObject(context.requestScope, recordType, context.ids, context.outputType, context.sort,
                 context.offset, context.first, context.filters);
     }
 
@@ -190,8 +189,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return list of persistent resource objects
      */
     private Object fetchObject(RequestScope requestScope, Class recordType, Optional<List<String>> ids,
-                               GraphQLType outputType, EntityDictionary dictionary,
-                               Optional<String> sort, Optional<String> offset,
+                               GraphQLType outputType, Optional<String> sort, Optional<String> offset,
                                Optional<String> first, Optional<String> filters) {
         /* fetching a collection */
         if(!ids.isPresent()) {
@@ -206,26 +204,24 @@ public class PersistentResourceFetcher implements DataFetcher {
 
             /* handle empty list of ids */
             if(idList.isEmpty()) {
-                throw new IllegalArgumentException("Empty list passed to ids");
+                throw new BadRequestException("Empty list passed to ids");
             }
 
             /* access records from internal db and return */
             Optional<FilterExpression> filterExpression;
-            GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
-            String entityType = graphQLType.getName();
-            Class entityClass = dictionary.getEntityClass(entityType);
+            EntityDictionary dictionary = requestScope.getDictionary();
 
-            Class<?> idType = dictionary.getIdType(entityClass);
+            Class<?> idType = dictionary.getIdType(recordType);
 
-            String idField = dictionary.getIdFieldName(entityClass);
+            String idField = dictionary.getIdFieldName(recordType);
 
-            String relation = dictionary.getJsonAliasFor(entityClass);
+            String entityTypeName = dictionary.getJsonAliasFor(recordType);
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             filterExpression = Optional.of(new FilterPredicate(
                     new FilterPredicate.PathElement(
-                            entityClass,
-                            relation,
+                            recordType,
+                            entityTypeName,
                             idType,
                             idField),
                     Operator.IN,
@@ -254,15 +250,13 @@ public class PersistentResourceFetcher implements DataFetcher {
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class parentClass = context.parentResource.getResourceClass();
         String fieldName = context.field.getName();
+        String ID = "id";
 
         /* check for toOne relationships */
         if(dictionary.getRelationshipType(parentClass, fieldName).isToOne()) {
-            DataStoreTransaction tx = context.requestScope.getTransaction();
-            Object obj =
-                    tx.getRelation(tx, context.parentResource.getObject(), context.field.getName(),
-                            null, null, null, context.requestScope);
-            return new PersistentResource(obj, context.parentResource,
-                    context.requestScope.getUUIDFor(obj), context.requestScope);
+            String uuid = String.valueOf(PersistentResource.getValue(context.parentResource.getObject(), ID,
+                    context.requestScope));
+            return context.parentResource.getRelation(fieldName, uuid);
 
         } else {
             return fetchEntity(context);
