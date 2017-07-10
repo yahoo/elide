@@ -129,7 +129,7 @@ public class CollectionTerminalState extends BaseState {
             if (hasSortingOrPagination) {
                 collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
             } else {
-                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope);
+                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope, Optional.empty());
             }
         }
 

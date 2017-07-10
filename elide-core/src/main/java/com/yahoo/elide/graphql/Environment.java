@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import graphql.schema.DataFetchingEnvironment;
@@ -53,10 +52,10 @@ public class Environment {
 
         field = environment.getFields().get(0);
 
-        this.ids = Optional.ofNullable(ImmutableList.copyOf((List) args.get(ModelBuilder.ARGUMENT_IDS)));
+        this.ids = Optional.ofNullable((List) args.get(ModelBuilder.ARGUMENT_IDS));
 
         List<Map<String, Object>> data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
-        this.data = Optional.ofNullable(ImmutableList.copyOf(data));
+        this.data = Optional.ofNullable(data);
     }
 
     public boolean isRoot() {

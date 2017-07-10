@@ -293,7 +293,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param requestScope the request scope
      * @return a filtered collection of resources loaded from the datastore.
      */
-    public static Set<PersistentResource> loadRecords(Class<?> loadClass, RequestScope requestScope) {
+    public static Set<PersistentResource> loadRecords(Class<?> loadClass, RequestScope requestScope,
+                                                      Optional<FilterExpression> filterExpression) {
         DataStoreTransaction tx = requestScope.getTransaction();
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
@@ -301,9 +302,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Iterable list;
-        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
+        Optional<FilterExpression> filter = filterExpression;
+        Optional<FilterExpression> loadFilterExpression = requestScope.getLoadFilterExpression(loadClass);
+        if(filterExpression.isPresent()) {
+            if(loadFilterExpression.isPresent()) {
+                filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
+            }
+        } else {
+            filter = loadFilterExpression;
+        }
 
-        list = tx.loadObjects(loadClass, filterExpression,
+        list = tx.loadObjects(loadClass, filter,
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
         resources = filter(ReadPermission.class, resources, false);
