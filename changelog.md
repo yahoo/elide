@@ -2,6 +2,7 @@
 
 ## 3.0.10
 **Fixes**
+ * Use IdentityHashMap for ObjectEntityCache
  * Miscellaneous cleanup.
 
 ## 3.0.9
