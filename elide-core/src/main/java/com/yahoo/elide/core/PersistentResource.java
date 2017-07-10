@@ -305,7 +305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
             }
         } else {
-            filter = requestScope.getLoadFilterExpression(loadClass);
+            filter = loadFilterExpression;
         }
 
         list = tx.loadObjects(loadClass, filter,

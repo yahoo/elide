@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.ws.rs.BadRequestException;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -39,7 +40,7 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
 
-    public PersistentResourceFetcher(ElideSettings settings) { this.settings = settings; }
+    PersistentResourceFetcher(ElideSettings settings) { this.settings = settings; }
 
     /**
      * Override graphql-java's {@link DataFetcher} get method to execute
@@ -107,7 +108,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param environment environment encapsulating graphQL's request environment
      */
     private void logContext(RelationshipOp operation, Environment environment) {
-        List<Field> children = environment.field.getSelectionSet() != null
+        List<Field> children = (environment.field.getSelectionSet() != null)
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
         String requestedFields = environment.field.getName() + (children.size() > 0
@@ -130,7 +131,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         /* check whether current object has a parent or not */
         if (context.isRoot()) {
-            return fetchEntity(context);
+            return fetchObject(context);
 
         } else {
             EntityDictionary dictionary = context.requestScope.getDictionary();
@@ -156,6 +157,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Class getRecordType(RequestScope requestScope, GraphQLType outputType) {
         GraphQLObjectType graphQLType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
+
         String entityType = graphQLType.getName();
         Class recordType = requestScope.getDictionary().getEntityClass(entityType);
         if (recordType == null) {
@@ -170,9 +172,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param context environment encapsulating graphQL's request environment
      * @return persistent resource object(s)
      */
-    private Object fetchEntity(Environment context) {
+    private Object fetchObject(Environment context) {
         Class recordType = getRecordType(context.requestScope, context.outputType);
-        return fetchObject(context.requestScope, recordType, context.ids, context.outputType, context.sort,
+        return fetchObject(context.requestScope, recordType, context.ids, context.sort,
                 context.offset, context.first, context.filters);
     }
 
@@ -188,10 +190,11 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return list of persistent resource objects
      */
     private Object fetchObject(RequestScope requestScope, Class recordType, Optional<List<String>> ids,
-                               GraphQLType outputType, Optional<String> sort, Optional<String> offset,
+                               Optional<String> sort, Optional<String> offset,
                                Optional<String> first, Optional<String> filters) {
         /* fetching a collection */
         if(!ids.isPresent()) {
+
             List<PersistentResource> records = new ArrayList<>(PersistentResource.
                     loadRecords(recordType, requestScope, Optional.empty()));
 
@@ -246,19 +249,17 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return persistence resource object(s)
      */
     private Object fetchRelationship(Environment context) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-        Class parentClass = context.parentResource.getResourceClass();
         String fieldName = context.field.getName();
-        String ID = "id";
+
+        Set<PersistentResource> relations = context.parentResource.getRelationCheckedFiltered(fieldName);
 
         /* check for toOne relationships */
-        if(dictionary.getRelationshipType(parentClass, fieldName).isToOne()) {
-            String uuid = String.valueOf(PersistentResource.getValue(context.parentResource.getObject(), ID,
-                    context.requestScope));
-            return context.parentResource.getRelation(fieldName, uuid);
+        Boolean isToOne = context.parentResource.getRelationshipType(fieldName).isToOne();
 
+        if(isToOne) {
+            return relations.iterator().next();
         } else {
-            return fetchEntity(context);
+            return relations;
         }
     }
 
