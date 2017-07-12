@@ -10,6 +10,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
+
 import java.util.Optional;
 
 /**
@@ -22,7 +24,7 @@ public class Common {
      *
      * @param <T> the type of object that this check guards
      */
-    public static class UpdateOnCreate<T> extends CommitCheck<T> {
+    public static class UpdateOnCreate<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             for (PersistentResource resource : requestScope.getNewResources()) {
