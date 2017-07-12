@@ -1,5 +1,9 @@
 # Change Log
 
+## 3.0.11
+**Fixes**
+ * Change `UpdateOnCreate` check to be an `OperationCheck`.
+
 ## 3.0.10
 **Fixes**
  * Use IdentityHashMap for ObjectEntityCache
