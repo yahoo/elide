@@ -126,8 +126,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
+
+        // Keep track of new resources for non shareable resources
+        requestScope.getNewPersistentResources().add(newResource);
         checkPermission(CreatePermission.class, newResource);
+
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
+
         requestScope.queueTriggers(newResource, CRUDAction.CREATE);
 
         String type = newResource.getType();
@@ -139,8 +144,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         && newResource.getValueUnchecked(relationName) == null)
                 .forEach(relationName -> newResource.setValue(relationName, new LinkedHashSet<>()));
 
-        // Keep track of new resources for non shareable resources
-        requestScope.getNewPersistentResources().add(newResource);
         newResource.markDirty();
         return newResource;
     }
