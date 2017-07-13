@@ -116,6 +116,16 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
+            // for newly created object in PatchRequest limit to User checks
+            if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
+                    && requestScope.getNewPersistentResources().contains(resource)) {
+                ExpressionResult result =
+                        executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
+                if (result == DEFERRED) {
+                    commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+                }
+                return result;
+            }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
@@ -146,6 +156,16 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
+            // for newly created object in PatchRequest limit to User checks
+            if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
+                    && requestScope.getNewPersistentResources().contains(resource)) {
+                ExpressionResult result =
+                        executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
+                if (result == DEFERRED) {
+                    commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+                }
+                return result;
+            }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
@@ -344,6 +364,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param resourceClass Resource class
      * @return the filter expression for the class, if any
      */
+    @Override
     public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
         FilterExpression filterExpression =
                 expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);

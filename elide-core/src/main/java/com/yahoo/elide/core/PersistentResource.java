@@ -1039,8 +1039,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
         Predicate inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
+        // NOTE: We can safely _skip_ tests on NEWLY created objects.
+        // We assume a user can READ their object they are allowed to create.
         return (Collection) collection.stream()
-                .filter(e -> inMemoryFilterFn.test(e))
+                .filter(e -> requestScope.isNewResource(e) || inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
     }
 
