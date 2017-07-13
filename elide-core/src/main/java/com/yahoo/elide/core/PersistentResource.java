@@ -28,9 +28,9 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -71,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -815,8 +816,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
 
-        /* If this is a patch extension request and the ID we are fetching for is newly created... */
-        if (requestScope instanceof PatchRequestScope
+        /* If this is a bulk edit request and the ID we are fetching for is newly created... */
+        if (requestScope.isMutatingMultipleEntities()
                         && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
             filterExpression = Optional.empty();
             // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
@@ -972,8 +973,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+        Optional<Pagination> pagination = sortedAndPaginated
+                ? Optional.ofNullable(requestScope.getPagination()).map(p -> p.evaluate(relationClass))
+                : Optional.empty();
+        Optional<Sorting> sorting = sortedAndPaginated
+                ? Optional.ofNullable(requestScope.getSorting()) : Optional.empty();
+
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
                 FilterExpression mergedExpression =
@@ -983,9 +988,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filterExpression = permissionFilter;
         }
 
-        Object val = transaction.getRelation(transaction, obj, relationName, filterExpression,
-                sortedAndPaginated ? sorting : Optional.empty(),
-                sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(), requestScope);
+
+        /* If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
+         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
+         */
+        Object val;
+        if (requestScope.isMutatingMultipleEntities()) {
+            val = transaction.getRelation(transaction, obj, relationName,
+                    Optional.empty(), sorting, Optional.empty(), requestScope);
+
+            if (val instanceof Collection) {
+                val = filterInMemory((Collection) val, filterExpression);
+            }
+        } else {
+            val = transaction.getRelation(transaction, obj, relationName,
+                    filterExpression, sorting, pagination, requestScope);
+        }
 
         if (val == null) {
             return Collections.emptySet();
@@ -994,7 +1012,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            resources = new PersistentResourceSet(this, filteredVal, requestScope);
+           resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
                     new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
@@ -1003,6 +1021,27 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         return resources;
+    }
+
+    /**
+     * Filters a relationship collection in memory for scenarios where the data store transaction cannot do it.
+     *
+     * @param <T> the type parameter
+     * @param collection the collection to filter
+     * @param filterExpression the filter expression
+     * @return the filtered collection
+     */
+    protected <T> Collection filterInMemory(Collection collection, Optional<FilterExpression> filterExpression) {
+
+        if (! filterExpression.isPresent()) {
+            return collection;
+        }
+
+        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
+        Predicate inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
+        return (Collection) collection.stream()
+                .filter(e -> inMemoryFilterFn.test(e))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -1742,10 +1781,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
         // Defer checks for newly created objects if:
-        //   1. This is a patch extension request
+        //   1. This is a bulk edit request
         //   2. This is an update request (note: changeSpec != null is a faster change check than rechecking permission)
         if (requestScope.getNewResources().contains(this)
-                && ((requestScope instanceof PatchRequestScope)
+                && ((requestScope.isMutatingMultipleEntities())
                 || changeSpec != null)) {
             return requestScope
                     .getPermissionExecutor()

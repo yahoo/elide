@@ -72,6 +72,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ElideSettings elideSettings;
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
+    @Getter private final boolean mutatingMultipleEntities;
 
     private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
@@ -91,12 +92,35 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams the query parameters
      * @param elideSettings Elide settings object
      */
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
                         ElideSettings elideSettings) {
+        this(path, jsonApiDocument, transaction, user, queryParams, elideSettings, false);
+    }
+
+    /**
+     * Create a new RequestScope with specified update status code.
+     *
+     * @param path the URL path
+     * @param jsonApiDocument the document for this request
+     * @param transaction the transaction for this request
+     * @param user the user making this request
+     * @param queryParams the query parameters
+     * @param elideSettings Elide settings object
+     * @param mutatesMultipleEntities Whether or not this request involves bulk edits to entities
+     *                                (patch extension or graphQL).
+     */
+    public RequestScope(String path,
+                        JsonApiDocument jsonApiDocument,
+                        DataStoreTransaction transaction,
+                        User user,
+                        MultivaluedMap<String, String> queryParams,
+                        ElideSettings elideSettings,
+                        boolean mutatesMultipleEntities) {
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
@@ -116,6 +140,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
+        this.mutatingMultipleEntities = mutatesMultipleEntities;
         this.queuedTriggers = new HashMap<Class, LinkedHashSet<Runnable>>() {
             {
                 put(OnCreatePreSecurity.class, new LinkedHashSet<>());
@@ -217,6 +242,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.elideSettings = outerRequestScope.elideSettings;
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
+        this.mutatingMultipleEntities = outerRequestScope.mutatingMultipleEntities;
     }
 
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {

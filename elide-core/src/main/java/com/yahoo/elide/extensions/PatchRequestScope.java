@@ -37,7 +37,8 @@ public class PatchRequestScope extends RequestScope {
                 transaction,
                 user,
                 (MultivaluedMap<String, String>) null,
-                elideSettings
+                elideSettings,
+                true
         );
     }
 

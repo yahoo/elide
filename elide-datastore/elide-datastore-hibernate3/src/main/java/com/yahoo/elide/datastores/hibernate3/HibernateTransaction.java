@@ -14,12 +14,10 @@ import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.filter.CriterionFilterOperation;
-import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import org.hibernate.Criteria;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -268,12 +265,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
-                if (scope instanceof PatchRequestScope && filterExpression.isPresent()) {
-                    Class relationClass = dictionary.getType(entity, relationName);
-                    return patchRequestFilterCollection(filteredVal,
-                            relationClass, filterExpression.get(), (PatchRequestScope) scope);
-                }
-
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
@@ -394,28 +385,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
 
         return query;
-    }
-
-    /**
-     * Use only inMemory tests during PatchRequest since objects in the collection may be new and unsaved.
-     *
-     * @param <T> the type parameter
-     * @param collection the collection to filter
-     * @param entityClass the class of the entities in the collection
-     * @param filterExpression the filter expression
-     * @param requestScope The request scope
-     * @return the filtered collection
-     */
-    protected <T> Collection patchRequestFilterCollection(
-            Collection collection,
-            Class<T> entityClass,
-            FilterExpression filterExpression,
-            com.yahoo.elide.core.RequestScope requestScope) {
-        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
-        Predicate inMemoryFilterFn = filterExpression.accept(inMemoryFilterVisitor);
-        return (Collection) collection.stream()
-                .filter(e -> inMemoryFilterFn.test(e))
-                .collect(Collectors.toList());
     }
 
     @Override
