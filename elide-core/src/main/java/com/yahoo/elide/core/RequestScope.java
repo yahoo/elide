@@ -92,6 +92,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams the query parameters
      * @param elideSettings Elide settings object
      */
+    @Deprecated
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
