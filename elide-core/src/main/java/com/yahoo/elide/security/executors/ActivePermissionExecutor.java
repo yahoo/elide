@@ -8,11 +8,9 @@ package com.yahoo.elide.security.executors;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.PersistentResource;
@@ -114,33 +112,10 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             if (SharePermission.class == annotationClass) {
                 return expressionBuilder.buildSharePermissionExpressions(resource);
             }
-
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            RequestScope scope = (RequestScope) resource.getRequestScope();
-
-            //If the item is newly created (TODO) and this is a read patch extension request...
-            if (ReadPermission.class == annotationClass && scope instanceof PatchRequestScope) {
-
-                //Read permissions can never be deferred for relationships as they are used in filtering of collections.
-                //Since this item was created by the requester, the only thing that might not be readable
-                //is computed attributes.  What this should ideally do is to build an expression that returns
-                //PASS for every check EXCEPT user checks & computed attributes.  Computed attributes should
-                //return DEFERRED and user checks should be evaluated as normal.
-
-                return ExpressionResult.PASS;
-            } else if (UpdatePermission.class == annotationClass && scope instanceof PatchRequestScope) {
-                //Inline Update permissions can be deferred for an object that is being newly created.
-
-                commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
-                return ExpressionResult.DEFERRED;
-
-            } else if (SharePermission.class == annotationClass) { // && item is newly created)
-                return ExpressionResult.PASS;
-            }
-
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
@@ -435,7 +410,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
 
 
-            //TODO - this needs to be changed based on whether this is an attribute or relationship for READS.
             if (isInlineOnlyCheck(annotationClass)) {
                 // Force evaluation of checks that can only be executed inline.
                 result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);

@@ -28,7 +28,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.extensions.PatchRequestScope;
@@ -72,7 +71,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -307,7 +305,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         list = tx.loadObjects(loadClass, filterExpression,
                 Optional.empty(), Optional.empty(), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
-        resources = filter(ReadPermission.class, resources);
+        resources = filter(ReadPermission.class, resources, false);
         return resources;
     }
 
@@ -357,7 +355,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         list = tx.loadObjects(loadClass, filterExpression, sorting,
                 pagination.map(p -> p.evaluate(loadClass)), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
-        resources = filter(ReadPermission.class, resources);
+        resources = filter(ReadPermission.class, resources, false);
         return resources;
     }
 
@@ -408,7 +406,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
         Set<PersistentResource> resources = filter(ReadPermission.class,
-                getRelationUncheckedUnfiltered(fieldName));
+                getRelationUncheckedUnfiltered(fieldName), false);
         boolean isUpdated;
         if (type.isToMany()) {
             checkFieldAwareDeferPermissions(
@@ -565,7 +563,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public boolean clearRelation(String relationName) {
         Set<PersistentResource> mine = filter(ReadPermission.class,
-                getRelationUncheckedUnfiltered(relationName));
+                getRelationUncheckedUnfiltered(relationName), false);
         checkFieldAwarePermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
@@ -813,17 +811,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public PersistentResource getRelation(String relation, String id) {
 
         Optional<FilterExpression> filterExpression;
+        boolean skipNew = false;
 
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
 
         /* If this is a patch extension request and the ID we are fetching for is newly created... */
         if (requestScope instanceof PatchRequestScope
                         && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
-            if (!checkRelation(relation)) {
-                return new PersistentResource(requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id));
-            } else {
-                throw new InvalidObjectIdentifierException(id, relation);
-            }
+            filterExpression = Optional.empty();
+            // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
+            // NEWLY created objects. We assume a user can READ their object in the midst of creation.
+            // Imposing a constraint to the contrary-- at this moment-- seems arbitrary and does not
+            // reflect reality (i.e. if a user is creating an object with values, he/she knows those values
+            // already).
+            skipNew = true;
         } else {
             if (entityType == null) {
                 throw new InvalidAttributeException(relation, type);
@@ -843,7 +844,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Set<PersistentResource> resources =
-                filter(ReadPermission.class, (Set) getRelationChecked(relation, filterExpression));
+                filter(ReadPermission.class, (Set) getRelationChecked(relation, filterExpression), skipNew);
 
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
@@ -860,7 +861,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     public Set<PersistentResource> getRelationCheckedFiltered(String relationName) {
-        return filter(ReadPermission.class, getRelation(relationName, true));
+        return filter(ReadPermission.class, getRelation(relationName, true), false);
     }
 
     /**
@@ -870,7 +871,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     public Set<PersistentResource> getRelationCheckedFilteredWithSortingAndPagination(String relationName) {
-        return filter(ReadPermission.class, getRelationWithSortingAndPagination(relationName, true));
+        return filter(ReadPermission.class, getRelationWithSortingAndPagination(relationName, true), false);
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
@@ -982,18 +983,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filterExpression = permissionFilter;
         }
 
-        Object val;
-        if (requestScope instanceof PatchRequestScope) {
-            val = transaction.getRelation(transaction, obj, relationName, Optional.empty(),
-                sortedAndPaginated ? sorting : Optional.empty(), Optional.empty(), requestScope);
-
-
-        } else {
-            val = transaction.getRelation(transaction, obj, relationName, filterExpression,
-                sortedAndPaginated ? sorting : Optional.empty(),
-                sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(), requestScope);
-        }
-
         Object val = transaction.getRelation(transaction, obj, relationName, filterExpression,
                 sortedAndPaginated ? sorting : Optional.empty(),
                 sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(), requestScope);
@@ -1004,17 +993,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
-
             Collection filteredVal = (Collection) val;
-
-            if (requestScope instanceof PatchRequestScope && filterExpression.isPresent()) {
-                InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
-                Predicate inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
-                filteredVal = filteredVal.stream()
-                    .filter(e -> inMemoryFilterFn.test(e))
-                    .collect(Collectors.toCollection());
-            }
-
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
@@ -1676,15 +1655,29 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param permission the permission
      * @param resources  the resources
+     * @return Filtered set of resources
+     * @deprecated use {@link PersistentResource#filter(Class, Set, boolean)}
+     */
+    @Deprecated
+    protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
+                                                    Set<PersistentResource> resources) {
+        return filter(permission, resources, false);
+    }
+
+    /**
+     * Filter a set of PersistentResources.
+     *
+     * @param permission the permission
+     * @param resources  the resources
      * @param skipNew whether or not objects created this transaction should be skipped
      * @return Filtered set of resources
      */
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
-                                                    Set<PersistentResource> resources) {
+                                                    Set<PersistentResource> resources, boolean skipNew) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
-                if (!resource.getRequestScope().getNewResources().contains(resource)) {
+                if (!skipNew || !resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
                 }
                 filteredSet.add(resource);
