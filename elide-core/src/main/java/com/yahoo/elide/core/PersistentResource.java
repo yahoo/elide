@@ -973,8 +973,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+        Optional<Pagination> pagination = sortedAndPaginated
+                ? Optional.ofNullable(requestScope.getPagination()).map(p -> p.evaluate(relationClass))
+                : Optional.empty();
+        Optional<Sorting> sorting = sortedAndPaginated
+                ? Optional.ofNullable(requestScope.getSorting()) : Optional.empty();
+
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
                 FilterExpression mergedExpression =
@@ -984,19 +988,21 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 filterExpression = permissionFilter;
         }
 
+
+        /* If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
+         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
+         */
         Object val;
         if (requestScope.isMutatingMultipleEntities()) {
-            /*
-             * Filtering & pagination must be performed in memory because the collection may contain
-             * newly created objects
-             */
-            val = transaction.getRelation(transaction, obj, relationName, Optional.empty(),
-                    sortedAndPaginated ? sorting : Optional.empty(), Optional.empty(), requestScope);
+            val = transaction.getRelation(transaction, obj, relationName,
+                    Optional.empty(), sorting, Optional.empty(), requestScope);
+
+            if (val instanceof Collection) {
+                val = filterInMemory((Collection) val, filterExpression);
+            }
         } else {
-            val = transaction.getRelation(transaction, obj, relationName, filterExpression,
-                    sortedAndPaginated ? sorting : Optional.empty(),
-                    sortedAndPaginated ? pagination.map(p -> p.evaluate(relationClass)) : Optional.empty(),
-                    requestScope);
+            val = transaction.getRelation(transaction, obj, relationName,
+                    filterExpression, sorting, pagination, requestScope);
         }
 
         if (val == null) {
@@ -1006,10 +1012,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            if (requestScope.isMutatingMultipleEntities()) {
-                filteredVal = filterInMemory((Collection) val, filterExpression);
-            }
-            resources = new PersistentResourceSet(this, filteredVal, requestScope);
+           resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
                     new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));
