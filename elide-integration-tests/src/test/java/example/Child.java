@@ -7,23 +7,22 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
-
-import java.util.Optional;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -34,6 +33,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Child test bean.
@@ -123,6 +126,17 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
+    @Transient
+    @ComputedAttribute
+    @ReadPermission(expression = "FailOpPatchExtension")
+    public String getComputedFailTest() {
+        return "computed";
+    }
+
+    public String setComputedFailTest(String unused) {
+        throw new IllegalAccessError();
+    }
+
     /**
      * Initialization validation check.
      */
@@ -150,6 +164,16 @@ public class Child {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
             return new FilterPredicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
+        }
+    }
+
+    static public class FailOpPatchExtension extends OperationCheck<Child> {
+        @Override
+        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            if (requestScope instanceof PatchRequestScope && child.getParents().isEmpty()) {
+                throw new IllegalStateException("Patch extension should test operation checks only at commit");
+            }
+            return false;
         }
     }
 }

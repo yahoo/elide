@@ -119,12 +119,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             // for newly created object in PatchRequest limit to User checks
             if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
                     && requestScope.getNewPersistentResources().contains(resource)) {
-                ExpressionResult result =
-                        executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
-                if (result == DEFERRED) {
-                    commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
-                }
-                return result;
+                return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
@@ -135,6 +130,21 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 Optional.empty(),
                 expressionSupplier,
                 expressionExecutor);
+    }
+
+    /**
+     * We will only run User checks during patch extension for newly created objects because relationships are not yet
+     * complete. The inline checks may fail (relationships are not yet fixed up). If the user checks return deferred, we
+     * will defer all of the inline checks to commit phase.
+     */
+    private <A extends Annotation> ExpressionResult executeUserChecksDeferInline(Class<A> annotationClass,
+            Expression expression) {
+        ExpressionResult result =
+                executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
+        if (result == DEFERRED) {
+            commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+        }
+        return result;
     }
 
     /**
@@ -159,12 +169,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             // for newly created object in PatchRequest limit to User checks
             if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
                     && requestScope.getNewPersistentResources().contains(resource)) {
-                ExpressionResult result =
-                        executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
-                if (result == DEFERRED) {
-                    commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
-                }
-                return result;
+                return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
