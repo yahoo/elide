@@ -13,7 +13,7 @@
     <parent>
         <artifactId>elide-example-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>3.0.11</version>
+        <version>3.0.11-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>dropwizard-elide</artifactId>
-            <version>3.0.11</version>
+            <version>3.0.11-SNAPSHOT</version>
         </dependency>
 
         <!-- Jersey -->
