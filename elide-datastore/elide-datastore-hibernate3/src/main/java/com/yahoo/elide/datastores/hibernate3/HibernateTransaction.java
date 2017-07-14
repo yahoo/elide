@@ -33,11 +33,9 @@ import org.hibernate.criterion.Restrictions;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -220,34 +218,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             return criteria.list();
         }
         return new ScrollableIterator(criteria.scroll(scrollMode));
-    }
-
-    /**
-     * Parse include param into list of include fields.
-     *
-     * @return list of include fields
-     */
-    public List<String> getIncludeList(RequestScope scope) {
-        List<String> includeParam;
-        if (!scope.getQueryParams().isPresent()) {
-            return Collections.emptyList();
-        }
-        includeParam = scope.getQueryParams().get().get("include");
-        if (includeParam == null || includeParam.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        ArrayList<String> list = new ArrayList<>();
-        for (String includeList : includeParam) {
-            for (String includeItem : includeList.split(",")) {
-                for (int idx = 0; idx != -1; ) {
-                    idx = includeItem.indexOf('.', idx + 1);
-                    String field = (idx == -1) ? includeItem : includeItem.substring(0, idx);
-                    list.add(field);
-                }
-            }
-        }
-        return list;
     }
 
     @Override

@@ -2,6 +2,7 @@
 ## 3.0.12
 **Misc**
  * Cleanup hibernate stores to not care about multi edit transactions
+ * Removed dead code from hibernate3 transaction
 
 ## 3.0.11
 **Fixes**
