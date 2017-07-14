@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 import com.yahoo.elide.Elide;
@@ -15,8 +13,6 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.datastores.hibernate3.HibernateTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 
@@ -28,9 +24,6 @@ import org.testng.annotations.Test;
 import example.Filtered;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -73,21 +66,5 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
-    }
-
-    @Test
-    public void testIncludeList() throws IOException {
-        try (HibernateTransaction tx = (HibernateTransaction) dataStore.beginTransaction()) {
-            RequestScope requestScope = mock(RequestScope.class);
-
-            MultivaluedHashMap<String, String> params = new MultivaluedHashMap();
-            params.add("include", "foo,bar");
-            params.add("include", "car");
-            when(requestScope.getQueryParams()).thenReturn(Optional.of(params));
-
-            List<String> includes = tx.getIncludeList(requestScope);
-            tx.commit(requestScope);
-            assertEquals(includes, Arrays.asList("foo", "bar", "car"));
-        }
     }
 }
