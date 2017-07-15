@@ -3,6 +3,7 @@
         "type":"child",
         "id":"1",
         "attributes":{
+            "computedFailTest":"computed",
             "name":null
         },
         "relationships":{

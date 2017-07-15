@@ -3,6 +3,7 @@
 **Misc**
  * Cleanup hibernate stores to not care about multi edit transactions
  * Removed dead code from hibernate3 transaction
+ * Special read permissions handling of newly created objects in Patch Extension
 
 ## 3.0.11
 **Fixes**
