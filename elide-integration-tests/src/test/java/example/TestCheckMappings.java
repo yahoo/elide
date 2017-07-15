@@ -23,7 +23,7 @@ public class TestCheckMappings {
                     put("adminRoleCheck", User.AdminRoleCheck.class);
                     put("initCheck", Child.InitCheck.class);
                     put("initCheckOp", Child.InitCheckOp.class);
-                    put("FailOpPatchExtension", Child.FailOpPatchExtension.class);
+                    put("FailCheckOp", Child.FailCheckOp.class);
                     put("initCheckFilter", Child.InitCheckFilter.class);
                     put("parentInitCheck", Parent.InitCheck.class);
                     put("parentInitCheckOp", Parent.InitCheckOp.class);

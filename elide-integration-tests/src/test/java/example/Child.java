@@ -127,7 +127,7 @@ public class Child {
 
     @Transient
     @ComputedAttribute
-    @ReadPermission(expression = "FailOpPatchExtension")
+    @ReadPermission(expression = "FailCheckOp")
     public String getComputedFailTest() {
         return "computed";
     }
@@ -166,7 +166,7 @@ public class Child {
         }
     }
 
-    static public class FailOpPatchExtension extends OperationCheck<Child> {
+    static public class FailCheckOp extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
