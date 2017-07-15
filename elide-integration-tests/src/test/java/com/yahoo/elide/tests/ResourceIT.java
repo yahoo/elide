@@ -1762,7 +1762,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
-    @Test(priority = 1000)
+    @Test
     public void elideBypassSecurity() {
         String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
 
