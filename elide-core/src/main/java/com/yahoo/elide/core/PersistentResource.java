@@ -565,7 +565,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean clearRelation(String relationName) {
         Set<PersistentResource> mine = filter(ReadPermission.class,
                 getRelationUncheckedUnfiltered(relationName), false);
-        checkFieldAwarePermissions(UpdatePermission.class, relationName, Collections.emptySet(),
+        checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
         if (mine.isEmpty()) {
@@ -636,7 +636,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             );
         }
 
-        checkFieldAwarePermissions(UpdatePermission.class, fieldName, modified, original);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
 
         if (relation instanceof Collection) {
             if (!((Collection) relation).contains(removeResource.getObject())) {
@@ -1308,7 +1308,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         String inverseField = getInverseRelationField(fieldName);
         if (!inverseField.isEmpty()) {
-            oldValue.checkFieldAwarePermissions(UpdatePermission.class, inverseField, null, getObject());
+            oldValue.checkFieldAwareDeferPermissions(UpdatePermission.class, inverseField, null, getObject());
         }
         this.setValueChecked(fieldName, null);
     }
@@ -1782,19 +1782,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
-        // Defer checks for newly created objects if:
-        //   1. This is a bulk edit request
-        //   2. This is an update request (note: changeSpec != null is a faster change check than rechecking permission)
-        if (requestScope.getNewResources().contains(this)
-                && ((requestScope.isMutatingMultipleEntities())
-                || changeSpec != null)) {
-            return requestScope
-                    .getPermissionExecutor()
-                    .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
-        }
+
         return requestScope
                 .getPermissionExecutor()
-                .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
+                .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,

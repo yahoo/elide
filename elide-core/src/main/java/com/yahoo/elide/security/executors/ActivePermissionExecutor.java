@@ -201,8 +201,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
-            return ExpressionResult.DEFERRED;
+            if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
+                    && requestScope.getNewPersistentResources().contains(resource)) {
+                return executeUserChecksDeferInline(annotationClass, expression);
+            }
+            return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
         return checkPermissions(

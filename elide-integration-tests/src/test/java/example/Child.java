@@ -170,7 +170,9 @@ public class Child {
     static public class FailOpPatchExtension extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (requestScope instanceof PatchRequestScope && child.getParents().isEmpty()) {
+            if (requestScope instanceof PatchRequestScope
+                    && ((PatchRequestScope) requestScope).isNewResource(child)
+                    && child.getParents().isEmpty()) {
                 throw new IllegalStateException("Patch extension should test operation checks only at commit");
             }
             return false;
