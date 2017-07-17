@@ -15,28 +15,14 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import graphql.language.Field;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLObjectType;
-
+import graphql.schema.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
-
 
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
@@ -285,21 +271,20 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         Set<PersistentResource> upsertedObjects = new HashSet<>();
+        EntityDictionary dictionary = context.requestScope.getDictionary();
+
         for(Map<String, Object> input : context.data.get()) {
-            EntityDictionary dictionary = context.requestScope.getDictionary();
-
-
             if(context.isRoot()) {
                 /* get internal reference idFieldName, 'id' in this case */
                 String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(context.field.getName()));
 
-                upsertedObjects.add((PersistentResource) upsertObject(idFieldName, input,
-                        context.requestScope, context.field, context.outputType));
+                upsertedObjects.add(upsertObject(idFieldName, input, context.requestScope,
+                        context.field, context.outputType));
             } else {
                 String idFieldName = dictionary.getIdFieldName(context.parentResource.getResourceClass());
 
-                upsertedObjects.add((PersistentResource) upsertObject(idFieldName, input, dictionary,
-                        context.parentResource, context.field, context.outputType, context.requestScope));
+                upsertedObjects.add(upsertObject(idFieldName, input, dictionary, context.parentResource,
+                        context.field, context.outputType, context.requestScope));
             }
         }
         return upsertedObjects;
@@ -315,7 +300,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param outputType graphql-java output type
      * @return list/set of persistent resource objects
      */
-    private Object upsertObject(String idFieldName, Map<String, Object> input, EntityDictionary dictionary,
+    private PersistentResource upsertObject(String idFieldName, Map<String, Object> input, EntityDictionary dictionary,
                                 PersistentResource parentSource, Field field, GraphQLType outputType,
                                 RequestScope requestScope) {
         /* fetch id valued fed to 'data' argument */
@@ -344,7 +329,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param outputType graphql-java output type
      * @return list/set of persistent resource objects
      */
-    private Object upsertObject(String idFieldName, Map<String, Object> input,
+    private PersistentResource upsertObject(String idFieldName, Map<String, Object> input,
                                 RequestScope requestScope,  Field field, GraphQLType outputType) {
         /* fetch id values fed to 'data' argument */
         Set<String> ids = input.entrySet().stream().filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
@@ -373,7 +358,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param ids id
      * @return persistent resource object
      */
-    private Object createObject(Map<String, Object> input, GraphQLType outputType,
+    private PersistentResource createObject(Map<String, Object> input, GraphQLType outputType,
                                 RequestScope requestScope, Optional<Set<String>> ids,
                                 Field field, PersistentResource parent) {
         GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
@@ -403,7 +388,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /** stub code **/
-    private Object updateObject() { return null; }
+    private PersistentResource updateObject() { return null; }
 
     private Object replaceObjects(Environment context) { return null; }
 

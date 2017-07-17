@@ -159,7 +159,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param <T> type of resource
      * @return persistent resource
      * @deprecated Will be removed in Elide 4. Instead use
-     *  {@link PersistentResource#createObject(PersistentResource, Class, RequestScope, String)}
+     *  {@link PersistentResource#createObject(PersistentResource, Class, RequestScope, Optional<String>)}
      */
     @Deprecated
     public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
