@@ -26,15 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+import static com.yahoo.elide.graphql.ModelBuilder.*;
 
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
@@ -131,21 +127,13 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         /* check whether current object has a parent or not */
         if (context.isRoot()) {
-            return fetchObject(context);
+            return fetchObject(context.requestScope, context.outputType, context.ids, context.sort,
+                    context.offset, context.first, context.filters);
 
-        } else {
-            EntityDictionary dictionary = context.requestScope.getDictionary();
-            Class parentClass = context.parentResource.getResourceClass();
-            String fieldName = context.field.getName();
-
-            if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-                return fetchAttribute(context.parentResource, context.field);
-
-            } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
-                return fetchRelationship(context);
-            } else {
-                throw new BadRequestException("Unrecognized object type: " + context.outputType.getClass().getName());
-            }
+        } else { /* fetch attribute or relationship */
+            //TODO: fix fetch multiple nested entities by id
+            return fetchObject(context.requestScope.getDictionary(), context.parentResource,
+                    context.field, context.outputType.getClass().getName());
         }
     }
 
@@ -168,35 +156,25 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * Fetches an entity, can be root or a nested entity
-     * @param context environment encapsulating graphQL's request environment
-     * @return persistent resource object(s)
-     */
-    private Object fetchObject(Environment context) {
-        Class recordType = getRecordType(context.requestScope, context.outputType);
-        return fetchObject(context.requestScope, recordType, context.ids, context.sort,
-                context.offset, context.first, context.filters);
-    }
-
-    /**
-     * FETCH top level entity either by ids or as a collection
+     * Fetches a root-level entity
      * @param requestScope request scope
-     * @param recordType record type
+     * @param outputType GraphQL output type
      * @param ids list of ids (can be NULL)
      * @param sort sort by ASC/DESC
      * @param offset pagination offset argument
      * @param first pagination first argument
      * @param filters filter params
-     * @return list of persistent resource objects
+     * @return persistent resource object(s)
      */
-    private Object fetchObject(RequestScope requestScope, Class recordType, Optional<List<String>> ids,
+    private Object fetchObject(RequestScope requestScope, GraphQLType outputType, Optional<List<String>> ids,
                                Optional<String> sort, Optional<String> offset,
                                Optional<String> first, Optional<String> filters) {
+        Class recordType = getRecordType(requestScope, outputType);
+
         /* fetching a collection */
         if(!ids.isPresent()) {
 
-            List<PersistentResource> records = new ArrayList<>(PersistentResource.
-                    loadRecords(recordType, requestScope, Optional.empty()));
+            Set<PersistentResource> records = PersistentResource.loadRecords(recordType, requestScope, Optional.empty());
 
             //TODO: paginate/filter/sort
             return records;
@@ -214,9 +192,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             EntityDictionary dictionary = requestScope.getDictionary();
 
             Class<?> idType = dictionary.getIdType(recordType);
-
             String idField = dictionary.getIdFieldName(recordType);
-
             String entityTypeName = dictionary.getJsonAliasFor(recordType);
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
@@ -234,6 +210,29 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
+     * fetches a non-root level entity
+     * @param dictionary entity dictionary
+     * @param parentResource parent resource
+     * @param field field type
+     * @param objectType object type, in case of an unrecognized object type
+     * @return attribute or relationship object
+     */
+    private Object fetchObject(EntityDictionary dictionary, PersistentResource parentResource,
+                               Field field, String objectType) {
+        Class parentClass = parentResource.getResourceClass();
+        String fieldName = field.getName();
+
+        if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+            return fetchAttribute(parentResource, field);
+
+        } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
+            return fetchRelationship(parentResource, field);
+        } else {
+            throw new BadRequestException("Unrecognized object type: " + objectType);
+        }
+    }
+
+    /**
      * FETCH attributes of top level entity
      * @param parentResource parent object
      * @param field Field type
@@ -245,16 +244,17 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     /**
      * Fetches a relationship for a top-level entity
-     * @param context environment encapsulating graphQL's request environment
+     * @param parentResource parent object
+     * @param field Field type
      * @return persistence resource object(s)
      */
-    private Object fetchRelationship(Environment context) {
-        String fieldName = context.field.getName();
+    private Object fetchRelationship(PersistentResource parentResource, Field field) {
+        String fieldName = field.getName();
 
-        Set<PersistentResource> relations = context.parentResource.getRelationCheckedFiltered(fieldName);
+        Set<PersistentResource> relations = parentResource.getRelationCheckedFiltered(fieldName);
 
         /* check for toOne relationships */
-        Boolean isToOne = context.parentResource.getRelationshipType(fieldName).isToOne();
+        Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
 
         if(isToOne) {
             return relations.iterator().next();
@@ -263,12 +263,148 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
     }
 
-    /** stub code **/
-    private Object replaceObjects(Environment context) { return null; }
+    /**
+     * handle UPSERT operation
+     * @param context environment encapsulating graphQL's request environment
+     * @return list of persistent resource objects
+     */
+    private Object upsertObjects(Environment context) {
+        /* sanity check for id and data argument w FETCH */
+        if(context.ids.isPresent()) {
+            throw new BadRequestException("FETCH must not include ids");
+        }
 
-    private Object upsertObjects(Environment context) { return null; }
+        if(!context.data.isPresent()) {
+            throw new BadRequestException("UPSERT must include data argument");
+        }
+
+        Set<PersistentResource> upsertedObjects = new HashSet<>();
+        for(Map<String, Object> input : context.data.get()) {
+            EntityDictionary dictionary = context.requestScope.getDictionary();
+
+
+            if(context.isRoot()) {
+                /* get internal reference idFieldName, 'id' in this case */
+                String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(context.field.getName()));
+
+                upsertedObjects.add((PersistentResource) upsertObject(idFieldName, input,
+                        context.requestScope, context.field, context.outputType));
+            } else {
+                String idFieldName = dictionary.getIdFieldName(context.parentResource.getResourceClass());
+
+                upsertedObjects.add((PersistentResource) upsertObject(idFieldName, input, dictionary,
+                        context.parentResource, context.field, context.outputType, context.requestScope));
+            }
+        }
+        return upsertedObjects;
+    }
+
+    /**
+     * handle upsert on non root-level entities
+     * @param idFieldName id field name
+     * @param input input data object
+     * @param dictionary entity dictionary
+     * @param parentSource parent persistent resource object
+     * @param field graphql-java field type
+     * @param outputType graphql-java output type
+     * @return list/set of persistent resource objects
+     */
+    private Object upsertObject(String idFieldName, Map<String, Object> input, EntityDictionary dictionary,
+                                PersistentResource parentSource, Field field, GraphQLType outputType,
+                                RequestScope requestScope) {
+        /* fetch id valued fed to 'data' argument */
+        Set<String> ids = input.entrySet().stream().filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
+                .map(entry -> (String) entry.getValue())
+                .collect(Collectors.toSet());
+
+        try {
+            Object fetchEntries = fetchObject(dictionary, parentSource, field, outputType.getClass().getName());
+            if(fetchEntries == null) {
+                return createObject(input, outputType, requestScope, Optional.of(ids), field, parentSource);
+            } else {
+                return updateObject(); //TODO: implement update
+            }
+        } catch (BadRequestException e) {
+            log.debug(e.toString());
+            return createObject(input, outputType, requestScope, Optional.of(ids), field, parentSource);
+        }
+    }
+
+    /**
+     * creates or updates a new/existing entity
+     * @param idFieldName field name
+     * @param input input data object
+     * @param requestScope request scope
+     * @param outputType graphql-java output type
+     * @return list/set of persistent resource objects
+     */
+    private Object upsertObject(String idFieldName, Map<String, Object> input,
+                                RequestScope requestScope,  Field field, GraphQLType outputType) {
+        /* fetch id values fed to 'data' argument */
+        Set<String> ids = input.entrySet().stream().filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
+                .map(entry -> (String) entry.getValue())
+                .collect(Collectors.toSet());
+        try {
+            Set<PersistentResource> fetchEntries = (Set) fetchObject(requestScope, outputType,
+                    Optional.of(new ArrayList<>(ids)), Optional.empty(),
+                    Optional.empty(), Optional.empty(), Optional.empty());
+            if(fetchEntries.isEmpty()) { /* empty set returned, must create new */
+                return createObject(input, outputType, requestScope, Optional.of(ids), field, null);
+            } else { /* must update object */
+                return updateObject(); //TODO: implement update
+            }
+        } catch(BadRequestException e) { /* no id(s) provided, must create new */
+            log.debug(e.toString());
+            return createObject(input, outputType, requestScope, Optional.empty(), field, null);
+        }
+    }
+
+    /**
+     * Creates a new "root-level" resource in the database
+     * @param input individual input data objects
+     * @param outputType graphql-java output type
+     * @param requestScope request scope
+     * @param ids id
+     * @return persistent resource object
+     */
+    private Object createObject(Map<String, Object> input, GraphQLType outputType,
+                                RequestScope requestScope, Optional<Set<String>> ids,
+                                Field field, PersistentResource parent) {
+        GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
+        EntityDictionary dictionary = requestScope.getDictionary();
+
+        Optional<String> uuid = ids.map(strings -> strings.iterator().next());
+        Class<?> entityClass;
+        PersistentResource toCreate;
+
+        if(parent == null) {
+            entityClass = dictionary.getEntityClass(objectType.getName());
+            toCreate = PersistentResource.createObject(null, entityClass, requestScope, uuid);
+
+        } else {
+            String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(field.getName()));
+            entityClass = dictionary.getParameterizedType(parent.getResourceClass(), field.getName());
+            Optional<String> parentId = Optional.ofNullable(String.valueOf(PersistentResource.getValue(parent.getObject(),
+                    idFieldName, requestScope)));
+            toCreate = PersistentResource.createObject(parent, entityClass,  requestScope, parentId);
+        }
+
+        input.entrySet().stream()
+                .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
+                .forEach(entry -> toCreate.updateAttribute(entry.getKey(), entry.getValue()));
+
+        return toCreate;
+    }
+
+    /** stub code **/
+    private Object updateObject() { return null; }
+
+    private Object replaceObjects(Environment context) { return null; }
 
     private Object removeObjects(Environment context) { return null; }
 
     private Object deleteObjects(Environment context) { return null; }
+    //TODO: next steps: implement UPSERT for non-root entities (see stub method above),
+    //TODO: implement create for non-root entities,
+    //TODO: handle update for root/non-root at the very end
 }

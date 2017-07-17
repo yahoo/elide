@@ -152,7 +152,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, "uuid");
+        PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, java.util.Optional.of("uuid"));
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
         scope.runQueuedPreSecurityTriggers();

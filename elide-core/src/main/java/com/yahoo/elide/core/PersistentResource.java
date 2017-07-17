@@ -112,7 +112,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
      * @param requestScope the request scope
-     * @param uuid the uuid
+     * @param UUID the (optional) uuid
      * @param <T> object type
      * @return persistent resource
      */
@@ -121,10 +121,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             PersistentResource<?> parent,
             Class<T> entityClass,
             RequestScope requestScope,
-            String uuid) {
+            Optional<String> UUID) {
 
         //instead of calling transcation.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
+
+        String uuid = UUID.orElse(null);
 
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
 
@@ -161,7 +163,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     @Deprecated
     public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
-        return createObject(null, entityClass, requestScope, uuid);
+        return createObject(null, entityClass, requestScope, Optional.ofNullable(uuid));
     }
 
     /**
