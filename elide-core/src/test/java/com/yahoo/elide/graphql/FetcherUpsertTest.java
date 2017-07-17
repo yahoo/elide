@@ -16,16 +16,16 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootSingle() throws JsonProcessingException {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { " +
+                    "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { " +
                         "title " +
-                        "} " +
-                        "}";
+                    "} " +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
@@ -34,18 +34,18 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootCollection() throws JsonProcessingException {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}] ) { " +
+                    "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}] ) { " +
                         "title " +
-                        "} " +
-                        "}";
+                    "} " +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "},{" +
+                    "},{" +
                         "\"title\":\"Book Numero Tres\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
@@ -54,22 +54,22 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateNestedSingle() throws JsonProcessingException {
         String graphQLRequest =
                 "mutation { " +
-                        "author(ids: [\"1\"]) { " +
+                    "author(ids: [\"1\"]) { " +
                         "id " +
                         "books(op: UPSERT, data: {title: \"Book Numero Dos\"}) { " +
-                        "title " +
+                            "title " +
                         "} " +
-                        "} " +
-                        "} ";
+                    "} " +
+                "} ";
         String expectedResponse =
                 "{" +
-                        "\"author\":[{" +
+                    "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                        "\"title\":\"Book Numero Dos\"" +
+                            "\"title\":\"Book Numero Dos\"" +
                         "}]" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
@@ -78,24 +78,24 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateNestedCollection() throws JsonProcessingException {
         String graphQLRequest =
                 "mutation { " +
-                        "author(ids: [\"1\"]) { " +
+                    "author(ids: [\"1\"]) { " +
                         "id " +
                         "books(op: UPSERT, data: [{title: \"Book Numero Dos\"}, {title: \"Book Numero Tres\"}]) { " +
-                        "title " +
+                            "title " +
                         "} " +
-                        "} " +
-                        "} ";
+                    "} " +
+                "} ";
         String expectedResponse =
                 "{" +
-                        "\"author\":[{" +
+                    "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                        "\"title\":\"Book Numero Dos\"" +
+                            "\"title\":\"Book Numero Dos\"" +
                         "},{" +
-                        "\"title\":\"Book Numero Tres\"" +
+                            "\"title\":\"Book Numero Tres\"" +
                         "}]" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
@@ -104,16 +104,16 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootSinglePagination() {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: {title: \"Book Numero Dos\"}, first: \"1\") { " +
+                    "book(op: UPSERT, data: {title: \"Book Numero Dos\"}, first: \"1\") { " +
                         "title " +
-                        "} " +
-                        "}";
+                    "} " +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
@@ -121,16 +121,16 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootCollectionPagination() {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}], first: \"1\") { " +
+                    "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}], first: \"1\") { " +
                         "title " +
-                        "}" +
-                        "}";
+                    "}" +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
@@ -138,16 +138,16 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootSingleSort() {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: {title: \"Book Numero Dos\"}, sort: \"-title\" ) { " +
+                    "book(op: UPSERT, data: {title: \"Book Numero Dos\"}, sort: \"-title\" ) { " +
                         "title " +
-                        "} " +
-                        "}";
+                    "} " +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
@@ -155,18 +155,18 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testCreateRootCollectionFailSort() throws JsonProcessingException {
         String graphQLRequest =
                 "mutation { " +
-                        "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}], sort: \"+title\" ) { " +
+                    "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}], sort: \"+title\" ) { " +
                         "title " +
-                        "} " +
-                        "}";
+                    "} " +
+                "}";
         String expectedResponse =
                 "{" +
-                        "\"book\":[{" +
+                    "\"book\":[{" +
                         "\"title\":\"Book Numero Tres\"" +
-                        "},{" +
+                    "},{" +
                         "\"title\":\"Book Numero Dos\"" +
-                        "}]" +
-                        "}";
+                    "}]" +
+                "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 

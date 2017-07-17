@@ -131,7 +131,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                     context.offset, context.first, context.filters);
 
         } else { /* fetch attribute or relationship */
-            //TODO: fix fetch multiple nested entities by id
+            //TODO: fix "fetch" nested entities by id(s)
             return fetchObject(context.requestScope.getDictionary(), context.parentResource,
                     context.field, context.outputType.getClass().getName());
         }
@@ -269,9 +269,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return list of persistent resource objects
      */
     private Object upsertObjects(Environment context) {
-        /* sanity check for id and data argument w FETCH */
+        /* sanity check for id and data argument w UPSERT */
         if(context.ids.isPresent()) {
-            throw new BadRequestException("FETCH must not include ids");
+            throw new BadRequestException("UPSERT must not include ids");
         }
 
         if(!context.data.isPresent()) {
@@ -404,7 +404,4 @@ public class PersistentResourceFetcher implements DataFetcher {
     private Object removeObjects(Environment context) { return null; }
 
     private Object deleteObjects(Environment context) { return null; }
-    //TODO: next steps: implement UPSERT for non-root entities (see stub method above),
-    //TODO: implement create for non-root entities,
-    //TODO: handle update for root/non-root at the very end
 }
