@@ -45,7 +45,7 @@ public class AnyFieldExpression implements Expression {
 
     @Override
     public String toString() {
-        return String.format("%s FOR EXPRESSION [FIELDS(%s) OR ENTITY(%s)]",
+        return String.format("%s FOR EXPRESSION [(FIELDS(%s)) OR (ENTITY(%s))]",
                 condition, fieldExpression, entityExpression);
     }
 }
