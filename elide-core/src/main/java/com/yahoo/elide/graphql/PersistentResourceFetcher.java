@@ -26,11 +26,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.graphql.ModelBuilder.*;
+import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+
 
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
