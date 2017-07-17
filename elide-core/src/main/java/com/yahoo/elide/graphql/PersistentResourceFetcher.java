@@ -15,14 +15,24 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import graphql.language.Field;
-import graphql.schema.*;
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+
 
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
