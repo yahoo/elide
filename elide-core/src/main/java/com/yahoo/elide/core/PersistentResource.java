@@ -817,8 +817,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
 
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
-        if (requestScope.isMutatingMultipleEntities()
-                        && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
+        if (entityType == null) {
+            throw new InvalidAttributeException(relation, type);
+        } else if (requestScope.isMutatingMultipleEntities()
+                && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
             filterExpression = Optional.empty();
             // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
             // NEWLY created objects. We assume a user can READ their object in the midst of creation.
@@ -827,9 +829,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             // already).
             skipNew = true;
         } else {
-            if (entityType == null) {
-                throw new InvalidAttributeException(relation, type);
-            }
             Class<?> idType = dictionary.getIdType(entityType);
             Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
