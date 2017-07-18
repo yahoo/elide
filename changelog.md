@@ -1,4 +1,12 @@
 # Change Log
+## 3.0.14
+**Fixes**
+ * Properly handle incorrect relationship field name in Patch request instead of `Entity is null`
+ 
+## 3.0.13
+**Fixes**
+ * Fixing regression in deferred permissions for updates
+ 
 ## 3.0.12
 **Misc**
  * Cleanup hibernate stores to not care about multi edit transactions
