@@ -188,14 +188,11 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
-                        "\"id\":\"1\"," +
-                        "\"title\":\"my id\"" +
-                    "},{" +
-                        "\"id\":\"2\"," +
-                        "\"title\":\"Libro Dos\"" +
-                    "},{" +
                         "\"id\":\"0\"," +
                         "\"title\":\"abc\"" +
+                    "},{" +
+                        "\"id\":\"1\"," +
+                        "\"title\":\"my id\"" +
                     "},{" +
                         "\"id\":\"42\"," +
                         "\"title\":\"xyz\"" +

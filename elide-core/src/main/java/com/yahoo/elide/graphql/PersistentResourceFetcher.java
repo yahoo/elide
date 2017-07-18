@@ -328,11 +328,11 @@ public class PersistentResourceFetcher implements DataFetcher {
             fetchEntries = (Set) fetchObject(dictionary, parentSource, field, outputType.getClass().getName());
         } catch (BadRequestException e) {
             log.debug(e.toString());
-            return createObject(input, outputType, requestScope, idField, field, parentSource);
+            return createObject(input, requestScope, idField, field, parentSource);
         }
 
         if(fetchEntries == null) {
-            return createObject(input, outputType, requestScope, idField, field, parentSource);
+            return createObject(input, requestScope, idField, field, parentSource);
         } else {
             return updateObject(fetchEntries, input);
         }
@@ -364,11 +364,11 @@ public class PersistentResourceFetcher implements DataFetcher {
                     Optional.empty(), Optional.empty(), Optional.empty());
         } catch(BadRequestException e) { /* no id(s) provided, must create new */
             log.debug(e.toString());
-            return createObject(input, outputType, requestScope, Optional.empty(), field, null);
+            return createObject(input, requestScope, Optional.empty(), outputType);
         }
 
         if(fetchEntries.isEmpty()) { /* empty set returned, must create new */
-            return createObject(input, outputType, requestScope, Optional.ofNullable(idField), field, null);
+            return createObject(input, requestScope, Optional.ofNullable(idField), outputType);
         } else { /* must update object */
             return updateObject(fetchEntries, input);
         }
@@ -382,51 +382,78 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param uuid uuid
      * @return persistent resource object
      */
-    private PersistentResource createObject(Map<String, Object> input, GraphQLType outputType,
-                                RequestScope requestScope, Optional<String> uuid,
-                                Field field, PersistentResource parent) {
+    private Object createObject(Map<String, Object> input, RequestScope requestScope,
+                                Optional<String> uuid, GraphQLType outputType) {
         GraphQLObjectType objectType = (GraphQLObjectType) ((GraphQLList) outputType).getWrappedType();
         EntityDictionary dictionary = requestScope.getDictionary();
-
-        Class<?> entityClass;
-        if(parent == null) {
-            entityClass = dictionary.getEntityClass(objectType.getName());
-        } else {
-            entityClass = dictionary.getParameterizedType(parent.getResourceClass(), field.getName());
-        }
-
-        PersistentResource toCreate = PersistentResource.createObject(parent, entityClass, requestScope, uuid);
-
+        Class<?> entityClass = dictionary.getEntityClass(objectType.getName());
+        Object toCreate = PersistentResource.createObject(null, entityClass, requestScope, uuid);
         input.entrySet().stream()
                 .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
-                .forEach(entry -> toCreate.updateAttribute(entry.getKey(), entry.getValue()));
+                .forEach(entry -> ((PersistentResource) toCreate).updateAttribute(entry.getKey(), entry.getValue()));
 
-        //add new relation between parent, updated object
-        if(parent != null) {
-            parent.addRelation(field.getName(), toCreate);
-        }
-
-//        return updateObject(toCreate, input); TODO: think of splitting this method into two based on parent == null or not
-        return toCreate;
+        return updateObject(new HashSet<>(Arrays.asList(toCreate)), input);
     }
 
     /**
+     * Creates a new "non root-level" resource in the database
+     * @param input individual input data objects
+     * @param requestScope request scope
+     * @param uuid uuid
+     * @param field field name
+     * @param parent parent resource
+     * @return persistent resource object
+     */
+    private Object createObject(Map<String, Object> input, RequestScope requestScope,
+                                Optional<String> uuid, Field field, PersistentResource parent) {
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Class<?> entityClass = dictionary.getParameterizedType(parent.getResourceClass(), field.getName());
+        Object toCreate = PersistentResource.createObject(parent, entityClass, requestScope, uuid);
+        input.entrySet().stream()
+                .filter(entry -> dictionary.isAttribute(entityClass, entry.getKey()))
+                .forEach(entry -> ((PersistentResource) toCreate).updateAttribute(entry.getKey(), entry.getValue()));
+
+        //add new relation between parent, updated object
+        parent.addRelation(field.getName(), (PersistentResource) toCreate);
+
+        return updateObject(new HashSet<>(Arrays.asList(toCreate)), input);
+    }
+
+    /**
+     * Updates an object
      * @param toUpdate entities to update
      * @param input input data to update entities with
-     * @return
+     * @return updated object
      */
     private Object updateObject(Set<Object> toUpdate, Map<String, Object> input) {
+        Object obj = toUpdate.iterator().next();
         for(String key : input.keySet()) { /* iterate through each attribute provided */
-            /* safe loop over objects, in practice this will still be O(n) since toUpdate is always a single (set) object */
-            for(Object object : toUpdate) {
-                ((PersistentResource) object).updateAttribute(key, input.get(key));
-            }
+            ((PersistentResource) obj).updateAttribute(key, input.get(key));
         }
 
         //TODO: update relationships
-        
-        //toUpdate is always singleton since we're looping over each in upsertObjects()
-        return toUpdate.iterator().next();
+
+        return obj;
+    }
+
+    /**
+     * Deletes a resource
+     * @param context environment encapsulating graphQL's request environment
+     * @return set of deleted persistent resource objects
+     */
+    private Object deleteObjects(Environment context) {
+        /* sanity check for id and data argument w DELETE */
+        if(context.data.isPresent()) {
+            throw new BadRequestException("DELETE must not include data argument");
+        }
+
+        if(!context.ids.isPresent()) {
+            throw new BadRequestException("DELETE must include ids argument");
+        }
+
+        Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        toDelete.stream().forEach(item -> item.deleteResource());
+        return toDelete;
     }
 
     /** stub code **/
@@ -434,5 +461,4 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     private Object removeObjects(Environment context) { return null; }
 
-    private Object deleteObjects(Environment context) { return null; }
 }
