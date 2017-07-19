@@ -73,14 +73,14 @@ public class PersistentResourceFetcher implements DataFetcher {
             case FETCH:
                 return fetchObjects(context);
 
+            case UPSERT:
+                return upsertObjects(context);
+
             case DELETE:
                 return deleteObjects(context);
 
             case REMOVE:
                 return removeObjects(context);
-
-            case UPSERT:
-                return upsertObjects(context);
 
             case REPLACE:
                 return replaceObjects(context);
@@ -290,7 +290,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 String idFieldName = dictionary.getIdFieldName(dictionary.getEntityClass(context.field.getName()));
 
                 upsertedObjects.add((PersistentResource) upsertObject(idFieldName, input, context.requestScope,
-                        context.field, context.outputType));
+                        context.outputType));
             } else {
                 String idFieldName = dictionary.getIdFieldName(context.parentResource.getResourceClass());
 
@@ -347,7 +347,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return list/set of persistent resource objects
      */
     private Object upsertObject(String idFieldName, Map<String, Object> input,
-                                RequestScope requestScope,  Field field, GraphQLType outputType) {
+                                RequestScope requestScope, GraphQLType outputType) {
         /* fetch id values fed to 'data' argument */
         Optional<Map.Entry<String, Object>> id = input.entrySet().stream()
                 .filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
@@ -471,13 +471,13 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("REPLACE must include ids argument");
         }
 
-        Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        Set<PersistentResource> toRemove = (Set<PersistentResource>) fetchObjects(context);
         if(!context.isRoot()) { /* has parent */
-            toDelete.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+            toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
             deleteObjects(context);
         }
-        return toDelete;
+        return toRemove;
     }
 
     /** stub code **/
