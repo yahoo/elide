@@ -316,12 +316,13 @@ public class PersistentResourceFetcher implements DataFetcher {
                                 PersistentResource parentSource, Field field, GraphQLType outputType,
                                 RequestScope requestScope) {
         /* fetch id value fed to 'data' argument */
-        Optional<Map.Entry<String, Object>> id = input.entrySet().stream()
+        Optional<Object> id = input.entrySet().stream()
                 .filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
+                .map(Map.Entry::getValue)
                 .findFirst();
         Optional<String> idField = Optional.empty();
         if(id.isPresent()) {
-            idField = Optional.ofNullable((String) id.get().getValue());
+            idField = Optional.of((String) id.get());
         }
 
         Set<Object> fetchEntries;
@@ -340,7 +341,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * creates or updates a new/existing entity
+     * creates or updates a new/existing root-level entity
      * @param idFieldName field name
      * @param input input data object
      * @param requestScope request scope
