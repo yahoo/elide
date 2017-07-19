@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
@@ -45,7 +46,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * Override graphql-java's {@link DataFetcher} get method to execute
      * the mutation and return some sensible output values.
      * @param environment graphql-java's execution environment
-     * @return a collection of persistent resource objects
+     * @return a collection of {@link PersistentResource} objects
      */
     @Override
     public Object get(DataFetchingEnvironment environment) {
@@ -120,7 +121,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * handle FETCH operation
      * @param context environment encapsulating graphQL's request environment
-     * @return list of persistent resource objects
+     * @return list of {@link PersistentResource} objects
      */
     private Object fetchObjects(Environment context) {
         /* sanity check for data argument w FETCH */
@@ -166,7 +167,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param offset pagination offset argument
      * @param first pagination first argument
      * @param filters filter params
-     * @return persistent resource object(s)
+     * @return {@link PersistentResource} object(s)
      */
     private Object fetchObject(RequestScope requestScope, GraphQLType outputType, Optional<List<String>> ids,
                                Optional<String> sort, Optional<String> offset,
@@ -238,7 +239,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * FETCH attributes of top level entity
      * @param parentResource parent object
      * @param field Field type
-     * @return list of persistent resource objects
+     * @return list of {@link PersistentResource} objects
      */
     private Object fetchAttribute(PersistentResource parentResource, Field field) {
         return parentResource.getAttribute(field.getName());
@@ -269,9 +270,9 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * handle UPSERT operation
      * @param context environment encapsulating graphQL's request environment
-     * @return list of persistent resource objects
+     * @return list of {@link PersistentResource} objects
      */
-    private Object upsertObjects(Environment context) {
+    private Set<PersistentResource> upsertObjects(Environment context) {
         /* sanity check for id and data argument w UPSERT */
         if(context.ids.isPresent()) {
             throw new BadRequestException("UPSERT must not include ids");
@@ -306,10 +307,10 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param idFieldName id field name
      * @param input input data object
      * @param dictionary entity dictionary
-     * @param parentSource parent persistent resource object
+     * @param parentSource parent {@link PersistentResource} object
      * @param field graphql-java field type
      * @param outputType graphql-java output type
-     * @return list/set of persistent resource objects
+     * @return list/set of {@link PersistentResource} objects
      */
     private Object upsertObject(String idFieldName, Map<String, Object> input, EntityDictionary dictionary,
                                 PersistentResource parentSource, Field field, GraphQLType outputType,
@@ -344,7 +345,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param input input data object
      * @param requestScope request scope
      * @param outputType graphql-java output type
-     * @return list/set of persistent resource objects
+     * @return list/set of {@link PersistentResource} objects
      */
     private Object upsertObject(String idFieldName, Map<String, Object> input,
                                 RequestScope requestScope, GraphQLType outputType) {
@@ -380,7 +381,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param outputType graphql-java output type
      * @param requestScope request scope
      * @param uuid uuid
-     * @return persistent resource object
+     * @return {@link PersistentResource} object
      */
     private Object createObject(Map<String, Object> input, RequestScope requestScope,
                                 Optional<String> uuid, GraphQLType outputType) {
@@ -402,7 +403,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param uuid uuid
      * @param field field name
      * @param parent parent resource
-     * @return persistent resource object
+     * @return {@link PersistentResource} object
      */
     private Object createObject(Map<String, Object> input, RequestScope requestScope,
                                 Optional<String> uuid, Field field, PersistentResource parent) {
@@ -439,7 +440,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * Deletes a resource
      * @param context environment encapsulating graphQL's request environment
-     * @return set of deleted persistent resource objects
+     * @return set of deleted {@link PersistentResource} object(s)
      */
     private Object deleteObjects(Environment context) {
         /* sanity check for id and data argument w DELETE */
@@ -452,6 +453,15 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        return deleteObjects(toDelete);
+    }
+
+    /**
+     * Utility method to delete all {@link PersistentResource} objects in set {@param toDelete} from data-store
+     * @param toDelete set of {@link PersistentResource} objects to delete
+     * @return deleted {@link PersistentResource} objects
+     */
+    private Object deleteObjects(Set<PersistentResource> toDelete) {
         toDelete.forEach(PersistentResource::deleteResource);
         return toDelete;
     }
@@ -459,7 +469,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * Removes a relationship, or deletes a root level resource
      * @param context environment encapsulating graphQL's request environment
-     * @return set of removed persistent resource objects
+     * @return set of removed {@link PersistentResource} object(s)
      */
     private Object removeObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
@@ -475,11 +485,36 @@ public class PersistentResourceFetcher implements DataFetcher {
         if(!context.isRoot()) { /* has parent */
             toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
-            deleteObjects(context);
+            return deleteObjects(toRemove);
         }
         return toRemove;
     }
 
-    /** stub code **/
-    private Object replaceObjects(Environment context) { return null; }
+    /**
+     * Replaces a resource, updates given resource and deletes the rest
+     * belonging to the the same type/relationship family.
+     * @param context environment encapsulating graphQL's request environment
+     * @return set of replaced {@link PersistentResource} object(s)
+     */
+    private Object replaceObjects(Environment context) {
+        /* sanity check for id and data argument w REPLACE */
+        if(!context.data.isPresent()) {
+            throw new BadRequestException("REPLACE must include data argument");
+        }
+
+        if(context.ids.isPresent()) {
+            throw new BadRequestException("REPLACE must not include ids argument");
+        }
+
+        Set<PersistentResource> existingObjects = (Set<PersistentResource>) fetchObjects(context);
+        Set<PersistentResource> upsertedObjects = upsertObjects(context);
+        Set<PersistentResource> toDelete = Sets.difference(existingObjects, upsertedObjects);
+
+        if(!context.isRoot()) { /* has parent */
+            toDelete.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+        } else { /* is root */
+            return deleteObjects(toDelete);
+        }
+        return toDelete;
+    }
 }
