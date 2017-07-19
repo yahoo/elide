@@ -326,7 +326,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         Set<Object> fetchEntries;
         try {
-            fetchEntries = (Set) fetchObject(dictionary, parentSource, field, outputType.getClass().getName());
+            fetchEntries = (Set<Object>) fetchObject(dictionary, parentSource, field, outputType.getClass().getName());
         } catch (BadRequestException e) {
             log.debug(e.toString());
             return createObject(input, requestScope, idField, field, parentSource);
