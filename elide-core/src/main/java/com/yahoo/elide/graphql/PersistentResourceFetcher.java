@@ -456,9 +456,30 @@ public class PersistentResourceFetcher implements DataFetcher {
         return toDelete;
     }
 
+    /**
+     * Removes a relationship, or deletes a root level resource
+     * @param context environment encapsulating graphQL's request environment
+     * @return set of removed persistent resource objects
+     */
+    private Object removeObjects(Environment context) {
+        /* sanity check for id and data argument w REPLACE */
+        if(context.data.isPresent()) {
+            throw new BadRequestException("REPLACE must not include data argument");
+        }
+
+        if(!context.ids.isPresent()) {
+            throw new BadRequestException("REPLACE must include ids argument");
+        }
+
+        Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        if(!context.isRoot()) { /* has parent */
+            toDelete.stream().forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+        } else { /* is root */
+            deleteObjects(context);
+        }
+        return toDelete;
+    }
+
     /** stub code **/
     private Object replaceObjects(Environment context) { return null; }
-
-    private Object removeObjects(Environment context) { return null; }
-
 }
