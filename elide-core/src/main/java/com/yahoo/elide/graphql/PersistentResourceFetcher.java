@@ -452,7 +452,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
-        toDelete.stream().forEach(item -> item.deleteResource());
+        toDelete.forEach(PersistentResource::deleteResource);
         return toDelete;
     }
 
@@ -473,7 +473,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
         if(!context.isRoot()) { /* has parent */
-            toDelete.stream().forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
+            toDelete.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
             deleteObjects(context);
         }
