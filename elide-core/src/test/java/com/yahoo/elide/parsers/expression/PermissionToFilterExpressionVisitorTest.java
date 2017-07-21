@@ -16,6 +16,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
@@ -40,12 +41,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 
@@ -61,6 +57,7 @@ public class PermissionToFilterExpressionVisitorTest {
         checks.put("Deny", Permissions.Fails.class);
         checks.put("user has all access", Role.ALL.class);
         checks.put("owner is user", FilterExpressionCheck1.class);
+        checks.put("less than predicate", FilterExpressionCheck2.class);
         checks.put("user has no access", Role.NONE.class);
 
         dictionary = new EntityDictionary(checks);
@@ -79,7 +76,12 @@ public class PermissionToFilterExpressionVisitorTest {
         dictionary.bindEntity(BAD4.class);
         dictionary.bindEntity(GOOD9.class);
         dictionary.bindEntity(GOOD10.class);
-
+        dictionary.bindEntity(GOOD11.class);
+        dictionary.bindEntity(GOOD12.class);
+        dictionary.bindEntity(GOOD13.class);
+        dictionary.bindEntity(GOOD14.class);
+        dictionary.bindEntity(GOOD15.class);
+        dictionary.bindEntity(GOOD16.class);
         elideSettings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build();
@@ -101,45 +103,71 @@ public class PermissionToFilterExpressionVisitorTest {
         Class b4 = BAD4.class;
         Class g9 = GOOD9.class;
         Class g10 = GOOD10.class;
+        Class g11 = GOOD11.class;
+        Class g12 = GOOD12.class;
+        Class g13 = GOOD13.class;
+        Class g14 = GOOD14.class;
+        Class g15 = GOOD15.class;
+        Class g16 = GOOD16.class;
         PermissionToFilterExpressionVisitor fev;
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g1);
-        FilterExpression expected = createDummyPredicate();
-        FilterExpression feg1 = fev.visit(dictionary.getPermissionsForClass(g1, ReadPermission.class));
+        FilterExpression expected = createDummyPredicate(Operator.IN);
+        FilterExpression feg1 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g1, ReadPermission.class)));
         Assert.assertEquals(expected, feg1);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g2);
-        FilterExpression feg2 = fev.visit(dictionary.getPermissionsForClass(g2, ReadPermission.class));
+        FilterExpression feg2 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g2, ReadPermission.class)));
         Assert.assertTrue(feg2 == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         //Assert.assertEquals(expected, feg2);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g3);
-        FilterExpression feg3 = fev.visit(dictionary.getPermissionsForClass(g3, ReadPermission.class));
+        FilterExpression feg3 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g3, ReadPermission.class)));
         Assert.assertTrue(feg3  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g4);
-        FilterExpression feg4 = fev.visit(dictionary.getPermissionsForClass(g4, ReadPermission.class));
+        FilterExpression feg4 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g4, ReadPermission.class)));
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg4);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g5);
-        FilterExpression feg5 = fev.visit(dictionary.getPermissionsForClass(g5, ReadPermission.class));
+        FilterExpression feg5 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g5, ReadPermission.class)));
         Assert.assertTrue(feg5  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g6);
-        FilterExpression feg6 = fev.visit(dictionary.getPermissionsForClass(g6, ReadPermission.class));
+        FilterExpression feg6 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g6, ReadPermission.class)));
         Assert.assertEquals(new OrFilterExpression(expected, expected), feg6);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g7);
-        FilterExpression feg7 = fev.visit(dictionary.getPermissionsForClass(g7, ReadPermission.class));
+        FilterExpression feg7 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g7, ReadPermission.class)));
         Assert.assertTrue(feg7 == NO_EVALUATION_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g8);
-        FilterExpression feg8 = fev.visit(dictionary.getPermissionsForClass(g8, ReadPermission.class));
+        FilterExpression feg8 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g8, ReadPermission.class)));
         Assert.assertTrue(feg8  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, b2);
-        FilterExpression feb2 = fev.visit(dictionary.getPermissionsForClass(b2, ReadPermission.class));
+        FilterExpression feb2 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(b2, ReadPermission.class)));
         Assert.assertTrue(feb2 == NO_EVALUATION_EXPRESSION || feb2  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, b4);
-        FilterExpression feb4 = fev.visit(dictionary.getPermissionsForClass(b4, ReadPermission.class));
+        FilterExpression feb4 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(b4, ReadPermission.class)));
         Assert.assertTrue(feb4 == NO_EVALUATION_EXPRESSION || feb4  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g9);
-        FilterExpression feg9 = fev.visit(dictionary.getPermissionsForClass(g9, ReadPermission.class));
+        FilterExpression feg9 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g9, ReadPermission.class)));
         Assert.assertTrue(feg9 == NO_EVALUATION_EXPRESSION || feg9  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g10);
-        FilterExpression feg10 = fev.visit(dictionary.getPermissionsForClass(g10, ReadPermission.class));
+        FilterExpression feg10 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g10, ReadPermission.class)));
         Assert.assertTrue(feg10 == NO_EVALUATION_EXPRESSION || feg10  == PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION);
+
+
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g11);
+        FilterExpression feg11 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g11, ReadPermission.class)));
+        Assert.assertEquals(feg11, EXPECTEDRESULT11);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g12);
+        FilterExpression feg12 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g12, ReadPermission.class)));
+        Assert.assertEquals(feg12, EXPECTEDRESULT12);
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g13);
+        FilterExpression feg13 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g13, ReadPermission.class)));
+        Assert.assertEquals(feg13, new OrFilterExpression(EXPECTEDRESULT11, EXPECTEDRESULT12));
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g14);
+        FilterExpression feg14 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g14, ReadPermission.class)));
+        Assert.assertEquals(feg14, new AndFilterExpression(EXPECTEDRESULT11, EXPECTEDRESULT12));
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g15);
+        FilterExpression feg15 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g15, ReadPermission.class)));
+        Assert.assertEquals(feg15, new AndFilterExpression(EXPECTEDRESULT11, new OrFilterExpression(EXPECTEDRESULT12, expected)));
+        fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g16);
+        FilterExpression feg16 = PermissionToFilterExpressionVisitor.normalizeNegation(fev.visit(dictionary.getPermissionsForClass(g16, ReadPermission.class)));
+        Assert.assertTrue(feg16 == NO_EVALUATION_EXPRESSION);
     }
 
     @Test
@@ -308,6 +336,47 @@ public class PermissionToFilterExpressionVisitorTest {
     static class GOOD8 {
     }
 
+    //Test NOT with "IN" FilterPredicate
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT (owner is user)")
+    static class GOOD11 {
+    }
+
+    //Test NOT with "LT" FilterPredicate
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT (less than predicate)")
+    static class GOOD12 {
+    }
+
+    //Test Not with AND FilterExpression
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT (owner is user AND less than predicate)")
+    static class GOOD13 {
+    }
+
+    //Test Not with OR FilterExpression
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT (owner is user OR less than predicate)")
+    static class GOOD14 {
+    }
+
+    //Test Not with nested FilterExpression
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT (owner is user OR (less than predicate AND (NOT owner is user)))")
+    static class GOOD15 {
+    }
+
+    @Entity
+    @Include
+    @ReadPermission(expression = "NOT Allow")
+    static class GOOD16 {
+    }
+
     @Entity
     @Include(rootLevel = true)
     @ReadPermission(expression = "owner is user AND user has all access")
@@ -424,13 +493,13 @@ public class PermissionToFilterExpressionVisitorTest {
         }
     }
 
-    public static FilterPredicate createDummyPredicate() {
+    public static FilterPredicate createDummyPredicate(Operator operator) {
         List<FilterPredicate.PathElement> pathList = new ArrayList<>();
         FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books");
         FilterPredicate.PathElement path2 = new FilterPredicate.PathElement(Book.class, "Book", String.class, "title");
         pathList.add(path1);
         pathList.add(path2);
-        Operator op = Operator.IN;
+        Operator op = operator;
         List<Object> value = new ArrayList<>();
         value.add("Harry Potter");
         return new FilterPredicate(pathList, op, value);
@@ -440,11 +509,37 @@ public class PermissionToFilterExpressionVisitorTest {
 
         @Override
         public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
-            return createDummyPredicate();
+            return createDummyPredicate(Operator.IN);
         }
 
         public FilterExpressionCheck1() {
 
         }
     }
+
+    public static class FilterExpressionCheck2 extends FilterExpressionCheck {
+
+        @Override
+        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+            return createDummyPredicate(Operator.LT);
+        }
+
+        public FilterExpressionCheck2() {
+
+        }
+    }
+
+    public static final FilterExpression EXPECTEDRESULT11 = new FilterPredicate(
+            new ArrayList<>(Arrays.asList(
+                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
+                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
+            Operator.NOT,
+            new ArrayList<>(Arrays.asList("Harry Potter")));
+
+    public static final FilterExpression EXPECTEDRESULT12 = new FilterPredicate(
+            new ArrayList<>(Arrays.asList(
+                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
+                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
+            Operator.GE,
+            new ArrayList<>(Arrays.asList("Harry Potter")));
 }

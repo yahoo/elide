@@ -341,8 +341,10 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         if (permissions == null) {
             return null;
         }
-        FilterExpression permissionFilter = new PermissionToFilterExpressionVisitor(entityDictionary,
-                requestScope, entityClass).visit(permissions);
+        FilterExpression permissionFilter = PermissionToFilterExpressionVisitor
+                .normalizeNegation(
+                        new PermissionToFilterExpressionVisitor(entityDictionary, requestScope, entityClass)
+                                .visit(permissions));
         return permissionFilter;
     }
 }

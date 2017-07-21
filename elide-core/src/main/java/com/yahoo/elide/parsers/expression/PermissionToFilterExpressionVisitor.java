@@ -10,10 +10,7 @@ import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.*;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -94,6 +91,11 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
+    public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
+        return new NotFilterExpression(visit(ctx.expression()));
+    }
+
+    @Override
     public FilterExpression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
         Check check = getCheck(dictionary, ctx.getText());
         if (check instanceof FilterExpressionCheck) {
@@ -156,5 +158,43 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     @Override
     public FilterExpression visitPAREN(ExpressionParser.PARENContext ctx) {
         return visit(ctx.expression());
+    }
+
+    /**
+     * normalizeNegation function serves to push down NotFilterexpression to the predicate level.
+     * @param fe FilterExpression that need to normalize
+     * @return A normalized version of input
+     */
+    public static FilterExpression normalizeNegation(FilterExpression fe) {
+        if (fe instanceof NotFilterExpression) {
+            FilterExpression nfe = ((NotFilterExpression) fe).getNegated();
+            if (nfe instanceof AndFilterExpression) {
+                return new OrFilterExpression(
+                        normalizeNegation(new NotFilterExpression(((AndFilterExpression) nfe).getLeft())),
+                        normalizeNegation(new NotFilterExpression(((AndFilterExpression) nfe).getRight())));
+            } else if (nfe instanceof OrFilterExpression) {
+                return new AndFilterExpression(
+                        normalizeNegation(new NotFilterExpression(((OrFilterExpression) nfe).getLeft())),
+                        normalizeNegation(new NotFilterExpression(((OrFilterExpression) nfe).getRight())));
+            } else if (nfe instanceof FilterPredicate) {
+                ((FilterPredicate) nfe).negate();
+                return nfe;
+            } else if (nfe instanceof NotFilterExpression) {
+                return normalizeNegation(((NotFilterExpression) nfe).getNegated());
+            } else {
+                return nfe;
+            }
+        } else if (fe instanceof AndFilterExpression) {
+            return new AndFilterExpression(
+                    normalizeNegation(((AndFilterExpression) fe).getLeft()),
+                    normalizeNegation(((AndFilterExpression) fe).getRight()));
+        } else if (fe instanceof OrFilterExpression) {
+            return new OrFilterExpression(
+                    normalizeNegation(((OrFilterExpression) fe).getLeft()),
+                    normalizeNegation(((OrFilterExpression) fe).getRight()));
+        } else if (fe instanceof FilterPredicate) {
+            return fe;
+        }
+        return fe;
     }
 }
