@@ -41,7 +41,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
 
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 
@@ -49,6 +55,19 @@ public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
     private RequestScope requestScope;
     private ElideSettings elideSettings;
+    public static final FilterExpression EXPECTEDRESULT11 = new FilterPredicate(
+            new ArrayList<>(Arrays.asList(
+                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
+                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
+            Operator.NOT,
+            new ArrayList<>(Arrays.asList("Harry Potter")));
+
+    public static final FilterExpression EXPECTEDRESULT12 = new FilterPredicate(
+            new ArrayList<>(Arrays.asList(
+                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
+                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
+            Operator.GE,
+            new ArrayList<>(Arrays.asList("Harry Potter")));
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -511,10 +530,6 @@ public class PermissionToFilterExpressionVisitorTest {
         public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createDummyPredicate(Operator.IN);
         }
-
-        public FilterExpressionCheck1() {
-
-        }
     }
 
     public static class FilterExpressionCheck2 extends FilterExpressionCheck {
@@ -523,23 +538,5 @@ public class PermissionToFilterExpressionVisitorTest {
         public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             return createDummyPredicate(Operator.LT);
         }
-
-        public FilterExpressionCheck2() {
-
-        }
     }
-
-    public static final FilterExpression EXPECTEDRESULT11 = new FilterPredicate(
-            new ArrayList<>(Arrays.asList(
-                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
-                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
-            Operator.NOT,
-            new ArrayList<>(Arrays.asList("Harry Potter")));
-
-    public static final FilterExpression EXPECTEDRESULT12 = new FilterPredicate(
-            new ArrayList<>(Arrays.asList(
-                    new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books"),
-                    new FilterPredicate.PathElement(Book.class, "Book", String.class, "title"))),
-            Operator.GE,
-            new ArrayList<>(Arrays.asList("Harry Potter")));
 }
