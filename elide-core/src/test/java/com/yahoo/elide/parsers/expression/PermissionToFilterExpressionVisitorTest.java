@@ -57,19 +57,17 @@ public class PermissionToFilterExpressionVisitorTest {
     private ElideSettings elideSettings;
     private static FilterPredicate.PathElement AUTHORPATH = new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books");
     private static FilterPredicate.PathElement BOOKPATH = new FilterPredicate.PathElement(Book.class, "Book", String.class, "title");
+    private static List<FilterPredicate.PathElement> EXAMPLEPATH = new ArrayList<>(Arrays.asList(AUTHORPATH, BOOKPATH));
+    private static List EXAPLEFIELDNAME = new ArrayList<>(Arrays.asList("Harry Potter"));
     public static final FilterExpression EXPECTEDRESULT11 = new FilterPredicate(
-            new ArrayList<>(Arrays.asList(
-                    AUTHORPATH,
-                    BOOKPATH)),
+            EXAMPLEPATH,
             Operator.NOT,
-            new ArrayList<>(Arrays.asList("Harry Potter")));
+            EXAPLEFIELDNAME);
 
     public static final FilterExpression EXPECTEDRESULT12 = new FilterPredicate(
-            new ArrayList<>(Arrays.asList(
-                    AUTHORPATH,
-                    BOOKPATH)),
+            EXAMPLEPATH,
             Operator.GE,
-            new ArrayList<>(Arrays.asList("Harry Potter")));
+            EXAPLEFIELDNAME);
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -138,10 +136,8 @@ public class PermissionToFilterExpressionVisitorTest {
         FilterExpression feg1 = fev.visit(dictionary.getPermissionsForClass(g1, ReadPermission.class)).accept(fnev);
         Assert.assertEquals(expected, feg1);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g2);
-        FilterExpression feg2 = fev.visit(dictionary.getPermissionsForClass(g2, ReadPermission.class));
-        FilterExpression fneg2 = feg2.accept(fnev);
+        FilterExpression feg2 = fev.visit(dictionary.getPermissionsForClass(g2, ReadPermission.class)).accept(fnev);
         Assert.assertTrue(feg2 == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
-        //Assert.assertEquals(expected, feg2);
         fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, g3);
         FilterExpression feg3 = fev.visit(dictionary.getPermissionsForClass(g3, ReadPermission.class)).accept(fnev);
         Assert.assertTrue(feg3  == PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION);
@@ -520,8 +516,7 @@ public class PermissionToFilterExpressionVisitorTest {
     public static FilterPredicate createDummyPredicate(Operator operator) {
         List<FilterPredicate.PathElement> pathList = new ArrayList<>(Arrays.asList(AUTHORPATH, BOOKPATH));
         Operator op = operator;
-        List<Object> value = new ArrayList<>();
-        value.add("Harry Potter");
+        List value = EXAPLEFIELDNAME;
         return new FilterPredicate(pathList, op, value);
     }
 
