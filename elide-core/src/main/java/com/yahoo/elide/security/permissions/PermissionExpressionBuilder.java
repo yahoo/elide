@@ -12,6 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
@@ -341,10 +342,9 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         if (permissions == null) {
             return null;
         }
-        FilterExpression permissionFilter = PermissionToFilterExpressionVisitor
-                .normalizeNegation(
+        FilterExpression permissionFilter =
                         new PermissionToFilterExpressionVisitor(entityDictionary, requestScope, entityClass)
-                                .visit(permissions));
+                                .visit(permissions).accept(new FilterExpressionNormalizationVisitor());
         return permissionFilter;
     }
 }
