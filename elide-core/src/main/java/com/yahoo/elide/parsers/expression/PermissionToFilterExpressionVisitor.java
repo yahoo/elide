@@ -11,7 +11,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -41,7 +40,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     public static final FilterExpression NO_EVALUATION_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
-            return (T) ((FilterExpressionVisitor) visitor).visitCustomizedExpression(NO_EVALUATION_EXPRESSION);
+            return (T) this;
         }
         @Override
         public String toString() {
@@ -52,10 +51,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     public static final FilterExpression FALSE_USER_CHECK_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
-            if (visitor instanceof FilterExpressionVisitor) {
-                return (T) ((FilterExpressionVisitor) visitor).visitCustomizedExpression(FALSE_USER_CHECK_EXPRESSION);
-            }
-            return null;
+            return (T) this;
         }
         @Override
         public String toString() {

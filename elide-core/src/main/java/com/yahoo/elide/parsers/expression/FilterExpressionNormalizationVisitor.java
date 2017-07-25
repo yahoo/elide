@@ -9,15 +9,15 @@ package com.yahoo.elide.parsers.expression;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.expression.Visitor;
 
 
 /**
  * Expression Visitor.
  */
-public class FilterExpressionNormalizationVisitor implements FilterExpressionVisitor<FilterExpression> {
+public class FilterExpressionNormalizationVisitor implements Visitor<FilterExpression> {
 
     @Override
     public FilterExpression visitPredicate(FilterPredicate filterPredicate) {
@@ -53,10 +53,5 @@ public class FilterExpressionNormalizationVisitor implements FilterExpressionVis
         } else {
             return nfe;
         }
-    }
-
-    @Override
-    public FilterExpression visitCustomizedExpression(FilterExpression expression) {
-        return expression;
     }
 }
