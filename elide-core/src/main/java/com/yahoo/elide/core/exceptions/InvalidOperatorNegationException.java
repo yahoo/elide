@@ -9,10 +9,10 @@ import com.yahoo.elide.core.HttpStatus;
 /**
  * Invalid predicate negation error.
  *
- * {@link com.yahoo.elide.core.HttpStatus#SC_FORBIDDEN invalid}
+ * {@link com.yahoo.elide.core.HttpStatus#SC_INTERNAL_SERVER_ERROR invalid}
  */
 public class InvalidOperatorNegationException extends HttpStatusException {
     public InvalidOperatorNegationException() {
-        super(HttpStatus.SC_FORBIDDEN, "Invalid Usage of NOT in FilterExpression.");
+        super(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Invalid usage of NOT in FilterExpression.");
     }
 }
