@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -57,5 +58,29 @@ public class HQLFilterOperationTest {
         String expected = "WHERE NOT (((name IN (:" + p2.getParameterName() + ") OR genre IN (:"
                 + p3.getParameterName() + ")) AND authors.name IN (:" + p1.getParameterName() + ")))";
         Assert.assertEquals(query, expected);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testEmptyFieldOnPrefix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+                Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+        HQLFilterOperation filterOp = new HQLFilterOperation();
+        filterOp.apply(pred);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testEmptyFieldOnInfix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+                Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+        HQLFilterOperation filterOp = new HQLFilterOperation();
+        filterOp.apply(pred);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testEmptyFieldOnPostfix() throws Exception {
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+                Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+        HQLFilterOperation filterOp = new HQLFilterOperation();
+        filterOp.apply(pred);
     }
 }

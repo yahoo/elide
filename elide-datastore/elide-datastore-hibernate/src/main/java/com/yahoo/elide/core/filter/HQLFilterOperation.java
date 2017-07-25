@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.google.common.base.Strings;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -20,6 +22,9 @@ import java.util.Set;
  * FilterOperation that creates Hibernate query language fragments.
  */
 public class HQLFilterOperation implements FilterOperation<String> {
+    private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
+    private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
+
     @Override
     public String apply(FilterPredicate filterPredicate) {
         return apply(filterPredicate, false);
@@ -50,14 +55,17 @@ public class HQLFilterOperation implements FilterOperation<String> {
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
             case PREFIX_CASE_INSENSITIVE:
+                assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT(lower(:%s), '%%')", fieldPath, alias);
             case POSTFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
             case POSTFIX_CASE_INSENSITIVE:
+                assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s))", fieldPath, alias);
             case INFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
             case INFIX_CASE_INSENSITIVE:
+                assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s), '%%')", fieldPath, alias);
             case ISNULL:
                 return String.format("%s IS NULL", fieldPath);
@@ -78,6 +86,15 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+        }
+    }
+
+    private void assertValidValues(String fieldPath, String alias) {
+        if (Strings.isNullOrEmpty(fieldPath)) {
+            throw new InvalidValueException(FILTER_PATH_NOT_NULL);
+        }
+        if (Strings.isNullOrEmpty(alias)) {
+            throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
         }
     }
 
