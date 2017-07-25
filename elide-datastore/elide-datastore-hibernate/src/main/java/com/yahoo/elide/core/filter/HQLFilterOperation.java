@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public class HQLFilterOperation implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
-    private static final String FILTER_VALUE_NOT_NULL = "Filtering value cannot be empty.";
+    private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
@@ -94,7 +94,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
             throw new InvalidValueException(FILTER_PATH_NOT_NULL);
         }
         if (Strings.isNullOrEmpty(alias)) {
-            throw new InvalidValueException(FILTER_VALUE_NOT_NULL);
+            throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
         }
     }
 
