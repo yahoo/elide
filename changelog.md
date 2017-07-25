@@ -2,6 +2,7 @@
 ## 3.0.14
 **Fixes**
  * Properly handle incorrect relationship field name in Patch request instead of `Entity is null`
+ * Properly handle invalid filtering input in HQL filtering
  
 ## 3.0.13
 **Fixes**
