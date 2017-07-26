@@ -10,10 +10,11 @@ import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -39,7 +40,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     public static final FilterExpression NO_EVALUATION_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
-            return null;
+            return (T) this;
         }
         @Override
         public String toString() {
@@ -50,7 +51,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     public static final FilterExpression FALSE_USER_CHECK_EXPRESSION = new FilterExpression() {
         @Override
         public <T> T accept(Visitor<T> visitor) {
-            return null;
+            return (T) this;
         }
         @Override
         public String toString() {
@@ -91,6 +92,11 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         }
 
         return new OrFilterExpression(left, right);
+    }
+
+    @Override
+    public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
+        return new NotFilterExpression(visit(ctx.expression()));
     }
 
     @Override

@@ -8,6 +8,7 @@ package com.yahoo.elide.core.filter;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
 import lombok.AllArgsConstructor;
@@ -140,5 +141,43 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         }
 
         return String.format("%s %s %s", formattedPath, operator, values);
+    }
+
+    public void negate() {
+        Operator op = this.getOperator();
+        switch (op) {
+            case GE:
+                this.operator = Operator.LT;
+                break;
+            case GT:
+                this.operator = Operator.LE;
+                break;
+            case LE:
+                this.operator = Operator.GT;
+                break;
+            case LT:
+                this.operator = Operator.GE;
+                break;
+            case IN:
+                this.operator = Operator.NOT;
+                break;
+            case NOT:
+                this.operator = Operator.IN;
+                break;
+            case TRUE:
+                this.operator = Operator.FALSE;
+                break;
+            case FALSE:
+                this.operator = Operator.TRUE;
+                break;
+            case ISNULL:
+                this.operator = Operator.NOTNULL;
+                break;
+            case NOTNULL:
+                this.operator = Operator.ISNULL;
+                break;
+            default:
+                throw new InvalidOperatorNegationException();
+        }
     }
 }
