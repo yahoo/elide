@@ -3,6 +3,8 @@
 **Fixes**
  * Properly handle incorrect relationship field name in Patch request instead of `Entity is null`
  * Properly handle invalid filtering input in HQL filtering
+ * Properly handle NOT in filterexpressionchecks
+ * Fix parameter order in commit permission check
  
 ## 3.0.13
 **Fixes**

@@ -127,8 +127,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                annotationClass,
                 resource.getResourceClass(),
+                annotationClass,
                 Optional.empty(),
                 expressionSupplier,
                 expressionExecutor);
