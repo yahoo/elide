@@ -141,7 +141,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         } else { /* fetch attribute or relationship */
             return fetchObject(context.requestScope.getDictionary(), context.parentResource,
-                    context.field.getName(), context.outputType.getClass().getName());
+                    context.field.getName());
         }
     }
 
@@ -221,11 +221,10 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param dictionary entity dictionary
      * @param parentResource parent resource
      * @param fieldName field type
-     * @param objectType object type, in case of an unrecognized object type
      * @return attribute or relationship object
      */
     private Object fetchObject(EntityDictionary dictionary, PersistentResource parentResource,
-                               String fieldName, String objectType) {
+                               String fieldName) {
         Class parentClass = parentResource.getResourceClass();
 
         if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
@@ -307,9 +306,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * utility class to support storing a triplet on each node of the queue used while upserting
      */
     private class Triplet {
-        List<Map<String, Object>> input;
-        PersistentResource parentResource;
-        String fieldName;
+        private List<Map<String, Object>> input;
+        private PersistentResource parentResource;
+        private String fieldName;
 
         /**
          * class constructor
@@ -317,7 +316,7 @@ public class PersistentResourceFetcher implements DataFetcher {
          * @param parentResource parent
          * @param fieldName field name
          */
-        Triplet(List<Map<String, Object>> input, PersistentResource parentResource, String fieldName) {
+        private Triplet(List<Map<String, Object>> input, PersistentResource parentResource, String fieldName) {
             this.input = input;
             this.parentResource = parentResource;
             this.fieldName = fieldName;
@@ -462,7 +461,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw e;
         }
 
-        if(fetchEntries.isEmpty() || fetchEntries == null) { /* empty set returned, must create new */
+        if(fetchEntries.isEmpty()) { /* empty set returned, must create new */
             return createObject(input, fieldName, requestScope, Optional.empty(), outputType, parent);
         } else { /* must update object */
             return updateObject(fetchEntries, input, fieldName, requestScope, parent);
