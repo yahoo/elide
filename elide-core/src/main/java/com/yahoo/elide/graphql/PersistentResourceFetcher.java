@@ -296,7 +296,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                     .map(e -> (String)e.getValue())
                     .findFirst();
 
-            upsertOps.addAll(inputObjectToRelationshipUpdateOperations(input, id, context.parentResource,
+            upsertOps.addAll(inputObjectToUpsertOrUpdateOperations(input, id, context.parentResource,
                     context.requestScope, context.field.getName(), context.outputType));
         }
 
@@ -333,9 +333,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param fieldName field name
      * @return set of persistent resource objects
      */
-    private Set<PersistentResource> inputObjectToRelationshipUpdateOperations(Map<String, Object> input, Optional<String> id,
-                                                           PersistentResource parent, RequestScope requestScope,
-                                                           String fieldName, GraphQLType outputType) {
+    private Set<PersistentResource> inputObjectToUpsertOrUpdateOperations(Map<String, Object> input, Optional<String> id,
+                                                                          PersistentResource parent, RequestScope requestScope,
+                                                                          String fieldName, GraphQLType outputType) {
         EntityDictionary dictionary = requestScope.getDictionary();
         Set<PersistentResource> returnOps = new HashSet();
         Set<Triplet> visited = new HashSet();
