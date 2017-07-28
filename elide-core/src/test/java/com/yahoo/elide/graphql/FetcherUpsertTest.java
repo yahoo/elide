@@ -260,7 +260,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testInsaneCollection() {
+    public void testUpsertOnCollection() {
         String graphQLRequest =
                 "mutation { " +
                     "author(op:UPSERT, data: {name: \"John Snow\", books: [{id: \"1\", title: \"my id\"}, {title: \"abc\"}]}) { " +

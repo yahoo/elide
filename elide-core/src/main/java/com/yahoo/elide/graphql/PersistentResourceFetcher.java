@@ -382,7 +382,6 @@ public class PersistentResourceFetcher implements DataFetcher {
                         dictionary.getParameterizedType(entityClass, relationship.getKey()) :
                         dictionary.getParameterizedType(triplet.parentResource.getResourceClass(), relationship.getKey());
 
-
                 /* handle toOne relationship */
                 if(!(value instanceof List)) {
                     currentRelationship = new ArrayList();
