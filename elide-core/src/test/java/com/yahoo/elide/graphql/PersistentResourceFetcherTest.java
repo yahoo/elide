@@ -7,17 +7,19 @@ package com.yahoo.elide.graphql;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.books.Author;
 import com.yahoo.elide.books.Book;
 import com.yahoo.elide.books.Pseudonym;
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 
@@ -26,8 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Base functionality required to test the PersistentResourceFetcher.
@@ -74,7 +74,6 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
         Book book2 = new Book();
         book2.setId(2L);
         book2.setTitle("Libro Dos");
-        book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));

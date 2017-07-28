@@ -40,7 +40,6 @@ public class Author {
     private Long id;
     private Pseudonym penName;
     private Collection<Book> books = new ArrayList<>();
-
     private String name;
     private AuthorType type;
     private Address homeAddress;

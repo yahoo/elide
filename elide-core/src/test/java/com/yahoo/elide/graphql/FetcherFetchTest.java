@@ -24,13 +24,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                     "book(ids: [\"1\"]) { " +
                         "id " +
                         "title " +
+                        "authors {" +
+                            "id " +
+                            "name " +
+                        "}" +
                     "}" +
                 "}";
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
                         "\"id\":\"1\"," +
-                        "\"title\":\"Libro Uno\"" +
+                        "\"title\":\"Libro Uno\"," +
+                        "\"authors\":[{" +
+                            "\"id\":\"1\"," +
+                            "\"name\":\"Mark Twain\"" +
+                        "}]" +
                     "}]" +
                 "}";
 
