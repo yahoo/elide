@@ -22,7 +22,6 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 import example.Book;
@@ -1905,7 +1904,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void testSpecialCharacterLikeQueryHQL(FilterPredicate filterPredicate, int noOfRecords) throws Exception {
         DataStoreTransaction tx = dataStore.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
-        when(scope.getDictionary()).thenReturn(new EntityDictionary(new HashMap<String, Class<? extends Check>>()));
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary.bindEntity(Book.class);
+        when(scope.getDictionary()).thenReturn(dictionary);
         Pagination pagination = mock(Pagination.class);
         when(pagination.isGenerateTotals()).thenReturn(true);
         tx.loadObjects(Book.class, Optional.of(filterPredicate), Optional.empty(), Optional.of(pagination), scope);

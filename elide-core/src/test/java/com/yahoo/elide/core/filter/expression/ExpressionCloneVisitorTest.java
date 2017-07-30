@@ -1,13 +1,12 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2017, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.google.common.collect.Sets;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import example.Author;
 import example.Book;
 import org.testng.Assert;
@@ -15,16 +14,15 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Tests PredicateExtractionVisitor
+ * Tests ExpressionCloneVisitor
  */
-public class FilterPredicateExtractionVisitorTest {
+public class ExpressionCloneVisitorTest {
 
     @Test
-    public void testPredicateExtraction() throws Exception {
+    public void testExpressionCopy() throws Exception {
         List<FilterPredicate.PathElement> p1Path = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", Author.class, "authors"),
                 new FilterPredicate.PathElement(Author.class, "author", String.class, "name")
@@ -52,18 +50,21 @@ public class FilterPredicateExtractionVisitorTest {
         AndFilterExpression and2 = new AndFilterExpression(and1, p4);
         NotFilterExpression not = new NotFilterExpression(and2);
 
-        //First test collecting the predicates in a Set
-        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-        Collection<FilterPredicate> filterPredicates = not.accept(visitor);
+        ExpressionCloneVisitor cloner = new ExpressionCloneVisitor();
+        FilterExpression copy = not.accept(cloner);
 
-        Assert.assertTrue(filterPredicates.containsAll(Sets.newHashSet(p1, p2, p3)));
-        Assert.assertEquals(3, filterPredicates.size());
+        Assert.assertEquals(copy, not);
+        Assert.assertTrue(copy != not);
 
-        //Second test collecting the predicates in a List
-        visitor = new PredicateExtractionVisitor(new ArrayList<>());
-        filterPredicates = not.accept(visitor);
+        PredicateExtractionVisitor extractor = new PredicateExtractionVisitor(new ArrayList<>());
+        List<FilterPredicate> predicates = (List) copy.accept(extractor);
 
-        Assert.assertTrue(filterPredicates.containsAll(Arrays.asList(p1, p2, p3, p4)));
-        Assert.assertEquals(4, filterPredicates.size());
+        List<FilterPredicate> toCompare = Arrays.asList(p2, p3, p1, p4);
+        for (int i = 0; i < predicates.size(); i++) {
+            FilterPredicate predicateOriginal = toCompare.get(i);
+            FilterPredicate predicateCopy = predicates.get(i);
+            Assert.assertEquals(predicateCopy, predicateOriginal);
+            Assert.assertTrue(predicateCopy != predicateOriginal);
+        }
     }
 }

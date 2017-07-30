@@ -15,9 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -31,7 +31,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     @Getter @NonNull private List<PathElement> path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
-    @Getter @Setter private String alias;
+    private static final String UNDERSCORE = "_";
+    private static final String PERIOD = ".";
 
     public static boolean toManyInPath(EntityDictionary dictionary, List<PathElement> path) {
         return path.stream()
@@ -69,7 +70,12 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         this.path = path;
         this.operator = op;
         this.values = values;
-        alias = getEntityType().getSimpleName();
+    }
+
+    public FilterPredicate(FilterPredicate copy) {
+        this.path = new ArrayList<>(copy.getPath());
+        this.operator = copy.getOperator();
+        this.values = new ArrayList<>(copy.getValues());
     }
 
     public String getField() {
@@ -81,7 +87,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         StringBuilder fieldPath = new StringBuilder();
         for (PathElement pathElement : path) {
             if (fieldPath.length() != 0) {
-                fieldPath.append('.');
+                fieldPath.append(PERIOD);
             }
             fieldPath.append(pathElement.getFieldName());
         }
@@ -93,7 +99,31 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
      * @return unique name
      */
     public String getParameterName() {
-        return getFieldPath().replace('.', '_') + '_' + Integer.toHexString(hashCode());
+        return getFieldPath().replace(PERIOD, UNDERSCORE) + UNDERSCORE + Integer.toHexString(hashCode());
+    }
+
+    /**
+     * Returns an alias that uniquely identifies the last collection of entities in the path.
+     * @return An alias for the path.
+     */
+    public String getAlias() {
+        PathElement last = path.get(path.size() - 1);
+
+        if (path.size() == 1) {
+            return getTypeAlias(last.getType());
+        }
+
+        PathElement previous = path.get(path.size() - 2);
+
+        return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
+    }
+
+    /**
+     * @param type The type to alias
+     * @return type name alias that will likely not conflict with other types or with reserved keywords.
+     */
+    public static String getTypeAlias(Class<?> type) {
+        return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 
     public String getLeafEntityType() {
@@ -137,7 +167,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
 
         for (PathElement element : path) {
-            formattedPath = formattedPath + "." + element.getFieldName();
+            formattedPath = formattedPath + PERIOD + element.getFieldName();
         }
 
         return String.format("%s %s %s", formattedPath, operator, values);

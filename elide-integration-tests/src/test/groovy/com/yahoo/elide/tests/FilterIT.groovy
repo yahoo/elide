@@ -1527,7 +1527,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     @Test
     void testFilterAuthorsByBookChapterTitle() {
         /* Test Default */
-        def result = mapper.readTree(RestAssured.get("/author?filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString())
+        def result = mapper.readTree(RestAssured.get("/author?sort=-name&filter[author.books.chapters.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!").asString())
         Assert.assertEquals(result.get("data").size(), 2)
         for (JsonNode author : result.get("data")) {
             String name = author.get("attributes").get("name").asText()
