@@ -20,14 +20,12 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String graphQLRequest = //TODO: this won't work for author (getting a null id back)
                 "mutation { " +
                     "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { " +
-                        "id " +
                         "title " +
                     "} " +
                 "}";
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
-                        "\"id\":\"0\"," +
                         "\"title\":\"Book Numero Dos\"" +
                     "}]" +
                 "}";
@@ -95,9 +93,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                     "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                            "\"title\":\"Book Numero Dos\"" +
-                        "},{" +
                             "\"title\":\"Book Numero Tres\"" +
+                        "},{" +
+                            "\"title\":\"Book Numero Dos\"" +
                         "}]" +
                     "}]" +
                 "}";
@@ -183,21 +181,17 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String graphQLRequest =
                 "mutation { " +
                     "book(op:UPSERT, data: [{id: \"1\", title: \"my id\"}, {id: \"42\", title: \"xyz\"}, {title: \"abc\"}]) { " +
-                        "id " +
                         "title " +
                     "} " +
                 "}";
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
-                        "\"id\":\"42\"," +
-                        "\"title\":\"xyz\"" +
+                        "\"title\":\"my id\"" +
                     "},{" +
-                        "\"id\":\"0\"," +
                         "\"title\":\"abc\"" +
                     "},{" +
-                        "\"id\":\"1\"," +
-                        "\"title\":\"my id\"" +
+                        "\"title\":\"xyz\"" +
                     "}]" +
                 "}";
 
