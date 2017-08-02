@@ -1633,7 +1633,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 transaction.updateToOneRelation(transaction, inverseEntity, inverseField, null, requestScope);
             } else {
                 //hook for updateToManyRelation
-                assert (inverseRelation instanceof Collection) : inverseField + " not a collection";
+                assert (inverseRelation == null || inverseRelation instanceof Collection)
+                        : inverseField + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseEntity, inverseField,
                         new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
             }
@@ -1685,7 +1686,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         obj, requestScope);
             } else {
                 //hook for updateToManyRelation
-                assert (inverseRelation instanceof Collection) : inverseName + " not a collection";
+                assert (inverseRelation == null || inverseRelation instanceof Collection)
+                        : inverseName + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseObj, inverseName,
                         Sets.newHashSet(obj), new LinkedHashSet<>(), requestScope);
             }
