@@ -112,7 +112,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
      * @param entityClass the entity class
      * @param requestScope the request scope
-     * @param UUID the (optional) uuid
+     * @param uuid the (optional) uuid
      * @param <T> object type
      * @return persistent resource
      */
@@ -121,14 +121,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             PersistentResource<?> parent,
             Class<T> entityClass,
             RequestScope requestScope,
-            Optional<String> UUID) {
+            Optional<String> uuid) {
 
         //instead of calling transcation.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
-        String uuid = UUID.orElse(null);
+        String id = uuid.orElse(null);
 
-        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, uuid, requestScope);
+        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
@@ -139,7 +139,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         requestScope.queueTriggers(newResource, CRUDAction.CREATE);
 
         String type = newResource.getType();
-        requestScope.setUUIDForObject(type, uuid, newResource.getObject());
+        requestScope.setUUIDForObject(type, id, newResource.getObject());
 
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
