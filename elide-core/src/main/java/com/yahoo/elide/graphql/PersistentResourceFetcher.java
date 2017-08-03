@@ -163,11 +163,11 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param idFieldName id field name
      */
     private static void setId(Map<String, Object> input, String idFieldName) {
-            String id = UUID.randomUUID().toString()
-                    .replaceAll("[^0-9]", "")
-                    .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
-            //TODO: this is hacky, ask for a workaround for this.
-            input.put(idFieldName, id);
+        String id = UUID.randomUUID().toString()
+                .replaceAll("[^0-9]", "")
+                .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
+        //TODO: this is hacky, ask for a workaround for this.
+        input.put(idFieldName, id);
     }
 
     /**
@@ -409,7 +409,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 Boolean isToOne = newParent.getRelationshipType(relationship.getKey()).isToOne();
                 List entryToAdd;
                 if(isToOne) {
-                     entryToAdd = new ArrayList<>();
+                    entryToAdd = new ArrayList<>();
                     entryToAdd.add(relationship.getValue());
                 } else {
                     entryToAdd = (List) relationship.getValue();
