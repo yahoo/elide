@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import example.Author;
 import example.Book;
@@ -22,7 +23,8 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static org.mockito.Mockito.mock;
 
 public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
@@ -63,10 +65,19 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
 
-        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put(TITLE, Sorting.SortOrder.asc);
+        Sorting sorting = mock(Sorting.class);
 
-        builder.withSorting(new Sorting(sorting)).build();
+        builder.withSorting(sorting).build();
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void testRootFetchWithPagination() {
+        Pagination pagination = mock(Pagination.class);
+
+        RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
+                Book.class, dictionary, new TestSessionWrapper());
+
+        builder.withPagination(pagination);
     }
 
     @Test

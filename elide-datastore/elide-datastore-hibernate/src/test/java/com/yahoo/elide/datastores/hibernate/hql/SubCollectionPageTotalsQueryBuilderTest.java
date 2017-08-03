@@ -8,8 +8,10 @@ package com.yahoo.elide.datastores.hibernate.hql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import example.Author;
 import example.Book;
@@ -22,7 +24,8 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static org.mockito.Mockito.mock;
 
 public class SubCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
@@ -74,26 +77,24 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void testSubCollectionPageTotalsWithSorting() {
-        RelationshipImpl relationship = new RelationshipImpl();
-        relationship.setParentType(Author.class);
-        relationship.setChildType(Book.class);
-        relationship.setRelationshipName(BOOKS);
-
-        Author author = new Author();
-        author.setId(1);
-        relationship.setParent(author);
-
-        Book book = new Book();
-        book.setId(2);
-        relationship.setChildren(Arrays.asList(book));
+        AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
+        Sorting sorting = mock(Sorting.class);
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put(TITLE, Sorting.SortOrder.asc);
+        builder.withSorting(sorting).build();
+    }
 
-        builder.withSorting(new Sorting(sorting)).build();
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void testSubCollectionPageTotalsWithPagination() {
+        AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
+        Pagination pagination = mock(Pagination.class);
+
+        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
+                dictionary, new TestSessionWrapper());
+
+        builder.withPagination(pagination);
     }
 
     @Test
