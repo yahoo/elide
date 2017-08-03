@@ -29,6 +29,12 @@ import java.util.Optional;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
+    private static final String AUTHOR = "author";
+    private static final String BOOK = "book";
+    private static final String TITLE = "title";
+    private static final String PUBLISHER = "publisher";
+    private static final String GENRE = "genre";
+
     public AbstractHQLQueryBuilderTest() {
         super(new EntityDictionary(new HashMap<>()), new TestSessionWrapper());
         dictionary.bindEntity(Author.class);
@@ -46,9 +52,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     @Test
     public void testFilterJoinClause() {
         List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, "books"),
-                new FilterPredicate.PathElement(Book.class, "book", Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, "title")
+                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, "books"),
+                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "chapters"),
+                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
@@ -60,9 +66,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
                 Operator.IN, Arrays.asList("ABC", "DEF"));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, "books"),
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, "name")
+                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, "books"),
+                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -82,8 +88,8 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     @Test
     public void testSortClauseWithoutPrefix() {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
-        sorting.put("genre", Sorting.SortOrder.desc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+        sorting.put(GENRE, Sorting.SortOrder.desc);
 
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
 
@@ -94,8 +100,8 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     @Test
     public void testSortClauseWithPrefix() {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
-        sorting.put("genre", Sorting.SortOrder.desc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
+        sorting.put(GENRE, Sorting.SortOrder.desc);
 
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, true);
 

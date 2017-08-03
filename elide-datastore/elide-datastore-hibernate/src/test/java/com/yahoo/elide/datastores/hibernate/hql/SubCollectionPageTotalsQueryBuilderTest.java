@@ -27,6 +27,10 @@ import java.util.Map;
 public class SubCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
+    private static final String TITLE = "title";
+    private static final String BOOKS = "books";
+    private static final String PUBLISHER = "publisher";
+
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -41,7 +45,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -73,7 +77,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -87,11 +91,9 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
 
-        TestQueryWrapper query = (TestQueryWrapper) builder
-                .withSorting(new Sorting(sorting))
-                .build();
+        builder.withSorting(new Sorting(sorting)).build();
     }
 
     @Test
@@ -99,7 +101,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -110,8 +112,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         relationship.setChildren(Arrays.asList(book));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, "name")
+                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(

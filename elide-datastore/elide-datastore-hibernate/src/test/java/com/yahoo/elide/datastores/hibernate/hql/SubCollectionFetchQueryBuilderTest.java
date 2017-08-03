@@ -27,6 +27,11 @@ import java.util.Map;
 public class SubCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
+    private static final String TITLE = "title";
+    private static final String BOOKS = "books";
+    private static final String BOOK = "book";
+    private static final String NAME = "name";
+
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -41,7 +46,7 @@ public class SubCollectionFetchQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -64,7 +69,7 @@ public class SubCollectionFetchQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -78,7 +83,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withSorting(new Sorting(sorting))
@@ -95,7 +100,7 @@ public class SubCollectionFetchQueryBuilderTest {
         RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -106,9 +111,9 @@ public class SubCollectionFetchQueryBuilderTest {
         relationship.setChildren(Arrays.asList(book));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, "books"),
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, "name")
+                new FilterPredicate.PathElement(Author.class, "author", Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, "publisher"),
+                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -131,10 +136,10 @@ public class SubCollectionFetchQueryBuilderTest {
 
     @Test
     public void testSubCollectionFetchWithSortingAndFilters() {
-                RelationshipImpl relationship = new RelationshipImpl();
+        RelationshipImpl relationship = new RelationshipImpl();
         relationship.setParentType(Author.class);
         relationship.setChildType(Book.class);
-        relationship.setRelationshipName("books");
+        relationship.setRelationshipName(BOOKS);
 
         Author author = new Author();
         author.setId(1);
@@ -146,7 +151,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, "name")
+                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -157,7 +162,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 relationship, dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withFilterExpression(publisherNamePredicate)

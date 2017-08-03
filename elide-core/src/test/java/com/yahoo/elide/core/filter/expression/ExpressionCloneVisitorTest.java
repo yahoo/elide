@@ -21,29 +21,34 @@ import java.util.List;
  */
 public class ExpressionCloneVisitorTest {
 
+    private static final String SCIFI = "scifi";
+    private static final String GENRE = "genre";
+    private static final String NAME = "name";
+    private static final String BOOK = "book";
+
     @Test
     public void testExpressionCopy() throws Exception {
         List<FilterPredicate.PathElement> p1Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Author.class, "authors"),
-                new FilterPredicate.PathElement(Author.class, "author", String.class, "name")
+                new FilterPredicate.PathElement(Book.class, BOOK, Author.class, "authors"),
+                new FilterPredicate.PathElement(Author.class, "author", String.class, NAME)
         );
         FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
 
         List<FilterPredicate.PathElement> p2Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "name")
+                new FilterPredicate.PathElement(Book.class, BOOK, String.class, NAME)
         );
         FilterPredicate p2 = new FilterPredicate(p2Path, Operator.IN, Arrays.asList("blah"));
 
         List<FilterPredicate.PathElement> p3Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
+                new FilterPredicate.PathElement(Book.class, BOOK, String.class, GENRE)
         );
-        FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList(SCIFI));
 
         //P4 is a duplicate of P3
         List<FilterPredicate.PathElement> p4Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
+                new FilterPredicate.PathElement(Book.class, BOOK, String.class, GENRE)
         );
-        FilterPredicate p4 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p4 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList(SCIFI));
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and1 = new AndFilterExpression(or, p1);

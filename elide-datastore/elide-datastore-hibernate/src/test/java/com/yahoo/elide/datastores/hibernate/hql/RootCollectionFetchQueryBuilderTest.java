@@ -27,6 +27,12 @@ import java.util.Map;
 public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
+    private static final String TITLE = "title";
+    private static final String AUTHOR = "author";
+    private static final String BOOK = "book";
+    private static final String BOOKS = "books";
+    private static final String PUBLISHER = "publisher";
+
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -55,7 +61,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 Book.class, dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withSorting(new Sorting(sorting))
@@ -71,9 +77,9 @@ public class RootCollectionFetchQueryBuilderTest {
     public void testRootFetchWithJoinFilter() {
 
         List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, "books"),
-                new FilterPredicate.PathElement(Book.class, "book", Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, "title")
+                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "chapters"),
+                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
@@ -81,9 +87,9 @@ public class RootCollectionFetchQueryBuilderTest {
                 Operator.IN, Arrays.asList("ABC", "DEF"));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, "books"),
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, "name")
+                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -120,7 +126,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 Book.class, dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
-        sorting.put("title", Sorting.SortOrder.asc);
+        sorting.put(TITLE, Sorting.SortOrder.asc);
 
         List<FilterPredicate.PathElement> idPath = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", Chapter.class, "id")

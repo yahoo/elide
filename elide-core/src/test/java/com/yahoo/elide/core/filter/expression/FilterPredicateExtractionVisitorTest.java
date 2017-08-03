@@ -45,7 +45,7 @@ public class FilterPredicateExtractionVisitorTest {
         List<FilterPredicate.PathElement> p4Path = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
         );
-        FilterPredicate p4 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p4 = new FilterPredicate(p4Path, Operator.IN, Arrays.asList("scifi"));
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and1 = new AndFilterExpression(or, p1);
