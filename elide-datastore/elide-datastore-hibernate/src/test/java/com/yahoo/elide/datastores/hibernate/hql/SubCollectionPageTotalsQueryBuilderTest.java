@@ -30,7 +30,6 @@ import static org.mockito.Mockito.mock;
 public class SubCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
-    private static final String TITLE = "title";
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
