@@ -129,7 +129,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param fieldName graphql field name
      * @return entityClass
      */
-    private Class<?> getEntityClass(Optional<PersistentResource> parent, EntityDictionary dictionary, String fieldName) {
+    private static Class<?> getEntityClass(Optional<PersistentResource> parent, EntityDictionary dictionary, String fieldName) {
         return !parent.isPresent() ? getRecordType(dictionary, fieldName) :
                 dictionary.getParameterizedType(parent.get().getResourceClass(), fieldName);
     }
@@ -199,7 +199,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param fieldName field name
      * @return record type
      */
-    private Class<?> getRecordType(EntityDictionary dictionary, String fieldName) {
+    private static Class<?> getRecordType(EntityDictionary dictionary, String fieldName) {
         return dictionary.getEntityClass(fieldName);
     }
 
@@ -518,11 +518,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                                 RequestScope requestScope, Optional<String> uuid,
                                             Optional<PersistentResource> parent) {
         EntityDictionary dictionary = requestScope.getDictionary();
-
         Class<?> entityClass = getEntityClass(parent, dictionary, fieldName);
-
         PersistentResource toCreate = PersistentResource.createObject(parent.orElse(null), entityClass, requestScope, uuid);
-
         //add new relation between parent and the updated object
         if(parent.isPresent()) {
             parent.get().addRelation(fieldName, toCreate);
