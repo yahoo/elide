@@ -323,13 +323,13 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set upsertOps = new HashSet();
         /* upsert */
         for(Map<String, Object> input : context.data.get()) {
-            upsertOps.addAll(upsertGraphWalker(input, this::upsertObject, Optional.ofNullable(context.parentResource),
+            upsertOps.addAll(graphWalker(input, this::upsertObject, Optional.ofNullable(context.parentResource),
                     context.requestScope, context.field.getName()));
         }
 
         /* fixup relationships */
         for(Map<String, Object> input : context.data.get()) {
-            upsertGraphWalker(input, this::updateRelationship, Optional.ofNullable(context.parentResource),
+            graphWalker(input, this::updateRelationship, Optional.ofNullable(context.parentResource),
                     context.requestScope, context.field.getName());
         }
 
@@ -340,7 +340,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * utility class to support storing a triplet on each node of the queue used while upserting
      */
     private class Triplet {
-        private List<Map<String, Object>> input;
+        private Map<String, Object> input;
         private Optional<PersistentResource> parentResource;
         private String fieldName;
 
@@ -350,7 +350,7 @@ public class PersistentResourceFetcher implements DataFetcher {
          * @param parentResource parent
          * @param fieldName field name
          */
-        private Triplet(List<Map<String, Object>> input, Optional<PersistentResource> parentResource, String fieldName) {
+        private Triplet(Map<String, Object> input, Optional<PersistentResource> parentResource, String fieldName) {
             this.input = input;
             this.parentResource = parentResource;
             this.fieldName = fieldName;
@@ -361,7 +361,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * A function to handle upserting (update/create) objects.
      */
     @FunctionalInterface
-    private interface UpsertInterface<T> {
+    private interface Executor<T> {
         T execute(Map<String, Object> input, String id,
                                    RequestScope requestScope, Class<?> entityClass,
                                    String fieldName, Optional<PersistentResource> parent);
@@ -376,18 +376,17 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param fieldName graphql field name
      * @return set of {@link PersistentResource} objects
      */
-    private Set<PersistentResource> upsertGraphWalker(Map<String, Object> input, UpsertInterface function,
-                                                      Optional<PersistentResource> parent, RequestScope requestScope,
-                                                      String fieldName) {
+    private Set<PersistentResource> graphWalker(Map<String, Object> input, Executor function,
+                                                Optional<PersistentResource> parent, RequestScope requestScope,
+                                                String fieldName) {
         EntityDictionary dictionary = requestScope.getDictionary();
         Queue<Triplet> toVisit = new ArrayDeque();
-        Set visited = new HashSet<Triplet>();
-        toVisit.add(new Triplet(new ArrayList<>(Collections.singletonList(input)), parent, fieldName));
+        Set<Triplet> visited = new HashSet();
+        toVisit.add(new Triplet(input, parent, fieldName));
         Set<PersistentResource> toReturn = new HashSet<>();
 
         while(!toVisit.isEmpty()) {
             Triplet triplet = toVisit.remove();
-
             if(visited.contains(triplet)) {
                 continue;
             } else {
@@ -395,26 +394,30 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
             Class<?> entityClass = getEntityClass(triplet.parentResource, dictionary, triplet.fieldName);
             String idFieldName = getIdFieldName(dictionary, entityClass);
-            Optional<String> id = getId(input, idFieldName);
+            Optional<String> id = getId(triplet.input, idFieldName);
             if(!id.isPresent()) {
-                setId(input, idFieldName);
+                setId(triplet.input, idFieldName);
             }
             /* first execute the given function with input data and then add the remaining relationships back to queue */
-            PersistentResource newParent = (PersistentResource) function.execute(triplet.input.iterator().next(),
-                    getId(input, idFieldName).get(), requestScope, entityClass, triplet.fieldName, triplet.parentResource);
+            PersistentResource newParent = (PersistentResource) function.execute(triplet.input, getId(triplet.input,
+                    idFieldName).get(), requestScope, entityClass, triplet.fieldName, triplet.parentResource);
             toReturn.add(newParent);
-            Map<String, Object> relationshipsOnly = stripAttributes(triplet.input.iterator().next(), entityClass,
+            Map<String, Object> relationshipsOnly = stripAttributes(triplet.input, entityClass,
                     dictionary);
+            /* loop over relationships */
             for(Map.Entry<String, Object> relationship : relationshipsOnly.entrySet()) {
                 Boolean isToOne = newParent.getRelationshipType(relationship.getKey()).isToOne();
-                List entryToAdd;
+                List<Map<String, Object>> entryToAdd;
                 if(isToOne) {
                     entryToAdd = new ArrayList<>();
-                    entryToAdd.add(relationship.getValue());
+                    entryToAdd.add((Map<String, Object>) relationship.getValue());
                 } else {
                     entryToAdd = (List) relationship.getValue();
                 }
-                toVisit.add(new Triplet(entryToAdd, Optional.of(newParent), relationship.getKey()));
+                /* loop over each resource of the relationship */
+                for(Map<String, Object> entry : entryToAdd) {
+                    toVisit.add(new Triplet(entry, Optional.of(newParent), relationship.getKey()));
+                }
             }
         }
         return toReturn;
@@ -460,7 +463,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         if(fetchEntries.isEmpty()) { /* empty set returned, must create new */
             return createObject(input, fieldName, requestScope, Optional.of(id), parent);
         } else { /* must update object */
-            return updateAttribute(fetchEntries.iterator().next(), entityClass, input, requestScope);
+            return updateAttributes(fetchEntries.iterator().next(), entityClass, input, requestScope);
         }
     }
 
@@ -524,7 +527,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         if(parent.isPresent()) {
             parent.get().addRelation(fieldName, toCreate);
         }
-        return updateAttribute(toCreate, entityClass, input, requestScope);
+        return updateAttributes(toCreate, entityClass, input, requestScope);
     }
 
     /**
@@ -533,8 +536,8 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param entityClass
      * @param input input data to update entities with  @return updated object
      */
-    private PersistentResource updateAttribute(PersistentResource toUpdate, Class<?> entityClass,
-                                            Map<String, Object> input, RequestScope requestScope) {
+    private PersistentResource updateAttributes(PersistentResource toUpdate, Class<?> entityClass,
+                                                Map<String, Object> input, RequestScope requestScope) {
         EntityDictionary dictionary = requestScope.getDictionary();
 
         String idFieldName = getIdFieldName(dictionary, entityClass);
