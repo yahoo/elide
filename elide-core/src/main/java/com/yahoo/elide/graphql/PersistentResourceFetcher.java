@@ -456,15 +456,12 @@ public class PersistentResourceFetcher implements DataFetcher {
                                              String fieldName, Optional<PersistentResource> parent) {
         Map<String, Object> input = stripRelationships(dataField, entityClass, requestScope.getDictionary());
 
-        Set<PersistentResource> fetchEntries = fetchObject(requestScope, entityClass,
+        Optional<PersistentResource> fetchEntry = fetchObject(requestScope, entityClass,
                         Optional.of(Arrays.asList(id)), Optional.empty(),
-                        Optional.empty(), Optional.empty(), Optional.empty());
-
-        if(fetchEntries.isEmpty()) { /* empty set returned, must create new */
-            return createObject(input, fieldName, requestScope, Optional.of(id), parent);
-        } else { /* must update object */
-            return updateAttributes(fetchEntries.iterator().next(), entityClass, input, requestScope);
-        }
+                        Optional.empty(), Optional.empty(), Optional.empty()).stream().findFirst();
+        return fetchEntry
+                .map(persistentResource -> updateAttributes(persistentResource, entityClass, input, requestScope))
+                .orElseGet(() -> createObject(input, fieldName, requestScope, Optional.of(id), parent));
     }
 
     /**
