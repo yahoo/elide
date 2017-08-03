@@ -130,8 +130,9 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @return entityClass
      */
     private static Class<?> getEntityClass(Optional<PersistentResource> parent, EntityDictionary dictionary, String fieldName) {
-        return !parent.isPresent() ? getRecordType(dictionary, fieldName) :
-                dictionary.getParameterizedType(parent.get().getResourceClass(), fieldName);
+        return parent
+                .<Class<?>>map(persistentResource -> dictionary.getParameterizedType(persistentResource.getResourceClass(), fieldName))
+                .orElseGet(() -> getRecordType(dictionary, fieldName));
     }
 
     /**
