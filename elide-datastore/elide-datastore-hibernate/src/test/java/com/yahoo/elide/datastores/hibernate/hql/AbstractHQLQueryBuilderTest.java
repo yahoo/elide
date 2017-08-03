@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import example.Author;
 import example.Book;
@@ -26,6 +27,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
@@ -110,5 +118,46 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         String expected = " order by example_Book.title asc,example_Book.genre desc";
         Assert.assertEquals(actual, expected);
+    }
+
+    @Test
+    public void testSettingQueryParams() {
+        List<FilterPredicate.PathElement> idPath = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "id")
+        );
+
+        FilterPredicate idPredicate = new FilterPredicate(idPath,
+                Operator.IN, Arrays.asList(ABC, DEF));
+
+        Query query = mock(Query.class);
+        supplyFilterQueryParameters(query, Arrays.asList(idPredicate));
+
+        verify(query, times(1)).setParameterList(anyString(), any());
+
+        idPredicate = new FilterPredicate(idPath, Operator.INFIX, Arrays.asList(ABC));
+
+        supplyFilterQueryParameters(query, Arrays.asList(idPredicate));
+        verify(query, times(1)).setParameter(anyString(), any());
+    }
+
+    @Test
+    public void testSettingQueryPagination() {
+        Query query = mock(Query.class);
+
+        Optional<Pagination> previousPagination = pagination;
+
+        Pagination paginationMock = mock(Pagination.class);
+        when(paginationMock.getLimit()).thenReturn(10);
+        when(paginationMock.getOffset()).thenReturn(50);
+
+        pagination = Optional.of(paginationMock);
+
+        try {
+            addPaginationToQuery(query);
+            verify(query, times(1)).setMaxResults(10);
+            verify(query, times(1)).setFirstResult(50);
+        } finally {
+            pagination = previousPagination;
+        }
     }
 }
