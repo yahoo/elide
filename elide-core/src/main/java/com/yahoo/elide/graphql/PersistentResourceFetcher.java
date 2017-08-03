@@ -521,9 +521,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         Class<?> entityClass = getEntityClass(parent, dictionary, fieldName);
         PersistentResource toCreate = PersistentResource.createObject(parent.orElse(null), entityClass, requestScope, uuid);
         //add new relation between parent and the updated object
-        if(parent.isPresent()) {
-            parent.get().addRelation(fieldName, toCreate);
-        }
+        parent.ifPresent(persistentResource -> persistentResource.addRelation(fieldName, toCreate));
         return updateAttributes(toCreate, entityClass, input, requestScope);
     }
 
