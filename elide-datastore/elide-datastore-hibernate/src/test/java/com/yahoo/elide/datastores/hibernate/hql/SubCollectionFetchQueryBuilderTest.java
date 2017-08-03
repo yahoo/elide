@@ -31,6 +31,8 @@ public class SubCollectionFetchQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String BOOK = "book";
     private static final String NAME = "name";
+    private static final String PUBLISHER = "publisher";
+    private static final String PUB1 = "Pub1";
 
     @BeforeClass
     public void initialize() {
@@ -112,13 +114,13 @@ public class SubCollectionFetchQueryBuilderTest {
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
                 new FilterPredicate.PathElement(Author.class, "author", Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, NAME)
+                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
                 publisherNamePath,
-                Operator.IN, Arrays.asList("Pub1"));
+                Operator.IN, Arrays.asList(PUB1));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());
@@ -150,13 +152,13 @@ public class SubCollectionFetchQueryBuilderTest {
         relationship.setChildren(Arrays.asList(book));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, "publisher"),
-                new FilterPredicate.PathElement(Publisher.class, "publisher", String.class, NAME)
+                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
                 publisherNamePath,
-                Operator.IN, Arrays.asList("Pub1"));
+                Operator.IN, Arrays.asList(PUB1));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());

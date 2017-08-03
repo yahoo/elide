@@ -129,7 +129,7 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         List<FilterPredicate.PathElement> idPath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Chapter.class, "id")
+                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "id")
         );
 
         FilterPredicate idPredicate = new FilterPredicate(

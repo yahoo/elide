@@ -48,7 +48,7 @@ public class ExpressionCloneVisitorTest {
         List<FilterPredicate.PathElement> p4Path = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, BOOK, String.class, GENRE)
         );
-        FilterPredicate p4 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList(SCIFI));
+        FilterPredicate p4 = new FilterPredicate(p4Path, Operator.IN, Arrays.asList(SCIFI));
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and1 = new AndFilterExpression(or, p1);
