@@ -1627,12 +1627,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             inverseResource.markDirty();
 
-            RelationshipType type = getRelationshipType(relationName);
-            if (type.isToOne()) {
+            RelationshipType inverseRelationType = inverseResource.getRelationshipType(inverseField);
+            if (inverseRelationType.isToOne()) {
                 //hook for updateToOneRelation
                 transaction.updateToOneRelation(transaction, inverseEntity, inverseField, null, requestScope);
             } else {
                 //hook for updateToManyRelation
+                assert (inverseRelation == null || inverseRelation instanceof Collection)
+                        : inverseField + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseEntity, inverseField,
                         new LinkedHashSet<>(), Sets.newHashSet(obj), requestScope);
             }
@@ -1677,13 +1679,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             inverseResource.markDirty();
 
-            RelationshipType type = getRelationshipType(relationName);
-            if (type.isToOne()) {
+            RelationshipType inverseRelationType = inverseResource.getRelationshipType(inverseName);
+            if (inverseRelationType.isToOne()) {
                 //hook for updateToOneRelation
                 transaction.updateToOneRelation(transaction, inverseObj, inverseName,
                         obj, requestScope);
             } else {
                 //hook for updateToManyRelation
+                assert (inverseRelation == null || inverseRelation instanceof Collection)
+                        : inverseName + " not a collection";
                 transaction.updateToManyRelation(transaction, inverseObj, inverseName,
                         Sets.newHashSet(obj), new LinkedHashSet<>(), requestScope);
             }
