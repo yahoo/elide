@@ -1,4 +1,8 @@
 # Change Log
+## 3.0.15
+**Fixes**
+ * Use inverse relation type when updating. 
+ 
 ## 3.0.14
 **Fixes**
  * Properly handle incorrect relationship field name in Patch request instead of `Entity is null`
