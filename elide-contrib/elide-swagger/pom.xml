@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-contrib-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>3.0.15-SNAPSHOT</version>
+        <version>3.0.15</version>
     </parent>
 
     <licenses>
@@ -35,21 +35,21 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>3.0.15</tag>
     </scm>
 
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-core</artifactId>
-            <version>3.0.15-SNAPSHOT</version>
+            <version>3.0.15</version>
         </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-integration-tests</artifactId>
-            <version>3.0.15-SNAPSHOT</version>
+            <version>3.0.15</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
