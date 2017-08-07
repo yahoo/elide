@@ -159,19 +159,6 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * Utility method to set the id in {@param input} if one wasn't provided in user mutation
-     * @param input data input
-     * @param idFieldName id field name
-     */
-    private static void setId(Map<String, Object> input, String idFieldName) {
-        String id = UUID.randomUUID().toString()
-                .replaceAll("[^0-9]", "")
-                .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
-        //TODO: this is hacky, ask for a workaround for this.
-        input.put(idFieldName, id);
-    }
-
-    /**
      * handle FETCH operation
      * @param context environment encapsulating graphQL's request environment
      * @return list of {@link PersistentResource} objects
@@ -269,7 +256,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
             return fetchAttribute(parentResource, fieldName);
-
         } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
             return fetchRelationship(parentResource, fieldName);
         } else {
@@ -363,9 +349,8 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     @FunctionalInterface
     private interface Executor<T> {
-        T execute(Map<String, Object> input, String id,
-                                   RequestScope requestScope, Class<?> entityClass,
-                                   String fieldName, Optional<PersistentResource> parent);
+        T execute(Map<String, Object> input, RequestScope requestScope,
+                  Class<?> entityClass, String fieldName, Optional<PersistentResource> parent);
     }
 
     /**
@@ -394,14 +379,10 @@ public class PersistentResourceFetcher implements DataFetcher {
                 visited.add(triplet);
             }
             Class<?> entityClass = getEntityClass(triplet.parentResource, dictionary, triplet.fieldName);
-            String idFieldName = getIdFieldName(dictionary, entityClass);
-            Optional<String> id = getId(triplet.input, idFieldName);
-            if(!id.isPresent()) {
-                setId(triplet.input, idFieldName);
-            }
+
             /* first execute the given function with input data and then add the remaining relationships back to queue */
-            PersistentResource newParent = (PersistentResource) function.execute(triplet.input, getId(triplet.input,
-                    idFieldName).get(), requestScope, entityClass, triplet.fieldName, triplet.parentResource);
+            PersistentResource newParent = (PersistentResource) function.execute(triplet.input, requestScope,
+                    entityClass, triplet.fieldName, triplet.parentResource);
             toReturn.add(newParent);
             Map<String, Object> relationshipsOnly = stripAttributes(triplet.input, entityClass,
                     dictionary);
@@ -427,16 +408,16 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * update the relationship between {@param parent} and the resource loaded by given {@param id}
      * @param dataField data input
-     * @param id id
      * @param requestScope request scope
      * @param entityClass entity class
      * @param fieldName graphql field name
      * @param parent parent resource
      * @return {@link PersistentResource} object
      */
-    private PersistentResource updateRelationship(Map<String, Object> dataField, String id,
-                                            RequestScope requestScope, Class<?> entityClass,
-                                            String fieldName, Optional<PersistentResource> parent) {
+    private PersistentResource updateRelationship(Map<String, Object> dataField, RequestScope requestScope,
+                                                  Class<?> entityClass, String fieldName,
+                                                  Optional<PersistentResource> parent) {
+        String id = getId(dataField, getIdFieldName(requestScope.getDictionary(), entityClass)).get();
         PersistentResource resource = PersistentResource.loadRecord(entityClass, id, requestScope);
         parent.ifPresent(persistentResource ->
                 persistentResource.updateRelation(fieldName, Collections.singleton(resource)));
@@ -446,23 +427,33 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * updates or creates existing/new entities
      * @param dataField data input
-     * @param id id
      * @param requestScope request scope
      * @param fieldName field name
      * @param parent parent resource
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Map<String, Object> dataField, String id,
-                                             RequestScope requestScope, Class<?> entityClass,
-                                             String fieldName, Optional<PersistentResource> parent) {
+    private PersistentResource upsertObject(Map<String, Object> dataField, RequestScope requestScope,
+                                            Class<?> entityClass, String fieldName,
+                                            Optional<PersistentResource> parent) {
         Map<String, Object> input = stripRelationships(dataField, entityClass, requestScope.getDictionary());
+        String idFieldName = getIdFieldName(requestScope.getDictionary(), entityClass);
+        Optional<String> id = getId(input, idFieldName);
+        if(!id.isPresent()) {
+            String uuid = UUID.randomUUID().toString()
+                    .replaceAll("[^0-9]", "")
+                    .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
+            //TODO: this is hacky, ask for a workaround for this.
+            dataField.put(idFieldName, uuid);
+            id = Optional.of(uuid);
+        }
 
         Optional<PersistentResource> fetchEntry = fetchObject(requestScope, entityClass,
-                        Optional.of(Arrays.asList(id)), Optional.empty(),
+                        Optional.of(Arrays.asList(id.get())), Optional.empty(),
                         Optional.empty(), Optional.empty(), Optional.empty()).stream().findFirst();
+        Optional<String> finalId = id;
         return fetchEntry
                 .map(persistentResource -> updateAttributes(persistentResource, entityClass, input, requestScope))
-                .orElseGet(() -> createObject(input, fieldName, requestScope, Optional.of(id), parent));
+                .orElseGet(() -> createObject(input, fieldName, requestScope, finalId, parent));
     }
 
     /**
