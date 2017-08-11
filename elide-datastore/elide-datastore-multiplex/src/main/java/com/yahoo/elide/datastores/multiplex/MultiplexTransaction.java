@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -242,7 +243,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                    Object parent,
                                    Class<?> relationClass,
                                    EntityDictionary dictionary) {
-        Set<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
+        Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
         for (FilterPredicate predicate : predicates) {
             List<Object> values = predicate.getValues();
             Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getLeafEntityType());

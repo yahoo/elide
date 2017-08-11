@@ -632,6 +632,23 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    void testPaginateAnnotationTotalsWithToManyJoinFilter() {
+        /* Test RSQL Global */
+        def result = mapper.readTree(RestAssured.get("/author?page[totals]&filter=books.title=in=('The Roman Republic','Foundation','Life With Null Ned')").asString())
+        Assert.assertEquals(result.get("data").size(), 2)
+
+        Assert.assertEquals(result.get("data").size(), 2)
+        for (JsonNode author : result.get("data")) {
+            String name = author.get("attributes").get("name").asText()
+            Assert.assertTrue(name == "Isaac Asimov" || name == "Null Ned")
+        }
+
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 2)
+    }
+
+    @Test
     public void testRelationshipPaginateAnnotationTotals() {
         def result = mapper.readTree(RestAssured.get("/author/${asimovId}/books?page[size]=1&page[totals]").asString())
         Assert.assertEquals(result.get("data").size(), 1)

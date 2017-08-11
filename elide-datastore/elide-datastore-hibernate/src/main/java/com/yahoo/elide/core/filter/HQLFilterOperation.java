@@ -37,12 +37,15 @@ public class HQLFilterOperation implements FilterOperation<String> {
      *                       This is useful for table aliases referenced in HQL for some kinds of joins.
      * @return The hql query fragment.
      */
-    public String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
+    protected String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
         String fieldPath = filterPredicate.getFieldPath();
 
         if (prefixWithAlias) {
-            fieldPath = filterPredicate.getAlias() + "." + fieldPath;
+            fieldPath = filterPredicate.getAlias() + "." + filterPredicate.getField();
         }
+
+        //HQL doesn't support 'this', but it does support aliases.
+        fieldPath = fieldPath.replaceAll("\\.this", "");
 
         String alias = filterPredicate.getParameterName();
         switch (filterPredicate.getOperator()) {

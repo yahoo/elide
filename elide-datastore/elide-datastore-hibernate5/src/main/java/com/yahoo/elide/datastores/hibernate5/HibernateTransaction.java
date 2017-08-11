@@ -10,26 +10,26 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
+import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.datastores.hibernate5.filter.CriterionFilterOperation;
+import com.yahoo.elide.datastores.hibernate5.porting.QueryWrapper;
+import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
 import com.yahoo.elide.security.User;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
-import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import java.io.IOException;
@@ -38,10 +38,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
 
 /**
  * Hibernate Transaction implementation.
@@ -49,6 +45,7 @@ import java.util.stream.Collectors;
 public class HibernateTransaction implements DataStoreTransaction {
 
     private final Session session;
+    private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
     private final ScrollMode scrollMode;
@@ -62,6 +59,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      */
     protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
         this.session = session;
+        this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
     }
@@ -120,26 +118,36 @@ public class HibernateTransaction implements DataStoreTransaction {
                              RequestScope scope) {
 
         try {
-            Criteria criteria = session.createCriteria(entityClass).add(Restrictions.idEq(id));
-            criteria.setFlushMode(FlushMode.MANUAL);
+            EntityDictionary dictionary = scope.getDictionary();
+            Class<?> idType = dictionary.getIdType(entityClass);
+            String idField = dictionary.getIdFieldName(entityClass);
+
+            //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
+            FilterPredicate idExpression = new FilterPredicate(
+                    new FilterPredicate.PathElement(
+                            entityClass,
+                            entityClass.getSimpleName(),
+                            idType,
+                            idField),
+                    Operator.IN,
+                    Collections.singletonList(id));
+
+            FilterExpression joinedExpression;
             if (filterExpression.isPresent()) {
-                CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
-                criteria = filterOpn.apply(filterExpression.get());
+                joinedExpression = new AndFilterExpression(filterExpression.get(), idExpression);
+            } else {
+                joinedExpression = idExpression;
             }
-            return criteria.uniqueResult();
+
+            QueryWrapper query = (QueryWrapper)
+                    new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
+                    .withPossibleFilterExpression(Optional.of(joinedExpression))
+                    .build();
+
+            return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
         }
-    }
-
-    /**
-     * Build the CriterionFilterOperation for provided criteria.
-     *
-     * @param criteria the criteria
-     * @return the CriterionFilterOperation
-     */
-    protected CriterionFilterOperation buildCriterionFilterOperation(Criteria criteria) {
-        return new CriterionFilterOperation(criteria);
     }
 
     @Override
@@ -152,65 +160,22 @@ public class HibernateTransaction implements DataStoreTransaction {
 
         pagination.ifPresent(p -> {
             if (p.isGenerateTotals()) {
-                p.setPageTotals(getTotalRecords(entityClass, filterExpression));
+                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
             }
         });
 
-        Criteria criteria = session.createCriteria(entityClass);
+        final QueryWrapper query = (QueryWrapper)
+                new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
+                        .withPossibleFilterExpression(filterExpression)
+                        .withPossibleSorting(sorting)
+                        .withPossiblePagination(pagination)
+                        .build();
 
-        if (filterExpression.isPresent()) {
-            CriterionFilterOperation filterOpn = buildCriterionFilterOperation(criteria);
-            criteria = filterOpn.apply(filterExpression.get());
-        }
-
-        Set<Order> validatedSortingRules = null;
-        if (sorting.isPresent()) {
-            if (!sorting.get().isDefaultInstance()) {
-                final EntityDictionary dictionary = scope.getDictionary();
-                validatedSortingRules = sorting.get().getValidSortingRules(entityClass, dictionary).entrySet()
-                        .stream()
-                        .map(entry -> entry.getValue().equals(Sorting.SortOrder.desc)
-                                ? Order.desc(entry.getKey())
-                                : Order.asc(entry.getKey())
-                        )
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-            }
-        }
-        return loadObjects(
-                entityClass,
-                criteria,
-                Optional.ofNullable(validatedSortingRules),
-                pagination);
-    }
-
-
-    /**
-     * Generates the Hibernate ScrollableIterator for Hibernate Query.
-     *
-     * @param loadClass The hibernate class to build the query off of.
-     * @param criteria The criteria to use for filters
-     * @param sortingRules The possibly empty sorting rules.
-     * @param pagination The Optional pagination object.
-     * @return The Iterable for Hibernate.
-     */
-    public Iterable loadObjects(final Class<?> loadClass,
-                                final Criteria criteria,
-                                final Optional<Set<Order>> sortingRules,
-                                final Optional<Pagination> pagination) {
-        if (sortingRules.isPresent()) {
-            sortingRules.get().forEach(criteria::addOrder);
-        }
-
-        if (pagination.isPresent()) {
-            Pagination paginationData = pagination.get();
-            criteria.setFirstResult(paginationData.getOffset());
-            criteria.setMaxResults(paginationData.getLimit());
-        }
 
         if (isScrollEnabled) {
-            return new ScrollableIterator(criteria.scroll(scrollMode));
+            return new ScrollableIterator<>(query.getQuery().scroll());
         }
-        return criteria.list();
+        return query.getQuery().list();
     }
 
     @Override
@@ -231,21 +196,28 @@ public class HibernateTransaction implements DataStoreTransaction {
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
+                RelationshipImpl relationship = new RelationshipImpl(
+                        entity.getClass(),
+                        relationClass,
+                        relationName,
+                        entity,
+                        filteredVal);
+
                 pagination.ifPresent(p -> {
                     if (p.isGenerateTotals()) {
-                        p.setPageTotals(getTotalRecords(entity, filterExpression, relationName, dictionary));
+                        p.setPageTotals(getTotalRecords(relationship, filterExpression, dictionary));
                     }
                 });
 
-                final Optional<Query> possibleQuery =
-                        new HQLTransaction.Builder<>(session, filteredVal, relationClass,
-                                dictionary)
+                final QueryWrapper query = (QueryWrapper)
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
                                 .withPossiblePagination(pagination)
                                 .build();
-                if (possibleQuery.isPresent()) {
-                    return possibleQuery.get().list();
+
+                if (query != null) {
+                    return query.getQuery().list();
                 }
             }
         }
@@ -256,98 +228,41 @@ public class HibernateTransaction implements DataStoreTransaction {
      * Returns the total record count for a root entity and an optional filter expression.
      * @param entityClass The entity type to count
      * @param filterExpression optional security and request filters
+     * @param dictionary the entity dictionary
      * @param <T> The type of entity
      * @return The total row count.
      */
     private <T> Long getTotalRecords(Class<T> entityClass,
-                                     Optional<FilterExpression> filterExpression) {
-        String queryString = "SELECT COUNT(*) FROM {parentType} {parentType}";
-        queryString = queryString.replaceAll("\\{parentType\\}", entityClass.getSimpleName());
+                                     Optional<FilterExpression> filterExpression,
+                                     EntityDictionary dictionary) {
 
-        Query query;
-        if (filterExpression.isPresent()) {
-            query = populateWhereClause(queryString, filterExpression.get());
-        } else {
-            query = session.createQuery(queryString);
-        }
-        return (Long) query.uniqueResult();
+
+        QueryWrapper query = (QueryWrapper)
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper)
+                .withPossibleFilterExpression(filterExpression)
+                .build();
+
+        return (Long) query.getQuery().uniqueResult();
     }
 
     /**
      * Returns the total record count for a entity relationship
-     * @param entity The entity which owns the relationship
+     * @param relationship The relationship
      * @param filterExpression optional security and request filters
+     * @param dictionary the entity dictionary
      * @param <T> The type of entity
      * @return The total row count.
      */
-    private <T> Long getTotalRecords(Object entity,
+    private <T> Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
                                      Optional<FilterExpression> filterExpression,
-                                     String relation,
                                      EntityDictionary dictionary) {
-        Class<?> entityType = entity.getClass();
 
-        Class<?> idType = dictionary.getIdType(entityType);
-        Object idVal = CoerceUtil.coerce(dictionary.getId(entity), idType);
-        String idField = dictionary.getIdFieldName(entityType);
+        QueryWrapper query = (QueryWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
+                .withPossibleFilterExpression(filterExpression)
+                .build();
 
-        String parentTypeAlias = getRandomAlias(entityType);
-
-        FilterPredicate idExpression = new FilterPredicate(
-                new FilterPredicate.PathElement(
-                        entityType,
-                        entityType.getSimpleName(),
-                        idType,
-                        idField),
-                Operator.IN,
-                Collections.singletonList(idVal));
-
-        idExpression.setAlias(parentTypeAlias);
-
-        FilterExpression joinedExpression = idExpression;
-        if (filterExpression.isPresent()) {
-            joinedExpression = new AndFilterExpression(filterExpression.get(), idExpression);
-        }
-
-        Class<?> relationClass = dictionary.getParameterizedType(entityType, relation);
-        String queryString =
-                "SELECT COUNT(*) FROM {parentType} {parentTypeAlias} join {parentTypeAlias}.{relation} {relationType}";
-        queryString = queryString.replaceAll("\\{parentType\\}", entityType.getSimpleName());
-        queryString = queryString.replaceAll("\\{parentTypeAlias\\}", parentTypeAlias);
-        queryString = queryString.replaceAll("\\{relation\\}", relation);
-        queryString = queryString.replaceAll("\\{relationType\\}", relationClass.getSimpleName());
-
-        Query query = populateWhereClause(queryString, joinedExpression);
-        return (Long) query.uniqueResult();
-    }
-
-    /**
-     * Builds a Hibernate query from a HQL fragment (containing SELECT & FROM) and a filter expression.
-     * @param hqlQuery The HQL fragment
-     * @param expression the filter expression to expand into a WHERE clause.
-     * @return an executable query.
-     */
-    private Query populateWhereClause(String hqlQuery, FilterExpression expression) {
-        String completeQuery = hqlQuery + " " + new HQLFilterOperation().apply(expression, true);
-
-        Query query = session.createQuery(completeQuery);
-
-        /* Extract the predicates from the expression */
-        PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
-        Set<FilterPredicate> predicates = expression.accept(visitor);
-
-        /* Populate query parameters from each predicate*/
-        for (FilterPredicate filterPredicate : predicates) {
-            if (filterPredicate.getOperator().isParameterized()) {
-                String name = filterPredicate.getParameterName();
-                if (filterPredicate.isMatchingOperator()) {
-                    query = query.setParameter(name, filterPredicate.getStringValueEscaped("%", "\\"));
-                } else {
-                    query = query.setParameterList(name, filterPredicate.getValues());
-                }
-            }
-        }
-
-        return query;
+        return (Long) query.getQuery().uniqueResult();
     }
 
     @Override
@@ -361,9 +276,5 @@ public class HibernateTransaction implements DataStoreTransaction {
     @Override
     public User accessUser(Object opaqueUser) {
         return new User(opaqueUser);
-    }
-
-    private static String getRandomAlias(Class<?> entityType) {
-        return entityType.getSimpleName() + ThreadLocalRandom.current().nextInt(1, 1000);
     }
 }

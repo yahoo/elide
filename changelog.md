@@ -1,4 +1,8 @@
 # Change Log
+## 3.0.16
+**Misc**
+ * Replaced deprecated Hibernate Criteria with JPQL/HQL.
+
 ## 3.0.15
 **Fixes**
  * Use inverse relation type when updating. 

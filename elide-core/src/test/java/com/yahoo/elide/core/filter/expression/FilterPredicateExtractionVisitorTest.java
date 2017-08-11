@@ -13,9 +13,10 @@ import example.Book;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Tests PredicateExtractionVisitor
@@ -40,14 +41,29 @@ public class FilterPredicateExtractionVisitorTest {
         );
         FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
 
+        //P4 is a duplicate of P3
+        List<FilterPredicate.PathElement> p4Path = Arrays.asList(
+                new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
+        );
+        FilterPredicate p4 = new FilterPredicate(p4Path, Operator.IN, Arrays.asList("scifi"));
+
         OrFilterExpression or = new OrFilterExpression(p2, p3);
-        AndFilterExpression and = new AndFilterExpression(or, p1);
-        NotFilterExpression not = new NotFilterExpression(and);
+        AndFilterExpression and1 = new AndFilterExpression(or, p1);
+        AndFilterExpression and2 = new AndFilterExpression(and1, p4);
+        NotFilterExpression not = new NotFilterExpression(and2);
 
+        //First test collecting the predicates in a Set
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
+        Collection<FilterPredicate> filterPredicates = not.accept(visitor);
 
-        Set<FilterPredicate> filterPredicates = not.accept(visitor);
+        Assert.assertTrue(filterPredicates.containsAll(Sets.newHashSet(p1, p2, p3)));
+        Assert.assertEquals(3, filterPredicates.size());
 
-        Assert.assertEquals(filterPredicates, Sets.newHashSet(p1, p2, p3));
+        //Second test collecting the predicates in a List
+        visitor = new PredicateExtractionVisitor(new ArrayList<>());
+        filterPredicates = not.accept(visitor);
+
+        Assert.assertTrue(filterPredicates.containsAll(Arrays.asList(p1, p2, p3, p4)));
+        Assert.assertEquals(4, filterPredicates.size());
     }
 }
