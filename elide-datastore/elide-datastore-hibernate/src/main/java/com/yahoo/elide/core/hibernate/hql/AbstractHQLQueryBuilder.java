@@ -74,26 +74,14 @@ public abstract class AbstractHQLQueryBuilder {
         return this;
     }
 
-    public AbstractHQLQueryBuilder withFilterExpression(FilterExpression filterExpression) {
-        return withPossibleFilterExpression(Optional.of(filterExpression));
-    }
-
     public AbstractHQLQueryBuilder withPossibleSorting(final Optional<Sorting> possibleSorting) {
         this.sorting = possibleSorting;
         return this;
     }
 
-    public AbstractHQLQueryBuilder withSorting(final Sorting sorting) {
-        return withPossibleSorting(Optional.of(sorting));
-    }
-
     public AbstractHQLQueryBuilder withPossiblePagination(final Optional<Pagination> possiblePagination) {
         this.pagination = possiblePagination;
         return this;
-    }
-
-    public AbstractHQLQueryBuilder withPagination(final Pagination pagination) {
-        return this.withPossiblePagination(Optional.of(pagination));
     }
 
     /**

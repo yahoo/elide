@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 
@@ -44,18 +45,19 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @Test
     public void testSubCollectionPageTotals() {
-        RelationshipImpl relationship = new RelationshipImpl();
-        relationship.setParentType(Author.class);
-        relationship.setChildType(Book.class);
-        relationship.setRelationshipName(BOOKS);
-
         Author author = new Author();
         author.setId(1);
-        relationship.setParent(author);
 
         Book book = new Book();
         book.setId(2);
-        relationship.setChildren(Arrays.asList(book));
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Author.class,
+                Book.class,
+                BOOKS,
+                author,
+                Arrays.asList(book)
+        );
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
@@ -82,7 +84,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        builder.withSorting(sorting).build();
+        builder.withPossibleSorting(Optional.of(sorting)).build();
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -93,23 +95,24 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        builder.withPagination(pagination);
+        builder.withPossiblePagination(Optional.of(pagination));
     }
 
     @Test
     public void testSubCollectionPageTotalsWithJoinFilter() {
-        RelationshipImpl relationship = new RelationshipImpl();
-        relationship.setParentType(Author.class);
-        relationship.setChildType(Book.class);
-        relationship.setRelationshipName(BOOKS);
-
         Author author = new Author();
         author.setId(1);
-        relationship.setParent(author);
 
         Book book = new Book();
         book.setId(2);
-        relationship.setChildren(Arrays.asList(book));
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                Author.class,
+                Book.class,
+                BOOKS,
+                author,
+                Arrays.asList(book)
+        );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
                 new FilterPredicate.PathElement(Book.class, "book", Publisher.class, PUBLISHER),
@@ -124,7 +127,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 relationship, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withFilterExpression(publisherNamePredicate)
+                .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
                 .build();
 
         String expected =

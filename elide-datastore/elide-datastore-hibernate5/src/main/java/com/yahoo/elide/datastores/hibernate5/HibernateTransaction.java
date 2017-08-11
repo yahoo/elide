@@ -141,7 +141,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
             QueryWrapper query = (QueryWrapper)
                     new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
-                    .withFilterExpression(joinedExpression)
+                    .withPossibleFilterExpression(Optional.of(joinedExpression))
                     .build();
 
             return query.getQuery().uniqueResult();
@@ -196,12 +196,12 @@ public class HibernateTransaction implements DataStoreTransaction {
                 @SuppressWarnings("unchecked")
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
-                RelationshipImpl relationship = new RelationshipImpl();
-                relationship.setParentType(entity.getClass());
-                relationship.setChildType(relationClass);
-                relationship.setRelationshipName(relationName);
-                relationship.setParent(entity);
-                relationship.setChildren(filteredVal);
+                RelationshipImpl relationship = new RelationshipImpl(
+                        entity.getClass(),
+                        relationClass,
+                        relationName,
+                        entity,
+                        filteredVal);
 
                 pagination.ifPresent(p -> {
                     if (p.isGenerateTotals()) {

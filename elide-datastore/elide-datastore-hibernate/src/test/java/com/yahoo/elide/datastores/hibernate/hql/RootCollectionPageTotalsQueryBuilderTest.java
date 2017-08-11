@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 
@@ -67,7 +68,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
 
         Sorting sorting = mock(Sorting.class);
 
-        builder.withSorting(sorting).build();
+        builder.withPossibleSorting(Optional.of(sorting)).build();
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -77,7 +78,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
 
-        builder.withPagination(pagination);
+        builder.withPossiblePagination(Optional.of(pagination));
     }
 
     @Test
@@ -108,7 +109,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 Author.class, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withFilterExpression(expression)
+                .withPossibleFilterExpression(Optional.of(expression))
                 .build();
 
         String expected =

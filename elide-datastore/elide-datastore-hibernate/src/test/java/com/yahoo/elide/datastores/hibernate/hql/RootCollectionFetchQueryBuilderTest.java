@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
@@ -64,7 +65,7 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withSorting(new Sorting(sorting))
+                .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book  order by title asc";
@@ -102,7 +103,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 Author.class, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withFilterExpression(expression)
+                .withPossibleFilterExpression(Optional.of(expression))
                 .build();
 
         String expected =
@@ -138,8 +139,8 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withSorting(new Sorting(sorting))
-                .withFilterExpression(idPredicate)
+                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 
         String expected =
