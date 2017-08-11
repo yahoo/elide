@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
@@ -183,19 +184,19 @@ public abstract class AbstractHQLQueryBuilder {
     protected String getSortClause(final Optional<Sorting> sorting, Class<?> sortClass, boolean prefixWithAlias) {
         String sortingRules = "";
         if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            final Map<String, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
+            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
                     sortClass, dictionary
             );
             if (!validSortingRules.isEmpty()) {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
                 validSortingRules.entrySet().stream().forEachOrdered(entry -> {
+                        Path path = entry.getKey();
 
-                        String prefix = (prefixWithAlias) ? FilterPredicate.getTypeAlias(sortClass) + PERIOD : "";
+                        String prefix = (prefixWithAlias) ? Path.getTypeAlias(sortClass) + PERIOD : "";
 
-                        ordering.add(prefix + entry.getKey() + SPACE + (entry.getValue().equals(Sorting.SortOrder.desc)
-                                ? "desc"
-                                : "asc"));
+                        ordering.add(prefix + path.getFieldPath() + SPACE
+                                + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
                     }
                 );
                 sortingRules = " order by " + StringUtils.join(ordering, COMMA);

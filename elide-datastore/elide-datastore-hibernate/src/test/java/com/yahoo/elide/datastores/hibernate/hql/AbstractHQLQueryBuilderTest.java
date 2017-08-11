@@ -45,6 +45,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     private static final String GENRE = "genre";
     private static final String ABC = "ABC";
     private static final String DEF = "DEF";
+    private static final String NAME = "name";
 
     public AbstractHQLQueryBuilderTest() {
         super(new EntityDictionary(new HashMap<>()), new TestSessionWrapper());
@@ -79,7 +80,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
                 new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
                 new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
+                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -119,6 +120,18 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String expected = " order by example_Book.title asc,example_Book.genre desc";
         Assert.assertEquals(actual, expected);
     }
+
+    @Test
+    public void testSortClauseWithJoin() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
+
+        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
+
+        String expected = " order by publisher.name asc";
+        Assert.assertEquals(actual, expected);
+    }
+
 
     @Test
     public void testSettingQueryParams() {

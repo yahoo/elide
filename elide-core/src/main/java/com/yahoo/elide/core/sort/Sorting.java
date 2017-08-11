@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
@@ -68,20 +69,20 @@ public class Sorting {
      * @return The valid sorting rules - validated through the entity dictionary, or empty dictionary
      * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
-    public <T> Map<String, SortOrder> getValidSortingRules(final Class<T> entityClass,
-                                                           final EntityDictionary dictionary)
+    public <T> Map<Path, SortOrder> getValidSortingRules(final Class<T> entityClass,
+                                                         final EntityDictionary dictionary)
             throws InvalidValueException {
         hasValidSortingRules(entityClass, dictionary);
-        return replaceIdRule(dictionary.getIdFieldName(entityClass));
-    }
 
-    /**
-     * Fetches the base rules, ignoring validation against an entity class.
-     *
-     * @return a map of the sorting rules to be applied
-     */
-    public Map<String, SortOrder> getSortingRules() {
-        return this.sortRules;
+        Map<Path, SortOrder> returnMap = new LinkedHashMap<>();
+        for (Map.Entry<String, SortOrder> entry : replaceIdRule(dictionary.getIdFieldName(entityClass)).entrySet()) {
+            String dotSeparatedPath = entry.getKey();
+            SortOrder order = entry.getValue();
+            Path path = new Path(entityClass, dictionary, dotSeparatedPath);
+            returnMap.put(path, order);
+        }
+
+        return returnMap;
     }
 
     /**
