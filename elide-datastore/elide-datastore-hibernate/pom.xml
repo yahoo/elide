@@ -59,7 +59,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>3.0.15-SNAPSHOT</version>
+            <version>3.0.16-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
