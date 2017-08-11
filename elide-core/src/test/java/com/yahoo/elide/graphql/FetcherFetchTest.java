@@ -128,7 +128,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
         String graphQLRequest =
                 "{ " +
                     "author(ids: [\"1\"]) { " +
-                        "books { " +
+                        "books(ids: [\"1\"]) { " +
                             "id " +
                             "title " +
                         "} " +
@@ -140,9 +140,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                         "\"books\":[{" +
                             "\"id\":\"1\"," +
                             "\"title\":\"Libro Uno\"" +
-                        "},{" +
-                            "\"id\":\"2\"," +
-                            "\"title\":\"Libro Dos\"" +
                         "}]" +
                     "}]" +
                 "}";

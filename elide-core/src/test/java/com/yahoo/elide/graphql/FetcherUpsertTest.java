@@ -44,9 +44,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
-                        "\"title\":\"Book Numero Dos\"" +
-                    "},{" +
                         "\"title\":\"Book Numero Tres\"" +
+                    "},{" +
+                        "\"title\":\"Book Numero Dos\"" +
                     "}]" +
                 "}";
 
@@ -93,9 +93,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                     "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                            "\"title\":\"Book Numero Tres\"" +
-                        "},{" +
                             "\"title\":\"Book Numero Dos\"" +
+                        "},{" +
+                            "\"title\":\"Book Numero Tres\"" +
                         "}]" +
                     "}]" +
                 "}";
@@ -323,13 +323,13 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
             "mutation {" +
                 "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\", authors: [{id: \"1\", name: \"Ned Stark\"}]}]}) {" +
                     "id " +
-                    "name " +
+//                    "name " +
                     "books(ids: [\"1\"]) { " +
                         "id " +
-                        "title " +
+//                        "title " +
                         "authors(ids: [\"1\"]) { " +
                             "id " +
-                            "name " +
+//                            "name " +
                         "}" +
                     "}" +
                 "}" +
