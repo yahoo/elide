@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.when;
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
     private static final String AUTHOR = "author";
+    private static final String AUTHORS = "authors";
     private static final String BOOK = "book";
     private static final String BOOKS = "books";
     private static final String TITLE = "title";
@@ -132,6 +134,13 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Assert.assertEquals(actual, expected);
     }
 
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void testSortClauseWithInvalidJoin() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
+
+        getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
+    }
 
     @Test
     public void testSettingQueryParams() {

@@ -19,6 +19,7 @@ import java.util.List;
  * Represents a path in the entity relationship graph
  */
 public class Path {
+    @Getter
     private List<PathElement> pathElements;
     private static final String PERIOD = ".";
     private static final String UNDERSCORE = "_";

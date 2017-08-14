@@ -71,7 +71,23 @@ public class Sorting {
         for (Map.Entry<String, SortOrder> entry : replaceIdRule(dictionary.getIdFieldName(entityClass)).entrySet()) {
             String dotSeparatedPath = entry.getKey();
             SortOrder order = entry.getValue();
+
+            //Creating a path validates that the dot separated path is valid.
             Path path = new Path(entityClass, dictionary, dotSeparatedPath);
+
+            //Validate that none of the relationships are to-many
+            for (Path.PathElement pathElement : path.getPathElements()) {
+                if (! dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
+                    continue;
+                }
+
+                if (dictionary.getRelationshipType(pathElement.getType(), pathElement.getFieldName()).isToMany()) {
+                    throw new InvalidValueException("Cannot sort across a to-many relationship: "
+                        + pathElement.getTypeName() + "." + pathElement.getFieldName()
+                    );
+                }
+            }
+
             returnMap.put(path, order);
         }
 
