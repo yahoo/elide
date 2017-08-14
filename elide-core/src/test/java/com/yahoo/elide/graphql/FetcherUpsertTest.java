@@ -17,7 +17,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     /* ==================== */
     @Test
     public void testCreateRootSingle() throws JsonProcessingException {
-        String graphQLRequest = //TODO: this won't work for author (getting a null id back)
+        String graphQLRequest =
                 "mutation { " +
                     "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { " +
                         "title " +
@@ -44,9 +44,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
-                        "\"title\":\"Book Numero Tres\"" +
-                    "},{" +
                         "\"title\":\"Book Numero Dos\"" +
+                    "},{" +
+                        "\"title\":\"Book Numero Tres\"" +
                     "}]" +
                 "}";
 
@@ -93,9 +93,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                     "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                            "\"title\":\"Book Numero Dos\"" +
-                        "},{" +
                             "\"title\":\"Book Numero Tres\"" +
+                        "},{" +
+                            "\"title\":\"Book Numero Dos\"" +
                         "}]" +
                     "}]" +
                 "}";
@@ -189,9 +189,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                     "\"book\":[{" +
                         "\"title\":\"my id\"" +
                     "},{" +
-                        "\"title\":\"abc\"" +
-                    "},{" +
                         "\"title\":\"xyz\"" +
+                    "},{" +
+                        "\"title\":\"abc\"" +
                     "}]" +
                 "}";
 
@@ -225,7 +225,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollection() { //fails (see issue with nested entities in FETCH)
+    public void testNestedCollection() {
         String graphQLRequest =
                 "mutation { " +
                     "author(ids: [\"1\"]) { " +
@@ -258,10 +258,8 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String graphQLRequest =
                 "mutation { " +
                     "author(op:UPSERT, data: {name: \"John Snow\", books: [{id: \"1\", title: \"my id\"}, {title: \"abc\"}]}) { " +
-                        "id " +
                         "name " +
                         "books { " +
-                            "id " +
                             "title " +
                         "} " +
                     "} " +
@@ -269,13 +267,10 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String expectedResponse =
                 "{" +
                     "\"author\":[{" +
-                        "\"id\":\"1\"," +
                         "\"name\":\"John Snow\"," +
                         "\"books\":[{" +
-                            "\"id\":\"1\"," +
                             "\"title\":\"my id\"" +
                         "},{" +
-                            "\"id\":\"0\"," +
                             "\"title\":\"abc\"" +
                         "}]" +
                     "}]" +
@@ -291,7 +286,6 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                         "id " +
                         "name " +
                         "books { " +
-                            "id " +
                             "title " +
                         "} " +
                     "} " +
@@ -300,17 +294,14 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String expectedResponse =
                 "{" +
                     "\"author\":[{" +
-                        "\"id\":\"3\"," +
+                        "\"id\":\"1\"," +
                         "\"name\":\"John Snow\"," +
                         "\"books\":[{" +
-                            "id: \"1\"," +
-                            "\"title\":\"Libro Uno\"" +
-                        "},{" +
-                            "id: \"2\"," +
                             "\"title\":\"new title\"" +
-                        "}, {" +
-                            "id: \"3\"," +
+                        "},{" +
                             "\"title\":\"updated title\"" +
+                        "},{" +
+                            "\"title\":\"abc\"" +
                         "}]" +
                     "}]" +
                 "}";
@@ -323,20 +314,33 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
             "mutation {" +
                 "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\", authors: [{id: \"1\", name: \"Ned Stark\"}]}]}) {" +
                     "id " +
-//                    "name " +
+                    "name " +
                     "books(ids: [\"1\"]) { " +
                         "id " +
-//                        "title " +
+                        "title " +
                         "authors(ids: [\"1\"]) { " +
                             "id " +
-//                            "name " +
+                            "name " +
                         "}" +
                     "}" +
                 "}" +
             "}";
 
         String expectedResponse =
-                "{}";
+                "{" +
+                    "\"author\":[{" +
+                        "\"id\":\"1\"," +
+                        "\"name\":\"Ned Stark\"," +
+                        "\"books\":[{" +
+                            "\"id\":\"1\"," +
+                            "\"title\":\"Libro One\"," +
+                            "\"authors\":[{" +
+                                "\"id\":\"1\"," +
+                                "\"name\":\"Ned Stark\"" +
+                            "}]" +
+                        "}]" +
+                    "}]" +
+                "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }

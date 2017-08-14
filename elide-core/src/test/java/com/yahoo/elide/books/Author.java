@@ -8,6 +8,8 @@ package com.yahoo.elide.books;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.checks.UserCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -30,7 +32,7 @@ import java.util.Collection;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
-public class Author {
+public class Author extends UserCheck {
     public enum AuthorType {
         EXCLUSIVE,
         CONTRACTED,
@@ -91,6 +93,11 @@ public class Author {
     }
     public void setPenName(Pseudonym penName) {
         this.penName = penName;
+    }
+
+    @Override
+    public boolean ok(User user) {
+        return true;
     }
 
     @Override

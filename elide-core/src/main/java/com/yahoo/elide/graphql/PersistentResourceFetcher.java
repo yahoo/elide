@@ -229,22 +229,12 @@ public class PersistentResourceFetcher implements DataFetcher {
         Class parentClass = parentResource.getResourceClass();
 
         if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            return fetchAttribute(parentResource, fieldName);
+            return parentResource.getAttribute(fieldName);
         } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
-            return fetchRelationship(parentResource, fieldName, ids, dictionary, entityClass);
+            return fetchRelationship(parentResource, fieldName, ids);
         } else {
             throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
         }
-    }
-
-    /**
-     * FETCH attributes of top level entity
-     * @param parentResource parent object
-     * @param fieldName Field type
-     * @return list of {@link PersistentResource} objects
-     */
-    private Object fetchAttribute(PersistentResource parentResource, String fieldName) {
-        return parentResource.getAttribute(fieldName);
     }
 
     /**
@@ -252,33 +242,14 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param parentResource parent object
      * @param fieldName field type
      * @param ids list of ids
-     * @param dictionary entity dictionary
-     * @param entityClass entity class
      * @return persistence resource object(s)
      */
     private Object fetchRelationship(PersistentResource parentResource, String fieldName,
-                                     Optional<List<String>> ids, EntityDictionary dictionary,
-                                     Class<?> entityClass) {
+                                     Optional<List<String>> ids) {
         Set<PersistentResource> relations = new HashSet<>();
         if(ids.isPresent()) {
             List<String> idList = ids.get();
-            Optional<FilterExpression> filterExpression;
-
-            Class<?> idType = dictionary.getIdType(entityClass);
-            String idField = dictionary.getIdFieldName(entityClass);
-            String entityTypeName = dictionary.getJsonAliasFor(entityClass);
-
-        /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-            filterExpression = Optional.of(new FilterPredicate(
-                    new FilterPredicate.PathElement(
-                            entityClass,
-                            entityTypeName,
-                            idType,
-                            idField),
-                    Operator.IN,
-                    new ArrayList<>(idList)));
-//            TODO: this still doesn't filter by the filterexpression, why??
-//            relations = parentResource.getRelationChecked(fieldName, filterExpression);
+//            TODO: poor latency (for loop), refactor getRelation() to allow filterexpression
             for(String id : idList) {
                 relations.add(parentResource.getRelation(fieldName, id));
             }
@@ -323,12 +294,13 @@ public class PersistentResourceFetcher implements DataFetcher {
             graphWalker(input, this::updateRelationship, Optional.ofNullable(context.parentResource),
                     context.requestScope, context.field.getName());
         }
-//        TODO: ask how to add relation correctly, this gives us checkSharedPermission error with both a set and as singleton objects, why??
-//        if(!context.isRoot()) {
-//            for(PersistentResource obj : upsertedObjects) {
-//                context.parentResource.addRelation(obj.getType(), obj);
-//            }
-//        }
+
+        /* add relation between parent and nested entity */
+        if(!context.isRoot()) {
+            for(PersistentResource obj : upsertedObjects) {
+                context.parentResource.addRelation(context.field.getName(), obj);
+            }
+        }
         return upsertedObjects;
     }
 
@@ -358,7 +330,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     @FunctionalInterface
     private interface Executor<T> {
-        T execute(Map<String, Object> input, RequestScope requestScope, Class<?> entityClass);
+        T execute(Map<String, Object> input, PersistentResource parentResource, RequestScope requestScope, Class<?> entityClass);
     }
 
     /**
@@ -390,8 +362,11 @@ public class PersistentResourceFetcher implements DataFetcher {
                     .orElseGet(() -> dictionary.getLoadClass(null, triplet.fieldName));
 
             /* first execute the given function with input data and then add the remaining relationships back to queue */
-            PersistentResource newParent = (PersistentResource) function.execute(triplet.input, requestScope, entityClass);
-            toReturn.add(newParent);
+            PersistentResource newParent = (PersistentResource) function.execute(triplet.input, triplet.parentResource.orElse(null),
+                    requestScope, entityClass);
+            if(toReturn.isEmpty()) { /* add only the top level entity */
+                toReturn.add(newParent);
+            }
             Map<String, Object> relationships = stripAttributes(triplet.input, entityClass, dictionary);
             /* loop over relationships */
             for(Map.Entry<String, Object> relationship : relationships.entrySet()) {
@@ -414,12 +389,13 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * update the relationship between {@param parent} and the resource loaded by given {@param id}
      * @param dataField data input
+     * @param parentResource parent resource
      * @param requestScope request scope
      * @param entityClass entity class
      * @return {@link PersistentResource} object
      */
-    private PersistentResource updateRelationship(Map<String, Object> dataField, RequestScope requestScope,
-                                                  Class<?> entityClass) {
+    private PersistentResource updateRelationship(Map<String, Object> dataField, PersistentResource parentResource,
+                                                  RequestScope requestScope, Class<?> entityClass) {
         EntityDictionary dictionary = requestScope.getDictionary();
         Map<String, Object> relationships = stripAttributes(dataField, entityClass, dictionary);
         String id = getId(dataField, dictionary.getIdFieldName(entityClass)).get();
@@ -449,11 +425,12 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * updates or creates existing/new entities
      * @param dataField data input
+     * @param parentResource parent resource
      * @param requestScope request scope
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Map<String, Object> dataField, RequestScope requestScope,
-                                            Class<?> entityClass) {
+    private PersistentResource upsertObject(Map<String, Object> dataField, PersistentResource parentResource,
+                                            RequestScope requestScope, Class<?> entityClass) {
         EntityDictionary dictionary = requestScope.getDictionary();
         Map<String, Object> input = stripRelationships(dataField, entityClass, dictionary);
         String idFieldName = dictionary.getIdFieldName(entityClass);
@@ -470,8 +447,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<PersistentResource> loadedResource = fetchObject(requestScope, entityClass, Optional.of(Arrays.asList(id.get())),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
         if(loadedResource.isEmpty()) {
-            //TODO: ask if we need a parent here
-            upsertedResource = PersistentResource.createObject(null, entityClass, requestScope, id);
+            upsertedResource = PersistentResource.createObject(parentResource, entityClass, requestScope, id);
         } else {
             upsertedResource = loadedResource.iterator().next();
         }
