@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -54,12 +54,16 @@ public class Path {
             if (dictionary.isRelation(currentClass, fieldName)) {
                 Class<?> relationClass = dictionary.getParameterizedType(currentClass, fieldName);
                 pathElements.add(new PathElement(currentClass, currentClassName, relationClass, fieldName));
+                currentClass = relationClass;
+                currentClassName = fieldName;
             } else if (dictionary.isAttribute(currentClass, fieldName)
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
                 pathElements.add(new PathElement(currentClass, currentClassName, attributeClass, fieldName));
             } else {
-                throw new InvalidAttributeException(fieldName, dictionary.getJsonAliasFor(currentClass));
+                throw new InvalidValueException(entityClass.getSimpleName()
+                        + " doesn't contain the field "
+                        + fieldName);
             }
         }
     }

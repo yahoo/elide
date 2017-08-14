@@ -12,7 +12,6 @@ import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,13 +50,9 @@ public class Sorting {
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
                                         final EntityDictionary dictionary) throws InvalidValueException {
 
-        final List<String> entities = dictionary.getAttributes(entityClass);
-        sortRules.keySet().stream().forEachOrdered(sortRule -> {
-            if (!entities.contains(sortRule) && !JSONAPI_ID_KEYWORD.equals(sortRule)) {
-                throw new InvalidValueException(entityClass.getSimpleName()
-                        + " doesn't contain the field " + sortRule);
-            }
-        });
+        //This validates the paths for the given entityClass or throws InvalidValueException
+        getValidSortingRules(entityClass, dictionary);
+
         return true;
     }
 
@@ -72,8 +67,6 @@ public class Sorting {
     public <T> Map<Path, SortOrder> getValidSortingRules(final Class<T> entityClass,
                                                          final EntityDictionary dictionary)
             throws InvalidValueException {
-        hasValidSortingRules(entityClass, dictionary);
-
         Map<Path, SortOrder> returnMap = new LinkedHashMap<>();
         for (Map.Entry<String, SortOrder> entry : replaceIdRule(dictionary.getIdFieldName(entityClass)).entrySet()) {
             String dotSeparatedPath = entry.getKey();
