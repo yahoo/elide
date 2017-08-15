@@ -344,4 +344,27 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
 
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
+
+    @Test
+    public void testNestedUpserts() {
+        String graphQLRequest =
+            "mutation {" +
+                "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\"}, {id: \"2\", title: \"Foobar\"}]}) {" +
+                    "name " +
+                    "books(op:UPSERT, data: {id: \"1\", title: \"Changed Again\"}) {" +
+                        "title " +
+                    "}" +
+                "}" +
+            "}";
+        String expectedResponse =
+            "{" +
+                "\"author\":[{" +
+                    "\"name\":\"John Snow\"," +
+                    "\"books\":[{" +
+                        "\"title\":\"Changed Again\"" +
+                    "}]" +
+                "}]" +
+            "}";
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
 }

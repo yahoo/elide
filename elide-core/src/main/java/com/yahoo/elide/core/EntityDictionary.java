@@ -865,20 +865,6 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the parameterized type or the binding class for the given {@param identifier}.
-     * @param entityClass the entity class
-     * @param identifier the identifier
-     * @return the binding class
-     */
-    public Class<?> getLoadClass(Class<?> entityClass, String identifier) {
-        if(entityClass != null) {
-            return getParameterizedType(entityClass, identifier);
-        } else {
-            return getEntityClass(identifier);
-        }
-    }
-
-    /**
      * Follow for this class or super-class for Entity annotation.
      *
      * @param objClass provided class
