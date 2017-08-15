@@ -312,11 +312,72 @@ public class SortingIT extends AbstractIntegrationTestInitializer {
                 RestAssured.get("/book?sort=-publisher.name").asString())
         Assert.assertEquals(result.get("data").size(), 2);
 
-        final JsonNode books = result.get("data");
-        final String firstBookName = books.get(0).get("attributes").get("title").asText();
+        JsonNode books = result.get("data");
+        String firstBookName = books.get(0).get("attributes").get("title").asText();
         Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
 
-        final String secondBookName = books.get(1).get("attributes").get("title").asText();
+        String secondBookName = books.get(1).get("attributes").get("title").asText();
         Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+
+        result = mapper.readTree(
+        RestAssured.get("/book?sort=publisher.name").asString())
+        Assert.assertEquals(result.get("data").size(), 2);
+
+        books = result.get("data");
+        firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+
+        secondBookName = books.get(1).get("attributes").get("title").asText();
+        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+    }
+
+    @Test
+    public void testSortingSubcollectionByRelationshipProperty() {
+        def result = mapper.readTree(
+                RestAssured.get("/author/1/books?sort=-publisher.name").asString())
+        Assert.assertEquals(result.get("data").size(), 2);
+
+        JsonNode books = result.get("data");
+        String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+
+        String secondBookName = books.get(1).get("attributes").get("title").asText();
+        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+
+        result = mapper.readTree(
+        RestAssured.get("/author/1/books?sort=publisher.name").asString())
+        Assert.assertEquals(result.get("data").size(), 2);
+
+        books = result.get("data");
+        firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+
+        secondBookName = books.get(1).get("attributes").get("title").asText();
+        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+    }
+
+    @Test
+    public void testSortingRootCollectionByRelationshipPropertyWithJoinFilter() {
+        def result = mapper.readTree(
+                RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name").asString())
+        Assert.assertEquals(result.get("data").size(), 2);
+
+        JsonNode books = result.get("data");
+        String firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+
+        String secondBookName = books.get(1).get("attributes").get("title").asText();
+        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+
+        result = mapper.readTree(
+        RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name").asString())
+        Assert.assertEquals(result.get("data").size(), 2);
+
+        books = result.get("data");
+        firstBookName = books.get(0).get("attributes").get("title").asText();
+        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+
+        secondBookName = books.get(1).get("attributes").get("title").asText();
+        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
     }
 }
