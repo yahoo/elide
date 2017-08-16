@@ -21,8 +21,6 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.UserCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -45,7 +43,7 @@ import java.util.Collection;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
-public class Book extends UserCheck {
+public class Book {
     private long id;
     private String title;
     private String genre;
@@ -171,11 +169,6 @@ public class Book extends UserCheck {
     @OnReadPostCommit
     public void postRead(RequestScope requestScope) {
         // book being read post commit
-    }
-
-    @Override
-    public boolean ok(User user) {
-        return true;
     }
 
     @Override
