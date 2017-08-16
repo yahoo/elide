@@ -43,7 +43,7 @@ public class Filtered extends BaseId {
 
     static private FilterPredicate getPredicateOfId(long id) {
         List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Filtered.class, "filtered", long.class, "id");
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Filtered.class, long.class, "id");
         pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();

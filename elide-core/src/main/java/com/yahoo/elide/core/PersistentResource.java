@@ -836,7 +836,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             filterExpression = Optional.of(new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityType,
-                            relation,
                             idType,
                             idField),
                     Operator.IN,

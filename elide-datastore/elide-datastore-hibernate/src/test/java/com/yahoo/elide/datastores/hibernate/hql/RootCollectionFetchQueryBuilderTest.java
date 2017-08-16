@@ -78,9 +78,9 @@ public class RootCollectionFetchQueryBuilderTest {
     public void testRootFetchWithJoinFilter() {
 
         List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, TITLE)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Chapter.class, "chapters"),
+                new FilterPredicate.PathElement(Chapter.class, String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
@@ -88,9 +88,9 @@ public class RootCollectionFetchQueryBuilderTest {
                 Operator.IN, Arrays.asList("ABC", "DEF"));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -130,7 +130,7 @@ public class RootCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         List<FilterPredicate.PathElement> idPath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "id")
+                new FilterPredicate.PathElement(Book.class, Chapter.class, "id")
         );
 
         FilterPredicate idPredicate = new FilterPredicate(

@@ -162,7 +162,7 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new FilterPredicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new PathElement(Child.class, Long.class, "id"), Operator.NOTNULL);
         }
     }
 

@@ -13,6 +13,8 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -22,7 +24,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * The default filter dialect supported in Elide 1.0 and 2.0.
@@ -188,7 +189,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             String typeName = dictionary.getJsonAliasFor(types[i]);
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
-            PathElement pathElement = new PathElement(typeClass, typeName, fieldClass, fieldName);
+            PathElement pathElement = new PathElement(typeClass, fieldClass, fieldName);
 
             path.add(pathElement);
         }

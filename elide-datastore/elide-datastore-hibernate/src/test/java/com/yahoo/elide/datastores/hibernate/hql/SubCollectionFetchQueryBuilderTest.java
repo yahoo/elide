@@ -115,9 +115,9 @@ public class SubCollectionFetchQueryBuilderTest {
         );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -155,8 +155,8 @@ public class SubCollectionFetchQueryBuilderTest {
         );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(

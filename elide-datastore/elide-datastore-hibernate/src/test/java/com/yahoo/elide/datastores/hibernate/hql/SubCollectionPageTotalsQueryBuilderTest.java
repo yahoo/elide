@@ -115,8 +115,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(

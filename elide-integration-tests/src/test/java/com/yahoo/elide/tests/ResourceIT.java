@@ -1891,7 +1891,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     @DataProvider (name = "like_queries_hql")
     public Object[][] queryProviderHQL() {
         List<FilterPredicate.PathElement> pathToTitle = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "title")
+                new FilterPredicate.PathElement(Book.class, String.class, "title")
         );
         return new Object[][]{
                 {new FilterPredicate(pathToTitle, Operator.INFIX, Arrays.asList("with%perce")), 1},
