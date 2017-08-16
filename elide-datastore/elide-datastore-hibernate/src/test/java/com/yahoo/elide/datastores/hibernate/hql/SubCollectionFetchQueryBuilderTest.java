@@ -47,7 +47,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetch() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -70,7 +70,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithSorting() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -101,7 +101,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithJoinFilter() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -141,7 +141,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithSortingAndFilters() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);

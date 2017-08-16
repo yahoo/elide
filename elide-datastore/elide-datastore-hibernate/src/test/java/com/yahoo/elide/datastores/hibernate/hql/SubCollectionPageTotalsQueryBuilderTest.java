@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -26,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
-
 public class SubCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
@@ -46,7 +46,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testSubCollectionPageTotals() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -101,7 +101,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testSubCollectionPageTotalsWithJoinFilter() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);

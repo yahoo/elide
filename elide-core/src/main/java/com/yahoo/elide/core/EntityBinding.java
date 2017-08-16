@@ -8,18 +8,18 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnReadPostCommit;
 import com.yahoo.elide.annotation.OnReadPreCommit;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,6 +64,7 @@ class EntityBinding {
 
     public final Class<?> entityClass;
     public final String jsonApiType;
+    public final String entityName;
     @Getter private AccessibleObject idField;
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
@@ -92,6 +93,7 @@ class EntityBinding {
     /* empty binding constructor */
     private EntityBinding() {
         jsonApiType = null;
+        entityName = null;
         idField = null;
         idType = null;
         attributes = null;
@@ -101,9 +103,10 @@ class EntityBinding {
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
     }
 
-    public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type) {
+    public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type, String name) {
         entityClass = cls;
         jsonApiType = type;
+        entityName = name;
 
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = new ArrayList<>();

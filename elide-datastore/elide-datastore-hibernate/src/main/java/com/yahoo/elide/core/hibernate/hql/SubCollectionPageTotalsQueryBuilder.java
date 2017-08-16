@@ -74,7 +74,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         FilterPredicate idExpression = new FilterPredicate(
                 new FilterPredicate.PathElement(
                         parentType,
-                        parentType.getSimpleName(),
+                        dictionary.getEntityFor(parentType),
                         idType,
                         idField),
                 Operator.IN,
@@ -104,7 +104,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             predicates.stream().forEach(predicate -> {
                 predicate.getPath().add(0, new FilterPredicate.PathElement(
                         parentType,
-                        parentType.getSimpleName(),
+                        dictionary.getEntityFor(parentType),
                         relationship.getChildType(),
                         relationship.getRelationshipName()));
             });

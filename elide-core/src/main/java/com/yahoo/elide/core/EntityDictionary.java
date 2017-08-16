@@ -130,13 +130,25 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the entity name for a given binding class.
+     * Returns the Include name for a given binding class.
      *
      * @param entityClass the entity class
      * @return binding class
+     * @see Include
      */
     public String getJsonAliasFor(Class<?> entityClass) {
         return getEntityBinding(entityClass).jsonApiType;
+    }
+
+    /**
+     * Returns the Entity name for a given binding class.
+     *
+     * @param entityClass the entity class
+     * @return binding class
+     * @see Entity
+     */
+    public String getEntityFor(Class<?> entityClass) {
+        return getEntityBinding(entityClass).entityName;
     }
 
     /**
@@ -679,13 +691,16 @@ public class EntityDictionary {
             return;
         }
 
+        String name;
+        if (entity == null || "".equals(entity.name())) {
+            name = StringUtils.uncapitalize(cls.getSimpleName());
+        } else {
+            name = entity.name();
+        }
+
         String type;
         if ("".equals(include.type())) {
-            if (entity == null || "".equals(entity.name())) {
-                type = StringUtils.uncapitalize(cls.getSimpleName());
-            } else {
-                type = entity.name();
-            }
+            type = name;
         } else {
             type = include.type();
         }
@@ -696,7 +711,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type));
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type, name));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }
