@@ -45,18 +45,18 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         if (filterExpression.isPresent()) {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = filterExpression.get().accept(extractor);
-            String filterClause = new HQLFilterOperation().apply(filterExpression.get(), false);
+            String filterClause = new HQLFilterOperation().apply(filterExpression.get(), NO_ALIAS);
 
             // We don't prefix with aliases because we are not joining across toMany relationships.
             query = session.createFilter(relationship.getChildren(),
-                filterClause + SPACE + getSortClause(sorting, relationship.getChildType(), false));
+                filterClause + SPACE + getSortClause(sorting, relationship.getChildType(), NO_ALIAS));
 
             supplyFilterQueryParameters(query, predicates);
         } else {
             query = session.createFilter(relationship.getChildren(),
 
                 //The root collection doesn't need prefix for order by clause.
-                getSortClause(sorting, relationship.getChildType(), false));
+                getSortClause(sorting, relationship.getChildType(), NO_ALIAS));
         }
 
 

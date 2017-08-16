@@ -62,7 +62,7 @@ public class Path {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
                 pathElements.add(new PathElement(currentClass, currentClassName, attributeClass, fieldName));
             } else {
-                throw new InvalidValueException(entityClass.getSimpleName()
+                throw new InvalidValueException(dictionary.getJsonAliasFor(currentClass)
                         + " doesn't contain the field "
                         + fieldName);
             }

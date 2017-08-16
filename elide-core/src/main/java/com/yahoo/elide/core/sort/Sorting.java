@@ -47,6 +47,7 @@ public class Sorting {
      * @return The validity of the sorting rules on the target class
      * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
+    @Deprecated
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
                                         final EntityDictionary dictionary) throws InvalidValueException {
 
@@ -75,23 +76,34 @@ public class Sorting {
             //Creating a path validates that the dot separated path is valid.
             Path path = new Path(entityClass, dictionary, dotSeparatedPath);
 
-            //Validate that none of the relationships are to-many
-            for (Path.PathElement pathElement : path.getPathElements()) {
-                if (! dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
-                    continue;
-                }
-
-                if (dictionary.getRelationshipType(pathElement.getType(), pathElement.getFieldName()).isToMany()) {
-                    throw new InvalidValueException("Cannot sort across a to-many relationship: "
-                        + pathElement.getTypeName() + "." + pathElement.getFieldName()
-                    );
-                }
+            if (! isValidSortRulePath(path, dictionary)) {
+                throw new InvalidValueException("Cannot sort across a to-many relationship: " + path.getFieldPath());
             }
 
             returnMap.put(path, order);
         }
 
         return returnMap;
+    }
+
+    /**
+     * Validates that none of the provided path's relationships are to-many
+     * @param path The path to validate
+     * @param dictionary
+     * @return True if the path is valid. False otherwise.
+     */
+    protected static boolean isValidSortRulePath(Path path, EntityDictionary dictionary) {
+        //Validate that none of the relationships are to-many
+        for (Path.PathElement pathElement : path.getPathElements()) {
+            if (! dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
+                continue;
+            }
+
+            if (dictionary.getRelationshipType(pathElement.getType(), pathElement.getFieldName()).isToMany()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

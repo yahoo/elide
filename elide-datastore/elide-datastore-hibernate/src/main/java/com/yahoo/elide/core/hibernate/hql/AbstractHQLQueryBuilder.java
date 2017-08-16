@@ -44,6 +44,9 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
 
+    protected static final boolean USE_ALIAS = true;
+    protected static final boolean NO_ALIAS = false;
+
     /**
      * Represents a relationship between two entities.
      */

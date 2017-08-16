@@ -105,7 +105,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
+        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
 
         String expected = " order by title asc,genre desc";
         Assert.assertEquals(actual, expected);
@@ -117,7 +117,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         sorting.put(TITLE, Sorting.SortOrder.asc);
         sorting.put(GENRE, Sorting.SortOrder.desc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, true);
+        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, USE_ALIAS);
 
         String expected = " order by example_Book.title asc,example_Book.genre desc";
         Assert.assertEquals(actual, expected);
@@ -128,7 +128,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
+        String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
 
         String expected = " order by publisher.name asc";
         Assert.assertEquals(actual, expected);
@@ -139,7 +139,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(AUTHORS + PERIOD + NAME, Sorting.SortOrder.asc);
 
-        getSortClause(Optional.of(new Sorting(sorting)), Book.class, false);
+        getSortClause(Optional.of(new Sorting(sorting)), Book.class, NO_ALIAS);
     }
 
     @Test
