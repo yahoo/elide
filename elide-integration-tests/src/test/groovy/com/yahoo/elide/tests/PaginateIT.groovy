@@ -563,7 +563,7 @@ public class PaginateIT extends AbstractIntegrationTestInitializer {
 
         String errorMsg = errors.asText();
 
-        Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: Book doesn't contain the field onion");
+        Assert.assertEquals(errorMsg, "InvalidValueException: Invalid value: book doesn't contain the field onion");
     }
 
     @Test
