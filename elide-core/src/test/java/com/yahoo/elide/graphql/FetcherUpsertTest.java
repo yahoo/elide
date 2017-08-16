@@ -108,6 +108,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     /* ========================= */
     @Test
     public void testRootSingleWithId() throws JsonProcessingException {
+        //author 1 already exist, should update
         String graphQLRequest =
                 "mutation { " +
                     "author(op:UPSERT, data: {id: \"1\", name: \"abc\" }) { " +
@@ -124,36 +125,11 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
-
-        // Ensure we don't accidentally null values
-        graphQLRequest =
-                "{ " +
-                    "author(ids: [\"1\"]) { " +
-                        "id " +
-                        "type " +
-                        "books { " +
-                            "id " +
-                        "} " +
-                    "} " +
-                "}";
-        expectedResponse =
-                "{" +
-                    "\"author\":[{" +
-                        "\"id\":\"1\"," +
-                        "\"type\":\"EXCLUSIVE\"," +
-                        "\"books\":[{" +
-                            "\"id\":\"1\"" +
-                        "},{" +
-                            "\"id\":\"2\"" +
-                        "}]" +
-                    "}]" +
-                "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test
     public void testRootSingleWithList() throws JsonProcessingException {
+        //book 1 and 2 already exist, should update
         String graphQLRequest =
                 "mutation { " +
                     "book(op:UPSERT, data: [{id: \"1\", title: \"abc\"}, {id: \"2\", title: \"xyz\"}]) { " +
@@ -341,7 +317,6 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                         "}]" +
                     "}]" +
                 "}";
-
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
 }

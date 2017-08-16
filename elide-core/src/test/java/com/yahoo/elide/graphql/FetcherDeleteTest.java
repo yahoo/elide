@@ -41,6 +41,19 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
             "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+
+        String graphQLFetchRequest =
+                "mutation { " +
+                    "author(ids: [\"1\"]) { " +
+                        "id " +
+                        "name " +
+                    "} " +
+                "}";
+        String expectedFetchResponse =
+                "{" +
+                    "\"author\":[]" +
+                "}";
+        assertQueryEquals(graphQLFetchRequest, expectedFetchResponse);
     }
 
     @Test
@@ -75,6 +88,20 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
             "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+
+        String graphQLFetchRequest =
+            "mutation { " +
+                "book(ids: [\"1\", \"2\"]) { " +
+                    "id " +
+                    "title " +
+                "} " +
+            "}";
+        String expectedFetchResponse =
+            "{" +
+                "\"book\":[]" +
+            "}";
+
+        assertQueryEquals(graphQLFetchRequest, expectedFetchResponse);
     }
 
     @Test
@@ -113,6 +140,17 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
             "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+
+        String graphQLFetchRequest =
+            "mutation { " +
+                "author(ids: [\"1\"]) { " +
+                    "books(ids: [\"1\"]) { " +
+                        "title " +
+                    "} " +
+                "} " +
+            "}";
+
+        assertQueryFails(graphQLFetchRequest);
     }
 
     @Test
@@ -138,5 +176,24 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
             "}]}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
+
+        String graphQLFetchRequest =
+            "mutation { " +
+                "author(ids: [\"1\"]) { " +
+                    "books { " +
+                        "id " +
+                        "title " +
+                    "} " +
+                "} " +
+            "}";
+
+        String expectedFetchResponse =
+            "{" +
+                "author: { " +
+                    "books: []" +
+                "} " +
+            "}";
+
+        assertQueryEquals(graphQLFetchRequest, expectedFetchResponse);
     }
 }

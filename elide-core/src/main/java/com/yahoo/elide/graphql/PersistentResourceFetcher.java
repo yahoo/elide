@@ -160,8 +160,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                     context.offset, context.first, context.filters);
 
         } else { /* fetch attribute or relationship */
-            return fetchObject(context.requestScope.getDictionary(), entityClass, context.ids,
-                    context.parentResource, context.field.getName());
+            return fetchObject(context.requestScope.getDictionary(), context.ids, context.parentResource,
+                    context.field.getName());
         }
     }
 
@@ -217,15 +217,13 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * fetches a non-root level attribute or relationship
      * @param dictionary entity dictionary
-     * @param entityClass entity class
      * @param ids list of ids
      * @param parentResource parent resource
      * @param fieldName field type
      * @return attribute or relationship object
      */
-    private Object fetchObject(EntityDictionary dictionary, Class<?> entityClass,
-                               Optional<List<String>> ids, PersistentResource parentResource,
-                               String fieldName) {
+    private Object fetchObject(EntityDictionary dictionary, Optional<List<String>> ids,
+                               PersistentResource parentResource, String fieldName) {
         Class parentClass = parentResource.getResourceClass();
 
         if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */

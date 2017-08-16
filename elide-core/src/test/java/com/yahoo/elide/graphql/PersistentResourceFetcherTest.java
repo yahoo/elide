@@ -88,6 +88,7 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
             log.debug(mapper.writeValueAsString(result.getData()));
