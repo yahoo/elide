@@ -1,4 +1,8 @@
 # Change Log
+## 3.0.17
+**Features**
+Adds support for sorting by relationship (to-one) attributes.
+
 ## 3.0.16
 **Misc**
  * Replaced deprecated Hibernate Criteria with JPQL/HQL.

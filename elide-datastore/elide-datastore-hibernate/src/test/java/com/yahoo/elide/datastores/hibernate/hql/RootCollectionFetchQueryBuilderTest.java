@@ -68,7 +68,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  order by title asc";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book  order by example_Book.title asc";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
@@ -145,7 +145,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book  "
-                + "WHERE example_Book.id IN (:id_XXX)  order by title asc";
+                + "WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");

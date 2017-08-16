@@ -6,12 +6,12 @@
 package com.yahoo.elide.core.sort;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,16 +47,13 @@ public class Sorting {
      * @return The validity of the sorting rules on the target class
      * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
+    @Deprecated
     public <T> boolean hasValidSortingRules(final Class<T> entityClass,
                                         final EntityDictionary dictionary) throws InvalidValueException {
 
-        final List<String> entities = dictionary.getAttributes(entityClass);
-        sortRules.keySet().stream().forEachOrdered(sortRule -> {
-            if (!entities.contains(sortRule) && !JSONAPI_ID_KEYWORD.equals(sortRule)) {
-                throw new InvalidValueException(entityClass.getSimpleName()
-                        + " doesn't contain the field " + sortRule);
-            }
-        });
+        //This validates the paths for the given entityClass or throws InvalidValueException
+        getValidSortingRules(entityClass, dictionary);
+
         return true;
     }
 
@@ -68,20 +65,45 @@ public class Sorting {
      * @return The valid sorting rules - validated through the entity dictionary, or empty dictionary
      * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
-    public <T> Map<String, SortOrder> getValidSortingRules(final Class<T> entityClass,
-                                                           final EntityDictionary dictionary)
+    public <T> Map<Path, SortOrder> getValidSortingRules(final Class<T> entityClass,
+                                                         final EntityDictionary dictionary)
             throws InvalidValueException {
-        hasValidSortingRules(entityClass, dictionary);
-        return replaceIdRule(dictionary.getIdFieldName(entityClass));
+        Map<Path, SortOrder> returnMap = new LinkedHashMap<>();
+        for (Map.Entry<String, SortOrder> entry : replaceIdRule(dictionary.getIdFieldName(entityClass)).entrySet()) {
+            String dotSeparatedPath = entry.getKey();
+            SortOrder order = entry.getValue();
+
+            //Creating a path validates that the dot separated path is valid.
+            Path path = new Path(entityClass, dictionary, dotSeparatedPath);
+
+            if (! isValidSortRulePath(path, dictionary)) {
+                throw new InvalidValueException("Cannot sort across a to-many relationship: " + path.getFieldPath());
+            }
+
+            returnMap.put(path, order);
+        }
+
+        return returnMap;
     }
 
     /**
-     * Fetches the base rules, ignoring validation against an entity class.
-     *
-     * @return a map of the sorting rules to be applied
+     * Validates that none of the provided path's relationships are to-many
+     * @param path The path to validate
+     * @param dictionary
+     * @return True if the path is valid. False otherwise.
      */
-    public Map<String, SortOrder> getSortingRules() {
-        return this.sortRules;
+    protected static boolean isValidSortRulePath(Path path, EntityDictionary dictionary) {
+        //Validate that none of the relationships are to-many
+        for (Path.PathElement pathElement : path.getPathElements()) {
+            if (! dictionary.isRelation(pathElement.getType(), pathElement.getFieldName())) {
+                continue;
+            }
+
+            if (dictionary.getRelationshipType(pathElement.getType(), pathElement.getFieldName()).isToMany()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

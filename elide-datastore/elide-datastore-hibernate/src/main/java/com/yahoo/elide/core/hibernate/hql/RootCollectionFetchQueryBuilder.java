@@ -61,7 +61,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                         + SPACE
                         + filterClause
                         + SPACE
-                        + getSortClause(sorting, entityClass, false)
+                        + getSortClause(sorting, entityClass, USE_ALIAS)
             );
 
             //Fill in the query parameters
@@ -74,7 +74,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + AS
                     + entityAlias
                     + SPACE
-                    + getSortClause(sorting, entityClass, false));
+                    + getSortClause(sorting, entityClass, USE_ALIAS));
         }
 
         addPaginationToQuery(query);

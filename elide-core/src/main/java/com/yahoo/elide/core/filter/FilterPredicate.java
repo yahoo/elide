@@ -47,6 +47,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     @AllArgsConstructor
     @ToString
     @EqualsAndHashCode
+    @Deprecated
+    //TODO - replace this with the Path class in Elide 4.0
     public static class PathElement {
         @Getter private Class type;
         @Getter private String typeName;

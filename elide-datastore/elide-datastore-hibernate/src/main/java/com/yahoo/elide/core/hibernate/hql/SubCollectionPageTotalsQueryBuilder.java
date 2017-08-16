@@ -118,7 +118,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             joinClause = getJoinClauseFromFilters(joinedExpression);
 
             //Build the WHERE clause
-            filterClause = new HQLFilterOperation().apply(joinedExpression, true);
+            filterClause = new HQLFilterOperation().apply(joinedExpression, USE_ALIAS);
         } else {
 
             //If there is no filter, we still need to explicitly JOIN book and authors.
@@ -129,7 +129,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                     + relationshipAlias
                     + SPACE;
 
-            filterClause = new HQLFilterOperation().apply(idExpression, true);
+            filterClause = new HQLFilterOperation().apply(idExpression, USE_ALIAS);
             predicates.add(idExpression);
         }
 
