@@ -7,9 +7,9 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -246,7 +246,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
         for (FilterPredicate predicate : predicates) {
             List<Object> values = predicate.getValues();
-            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getLeafEntityType());
+            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getField());
             if (relationClass == entityClass
                     && predicate.getOperator() == Operator.IN
                     && idFieldName.equals(predicate.getField())

@@ -107,8 +107,10 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         for (FilterPredicate filterPredicate : filterPredicates) {
 
+            Class firstClass = filterPredicate.getPath().get(0).getType();
+
             /* The first type in the predicate must match the first collection in the URL */
-            if (!filterPredicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
+            if (!dictionary.getJsonAliasFor(firstClass).equals(firstPathComponent)) {
                 throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
@@ -132,7 +134,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 throw new ParseException("Invalid toMany join: " + filterPredicate);
             }
 
-            String entityType = filterPredicate.getRootEntityType();
+            String entityType = dictionary.getJsonAliasFor(filterPredicate.getEntityType());
             FilterExpression filterExpression = expressionMap.get(entityType);
             if (filterExpression != null) {
                 expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));

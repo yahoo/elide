@@ -16,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,9 +52,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     //TODO - replace this with the Path class in Elide 4.0
     public static class PathElement {
         @Getter private Class type;
-        @Getter private String typeName;
         @Getter private Class fieldType;
         @Getter private String fieldName;
+
+        @Deprecated
+        public PathElement(Class type, String unused, Class fieldType, String fieldName) {
+            this(type, fieldType, fieldName);
+        }
     }
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
@@ -128,14 +133,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 
-    public String getLeafEntityType() {
-        return path.get(path.size() - 1).getTypeName();
-    }
-
-    public String getRootEntityType() {
-        return path.get(0).getTypeName();
-    }
-
     public Class getEntityType() {
         PathElement first = path.get(0);
         return first.getType();
@@ -166,7 +163,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     @Override
     public String toString() {
-        String formattedPath = path.isEmpty() ? "" : path.get(0).getTypeName();
+        String formattedPath = path.isEmpty() ? "" : StringUtils.uncapitalize(path.get(0).getType().getSimpleName());
 
         for (PathElement element : path) {
             formattedPath = formattedPath + PERIOD + element.getFieldName();
