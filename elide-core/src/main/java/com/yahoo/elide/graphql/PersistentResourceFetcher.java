@@ -119,20 +119,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         log.debug("{} {} fields with parent {}<{}>",
                 operation, requestedFields, parent.getClass().getSimpleName(), parent.getName());
     }
-
-    /**
-     * Utility method to get the id in provided {@param input}
-     * @param input Data input
-     * @param idFieldName Id field name
-     * @return id
-     */
-    private static Optional<String> getId(Map<String, Object> input, String idFieldName) {
-        return input.entrySet().stream()
-               .filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
-               .map(e -> (String)e.getValue())
-               .findFirst();
-    }
-
+    
     /**
      * handle FETCH operation
      * @param context Environment encapsulating graphQL's request environment
