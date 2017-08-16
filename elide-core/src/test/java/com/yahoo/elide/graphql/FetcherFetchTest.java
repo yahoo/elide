@@ -24,13 +24,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                     "book(ids: [\"1\"]) { " +
                         "id " +
                         "title " +
+                        "authors {" +
+                            "id " +
+                            "name " +
+                        "}" +
                     "}" +
                 "}";
         String expectedResponse =
                 "{" +
                     "\"book\":[{" +
                         "\"id\":\"1\"," +
-                        "\"title\":\"Libro Uno\"" +
+                        "\"title\":\"Libro Uno\"," +
+                        "\"authors\":[{" +
+                            "\"id\":\"1\"," +
+                            "\"name\":\"Mark Twain\"" +
+                        "}]" +
                     "}]" +
                 "}";
 
@@ -120,7 +128,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
         String graphQLRequest =
                 "{ " +
                     "author(ids: [\"1\"]) { " +
-                        "books { " +
+                        "books(ids: [\"1\"]) { " +
                             "id " +
                             "title " +
                         "} " +
@@ -132,9 +140,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                         "\"books\":[{" +
                             "\"id\":\"1\"," +
                             "\"title\":\"Libro Uno\"" +
-                        "},{" +
-                            "\"id\":\"2\"," +
-                            "\"title\":\"Libro Dos\"" +
                         "}]" +
                     "}]" +
                 "}";

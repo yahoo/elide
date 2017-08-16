@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import static graphql.Assert.assertNotNull;
-
 import graphql.AssertException;
 import graphql.schema.BuilderFunction;
 import graphql.schema.GraphQLInputObjectField;
@@ -17,6 +15,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static graphql.Assert.assertNotNull;
+
 
 /**
  * Basically the same class as GraphQLInputObjectType except fields can be added after the

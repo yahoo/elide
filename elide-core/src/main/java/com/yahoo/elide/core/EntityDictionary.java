@@ -46,8 +46,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
@@ -862,6 +862,20 @@ public class EntityDictionary {
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Returns the parameterized type or the binding class for the given {@param identifier}.
+     * @param entityClass the entity class
+     * @param identifier the identifier
+     * @return the binding class
+     */
+    public Class<?> getLoadClass(Class<?> entityClass, String identifier) {
+        if(entityClass != null) {
+            return getParameterizedType(entityClass, identifier);
+        } else {
+            return getEntityClass(identifier);
+        }
     }
 
     /**
