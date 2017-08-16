@@ -40,11 +40,11 @@ import java.util.Set;
 /**
  * Child test bean.
  */
-@Entity
+@Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @SharePermission(expression = "allow all")
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

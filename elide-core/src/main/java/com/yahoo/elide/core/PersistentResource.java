@@ -273,7 +273,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType),
                     permissionFilter, requestScope);
             if (obj == null) {
-                throw new InvalidObjectIdentifierException(id, loadClass.getSimpleName());
+                throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
             }
         }
 

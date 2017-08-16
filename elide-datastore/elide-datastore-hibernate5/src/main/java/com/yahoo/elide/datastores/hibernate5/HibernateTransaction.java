@@ -126,7 +126,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             FilterPredicate idExpression = new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityClass,
-                            entityClass.getSimpleName(),
+                            dictionary.getJsonAliasFor(entityClass),
                             idType,
                             idField),
                     Operator.IN,

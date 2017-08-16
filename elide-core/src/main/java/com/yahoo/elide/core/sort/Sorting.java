@@ -11,6 +11,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -53,7 +54,6 @@ public class Sorting {
 
         //This validates the paths for the given entityClass or throws InvalidValueException
         getValidSortingRules(entityClass, dictionary);
-
         return true;
     }
 

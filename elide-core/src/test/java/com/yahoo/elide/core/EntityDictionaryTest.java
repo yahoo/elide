@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
+    @Include(rootLevel = true, type = "friend")
     private class Friend extends Child { }
 
     public EntityDictionaryTest() {

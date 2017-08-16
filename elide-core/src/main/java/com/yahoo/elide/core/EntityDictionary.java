@@ -667,6 +667,7 @@ public class EntityDictionary {
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
 
         if (exclude != null) {
             log.trace("Exclude {}", cls.getName());
@@ -680,7 +681,11 @@ public class EntityDictionary {
 
         String type;
         if ("".equals(include.type())) {
-            type = StringUtils.uncapitalize(cls.getSimpleName());
+            if (entity == null || "".equals(entity.name())) {
+                type = StringUtils.uncapitalize(cls.getSimpleName());
+            } else {
+                type = entity.name();
+            }
         } else {
             type = include.type();
         }

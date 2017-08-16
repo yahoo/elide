@@ -2,6 +2,8 @@
 ## 3.0.17
 **Features**
 Adds support for sorting by relationship (to-one) attributes.
+**Fixes**
+ * Use Entity name when Include is empty 
 
 ## 3.0.16
 **Misc**
