@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,12 +20,12 @@ import java.util.Set;
 import java.util.UUID;
 
 public class Entity {
-    private Optional<Entity> parentResource;
-    private Map<String, Object> data;
-    private Class<?> entityClass;
-    private RequestScope requestScope;
-    private Set<Attribute> attributes;
-    private Set<Relationship> relationships;
+    @Getter private Optional<Entity> parentResource;
+    @Getter private Map<String, Object> data;
+    @Getter private Class<?> entityClass;
+    @Getter private RequestScope requestScope;
+    @Getter private Set<Attribute> attributes;
+    @Getter private Set<Relationship> relationships;
 
     /**
      * Class constructor
@@ -32,7 +33,7 @@ public class Entity {
      * @param data entity data
      * @param entityClass binding entity class
      */
-    protected Entity(Optional<Entity> parentResource, Map<String, Object> data,
+    public Entity(Optional<Entity> parentResource, Map<String, Object> data,
                      Class<?> entityClass, RequestScope requestScope) {
         this.parentResource = parentResource;
         this.data = data;
@@ -43,45 +44,29 @@ public class Entity {
     }
 
     class Attribute {
-        private String name;
-        private Object value;
+        @Getter private String name;
+        @Getter private Object value;
 
-        private Attribute(String name, Object value) {
+        public Attribute(String name, Object value) {
             this.name = name;
             this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Object getValue() {
-            return value;
         }
     }
 
     class Relationship {
-        private String name;
-        private Set<Entity> value;
+        @Getter private String name;
+        @Getter private Set<Entity> value;
 
-        private Relationship(String name, Set<Entity> value) {
+        public Relationship(String name, Set<Entity> value) {
             this.name = name;
             this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Set<Entity> getValue() {
-            return value;
         }
     }
 
     /**
      * Extract the attributes of the entity
      */
-    public void setAttributes() {
+    private void setAttributes() {
         this.attributes = new HashSet<>();
         EntityDictionary dictionary = this.requestScope.getDictionary();
         String idFieldName = dictionary.getIdFieldName(this.entityClass);
@@ -99,7 +84,7 @@ public class Entity {
     /**
      * Extract the relationships of the entity
      */
-    public void setRelationships() {
+    private void setRelationships() {
         this.relationships = new HashSet<>();
         EntityDictionary dictionary = this.requestScope.getDictionary();
 
@@ -150,48 +135,6 @@ public class Entity {
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * Getter for binding entity class
-     */
-    public Class<?> getEntityClass() {
-        return this.entityClass;
-    }
-
-    /**
-     * Getter for entity data
-     */
-    public Map<String, Object> getData() {
-        return this.data;
-    }
-
-    /**
-     * Getter for parent entity
-     */
-    public Optional<Entity> getParentResource() {
-        return parentResource;
-    }
-
-    /**
-     * Getter for request scope
-     */
-    public RequestScope getRequestScope() {
-        return requestScope;
-    }
-
-    /**
-     * Getter for attributes
-     */
-    public Set<Attribute> getAttributes() {
-        return attributes;
-    }
-
-    /**
-     * Getter for relationships
-     */
-    public Set<Relationship> getRelationships() {
-        return relationships;
     }
 
     /**

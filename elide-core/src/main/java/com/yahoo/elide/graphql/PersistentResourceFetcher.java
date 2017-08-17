@@ -141,8 +141,15 @@ public class PersistentResourceFetcher implements DataFetcher {
                     context.offset, context.first, context.filters);
 
         } else { /* fetch attribute or relationship */
-            return fetchObject(context.requestScope.getDictionary(), context.ids, context.parentResource,
-                    context.field.getName());
+            Class parentClass = context.parentResource.getResourceClass();
+            String fieldName = context.field.getName();
+            if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+                return context.parentResource.getAttribute(fieldName);
+            } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
+                return fetchRelationship(context.parentResource, fieldName, context.ids);
+            } else {
+                throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
+            }
         }
     }
 
@@ -192,27 +199,6 @@ public class PersistentResourceFetcher implements DataFetcher {
                     Operator.IN,
                     new ArrayList<>(idList)));
             return PersistentResource.loadRecords(entityClass, requestScope, filterExpression);
-        }
-    }
-
-    /**
-     * fetches a non-root level attribute or relationship
-     * @param dictionary entity dictionary
-     * @param ids list of ids
-     * @param parentResource parent resource
-     * @param fieldName field type
-     * @return attribute or relationship object
-     */
-    private Object fetchObject(EntityDictionary dictionary, Optional<List<String>> ids,
-                               PersistentResource parentResource, String fieldName) {
-        Class parentClass = parentResource.getResourceClass();
-
-        if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            return parentResource.getAttribute(fieldName);
-        } else if(dictionary.isRelation(parentClass, fieldName)){ /* fetch relationship properties */
-            return fetchRelationship(parentResource, fieldName, ids);
-        } else {
-            throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
         }
     }
 
@@ -287,7 +273,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 context.parentResource.addRelation(context.field.getName(), entity.toPersistentResource());
             }
         }
-        
+
         return entitySet.stream().map(Entity::toPersistentResource).collect(Collectors.toSet());
     }
 
