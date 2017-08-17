@@ -38,9 +38,7 @@ import static org.mockito.Mockito.when;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
-    private static final String AUTHOR = "author";
     private static final String AUTHORS = "authors";
-    private static final String BOOK = "book";
     private static final String BOOKS = "books";
     private static final String TITLE = "title";
     private static final String PUBLISHER = "publisher";

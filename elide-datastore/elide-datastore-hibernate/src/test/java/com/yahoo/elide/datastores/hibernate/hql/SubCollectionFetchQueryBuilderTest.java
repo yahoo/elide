@@ -30,7 +30,6 @@ public class SubCollectionFetchQueryBuilderTest {
 
     private static final String TITLE = "title";
     private static final String BOOKS = "books";
-    private static final String BOOK = "book";
     private static final String NAME = "name";
     private static final String PUBLISHER = "publisher";
     private static final String PUB1 = "Pub1";

@@ -24,7 +24,6 @@ public class ExpressionCloneVisitorTest {
     private static final String SCIFI = "scifi";
     private static final String GENRE = "genre";
     private static final String NAME = "name";
-    private static final String BOOK = "book";
 
     @Test
     public void testExpressionCopy() throws Exception {

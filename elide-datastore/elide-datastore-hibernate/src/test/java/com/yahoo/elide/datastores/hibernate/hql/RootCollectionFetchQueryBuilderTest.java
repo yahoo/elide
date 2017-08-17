@@ -29,8 +29,6 @@ public class RootCollectionFetchQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
-    private static final String AUTHOR = "author";
-    private static final String BOOK = "book";
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 

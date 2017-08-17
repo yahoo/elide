@@ -45,13 +45,14 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
         List<FilterPredicate> filterPredicates = new ArrayList<>();
 
+        Pattern pattern = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?");
         for (MultivaluedMap.Entry<String, List<String>> entry : queryParams.entrySet()) {
             // Match "filter[<type>.<field>]" OR "filter[<type>.<field>][<operator>]"
 
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();
 
-            Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?").matcher(paramName);
+            Matcher matcher = pattern.matcher(paramName);
             if (!matcher.find()) {
                 throw new ParseException("Invalid filter format: " + paramName);
             }
@@ -186,7 +187,6 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         /* Build all the Predicate path elements */
         for (int i = 0; i < types.length - 1; ++i) {
             Class typeClass = types[i];
-            String typeName = dictionary.getJsonAliasFor(types[i]);
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
             PathElement pathElement = new PathElement(typeClass, fieldClass, fieldName);
