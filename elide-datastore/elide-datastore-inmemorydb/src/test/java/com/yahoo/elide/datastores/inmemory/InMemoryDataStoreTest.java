@@ -69,7 +69,7 @@ public class InMemoryDataStoreTest {
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) beans.iterator().next();
-            assertTrue(!bean.id.equals("0") && bean.name.equals("Test"));
+            assertTrue(!"0".equals(bean.id) && "Test".equals(bean.name));
         }
     }
 

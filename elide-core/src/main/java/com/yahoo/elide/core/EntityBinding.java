@@ -213,7 +213,7 @@ class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
         Class<?> fieldType = getFieldType(fieldOrMethod);
 
-        if (fieldName == null || fieldName.equals("id") || fieldName.equals("class")
+        if (fieldName == null || "id".equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
             return; // Reserved
         }

@@ -69,7 +69,7 @@ public class MultiplexManagerTest {
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) beans.iterator().next();
-            assertTrue(bean.id != null && bean.name.equals("Test"));
+            assertTrue(bean.id != null && "Test".equals(bean.name));
         }
     }
 

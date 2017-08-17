@@ -468,7 +468,7 @@ public class EntityDictionary {
         if (mappings != null) {
             final String mapping = mappings.get(relation);
 
-            if (mapping != null && !mapping.equals("")) {
+            if (mapping != null && !"".equals(mapping)) {
                 return mapping;
             }
         }

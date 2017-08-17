@@ -103,7 +103,7 @@ public class SwaggerBuilderTest {
             if (url.contains("relationship")) { //Relationship URL
 
                 /* The relationship is a one to one (so there is no DELETE op */
-                if (url.equals("/book/{bookId}/relationships/publisher")) {
+                if ("/book/{bookId}/relationships/publisher".equals(url)) {
                     Assert.assertNull(path.getDelete());
                     Assert.assertNull(path.getPost());
                 } else {
