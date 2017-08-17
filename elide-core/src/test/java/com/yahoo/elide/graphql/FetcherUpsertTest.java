@@ -20,6 +20,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         String graphQLRequest =
                 "mutation { " +
                     "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { " +
+                        "id " +
                         "title " +
                     "} " +
                 "}";
