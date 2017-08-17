@@ -2,6 +2,8 @@
 ## 3.0.17
 **Features**
 Adds support for sorting by relationship (to-one) attributes.
+**Misc**
+Cleanup equals code style
 
 ## 3.0.16
 **Misc**

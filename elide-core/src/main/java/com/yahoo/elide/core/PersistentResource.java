@@ -238,7 +238,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return true;
         }
         String id = getId();
-        return !id.equals("0") && checkId.equals(id);
+        return !"0".equals(id) && checkId.equals(id);
     }
 
     /**
@@ -372,7 +372,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         newVal =  coerce(newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
-        if (val != newVal && (val == null || !val.equals(newVal))) {
+        if (!Objects.equals(val, newVal)) {
             this.setValueChecked(fieldName, newVal);
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
@@ -740,7 +740,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 continue;
             }
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
-            if (!inverseRelationName.equals("")) {
+            if (!"".equals(inverseRelationName)) {
                 for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
                     if (hasInverseRelation(relationName)) {
                         deleteInverseRelation(relationName, inverseResource.getObject());
@@ -1360,7 +1360,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (collection == null) {
             collection = Collections.singleton(toAdd.getObject());
             Object value = getValueUnchecked(collectionName);
-            if ((value == null && toAdd.getObject() != null) || (value != null && !value.equals(toAdd.getObject()))) {
+            if (!Objects.equals(value, toAdd.getObject())) {
                 this.setValueChecked(collectionName, collection);
                 return true;
             }
@@ -1607,7 +1607,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     protected void deleteInverseRelation(String relationName, Object inverseEntity) {
         String inverseField = getInverseRelationField(relationName);
 
-        if (!inverseField.equals("")) {
+        if (!"".equals(inverseField)) {
             Class<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
@@ -1659,7 +1659,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     protected void addInverseRelation(String relationName, Object inverseObj) {
         String inverseName = dictionary.getRelationInverse(obj.getClass(), relationName);
 
-        if (!inverseName.equals("")) {
+        if (!"".equals(inverseName)) {
             Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
@@ -1847,7 +1847,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         for (Audit annotation : annotations) {
             for (Audit.Action auditAction : annotation.action()) {
-                if (auditAction == action) {
+                if (auditAction == action) { // compare object reference
                     LogMessage message = new LogMessage(annotation, this, Optional.ofNullable(changeSpec));
                     getRequestScope().getAuditLogger().log(message);
                 }

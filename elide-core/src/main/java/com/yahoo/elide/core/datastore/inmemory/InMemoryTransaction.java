@@ -59,7 +59,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
             return;
         }
         String id = dictionary.getId(object);
-        if (id == null || id.equals("null") || id.equals("0")) {
+        if (id == null || "null".equals(id) || "0".equals(id)) {
             createObject(object, requestScope);
         }
         id = dictionary.getId(object);

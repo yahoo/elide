@@ -461,7 +461,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         // Sort is not enabled-- order agnostic.
         String id1;
         String id2;
-        if (rel1.equals("4")) {
+        if ("4".equals(rel1)) {
             id1 = rel1;
             id2 = rel2;
         } else {
@@ -737,7 +737,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         // Sort is not enabled-- order agnostic.
         String id1;
         String id2;
-        if (rel1.equals("4")) {
+        if ("4".equals(rel1)) {
             id1 = rel1;
             id2 = rel2;
         } else {

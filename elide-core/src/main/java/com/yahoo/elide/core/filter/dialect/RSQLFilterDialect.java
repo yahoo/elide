@@ -84,7 +84,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
         String queryParamName = entry.getKey();
 
-        if (!queryParamName.equals("filter")) {
+        if (!"filter".equals(queryParamName)) {
             throw new ParseException("Invalid query parameter: " + queryParamName);
         }
         List<String> queryParamValues = entry.getValue();
