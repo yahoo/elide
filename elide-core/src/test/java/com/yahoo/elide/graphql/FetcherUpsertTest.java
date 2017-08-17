@@ -93,9 +93,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                     "\"author\":[{" +
                         "\"id\":\"1\"," +
                         "\"books\":[{" +
-                            "\"title\":\"Book Numero Tres\"" +
-                        "},{" +
                             "\"title\":\"Book Numero Dos\"" +
+                        "},{" +
+                            "\"title\":\"Book Numero Tres\"" +
                         "}]" +
                     "}]" +
                 "}";

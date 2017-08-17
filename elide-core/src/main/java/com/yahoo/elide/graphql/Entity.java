@@ -9,9 +9,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,8 +21,11 @@ import java.util.UUID;
 
 public class Entity {
     private Optional<Entity> parentResource;
-    private Optional<Map<String, Object>> data;
+    private Map<String, Object> data;
     private Class<?> entityClass;
+    private RequestScope requestScope;
+    private Set<Attribute> attributes;
+    private Set<Relationship> relationships;
 
     /**
      * Class constructor
@@ -29,10 +33,124 @@ public class Entity {
      * @param data entity data
      * @param entityClass binding entity class
      */
-    protected Entity(Optional<Entity> parentResource, Optional<Map<String, Object>> data, Class<?> entityClass) {
+    protected Entity(Optional<Entity> parentResource, Map<String, Object> data,
+                     Class<?> entityClass, RequestScope requestScope) {
         this.parentResource = parentResource;
         this.data = data;
         this.entityClass = entityClass;
+        this.requestScope = requestScope;
+        setAttributes();
+        setRelationships();
+    }
+
+    class Attribute {
+        private String name;
+        private Object value;
+
+        private Attribute(String name, Object value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+    }
+
+    class Relationship {
+        private String name;
+        private Set<Entity> value;
+
+        private Relationship(String name, Set<Entity> value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Set<Entity> getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * Extract the attributes of the entity
+     */
+    public void setAttributes() {
+        this.attributes = new HashSet<>();
+        EntityDictionary dictionary = this.requestScope.getDictionary();
+        String idFieldName = dictionary.getIdFieldName(this.entityClass);
+
+        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
+            if(dictionary.isAttribute(this.entityClass, entry.getKey())) {
+                this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
+            }
+            if(Objects.equals(entry.getKey(), idFieldName)) {
+                this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Extract the relationships of the entity
+     */
+    public void setRelationships() {
+        this.relationships = new HashSet<>();
+        EntityDictionary dictionary = this.requestScope.getDictionary();
+
+        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
+            if(dictionary.isRelation(this.entityClass, entry.getKey())) {
+                Set<Entity> entitySet = new HashSet<>();
+                Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
+                Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
+                if(isToOne) {
+                    entitySet.add(new Entity(Optional.of(this), ((Map<String, Object>) entry.getValue()), loadClass, this.requestScope));
+                } else {
+                    for(Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
+                        entitySet.add(new Entity(Optional.of(this), row, loadClass, this.requestScope));
+                    }
+                }
+                this.relationships.add(new Relationship(entry.getKey(), entitySet));
+            }
+        }
+    }
+
+    /**
+     * Get the relationship with name {@param name}
+     * @param name Name of relationship
+     * @return Relationship
+     */
+    public Optional<Relationship> getRelationship(String name) {
+        Iterator<Relationship> it = this.relationships.iterator();
+        while(it.hasNext()) {
+            Relationship relationship = it.next();
+            if(relationship.getName().equals(name)) {
+                return Optional.of(relationship);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get an Attribute with name {@param name}
+     * @param name Name of attribute
+     * @return Attribute
+     */
+    public Optional<Attribute> getAttribute(String name) {
+        Iterator<Attribute> it = this.attributes.iterator();
+        while(it.hasNext()) {
+            Attribute attribute = it.next();
+            if(attribute.getName().equals(name)) {
+                return Optional.of(attribute);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -46,7 +164,7 @@ public class Entity {
      * Getter for entity data
      */
     public Map<String, Object> getData() {
-        return this.data.orElse(null);
+        return this.data;
     }
 
     /**
@@ -57,68 +175,77 @@ public class Entity {
     }
 
     /**
+     * Getter for request scope
+     */
+    public RequestScope getRequestScope() {
+        return requestScope;
+    }
+
+    /**
+     * Getter for attributes
+     */
+    public Set<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    /**
+     * Getter for relationships
+     */
+    public Set<Relationship> getRelationships() {
+        return relationships;
+    }
+
+    /**
      * Get the id of the entity
-     * @param requestScope Request scope
      * @return the optional id
      */
-    public Optional<String> getId(RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
-        if(this.data.isPresent()) {
-            String idFieldName = dictionary.getIdFieldName(this.entityClass);
-            return this.data.get().entrySet().stream()
-                    .filter(entry -> idFieldName.equalsIgnoreCase(entry.getKey()))
-                    .map(e -> (String) e.getValue())
-                    .findFirst();
-        } else {
-            return Optional.empty();
-        }
+    public Optional<String> getId() {
+        EntityDictionary dictionary = this.requestScope.getDictionary();
+        String idFieldName = dictionary.getIdFieldName(this.entityClass);
+        return this.attributes.stream()
+                .filter(entry -> idFieldName.equalsIgnoreCase(entry.name))
+                .map(e -> (String) e.value)
+                .findFirst();
     }
 
     /**
      * Set the id of the entity if it doesn't have one already
-     * @param requestScope Request scope
      */
-    public void setId(RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
+    public void setId() {
+        EntityDictionary dictionary = this.requestScope.getDictionary();
         String idFieldName = dictionary.getIdFieldName(this.entityClass);
-        if(!getId(requestScope).isPresent() && this.data.isPresent()) {
+        if(!getId().isPresent()) {
             String uuid = UUID.randomUUID().toString()
                     .replaceAll("[^0-9]", "")
                     .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
             //TODO: this is hacky, ask for a workaround for this.
-            this.data.get().put(idFieldName, uuid);
+            this.data.put(idFieldName, uuid);
+            this.attributes.add(new Attribute(idFieldName, uuid));
         }
     }
 
     /**
      * Convert {@link Entity} to {@link PersistentResource} object
-     * @param requestScope the request scope
      * @return {@link PersistentResource} object
      */
-    public PersistentResource toPersistentResource(RequestScope requestScope) {
-        return PersistentResource.loadRecord(this.entityClass, getId(requestScope).orElse(null), requestScope);
+    public PersistentResource toPersistentResource() {
+        return PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
     }
 
     /**
      * Strips out the attributes from the {@code element} singleton list and returns just the relationships, if present.
-     * @param requestScope Request scope
      * @return relationship map
      */
-    public Set<Entity> stripAttributes(RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
+    public Set<Entity> stripAttributes() {
+        EntityDictionary dictionary = this.requestScope.getDictionary();
         Set<Entity> relationshipEntities = new HashSet();
         Map<String, Object> relationship = new HashMap<>();
-        Optional<Map<String, Object>> element = this.data;
 
-        if(!element.isPresent()) {
-            return Collections.emptySet();
-        }
-
-        for(Map.Entry<String, Object> entry : element.get().entrySet()) {
+        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
             if(dictionary.isRelation(this.entityClass, entry.getKey())) {
                 relationship.put(entry.getKey(), entry.getValue());
                 Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
-                relationshipEntities.add(new Entity(Optional.of(this), Optional.of(relationship), loadClass));
+                relationshipEntities.add(new Entity(Optional.of(this), relationship, loadClass, this.requestScope));
             }
         }
         return relationshipEntities;
@@ -126,20 +253,14 @@ public class Entity {
 
     /**
      * Strips out the relationships from the {@code element} singleton list and returns just the attributes, if present.
-     * @param requestScope Request scope
      * @return attributes map
      */
-    public Entity stripRelationships(RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
+    public Entity stripRelationships() {
+        EntityDictionary dictionary = this.requestScope.getDictionary();
         Map<String, Object> attributesOnly = new HashMap<>();
         String idFieldName = dictionary.getIdFieldName(this.entityClass);
-        Optional<Map<String, Object>> element = this.data;
 
-        if(!element.isPresent()) {
-            return null;
-        }
-
-        for(Map.Entry<String, Object> entry : element.get().entrySet()) {
+        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
             if(dictionary.isAttribute(this.entityClass, entry.getKey())) {
                 attributesOnly.put(entry.getKey(), entry.getValue());
             }
@@ -147,6 +268,6 @@ public class Entity {
                 attributesOnly.put(entry.getKey(), entry.getValue());
             }
         }
-        return new Entity(this.parentResource, Optional.ofNullable(attributesOnly), this.entityClass);
+        return new Entity(this.parentResource, attributesOnly, this.entityClass, this.requestScope);
     }
 }

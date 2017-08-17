@@ -272,12 +272,13 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<PersistentResource> upsertedObjects = new HashSet();
         /* upsert */
         for(Map<String, Object> input : context.data.get()) {
-            upsertedObjects.addAll(graphWalker(input, this::upsertObject, entityClass, context.requestScope));
+            upsertedObjects.addAll(graphWalker(new Entity(Optional.empty(), input, entityClass, context.requestScope),
+                    this::upsertObject));
         }
 
         /* fixup relationships */
         for(Map<String, Object> input : context.data.get()) {
-            graphWalker(input, this::updateRelationship, entityClass, context.requestScope);
+            graphWalker(new Entity(Optional.empty(), input, entityClass, context.requestScope), this::updateRelationship);
         }
 
         /* add relation between parent and nested entity */
@@ -294,52 +295,31 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     @FunctionalInterface
     private interface Executor<T> {
-        T execute(Entity entity, RequestScope requestScope);
+        T execute(Entity entity);
     }
 
     /**
-     * Forms the graph from data {@param input} and upsert's {@param function} all the nodes
-     * @param input Input data
+     * Forms the graph from data {@param input} and upserts {@param function} all the nodes
+     * @param entity Resource entity
      * @param function Function to process nodes
-     * @param entityClass Entity class
-     * @param requestScope Request scope
      * @return set of {@link PersistentResource} objects
      */
-    private Set<PersistentResource> graphWalker(Map<String, Object> input, Executor function,
-                                                Class<?> entityClass, RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
+    private Set<PersistentResource> graphWalker(Entity entity, Executor function) {
         Queue<Entity> toVisit = new ArrayDeque();
-        Set<Entity> visited = new HashSet();
-        toVisit.add(new Entity(Optional.empty(), Optional.of(input), entityClass));
+        toVisit.add(entity);
         Set<PersistentResource> toReturn = new HashSet<>();
 
         while(!toVisit.isEmpty()) {
-            Entity entity = toVisit.remove();
-            if(visited.contains(entity)) {
-                continue;
-            } else {
-                visited.add(entity);
-            }
-            PersistentResource newParent = (PersistentResource) function.execute(entity, requestScope);
+            Entity currentEntity = toVisit.remove();
+            PersistentResource newParent = (PersistentResource) function.execute(currentEntity);
             if(toReturn.isEmpty()) {
                 toReturn.add(newParent);
             }
-            Set<Entity> relationshipEntities = entity.stripAttributes(requestScope);
+            Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
-            for(Entity relationship : relationshipEntities) {
-                String firstKey = relationship.getData().keySet().iterator().next();
-                Object firstValue = relationship.getData().get(firstKey);
-                Boolean isToOne = newParent.getRelationshipType(firstKey).isToOne();
-                List<Map<String, Object>> entryToAdd = new ArrayList<>();
-                if(isToOne) {
-                    entryToAdd.add((Map<String, Object>) firstValue);
-                } else {
-                    entryToAdd.addAll((List) firstValue);
-                }
-                /* loop over each resource of the relationship */
-                for(Map<String, Object> entry : entryToAdd) {
-                    Class<?>  loadClass = dictionary.getParameterizedType(entity.getEntityClass(), firstKey);
-                    toVisit.add(new Entity(Optional.of(entity), Optional.of(entry), loadClass));
+            for(Entity.Relationship relationship : relationshipEntities) {
+                for(Entity relation : relationship.getValue()) {
+                    toVisit.add(relation);
                 }
             }
         }
@@ -349,31 +329,20 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * update the relationship between {@param parent} and the resource loaded by given {@param id}
      * @param entity Resource entity
-     * @param requestScope Request scope
      * @return {@link PersistentResource} object
      */
-    private PersistentResource updateRelationship(Entity entity, RequestScope requestScope) {
-        Set<Entity> relationshipEntities = entity.stripAttributes(requestScope);
-        PersistentResource resource = entity.toPersistentResource(requestScope);
+    private PersistentResource updateRelationship(Entity entity) {
+        Set<Entity.Relationship> relationshipEntities = entity.getRelationships();
+        PersistentResource resource = entity.toPersistentResource();
+        Set<PersistentResource> toUpdate;
+
         /* loop over each relationship */
-        for(Entity relationship : relationshipEntities) {
-            String firstKey = relationship.getData().keySet().iterator().next();
-            Object firstValue = relationship.getData().get(firstKey);
-            Boolean isToOne = resource.getRelationshipType(firstKey).isToOne();
-            List<Map<String, Object>> relationshipToList = new ArrayList<>();
-            Set<PersistentResource> relationshipSet = new HashSet<>();
-            if(isToOne) {
-                relationshipToList.add((Map<String, Object>) firstValue);
-            } else {
-                relationshipToList.addAll((List) firstValue);
+        for(Entity.Relationship relationship : relationshipEntities) {
+            toUpdate = new HashSet<>();
+            for(Entity relation : relationship.getValue()) {
+                toUpdate.add(relation.toPersistentResource());
             }
-            /* loop over each resource of the relationship */
-            for(Map<String, Object> entry : relationshipToList) {
-                Entity relationshipEntity = new Entity(relationship.getParentResource(), Optional.of(entry),
-                        relationship.getEntityClass());
-                relationshipSet.add(relationshipEntity.toPersistentResource(requestScope));
-            }
-            resource.updateRelation(firstKey, relationshipSet);
+            resource.updateRelation(relationship.getName(), toUpdate);
         }
         return resource;
     }
@@ -381,51 +350,53 @@ public class PersistentResourceFetcher implements DataFetcher {
     /**
      * updates or creates existing/new entities
      * @param entity Resource entity
-     * @param requestScope Request scope
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Entity entity, RequestScope requestScope) {
-        Entity attributeEntity = entity.stripRelationships(requestScope);
-        Optional<String> id = attributeEntity.getId(requestScope);
+    private PersistentResource upsertObject(Entity entity) {
+        Set<Entity.Attribute> attributes = entity.getAttributes();
+        Optional<String> id = entity.getId();
         if(!id.isPresent()) {
-            entity.setId(requestScope);
-            id = entity.getId(requestScope);
+            entity.setId();
+            id = entity.getId();
         }
+        RequestScope requestScope = entity.getRequestScope();
+
         PersistentResource upsertedResource;
-        Set<PersistentResource> loadedResource = fetchObject(requestScope, attributeEntity.getEntityClass(),
+        Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
                 Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
         if(loadedResource.isEmpty()) {
             PersistentResource parentResource;
-            if(!attributeEntity.getParentResource().isPresent()) {
+            if(!entity.getParentResource().isPresent()) {
                 parentResource = null;
             } else {
-                parentResource = attributeEntity.getParentResource().get().toPersistentResource(requestScope);
+                parentResource = entity.getParentResource().get().toPersistentResource();
             }
-            upsertedResource = PersistentResource.createObject(parentResource, attributeEntity.getEntityClass(), requestScope, id);
+            upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
         } else {
             upsertedResource = loadedResource.iterator().next();
         }
-        return updateAttributes(upsertedResource, attributeEntity.getEntityClass(), attributeEntity.getData(), requestScope);
+        return updateAttributes(upsertedResource, entity, attributes);
     }
 
     /**
      * Updates an object
      * @param toUpdate Entities to update
-     * @param entityClass Entity Class
-     * @param input Input data to update entities with  @return updated object
+     * @param entity Resource entity
+     * @param attributes Set of entity attributes
+     * @return Persistence Resource object
      */
-    private PersistentResource updateAttributes(PersistentResource toUpdate, Class<?> entityClass,
-                                                Map<String, Object> input, RequestScope requestScope) {
-        EntityDictionary dictionary = requestScope.getDictionary();
+    private PersistentResource updateAttributes(PersistentResource toUpdate, Entity entity, Set<Entity.Attribute> attributes) {
+        EntityDictionary dictionary = entity.getRequestScope().getDictionary();
+        Class<?> entityClass = entity.getEntityClass();
 
         String idFieldName = dictionary.getIdFieldName(entityClass);
-        for(Map.Entry<String, Object> row : input.entrySet()) {
-            if(dictionary.isAttribute(entityClass, row.getKey())) { /* iterate through each attribute provided */
-                toUpdate.updateAttribute(row.getKey(), row.getValue());
-            } else if(Objects.equals(row.getKey(), idFieldName)) { /* update 'id' attribute */
-                toUpdate.updateAttribute(row.getKey(), row.getValue());
+        for(Entity.Attribute attribute : attributes) {
+            if(dictionary.isAttribute(entityClass, attribute.getName())) { /* iterate through each attribute provided */
+                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
+            } else if(Objects.equals(attribute.getName(), idFieldName)) { /* update 'id' attribute */
+                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
             } else {
-                throw new IllegalStateException("Unrecognized attribute passed to 'data': " + row.getKey());
+                throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }
         }
 
