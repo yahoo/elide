@@ -54,11 +54,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         @Getter private Class type;
         @Getter private Class fieldType;
         @Getter private String fieldName;
-
-        @Deprecated
-        public PathElement(Class type, String unused, Class fieldType, String fieldName) {
-            this(type, fieldType, fieldName);
-        }
     }
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
