@@ -269,24 +269,31 @@ public class PersistentResourceFetcher implements DataFetcher {
             entityClass = dictionary.getParameterizedType(context.parentResource.getResourceClass(), context.field.getName());
         }
 
-        Set<PersistentResource> upsertedObjects = new HashSet();
-        /* upsert */
+        /* form entities */
+        Set<Entity> entitySet = new HashSet<>();
         for(Map<String, Object> input : context.data.get()) {
-            upsertedObjects.addAll(graphWalker(new Entity(Optional.empty(), input, entityClass, context.requestScope),
-                    this::upsertObject));
+            entitySet.add(new Entity(Optional.empty(), input, entityClass, context.requestScope));
+        }
+
+        /* upsert */
+        for(Entity entity : entitySet) {
+            graphWalker(entity, this::upsertObject);
         }
 
         /* fixup relationships */
-        for(Map<String, Object> input : context.data.get()) {
-            graphWalker(new Entity(Optional.empty(), input, entityClass, context.requestScope), this::updateRelationship);
-        }
-
-        /* add relation between parent and nested entity */
-        if(!context.isRoot()) {
-            for(PersistentResource obj : upsertedObjects) {
-                context.parentResource.addRelation(context.field.getName(), obj);
+        for(Entity entity : entitySet) {
+            graphWalker(entity, this::updateRelationship);
+            if (!context.isRoot()) {
+                context.parentResource.addRelation(context.field.getName(), entity.toPersistentResource());
             }
         }
+
+        Set<PersistentResource> upsertedObjects = new HashSet();
+        /* add relation between parent and nested entity */
+        for(Entity entity : entitySet) {
+            upsertedObjects.add(entity.toPersistentResource());
+        }
+
         return upsertedObjects;
     }
 
@@ -304,17 +311,19 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param function Function to process nodes
      * @return set of {@link PersistentResource} objects
      */
-    private Set<PersistentResource> graphWalker(Entity entity, Executor function) {
+    private void graphWalker(Entity entity, Executor function) {
         Queue<Entity> toVisit = new ArrayDeque();
+        Set<Entity> visited = new HashSet();
         toVisit.add(entity);
-        Set<PersistentResource> toReturn = new HashSet<>();
 
         while(!toVisit.isEmpty()) {
             Entity currentEntity = toVisit.remove();
-            PersistentResource newParent = (PersistentResource) function.execute(currentEntity);
-            if(toReturn.isEmpty()) {
-                toReturn.add(newParent);
+            if(visited.contains(currentEntity)) {
+                continue;
+            } else {
+                visited.add(currentEntity);
             }
+            function.execute(currentEntity);
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
             for(Entity.Relationship relationship : relationshipEntities) {
@@ -323,7 +332,6 @@ public class PersistentResourceFetcher implements DataFetcher {
                 }
             }
         }
-        return toReturn;
     }
 
     /**
