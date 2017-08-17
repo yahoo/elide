@@ -76,7 +76,6 @@ public class AnotherFilterExpressionCheckObj {
     public static FilterPredicate createFilterPredicate() {
         List<FilterPredicate.PathElement> pathList = new ArrayList<>();
         FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(AnotherFilterExpressionCheckObj.class,
-                "anotherFilterExpressionCheckObj",
                 long.class, "createDate");
         pathList.add(path1);
         Operator op = Operator.IN;

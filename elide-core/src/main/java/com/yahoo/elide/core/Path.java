@@ -32,7 +32,6 @@ public class Path {
     @EqualsAndHashCode
     public static class PathElement {
         @Getter private Class type;
-        @Getter private String typeName;
         @Getter private Class fieldType;
         @Getter private String fieldName;
     }
@@ -50,17 +49,15 @@ public class Path {
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
         Class<?> currentClass = entityClass;
-        String currentClassName = dictionary.getJsonAliasFor(currentClass);
         for (String fieldName : fieldNames) {
             if (dictionary.isRelation(currentClass, fieldName)) {
                 Class<?> relationClass = dictionary.getParameterizedType(currentClass, fieldName);
-                pathElements.add(new PathElement(currentClass, currentClassName, relationClass, fieldName));
+                pathElements.add(new PathElement(currentClass, relationClass, fieldName));
                 currentClass = relationClass;
-                currentClassName = fieldName;
             } else if (dictionary.isAttribute(currentClass, fieldName)
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
-                pathElements.add(new PathElement(currentClass, currentClassName, attributeClass, fieldName));
+                pathElements.add(new PathElement(currentClass, attributeClass, fieldName));
             } else {
                 throw new InvalidValueException(dictionary.getJsonAliasFor(currentClass)
                         + " doesn't contain the field "

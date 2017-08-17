@@ -21,7 +21,7 @@ import org.testng.annotations.BeforeSuite;
  */
 @Slf4j
 public abstract class AbstractApiResourceInitializer {
-    private static Server server = null;
+    private static volatile Server server = null;
     private final String resourceConfig;
     private String packageName;
 

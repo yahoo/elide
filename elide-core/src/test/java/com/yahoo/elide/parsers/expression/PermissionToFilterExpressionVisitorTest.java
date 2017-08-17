@@ -54,8 +54,8 @@ public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
     private RequestScope requestScope;
     private ElideSettings elideSettings;
-    private static FilterPredicate.PathElement AUTHORPATH = new FilterPredicate.PathElement(Author.class, "Author", Book.class, "books");
-    private static FilterPredicate.PathElement BOOKPATH = new FilterPredicate.PathElement(Book.class, "Book", String.class, "title");
+    private static FilterPredicate.PathElement AUTHORPATH = new FilterPredicate.PathElement(Author.class, Book.class, "books");
+    private static FilterPredicate.PathElement BOOKPATH = new FilterPredicate.PathElement(Book.class, String.class, "title");
     private static List EXAPLEFIELDNAME = new ArrayList<>(Arrays.asList("Harry Potter"));
 
     public static final FilterExpressionNormalizationVisitor NORMALIZEVISITOR = new FilterExpressionNormalizationVisitor();

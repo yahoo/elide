@@ -31,8 +31,6 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
-    private static final String AUTHOR = "author";
-    private static final String BOOK = "book";
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
@@ -84,9 +82,9 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testRootFetchWithJoinFilter() {
         List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, TITLE)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Chapter.class, "chapters"),
+                new FilterPredicate.PathElement(Chapter.class, String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
@@ -94,9 +92,9 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 Operator.IN, Arrays.asList("ABC", "DEF"));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, "name")
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(

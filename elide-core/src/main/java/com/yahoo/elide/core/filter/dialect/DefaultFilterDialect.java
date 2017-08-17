@@ -13,6 +13,8 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -22,7 +24,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * The default filter dialect supported in Elide 1.0 and 2.0.
@@ -44,13 +45,14 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
         List<FilterPredicate> filterPredicates = new ArrayList<>();
 
+        Pattern pattern = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?");
         for (MultivaluedMap.Entry<String, List<String>> entry : queryParams.entrySet()) {
             // Match "filter[<type>.<field>]" OR "filter[<type>.<field>][<operator>]"
 
             String paramName = entry.getKey();
             List<String> paramValues = entry.getValue();
 
-            Matcher matcher = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?").matcher(paramName);
+            Matcher matcher = pattern.matcher(paramName);
             if (!matcher.find()) {
                 throw new ParseException("Invalid filter format: " + paramName);
             }
@@ -107,8 +109,10 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         for (FilterPredicate filterPredicate : filterPredicates) {
 
+            Class firstClass = filterPredicate.getPath().get(0).getType();
+
             /* The first type in the predicate must match the first collection in the URL */
-            if (!filterPredicate.getPath().get(0).getTypeName().equals(firstPathComponent)) {
+            if (!dictionary.getJsonAliasFor(firstClass).equals(firstPathComponent)) {
                 throw new ParseException(String.format("Invalid predicate: %s", filterPredicate));
             }
 
@@ -132,7 +136,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
                 throw new ParseException("Invalid toMany join: " + filterPredicate);
             }
 
-            String entityType = filterPredicate.getRootEntityType();
+            String entityType = dictionary.getJsonAliasFor(filterPredicate.getEntityType());
             FilterExpression filterExpression = expressionMap.get(entityType);
             if (filterExpression != null) {
                 expressionMap.put(entityType, new AndFilterExpression(filterExpression, filterPredicate));
@@ -183,10 +187,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         /* Build all the Predicate path elements */
         for (int i = 0; i < types.length - 1; ++i) {
             Class typeClass = types[i];
-            String typeName = dictionary.getJsonAliasFor(types[i]);
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
-            PathElement pathElement = new PathElement(typeClass, typeName, fieldClass, fieldName);
+            PathElement pathElement = new PathElement(typeClass, fieldClass, fieldName);
 
             path.add(pathElement);
         }

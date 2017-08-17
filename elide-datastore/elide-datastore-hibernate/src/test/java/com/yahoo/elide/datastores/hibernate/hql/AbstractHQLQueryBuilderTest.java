@@ -38,9 +38,7 @@ import static org.mockito.Mockito.when;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
-    private static final String AUTHOR = "author";
     private static final String AUTHORS = "authors";
-    private static final String BOOK = "book";
     private static final String BOOKS = "books";
     private static final String TITLE = "title";
     private static final String PUBLISHER = "publisher";
@@ -66,9 +64,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     @Test
     public void testFilterJoinClause() {
         List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, "chapter", String.class, TITLE)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Chapter.class, "chapters"),
+                new FilterPredicate.PathElement(Chapter.class, String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
@@ -80,9 +78,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
                 Operator.IN, Arrays.asList(ABC, DEF));
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, AUTHOR, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -145,7 +143,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     @Test
     public void testSettingQueryParams() {
         List<FilterPredicate.PathElement> idPath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, BOOK, Chapter.class, "id")
+                new FilterPredicate.PathElement(Book.class, Chapter.class, "id")
         );
 
         FilterPredicate idPredicate = new FilterPredicate(idPath,

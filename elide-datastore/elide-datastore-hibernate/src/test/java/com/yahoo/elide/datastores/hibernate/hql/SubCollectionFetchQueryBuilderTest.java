@@ -30,7 +30,6 @@ public class SubCollectionFetchQueryBuilderTest {
 
     private static final String TITLE = "title";
     private static final String BOOKS = "books";
-    private static final String BOOK = "book";
     private static final String NAME = "name";
     private static final String PUBLISHER = "publisher";
     private static final String PUB1 = "Pub1";
@@ -47,7 +46,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetch() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -70,7 +69,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithSorting() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -101,7 +100,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithJoinFilter() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -115,9 +114,9 @@ public class SubCollectionFetchQueryBuilderTest {
         );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, "author", Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
+                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
@@ -141,7 +140,7 @@ public class SubCollectionFetchQueryBuilderTest {
     @Test
     public void testSubCollectionFetchWithSortingAndFilters() {
         Author author = new Author();
-        author.setId(1);
+        author.setId(1L);
 
         Book book = new Book();
         book.setId(2);
@@ -155,8 +154,8 @@ public class SubCollectionFetchQueryBuilderTest {
         );
 
         List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, BOOK, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, PUBLISHER, String.class, NAME)
+                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(

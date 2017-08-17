@@ -27,11 +27,11 @@ import javax.persistence.OneToOne;
 import java.util.Optional;
 import java.util.Set;
 
-@Entity
+@Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @SharePermission(expression = "allow all")
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

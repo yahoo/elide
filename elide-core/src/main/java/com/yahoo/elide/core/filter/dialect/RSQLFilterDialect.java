@@ -210,7 +210,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                             String.format("No such association %s for type %s", associationName, typeName));
                 }
 
-                path.add(new PathElement(entityType, typeName, fieldType, associationName));
+                path.add(new PathElement(entityType, fieldType, associationName));
 
                 entityType = fieldType;
             }

@@ -33,18 +33,18 @@ public class HQLFilterOperationTest {
     @Test
     public void testHQLQueryVisitor() throws Exception {
         List<FilterPredicate.PathElement> p1Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", Author.class, "authors"),
-                new FilterPredicate.PathElement(Author.class, "author", String.class, "name")
+                new FilterPredicate.PathElement(Book.class, Author.class, "authors"),
+                new FilterPredicate.PathElement(Author.class, String.class, "name")
         );
         FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
 
         List<FilterPredicate.PathElement> p2Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "name")
+                new FilterPredicate.PathElement(Book.class, String.class, "name")
         );
         FilterPredicate p2 = new FilterPredicate(p2Path, Operator.IN, Arrays.asList("blah"));
 
         List<FilterPredicate.PathElement> p3Path = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, "book", String.class, "genre")
+                new FilterPredicate.PathElement(Book.class, String.class, "genre")
         );
         FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
 
@@ -62,7 +62,7 @@ public class HQLFilterOperationTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnPrefix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, Author.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         HQLFilterOperation filterOp = new HQLFilterOperation();
         filterOp.apply(pred);
@@ -70,7 +70,7 @@ public class HQLFilterOperationTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnInfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, Author.class, ""),
                 Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         HQLFilterOperation filterOp = new HQLFilterOperation();
         filterOp.apply(pred);
@@ -78,7 +78,7 @@ public class HQLFilterOperationTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnPostfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, "book", Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new FilterPredicate.PathElement(Book.class, Author.class, ""),
                 Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         HQLFilterOperation filterOp = new HQLFilterOperation();
         filterOp.apply(pred);

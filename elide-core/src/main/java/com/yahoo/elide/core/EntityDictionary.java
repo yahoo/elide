@@ -130,13 +130,25 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the entity name for a given binding class.
+     * Returns the Include name for a given binding class.
      *
      * @param entityClass the entity class
      * @return binding class
+     * @see Include
      */
     public String getJsonAliasFor(Class<?> entityClass) {
         return getEntityBinding(entityClass).jsonApiType;
+    }
+
+    /**
+     * Returns the Entity name for a given binding class.
+     *
+     * @param entityClass the entity class
+     * @return binding class
+     * @see Entity
+     */
+    public String getEntityFor(Class<?> entityClass) {
+        return getEntityBinding(entityClass).entityName;
     }
 
     /**
@@ -667,6 +679,7 @@ public class EntityDictionary {
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;
+        Entity entity = (Entity) getFirstAnnotation(cls, Arrays.asList(Entity.class));
 
         if (exclude != null) {
             log.trace("Exclude {}", cls.getName());
@@ -678,9 +691,16 @@ public class EntityDictionary {
             return;
         }
 
+        String name;
+        if (entity == null || "".equals(entity.name())) {
+            name = StringUtils.uncapitalize(cls.getSimpleName());
+        } else {
+            name = entity.name();
+        }
+
         String type;
         if ("".equals(include.type())) {
-            type = StringUtils.uncapitalize(cls.getSimpleName());
+            type = name;
         } else {
             type = include.type();
         }
@@ -691,7 +711,7 @@ public class EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type));
+        entityBindings.putIfAbsent(lookupEntityClass(cls), new EntityBinding(this, cls, type, name));
         if (include.rootLevel()) {
             bindEntityRoots.add(cls);
         }

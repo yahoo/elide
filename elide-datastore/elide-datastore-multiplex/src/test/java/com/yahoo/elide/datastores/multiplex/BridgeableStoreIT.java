@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableStoreSupplier;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
@@ -20,10 +21,10 @@ import redis.embedded.RedisServer;
 import redis.embedded.RedisServerBuilder;
 import redis.embedded.util.OS;
 
-import static com.jayway.restassured.RestAssured.*;
-
 import java.net.ServerSocket;
 import java.util.HashMap;
+
+import static com.jayway.restassured.RestAssured.given;
 
 public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     public static RedisServer REDIS_SERVER;
@@ -92,7 +93,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1?include=redisActions")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         Assert.assertTrue(result.contains("user1actionid1"));
@@ -106,14 +107,14 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/redisActions/1")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         given()
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/2/redisActions/3")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         Assert.assertTrue(result.contains("user1actionid1"));
@@ -127,7 +128,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
-                .statusCode(404)
+                .statusCode(HttpStatus.SC_NOT_FOUND)
                 .extract().body().asString();
     }
 
@@ -137,7 +138,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1?include=specialAction")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         Assert.assertTrue(result.contains("user1actionid1"));
@@ -151,14 +152,14 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/specialAction")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         given()
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/2/specialAction")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
         Assert.assertTrue(result.contains("user1actionid1"));
@@ -172,7 +173,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
                 .accept("application/vnd.api+json")
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
-                .statusCode(404)
+                .statusCode(HttpStatus.SC_NOT_FOUND)
                 .extract().body().asString();
     }
 

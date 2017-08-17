@@ -68,7 +68,7 @@ public class FilterExpressionCheckObj {
     //Predicate that restrict resource's id to be the same as cuurent User's id.
     public static FilterPredicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
         List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
+        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, long.class, "id");
         pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
@@ -98,7 +98,7 @@ public class FilterExpressionCheckObj {
         @Override
         public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
             List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-            FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, "filterExpressionCheckObj", long.class, "id");
+            FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, long.class, "id");
             pathList.add(path1);
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();

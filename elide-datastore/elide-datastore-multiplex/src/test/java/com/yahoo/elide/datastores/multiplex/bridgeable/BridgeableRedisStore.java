@@ -151,7 +151,7 @@ public class BridgeableRedisStore implements DataStore {
                             scope);
                 } else if ("redisActions".equals(relationName)) {
                     FilterExpression updatedExpression = new FilterPredicate(
-                            new FilterPredicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
+                            new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
                             Operator.IN,
                             Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                     );
@@ -172,7 +172,7 @@ public class BridgeableRedisStore implements DataStore {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
                 FilterExpression filterExpression = new FilterPredicate(
-                        new FilterPredicate.PathElement(entityClass, "redisActions", String.class, "user_id"),
+                        new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
                         Operator.IN,
                         Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                 );

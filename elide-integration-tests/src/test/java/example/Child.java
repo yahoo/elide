@@ -40,11 +40,11 @@ import java.util.Set;
 /**
  * Child test bean.
  */
-@Entity
+@Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @SharePermission(expression = "allow all")
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",
@@ -162,7 +162,7 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new FilterPredicate(new PathElement(Child.class, "child", Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new PathElement(Child.class, Long.class, "id"), Operator.NOTNULL);
         }
     }
 

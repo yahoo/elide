@@ -1,4 +1,8 @@
 # Change Log
+## 3.1.0
+**Fixes**
+ * Use Entity name when Include is empty.  Cleanup Predicate. 
+
 ## 3.0.17
 **Features**
 Adds support for sorting by relationship (to-one) attributes.
