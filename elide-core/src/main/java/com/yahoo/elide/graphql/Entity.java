@@ -9,7 +9,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -230,44 +229,5 @@ public class Entity {
      */
     public PersistentResource toPersistentResource() {
         return PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
-    }
-
-    /**
-     * Strips out the attributes from the {@code element} singleton list and returns just the relationships, if present.
-     * @return relationship map
-     */
-    public Set<Entity> stripAttributes() {
-        EntityDictionary dictionary = this.requestScope.getDictionary();
-        Set<Entity> relationshipEntities = new HashSet();
-        Map<String, Object> relationship = new HashMap<>();
-
-        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
-            if(dictionary.isRelation(this.entityClass, entry.getKey())) {
-                relationship.put(entry.getKey(), entry.getValue());
-                Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
-                relationshipEntities.add(new Entity(Optional.of(this), relationship, loadClass, this.requestScope));
-            }
-        }
-        return relationshipEntities;
-    }
-
-    /**
-     * Strips out the relationships from the {@code element} singleton list and returns just the attributes, if present.
-     * @return attributes map
-     */
-    public Entity stripRelationships() {
-        EntityDictionary dictionary = this.requestScope.getDictionary();
-        Map<String, Object> attributesOnly = new HashMap<>();
-        String idFieldName = dictionary.getIdFieldName(this.entityClass);
-
-        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
-            if(dictionary.isAttribute(this.entityClass, entry.getKey())) {
-                attributesOnly.put(entry.getKey(), entry.getValue());
-            }
-            if(Objects.equals(entry.getKey(), idFieldName)) {
-                attributesOnly.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return new Entity(this.parentResource, attributesOnly, this.entityClass, this.requestScope);
     }
 }
