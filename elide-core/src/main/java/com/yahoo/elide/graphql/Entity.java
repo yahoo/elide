@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -21,7 +22,7 @@ import java.util.UUID;
 
 public class Entity {
     @Getter private Optional<Entity> parentResource;
-    @Getter private Map<String, Object> data;
+    private Map<String, Object> data;
     @Getter private Class<?> entityClass;
     @Getter private RequestScope requestScope;
     @Getter private Set<Attribute> attributes;
@@ -43,40 +44,34 @@ public class Entity {
         setRelationships();
     }
 
+    @AllArgsConstructor
     class Attribute {
         @Getter private String name;
         @Getter private Object value;
-
-        public Attribute(String name, Object value) {
-            this.name = name;
-            this.value = value;
-        }
     }
 
+    @AllArgsConstructor
     class Relationship {
         @Getter private String name;
         @Getter private Set<Entity> value;
-
-        public Relationship(String name, Set<Entity> value) {
-            this.name = name;
-            this.value = value;
-        }
     }
 
     /**
      * Extract the attributes of the entity
      */
     private void setAttributes() {
-        this.attributes = new HashSet<>();
-        EntityDictionary dictionary = this.requestScope.getDictionary();
-        String idFieldName = dictionary.getIdFieldName(this.entityClass);
+        if(this.data != null) {
+            this.attributes = new HashSet<>();
+            EntityDictionary dictionary = this.requestScope.getDictionary();
+            String idFieldName = dictionary.getIdFieldName(this.entityClass);
 
-        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
-            if(dictionary.isAttribute(this.entityClass, entry.getKey())) {
-                this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
-            }
-            if(Objects.equals(entry.getKey(), idFieldName)) {
-                this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
+            for (Map.Entry<String, Object> entry : this.data.entrySet()) {
+                if (dictionary.isAttribute(this.entityClass, entry.getKey())) {
+                    this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
+                }
+                if (Objects.equals(entry.getKey(), idFieldName)) {
+                    this.attributes.add(new Attribute(entry.getKey(), entry.getValue()));
+                }
             }
         }
     }
@@ -85,22 +80,24 @@ public class Entity {
      * Extract the relationships of the entity
      */
     private void setRelationships() {
-        this.relationships = new HashSet<>();
-        EntityDictionary dictionary = this.requestScope.getDictionary();
+        if(this.data != null) {
+            this.relationships = new HashSet<>();
+            EntityDictionary dictionary = this.requestScope.getDictionary();
 
-        for(Map.Entry<String, Object> entry : this.data.entrySet()) {
-            if(dictionary.isRelation(this.entityClass, entry.getKey())) {
-                Set<Entity> entitySet = new HashSet<>();
-                Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
-                Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
-                if(isToOne) {
-                    entitySet.add(new Entity(Optional.of(this), ((Map<String, Object>) entry.getValue()), loadClass, this.requestScope));
-                } else {
-                    for(Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
-                        entitySet.add(new Entity(Optional.of(this), row, loadClass, this.requestScope));
+            for (Map.Entry<String, Object> entry : this.data.entrySet()) {
+                if (dictionary.isRelation(this.entityClass, entry.getKey())) {
+                    Set<Entity> entitySet = new HashSet<>();
+                    Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
+                    Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
+                    if (isToOne) {
+                        entitySet.add(new Entity(Optional.of(this), ((Map<String, Object>) entry.getValue()), loadClass, this.requestScope));
+                    } else {
+                        for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
+                            entitySet.add(new Entity(Optional.of(this), row, loadClass, this.requestScope));
+                        }
                     }
+                    this.relationships.add(new Relationship(entry.getKey(), entitySet));
                 }
-                this.relationships.add(new Relationship(entry.getKey(), entitySet));
             }
         }
     }
@@ -154,14 +151,13 @@ public class Entity {
      * Set the id of the entity if it doesn't have one already
      */
     public void setId() {
-        EntityDictionary dictionary = this.requestScope.getDictionary();
-        String idFieldName = dictionary.getIdFieldName(this.entityClass);
         if(!getId().isPresent()) {
+            EntityDictionary dictionary = this.requestScope.getDictionary();
+            String idFieldName = dictionary.getIdFieldName(this.entityClass);
             String uuid = UUID.randomUUID().toString()
                     .replaceAll("[^0-9]", "")
                     .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
             //TODO: this is hacky, ask for a workaround for this.
-            this.data.put(idFieldName, uuid);
             this.attributes.add(new Attribute(idFieldName, uuid));
         }
     }
@@ -171,6 +167,6 @@ public class Entity {
      * @return {@link PersistentResource} object
      */
     public PersistentResource toPersistentResource() {
-        return PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
+        return data == null ? null : PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
     }
 }

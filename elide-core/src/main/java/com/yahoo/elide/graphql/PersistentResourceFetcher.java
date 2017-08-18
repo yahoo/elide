@@ -259,9 +259,16 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         /* form entities */
+        Optional<Entity> parentEntity;
+        if(!context.isRoot()) {
+            parentEntity = Optional.of(new Entity(Optional.empty(), null, context.parentResource.getResourceClass(),
+                    context.requestScope));
+        } else {
+            parentEntity = Optional.empty();
+        }
         Set<Entity> entitySet = new HashSet<>();
         for(Map<String, Object> input : context.data.get()) {
-            entitySet.add(new Entity(Optional.empty(), input, entityClass, context.requestScope));
+            entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
         /* upsert */
