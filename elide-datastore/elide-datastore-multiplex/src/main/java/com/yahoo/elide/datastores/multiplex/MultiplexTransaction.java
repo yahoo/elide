@@ -176,7 +176,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             if (relationType.isToMany()) {
                 return filterExpression
                         .map(fe -> {
-                            Serializable id = extractId(fe, idFieldName, entity, relationClass, dictionary);
+                            Serializable id = extractId(fe, idFieldName, relationClass);
                             if (id == null) {
                                 return bridgeableTransaction.bridgeableLoadObjects(this,
                                         entity, relationName, filterExpression, sorting, pagination, scope);
@@ -190,7 +190,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             } else {
                 return filterExpression
                         .map(fe -> {
-                            Serializable id = extractId(fe, idFieldName, entity, relationClass, dictionary);
+                            Serializable id = extractId(fe, idFieldName, relationClass);
                             return bridgeableTransaction.bridgeableLoadObject(this,
                                     entity, relationName, id, filterExpression, scope);
                         })
@@ -240,13 +240,11 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     private Serializable extractId(FilterExpression filterExpression,
                                    String idFieldName,
-                                   Object parent,
-                                   Class<?> relationClass,
-                                   EntityDictionary dictionary) {
+                                   Class<?> relationClass) {
         Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
         for (FilterPredicate predicate : predicates) {
             List<Object> values = predicate.getValues();
-            Class<?> entityClass = dictionary.getParameterizedType(parent, predicate.getField());
+            Class<?> entityClass = predicate.getEntityType();
             if (relationClass == entityClass
                     && predicate.getOperator() == Operator.IN
                     && idFieldName.equals(predicate.getField())
