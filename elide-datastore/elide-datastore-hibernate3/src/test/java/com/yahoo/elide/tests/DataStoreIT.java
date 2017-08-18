@@ -16,6 +16,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 
+import example.Author;
+import example.Book;
+import example.Chapter;
 import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
@@ -24,6 +27,9 @@ import org.testng.annotations.Test;
 import example.Filtered;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -38,8 +44,40 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             tx.save(tx.createNewObject(Filtered.class), null);
             tx.save(tx.createNewObject(Filtered.class), null);
 
+            Author georgeMartin = new Author();
+            georgeMartin.setName("George R. R. Martin");
+
+            Book book1 = new Book();
+            book1.setTitle("A Song of Ice and Fire");
+            Book book2 = new Book();
+            book2.setTitle("A Clash of Kings");
+            Book book3 = new Book();
+            book3.setTitle("A Storm of Swords");
+
+            georgeMartin.setBooks(Arrays.asList(book1, book2, book3));
+
+            addChapters(10, book1, tx);
+            addChapters(20, book2, tx);
+            addChapters(30, book3, tx);
+
+            tx.save(book1, null);
+            tx.save(book2, null);
+            tx.save(book3, null);
+            tx.save(georgeMartin, null);
+
             tx.commit(null);
         }
+    }
+
+    private static void addChapters(int numberOfChapters, Book book, DataStoreTransaction tx) {
+        Set<Chapter> chapters = new HashSet<>();
+        for (int idx = 0; idx < numberOfChapters; idx++) {
+            Chapter chapter = new Chapter();
+            chapter.setTitle("Chapter" + idx);
+            tx.save(chapter, null);
+            chapters.add(chapter);
+        }
+        book.setChapters(chapters);
     }
 
     @Test
