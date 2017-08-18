@@ -7,6 +7,9 @@ package com.yahoo.elide.tests;
 
 import static org.testng.Assert.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -21,6 +24,7 @@ import example.Book;
 import example.Chapter;
 import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -35,6 +39,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 
 public class DataStoreIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -78,6 +83,31 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             chapters.add(chapter);
         }
         book.setChapters(chapters);
+    }
+
+    @Test
+    public void testFormula() throws Exception {
+        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build());
+
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        ElideResponse response = elide.get("/book", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 3);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Song of Ice and Fire");
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
+                "A Storm of Swords");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 10);
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 30);
     }
 
     @Test
