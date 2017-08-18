@@ -1,4 +1,8 @@
 # Change Log
+## 3.1.1
+**Fixes**
+ * Fix id extraction from multiplex transaction.
+
 ## 3.1.0
 **Fixes**
  * Use Entity name when Include is empty.  Cleanup Predicate. 
