@@ -1,0 +1,8 @@
+---
+engines:
+ duplication:
+   enabled: true
+   exclude_paths:
+     - elide-core/src/test/java/com/yahoo/elide/graphql/*
+exclude_paths:
+  - elide-core/src/test/java/com/yahoo/elide/graphql/*

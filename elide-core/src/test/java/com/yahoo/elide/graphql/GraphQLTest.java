@@ -12,9 +12,11 @@ import com.yahoo.elide.books.Book;
 import com.yahoo.elide.books.Pseudonym;
 import com.yahoo.elide.books.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.security.checks.Check;
 import org.testng.annotations.BeforeClass;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Bootstrap for GraphQL tests
@@ -24,7 +26,10 @@ public class GraphQLTest {
 
     @BeforeClass
     public void init() {
-        dictionary = new EntityDictionary(Collections.EMPTY_MAP);
+        Map<String, Class<? extends Check>> checks = new HashMap<>();
+        checks.put("allow all", com.yahoo.elide.security.checks.prefab.Role.ALL.class);
+
+        dictionary = new EntityDictionary(checks);
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

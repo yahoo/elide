@@ -171,7 +171,7 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PersistentResource pResource = PersistentResource.createObject(
-                parent.orElse(null), newObjectClass, requestScope, id);
+                parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
 
         assignId(pResource, id);
 
