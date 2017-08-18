@@ -9,7 +9,6 @@ import static org.testng.Assert.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -38,8 +37,19 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 public class DataStoreIT extends AbstractIntegrationTestInitializer {
-    private final JsonParser jsonParser = new JsonParser();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonParser jsonParser;
+    private final ObjectMapper mapper;
+    private final Elide elide;
+
+
+    public DataStoreIT() {
+        jsonParser = new JsonParser();
+        mapper = new ObjectMapper();
+        elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .build());
+    }
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -54,10 +64,13 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
 
             Book book1 = new Book();
             book1.setTitle("A Song of Ice and Fire");
+            book1.setAuthors(Arrays.asList(georgeMartin));
             Book book2 = new Book();
             book2.setTitle("A Clash of Kings");
+            book2.setAuthors(Arrays.asList(georgeMartin));
             Book book3 = new Book();
             book3.setTitle("A Storm of Swords");
+            book3.setAuthors(Arrays.asList(georgeMartin));
 
             georgeMartin.setBooks(Arrays.asList(book1, book2, book3));
 
@@ -86,12 +99,7 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void testFormula() throws Exception {
-        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
-
+    public void testRootEntityFormulaFetch() throws Exception {
         MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         ElideResponse response = elide.get("/book", queryParams, 1);
@@ -111,13 +119,101 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    public void testSubcollectionEntityFormulaFetch() throws Exception {
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        ElideResponse response = elide.get("/author/1/books", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 3);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Song of Ice and Fire");
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
+                "A Storm of Swords");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 10);
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 30);
+    }
+
+    @Test
+    public void testRootEntityFormulaWithFilter() throws Exception {
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
+        ElideResponse response = elide.get("/book", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 1);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 20);
+    }
+
+    @Test
+    public void testSubCollectionEntityFormulaWithFilter() throws Exception {
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
+        ElideResponse response = elide.get("/author/1/books", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 1);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 20);
+    }
+
+    @Test
+    public void testRootEntityFormulaWithSorting() throws Exception {
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        queryParams.put("sort", Arrays.asList("-chapterCount"));
+        ElideResponse response = elide.get("/book", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 3);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Storm of Swords");
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
+                "A Song of Ice and Fire");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 30);
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 10);
+    }
+
+    @Test
+    public void testSubcollectionEntityFormulaWithSorting() throws Exception {
+        MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
+        queryParams.put("sort", Arrays.asList("-chapterCount"));
+        ElideResponse response = elide.get("/author/1/books", queryParams, 1);
+
+        JsonNode result = mapper.readTree(response.getBody());
+        Assert.assertEquals(result.get("data").size(), 3);
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
+                "A Storm of Swords");
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
+                "A Clash of Kings");
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
+                "A Song of Ice and Fire");
+
+        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 30);
+        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
+        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 10);
+    }
+
+    @Test
     public void testFilteredWithPassingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredPass.json");
 
-        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), 1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
@@ -127,10 +223,6 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     public void testFilteredWithFailingCheck() {
         String expected = jsonParser.getJson("/ResourceIT/testFilteredFail.json");
 
-        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
         ElideResponse response = elide.get("filtered", new MultivaluedHashMap<>(), -1);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), expected);
