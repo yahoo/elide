@@ -23,7 +23,6 @@ import example.Book;
 import example.Chapter;
 import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -41,6 +40,13 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper mapper;
     private final Elide elide;
 
+    private static final String CLASH_OF_KINGS = "A Clash of Kings";
+    private static final String STORM_OF_SWORDS = "A Storm of Swords";
+    private static final String SONG_OF_ICE_AND_FIRE = "A Song of Ice and Fire";
+    private static final String DATA = "data";
+    private static final String ATTRIBUTES = "attributes";
+    private static final String TITLE = "title";
+    private static final String CHAPTER_COUNT = "chapterCount";
 
     public DataStoreIT() {
         jsonParser = new JsonParser();
@@ -63,13 +69,13 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
             georgeMartin.setName("George R. R. Martin");
 
             Book book1 = new Book();
-            book1.setTitle("A Song of Ice and Fire");
+            book1.setTitle(SONG_OF_ICE_AND_FIRE);
             book1.setAuthors(Arrays.asList(georgeMartin));
             Book book2 = new Book();
-            book2.setTitle("A Clash of Kings");
+            book2.setTitle(CLASH_OF_KINGS);
             book2.setAuthors(Arrays.asList(georgeMartin));
             Book book3 = new Book();
-            book3.setTitle("A Storm of Swords");
+            book3.setTitle(STORM_OF_SWORDS);
             book3.setAuthors(Arrays.asList(georgeMartin));
 
             georgeMartin.setBooks(Arrays.asList(book1, book2, book3));
@@ -105,17 +111,14 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/book", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 3);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Song of Ice and Fire");
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
-                "A Clash of Kings");
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
-                "A Storm of Swords");
+        assertEquals(result.get(DATA).size(), 3);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), SONG_OF_ICE_AND_FIRE);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText(), STORM_OF_SWORDS);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 10);
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 30);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 10);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 30);
     }
 
     @Test
@@ -125,17 +128,14 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/author/1/books", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 3);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Song of Ice and Fire");
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
-                "A Clash of Kings");
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
-                "A Storm of Swords");
+        assertEquals(result.get(DATA).size(), 3);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), SONG_OF_ICE_AND_FIRE);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText(), STORM_OF_SWORDS);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 10);
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 30);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 10);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 30);
     }
 
     @Test
@@ -146,11 +146,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/book", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 1);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Clash of Kings");
+        assertEquals(result.get(DATA).size(), 1);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 20);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
     }
 
     @Test
@@ -161,11 +160,10 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/author/1/books", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 1);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Clash of Kings");
+        assertEquals(result.get(DATA).size(), 1);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 20);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
     }
 
     @Test
@@ -176,17 +174,14 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/book", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 3);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Storm of Swords");
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
-                "A Clash of Kings");
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
-                "A Song of Ice and Fire");
+        assertEquals(result.get(DATA).size(), 3);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), STORM_OF_SWORDS);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText(), SONG_OF_ICE_AND_FIRE);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 30);
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 10);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 30);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 10);
     }
 
     @Test
@@ -197,17 +192,14 @@ public class DataStoreIT extends AbstractIntegrationTestInitializer {
         ElideResponse response = elide.get("/author/1/books", queryParams, 1);
 
         JsonNode result = mapper.readTree(response.getBody());
-        Assert.assertEquals(result.get("data").size(), 3);
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("title").asText(),
-                "A Storm of Swords");
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("title").asText(),
-                "A Clash of Kings");
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("title").asText(),
-                "A Song of Ice and Fire");
+        assertEquals(result.get(DATA).size(), 3);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(TITLE).asText(), STORM_OF_SWORDS);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(TITLE).asText(), CLASH_OF_KINGS);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(TITLE).asText(), SONG_OF_ICE_AND_FIRE);
 
-        Assert.assertEquals(result.get("data").get(0).get("attributes").get("chapterCount").asInt(), 30);
-        Assert.assertEquals(result.get("data").get(1).get("attributes").get("chapterCount").asInt(), 20);
-        Assert.assertEquals(result.get("data").get(2).get("attributes").get("chapterCount").asInt(), 10);
+        assertEquals(result.get(DATA).get(0).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 30);
+        assertEquals(result.get(DATA).get(1).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 20);
+        assertEquals(result.get(DATA).get(2).get(ATTRIBUTES).get(CHAPTER_COUNT).asInt(), 10);
     }
 
     @Test
