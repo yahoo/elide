@@ -10,7 +10,7 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M\(%F:%L\) - %msg%n</pattern>
     </encoder>
   </appender>
-
+  <logger name="org.hibernate.SQL" level="DEBUG" />
   <root level="error">
     <appender-ref ref="STDOUT" />
   </root>

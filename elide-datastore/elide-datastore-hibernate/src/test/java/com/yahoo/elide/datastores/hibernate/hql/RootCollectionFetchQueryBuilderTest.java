@@ -64,6 +64,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withOuterJoins()
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book  order by example_Book.title asc";
@@ -102,13 +103,14 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleFilterExpression(Optional.of(expression))
+                .withOuterJoins()
                 .build();
 
         String expected =
                 "SELECT example_Author FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
-                + "JOIN example_Author_books.chapters example_Book_chapters   "
-                + "JOIN example_Author_books.publisher example_Book_publisher  "
+                + "FULL JOIN example_Author.books example_Author_books  "
+                + "FULL JOIN example_Author_books.chapters example_Book_chapters   "
+                + "FULL JOIN example_Author_books.publisher example_Book_publisher  "
                 + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX) "
                 + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
 
@@ -138,6 +140,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withOuterJoins()
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 

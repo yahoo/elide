@@ -35,12 +35,14 @@ public abstract class AbstractHQLQueryBuilder {
     protected Optional<Sorting> sorting;
     protected Optional<Pagination> pagination;
     protected Optional<FilterExpression> filterExpression;
+    protected boolean useFullOuterJoin = false;
     protected static final String SPACE = " ";
     protected static final String UNDERSCORE = "_";
     protected static final String PERIOD = ".";
     protected static final String COMMA = ",";
     protected static final String FROM = " FROM ";
     protected static final String JOIN = " JOIN ";
+    protected static final String FULL = " FULL";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
 
@@ -75,6 +77,11 @@ public abstract class AbstractHQLQueryBuilder {
 
     public AbstractHQLQueryBuilder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
         this.filterExpression = filterExpression;
+        return this;
+    }
+
+    public AbstractHQLQueryBuilder withOuterJoins() {
+        useFullOuterJoin = true;
         return this;
     }
 
@@ -160,10 +167,11 @@ public abstract class AbstractHQLQueryBuilder {
             String joinFragment;
 
             //This is the first path element
+            String joinType = useFullOuterJoin ? FULL : "";
             if (previousAlias == null) {
-                joinFragment = JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = joinType + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             } else {
-                joinFragment = JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = joinType + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             }
 
             if (!alreadyJoined.contains(joinFragment)) {

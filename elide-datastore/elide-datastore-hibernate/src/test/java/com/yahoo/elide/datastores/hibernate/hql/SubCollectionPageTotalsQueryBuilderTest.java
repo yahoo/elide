@@ -62,7 +62,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
 
-        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+        TestQueryWrapper query = (TestQueryWrapper) builder
+                .build();
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
@@ -127,14 +128,15 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 relationship, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder
+                .withOuterJoins()
                 .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
                 .build();
 
         String expected =
                 "SELECT COUNT(DISTINCT example_Author_books)  "
                 + "FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
-                + "JOIN example_Author_books.publisher example_Book_publisher   "
+                + "FULL JOIN example_Author.books example_Author_books  "
+                + "FULL JOIN example_Author_books.publisher example_Book_publisher   "
                 + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
                 + "AND example_Author.id IN (:id_XXX))";
 
