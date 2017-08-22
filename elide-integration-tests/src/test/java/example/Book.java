@@ -9,14 +9,18 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,7 +89,20 @@ public class Book {
         return this.publishDate;
     }
 
-    @ManyToMany
+    @Formula(value = "(SELECT COUNT(*) FROM book AS b JOIN book_chapter AS bc ON bc.book_id = b.id WHERE id=b.id)")
+    public int getChapterCount() {
+        return chapters.size();
+    }
+
+    public void setChapterCount(int unused) {
+    }
+
+    @OneToMany
+    @JoinTable(
+            name = "book_chapter",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "chapters_id")
+    )
     public Collection<Chapter> getChapters() {
         return chapters;
     }
