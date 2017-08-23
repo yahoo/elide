@@ -7,8 +7,10 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
+import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectType;
@@ -16,6 +18,7 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
@@ -204,10 +207,27 @@ public class ModelBuilder {
         builder.name(entityName);
 
         String id = dictionary.getIdFieldName(entityClass);
+        GraphQLScalarType customIdType = new GraphQLScalarType(id, "custom id type", new Coercing() {
+            @Override
+            public String serialize(Object o) {
+                return new DeferredId((PersistentResource) o).toString();
+            }
+
+            @Override
+            public String parseValue(Object o) {
+                return o.toString();
+            }
+
+            @Override
+            public String parseLiteral(Object o) {
+                return o.toString();
+            }
+        });
+
         builder.field(newFieldDefinition()
-                    .name(id)
-                    .dataFetcher(dataFetcher)
-                    .type(Scalars.GraphQLID));
+                .name(id)
+                .dataFetcher(dataFetcher)
+                .type(customIdType));
 
         builder.field(newFieldDefinition()
                     .name("__meta")
@@ -312,10 +332,26 @@ public class ModelBuilder {
         builder.name(entityName + ARGUMENT_INPUT);
 
         String id = dictionary.getIdFieldName(clazz);
+        GraphQLScalarType customIdType = new GraphQLScalarType(id, "custom id type", new Coercing() {
+            @Override
+            public Object serialize(Object o) {
+                return o;
+            }
+
+            @Override
+            public String parseValue(Object o) {
+                return o.toString();
+            }
+
+            @Override
+            public String parseLiteral(Object o) {
+                return o.toString();
+            }
+        });
 
         builder.field(newInputObjectField()
-            .name(id)
-            .type(Scalars.GraphQLID));
+                .name(id)
+                .type(customIdType));
 
         for (String attribute : dictionary.getAttributes(clazz)) {
             Class<?> attributeClass = dictionary.getType(clazz, attribute);
