@@ -353,21 +353,30 @@ public class PersistentResourceFetcher implements DataFetcher {
     private PersistentResource upsertObject(Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
-        PersistentResource upsertedResource;
         RequestScope requestScope = entity.getRequestScope();
-        PersistentResource parentResource;
-        if(!entity.getParentResource().isPresent()) {
-            parentResource = null;
-        } else {
-            parentResource = entity.getParentResource().get().toPersistentResource();
-        }
+        PersistentResource upsertedResource;
 
-        if(!id.isPresent()) { /* no id provided */
+        if(!id.isPresent()) {
+            entity.setId();
+            id = entity.getId();
+            PersistentResource parentResource;
+            if(!entity.getParentResource().isPresent()) {
+                parentResource = null;
+            } else {
+                parentResource = entity.getParentResource().get().toPersistentResource();
+            }
             upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
-        } else { /* id provided */
+        } else {
             Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
                     Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
-            if(loadedResource.isEmpty()) { /* provided resource with id doesn't exist */
+
+            if(loadedResource.isEmpty()) {
+                PersistentResource parentResource;
+                if(!entity.getParentResource().isPresent()) {
+                    parentResource = null;
+                } else {
+                    parentResource = entity.getParentResource().get().toPersistentResource();
+                }
                 upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
             } else {
                 upsertedResource = loadedResource.iterator().next();
@@ -387,14 +396,12 @@ public class PersistentResourceFetcher implements DataFetcher {
     private PersistentResource updateAttributes(PersistentResource toUpdate, Entity entity, Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
         Class<?> entityClass = entity.getEntityClass();
-
         String idFieldName = dictionary.getIdFieldName(entityClass);
+
         for(Entity.Attribute attribute : attributes) {
             if(dictionary.isAttribute(entityClass, attribute.getName())) { /* iterate through each attribute provided */
                 toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
-            } else if(Objects.equals(attribute.getName(), idFieldName)) { /* update 'id' attribute */
-                toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
-            } else {
+            } else if(!Objects.equals(attribute.getName(), idFieldName)) {
                 throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }
         }

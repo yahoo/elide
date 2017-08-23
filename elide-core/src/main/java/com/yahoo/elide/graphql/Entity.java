@@ -154,10 +154,7 @@ public class Entity {
         if(!getId().isPresent()) {
             EntityDictionary dictionary = this.requestScope.getDictionary();
             String idFieldName = dictionary.getIdFieldName(this.entityClass);
-            String uuid = UUID.randomUUID().toString()
-                    .replaceAll("[^0-9]", "")
-                    .substring(0, 3); //limit the number of digits to prevent InvalidValueException in PersistentResource.createObject()
-            //TODO: this is hacky, ask for a workaround for this.
+            String uuid = UUID.randomUUID().toString();
             this.attributes.add(new Attribute(idFieldName, uuid));
         }
     }
@@ -167,6 +164,6 @@ public class Entity {
      * @return {@link PersistentResource} object
      */
     public PersistentResource toPersistentResource() {
-        return data == null ? null : PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
+        return this.data == null ? null : PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
     }
 }
