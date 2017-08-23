@@ -370,7 +370,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
                     Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
-            if(loadedResource.isEmpty()) {
+            if(loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
                 PersistentResource parentResource;
                 if(!entity.getParentResource().isPresent()) {
                     parentResource = null;
