@@ -89,12 +89,18 @@ public class Book {
         return this.publishDate;
     }
 
+    /**
+     * Demonstrates a more complex ranking use case.
+     * @return The number of chapters in a book.
+     */
     @Formula(value = "(SELECT COUNT(*) FROM book AS b JOIN book_chapter AS bc ON bc.book_id = b.id WHERE id=b.id)")
     public int getChapterCount() {
         return chapters.size();
     }
 
     public void setChapterCount(int unused) {
+        //NOOP
+        return;
     }
 
     @OneToMany
