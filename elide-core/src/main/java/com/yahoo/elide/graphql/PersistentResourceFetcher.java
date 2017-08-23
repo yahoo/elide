@@ -373,6 +373,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else {
             upsertedResource = loadedResource.iterator().next();
         }
+        
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
