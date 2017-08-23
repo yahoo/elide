@@ -353,27 +353,27 @@ public class PersistentResourceFetcher implements DataFetcher {
     private PersistentResource upsertObject(Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
-        if(!id.isPresent()) {
-            entity.setId();
-            id = entity.getId();
-        }
-        RequestScope requestScope = entity.getRequestScope();
-
         PersistentResource upsertedResource;
-        Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
-                Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
-        if(loadedResource.isEmpty()) {
-            PersistentResource parentResource;
-            if(!entity.getParentResource().isPresent()) {
-                parentResource = null;
-            } else {
-                parentResource = entity.getParentResource().get().toPersistentResource();
-            }
-            upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
+        RequestScope requestScope = entity.getRequestScope();
+        PersistentResource parentResource;
+        if(!entity.getParentResource().isPresent()) {
+            parentResource = null;
         } else {
-            upsertedResource = loadedResource.iterator().next();
+            parentResource = entity.getParentResource().get().toPersistentResource();
         }
-        
+
+        if(!id.isPresent()) { /* no id provided */
+            upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
+        } else { /* id provided */
+            Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
+                    Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            if(loadedResource.isEmpty()) { /* provided resource with id doesn't exist */
+                upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
+            } else {
+                upsertedResource = loadedResource.iterator().next();
+            }
+        }
+
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
