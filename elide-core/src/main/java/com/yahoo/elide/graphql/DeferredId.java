@@ -16,7 +16,9 @@ import lombok.Getter;
 import java.io.IOException;
 
 /**
- * Simple encapsulation to serialize the id field from a {@link PersistentResource} object.
+ * The id for any given entity might be populated at transaction commit (as opposed to inline with the data fetch).
+ * This class wraps a {@link PersistentResource} object and allows deferred deserialization of the ID field until
+ * when it is populated and when the GraphQL response is generated.
  */
 @JsonSerialize(using = SerializeId.class)
 public class DeferredId {
