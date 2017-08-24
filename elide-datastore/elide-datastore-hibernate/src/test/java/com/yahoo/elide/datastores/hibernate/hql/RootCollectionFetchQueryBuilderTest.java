@@ -108,9 +108,9 @@ public class RootCollectionFetchQueryBuilderTest {
 
         String expected =
                 "SELECT example_Author FROM example.Author AS example_Author  "
-                + "FULL JOIN example_Author.books example_Author_books  "
-                + "FULL JOIN example_Author_books.chapters example_Book_chapters   "
-                + "FULL JOIN example_Author_books.publisher example_Book_publisher  "
+                + "LEFT JOIN example_Author.books example_Author_books  "
+                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
                 + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX) "
                 + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
 

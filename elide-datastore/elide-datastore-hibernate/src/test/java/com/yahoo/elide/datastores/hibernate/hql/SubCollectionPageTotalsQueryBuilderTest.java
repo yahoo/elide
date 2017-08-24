@@ -135,8 +135,8 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         String expected =
                 "SELECT COUNT(DISTINCT example_Author_books)  "
                 + "FROM example.Author AS example_Author  "
-                + "FULL JOIN example_Author.books example_Author_books  "
-                + "FULL JOIN example_Author_books.publisher example_Book_publisher   "
+                + "LEFT JOIN example_Author.books example_Author_books  "
+                + "LEFT JOIN example_Author_books.publisher example_Book_publisher   "
                 + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
                 + "AND example_Author.id IN (:id_XXX))";
 

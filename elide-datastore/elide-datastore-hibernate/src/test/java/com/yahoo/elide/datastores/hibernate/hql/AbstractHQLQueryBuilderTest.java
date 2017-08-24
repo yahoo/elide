@@ -54,7 +54,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         dictionary.bindEntity(Chapter.class);
         dictionary.bindEntity(Publisher.class);
 
-        useFullOuterJoin = true;
+        useLeftOuterJoin = true;
     }
 
 
@@ -93,9 +93,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         AndFilterExpression andExpression = new AndFilterExpression(orExpression, titlePredicateDuplicate);
 
         String actual = getJoinClauseFromFilters(andExpression);
-        String expected = " FULL JOIN example_Author.books example_Author_books  "
-                + "FULL JOIN example_Author_books.chapters example_Book_chapters   "
-                + "FULL JOIN example_Author_books.publisher example_Book_publisher  ";
+        String expected = " LEFT JOIN example_Author.books example_Author_books  "
+                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
         Assert.assertEquals(actual, expected);
     }
 
