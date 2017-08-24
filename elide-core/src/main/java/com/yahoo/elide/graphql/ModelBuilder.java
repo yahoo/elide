@@ -206,6 +206,8 @@ public class ModelBuilder {
         builder.name(entityName);
 
         String id = dictionary.getIdFieldName(entityClass);
+
+        /* our id types are DeferredId objects (not Scalars.GraphQLID) */
         GraphQLScalarType customIdType = new GraphQLScalarType(id, "custom id type", new Coercing() {
             @Override
             public Object serialize(Object o) {

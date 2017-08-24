@@ -15,6 +15,9 @@ import lombok.Getter;
 
 import java.io.IOException;
 
+/**
+ * Simple encapsulation to serialize the id field from a {@link PersistentResource} object.
+ */
 @JsonSerialize(using = SerializeId.class)
 public class DeferredId {
     @Getter private PersistentResource resource;
@@ -24,6 +27,9 @@ public class DeferredId {
     }
 }
 
+/**
+ * Serializer for the id value of a {@link DeferredId} object.
+ */
 class SerializeId extends JsonSerializer<DeferredId> {
     @Override
     public void serialize(DeferredId deferredId, JsonGenerator jsonGenerator,
