@@ -170,7 +170,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                         .withPossibleFilterExpression(filterExpression)
                         .withPossibleSorting(sorting)
                         .withPossiblePagination(pagination)
-                        .withOuterJoins()
                         .build();
 
         if (isScrollEnabled) {

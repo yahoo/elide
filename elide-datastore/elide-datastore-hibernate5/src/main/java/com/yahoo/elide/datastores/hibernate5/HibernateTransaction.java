@@ -141,7 +141,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             QueryWrapper query = (QueryWrapper)
                     new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
                     .withPossibleFilterExpression(Optional.of(joinedExpression))
-                    .withOuterJoins()
                     .build();
 
             return query.getQuery().uniqueResult();
@@ -167,7 +166,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         final QueryWrapper query = (QueryWrapper)
                 new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
                         .withPossibleFilterExpression(filterExpression)
-                        .withOuterJoins()
                         .withPossibleSorting(sorting)
                         .withPossiblePagination(pagination)
                         .build();
@@ -213,7 +211,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                 final QueryWrapper query = (QueryWrapper)
                         new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
                                 .withPossibleFilterExpression(filterExpression)
-                                .withOuterJoins()
                                 .withPossibleSorting(sorting)
                                 .withPossiblePagination(pagination)
                                 .build();
@@ -242,7 +239,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         QueryWrapper query = (QueryWrapper)
                 new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, sessionWrapper)
                 .withPossibleFilterExpression(filterExpression)
-                .withOuterJoins()
                 .build();
 
         return (Long) query.getQuery().uniqueResult();
@@ -263,7 +259,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         QueryWrapper query = (QueryWrapper)
                 new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
                 .withPossibleFilterExpression(filterExpression)
-                .withOuterJoins()
                 .build();
 
         return (Long) query.getQuery().uniqueResult();

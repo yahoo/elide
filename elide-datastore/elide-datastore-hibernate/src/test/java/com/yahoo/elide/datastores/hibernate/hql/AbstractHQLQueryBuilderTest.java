@@ -53,8 +53,6 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);
         dictionary.bindEntity(Publisher.class);
-
-        useLeftOuterJoin = true;
     }
 
 

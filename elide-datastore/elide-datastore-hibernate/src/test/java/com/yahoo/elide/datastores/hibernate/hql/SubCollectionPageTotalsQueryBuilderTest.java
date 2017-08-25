@@ -128,7 +128,6 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 relationship, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withOuterJoins()
                 .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
                 .build();
 

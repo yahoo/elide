@@ -35,7 +35,6 @@ public abstract class AbstractHQLQueryBuilder {
     protected Optional<Sorting> sorting;
     protected Optional<Pagination> pagination;
     protected Optional<FilterExpression> filterExpression;
-    protected boolean useLeftOuterJoin = false;
     protected static final String SPACE = " ";
     protected static final String UNDERSCORE = "_";
     protected static final String PERIOD = ".";
@@ -77,11 +76,6 @@ public abstract class AbstractHQLQueryBuilder {
 
     public AbstractHQLQueryBuilder withPossibleFilterExpression(Optional<FilterExpression> filterExpression) {
         this.filterExpression = filterExpression;
-        return this;
-    }
-
-    public AbstractHQLQueryBuilder withOuterJoins() {
-        useLeftOuterJoin = true;
         return this;
     }
 
@@ -167,11 +161,10 @@ public abstract class AbstractHQLQueryBuilder {
             String joinFragment;
 
             //This is the first path element
-            String joinType = useLeftOuterJoin ? LEFT : "";
             if (previousAlias == null) {
-                joinFragment = joinType + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = LEFT + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             } else {
-                joinFragment = joinType + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = LEFT + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             }
 
             if (!alreadyJoined.contains(joinFragment)) {

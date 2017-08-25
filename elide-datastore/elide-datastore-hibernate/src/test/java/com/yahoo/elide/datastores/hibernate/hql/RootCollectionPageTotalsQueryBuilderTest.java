@@ -108,7 +108,6 @@ public class RootCollectionPageTotalsQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleFilterExpression(Optional.of(expression))
-                .withOuterJoins()
                 .build();
 
         String expected =

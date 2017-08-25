@@ -64,7 +64,6 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
-                .withOuterJoins()
                 .build();
 
         String expected = "SELECT example_Book FROM example.Book AS example_Book  order by example_Book.title asc";
@@ -103,7 +102,6 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleFilterExpression(Optional.of(expression))
-                .withOuterJoins()
                 .build();
 
         String expected =
@@ -140,7 +138,6 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
-                .withOuterJoins()
                 .withPossibleFilterExpression(Optional.of(idPredicate))
                 .build();
 
