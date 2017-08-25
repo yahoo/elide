@@ -1,4 +1,8 @@
 # Change Log
+## 3.1.2
+**Fixes**
+ * Fix for issue #508
+
 ## 3.1.1
 **Fixes**
  * Fix id extraction from multiplex transaction.

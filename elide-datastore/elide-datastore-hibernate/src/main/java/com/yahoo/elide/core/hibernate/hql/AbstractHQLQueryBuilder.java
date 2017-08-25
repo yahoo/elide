@@ -41,6 +41,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String COMMA = ",";
     protected static final String FROM = " FROM ";
     protected static final String JOIN = " JOIN ";
+    protected static final String LEFT = " LEFT";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
 
@@ -161,9 +162,9 @@ public abstract class AbstractHQLQueryBuilder {
 
             //This is the first path element
             if (previousAlias == null) {
-                joinFragment = JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = LEFT + JOIN + typeAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             } else {
-                joinFragment = JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
+                joinFragment = LEFT + JOIN + previousAlias + PERIOD + fieldName + SPACE + alias + SPACE;
             }
 
             if (!alreadyJoined.contains(joinFragment)) {

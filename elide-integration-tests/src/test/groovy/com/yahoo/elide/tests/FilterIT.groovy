@@ -1453,6 +1453,33 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         }
     }
 
+    /**
+     * Verifies that issue 508 is closed.
+     */
+    @Test
+    void testIssue508() {
+        def result = mapper.readTree(RestAssured.get("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]").asString())
+        Assert.assertTrue(result.get("data").size() == 2)
+
+        JsonNode pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 2)
+
+        result = mapper.readTree(RestAssured.get("book?filter=(authors.name=='Thomas Harris')&page[totals]").asString())
+        Assert.assertTrue(result.get("data").size() == 1)
+
+        pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
+
+        result = mapper.readTree(RestAssured.get("book?filter=(publisher.name=='Default Publisher')&page[totals]").asString())
+        Assert.assertTrue(result.get("data").size() == 1)
+
+        pageNode = result.get("meta").get("page")
+        Assert.assertNotNull(pageNode)
+        Assert.assertEquals(pageNode.get("totalRecords").asInt(), 1)
+    }
+
     @Test
     void testGetBadRelationshipNameWithNestedFieldFilter() {
         /* Test Default */

@@ -91,9 +91,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         AndFilterExpression andExpression = new AndFilterExpression(orExpression, titlePredicateDuplicate);
 
         String actual = getJoinClauseFromFilters(andExpression);
-        String expected = " JOIN example_Author.books example_Author_books  "
-                + "JOIN example_Author_books.chapters example_Book_chapters   "
-                + "JOIN example_Author_books.publisher example_Book_publisher  ";
+        String expected = " LEFT JOIN example_Author.books example_Author_books  "
+                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
         Assert.assertEquals(actual, expected);
     }
 
