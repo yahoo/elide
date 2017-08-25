@@ -1454,6 +1454,18 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
+    void testIssueX() {
+        def result = mapper.readTree(RestAssured.get("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')").asString())
+        Assert.assertTrue(result.get("data").size() == 2)
+
+        result = mapper.readTree(RestAssured.get("book?filter=(authors.name=='Thomas Harris')").asString())
+        Assert.assertTrue(result.get("data").size() == 1)
+
+        result = mapper.readTree(RestAssured.get("book?filter=(publisher.name=='Default Publisher')").asString())
+        Assert.assertTrue(result.get("data").size() == 1)
+    }
+
+    @Test
     void testGetBadRelationshipNameWithNestedFieldFilter() {
         /* Test Default */
         def result = mapper.readTree(RestAssured.get("book?filter[book.author12.name]=Null Ned").asString())
