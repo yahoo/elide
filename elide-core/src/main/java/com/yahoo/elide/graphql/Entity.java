@@ -1,4 +1,5 @@
-/* Copyright 2017, Yahoo Inc.
+/*
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -20,6 +21,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Represents a GraphQL Input Object
+ */
 public class Entity {
     @Getter private Optional<Entity> parentResource;
     private Map<String, Object> data;
@@ -29,10 +33,11 @@ public class Entity {
     @Getter private Set<Relationship> relationships;
 
     /**
-     * Class constructor
+     * Class constructor.
      * @param parentResource parent entity
      * @param data entity data
      * @param entityClass binding entity class
+     * @param requestScope the request context object
      */
     public Entity(Optional<Entity> parentResource, Map<String, Object> data,
                      Class<?> entityClass, RequestScope requestScope) {
@@ -57,10 +62,10 @@ public class Entity {
     }
 
     /**
-     * Extract the attributes of the entity
+     * Extract the attributes of the entity.
      */
     private void setAttributes() {
-        if(this.data != null) {
+        if (this.data != null) {
             this.attributes = new HashSet<>();
             EntityDictionary dictionary = this.requestScope.getDictionary();
             String idFieldName = dictionary.getIdFieldName(this.entityClass);
@@ -77,10 +82,10 @@ public class Entity {
     }
 
     /**
-     * Extract the relationships of the entity
+     * Extract the relationships of the entity.
      */
     private void setRelationships() {
-        if(this.data != null) {
+        if (this.data != null) {
             this.relationships = new HashSet<>();
             EntityDictionary dictionary = this.requestScope.getDictionary();
 
@@ -90,7 +95,10 @@ public class Entity {
                     Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
                     Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
                     if (isToOne) {
-                        entitySet.add(new Entity(Optional.of(this), ((Map<String, Object>) entry.getValue()), loadClass, this.requestScope));
+                        entitySet.add(new Entity(Optional.of(this),
+                                ((Map<String, Object>) entry.getValue()),
+                                loadClass,
+                                this.requestScope));
                     } else {
                         for (Map<String, Object> row : (List<Map<String, Object>>) entry.getValue()) {
                             entitySet.add(new Entity(Optional.of(this), row, loadClass, this.requestScope));
@@ -103,15 +111,15 @@ public class Entity {
     }
 
     /**
-     * Get the relationship with name {@param name}
+     * Get the relationship with name.
      * @param name Name of relationship
      * @return Relationship
      */
     public Optional<Relationship> getRelationship(String name) {
         Iterator<Relationship> it = this.relationships.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Relationship relationship = it.next();
-            if(relationship.getName().equals(name)) {
+            if (relationship.getName().equals(name)) {
                 return Optional.of(relationship);
             }
         }
@@ -119,15 +127,15 @@ public class Entity {
     }
 
     /**
-     * Get an Attribute with name {@param name}
+     * Get an Attribute with name
      * @param name Name of attribute
      * @return Attribute
      */
     public Optional<Attribute> getAttribute(String name) {
         Iterator<Attribute> it = this.attributes.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Attribute attribute = it.next();
-            if(attribute.getName().equals(name)) {
+            if (attribute.getName().equals(name)) {
                 return Optional.of(attribute);
             }
         }
@@ -135,7 +143,7 @@ public class Entity {
     }
 
     /**
-     * Get the id of the entity
+     * Get the id of the entity.
      * @return the optional id
      */
     public Optional<String> getId() {
@@ -148,10 +156,10 @@ public class Entity {
     }
 
     /**
-     * Set the id of the entity if it doesn't have one already
+     * Set the id of the entity if it doesn't have one already.
      */
     public void setId() {
-        if(!getId().isPresent()) {
+        if (!getId().isPresent()) {
             EntityDictionary dictionary = this.requestScope.getDictionary();
             String idFieldName = dictionary.getIdFieldName(this.entityClass);
             String uuid = UUID.randomUUID().toString();
@@ -160,10 +168,12 @@ public class Entity {
     }
 
     /**
-     * Convert {@link Entity} to {@link PersistentResource} object
+     * Convert {@link Entity} to {@link PersistentResource} object.
      * @return {@link PersistentResource} object
      */
     public PersistentResource toPersistentResource() {
-        return this.data == null ? null : PersistentResource.loadRecord(this.entityClass, getId().orElse(null), this.requestScope);
+        return this.data == null ? null : PersistentResource.loadRecord(this.entityClass,
+                getId().orElse(null),
+                this.requestScope);
     }
 }

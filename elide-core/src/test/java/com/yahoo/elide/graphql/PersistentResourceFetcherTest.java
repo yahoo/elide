@@ -36,7 +36,7 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
     protected RequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
-    private static final Logger log = LoggerFactory.getLogger(GraphQL.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
 
     @BeforeMethod
     public void setupFetcherTest() {
@@ -91,7 +91,7 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
         requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
-            log.debug(mapper.writeValueAsString(result.getData()));
+            LOG.debug(mapper.writeValueAsString(result.getData()));
             Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
         } catch (JsonProcessingException e) {
             Assert.fail("JSON parsing exception", e);
@@ -102,7 +102,7 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
         //debug for errors
-        log.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
+        LOG.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
 
         Assert.assertNotEquals(result.getErrors().size(), 0);
     }

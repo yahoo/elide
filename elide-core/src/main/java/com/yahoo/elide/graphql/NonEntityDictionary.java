@@ -39,6 +39,6 @@ public class NonEntityDictionary extends EntityDictionary {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.put(cls, new EntityBinding(this, cls, type));
+        entityBindings.put(cls, new EntityBinding(this, cls, type, type));
     }
 }

@@ -47,8 +47,8 @@ public class Environment {
 
         outputType = environment.getFieldType();
 
-        parentResource = environment.getSource() instanceof RequestScope ? null :
-                (PersistentResource) environment.getSource();
+        parentResource = environment.getSource() instanceof RequestScope ? null
+                : (PersistentResource) environment.getSource();
 
         field = environment.getFields().get(0);
 

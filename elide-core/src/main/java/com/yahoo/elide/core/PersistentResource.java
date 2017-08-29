@@ -159,7 +159,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param <T> type of resource
      * @return persistent resource
      * @deprecated Will be removed in Elide 4. Instead use
-     *  {@link PersistentResource#createObject(PersistentResource, Class, RequestScope, Optional<String>)}
      */
     @Deprecated
     public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
@@ -306,8 +305,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Iterable list;
         Optional<FilterExpression> filter = filterExpression;
         Optional<FilterExpression> loadFilterExpression = requestScope.getLoadFilterExpression(loadClass);
-        if(filterExpression.isPresent()) {
-            if(loadFilterExpression.isPresent()) {
+        if (filterExpression.isPresent()) {
+            if (loadFilterExpression.isPresent()) {
                 filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
             }
         } else {

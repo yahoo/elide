@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Bootstrap for GraphQL tests
+ * Bootstrap for GraphQL tests.
  */
 public class GraphQLTest {
     protected EntityDictionary dictionary;

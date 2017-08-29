@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 
+/**
+ * Invoked by GraphQL Java to fetch/mutate data from Elide.
+ */
 @Slf4j
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
@@ -66,7 +69,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
-        if(operation != RelationshipOp.FETCH) {
+        if (operation != RelationshipOp.FETCH) {
             filterSortPaginateSanityCheck(context);
         }
 
@@ -97,7 +100,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void filterSortPaginateSanityCheck(Environment environment) {
-        if(environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
+        if (environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
                 || environment.first.isPresent()) {
             throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
         }
@@ -116,9 +119,9 @@ public class PersistentResourceFetcher implements DataFetcher {
                 ? "(" + children.stream().map(Field::getName).collect(Collectors.toList()) + ")" : "");
         GraphQLType parent = environment.parentType;
         log.debug("{} {} fields with parent {}<{}>",
-                operation, requestedFields, parent.getClass().getSimpleName(), parent.getName());
+            operation, requestedFields, parent.getClass().getSimpleName(), parent.getName());
     }
-    
+
     /**
      * handle FETCH operation
      * @param context Environment encapsulating graphQL's request environment
@@ -126,7 +129,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object fetchObjects(Environment context) {
         /* sanity check for data argument w FETCH */
-        if(context.data.isPresent()) {
+        if (context.data.isPresent()) {
             throw new BadRequestException("FETCH must not include data");
         }
 
@@ -143,11 +146,11 @@ public class PersistentResourceFetcher implements DataFetcher {
             Class parentClass = context.parentResource.getResourceClass();
             String idFieldName = dictionary.getIdFieldName(parentClass);
             String fieldName = context.field.getName();
-            if(dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+            if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
                 return context.parentResource.getAttribute(fieldName);
-            } else if(dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
+            } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
                 return fetchRelationship(context.parentResource, fieldName, context.ids);
-            } else if(Objects.equals(idFieldName, fieldName)) {
+            } else if (Objects.equals(idFieldName, fieldName)) {
                 return new DeferredId(context.parentResource);
             } else {
                 throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
@@ -171,15 +174,17 @@ public class PersistentResourceFetcher implements DataFetcher {
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters) {
         /* fetching a collection */
-        if(!ids.isPresent()) {
-            Set<PersistentResource> records = PersistentResource.loadRecords(entityClass, requestScope, Optional.empty());
+        if (!ids.isPresent()) {
+            Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
+                    requestScope,
+                    Optional.empty());
             //TODO: paginate/filter/sort
             return records;
         } else { /* fetching by id(s) */
             List<String> idList = ids.get();
 
             /* handle empty list of ids */
-            if(idList.isEmpty()) {
+            if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
@@ -195,7 +200,6 @@ public class PersistentResourceFetcher implements DataFetcher {
             filterExpression = Optional.of(new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityClass,
-                            entityTypeName,
                             idType,
                             idField),
                     Operator.IN,
@@ -214,10 +218,10 @@ public class PersistentResourceFetcher implements DataFetcher {
     private Object fetchRelationship(PersistentResource parentResource, String fieldName,
                                      Optional<List<String>> ids) {
         Set<PersistentResource> relations = new HashSet<>();
-        if(ids.isPresent()) {
+        if (ids.isPresent()) {
             List<String> idList = ids.get();
-//            TODO: poor latency (for loop), refactor getRelation() to allow filterexpression
-            for(String id : idList) {
+            //TODO: poor latency (for loop), refactor getRelation() to allow filterexpression
+            for (String id : idList) {
                 relations.add(parentResource.getRelation(fieldName, id));
             }
         } else {
@@ -227,7 +231,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* check for toOne relationships */
         Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
 
-        if(isToOne) {
+        if (isToOne) {
             return relations.iterator().next();
         } else {
             return relations;
@@ -241,42 +245,45 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Set<PersistentResource> upsertObjects(Environment context) {
         /* sanity check for id and data argument w UPSERT */
-        if(context.ids.isPresent()) {
+        if (context.ids.isPresent()) {
             throw new BadRequestException("UPSERT must not include ids");
         }
 
-        if(!context.data.isPresent()) {
+        if (!context.data.isPresent()) {
             throw new BadRequestException("UPSERT must include data argument");
         }
 
         Class<?> entityClass;
         EntityDictionary dictionary = context.requestScope.getDictionary();
-        if(context.isRoot()) {
+        if (context.isRoot()) {
             entityClass = dictionary.getEntityClass(context.field.getName());
         } else {
-            entityClass = dictionary.getParameterizedType(context.parentResource.getResourceClass(), context.field.getName());
+            entityClass = dictionary.getParameterizedType(context.parentResource.getResourceClass(),
+                    context.field.getName());
         }
 
         /* form entities */
         Optional<Entity> parentEntity;
-        if(!context.isRoot()) {
-            parentEntity = Optional.of(new Entity(Optional.empty(), null, context.parentResource.getResourceClass(),
+        if (!context.isRoot()) {
+            parentEntity = Optional.of(new Entity(Optional.empty(),
+                    null,
+                    context.parentResource.getResourceClass(),
                     context.requestScope));
         } else {
             parentEntity = Optional.empty();
         }
         Set<Entity> entitySet = new HashSet<>();
-        for(Map<String, Object> input : context.data.get()) {
+        for (Map<String, Object> input : context.data.get()) {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
         /* upsert */
-        for(Entity entity : entitySet) {
+        for (Entity entity : entitySet) {
             graphWalker(entity, this::upsertObject);
         }
 
         /* fixup relationships */
-        for(Entity entity : entitySet) {
+        for (Entity entity : entitySet) {
             graphWalker(entity, this::updateRelationship);
             if (!context.isRoot()) { /* add relation between parent and nested entity */
                 context.parentResource.addRelation(context.field.getName(), entity.toPersistentResource());
@@ -305,9 +312,9 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<Entity> visited = new HashSet();
         toVisit.add(entity);
 
-        while(!toVisit.isEmpty()) {
+        while (!toVisit.isEmpty()) {
             Entity currentEntity = toVisit.remove();
-            if(visited.contains(currentEntity)) {
+            if (visited.contains(currentEntity)) {
                 continue;
             } else {
                 visited.add(currentEntity);
@@ -315,8 +322,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             function.execute(currentEntity);
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
-            for(Entity.Relationship relationship : relationshipEntities) {
-                for(Entity relation : relationship.getValue()) {
+            for (Entity.Relationship relationship : relationshipEntities) {
+                for (Entity relation : relationship.getValue()) {
                     toVisit.add(relation);
                 }
             }
@@ -334,9 +341,9 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<PersistentResource> toUpdate;
 
         /* loop over each relationship */
-        for(Entity.Relationship relationship : relationshipEntities) {
+        for (Entity.Relationship relationship : relationshipEntities) {
             toUpdate = new HashSet<>();
-            for(Entity relation : relationship.getValue()) {
+            for (Entity relation : relationship.getValue()) {
                 toUpdate.add(relation.toPersistentResource());
             }
             resource.updateRelation(relationship.getName(), toUpdate);
@@ -355,22 +362,32 @@ public class PersistentResourceFetcher implements DataFetcher {
         RequestScope requestScope = entity.getRequestScope();
         PersistentResource upsertedResource;
         PersistentResource parentResource;
-        if(!entity.getParentResource().isPresent()) {
+        if (!entity.getParentResource().isPresent()) {
             parentResource = null;
         } else {
             parentResource = entity.getParentResource().get().toPersistentResource();
         }
 
-        if(!id.isPresent()) {
+        if (!id.isPresent()) {
             entity.setId();
             id = entity.getId();
-            upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
+            upsertedResource = PersistentResource.createObject(parentResource,
+                    entity.getEntityClass(),
+                    requestScope,
+                    id);
         } else {
             Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
-                    Optional.of(Arrays.asList(id.get())), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+                    Optional.of(Arrays.asList(id.get())),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty());
 
-            if(loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
-                upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(), requestScope, id);
+            if (loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
+                upsertedResource = PersistentResource.createObject(parentResource,
+                        entity.getEntityClass(),
+                        requestScope,
+                        id);
             } else {
                 upsertedResource = loadedResource.iterator().next();
             }
@@ -386,15 +403,18 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param attributes Set of entity attributes
      * @return Persistence Resource object
      */
-    private PersistentResource updateAttributes(PersistentResource toUpdate, Entity entity, Set<Entity.Attribute> attributes) {
+    private PersistentResource updateAttributes(PersistentResource toUpdate,
+                                                Entity entity,
+                                                Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
         Class<?> entityClass = entity.getEntityClass();
         String idFieldName = dictionary.getIdFieldName(entityClass);
 
-        for(Entity.Attribute attribute : attributes) {
-            if(dictionary.isAttribute(entityClass, attribute.getName())) { /* iterate through each attribute provided */
+        /* iterate through each attribute provided */
+        for (Entity.Attribute attribute : attributes) {
+            if (dictionary.isAttribute(entityClass, attribute.getName())) {
                 toUpdate.updateAttribute(attribute.getName(), attribute.getValue());
-            } else if(!Objects.equals(attribute.getName(), idFieldName)) {
+            } else if (!Objects.equals(attribute.getName(), idFieldName)) {
                 throw new IllegalStateException("Unrecognized attribute passed to 'data': " + attribute.getName());
             }
         }
@@ -409,11 +429,11 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object deleteObjects(Environment context) {
         /* sanity check for id and data argument w DELETE */
-        if(context.data.isPresent()) {
+        if (context.data.isPresent()) {
             throw new BadRequestException("DELETE must not include data argument");
         }
 
-        if(!context.ids.isPresent()) {
+        if (!context.ids.isPresent()) {
             throw new BadRequestException("DELETE must include ids argument");
         }
 
@@ -429,16 +449,16 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object removeObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
-        if(context.data.isPresent()) {
+        if (context.data.isPresent()) {
             throw new BadRequestException("REPLACE must not include data argument");
         }
 
-        if(!context.ids.isPresent()) {
+        if (!context.ids.isPresent()) {
             throw new BadRequestException("REPLACE must include ids argument");
         }
 
         Set<PersistentResource> toRemove = (Set<PersistentResource>) fetchObjects(context);
-        if(!context.isRoot()) { /* has parent */
+        if (!context.isRoot()) { /* has parent */
             toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
             toRemove.forEach(PersistentResource::deleteResource);
@@ -454,11 +474,11 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object replaceObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
-        if(!context.data.isPresent()) {
+        if (!context.data.isPresent()) {
             throw new BadRequestException("REPLACE must include data argument");
         }
 
-        if(context.ids.isPresent()) {
+        if (context.ids.isPresent()) {
             throw new BadRequestException("REPLACE must not include ids argument");
         }
 
@@ -466,7 +486,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         Set<PersistentResource> upsertedObjects = upsertObjects(context);
         Set<PersistentResource> toDelete = Sets.difference(existingObjects, upsertedObjects);
 
-        if(!context.isRoot()) { /* has parent */
+        if (!context.isRoot()) { /* has parent */
             toDelete.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
             toDelete.forEach(PersistentResource::deleteResource);
