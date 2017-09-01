@@ -177,8 +177,11 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* fetching a collection */
         if (!ids.isPresent()) {
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
-                    requestScope,
-                    Optional.empty());
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    requestScope);
+
             //TODO: paginate/filter/sort
             return records;
         } else { /* fetching by id(s) */
@@ -205,7 +208,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                             idField),
                     Operator.IN,
                     new ArrayList<>(idList)));
-            return PersistentResource.loadRecords(entityClass, requestScope, filterExpression);
+            return PersistentResource.loadRecords(entityClass,
+                    filterExpression, Optional.empty(), Optional.empty(), requestScope);
         }
     }
 

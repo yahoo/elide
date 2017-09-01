@@ -17,7 +17,9 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -126,11 +128,16 @@ public class CollectionTerminalState extends BaseState {
                 collection = parent.get().getRelationCheckedFiltered(relationName.get());
             }
         } else {
-            if (hasSortingOrPagination) {
-                collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
-            } else {
-                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope, Optional.empty());
-            }
+            Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
+            Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+            Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+
+            collection = (Set) PersistentResource.loadRecords(
+                entityClass,
+                filterExpression,
+                sorting,
+                pagination,
+                requestScope);
         }
 
         return collection;

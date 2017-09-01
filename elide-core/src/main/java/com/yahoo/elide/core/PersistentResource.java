@@ -288,39 +288,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Load a collection from the datastore.
-     *
-     * @param loadClass the load class
-     * @param requestScope the request scope
-     * @return a filtered collection of resources loaded from the datastore.
-     */
-    public static Set<PersistentResource> loadRecords(Class<?> loadClass, RequestScope requestScope,
-                                                      Optional<FilterExpression> filterExpression) {
-        DataStoreTransaction tx = requestScope.getTransaction();
-
-        if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
-            return Collections.emptySet();
-        }
-
-        Iterable list;
-        Optional<FilterExpression> filter = filterExpression;
-        Optional<FilterExpression> loadFilterExpression = requestScope.getLoadFilterExpression(loadClass);
-        if (filterExpression.isPresent()) {
-            if (loadFilterExpression.isPresent()) {
-                filter = Optional.of(new AndFilterExpression(filterExpression.get(), loadFilterExpression.get()));
-            }
-        } else {
-            filter = loadFilterExpression;
-        }
-
-        list = tx.loadObjects(loadClass, filter,
-                Optional.empty(), Optional.empty(), requestScope);
-        Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
-        resources = filter(ReadPermission.class, resources, false);
-        return resources;
-    }
-
-    /**
      * Get a FilterExpression parsed from FilterExpressionCheck.
      *
      * @param <T> the type parameter
@@ -344,8 +311,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param requestScope the request scope
      * @return a filtered collection of resources loaded from the datastore.
      */
-    public static Set<PersistentResource> loadRecordsWithSortingAndPagination(Class<?> loadClass,
-                                                                              RequestScope requestScope) {
+    public static Set<PersistentResource> loadRecords(
+            Class<?> loadClass,
+            Optional<FilterExpression> filterExpression,
+            Optional<Sorting> sorting,
+            Optional<Pagination> pagination,
+            RequestScope requestScope) {
+
         DataStoreTransaction tx = requestScope.getTransaction();
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
@@ -353,16 +325,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
-        if (! requestScope.getPagination().isDefaultInstance()
-                && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
+        if (pagination.isPresent() && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
         }
 
         Iterable list;
-        Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(loadClass);
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
         list = tx.loadObjects(loadClass, filterExpression, sorting,
                 pagination.map(p -> p.evaluate(loadClass)), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
