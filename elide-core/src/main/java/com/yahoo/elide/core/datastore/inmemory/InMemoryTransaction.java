@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -37,11 +37,11 @@ import java.util.stream.Collectors;
 public class InMemoryTransaction implements DataStoreTransaction {
     private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore;
+    private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
 
-    public InMemoryTransaction(ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore,
+    public InMemoryTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                EntityDictionary dictionary) {
         this.dataStore = dataStore;
         this.dictionary = dictionary;
@@ -83,7 +83,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
                 .forEach(op -> {
                     Object instance = op.getInstance();
                     String id = op.getId();
-                    ConcurrentHashMap<String, Object> data = dataStore.get(op.getType());
+                    Map<String, Object> data = dataStore.get(op.getType());
                     if (op.getDelete()) {
                         data.remove(id);
                     } else {
@@ -136,19 +136,21 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
                                         Optional<Sorting> sorting, Optional<Pagination> pagination,
                                         RequestScope scope) {
-        ConcurrentHashMap<String, Object> data = dataStore.get(entityClass);
+        Map<String, Object> data = dataStore.get(entityClass);
+        synchronized (data) {
 
-        // Support for filtering
-        if (filterExpression.isPresent()) {
-            Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
-            return (Collection<Object>) data.values().stream()
-                    .filter(predicate::test)
-                    .collect(Collectors.toList());
+            // Support for filtering
+            if (filterExpression.isPresent()) {
+                Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
+                return data.values().stream()
+                        .filter(predicate::test)
+                        .collect(Collectors.toList());
+            }
+
+            List<Object> results = new ArrayList<>();
+            data.values().forEach(results::add);
+            return results;
         }
-
-        List<Object> results = new ArrayList<>();
-        data.forEachValue(1, results::add);
-        return results;
     }
 
     @Override

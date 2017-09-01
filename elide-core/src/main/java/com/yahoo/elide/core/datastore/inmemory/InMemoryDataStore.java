@@ -16,14 +16,16 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import javax.persistence.Entity;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple in-memory only database.
  */
 public class InMemoryDataStore implements DataStore {
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter private EntityDictionary dictionary;
     @Getter private final Package beanPackage;
 
@@ -41,7 +43,7 @@ public class InMemoryDataStore implements DataStore {
                         .startsWith(beanPackage.getName()))
                 .forEach((cls) -> {
                     dictionary.bindEntity(cls);
-                    dataStore.put(cls, new ConcurrentHashMap<>());
+                    dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
                 });
         this.dictionary = dictionary;
     }
@@ -57,7 +59,7 @@ public class InMemoryDataStore implements DataStore {
         sb.append("Data store contents ");
         for (Class<?> cls : dataStore.keySet()) {
             sb.append("\n Table ").append(cls).append(" contents \n");
-            ConcurrentHashMap<String, Object> data = dataStore.get(cls);
+            Map<String, Object> data = dataStore.get(cls);
             for (Map.Entry<String, Object> e : data.entrySet()) {
                 sb.append(" Id: ").append(e.getKey()).append(" Value: ").append(e.getValue());
             }

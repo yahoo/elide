@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.EntityDictionary;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 /**
  * InMemoryDataStore transaction handler.
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Deprecated
 public class InMemoryTransaction extends com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction {
-    public InMemoryTransaction(ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore,
+    public InMemoryTransaction(Map<Class<?>, Map<String, Object>> dataStore,
                                EntityDictionary dictionary) {
         super(dataStore, dictionary);
     }

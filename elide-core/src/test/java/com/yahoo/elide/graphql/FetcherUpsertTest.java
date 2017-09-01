@@ -248,6 +248,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "} "
                 + "}";
 
+        //These are not in the same order as the request.
+        //Both updating and creating new objects in the collection
+        //cannot guarantee the order of the resulting collection.
         String expectedResponse = "{"
                 + "\"author\":[{"
                 + "\"id\":\"1\","
