@@ -277,7 +277,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else {
             parentEntity = Optional.empty();
         }
-        Set<Entity> entitySet = new HashSet<>();
+        LinkedHashSet<Entity> entitySet = new LinkedHashSet<>();
         for (Map<String, Object> input : context.data.get()) {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
