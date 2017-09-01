@@ -25,6 +25,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -290,7 +291,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
         }
 
-        return entitySet.stream().map(Entity::toPersistentResource).collect(Collectors.toSet());
+        return entitySet.stream()
+                .map(Entity::toPersistentResource)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
