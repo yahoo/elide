@@ -81,11 +81,46 @@ public class Pagination {
     }
 
     /**
+     * Given an offset and first parameter from GraphQL, generate page and pageSize values.
+     *
+     * @param offsetString Provided offset string
+     * @param firstString Provided first string
+     * @param elideSettings Elide settings object containing default pagination values
+     * @return The new Pagination object.
+     */
+    public static Pagination fromOffsetAndFirst(String offsetString, String firstString, ElideSettings elideSettings) {
+        int offset;
+        int first;
+
+        try {
+            offset = Integer.parseInt(offsetString);
+            first = Integer.parseInt(firstString);
+        } catch (NumberFormatException e) {
+            throw new InvalidValueException("Offset and first must be numeric values.");
+        }
+
+        if (offset < 0) {
+            throw new InvalidValueException("Offset values must be non-negative.");
+        } else if (first < 1) {
+            throw new InvalidValueException("Limit values must be positive.");
+        }
+
+        Map<PaginationKey, Integer> pageData = new HashMap<PaginationKey, Integer>() {
+            {
+                put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset);
+                put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
+            }
+        };
+
+        return getPagination(pageData, elideSettings);
+    }
+
+    /**
      * Given json-api paging params, generate page and pageSize values from query params.
      *
      * @param queryParams The page queryParams (ImmuatableMultiValueMap).
      * @param elideSettings Elide settings containing pagination default limits
-     * @return The new Page object.
+     * @return The new Pagination object.
      */
     public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams,
                                               ElideSettings elideSettings)
@@ -114,12 +149,7 @@ public class Pagination {
                                 + PAGE_KEYS_CSV);
                     }
                 });
-        // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
-        Pagination result = new Pagination(pageData,
-                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
-        result.offset = 0;
-        result.limit = elideSettings.getDefaultPageSize();
-        return result;
+        return getPagination(pageData, elideSettings);
     }
 
     /**
@@ -136,6 +166,22 @@ public class Pagination {
      */
     public long getPageTotals() {
         return pageTotals;
+    }
+
+    /**
+     * Construct a pagination object from page data and elide settings.
+     *
+     * @param pageData Map containing pagination information
+     * @param elideSettings Settings containing pagination defaults
+     * @return Pagination object
+     */
+    private static Pagination getPagination(Map<PaginationKey, Integer> pageData, ElideSettings elideSettings) {
+        // Decidedly default settings until evaluate is called (a call to evaluate from the datastore will update this):
+        Pagination result = new Pagination(pageData,
+                elideSettings.getDefaultMaxPageSize(), elideSettings.getDefaultPageSize());
+        result.offset = 0;
+        result.limit = elideSettings.getDefaultPageSize();
+        return result;
     }
 
     /**

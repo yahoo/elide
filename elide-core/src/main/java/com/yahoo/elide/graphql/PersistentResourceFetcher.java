@@ -14,6 +14,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -175,10 +176,13 @@ public class PersistentResourceFetcher implements DataFetcher {
                                                 Optional<String> filters) {
         /* fetching a collection */
         if (!ids.isPresent()) {
+            Optional<Pagination> pagination = first.map(fStr ->
+                    Pagination.fromOffsetAndFirst(offset.orElse("0"), fStr, requestScope.getElideSettings()));
+
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
                     Optional.empty(),
                     Optional.empty(),
-                    Optional.empty(),
+                    pagination,
                     requestScope);
 
             //TODO: paginate/filter/sort

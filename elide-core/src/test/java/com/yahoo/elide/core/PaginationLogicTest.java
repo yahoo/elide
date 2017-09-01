@@ -77,6 +77,52 @@ public class PaginationLogicTest {
         Assert.assertEquals(pageData.getLimit(), Pagination.DEFAULT_PAGE_LIMIT);
     }
 
+    @Test
+    public void checkValidOffsetAndFirstRequest() {
+        Pagination pageData = Pagination.fromOffsetAndFirst("1", "10", elideSettings);
+
+        // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
+        // This is because the particular root entity determines the pagination limits
+        Assert.assertEquals(pageData.getOffset(), 0);
+        Assert.assertEquals(pageData.getLimit(), 500);
+
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getOffset(), 1);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getLimit(), 10);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkErroneousPageLimit() {
+        Pagination pageData = Pagination.fromOffsetAndFirst("1", "100000", elideSettings);
+
+        // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
+        // This is because the particular root entity determines the pagination limits
+        Assert.assertEquals(pageData.getOffset(), 0);
+        Assert.assertEquals(pageData.getLimit(), 500);
+
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getOffset(), 1);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getLimit(), 500);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadOffset() {
+        Pagination.fromOffsetAndFirst("-1", "1000", elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadOffsetString() {
+        Pagination.fromOffsetAndFirst("NaN", "1000", elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadLimit() {
+        Pagination.fromOffsetAndFirst("1", "0", elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadLimitString() {
+        Pagination.fromOffsetAndFirst("1", "NaN", elideSettings);
+    }
+
     @Test(expectedExceptions = InvalidValueException.class)
     public void neverExceedMaxPageSize() {
         MultivaluedMap<String, String> queryParams = new MultivaluedStringMap();

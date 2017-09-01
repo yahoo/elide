@@ -201,6 +201,8 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "\"title\":\"Libro Uno\""
                 + "}]"
                 + "}";
+
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
         //TODO - pagination not implemented yet
         //assertQueryEquals(graphQLRequest, expectedResponse);
 
