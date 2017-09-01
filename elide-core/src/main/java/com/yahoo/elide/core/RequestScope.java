@@ -20,6 +20,7 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -318,6 +319,21 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Get the filter expression for a particular relationship
+     * @param parent The object which has the relationship
+     * @param relationName The relationship name
+     * @return A type specific filter expression for the given relationship
+     */
+    public Optional<FilterExpression> getExpressionForRelation(PersistentResource parent, String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(parent.getObject(), relationName);
+        if (entityClass == null) {
+            throw new InvalidAttributeException(relationName, parent.getType());
+        }
+        final String valType = dictionary.getJsonAliasFor(entityClass);
+        return getFilterExpressionByType(valType);
     }
 
     /**

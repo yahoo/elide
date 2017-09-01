@@ -230,7 +230,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                 relations.add(parentResource.getRelation(fieldName, id));
             }
         } else {
-            relations = parentResource.getRelationCheckedFiltered(fieldName);
+            relations = parentResource.getRelationCheckedFiltered(fieldName,
+                    Optional.empty(), Optional.empty(), Optional.empty());
         }
 
         /* check for toOne relationships */

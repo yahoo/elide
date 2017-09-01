@@ -119,20 +119,23 @@ public class CollectionTerminalState extends BaseState {
         final Set<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
-        final boolean hasSortingOrPagination = requestScope.getPagination() != null
-                || requestScope.getSorting() != null;
+
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+
         if (parent.isPresent()) {
-            if (hasSortingOrPagination) {
-                collection = parent.get().getRelationCheckedFilteredWithSortingAndPagination(relationName.get());
-            } else {
-                collection = parent.get().getRelationCheckedFiltered(relationName.get());
-            }
+            Optional<FilterExpression> filterExpression =
+                    requestScope.getExpressionForRelation(parent.get(), relationName.get());
+
+            collection = parent.get().getRelationCheckedFiltered(
+                    relationName.get(),
+                    filterExpression,
+                    sorting,
+                    pagination);
         } else {
             Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
-            Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-            Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
 
-            collection = (Set) PersistentResource.loadRecords(
+            collection = PersistentResource.loadRecords(
                 entityClass,
                 filterExpression,
                 sorting,

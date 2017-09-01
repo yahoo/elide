@@ -325,7 +325,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
-        if (pagination.isPresent() && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
+        if (pagination.isPresent() && !pagination.get().isDefaultInstance()
+                && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
         }
@@ -719,7 +720,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
             String inverseRelationName = dictionary.getRelationInverse(getResourceClass(), relationName);
             if (!"".equals(inverseRelationName)) {
-                for (PersistentResource inverseResource : getRelationCheckedFiltered(relationName)) {
+                for (PersistentResource inverseResource : getRelationCheckedUnfiltered(relationName)) {
                     if (hasInverseRelation(relationName)) {
                         deleteInverseRelation(relationName, inverseResource.getObject());
                         inverseResource.markDirty();
@@ -821,7 +822,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Set<PersistentResource> resources =
-                filter(ReadPermission.class, (Set) getRelationChecked(relation, filterExpression), skipNew);
+                filter(ReadPermission.class,
+                        (Set) getRelationChecked(relation, filterExpression, Optional.empty(), Optional.empty()),
+                        skipNew);
 
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
@@ -837,62 +840,42 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param relationName field
      * @return collection relation
      */
-    public Set<PersistentResource> getRelationCheckedFiltered(String relationName) {
-        return filter(ReadPermission.class, getRelation(relationName, true), false);
-    }
+    public Set<PersistentResource> getRelationCheckedFiltered(String relationName,
+                                                              Optional<FilterExpression> filterExpression,
+                                                              Optional<Sorting> sorting,
+                                                              Optional<Pagination> pagination) {
 
-    /**
-     * Get collection of resources from relation field.
-     *
-     * @param relationName field
-     * @return collection relation
-     */
-    public Set<PersistentResource> getRelationCheckedFilteredWithSortingAndPagination(String relationName) {
-        return filter(ReadPermission.class, getRelationWithSortingAndPagination(relationName, true), false);
+        return filter(ReadPermission.class,
+                getRelation(relationName, filterExpression, sorting, pagination, true),
+                false);
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
-        return getRelation(relationName, false);
+        return getRelation(relationName, Optional.empty(), Optional.empty(), Optional.empty(), false);
     }
 
-    private Set<PersistentResource> getRelation(String relationName, boolean checked) {
-
-        if (checked && !checkRelation(relationName)) {
-            return Collections.emptySet();
-        }
-        Optional<FilterExpression> expression = getExpressionForRelation(relationName);
-        return getRelationUnchecked(relationName, expression, false);
+    private Set<PersistentResource> getRelationCheckedUnfiltered(String relationName) {
+        return getRelation(relationName, Optional.empty(), Optional.empty(), Optional.empty(), true);
     }
 
-    private Optional<FilterExpression> getExpressionForRelation(String relationName) {
-        final Class<?> entityClass = dictionary.getParameterizedType(obj, relationName);
-        if (entityClass == null) {
-            throw new InvalidAttributeException(relationName, type);
-        }
-        final String valType = dictionary.getJsonAliasFor(entityClass);
-        return requestScope.getFilterExpressionByType(valType);
-    }
+    private Set<PersistentResource> getRelation(String relationName,
+                                                Optional<FilterExpression> filterExpression,
+                                                Optional<Sorting> sorting,
+                                                Optional<Pagination> pagination,
+                                                boolean checked) {
 
-    /**
-     * Gets the relational entities to a entity (author/1/books) - books would be fetched here.
-     * @param relationName The relationship name - eg. books
-     * @param checked The flag to denote if we are doing security checks on this relationship
-     * @return The resulting records from underlying data store
-     */
-    private Set<PersistentResource> getRelationWithSortingAndPagination(String relationName, boolean checked) {
         if (checked && !checkRelation(relationName)) {
             return Collections.emptySet();
         }
 
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
-        if (! requestScope.getPagination().isDefaultInstance()
+        if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }
 
-        Optional<FilterExpression> filterExpression = getExpressionForRelation(relationName);
-        return getRelationUnchecked(relationName, filterExpression, true);
+        return getRelationUnchecked(relationName, filterExpression, sorting, pagination);
     }
 
     /**
@@ -926,11 +909,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return collection relation
      */
     protected Set<PersistentResource> getRelationChecked(String relationName,
-                                                         Optional<FilterExpression> filterExpression) {
+                                                         Optional<FilterExpression> filterExpression,
+                                                         Optional<Sorting> sorting,
+                                                         Optional<Pagination> pagination) {
         if (!checkRelation(relationName)) {
             return Collections.emptySet();
         }
-        return getRelationUnchecked(relationName, filterExpression, false);
+        return getRelationUnchecked(relationName, filterExpression, sorting, pagination);
 
     }
 
@@ -939,22 +924,23 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param relationName field
      * @param filterExpression An optional filter expression
-     * @param sortedAndPaginated If sorting and pagination should be applied
+     * @param sorting the sorting clause
+     * @param pagination the pagination params
      * @return the resources in the relationship
      */
     private Set<PersistentResource> getRelationUnchecked(String relationName,
                                                          Optional<FilterExpression> filterExpression,
-                                                         boolean sortedAndPaginated) {
+                                                         Optional<Sorting> sorting,
+                                                         Optional<Pagination> pagination) {
         RelationshipType type = getRelationshipType(relationName);
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+        if (relationClass == null) {
+            throw new InvalidAttributeException(relationName, this.getType());
+        }
+
+        pagination = pagination.map(p -> p.evaluate(relationClass));
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
-        Optional<Pagination> pagination = sortedAndPaginated
-                ? Optional.ofNullable(requestScope.getPagination()).map(p -> p.evaluate(relationClass))
-                : Optional.empty();
-        Optional<Sorting> sorting = sortedAndPaginated
-                ? Optional.ofNullable(requestScope.getSorting()) : Optional.empty();
-
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
                 FilterExpression mergedExpression =
@@ -1199,7 +1185,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationships() {
-        return getRelationshipsWithRelationshipFunction(this::getRelationCheckedFiltered);
+        return getRelationshipsWithRelationshipFunction((relationName) -> {
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
+            return getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
+        });
     }
 
     /**
@@ -1208,7 +1197,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationshipsWithSortingAndPagination() {
-        return getRelationshipsWithRelationshipFunction(this::getRelationCheckedFilteredWithSortingAndPagination);
+        return getRelationshipsWithRelationshipFunction((relationName) -> {
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(this, relationName);
+            Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+            Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+            return getRelationCheckedFiltered(relationName,
+                    filterExpression, sorting, pagination);
+        });
     }
 
     /**

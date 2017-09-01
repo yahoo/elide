@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
@@ -74,7 +75,9 @@ public class StartState extends BaseState {
 
         String relationName = ctx.relationship().term().getText();
         try {
-            record.getRelationCheckedFiltered(relationName);
+            Optional<FilterExpression> filterExpression =
+                    state.getRequestScope().getExpressionForRelation(record, relationName);
+            record.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }
