@@ -23,6 +23,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -755,7 +756,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set<PersistentResource> results = funResource.getRelationCheckedFiltered("relation2");
+        Set<PersistentResource> results = getRelation(funResource, "relation2");
 
         Assert.assertEquals(results.size(), 3, "All of relation elements should be returned.");
     }
@@ -770,7 +771,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set<PersistentResource> results = funResource.getRelationCheckedFiltered("relation2");
+        Set<PersistentResource> results = getRelation(funResource, "relation2");
 
         Assert.assertEquals(results.size(), 2, "Only filtered relation elements should be returned.");
     }
@@ -794,7 +795,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
-        Set<PersistentResource> results = parentResource.getRelationCheckedFiltered("children");
+        Set<PersistentResource> results = getRelation(parentResource, "children");
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
@@ -805,7 +806,7 @@ public class PersistentResourceTest extends PersistentResource {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", goodUserScope);
-        noreadResource.getRelationCheckedFiltered("child");
+        getRelation(noreadResource, "child");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -814,7 +815,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
 
-        funResource.getRelationCheckedFiltered("relation1");
+        getRelation(funResource, "relation1");
     }
 
     @Test
@@ -823,7 +824,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        fcResource.getRelationCheckedFiltered("public2");
+        getRelation(fcResource, "public2");
     }
 
     @Test
@@ -841,7 +842,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        fcResource.getRelationCheckedFiltered("private2");
+        getRelation(fcResource, "private2");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -860,7 +861,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        funResource.getRelationCheckedFiltered("invalid");
+        getRelation(funResource, "invalid");
     }
 
     @Test
@@ -911,7 +912,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set set = funResource.getRelationCheckedFiltered("relation4");
+        Set set = getRelation(funResource, "relation4");
         Assert.assertEquals(0,  set.size());
     }
 
@@ -921,7 +922,7 @@ public class PersistentResourceTest extends PersistentResource {
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        Set set = funResource.getRelationCheckedFiltered("relation5");
+        Set set  = getRelation(funResource, "relation5");
         Assert.assertEquals(0,  set.size());
     }
 
@@ -1370,7 +1371,7 @@ public class PersistentResourceTest extends PersistentResource {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        leftResource.updateRelation("noUpdateOne2One", leftResource.getRelationCheckedFiltered("noUpdateOne2One"));
+        leftResource.updateRelation("noUpdateOne2One", getRelation(leftResource, "noUpdateOne2One"));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
@@ -1504,7 +1505,8 @@ public class PersistentResourceTest extends PersistentResource {
                 .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class, goodScope, Optional.empty());
+        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class,
+                Optional.empty(), Optional.empty(), Optional.empty(), goodScope);
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);
 
@@ -2095,5 +2097,12 @@ public class PersistentResourceTest extends PersistentResource {
             }
             throw new IllegalStateException("Something is terribly wrong :(");
         }
+    }
+
+    public static Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
+        Optional<FilterExpression> filterExpression =
+                resource.getRequestScope().getExpressionForRelation(resource, relation);
+
+        return resource.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
     }
 }

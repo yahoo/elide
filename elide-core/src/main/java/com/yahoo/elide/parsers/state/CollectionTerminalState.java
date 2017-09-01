@@ -17,7 +17,9 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -117,20 +119,28 @@ public class CollectionTerminalState extends BaseState {
         final Set<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
-        final boolean hasSortingOrPagination = requestScope.getPagination() != null
-                || requestScope.getSorting() != null;
+
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+
         if (parent.isPresent()) {
-            if (hasSortingOrPagination) {
-                collection = parent.get().getRelationCheckedFilteredWithSortingAndPagination(relationName.get());
-            } else {
-                collection = parent.get().getRelationCheckedFiltered(relationName.get());
-            }
+            Optional<FilterExpression> filterExpression =
+                    requestScope.getExpressionForRelation(parent.get(), relationName.get());
+
+            collection = parent.get().getRelationCheckedFiltered(
+                    relationName.get(),
+                    filterExpression,
+                    sorting,
+                    pagination);
         } else {
-            if (hasSortingOrPagination) {
-                collection = (Set) PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
-            } else {
-                collection = (Set) PersistentResource.loadRecords(entityClass, requestScope, Optional.empty());
-            }
+            Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
+
+            collection = PersistentResource.loadRecords(
+                entityClass,
+                filterExpression,
+                sorting,
+                pagination,
+                requestScope);
         }
 
         return collection;

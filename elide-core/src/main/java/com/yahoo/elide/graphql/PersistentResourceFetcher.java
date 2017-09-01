@@ -25,6 +25,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -176,8 +177,11 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* fetching a collection */
         if (!ids.isPresent()) {
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
-                    requestScope,
-                    Optional.empty());
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    requestScope);
+
             //TODO: paginate/filter/sort
             return records;
         } else { /* fetching by id(s) */
@@ -204,7 +208,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                             idField),
                     Operator.IN,
                     new ArrayList<>(idList)));
-            return PersistentResource.loadRecords(entityClass, requestScope, filterExpression);
+            return PersistentResource.loadRecords(entityClass,
+                    filterExpression, Optional.empty(), Optional.empty(), requestScope);
         }
     }
 
@@ -225,7 +230,8 @@ public class PersistentResourceFetcher implements DataFetcher {
                 relations.add(parentResource.getRelation(fieldName, id));
             }
         } else {
-            relations = parentResource.getRelationCheckedFiltered(fieldName);
+            relations = parentResource.getRelationCheckedFiltered(fieldName,
+                    Optional.empty(), Optional.empty(), Optional.empty());
         }
 
         /* check for toOne relationships */
@@ -272,7 +278,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else {
             parentEntity = Optional.empty();
         }
-        Set<Entity> entitySet = new HashSet<>();
+        LinkedHashSet<Entity> entitySet = new LinkedHashSet<>();
         for (Map<String, Object> input : context.data.get()) {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
@@ -290,7 +296,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
         }
 
-        return entitySet.stream().map(Entity::toPersistentResource).collect(Collectors.toSet());
+        return entitySet.stream()
+                .map(Entity::toPersistentResource)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**

@@ -94,8 +94,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "}]"
                 + "}";
 
-        //TODO - order of books is out of sync with expected response.
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     /* ========================= */
@@ -154,9 +153,9 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "\"book\":[{"
                 + "\"title\":\"my id\""
                 + "},{"
-                + "\"title\":\"abc\""
-                + "},{"
                 + "\"title\":\"xyz\""
+                + "},{"
+                + "\"title\":\"abc\""
                 + "}]"
                 + "}";
 
