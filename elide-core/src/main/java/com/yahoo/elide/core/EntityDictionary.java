@@ -657,6 +657,9 @@ public class EntityDictionary {
      * @param cls         Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
+        if (! entityBindings.containsKey(cls)) {
+            bindEntity(cls);
+        }
         getEntityBinding(cls).setInitializer(initializer);
     }
 
