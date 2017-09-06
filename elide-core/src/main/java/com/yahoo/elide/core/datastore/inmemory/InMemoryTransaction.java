@@ -77,19 +77,21 @@ public class InMemoryTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        operations.stream()
-                .filter(op -> op.getInstance() != null)
-                .forEach(op -> {
-                    Object instance = op.getInstance();
-                    String id = op.getId();
-                    Map<String, Object> data = dataStore.get(op.getType());
-                    if (op.getDelete()) {
-                        data.remove(id);
-                    } else {
-                        data.put(id, instance);
-                    }
-                });
-        operations.clear();
+        synchronized (dataStore) {
+            operations.stream()
+                    .filter(op -> op.getInstance() != null)
+                    .forEach(op -> {
+                        Object instance = op.getInstance();
+                        String id = op.getId();
+                        Map<String, Object> data = dataStore.get(op.getType());
+                        if (op.getDelete()) {
+                            data.remove(id);
+                        } else {
+                            data.put(id, instance);
+                        }
+                    });
+            operations.clear();
+        }
     }
 
     @Override
@@ -137,8 +139,8 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
                                         Optional<Sorting> sorting, Optional<Pagination> pagination,
                                         RequestScope scope) {
-        Map<String, Object> data = dataStore.get(entityClass);
-        synchronized (data) {
+        synchronized (dataStore) {
+            Map<String, Object> data = dataStore.get(entityClass);
 
             // Support for filtering
             if (filterExpression.isPresent()) {
