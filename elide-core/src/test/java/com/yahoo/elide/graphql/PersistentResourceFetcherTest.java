@@ -88,7 +88,12 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
+        boolean isMutation = graphQLRequest.startsWith("mutation");
+
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        if (isMutation) {
+            requestScope.saveOrCreateObjects();
+        }
         requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {

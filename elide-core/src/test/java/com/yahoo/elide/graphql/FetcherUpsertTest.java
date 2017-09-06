@@ -41,14 +41,15 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "}";
         String expectedResponse = "{"
                 + "\"book\":[{"
+                + "\"id\":\"1\","
                 + "\"title\":\"Book Numero Dos\""
                 + "},{"
+                + "\"id\":\"2\","
                 + "\"title\":\"Book Numero Tres\""
                 + "}]"
                 + "}";
 
-        //TODO - Switch to a data store that returns a correct ID - and update the expected response.
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test

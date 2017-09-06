@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -35,17 +34,17 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class InMemoryTransaction implements DataStoreTransaction {
-    private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
-
     private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
+    private final Map<Class<?>, AtomicLong> typeIds;
 
     public InMemoryTransaction(Map<Class<?>, Map<String, Object>> dataStore,
-                               EntityDictionary dictionary) {
+                               EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {
         this.dataStore = dataStore;
         this.dictionary = dictionary;
         this.operations = new ArrayList<>();
+        this.typeIds = typeIds;
     }
 
     @Override
@@ -96,7 +95,9 @@ public class InMemoryTransaction implements DataStoreTransaction {
     @Override
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
-        AtomicLong nextId = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
+
+        AtomicLong nextId = typeIds.computeIfAbsent(entityClass,
+                (key) -> { return new AtomicLong(1); });
         String id = String.valueOf(nextId.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));

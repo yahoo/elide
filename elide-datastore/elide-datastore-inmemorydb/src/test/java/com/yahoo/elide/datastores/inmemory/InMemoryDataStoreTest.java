@@ -81,6 +81,7 @@ public class InMemoryDataStoreTest {
         object.name = "number one";
 
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.createObject(object, null);
             t.save(object, null);
             t.commit(null);
         }
@@ -91,6 +92,7 @@ public class InMemoryDataStoreTest {
         object2.name = "number two";
 
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.createObject(object2, null);
             t.save(object2, null);
             t.commit(null);
         }

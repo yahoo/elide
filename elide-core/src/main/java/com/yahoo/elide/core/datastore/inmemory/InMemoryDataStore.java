@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Simple in-memory only database.
@@ -28,6 +30,7 @@ public class InMemoryDataStore implements DataStore {
     private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter private EntityDictionary dictionary;
     @Getter private final Package beanPackage;
+    @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
     public InMemoryDataStore(Package beanPackage) {
         this.beanPackage = beanPackage;
@@ -50,7 +53,7 @@ public class InMemoryDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new InMemoryTransaction(dataStore, dictionary);
+        return new InMemoryTransaction(dataStore, dictionary, typeIds);
     }
 
     @Override
