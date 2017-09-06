@@ -657,7 +657,7 @@ public class EntityDictionary {
      * @param cls         Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        if (! entityBindings.containsKey(cls)) {
+        if (! entityBindings.containsKey(lookupEntityClass(cls))) {
             bindEntity(cls);
         }
         getEntityBinding(cls).setInitializer(initializer);
@@ -679,7 +679,7 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (entityBindings.containsKey(cls)) {
+        if (entityBindings.containsKey(lookupEntityClass(cls))) {
             return;
         }
 

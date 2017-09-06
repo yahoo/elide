@@ -2,7 +2,7 @@
 ## 3.1.2
 **Fixes**
  * Fix for issue #508
- * Fix for issue #523
+ * Fix for issue #521
 
 ## 3.1.1
 **Fixes**
