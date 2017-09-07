@@ -3,6 +3,7 @@
 **Fixes**
  * Fix for issue #508
  * Fix for issue #521
+ * Fix blog example
 
 ## 3.1.1
 **Fixes**
