@@ -171,12 +171,11 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
                 + "}";
 
         String expectedFetchResponse = "{"
-                + "author: { "
-                + "books: []"
-                + "} "
+                + "\"author\":[{"
+                + "\"books\":[]"
+                + "}]"
                 + "}";
 
-        //TODO - This doesn't work.  Likely a bug with the underlying data store.
-        //assertQueryEquals(graphQLFetchRequest, expectedFetchResponse);
+        assertQueryEquals(graphQLFetchRequest, expectedFetchResponse);
     }
 }

@@ -24,7 +24,6 @@ import javax.ws.rs.BadRequestException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -222,7 +221,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private Object fetchRelationship(PersistentResource parentResource, String fieldName,
                                      Optional<List<String>> ids) {
-        Set<PersistentResource> relations = new HashSet<>();
+        Set<PersistentResource> relations = new LinkedHashSet<>();
         if (ids.isPresent()) {
             List<String> idList = ids.get();
             //TODO: poor latency (for loop), refactor getRelation() to allow filterexpression
@@ -317,7 +316,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      */
     private void graphWalker(Entity entity, Executor function) {
         Queue<Entity> toVisit = new ArrayDeque();
-        Set<Entity> visited = new HashSet();
+        Set<Entity> visited = new LinkedHashSet<>();
         toVisit.add(entity);
 
         while (!toVisit.isEmpty()) {
@@ -350,7 +349,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         /* loop over each relationship */
         for (Entity.Relationship relationship : relationshipEntities) {
-            toUpdate = new HashSet<>();
+            toUpdate = new LinkedHashSet<>();
             for (Entity relation : relationship.getValue()) {
                 toUpdate.add(relation.toPersistentResource());
             }

@@ -12,8 +12,8 @@ import com.yahoo.elide.core.RequestScope;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,7 +66,7 @@ public class Entity {
      */
     private void setAttributes() {
         if (this.data != null) {
-            this.attributes = new HashSet<>();
+            this.attributes = new LinkedHashSet<>();
             EntityDictionary dictionary = this.requestScope.getDictionary();
             String idFieldName = dictionary.getIdFieldName(this.entityClass);
 
@@ -86,12 +86,12 @@ public class Entity {
      */
     private void setRelationships() {
         if (this.data != null) {
-            this.relationships = new HashSet<>();
+            this.relationships = new LinkedHashSet<>();
             EntityDictionary dictionary = this.requestScope.getDictionary();
 
             for (Map.Entry<String, Object> entry : this.data.entrySet()) {
                 if (dictionary.isRelation(this.entityClass, entry.getKey())) {
-                    Set<Entity> entitySet = new HashSet<>();
+                    Set<Entity> entitySet = new LinkedHashSet<>();
                     Class<?> loadClass = dictionary.getParameterizedType(this.entityClass, entry.getKey());
                     Boolean isToOne = dictionary.getRelationshipType(this.entityClass, entry.getKey()).isToOne();
                     if (isToOne) {

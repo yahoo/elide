@@ -21,10 +21,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -35,17 +34,17 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class InMemoryTransaction implements DataStoreTransaction {
-    private static final ConcurrentHashMap<Class<?>, AtomicLong> TYPEIDS = new ConcurrentHashMap<>();
-
-    private final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore;
+    private final Map<Class<?>, Map<String, Object>> dataStore;
     private final List<Operation> operations;
     private final EntityDictionary dictionary;
+    private final Map<Class<?>, AtomicLong> typeIds;
 
-    public InMemoryTransaction(ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Object>> dataStore,
-                               EntityDictionary dictionary) {
+    public InMemoryTransaction(Map<Class<?>, Map<String, Object>> dataStore,
+                               EntityDictionary dictionary, Map<Class<?>, AtomicLong> typeIds) {
         this.dataStore = dataStore;
         this.dictionary = dictionary;
         this.operations = new ArrayList<>();
+        this.typeIds = typeIds;
     }
 
     @Override
@@ -78,25 +77,29 @@ public class InMemoryTransaction implements DataStoreTransaction {
 
     @Override
     public void commit(RequestScope scope) {
-        operations.stream()
-                .filter(op -> op.getInstance() != null)
-                .forEach(op -> {
-                    Object instance = op.getInstance();
-                    String id = op.getId();
-                    ConcurrentHashMap<String, Object> data = dataStore.get(op.getType());
-                    if (op.getDelete()) {
-                        data.remove(id);
-                    } else {
-                        data.put(id, instance);
-                    }
-                });
-        operations.clear();
+        synchronized (dataStore) {
+            operations.stream()
+                    .filter(op -> op.getInstance() != null)
+                    .forEach(op -> {
+                        Object instance = op.getInstance();
+                        String id = op.getId();
+                        Map<String, Object> data = dataStore.get(op.getType());
+                        if (op.getDelete()) {
+                            data.remove(id);
+                        } else {
+                            data.put(id, instance);
+                        }
+                    });
+            operations.clear();
+        }
     }
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
-        AtomicLong nextId = TYPEIDS.computeIfAbsent(entityClass, this::newRandomId);
+
+        AtomicLong nextId = typeIds.computeIfAbsent(entityClass,
+                (key) -> { return new AtomicLong(1); });
         String id = String.valueOf(nextId.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));
@@ -136,19 +139,21 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
                                         Optional<Sorting> sorting, Optional<Pagination> pagination,
                                         RequestScope scope) {
-        ConcurrentHashMap<String, Object> data = dataStore.get(entityClass);
+        synchronized (dataStore) {
+            Map<String, Object> data = dataStore.get(entityClass);
 
-        // Support for filtering
-        if (filterExpression.isPresent()) {
-            Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
-            return (Collection<Object>) data.values().stream()
-                    .filter(predicate::test)
-                    .collect(Collectors.toList());
+            // Support for filtering
+            if (filterExpression.isPresent()) {
+                Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
+                return data.values().stream()
+                        .filter(predicate::test)
+                        .collect(Collectors.toList());
+            }
+
+            List<Object> results = new ArrayList<>();
+            data.values().forEach(results::add);
+            return results;
         }
-
-        List<Object> results = new ArrayList<>();
-        data.forEachValue(1, results::add);
-        return results;
     }
 
     @Override

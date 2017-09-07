@@ -74,6 +74,7 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
         Book book2 = new Book();
         book2.setId(2L);
         book2.setTitle("Libro Dos");
+        book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
@@ -87,7 +88,12 @@ public class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
+        boolean isMutation = graphQLRequest.startsWith("mutation");
+
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        if (isMutation) {
+            requestScope.saveOrCreateObjects();
+        }
         requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
