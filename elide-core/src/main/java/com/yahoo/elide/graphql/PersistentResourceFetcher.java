@@ -150,7 +150,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
                 return context.parentResource.getAttribute(fieldName);
             } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-                return fetchRelationship(context.parentResource, fieldName, context.ids);
+                return fetchRelationship(context.parentResource, fieldName, context.ids, context.offset, context.first);
             } else if (Objects.equals(idFieldName, fieldName)) {
                 return new DeferredId(context.parentResource);
             } else {
@@ -174,22 +174,11 @@ public class PersistentResourceFetcher implements DataFetcher {
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters) {
+
+        Optional<Pagination> pagination = buildPagination(first, offset);
+
         /* fetching a collection */
-        if (!ids.isPresent()) {
-            Optional<Pagination> pagination = first.map(fStr ->
-                    Pagination.fromOffsetAndFirst(offset.orElse("0"), fStr, requestScope.getElideSettings()));
-
-            Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
-                    Optional.empty(),
-                    Optional.empty(),
-                    pagination,
-                    requestScope);
-
-            //TODO: paginate/filter/sort
-            return records;
-        } else { /* fetching by id(s) */
-            List<String> idList = ids.get();
-
+        return ids.map((idList) -> {
             /* handle empty list of ids */
             if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
@@ -201,7 +190,6 @@ public class PersistentResourceFetcher implements DataFetcher {
 
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
-            String entityTypeName = dictionary.getJsonAliasFor(entityClass);
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             filterExpression = Optional.of(new FilterPredicate(
@@ -212,30 +200,57 @@ public class PersistentResourceFetcher implements DataFetcher {
                     Operator.IN,
                     new ArrayList<>(idList)));
             return PersistentResource.loadRecords(entityClass,
-                    filterExpression, Optional.empty(), Optional.empty(), requestScope);
-        }
+                    filterExpression, Optional.empty(), pagination, requestScope);
+        }).orElseGet(() -> {
+            Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
+                    Optional.empty(),
+                    Optional.empty(),
+                    pagination,
+                    requestScope);
+
+            //TODO: paginate/filter/sort
+            return records;
+        });
     }
 
     /**
-     * Fetches a relationship for a top-level entity
+     * Fetches a relationship for a top-level entity.
+     *
      * @param parentResource Parent object
      * @param fieldName Field type
      * @param ids List of ids
+     * @param offset Pagination offset
+     * @param first Pagination first
      * @return persistence resource object(s)
      */
-    private Object fetchRelationship(PersistentResource parentResource, String fieldName,
-                                     Optional<List<String>> ids) {
-        Set<PersistentResource> relations = new LinkedHashSet<>();
-        if (ids.isPresent()) {
-            List<String> idList = ids.get();
-            //TODO: poor latency (for loop), refactor getRelation() to allow filterexpression
-            for (String id : idList) {
-                relations.add(parentResource.getRelation(fieldName, id));
-            }
-        } else {
-            relations = parentResource.getRelationCheckedFiltered(fieldName,
-                    Optional.empty(), Optional.empty(), Optional.empty());
-        }
+    private Object fetchRelationship(PersistentResource parentResource,
+                                     String fieldName,
+                                     Optional<List<String>> ids,
+                                     Optional<String> offset,
+                                     Optional<String> first) {
+        Optional<Pagination> pagination = buildPagination(first, offset);
+
+        RequestScope requestScope = parentResource.getRequestScope();
+        EntityDictionary dictionary = requestScope.getDictionary();
+
+        // TODO: This should really be consolidated with the functionality found in fetchObject
+        // TODO: Do this when implementing full filtering and sorting support.
+
+        Optional<FilterExpression> filterExpression = ids.map(idList -> {
+            Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
+            Class idType = dictionary.getIdType(entityClass);
+            String idField = dictionary.getIdFieldName(entityClass);
+            return new FilterPredicate(
+                    new FilterPredicate.PathElement(
+                            entityClass,
+                            idType,
+                            idField),
+                    Operator.IN,
+                    new ArrayList<>(idList));
+        });
+
+        Set<PersistentResource> relations = parentResource.getRelationCheckedFiltered(fieldName,
+                filterExpression, Optional.empty(), pagination);
 
         /* check for toOne relationships */
         Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
@@ -503,5 +518,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             toDelete.forEach(PersistentResource::deleteResource);
         }
         return upsertedObjects;
+    }
+
+    private Optional<Pagination> buildPagination(Optional<String> first, Optional<String> offset) {
+        return first.map(fStr -> Pagination.fromOffsetAndFirst(offset.orElse("0"), fStr, settings));
     }
 }

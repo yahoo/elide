@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Base functionality required to test the PersistentResourceFetcher.
  */
-public class PersistentResourceFetcherTest extends GraphQLTest {
+public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
     protected RequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
