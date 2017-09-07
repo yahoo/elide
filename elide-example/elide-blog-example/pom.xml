@@ -57,6 +57,11 @@
             <artifactId>jersey-container-jetty-servlet</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>RELEASE</version>
+        </dependency>
         <!-- JAX RS -->
         <dependency>
             <groupId>javax.ws.rs</groupId>
