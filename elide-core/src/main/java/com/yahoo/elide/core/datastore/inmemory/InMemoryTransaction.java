@@ -7,6 +7,7 @@ package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -26,6 +27,8 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -143,19 +146,36 @@ public class InMemoryTransaction implements DataStoreTransaction {
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
-        Class parentClass = entity.getClass();
-        Class parentIdType = dictionary.getIdType(parentClass);
-        String parentId = dictionary.getId(entity);
-        String parentIdField = dictionary.getIdFieldName(parentClass);
-        FilterExpression parentFilter = new FilterPredicate(new FilterPredicate.PathElement(
-                parentClass,
-                parentIdType,
-                parentIdField
-        ), Operator.IN, Arrays.asList(parentId));
+        Object values = PersistentResource.getValue(entity, relationName, scope);
+        Class childClass = dictionary.getParameterizedType(entity, relationName);
+        Class childIdType = dictionary.getIdType(childClass);
+        String childIdField = dictionary.getIdFieldName(childClass);
+
+        // Gather list of valid id's from this parent
+        List<Object> validChildIds;
+        if (dictionary.getRelationshipType(entity, relationName).isToOne()) {
+            if (values == null) {
+                return null;
+            }
+            validChildIds = Arrays.asList(dictionary.getId(values));
+        } else if (values instanceof Collection) {
+            List<String> ids = (List<String>) ((Collection) values).stream()
+                    .map(v -> dictionary.getId(v))
+                    .collect(Collectors.toList());
+            validChildIds = new ArrayList<>(ids);
+        } else {
+            throw new IllegalStateException("An unexpected error occurred querying a relationship");
+        }
+
+        FilterExpression childIdFilter = new FilterPredicate(new FilterPredicate.PathElement(
+                childClass,
+                childIdType,
+                childIdField
+        ), Operator.IN, validChildIds);
 
         FilterExpression joinedFilter = filterExpression
-                .map(fe -> (FilterExpression) new AndFilterExpression(parentFilter, fe))
-                .orElse(parentFilter);
+                .map(fe -> (FilterExpression) new AndFilterExpression(childIdFilter, fe))
+                .orElse(childIdFilter);
 
         Class entityClass = dictionary.getParameterizedType(entity, relationName);
 
@@ -195,16 +215,28 @@ public class InMemoryTransaction implements DataStoreTransaction {
             Map<String, Object> data = dataStore.get(entityClass);
 
             // Support for filtering
-            if (filterExpression.isPresent()) {
-                Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
-                return data.values().stream()
-                        .filter(predicate::test)
-                        .collect(Collectors.toList());
-            }
+            List<Object> results = filterExpression
+                    .map(fe -> {
+                        Predicate predicate = fe.accept(new InMemoryFilterVisitor(scope));
+                        return data.values().stream().filter(predicate::test).collect(Collectors.toList());
+                    })
+                    .orElseGet(() -> new ArrayList<>(data.values()));
 
-            List<Object> results = new ArrayList<>();
-            data.values().forEach(results::add);
-            return results;
+            // Support for pagination. Should be done _after_ filtering
+            return pagination
+                    .map(p -> {
+                        int offset = p.getOffset();
+                        int limit = p.getLimit();
+                        if (offset < 0 || offset >= results.size()) {
+                            return Collections.emptyList();
+                        }
+                        int endIdx = offset + limit;
+                        if (endIdx > results.size()) {
+                            endIdx = results.size();
+                        }
+                        return results.subList(offset, endIdx);
+                    })
+                    .orElse(results);
         }
     }
 

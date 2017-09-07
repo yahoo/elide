@@ -203,8 +203,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}";
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        //TODO - pagination not implemented yet
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
 
         /* Both first and offset argument */
         graphQLRequest = "{ "
@@ -219,8 +218,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "\"title\":\"Libro Dos\""
                 + "}]"
                 + "}";
-        //TODO - pagination not implemented yet
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test
@@ -241,8 +239,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}]"
                 + "}]"
                 + "}";
-        //TODO - pagination not implemented yet
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test
