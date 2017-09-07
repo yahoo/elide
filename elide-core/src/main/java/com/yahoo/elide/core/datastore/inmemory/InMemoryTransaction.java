@@ -8,6 +8,9 @@ package com.yahoo.elide.core.datastore.inmemory;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -16,11 +19,14 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
+import javax.swing.text.html.Option;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,9 +136,55 @@ public class InMemoryTransaction implements DataStoreTransaction {
     }
 
     @Override
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity,
+                              String relationName,
+                              Optional<FilterExpression> filterExpression,
+                              Optional<Sorting> sorting,
+                              Optional<Pagination> pagination,
+                              RequestScope scope) {
+        Class parentClass = entity.getClass();
+        Class parentIdType = dictionary.getIdType(parentClass);
+        String parentId = dictionary.getId(entity);
+        String parentIdField = dictionary.getIdFieldName(parentClass);
+        FilterExpression parentFilter = new FilterPredicate(new FilterPredicate.PathElement(
+                parentClass,
+                parentIdType,
+                parentIdField
+        ), Operator.IN, Arrays.asList(parentId));
+
+        FilterExpression joinedFilter = filterExpression
+                .map(fe -> (FilterExpression) new AndFilterExpression(parentFilter, fe))
+                .orElse(parentFilter);
+
+        Class entityClass = dictionary.getParameterizedType(entity, relationName);
+
+        return loadObjects(entityClass, Optional.of(joinedFilter), sorting, pagination, scope);
+    }
+
+    @Override
     public Object loadObject(Class<?> entityClass, Serializable id,
                              Optional<FilterExpression> filterExpression, RequestScope scope) {
-        return dataStore.get(entityClass).get(id.toString());
+        Class idType = dictionary.getIdType(entityClass);
+        String idField = dictionary.getIdFieldName(entityClass);
+        FilterExpression idFilter = new FilterPredicate(
+                new FilterPredicate.PathElement(entityClass, idType, idField),
+                Operator.IN,
+                Arrays.asList(id)
+        );
+        FilterExpression joinedFilterExpression = filterExpression
+                .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
+                .orElse(idFilter);
+        Iterable<Object> results = loadObjects(entityClass,
+                Optional.of(joinedFilterExpression),
+                Optional.empty(),
+                Optional.empty(),
+                scope);
+        Iterator<Object> it = results == null ? null : results.iterator();
+        if (it != null && it.hasNext()) {
+            return it.next();
+        }
+        return null;
     }
 
     @Override

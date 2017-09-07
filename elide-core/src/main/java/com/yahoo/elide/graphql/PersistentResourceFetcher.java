@@ -185,22 +185,21 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
 
             /* access records from internal db and return */
-            Optional<FilterExpression> filterExpression;
             EntityDictionary dictionary = requestScope.getDictionary();
 
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-            filterExpression = Optional.of(new FilterPredicate(
+            FilterExpression filterExpression = new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityClass,
                             idType,
                             idField),
                     Operator.IN,
-                    new ArrayList<>(idList)));
+                    new ArrayList<>(idList));
             return PersistentResource.loadRecords(entityClass,
-                    filterExpression, Optional.empty(), pagination, requestScope);
+                    Optional.of(filterExpression), Optional.empty(), pagination, requestScope);
         }).orElseGet(() -> {
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
                     Optional.empty(),
