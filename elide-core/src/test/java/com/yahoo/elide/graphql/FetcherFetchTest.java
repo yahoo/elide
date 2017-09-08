@@ -87,7 +87,9 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "\"title\":\"Libro Dos\","
                 + "\"genre\":null,"
                 + "\"language\":null"
-                + "}]"
+                + "},"
+                + "{\"id\":\"3\",\"title\":\"Doctor Zhivago\",\"genre\":null,\"language\":null}"
+                + "]"
                 + "}";
 
         assertQueryEquals(graphQLRequest, expectedResponse);
@@ -145,26 +147,35 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "title "
                 + "} "
                 + "}";
-        String expectedResponse = "{"
-                + "\"book\":[{"
-                + "\"id\":\"2\","
-                + "\"title\":\"Libro Dos\""
-                + "},"
-                + "{"
-                + "\"id\":\"1\","
-                + "\"title\":\"Libro Uno\""
-                + "}]"
-                + "}";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"},{\"id\":\"2\","
+                + "\"title\":\"Libro Dos\"},{\"id\":\"3\",\"title\":\"Doctor Zhivago\"}]}";
 
-        //TODO - sorting not implemented yet
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testRootCollectionMultiSort() throws JsonProcessingException {
+        String graphQLRequest = "{ "
+                + "book(sort: \"-publisher.id,id\") { "
+                + "id "
+                + "title "
+                + "publisher {"
+                + "  id"
+                + "}"
+                + "} "
+                + "}";
+        String expectedResponse = "{\"book\":[{\"id\":\"3\",\"title\":\"Doctor Zhivago\",\"publisher\":{\"id\":\"2\"}},"
+                + "{\"id\":\"1\",\"title\":\"Libro Uno\",\"publisher\":{\"id\":\"1\"}},{\"id\":\"2\","
+                + "\"title\":\"Libro Dos\",\"publisher\":{\"id\":\"1\"}}]}";
+
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test
     public void testNestedCollectionSort() throws JsonProcessingException {
         String graphQLRequest = "{ "
                 + "author(ids: [\"1\"]) { "
-                + "books(sort: \"-title\") { "
+                + "books(sort: \"title\") { "
                 + "id "
                 + "title "
                 + "} "
@@ -182,8 +193,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}]"
                 + "}";
 
-        //TODO - Sorting not implemented yet
-        //assertQueryEquals(graphQLRequest, expectedResponse);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test

@@ -12,6 +12,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.books.Author;
 import com.yahoo.elide.books.Book;
 import com.yahoo.elide.books.Pseudonym;
+import com.yahoo.elide.books.Publisher;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
@@ -26,6 +27,7 @@ import org.testng.annotations.BeforeMethod;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,14 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     private void initTestData(InMemoryTransaction tx) {
+        Publisher publisher1 = new Publisher();
+        publisher1.setId(1L);
+        publisher1.setName("The Guy");
+
+        Publisher publisher2 = new Publisher();
+        publisher2.setId(2L);
+        publisher2.setName("The Other Guy");
+
         Author author1 = new Author();
         author1.setId(1L);
         author1.setName("Mark Twain");
@@ -70,20 +80,42 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book1.setId(1L);
         book1.setTitle("Libro Uno");
         book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
+        book1.setPublisher(publisher1);
 
         Book book2 = new Book();
         book2.setId(2L);
         book2.setTitle("Libro Dos");
         book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
+        book2.setPublisher(publisher1);
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
         authorOne.setAuthor(author1);
 
+        Author author2 = new Author();
+        author2.setId(2L);
+        author2.setName("Boris Pasternak");
+        author2.setType(Author.AuthorType.EXCLUSIVE);
+
+        Book book3 = new Book();
+        book3.setId(3L);
+        book3.setTitle("Doctor Zhivago");
+        book3.setAuthors(new ArrayList<>(Collections.singletonList(author2)));
+        book3.setPublisher(publisher2);
+
+        author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
+
+        publisher1.setBooks(new HashSet<>(Arrays.asList(book1, book2)));
+        publisher2.setBooks(new HashSet<>(Arrays.asList(book3)));
+
         tx.save(author1, null);
         tx.save(authorOne, null);
+        tx.save(author2, null);
         tx.save(book1, null);
         tx.save(book2, null);
+        tx.save(book3, null);
+        tx.save(publisher1, null);
+        tx.save(publisher2, null);
         tx.commit(null);
     }
 

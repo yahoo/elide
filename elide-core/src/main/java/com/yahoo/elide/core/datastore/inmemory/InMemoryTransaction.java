@@ -7,6 +7,7 @@ package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -20,7 +21,6 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
-import javax.swing.text.html.Option;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -222,26 +223,81 @@ public class InMemoryTransaction implements DataStoreTransaction {
                     })
                     .orElseGet(() -> new ArrayList<>(data.values()));
 
+            // Support for sorting
+            Comparator<Object> noSort = (left, right) -> 0;
+            List<Object> sorted = sorting
+                    .map(sort -> {
+                        Map<Path, Sorting.SortOrder> sortRules = sort.getValidSortingRules(entityClass, dictionary);
+                        if (sortRules.isEmpty()) {
+                            // No sorting
+                            return results;
+                        }
+                        Comparator<Object> comp = sortRules.entrySet().stream()
+                                .map(entry -> getComparator(entry.getKey(), entry.getValue(), scope))
+                                .reduce(noSort, (first, second) -> (left, right) -> {
+                                    int comparison = first.compare(left, right);
+                                    if (comparison == 0) {
+                                        return second.compare(left, right);
+                                    }
+                                    return comparison;
+                                });
+                        results.sort(comp);
+                        return results;
+                    })
+                    .orElse(results);
+
             // Support for pagination. Should be done _after_ filtering
             return pagination
                     .map(p -> {
                         int offset = p.getOffset();
                         int limit = p.getLimit();
-                        if (offset < 0 || offset >= results.size()) {
+                        if (offset < 0 || offset >= sorted.size()) {
                             return Collections.emptyList();
                         }
                         int endIdx = offset + limit;
-                        if (endIdx > results.size()) {
-                            endIdx = results.size();
+                        if (endIdx > sorted.size()) {
+                            endIdx = sorted.size();
                         }
-                        return results.subList(offset, endIdx);
+                        return sorted.subList(offset, endIdx);
                     })
-                    .orElse(results);
+                    .orElse(sorted);
         }
     }
 
     @Override
     public void close() throws IOException {
         operations.clear();
+    }
+
+    /**
+     * Get the comparator for sorting.
+     *
+     * @param path Path to field for sorting
+     * @param order Order to sort
+     * @param requestScope Request scope
+     * @return Comparator for sorting
+     */
+    private Comparator<Object> getComparator(Path path, Sorting.SortOrder order, RequestScope requestScope) {
+        return (left, right) -> {
+            Object leftCompare = left;
+            Object rightCompare = right;
+
+            // Drill down into path to find value for comparison
+            for (Path.PathElement pathElement : path.getPathElements()) {
+                leftCompare = PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope);
+                rightCompare = PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope);
+            }
+
+            // Make sure value is comparable and perform comparison
+            if (leftCompare instanceof Comparable) {
+                int result = ((Comparable<Object>) leftCompare).compareTo(rightCompare);
+                if (order == Sorting.SortOrder.asc) {
+                    return result;
+                }
+                return -result;
+            }
+
+            throw new IllegalStateException("Trying to comparing non-comparable types!");
+        };
     }
 }

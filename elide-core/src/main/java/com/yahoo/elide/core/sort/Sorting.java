@@ -12,8 +12,11 @@ import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
@@ -120,19 +123,38 @@ public class Sorting {
      * @return The Sorting instance (default or specific).
      */
     public static Sorting parseQueryParams(final MultivaluedMap<String, String> queryParams) {
-        final Map<String, SortOrder> sortingRules = new LinkedHashMap<>();
-        queryParams.entrySet().stream()
+        List<String> sortRules = queryParams.entrySet().stream()
                 .filter(entry -> entry.getKey().equals("sort"))
-                .forEachOrdered(entry -> {
-                    String sortRule = entry.getValue().get(0);
-                    if (sortRule.contains(",")) {
-                        for (String sortRuleSplit : sortRule.split(",")) {
-                            parseSortRule(sortRuleSplit, sortingRules);
-                        }
-                    } else {
-                        parseSortRule(sortRule, sortingRules);
-                    }
-                });
+                .map(entry -> entry.getValue().get(0))
+                .collect(Collectors.toList());
+        return parseSortRules(sortRules);
+    }
+
+    /**
+     * Parse a raw sort rule.
+     * @param sortRule Sorting string to parse
+     * @return Sorting object.
+     */
+    public static Sorting parseSortRule(String sortRule) {
+        return parseSortRules(Arrays.asList(sortRule));
+    }
+
+    /**
+     * Internal helper to parse list of sorting rules.
+     * @param sortRules Sorting rules to parse
+     * @return Sorting object containing parsed sort rules
+     */
+    private static Sorting parseSortRules(List<String> sortRules) {
+        final Map<String, SortOrder> sortingRules = new LinkedHashMap<>();
+        for (String sortRule : sortRules) {
+            if (sortRule.contains(",")) {
+                for (String sortRuleSplit : sortRule.split(",")) {
+                    parseSortRule(sortRuleSplit, sortingRules);
+                }
+            } else {
+                parseSortRule(sortRule, sortingRules);
+            }
+        }
         return sortingRules.isEmpty() ? DEFAULT_EMPTY_INSTANCE : new Sorting(sortingRules);
     }
 

@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -150,7 +151,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
                 return context.parentResource.getAttribute(fieldName);
             } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-                return fetchRelationship(context.parentResource, fieldName, context.ids, context.offset, context.first);
+                return fetchRelationship(context.parentResource,
+                        fieldName, context.ids, context.offset, context.first, context.sort);
             } else if (Objects.equals(idFieldName, fieldName)) {
                 return new DeferredId(context.parentResource);
             } else {
@@ -160,7 +162,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * Fetches a root-level entity
+     * Fetches a root-level entity.
      * @param requestScope Request scope
      * @param entityClass Entity class
      * @param ids List of ids (can be NULL)
@@ -176,6 +178,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                                                 Optional<String> filters) {
 
         Optional<Pagination> pagination = buildPagination(first, offset);
+        Optional<Sorting> sorting = buildSorting(sort);
 
         /* fetching a collection */
         return ids.map((idList) -> {
@@ -199,15 +202,15 @@ public class PersistentResourceFetcher implements DataFetcher {
                     Operator.IN,
                     new ArrayList<>(idList));
             return PersistentResource.loadRecords(entityClass,
-                    Optional.of(filterExpression), Optional.empty(), pagination, requestScope);
+                    Optional.of(filterExpression), sorting, pagination, requestScope);
         }).orElseGet(() -> {
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
                     Optional.empty(),
-                    Optional.empty(),
+                    sorting,
                     pagination,
                     requestScope);
 
-            //TODO: paginate/filter/sort
+            //TODO: filter
             return records;
         });
     }
@@ -226,8 +229,10 @@ public class PersistentResourceFetcher implements DataFetcher {
                                      String fieldName,
                                      Optional<List<String>> ids,
                                      Optional<String> offset,
-                                     Optional<String> first) {
+                                     Optional<String> first,
+                                     Optional<String> sort) {
         Optional<Pagination> pagination = buildPagination(first, offset);
+        Optional<Sorting> sorting = buildSorting(sort);
 
         RequestScope requestScope = parentResource.getRequestScope();
         EntityDictionary dictionary = requestScope.getDictionary();
@@ -249,7 +254,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         });
 
         Set<PersistentResource> relations = parentResource.getRelationCheckedFiltered(fieldName,
-                filterExpression, Optional.empty(), pagination);
+                filterExpression, sorting, pagination);
 
         /* check for toOne relationships */
         Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
@@ -521,5 +526,9 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     private Optional<Pagination> buildPagination(Optional<String> first, Optional<String> offset) {
         return first.map(fStr -> Pagination.fromOffsetAndFirst(offset.orElse("0"), fStr, settings));
+    }
+
+    private Optional<Sorting> buildSorting(Optional<String> sort) {
+        return sort.map(Sorting::parseSortRule);
     }
 }
