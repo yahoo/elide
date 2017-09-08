@@ -14,6 +14,7 @@ import lombok.ToString;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -83,36 +84,40 @@ public class Pagination {
     /**
      * Given an offset and first parameter from GraphQL, generate page and pageSize values.
      *
-     * @param offsetString Provided offset string
-     * @param firstString Provided first string
+     * @param firstOpt Provided first string
+     * @param offsetOpt Provided offset string
      * @param elideSettings Elide settings object containing default pagination values
      * @return The new Pagination object.
      */
-    public static Pagination fromOffsetAndFirst(String offsetString, String firstString, ElideSettings elideSettings) {
-        int offset;
-        int first;
+    public static Optional<Pagination> fromOffsetAndFirst(Optional<String> firstOpt,
+                                                          Optional<String> offsetOpt,
+                                                          ElideSettings elideSettings) {
+        return firstOpt.map(firstString -> {
+            int offset;
+            int first;
 
-        try {
-            offset = Integer.parseInt(offsetString);
-            first = Integer.parseInt(firstString);
-        } catch (NumberFormatException e) {
-            throw new InvalidValueException("Offset and first must be numeric values.");
-        }
-
-        if (offset < 0) {
-            throw new InvalidValueException("Offset values must be non-negative.");
-        } else if (first < 1) {
-            throw new InvalidValueException("Limit values must be positive.");
-        }
-
-        Map<PaginationKey, Integer> pageData = new HashMap<PaginationKey, Integer>() {
-            {
-                put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset);
-                put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
+            try {
+                offset = offsetOpt.map(Integer::parseInt).orElse(0);
+                first = Integer.parseInt(firstString);
+            } catch (NumberFormatException e) {
+                throw new InvalidValueException("Offset and first must be numeric values.");
             }
-        };
 
-        return getPagination(pageData, elideSettings);
+            if (offset < 0) {
+                throw new InvalidValueException("Offset values must be non-negative.");
+            } else if (first < 1) {
+                throw new InvalidValueException("Limit values must be positive.");
+            }
+
+            Map<PaginationKey, Integer> pageData = new HashMap<PaginationKey, Integer>() {
+                {
+                    put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset);
+                    put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
+                }
+            };
+
+            return getPagination(pageData, elideSettings);
+        });
     }
 
     /**

@@ -525,7 +525,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     private Optional<Pagination> buildPagination(Optional<String> first, Optional<String> offset) {
-        return first.map(fStr -> Pagination.fromOffsetAndFirst(offset.orElse("0"), fStr, settings));
+        return Pagination.fromOffsetAndFirst(first, offset, settings);
     }
 
     private Optional<Sorting> buildSorting(Optional<String> sort) {
