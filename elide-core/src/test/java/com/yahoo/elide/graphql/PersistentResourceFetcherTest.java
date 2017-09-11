@@ -16,6 +16,7 @@ import com.yahoo.elide.books.Publisher;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
@@ -42,8 +43,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     @BeforeMethod
     public void setupFetcherTest() {
+        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
+
         ElideSettings settings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary).build();
+                .withEntityDictionary(dictionary)
+                .withJoinFilterDialect(filterDialect)
+                .withSubqueryFilterDialect(filterDialect)
+                .build();
 
         InMemoryDataStore store = new InMemoryDataStore(Author.class.getPackage());
         store.populateEntityDictionary(dictionary);
