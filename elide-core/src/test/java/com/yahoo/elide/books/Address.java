@@ -6,9 +6,14 @@
 
 package com.yahoo.elide.books;
 
+import com.yahoo.elide.annotation.Include;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Entity;
+
+@Include
+@Entity
 public class Address {
 
     @Getter @Setter
