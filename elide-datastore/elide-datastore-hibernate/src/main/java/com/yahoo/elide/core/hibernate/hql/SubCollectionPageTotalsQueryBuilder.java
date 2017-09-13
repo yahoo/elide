@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Operator;
@@ -72,7 +73,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
 
         //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
         FilterPredicate idExpression = new FilterPredicate(
-                new FilterPredicate.PathElement(
+                new Path.PathElement(
                         parentType,
                         idType,
                         idField),
@@ -100,7 +101,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor(new ArrayList<>());
             predicates = copy.accept(extractor);
             predicates.stream().forEach(predicate -> {
-                predicate.getPath().add(0, new FilterPredicate.PathElement(
+                predicate.getPath().getPathElements().add(0, new Path.PathElement(
                         parentType,
                         relationship.getChildType(),
                         relationship.getRelationshipName()));

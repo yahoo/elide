@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -201,7 +202,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             FilterExpression idFilter = new FilterPredicate(
-                    new FilterPredicate.PathElement(
+                    new Path.PathElement(
                             entityClass,
                             idType,
                             idField),
@@ -210,6 +211,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             FilterExpression filterExpression = filter
                     .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
                     .orElse(idFilter);
+
             return PersistentResource.loadRecords(entityClass,
                     Optional.of(filterExpression), sorting, pagination, requestScope);
         }).orElseGet(() -> {

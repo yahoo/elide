@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -124,7 +125,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
             //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
             FilterPredicate idExpression = new FilterPredicate(
-                    new FilterPredicate.PathElement(
+                    new Path.PathElement(
                             entityClass,
                             idType,
                             idField),

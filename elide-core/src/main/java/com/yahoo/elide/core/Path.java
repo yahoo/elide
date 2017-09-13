@@ -12,12 +12,13 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Represents a path in the entity relationship graph
  */
+@EqualsAndHashCode
 public class Path {
     @Getter
     private List<PathElement> pathElements;
@@ -37,11 +38,11 @@ public class Path {
     }
 
     public Path(List<PathElement> pathElements) {
-        this.pathElements = pathElements;
+        this.pathElements = new ArrayList(pathElements);
     }
 
     public Path(PathElement pathElement) {
-        this(Collections.singletonList(pathElement));
+        this(Arrays.asList(pathElement));
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {

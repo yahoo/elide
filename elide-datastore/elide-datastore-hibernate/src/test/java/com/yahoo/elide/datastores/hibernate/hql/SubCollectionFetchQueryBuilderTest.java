@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
@@ -116,14 +117,14 @@ public class SubCollectionFetchQueryBuilderTest {
                 Arrays.asList(book)
         );
 
-        List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
+        List<Path.PathElement>  publisherNamePath = Arrays.asList(
+                new Path.PathElement(Author.class, Book.class, BOOKS),
+                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
-                publisherNamePath,
+                new Path(publisherNamePath),
                 Operator.IN, Arrays.asList(PUB1));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
@@ -156,13 +157,13 @@ public class SubCollectionFetchQueryBuilderTest {
                 Arrays.asList(book)
         );
 
-        List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
+        List<Path.PathElement>  publisherNamePath = Arrays.asList(
+                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
-                publisherNamePath,
+                new Path(publisherNamePath),
                 Operator.IN, Arrays.asList(PUB1));
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(

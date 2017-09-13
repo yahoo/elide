@@ -14,6 +14,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -55,8 +56,8 @@ public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
     private RequestScope requestScope;
     private ElideSettings elideSettings;
-    private static FilterPredicate.PathElement AUTHORPATH = new FilterPredicate.PathElement(Author.class, Book.class, "books");
-    private static FilterPredicate.PathElement BOOKPATH = new FilterPredicate.PathElement(Book.class, String.class, "title");
+    private static Path.PathElement AUTHORPATH = new Path.PathElement(Author.class, Book.class, "books");
+    private static Path.PathElement BOOKPATH = new Path.PathElement(Book.class, String.class, "title");
     private static List EXAPLEFIELDNAME = new ArrayList<>(Arrays.asList("Harry Potter"));
 
     public static final FilterExpressionNormalizationVisitor NORMALIZEVISITOR = new FilterExpressionNormalizationVisitor();
@@ -497,10 +498,10 @@ public class PermissionToFilterExpressionVisitorTest {
     }
 
     private static FilterPredicate createDummyPredicate(Operator operator) {
-        List<FilterPredicate.PathElement> pathList = new ArrayList<>(Arrays.asList(AUTHORPATH, BOOKPATH));
+        List<Path.PathElement> pathList = new ArrayList<>(Arrays.asList(AUTHORPATH, BOOKPATH));
         Operator op = operator;
         List value = EXAPLEFIELDNAME;
-        return new FilterPredicate(pathList, op, value);
+        return new FilterPredicate(new Path(pathList), op, value);
     }
 
     private void compareEqualNotFilterExpression(Class target, Class targetNegated) {

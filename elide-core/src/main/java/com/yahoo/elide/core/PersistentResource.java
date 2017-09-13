@@ -874,7 +874,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         String typeAlias = dictionary.getJsonAliasFor(entityType);
 
         return new FilterPredicate(
-                new FilterPredicate.PathElement(
+                new Path.PathElement(
                         entityType,
                         idType,
                         idField),

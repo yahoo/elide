@@ -6,8 +6,8 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -66,8 +66,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             final Operator operator = (matcher.group(3) == null) ? Operator.IN
                     : Operator.fromString(matcher.group(3));
 
-            List<PathElement> path = getPath(keyParts);
-            PathElement last = path.get(path.size() - 1);
+            Path path = getPath(keyParts);
+            List<Path.PathElement> elements = path.getPathElements();
+            Path.PathElement last = elements.get(elements.size() - 1);
 
             final List<Object> values = new ArrayList<>();
             if (operator.isParameterized()) {
@@ -109,7 +110,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         for (FilterPredicate filterPredicate : filterPredicates) {
 
-            Class firstClass = filterPredicate.getPath().get(0).getType();
+            Class firstClass = filterPredicate.getPath().getPathElements().get(0).getType();
 
             /* The first type in the predicate must match the first collection in the URL */
             if (!dictionary.getJsonAliasFor(firstClass).equals(firstPathComponent)) {
@@ -155,12 +156,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * @return [(author, books), (book, publisher), (publisher, name)]
      * @throws ParseException if the filter cannot be parsed
      */
-    private List<PathElement> getPath(final String[] keyParts) throws ParseException {
+    private Path getPath(final String[] keyParts) throws ParseException {
         if (keyParts == null || keyParts.length <= 0) {
             throw new ParseException("Invalid filter expression");
         }
 
-        List<PathElement> path = new ArrayList<>();
+        List<Path.PathElement> path = new ArrayList<>();
 
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
@@ -189,11 +190,11 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             Class typeClass = types[i];
             String fieldName = keyParts[i + 1];
             Class fieldClass = types[i + 1];
-            PathElement pathElement = new PathElement(typeClass, fieldClass, fieldName);
+            Path.PathElement pathElement = new Path.PathElement(typeClass, fieldClass, fieldName);
 
             path.add(pathElement);
         }
 
-        return path;
+        return new Path(path);
     }
 }

@@ -146,7 +146,7 @@ public abstract class AbstractHQLQueryBuilder {
 
         String previousAlias = null;
 
-        for (FilterPredicate.PathElement pathElement : predicate.getPath()) {
+        for (Path.PathElement pathElement : predicate.getPath().getPathElements()) {
             String fieldName = pathElement.getFieldName();
             Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
             String typeAlias = FilterPredicate.getTypeAlias(typeClass);
