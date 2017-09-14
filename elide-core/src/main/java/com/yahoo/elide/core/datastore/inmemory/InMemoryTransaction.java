@@ -186,7 +186,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
         Class idType = dictionary.getIdType(entityClass);
         String idField = dictionary.getIdFieldName(entityClass);
         FilterExpression idFilter = new FilterPredicate(
-                new FilterPredicate.PathElement(entityClass, idType, idField),
+                new Path.PathElement(entityClass, idType, idField),
                 Operator.IN,
                 Arrays.asList(id)
         );
