@@ -30,12 +30,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -108,8 +110,18 @@ public class InMemoryTransaction implements DataStoreTransaction {
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
 
-        AtomicLong nextId = typeIds.computeIfAbsent(entityClass,
-                (key) -> { return new AtomicLong(1); });
+        // TODO: Id's are not necessarily numeric.
+        AtomicLong nextId;
+        synchronized (dataStore) {
+            nextId = typeIds.computeIfAbsent(entityClass,
+                    (key) -> {
+                        long maxId = dataStore.get(key).keySet().stream()
+                                .mapToLong(Long::parseLong)
+                                .max()
+                                .orElse(0);
+                        return new AtomicLong(maxId + 1);
+                    });
+        }
         String id = String.valueOf(nextId.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));
@@ -148,39 +160,24 @@ public class InMemoryTransaction implements DataStoreTransaction {
                               Optional<Pagination> pagination,
                               RequestScope scope) {
         Object values = PersistentResource.getValue(entity, relationName, scope);
-        Class childClass = dictionary.getParameterizedType(entity, relationName);
-        Class childIdType = dictionary.getIdType(childClass);
-        String childIdField = dictionary.getIdFieldName(childClass);
 
         // Gather list of valid id's from this parent
-        List<Object> validChildIds;
+        Map<String, Object> validChildren = new HashMap<>();
         if (dictionary.getRelationshipType(entity, relationName).isToOne()) {
             if (values == null) {
                 return null;
             }
-            validChildIds = Arrays.asList(dictionary.getId(values));
+            validChildren.put(dictionary.getId(values), values);
         } else if (values instanceof Collection) {
-            List<String> ids = (List<String>) ((Collection) values).stream()
-                    .map(v -> dictionary.getId(v))
-                    .collect(Collectors.toList());
-            validChildIds = new ArrayList<>(ids);
+            validChildren.putAll((Map) ((Collection) values).stream()
+                    .collect(Collectors.toMap(dictionary::getId, Function.identity())));
         } else {
             throw new IllegalStateException("An unexpected error occurred querying a relationship");
         }
 
-        FilterExpression childIdFilter = new FilterPredicate(new FilterPredicate.PathElement(
-                childClass,
-                childIdType,
-                childIdField
-        ), Operator.IN, validChildIds);
-
-        FilterExpression joinedFilter = filterExpression
-                .map(fe -> (FilterExpression) new AndFilterExpression(childIdFilter, fe))
-                .orElse(childIdFilter);
-
         Class entityClass = dictionary.getParameterizedType(entity, relationName);
 
-        return loadObjects(entityClass, Optional.of(joinedFilter), sorting, pagination, scope);
+        return processData(entityClass, validChildren, filterExpression, sorting, pagination, scope);
     }
 
     @Override
@@ -214,53 +211,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
                                         RequestScope scope) {
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(entityClass);
-
-            // Support for filtering
-            List<Object> results = filterExpression
-                    .map(fe -> {
-                        Predicate predicate = fe.accept(new InMemoryFilterVisitor(scope));
-                        return data.values().stream().filter(predicate::test).collect(Collectors.toList());
-                    })
-                    .orElseGet(() -> new ArrayList<>(data.values()));
-
-            // Support for sorting
-            Comparator<Object> noSort = (left, right) -> 0;
-            List<Object> sorted = sorting
-                    .map(sort -> {
-                        Map<Path, Sorting.SortOrder> sortRules = sort.getValidSortingRules(entityClass, dictionary);
-                        if (sortRules.isEmpty()) {
-                            // No sorting
-                            return results;
-                        }
-                        Comparator<Object> comp = sortRules.entrySet().stream()
-                                .map(entry -> getComparator(entry.getKey(), entry.getValue(), scope))
-                                .reduce(noSort, (first, second) -> (left, right) -> {
-                                    int comparison = first.compare(left, right);
-                                    if (comparison == 0) {
-                                        return second.compare(left, right);
-                                    }
-                                    return comparison;
-                                });
-                        results.sort(comp);
-                        return results;
-                    })
-                    .orElse(results);
-
-            // Support for pagination. Should be done _after_ filtering
-            return pagination
-                    .map(p -> {
-                        int offset = p.getOffset();
-                        int limit = p.getLimit();
-                        if (offset < 0 || offset >= sorted.size()) {
-                            return Collections.emptyList();
-                        }
-                        int endIdx = offset + limit;
-                        if (endIdx > sorted.size()) {
-                            endIdx = sorted.size();
-                        }
-                        return sorted.subList(offset, endIdx);
-                    })
-                    .orElse(sorted);
+            return processData(entityClass, data, filterExpression, sorting, pagination, scope);
         }
     }
 
@@ -299,5 +250,70 @@ public class InMemoryTransaction implements DataStoreTransaction {
 
             throw new IllegalStateException("Trying to comparing non-comparable types!");
         };
+    }
+
+    /**
+     * Process an in-memory map of data with filtering, sorting, and pagination.
+     *
+     * @param entityClass Entity for which the map of data exists
+     * @param data Map of data with id's as keys and instances as values
+     * @param filterExpression Filter expression for filtering data
+     * @param sorting Sorting object for sorting
+     * @param pagination Pagination object for type
+     * @param scope Request scope
+     * @return Filtered, sorted, and paginated version of the input data set.
+     */
+    private Iterable<Object> processData(Class<?> entityClass,
+                                         Map<String, Object> data,
+                                         Optional<FilterExpression> filterExpression,
+                                         Optional<Sorting> sorting,
+                                         Optional<Pagination> pagination,
+                                         RequestScope scope) {
+        // Support for filtering
+        List<Object> results = filterExpression
+                .map(fe -> {
+                    Predicate predicate = fe.accept(new InMemoryFilterVisitor(scope));
+                    return data.values().stream().filter(predicate::test).collect(Collectors.toList());
+                })
+                .orElseGet(() -> new ArrayList<>(data.values()));
+
+        // Support for sorting
+        Comparator<Object> noSort = (left, right) -> 0;
+        List<Object> sorted = sorting
+                .map(sort -> {
+                    Map<Path, Sorting.SortOrder> sortRules = sort.getValidSortingRules(entityClass, dictionary);
+                    if (sortRules.isEmpty()) {
+                        // No sorting
+                        return results;
+                    }
+                    Comparator<Object> comp = sortRules.entrySet().stream()
+                            .map(entry -> getComparator(entry.getKey(), entry.getValue(), scope))
+                            .reduce(noSort, (first, second) -> (left, right) -> {
+                                int comparison = first.compare(left, right);
+                                if (comparison == 0) {
+                                    return second.compare(left, right);
+                                }
+                                return comparison;
+                            });
+                    results.sort(comp);
+                    return results;
+                })
+                .orElse(results);
+
+        // Support for pagination. Should be done _after_ filtering
+        return pagination
+                .map(p -> {
+                    int offset = p.getOffset();
+                    int limit = p.getLimit();
+                    if (offset < 0 || offset >= sorted.size()) {
+                        return Collections.emptyList();
+                    }
+                    int endIdx = offset + limit;
+                    if (endIdx > sorted.size()) {
+                        endIdx = sorted.size();
+                    }
+                    return sorted.subList(offset, endIdx);
+                })
+                .orElse(sorted);
     }
 }

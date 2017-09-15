@@ -234,27 +234,13 @@ public class PersistentResourceFetcher implements DataFetcher {
         Optional<Pagination> pagination = buildPagination(first, offset);
         Optional<Sorting> sorting = buildSorting(sort);
 
-        RequestScope requestScope = parentResource.getRequestScope();
-        EntityDictionary dictionary = requestScope.getDictionary();
-
-        // TODO: This should really be consolidated with the functionality found in fetchObject
-        // TODO: Do this when implementing full filtering and sorting support.
-
-        Optional<FilterExpression> filterExpression = ids.map(idList -> {
-            Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
-            Class idType = dictionary.getIdType(entityClass);
-            String idField = dictionary.getIdFieldName(entityClass);
-            return new FilterPredicate(
-                    new FilterPredicate.PathElement(
-                            entityClass,
-                            idType,
-                            idField),
-                    Operator.IN,
-                    new ArrayList<>(idList));
-        });
-
-        Set<PersistentResource> relations = parentResource.getRelationCheckedFiltered(fieldName,
-                filterExpression, sorting, pagination);
+        Set<PersistentResource> relations;
+        if (ids.isPresent()) {
+            relations = parentResource.getRelation(fieldName, ids.get(), Optional.empty(), sorting, pagination);
+        } else {
+            relations = parentResource.getRelationCheckedFiltered(fieldName,
+                    Optional.empty(), sorting, pagination);
+        }
 
         /* check for toOne relationships */
         Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
@@ -353,9 +339,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
             for (Entity.Relationship relationship : relationshipEntities) {
-                for (Entity relation : relationship.getValue()) {
-                    toVisit.add(relation);
-                }
+                toVisit.addAll(relationship.getValue());
             }
         }
     }
