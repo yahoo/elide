@@ -811,12 +811,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                           Optional<Sorting> sorting,
                                           Optional<Pagination> pagination) {
 
-        FilterExpression filterExpression = null;
-        boolean skipNew = false;
+        FilterExpression filterExpression;
 
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+        String typeAlias = (entityType == null) ? null : dictionary.getJsonAliasFor(entityType);
 
-        Set<PersistentResource> relations = new LinkedHashSet<>();
+        Set<PersistentResource> resources = new LinkedHashSet<>();
 
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
         if (entityType == null) {
@@ -826,6 +826,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             String idField = dictionary.getIdFieldName(entityType);
 
             if (!ids.isEmpty()) {
+                Map<String, PersistentResource> newResources = requestScope.getNewPersistentResources().stream()
+                        .filter(r -> typeAlias.equals(r.getType()))
+                        .collect(Collectors.toMap(r -> (String) r.getUUID().orElse(""), r -> r));
+                // Fetch our set of new resources that we know about since we can't find them in the datastore
+                resources = new LinkedHashSet<>(ids.stream()
+                        .filter(newResources::containsKey)
+                        .map(newResources::get)
+                        .collect(Collectors.toSet()));
                 FilterExpression idExpression = new FilterPredicate(
                         new FilterPredicate.PathElement(
                                 entityType,
@@ -833,7 +841,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                 idField),
                         Operator.IN,
                         ids.stream()
-                                // Filter new ids
+                                // Filter out new ids from our expression-- these don't exist in the datastore yet
                                 .filter(id ->
                                         requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) == null)
                                 .map(id -> CoerceUtil.coerce(id, idType)).collect(Collectors.toList()));
@@ -846,15 +854,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        Set<PersistentResource> resources =
-                filter(ReadPermission.class,
-                        (Set) getRelationChecked(relation, Optional.ofNullable(filterExpression), sorting, pagination));
+        // TODO: Filter on new resources?
+        // TODO: Update pagination to subtract the number of new resources created?
+
+        resources.addAll(filter(ReadPermission.class,
+            (Set) getRelationChecked(relation, Optional.ofNullable(filterExpression), sorting, pagination)));
+
+        // TODO: Sort again in memory now that two sets are glommed together?
 
         Set<String> added = new HashSet<>();
         for (PersistentResource childResource : resources) {
             for (String id : ids) {
                 if (childResource.matchesId(id)) {
-                    relations.add(childResource);
                     added.add(id);
                     break;
                 }
@@ -872,7 +883,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidObjectIdentifierException(missedIds, relation);
         }
 
-        return relations;
+        return resources;
     }
 
     /**
@@ -1718,8 +1729,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
-                boolean skipNew = resource.getRequestScope().isMutatingMultipleEntities();
-                if (!skipNew || !resource.getRequestScope().getNewResources().contains(resource)) {
+                boolean isMutation = resource.getRequestScope().isMutatingMultipleEntities();
+                if (!isMutation || !resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
                 }
                 filteredSet.add(resource);

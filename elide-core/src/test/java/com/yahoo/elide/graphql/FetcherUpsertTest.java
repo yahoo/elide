@@ -322,4 +322,33 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
     }
+
+    @Test
+    public void testNonCreatedIdOnlyRequest2Back() {
+        String graphQLRequest = "mutation { "
+                + "author(op:UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"3\", title: \"updated again\"}, {id: \"123\", title: \"the new one\"}, {id: \"2\", title: \"newish title\"}]}) { "
+                + "id "
+                + "name "
+                + "books(ids: [\"3\", \"123\"], sort: \"title\") { "
+                + "title "
+                + "} "
+                + "} "
+                + "}";
+
+        //These are not in the same order as the request.
+        //Both updating and creating new objects in the collection
+        //cannot guarantee the order of the resulting collection.
+        String expectedResponse = "{"
+                + "\"author\":[{"
+                + "\"id\":\"1\","
+                + "\"name\":\"John Snow\","
+                + "\"books\":[{"
+                + "\"title\":\"the new one\""
+                + "},{"
+                + "\"title\":\"updated again\""
+                + "}]"
+                + "}]"
+                + "}";
+        assertQueryEquals(graphQLRequest, expectedResponse);
+    }
 }
