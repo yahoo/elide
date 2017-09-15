@@ -1699,9 +1699,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param permission the permission
      * @param resources  the resources
      * @return Filtered set of resources
-     * @deprecated use {@link PersistentResource#filter(Class, Set, boolean)}
      */
-    @Deprecated
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
                                                     Set<PersistentResource> resources) {
         return filter(permission, resources, false);
@@ -1712,14 +1710,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param permission the permission
      * @param resources  the resources
-     * @param skipNew whether or not objects created this transaction should be skipped
+     * @param skipNewUnused whether or not objects created this transaction should be skipped
      * @return Filtered set of resources
+     * @deprecated use {@link PersistentResource#filter(Class, Set, boolean)}
      */
+    @Deprecated
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
-                                                    Set<PersistentResource> resources, boolean skipNew) {
+                                                    Set<PersistentResource> resources, boolean skipNewUnused) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
+                boolean skipNew = resource.getRequestScope().isMutatingMultipleEntities();
                 if (!skipNew || !resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
                 }
