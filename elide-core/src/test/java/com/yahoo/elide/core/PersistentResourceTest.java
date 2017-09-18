@@ -416,7 +416,7 @@ public class PersistentResourceTest extends PersistentResource {
             Set<PersistentResource> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
-            Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources, false);
+            Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 2, "Only a subset of the children are readable");
             Assert.assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
             Assert.assertTrue(results.contains(child3Resource), "Readable children includes children with positive IDs");
@@ -431,7 +431,7 @@ public class PersistentResourceTest extends PersistentResource {
             Set<PersistentResource> resources =
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
-            Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources, false);
+            Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources);
             Assert.assertEquals(results.size(), 0, "No children are readable by an invalid user");
         }
     }

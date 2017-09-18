@@ -235,11 +235,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean matchesId(String checkId) {
         if (checkId == null) {
             return false;
-        } else if (uuid.isPresent() && checkId.equals(uuid.get())) {
-            return true;
         }
-        String id = getId();
-        return !"0".equals(id) && checkId.equals(id);
+        return uuid
+                .map(checkId::equals)
+                .orElseGet(() -> {
+                    String id = getId();
+                    return !"0".equals(id) && checkId.equals(id);
+                });
     }
 
     /**
@@ -335,7 +337,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         list = tx.loadObjects(loadClass, filterExpression, sorting,
                 pagination.map(p -> p.evaluate(loadClass)), requestScope);
         Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
-        resources = filter(ReadPermission.class, resources, false);
+        resources = filter(ReadPermission.class, resources);
         return resources;
     }
 
@@ -386,7 +388,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean updateRelation(String fieldName, Set<PersistentResource> resourceIdentifiers) {
         RelationshipType type = getRelationshipType(fieldName);
         Set<PersistentResource> resources = filter(ReadPermission.class,
-                getRelationUncheckedUnfiltered(fieldName), false);
+                getRelationUncheckedUnfiltered(fieldName));
         boolean isUpdated;
         if (type.isToMany()) {
             checkFieldAwareDeferPermissions(
@@ -542,8 +544,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return True if object updated, false otherwise
      */
     public boolean clearRelation(String relationName) {
-        Set<PersistentResource> mine = filter(ReadPermission.class,
-                getRelationUncheckedUnfiltered(relationName), false);
+        Set<PersistentResource> mine = filter(ReadPermission.class, getRelationUncheckedUnfiltered(relationName));
         checkFieldAwareDeferPermissions(UpdatePermission.class, relationName, Collections.emptySet(),
                 mine.stream().map(PersistentResource::getObject).collect(Collectors.toSet()));
 
@@ -782,56 +783,108 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Get relation looking for a _single_ id.
+     *
+     * NOTE: Filter expressions for this type are _not_ applied at this level.
+     *
+     * @param relation relation name
+     * @param id single id to lookup
+     * @return The PersistentResource of the sought id or null if does not exist.
+     */
+    public PersistentResource getRelation(String relation, String id) {
+        Set<PersistentResource> resources = getRelation(relation, Collections.singletonList(id),
+                Optional.empty(), Optional.empty(), Optional.empty());
+      if (resources.isEmpty()) {
+            return null;
+      }
+      return resources.iterator().next();
+    }
+
+    /**
      * Load a single entity relation from the PersistentResource. Example: GET /book/2
      *
      * @param relation the relation
-     * @param id the id
+     * @param ids the id
      * @return PersistentResource relation
      */
-    public PersistentResource getRelation(String relation, String id) {
+    public Set<PersistentResource> getRelation(String relation,
+                                          List<String> ids,
+                                          Optional<FilterExpression> filter,
+                                          Optional<Sorting> sorting,
+                                          Optional<Pagination> pagination) {
 
-        Optional<FilterExpression> filterExpression;
-        boolean skipNew = false;
+        FilterExpression filterExpression;
 
         Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relation);
+
+        Set<PersistentResource> newResources = new LinkedHashSet<>();
 
         /* If this is a bulk edit request and the ID we are fetching for is newly created... */
         if (entityType == null) {
             throw new InvalidAttributeException(relation, type);
-        } else if (requestScope.isMutatingMultipleEntities()
-                && requestScope.getObjectById(dictionary.getJsonAliasFor(entityType), id) != null) {
-            filterExpression = Optional.empty();
-            // NOTE: We can safely _skip_ tests here since we are only skipping READ checks on
-            // NEWLY created objects. We assume a user can READ their object in the midst of creation.
-            // Imposing a constraint to the contrary-- at this moment-- seems arbitrary and does not
-            // reflect reality (i.e. if a user is creating an object with values, he/she knows those values
-            // already).
-            skipNew = true;
         } else {
-            Class<?> idType = dictionary.getIdType(entityType);
-            Object idVal = CoerceUtil.coerce(id, idType);
-            String idField = dictionary.getIdFieldName(entityType);
+            if (!ids.isEmpty()) {
+                // Fetch our set of new resources that we know about since we can't find them in the datastore
+                String typeAlias = dictionary.getJsonAliasFor(entityType);
+                newResources = requestScope.getNewPersistentResources().stream()
+                        .filter(resource -> typeAlias.equals(resource.getType())
+                                && ids.contains(resource.getUUID().orElse("")))
+                        .collect(Collectors.toSet());
 
-            filterExpression = Optional.of(new FilterPredicate(
-                    new FilterPredicate.PathElement(
-                            entityType,
-                            idType,
-                            idField),
-                    Operator.IN,
-                    Collections.singletonList(idVal)));
-        }
+                FilterExpression idExpression = buildIdFilterExpression(ids, entityType);
 
-        Set<PersistentResource> resources =
-                filter(ReadPermission.class,
-                        (Set) getRelationChecked(relation, filterExpression, Optional.empty(), Optional.empty()),
-                        skipNew);
-
-        for (PersistentResource childResource : resources) {
-            if (childResource.matchesId(id)) {
-                return childResource;
+                // Combine filters if necessary
+                filterExpression = filter
+                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                        .orElse(idExpression);
+            } else {
+                filterExpression = filter.orElse(null);
             }
         }
-        throw new InvalidObjectIdentifierException(id, relation);
+
+        // TODO: Filter on new resources?
+        // TODO: Update pagination to subtract the number of new resources created?
+
+        Set<PersistentResource> existingResources = filter(ReadPermission.class,
+            (Set) getRelationChecked(relation, Optional.ofNullable(filterExpression), sorting, pagination));
+
+        // TODO: Sort again in memory now that two sets are glommed together?
+
+        Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
+        Set<String> allExpectedIds = allResources.stream()
+                .map(resource -> (String) resource.getUUID().orElseGet(resource::getId))
+                .collect(Collectors.toSet());
+        Set<String> missedIds = Sets.difference(new HashSet<>(ids), allExpectedIds);
+
+        if (!missedIds.isEmpty()) {
+            throw new InvalidObjectIdentifierException(missedIds.toString(), relation);
+        }
+
+        return allResources;
+    }
+
+    /**
+     * Build an id filter expression for a particular entity type.
+     *
+     * @param ids Ids to include in the filter expression
+     * @param entityType Type of entity
+     * @return Filter expression for given ids and type.
+     */
+    private FilterExpression buildIdFilterExpression(List<String> ids, Class entityType) {
+        Class<?> idType = dictionary.getIdType(entityType);
+        String idField = dictionary.getIdFieldName(entityType);
+        String typeAlias = dictionary.getJsonAliasFor(entityType);
+
+        return new FilterPredicate(
+                new FilterPredicate.PathElement(
+                        entityType,
+                        idType,
+                        idField),
+                Operator.IN,
+                ids.stream()
+                        // Filter out new ids from our expression-- these don't exist in the datastore yet
+                        .filter(id -> requestScope.getObjectById(typeAlias, id) == null)
+                        .map(id -> CoerceUtil.coerce(id, idType)).collect(Collectors.toList()));
     }
 
     /**
@@ -846,8 +899,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                                               Optional<Pagination> pagination) {
 
         return filter(ReadPermission.class,
-                getRelation(relationName, filterExpression, sorting, pagination, true),
-                false);
+                getRelation(relationName, filterExpression, sorting, pagination, true));
     }
 
     private Set<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
@@ -1672,28 +1724,20 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param permission the permission
      * @param resources  the resources
      * @return Filtered set of resources
-     * @deprecated use {@link PersistentResource#filter(Class, Set, boolean)}
      */
-    @Deprecated
     protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
                                                     Set<PersistentResource> resources) {
-        return filter(permission, resources, false);
-    }
-
-    /**
-     * Filter a set of PersistentResources.
-     *
-     * @param permission the permission
-     * @param resources  the resources
-     * @param skipNew whether or not objects created this transaction should be skipped
-     * @return Filtered set of resources
-     */
-    protected static Set<PersistentResource> filter(Class<? extends Annotation> permission,
-                                                    Set<PersistentResource> resources, boolean skipNew) {
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
-                if (!skipNew || !resource.getRequestScope().getNewResources().contains(resource)) {
+                // NOTE: This is for avoiding filtering on _newly created_ objects within this transaction.
+                // Namely-- in a JSONPATCH request or GraphQL request-- we need to read all newly created
+                // resources /regardless/ of whether or not we actually have permission to do so; this is to
+                // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
+                // then they will be filtered out and only the id is returned. Similarly, all future requests to this
+                // object will behave as expected.
+                boolean isMutation = resource.getRequestScope().isMutatingMultipleEntities();
+                if (!isMutation || !resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
                 }
                 filteredSet.add(resource);

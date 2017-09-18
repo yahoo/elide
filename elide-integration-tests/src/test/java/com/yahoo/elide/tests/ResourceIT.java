@@ -1285,6 +1285,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test(priority = 28)
     public void patchExtBadValue() throws IOException {
+        // NOTE: This is a very hibernate/MySQL-centric test
+        // TODO: If we want this test suite to be a universal suite for datastores, we need to refactor
+        // these implementation details.
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
 
         JsonNode result = jsonApiMapper.getObjectMapper().readTree(given()
@@ -1293,19 +1296,18 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .patch("/")
             .then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST)
+            .statusCode(HttpStatus.SC_LOCKED)
             .extract()
             .body()
             .asString());
 
         JsonNode errors = result.get("errors");
         Assert.assertNotNull(errors);
-        Assert.assertEquals(errors.size(), 3);
+        Assert.assertEquals(errors.size(), 1);
 
-        String error = errors.get(2).get("detail").asText();
-        String expected = "Unknown identifier '2d1b";
-        Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "'");
-        Assert.assertEquals(errors.get(2).get("status").asInt(), 404);
+        String error = errors.get(0).asText();
+        String expected = "TransactionException: Duplicate entry 'duplicate' for key 'name'";
+        Assert.assertTrue(error.equals(expected), "Error does not equal with '" + expected + "'");
     }
 
     @Test(priority = 29)

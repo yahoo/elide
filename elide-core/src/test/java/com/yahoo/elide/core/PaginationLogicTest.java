@@ -80,7 +80,7 @@ public class PaginationLogicTest {
 
     @Test
     public void checkValidOffsetAndFirstRequest() {
-        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("10"), elideSettings).get();
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -93,7 +93,7 @@ public class PaginationLogicTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkErroneousPageLimit() {
-        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("100000"), elideSettings).get();
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -116,7 +116,7 @@ public class PaginationLogicTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkBadLimit() {
-        Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("0"), elideSettings);
+        Pagination.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
