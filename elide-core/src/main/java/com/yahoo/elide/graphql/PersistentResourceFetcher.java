@@ -534,6 +534,8 @@ public class PersistentResourceFetcher implements DataFetcher {
     private Optional<FilterExpression> buildFilter(String typeName,
                                                    Optional<String> filter,
                                                    RequestScope requestScope) {
+        // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
+        // query params.
         return filter.map(filterStr -> {
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
                 {
