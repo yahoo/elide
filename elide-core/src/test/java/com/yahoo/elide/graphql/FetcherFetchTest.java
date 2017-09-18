@@ -253,19 +253,19 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollectionFilter() throws JsonProcessingException { //fails
-//        String graphQLRequest = "{ author(id: \"1\") { books { id title } } }";
-//        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
+    public void testNestedCollectionFilter() throws JsonProcessingException {
+        String graphQLRequest = "{ author(ids: [\"1\"]) { books(filter: \"title==\\\"Libro U*\\\"\") { id title } } }";
+        String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
 
-//        Assert.fail(NOT_IMPLEMENTED);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test
-    public void testRootCollectionFilter() throws JsonProcessingException { //fails
-//        String graphQLRequest = "{ book(filter: \"title=\\\"Libro U*\\\"\") { id title } }";
-//        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}";
+    public void testRootCollectionFilter() throws JsonProcessingException {
+        String graphQLRequest = "{ book(filter: \"title==\\\"Libro U*\\\"\") { id title } }";
+        String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}";
 
-//        Assert.fail(NOT_IMPLEMENTED);
+        assertQueryEquals(graphQLRequest, expectedResponse);
     }
 
     @Test

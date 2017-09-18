@@ -11,8 +11,11 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -23,6 +26,8 @@ import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,7 +157,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 return context.parentResource.getAttribute(fieldName);
             } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
                 return fetchRelationship(context.parentResource,
-                        fieldName, context.ids, context.offset, context.first, context.sort);
+                        fieldName, context.ids, context.offset, context.first, context.sort, context.filters);
             } else if (Objects.equals(idFieldName, fieldName)) {
                 return new DeferredId(context.parentResource);
             } else {
@@ -176,9 +181,12 @@ public class PersistentResourceFetcher implements DataFetcher {
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters) {
+        EntityDictionary dictionary = requestScope.getDictionary();
+        String typeName = dictionary.getJsonAliasFor(entityClass);
 
         Optional<Pagination> pagination = buildPagination(first, offset);
         Optional<Sorting> sorting = buildSorting(sort);
+        Optional<FilterExpression> filter = buildFilter(typeName, filters, requestScope);
 
         /* fetching a collection */
         return ids.map((idList) -> {
@@ -188,29 +196,29 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
 
             /* access records from internal db and return */
-            EntityDictionary dictionary = requestScope.getDictionary();
-
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-            FilterExpression filterExpression = new FilterPredicate(
+            FilterExpression idFilter = new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityClass,
                             idType,
                             idField),
                     Operator.IN,
                     new ArrayList<>(idList));
+            FilterExpression filterExpression = filter
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
+                    .orElse(idFilter);
             return PersistentResource.loadRecords(entityClass,
                     Optional.of(filterExpression), sorting, pagination, requestScope);
         }).orElseGet(() -> {
             Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
-                    Optional.empty(),
+                    filter,
                     sorting,
                     pagination,
                     requestScope);
 
-            //TODO: filter
             return records;
         });
     }
@@ -223,6 +231,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param ids List of ids
      * @param offset Pagination offset
      * @param first Pagination first
+     * @param filters Filter string
      * @return persistence resource object(s)
      */
     private Object fetchRelationship(PersistentResource parentResource,
@@ -230,16 +239,22 @@ public class PersistentResourceFetcher implements DataFetcher {
                                      Optional<List<String>> ids,
                                      Optional<String> offset,
                                      Optional<String> first,
-                                     Optional<String> sort) {
+                                     Optional<String> sort,
+                                     Optional<String> filters) {
+        EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
+        Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
+        String typeName = dictionary.getJsonAliasFor(entityClass);
+
         Optional<Pagination> pagination = buildPagination(first, offset);
         Optional<Sorting> sorting = buildSorting(sort);
+        Optional<FilterExpression> filter = buildFilter(typeName, filters, parentResource.getRequestScope());
 
         Set<PersistentResource> relations;
         if (ids.isPresent()) {
-            relations = parentResource.getRelation(fieldName, ids.get(), Optional.empty(), sorting, pagination);
+            relations = parentResource.getRelation(fieldName, ids.get(), filter, sorting, pagination);
         } else {
             relations = parentResource.getRelationCheckedFiltered(fieldName,
-                    Optional.empty(), sorting, pagination);
+                    filter, sorting, pagination);
         }
 
         /* check for toOne relationships */
@@ -514,5 +529,25 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     private Optional<Sorting> buildSorting(Optional<String> sort) {
         return sort.map(Sorting::parseSortRule);
+    }
+
+    private Optional<FilterExpression> buildFilter(String typeName,
+                                                   Optional<String> filter,
+                                                   RequestScope requestScope) {
+        // TODO: Refactor FilterDialect interfaces to accept string or List<String> instead of (or in addition to?)
+        // query params.
+        return filter.map(filterStr -> {
+            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>() {
+                {
+                    put("filter[" + typeName + "]", Arrays.asList(filterStr));
+                }
+            };
+            try {
+                return requestScope.getFilterDialect().parseTypedExpression(typeName, queryParams).get(typeName);
+            } catch (ParseException e) {
+                log.debug("Filter parse exception caught", e);
+                throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
+            }
+        });
     }
 }
