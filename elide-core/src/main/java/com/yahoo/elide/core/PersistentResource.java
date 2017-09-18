@@ -235,11 +235,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean matchesId(String checkId) {
         if (checkId == null) {
             return false;
-        } else if (uuid.isPresent() && checkId.equals(uuid.get())) {
-            return true;
         }
-        String id = getId();
-        return !"0".equals(id) && checkId.equals(id);
+        return uuid
+                .map(checkId::equals)
+                .orElseGet(() -> {
+                    String id = getId();
+                    return !"0".equals(id) && checkId.equals(id);
+                });
     }
 
     /**
@@ -822,22 +824,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relation, type);
         } else {
             if (!ids.isEmpty()) {
-                String typeAlias = dictionary.getJsonAliasFor(entityType);
-                Map<String, PersistentResource> newResourceMap = requestScope.getNewPersistentResources().stream()
-                        .filter(r -> typeAlias.equals(r.getType()))
-                        .collect(Collectors.toMap(r -> (String) r.getUUID().orElse(""), r -> r));
-
                 // Fetch our set of new resources that we know about since we can't find them in the datastore
-                newResources = new LinkedHashSet<>(ids.stream()
-                        .filter(newResourceMap::containsKey)
-                        .map(newResourceMap::get)
-                        .collect(Collectors.toList()));
+                String typeAlias = dictionary.getJsonAliasFor(entityType);
+                newResources = requestScope.getNewPersistentResources().stream()
+                        .filter(resource -> typeAlias.equals(resource.getType())
+                                && ids.contains(resource.getUUID().orElse("")))
+                        .collect(Collectors.toSet());
 
                 FilterExpression idExpression = buildIdFilterExpression(ids, entityType);
 
                 // Combine filters if necessary
                 filterExpression = filter
-                        .map(fe -> joinFilterExpressions(idExpression, fe))
+                        .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
                         .orElse(idExpression);
             } else {
                 filterExpression = filter.orElse(null);
@@ -853,16 +851,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // TODO: Sort again in memory now that two sets are glommed together?
 
         Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
-
-        String missedIds = ids.stream()
-                .filter(id -> allResources.stream().noneMatch(p -> p.matchesId(id)))
-                .reduce(new StringBuilder(),
-                        (prev, curr) -> (prev.length() > 0) ? prev.append(curr).append(",") : prev.append(curr),
-                        StringBuilder::append)
-                .toString();
+        Set<String> allExpectedIds = allResources.stream()
+                .map(resource -> (String) resource.getUUID().orElseGet(resource::getId))
+                .collect(Collectors.toSet());
+        Set<String> missedIds = Sets.difference(new HashSet<>(ids), allExpectedIds);
 
         if (!missedIds.isEmpty()) {
-            throw new InvalidObjectIdentifierException(missedIds, relation);
+            throw new InvalidObjectIdentifierException(missedIds.toString(), relation);
         }
 
         return allResources;
@@ -890,17 +885,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         // Filter out new ids from our expression-- these don't exist in the datastore yet
                         .filter(id -> requestScope.getObjectById(typeAlias, id) == null)
                         .map(id -> CoerceUtil.coerce(id, idType)).collect(Collectors.toList()));
-    }
-
-    /**
-     * Join two filter expressions with an AND clause.
-     *
-     * @param left Left expression
-     * @param right Right expression
-     * @return Expression representing left AND right.
-     */
-    private FilterExpression joinFilterExpressions(FilterExpression left, FilterExpression right) {
-        return new AndFilterExpression(left, right);
     }
 
     /**
@@ -1746,6 +1730,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> filteredSet = new LinkedHashSet<>();
         for (PersistentResource resource : resources) {
             try {
+                // NOTE: This is for avoiding filtering on _newly created_ objects within this transaction.
+                // Namely-- in a JSONPATCH request or GraphQL request-- we need to read all newly created
+                // resources /regardless/ of whether or not we actually have permission to do so; this is to
+                // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
+                // then they will be filtered out and only the id is returned. Similarly, all future requests to this
+                // object will behave as expected.
                 boolean isMutation = resource.getRequestScope().isMutatingMultipleEntities();
                 if (!isMutation || !resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);

@@ -162,14 +162,14 @@ public class InMemoryTransaction implements DataStoreTransaction {
         Object values = PersistentResource.getValue(entity, relationName, scope);
 
         // Gather list of valid id's from this parent
-        Map<String, Object> validChildren = new HashMap<>();
+        Map<String, Object> idToChildResource = new HashMap<>();
         if (dictionary.getRelationshipType(entity, relationName).isToOne()) {
             if (values == null) {
                 return null;
             }
-            validChildren.put(dictionary.getId(values), values);
+            idToChildResource.put(dictionary.getId(values), values);
         } else if (values instanceof Collection) {
-            validChildren.putAll((Map) ((Collection) values).stream()
+            idToChildResource.putAll((Map) ((Collection) values).stream()
                     .collect(Collectors.toMap(dictionary::getId, Function.identity())));
         } else {
             throw new IllegalStateException("An unexpected error occurred querying a relationship");
@@ -177,7 +177,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
 
         Class entityClass = dictionary.getParameterizedType(entity, relationName);
 
-        return processData(entityClass, validChildren, filterExpression, sorting, pagination, scope);
+        return processData(entityClass, idToChildResource, filterExpression, sorting, pagination, scope);
     }
 
     @Override
@@ -288,10 +288,10 @@ public class InMemoryTransaction implements DataStoreTransaction {
                     }
                     Comparator<Object> comp = sortRules.entrySet().stream()
                             .map(entry -> getComparator(entry.getKey(), entry.getValue(), scope))
-                            .reduce(noSort, (first, second) -> (left, right) -> {
-                                int comparison = first.compare(left, right);
+                            .reduce(noSort, (comparator1, comparator2) -> (left, right) -> {
+                                int comparison = comparator1.compare(left, right);
                                 if (comparison == 0) {
-                                    return second.compare(left, right);
+                                    return comparator2.compare(left, right);
                                 }
                                 return comparison;
                             });
