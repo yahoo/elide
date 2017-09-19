@@ -1,5 +1,8 @@
 # Change Log
 ## 3.1.2
+**Features**
+ * Add Elide standalone application library
+
 **Fixes**
  * Fix for issue #508
  * Fix for issue #521
