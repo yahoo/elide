@@ -54,7 +54,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
      */
     @Override
     public Query build() {
-        String entityName = entityClass.getCanonicalName();
+        String entityName = dictionary.lookupEntityClass(entityClass).getCanonicalName();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
         Collection<FilterPredicate> predicates;

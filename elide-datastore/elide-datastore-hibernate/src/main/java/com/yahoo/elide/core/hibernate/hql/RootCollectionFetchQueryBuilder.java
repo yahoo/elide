@@ -35,7 +35,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
      */
     @Override
     public Query build() {
-        String entityName = entityClass.getCanonicalName();
+        String entityName = dictionary.lookupEntityClass(entityClass).getCanonicalName();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
         Query query;
