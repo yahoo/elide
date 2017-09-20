@@ -16,6 +16,7 @@ import com.yahoo.elide.security.PersistentResource;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -27,6 +28,17 @@ public class PermissionCondition {
     @Getter final Optional<PersistentResource> resource;
     @Getter final Optional<ChangeSpec> changes;
     @Getter final Optional<String> field;
+
+    private static final HashMap<Class<? extends Annotation>, String> PERMISSION_TO_NAME =
+            new HashMap<Class<? extends Annotation>, String>() {
+                {
+                    put(ReadPermission.class, "READ");
+                    put(UpdatePermission.class, "UPDATE");
+                    put(DeletePermission.class, "DELETE");
+                    put(CreatePermission.class, "CREATE");
+                    put(SharePermission.class, "SHARE");
+                }
+            };
 
     /**
      * This function attempts to create the appropriate {@link PermissionCondition} based on parameters that may or may
@@ -104,27 +116,8 @@ public class PermissionCondition {
 
         return String.format(
                 "%s PERMISSION WAS INVOKED ON %s %s",
-                permission2text(permission),
+                PERMISSION_TO_NAME.get(permission),
                 entity,
                 withClause);
-    }
-
-    private static String permission2text(Class<? extends Annotation> permission) {
-        if (permission.equals(ReadPermission.class)) {
-            return "READ";
-        }
-        if (permission.equals(UpdatePermission.class)) {
-            return "UPDATE";
-        }
-        if (permission.equals(DeletePermission.class)) {
-            return "DELETE";
-        }
-        if (permission.equals(CreatePermission.class)) {
-            return "CREATE";
-        }
-        if (permission.equals(SharePermission.class)) {
-            return "SHARE";
-        }
-        throw new IllegalArgumentException("Invalid annotation type");
     }
 }
