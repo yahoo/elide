@@ -6,6 +6,13 @@
 
 package com.yahoo.elide.contrib.dropwizard.elide;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.datastores.hibernate5.HibernateStore;
@@ -20,11 +27,6 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.SecurityContext;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 public class ElideBundleIT {
     private static final String ELIDE_BUNDLE = "elide-bundle";

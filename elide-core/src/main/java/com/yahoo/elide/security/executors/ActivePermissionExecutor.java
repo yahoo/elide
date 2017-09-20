@@ -56,7 +56,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      *
      * @param requestScope Request scope
      */
-    public ActivePermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
+    public ActivePermissionExecutor(final RequestScope requestScope) {
         this(false, requestScope);
     }
 
@@ -66,7 +66,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param verbose True if executor should produce verbose output to caller
      * @param requestScope Request scope
      */
-    public ActivePermissionExecutor(boolean verbose, final com.yahoo.elide.core.RequestScope requestScope) {
+    public ActivePermissionExecutor(boolean verbose, final RequestScope requestScope) {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;

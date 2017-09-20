@@ -658,7 +658,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             removeResource.markDirty();
         }
 
-        if (original != modified && original != null && !original.equals(modified)) {
+        if (!Objects.equals(original, modified)) {
             this.markDirty();
         }
 

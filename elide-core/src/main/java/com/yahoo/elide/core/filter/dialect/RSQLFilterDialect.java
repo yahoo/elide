@@ -27,6 +27,7 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -171,7 +172,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
      * Allows base RSQLParseException to carry a parameterized message.
      */
     public static class RSQLParseException extends RSQLParserException {
-        String message;
+        private String message;
 
         RSQLParseException(String message) {
             super(new Throwable() {
