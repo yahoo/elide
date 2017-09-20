@@ -167,7 +167,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
             formattedPath.append(PERIOD).append(element.getFieldName());
         }
 
-        return formattedPath.append(" ").append(operator).append(" ").append(values).toString();
+        return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 
     public void negate() {
