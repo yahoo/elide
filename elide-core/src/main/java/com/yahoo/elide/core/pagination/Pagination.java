@@ -195,7 +195,7 @@ public class Pagination {
             throw new InvalidValueException("page[number] must contain a positive value.");
         }
 
-        offset = pageNumber > 0 ? (pageNumber - 1) * limit : 0;
+        offset = (pageNumber - 1) * limit;
     }
 
     /**

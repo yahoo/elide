@@ -142,18 +142,18 @@ public abstract class AbstractHQLQueryBuilder {
      * @return A HQL string representing the join
      */
     private String extractJoinClause(FilterPredicate predicate, Set<String> alreadyJoined) {
-        String joinClause = "";
+        StringBuilder joinClause = new StringBuilder();
 
         String previousAlias = null;
 
         for (FilterPredicate.PathElement pathElement : predicate.getPath()) {
             String fieldName = pathElement.getFieldName();
-            Class<?> typeClass = pathElement.getType();
+            Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
             String typeAlias = FilterPredicate.getTypeAlias(typeClass);
 
             //Nothing left to join.
             if (! dictionary.isRelation(pathElement.getType(), fieldName)) {
-                return joinClause;
+                return joinClause.toString();
             }
 
             String alias = typeAlias + UNDERSCORE + fieldName;
@@ -168,14 +168,14 @@ public abstract class AbstractHQLQueryBuilder {
             }
 
             if (!alreadyJoined.contains(joinFragment)) {
-                joinClause += joinFragment;
+                joinClause.append(joinFragment);
                 alreadyJoined.add(joinFragment);
             }
 
             previousAlias = alias;
         }
 
-        return joinClause;
+        return joinClause.toString();
     }
 
     /**

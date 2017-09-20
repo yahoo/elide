@@ -158,13 +158,16 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     @Override
     public String toString() {
-        String formattedPath = path.isEmpty() ? "" : StringUtils.uncapitalize(path.get(0).getType().getSimpleName());
-
-        for (PathElement element : path) {
-            formattedPath = formattedPath + PERIOD + element.getFieldName();
+        StringBuilder formattedPath = new StringBuilder();
+        if (!path.isEmpty()) {
+            formattedPath.append(StringUtils.uncapitalize(path.get(0).getType().getSimpleName()));
         }
 
-        return String.format("%s %s %s", formattedPath, operator, values);
+        for (PathElement element : path) {
+            formattedPath.append(PERIOD).append(element.getFieldName());
+        }
+
+        return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 
     public void negate() {

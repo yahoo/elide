@@ -25,7 +25,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                                            EntityDictionary dictionary,
                                            Session session) {
         super(dictionary, session);
-        this.entityClass = entityClass;
+        this.entityClass = dictionary.lookupEntityClass(entityClass);
     }
 
     /**

@@ -65,7 +65,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
      */
     @Override
     public Query build() {
-        Class<?> parentType = relationship.getParentType();
+        Class<?> parentType = dictionary.lookupEntityClass(relationship.getParentType());
         Class<?> idType = dictionary.getIdType(parentType);
         Object idVal = CoerceUtil.coerce(dictionary.getId(relationship.getParent()), idType);
         String idField = dictionary.getIdFieldName(parentType);
@@ -82,7 +82,6 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         Collection<FilterPredicate> predicates = new ArrayList<>();
         String joinClause = "";
         String filterClause = "";
-        FilterExpression joinedExpression = idExpression;
 
         String relationshipName = relationship.getRelationshipName();
 
@@ -110,7 +109,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             predicates.add(idExpression);
 
             //Join together the provided filter expression with the expression which selects the collection owner.
-            joinedExpression = new AndFilterExpression(copy, idExpression);
+            FilterExpression joinedExpression = new AndFilterExpression(copy, idExpression);
 
             //Build the JOIN clause from the filter predicate
             joinClause = getJoinClauseFromFilters(joinedExpression);
