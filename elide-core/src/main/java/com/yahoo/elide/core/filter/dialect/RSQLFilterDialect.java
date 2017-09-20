@@ -319,7 +319,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         private FilterExpression buildIsNullOperator(List<PathElement> path, List<String> arguments) {
             Operator elideOP;
             try {
-                boolean argBool = (boolean) CoerceUtil.coerce(arguments.get(0), boolean.class);
+                boolean argBool = CoerceUtil.coerce(arguments.get(0), boolean.class);
                 if (argBool) {
                     elideOP = Operator.ISNULL;
                 } else {

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -141,7 +140,7 @@ public class InMemoryTransaction implements DataStoreTransaction {
         // Support for filtering
         if (filterExpression.isPresent()) {
             Predicate predicate = filterExpression.get().accept(new InMemoryFilterVisitor(scope));
-            return (Collection<Object>) data.values().stream()
+            return data.values().stream()
                     .filter(predicate::test)
                     .collect(Collectors.toList());
         }

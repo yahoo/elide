@@ -18,6 +18,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+
 import java.util.Optional;
 
 
@@ -89,9 +90,7 @@ public class User {
 
     static public class AdminRoleCheck extends OperationCheck<User> {
         @Override
-        public boolean ok(User object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            User user = (User) object;
-
+        public boolean ok(User user, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return (user.getRole() == 1);
         }
 

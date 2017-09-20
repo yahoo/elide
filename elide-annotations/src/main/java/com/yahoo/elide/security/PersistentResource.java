@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * The persistent resource interface passed to change specs.
- * @param <T>
+ * @param <T> resource type
  */
 public interface PersistentResource<T> {
 

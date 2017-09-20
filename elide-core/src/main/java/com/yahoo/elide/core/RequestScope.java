@@ -33,7 +33,6 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -51,7 +50,6 @@ import java.util.function.Function;
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
-@Slf4j
 public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
@@ -170,7 +168,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         if (this.queryParams.isPresent()) {
 
             /* Extract any query param that starts with 'filter' */
-            MultivaluedMap filterParams = getFilterParams(queryParams);
+            MultivaluedMap<String, String> filterParams = getFilterParams(queryParams);
 
             String errorMessage = "";
             if (! filterParams.isEmpty()) {
@@ -247,7 +245,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     @Override
     public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
-        return (Set<com.yahoo.elide.security.PersistentResource>) (Set) newPersistentResources;
+        return (Set<com.yahoo.elide.security.PersistentResource>) (Set<?>) newPersistentResources;
     }
 
     public boolean isNewResource(Object entity) {
@@ -292,7 +290,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     /**
      * Get the global/cross-type filter expression.
-     * @param loadClass
      * @return The global filter expression evaluated at the first load
      */
     public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
@@ -322,7 +319,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     /**
      * Extracts any query params that start with 'filter'.
-     * @param queryParams
      * @return extracted filter params
      */
     private static MultivaluedMap<String, String> getFilterParams(MultivaluedMap<String, String> queryParams) {
@@ -371,7 +367,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      *
      * @param triggerType Class representing the trigger type (i.e. OnCreatePreSecurity.class, etc.)
      */
-    private void runQueuedTriggers(Class triggerType) {
+    private void runQueuedTriggers(Class<?> triggerType) {
         if (!queuedTriggers.containsKey(triggerType)) {
             // NOTE: This is a programming error. Should never occur.
             throw new InternalServerErrorException("Failed to run queued trigger of type: " + triggerType);
@@ -387,7 +383,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void queueTriggers(PersistentResource resource, CRUDAction crudAction) {
+    protected void queueTriggers(PersistentResource<?> resource, CRUDAction crudAction) {
         queueTriggers(resource, "", crudAction);
     }
 
@@ -398,7 +394,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param fieldName Field name for which to specify trigger
      * @param crudAction CRUD Action
      */
-    protected void queueTriggers(PersistentResource resource, String fieldName, CRUDAction crudAction) {
+    protected void queueTriggers(PersistentResource<?> resource, String fieldName, CRUDAction crudAction) {
         Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
 
         switch (crudAction) {

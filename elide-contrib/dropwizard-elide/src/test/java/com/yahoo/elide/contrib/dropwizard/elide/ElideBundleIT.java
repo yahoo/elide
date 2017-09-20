@@ -47,7 +47,6 @@ public class ElideBundleIT {
     };
 
     @BeforeTest
-    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
         when(environment.healthChecks()).thenReturn(healthChecks);
         when(environment.jersey()).thenReturn(jerseyEnvironment);
