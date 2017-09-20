@@ -39,6 +39,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -490,9 +491,8 @@ public class PermissionToFilterExpressionVisitorTest {
 
             if (result) {
                 return ExpressionResult.PASS;
-            } else {
-                return ExpressionResult.FAIL;
             }
+            return ExpressionResult.FAIL;
         }
     }
 

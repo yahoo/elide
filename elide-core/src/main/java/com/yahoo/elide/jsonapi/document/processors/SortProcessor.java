@@ -126,9 +126,8 @@ public class SortProcessor implements DocumentProcessor {
             // Remove descending token to get field name
             String parsedField = field.substring(1);
             return Ordering.from(attributeComparison(parsedField)).nullsFirst().reverse();
-        } else {
-            return Ordering.from(attributeComparison(field)).nullsFirst();
         }
+        return Ordering.from(attributeComparison(field)).nullsFirst();
     }
 
     /**

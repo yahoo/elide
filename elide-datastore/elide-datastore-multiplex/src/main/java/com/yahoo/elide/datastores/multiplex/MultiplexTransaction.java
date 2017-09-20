@@ -18,7 +18,6 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,7 +31,6 @@ import java.util.Set;
  * Multiplex transaction handler.  Process each sub-database transactions within a single transaction.
  * If any commit fails in process, reverse any commits already completed.
  */
-@Slf4j
 public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected final LinkedHashMap<DataStore, DataStoreTransaction> transactions;
     protected final MultiplexManager multiplexManager;
@@ -180,23 +178,21 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                             if (id == null) {
                                 return bridgeableTransaction.bridgeableLoadObjects(this,
                                         entity, relationName, filterExpression, sorting, pagination, scope);
-                            } else {
-                                return bridgeableTransaction.bridgeableLoadObject(this,
-                                        entity, relationName, id, filterExpression, scope);
                             }
-                        })
-                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObjects(this,
-                        entity, relationName, filterExpression, sorting, pagination, scope));
-            } else {
-                return filterExpression
-                        .map(fe -> {
-                            Serializable id = extractId(fe, idFieldName, relationClass);
                             return bridgeableTransaction.bridgeableLoadObject(this,
                                     entity, relationName, id, filterExpression, scope);
                         })
-                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObject(this,
-                                entity, relationName, null, filterExpression, scope));
+                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObjects(this,
+                        entity, relationName, filterExpression, sorting, pagination, scope));
             }
+            return filterExpression
+                    .map(fe -> {
+                        Serializable id = extractId(fe, idFieldName, relationClass);
+                        return bridgeableTransaction.bridgeableLoadObject(this,
+                                entity, relationName, id, filterExpression, scope);
+                    })
+                    .orElseGet(() -> bridgeableTransaction.bridgeableLoadObject(this,
+                            entity, relationName, null, filterExpression, scope));
         }
 
         // Otherwise, rely on existing underlying transaction to call correctly into relationTx

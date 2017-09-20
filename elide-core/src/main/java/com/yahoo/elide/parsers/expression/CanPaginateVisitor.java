@@ -212,17 +212,15 @@ public class CanPaginateVisitor
         //Filter expression checks can always be pushed to the DataStore so pagination is possible
         if (FilterExpressionCheck.class.isAssignableFrom(check.getClass())) {
             return PaginationStatus.CAN_PAGINATE;
-
-        } else if (UserCheck.class.isAssignableFrom(check.getClass())) {
+        }
+        if (UserCheck.class.isAssignableFrom(check.getClass())) {
             if (check.ok(scope.getUser())) {
                 return PaginationStatus.USER_CHECK_TRUE;
-            } else {
-                return PaginationStatus.USER_CHECK_FALSE;
             }
-        //Any in memory check will alter (incorrectly) the paginated result
-        } else {
-            return PaginationStatus.CANNOT_PAGINATE;
+            return PaginationStatus.USER_CHECK_FALSE;
         }
+        //Any in memory check will alter (incorrectly) the paginated result
+        return PaginationStatus.CANNOT_PAGINATE;
     }
 
     /**

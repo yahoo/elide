@@ -233,7 +233,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean matchesId(String checkId) {
         if (checkId == null) {
             return false;
-        } else if (uuid.isPresent() && checkId.equals(uuid.get())) {
+        }
+        if (uuid.isPresent() && checkId.equals(uuid.get())) {
             return true;
         }
         String id = getId();
@@ -1585,7 +1586,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     return ((Method) accessor).invoke(target, requestScope);
                 }
                 return ((Method) accessor).invoke(target);
-            } else if (accessor instanceof Field) {
+            }
+            if (accessor instanceof Field) {
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException e) {

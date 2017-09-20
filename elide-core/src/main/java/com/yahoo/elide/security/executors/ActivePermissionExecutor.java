@@ -307,9 +307,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         if (expressionExecutor.isPresent()) {
             return expressionExecutor.get().apply(expression);
-        } else {
-            return expressionResult;
         }
+        return expressionResult;
     }
 
     /**
@@ -452,7 +451,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
             }
             return DEFERRED;
-        } else if (result == FAIL) {
+        }
+        if (result == FAIL) {
             ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(),
                     expression, mode);
             log.trace("{}", e.getLoggedMessage());

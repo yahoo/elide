@@ -290,6 +290,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     /**
      * Get the global/cross-type filter expression.
+     * @param loadClass Entity class
      * @return The global filter expression evaluated at the first load
      */
     public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
@@ -307,18 +308,18 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             return Optional.of(new AndFilterExpression(globalFilterExpressionOptional.get(),
                     permissionFilter.get()));
         }
-        else if (globalFilterExpressionOptional.isPresent()) {
+        if (globalFilterExpressionOptional.isPresent()) {
             return globalFilterExpressionOptional;
         }
-        else if (permissionFilter.isPresent()) {
+        if (permissionFilter.isPresent()) {
             return permissionFilter;
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     /**
      * Extracts any query params that start with 'filter'.
+     * @param queryParams request query params
      * @return extracted filter params
      */
     private static MultivaluedMap<String, String> getFilterParams(MultivaluedMap<String, String> queryParams) {

@@ -283,9 +283,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
             if (op.equals(RSQLOperators.EQUAL)) {
                 return equalityExpression(arguments.get(0), path, values);
-            } else if (op.equals(RSQLOperators.NOT_EQUAL)) {
+            }
+            if (op.equals(RSQLOperators.NOT_EQUAL)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values));
-            } else if (OPERATOR_MAP.containsKey(op)) {
+            }
+            if (OPERATOR_MAP.containsKey(op)) {
                 return new FilterPredicate(path, OPERATOR_MAP.get(op), values);
             }
 
@@ -298,10 +300,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             if (startsWith && endsWith && argument.length() > 2) {
                 String value = argument.substring(1, argument.length() - 1);
                 return new FilterPredicate(path, Operator.INFIX_CASE_INSENSITIVE, Collections.singletonList(value));
-            } else if (startsWith && argument.length() > 1) {
+            }
+            if (startsWith && argument.length() > 1) {
                 String value = argument.substring(1, argument.length());
                 return new FilterPredicate(path, Operator.POSTFIX_CASE_INSENSITIVE, Collections.singletonList(value));
-            } else if (endsWith && argument.length() > 1) {
+            }
+            if (endsWith && argument.length() > 1) {
                 String value = argument.substring(0, argument.length() - 1);
                 return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE, Collections.singletonList(value));
             }

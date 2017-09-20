@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -172,7 +173,8 @@ public class Pagination {
         limit = pageData.containsKey(PaginationKey.limit) ? pageData.get(PaginationKey.limit) : defaultLimit;
         if (limit > maxLimit) {
             throw new InvalidValueException("page[limit] value must be less than or equal to " + maxLimit);
-        } else if (limit < 0) {
+        }
+        if (limit < 0) {
             throw new InvalidValueException("page[limit] value must contain a positive value");
         }
 
@@ -186,7 +188,8 @@ public class Pagination {
         limit = pageData.containsKey(PaginationKey.size) ? pageData.get(PaginationKey.size) : defaultLimit;
         if (limit > maxLimit) {
             throw new InvalidValueException("page[size] value must be less than or equal to " + maxLimit);
-        } else if (limit < 0) {
+        }
+        if (limit < 0) {
             throw new InvalidValueException("page[size] must contain a positive value.");
         }
 

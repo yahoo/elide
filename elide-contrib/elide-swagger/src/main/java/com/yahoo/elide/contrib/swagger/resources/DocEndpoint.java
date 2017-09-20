@@ -62,8 +62,7 @@ public class DocEndpoint {
     public Response get(@PathParam("name") String name) {
         if (documents.containsKey(name)) {
             return Response.ok(documents.get(name)).build();
-        } else {
-            return Response.status(404).entity("Unknown document: " + name).build();
         }
+        return Response.status(404).entity("Unknown document: " + name).build();
     }
 }

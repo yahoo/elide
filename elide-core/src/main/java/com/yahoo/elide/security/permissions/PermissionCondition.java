@@ -52,11 +52,11 @@ public class PermissionCondition {
                     return new PermissionCondition(permission, resource, field);
                 }
                 return new PermissionCondition(permission, resource, changes);
-            } else if (field == null) {
-                return new PermissionCondition(permission, resource);
-            } else {
-                return new PermissionCondition(permission, resource, field);
             }
+            if (field == null) {
+                return new PermissionCondition(permission, resource);
+            }
+            return new PermissionCondition(permission, resource, field);
         }
         throw new IllegalArgumentException("Resource cannot be null");
     }
@@ -112,17 +112,19 @@ public class PermissionCondition {
     private static String permission2text(Class<? extends Annotation> permission) {
         if (permission.equals(ReadPermission.class)) {
             return "READ";
-        } else if (permission.equals(UpdatePermission.class)) {
-            return "UPDATE";
-        } else if (permission.equals(DeletePermission.class)) {
-            return "DELETE";
-        } else if (permission.equals(CreatePermission.class)) {
-            return "CREATE";
-        } else if (permission.equals(SharePermission.class)) {
-            return "SHARE";
-        } else {
-            throw new IllegalArgumentException("Invalid annotation type");
         }
-
+        if (permission.equals(UpdatePermission.class)) {
+            return "UPDATE";
+        }
+        if (permission.equals(DeletePermission.class)) {
+            return "DELETE";
+        }
+        if (permission.equals(CreatePermission.class)) {
+            return "CREATE";
+        }
+        if (permission.equals(SharePermission.class)) {
+            return "SHARE";
+        }
+        throw new IllegalArgumentException("Invalid annotation type");
     }
 }
