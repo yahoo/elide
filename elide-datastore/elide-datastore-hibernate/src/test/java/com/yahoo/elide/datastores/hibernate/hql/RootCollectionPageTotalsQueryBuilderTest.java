@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -25,14 +27,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
-
 public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;
 
     private static final String TITLE = "title";
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
+
+    private final Class<? extends Book> bookProxyClass = new Book() {
+    }.getClass();
 
     @BeforeClass
     public void initialize() {
@@ -46,7 +49,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testRootFetch() {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                Book.class, dictionary, new TestSessionWrapper());
+                bookProxyClass, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -62,7 +65,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void testRootFetchWithSorting() {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                Book.class, dictionary, new TestSessionWrapper());
+                bookProxyClass, dictionary, new TestSessionWrapper());
 
         Sorting sorting = mock(Sorting.class);
 
@@ -74,7 +77,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         Pagination pagination = mock(Pagination.class);
 
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                Book.class, dictionary, new TestSessionWrapper());
+                bookProxyClass, dictionary, new TestSessionWrapper());
 
         builder.withPossiblePagination(Optional.of(pagination));
     }

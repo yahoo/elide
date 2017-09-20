@@ -34,6 +34,9 @@ public class SubCollectionFetchQueryBuilderTest {
     private static final String PUBLISHER = "publisher";
     private static final String PUB1 = "Pub1";
 
+    private final Class<? extends Book> bookProxyClass = new Book() {
+    }.getClass();
+
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -53,7 +56,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         RelationshipImpl relationship = new RelationshipImpl(
                 Author.class,
-                Book.class,
+                bookProxyClass,
                 BOOKS,
                 author,
                 Arrays.asList(book));
@@ -76,7 +79,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         RelationshipImpl relationship = new RelationshipImpl(
                 Author.class,
-                Book.class,
+                bookProxyClass,
                 BOOKS,
                 author,
                 Arrays.asList(book));
@@ -107,7 +110,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         RelationshipImpl relationship = new RelationshipImpl(
                 Author.class,
-                Book.class,
+                bookProxyClass,
                 BOOKS,
                 author,
                 Arrays.asList(book)
@@ -147,7 +150,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         RelationshipImpl relationship = new RelationshipImpl(
                 Author.class,
-                Book.class,
+                bookProxyClass,
                 BOOKS,
                 author,
                 Arrays.asList(book)

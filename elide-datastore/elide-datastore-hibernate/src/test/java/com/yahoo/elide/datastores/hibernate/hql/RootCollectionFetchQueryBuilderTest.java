@@ -32,6 +32,9 @@ public class RootCollectionFetchQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
+    private final Class<? extends Book> bookProxyClass = new Book() {
+    }.getClass();
+
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -44,7 +47,7 @@ public class RootCollectionFetchQueryBuilderTest {
     @Test
     public void testRootFetch() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
-                Book.class, dictionary, new TestSessionWrapper());
+                bookProxyClass, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -122,7 +125,7 @@ public class RootCollectionFetchQueryBuilderTest {
     @Test
     public void testRootFetchWithSortingAndFilters() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
-                Book.class, dictionary, new TestSessionWrapper());
+                bookProxyClass, dictionary, new TestSessionWrapper());
 
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
         sorting.put(TITLE, Sorting.SortOrder.asc);
