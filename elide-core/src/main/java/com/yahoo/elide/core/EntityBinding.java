@@ -20,6 +20,8 @@ import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.ToMany;
+import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,7 +62,8 @@ class EntityBinding {
 
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
-            Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class);
+            Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
+                    ToOne.class, ToMany.class);
 
     public final Class<?> entityClass;
     public final String jsonApiType;
@@ -238,6 +241,8 @@ class EntityBinding {
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
         boolean oneToOne = fieldOrMethod.isAnnotationPresent(OneToOne.class);
+        boolean toOne = fieldOrMethod.isAnnotationPresent(ToOne.class);
+        boolean toMany = fieldOrMethod.isAnnotationPresent(ToMany.class);
         boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
 
         RelationshipType type;
@@ -258,6 +263,10 @@ class EntityBinding {
         } else if (manyToOne) {
             type = computedRelationship ? RelationshipType.COMPUTED_MANY_TO_ONE : RelationshipType.MANY_TO_ONE;
             cascadeTypes = fieldOrMethod.getAnnotation(ManyToOne.class).cascade();
+        } else if (toOne) {
+            type = RelationshipType.COMPUTED_ONE_TO_ONE;
+        } else if (toMany) {
+            type = RelationshipType.COMPUTED_ONE_TO_MANY;
         } else {
             type = computedRelationship ? RelationshipType.COMPUTED_NONE : RelationshipType.NONE;
         }
