@@ -29,7 +29,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
                                                 EntityDictionary dictionary,
                                                 Session session) {
         super(dictionary, session);
-        this.entityClass = entityClass;
+        this.entityClass = dictionary.lookupEntityClass(entityClass);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
      */
     @Override
     public Query build() {
-        String entityName = dictionary.lookupEntityClass(entityClass).getCanonicalName();
+        String entityName = entityClass.getCanonicalName();
         String entityAlias = FilterPredicate.getTypeAlias(entityClass);
 
         Collection<FilterPredicate> predicates;
