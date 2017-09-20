@@ -4,6 +4,7 @@
  * Fix for issue #508
  * Fix for issue #521
  * Fix blog example
+ * Properly handle proxy beans in HQL Builder
 
 ## 3.1.1
 **Fixes**
