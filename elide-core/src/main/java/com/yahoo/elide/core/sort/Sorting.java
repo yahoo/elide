@@ -89,6 +89,7 @@ public class Sorting {
     /**
      * Validates that none of the provided path's relationships are to-many
      * @param path The path to validate
+     * @param dictionary The elide entity dictionary
      * @return True if the path is valid. False otherwise.
      */
     protected static boolean isValidSortRulePath(Path path, EntityDictionary dictionary) {

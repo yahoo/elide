@@ -55,6 +55,7 @@ public class DocEndpoint {
     /**
      * Read handler.
      *
+     * @param name document name
      * @return response The Swagger JSON document
      */
     @GET

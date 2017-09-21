@@ -1496,6 +1496,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Coerce provided value into expected class type.
      *
      * @param value provided value
+     * @param fieldName the field name
      * @param fieldClass expected class type
      * @return coerced value
      */

@@ -45,6 +45,7 @@ public class PatchRequestScope extends RequestScope {
     /**
      * Inner RequestScope copy constructor for use by Patch Extension actions.
      *
+     * @param path the URL path
      * @param jsonApiDocument document
      * @param scope           outer request scope
      */

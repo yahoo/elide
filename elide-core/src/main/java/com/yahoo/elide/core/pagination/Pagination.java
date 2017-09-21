@@ -87,6 +87,7 @@ public class Pagination {
      * @param queryParams The page queryParams (ImmuatableMultiValueMap).
      * @param elideSettings Elide settings containing pagination default limits
      * @return The new Page object.
+     * @throws InvalidValueException invalid query parameter
      */
     public static Pagination parseQueryParams(final MultivaluedMap<String, String> queryParams,
                                               ElideSettings elideSettings)
@@ -240,6 +241,7 @@ public class Pagination {
 
     /**
      * Default Instance.
+     * @param elideSettings general Elide settings
      * @return The default instance.
      */
     public static Pagination getDefaultPagination(ElideSettings elideSettings) {

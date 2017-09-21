@@ -214,6 +214,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     /**
      * Special copy constructor for use by PatchRequestScope.
      *
+     * @param path the URL path
      * @param jsonApiDocument   the json api document
      * @param outerRequestScope the outer request scope
      */

@@ -36,8 +36,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     /**
-     * Coverts the query parameters to a list of predicates that are then conjoined or organized by type.
+     * Converts the query parameters to a list of predicates that are then conjoined or organized by type.
      *
+     * @param queryParams the query params
      * @return a list of the predicates from the query params
      * @throws ParseException when a filter parameter cannot be parsed
      */

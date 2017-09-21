@@ -241,7 +241,9 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     /**
      * Build an expression representing any field on an entity.
      *
+     * @param condition       The condition which triggered this permission expression check
      * @param checkFn         check function
+     * @param scope           RequestScope
      * @return Expressions
      */
     private Expression buildAnyFieldExpression(final PermissionCondition condition,

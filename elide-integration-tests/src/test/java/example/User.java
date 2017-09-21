@@ -47,6 +47,7 @@ public class User {
 
     /**
      * Sets the password but first reverses it.
+     * @param password password to 'encrypt'
      */
     @ComputedAttribute
     @Transient
