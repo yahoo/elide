@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.noop;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -15,10 +19,6 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Optional;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.*;
 
 public class NoopTransactionTest {
     DataStoreTransaction tx = new NoopTransaction();

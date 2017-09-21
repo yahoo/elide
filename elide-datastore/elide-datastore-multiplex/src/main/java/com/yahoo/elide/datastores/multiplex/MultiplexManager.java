@@ -76,6 +76,7 @@ public class MultiplexManager implements DataStore {
 
     /**
      * Lookup subordinate database manager for provided entity class.
+     * @param <T> type
      * @param cls provided class
      * @return database manager handling this entity
      */

@@ -8,13 +8,13 @@ package com.yahoo.elide.parsers.expression;
 
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.expression.Visitor;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -87,7 +87,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
 
         if (left == FALSE_USER_CHECK_EXPRESSION || operator(left) == Operator.FALSE) {
             return right;
-        } else if (right == FALSE_USER_CHECK_EXPRESSION || operator(right) == Operator.FALSE) {
+        }
+        if (right == FALSE_USER_CHECK_EXPRESSION || operator(right) == Operator.FALSE) {
             return left;
         }
 
@@ -109,12 +110,12 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
                 throw new IllegalStateException("FilterExpression null is not permitted.");
             }
             return filterExpression;
-        } else if (UserCheck.class.isAssignableFrom(check.getClass())) {
+        }
+        if (UserCheck.class.isAssignableFrom(check.getClass())) {
             boolean userCheckResult = check.ok(requestScope.getUser());
             return userCheckResult ? NO_EVALUATION_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
-        } else {
-            return NO_EVALUATION_EXPRESSION;
         }
+        return NO_EVALUATION_EXPRESSION;
     }
 
     @Override

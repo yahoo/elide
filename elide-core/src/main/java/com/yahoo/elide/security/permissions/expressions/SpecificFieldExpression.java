@@ -37,10 +37,9 @@ public class SpecificFieldExpression implements Expression {
         if (!fieldExpression.isPresent()) {
             ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
             return entityResult;
-        } else {
-            ExpressionResult fieldResult = fieldExpression.get().evaluate(mode);
-            return fieldResult;
         }
+        ExpressionResult fieldResult = fieldExpression.get().evaluate(mode);
+        return fieldResult;
     }
 
 

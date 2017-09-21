@@ -116,7 +116,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param <T> object type
      * @return persistent resource
      */
-    @SuppressWarnings("resource")
     public static <T> PersistentResource<T> createObject(
             PersistentResource<?> parent,
             Class<T> entityClass,
@@ -234,7 +233,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     public boolean matchesId(String checkId) {
         if (checkId == null) {
             return false;
-        } else if (uuid.isPresent() && checkId.equals(uuid.get())) {
+        }
+        if (uuid.isPresent() && checkId.equals(uuid.get())) {
             return true;
         }
         String id = getId();
@@ -263,7 +263,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         EntityDictionary dictionary = requestScope.getDictionary();
 
         // Check the resource cache if exists
-        @SuppressWarnings("unchecked")
         Object obj = requestScope.getObjectById(dictionary.getJsonAliasFor(loadClass), id);
         if (obj == null) {
             // try to load object
@@ -658,7 +657,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             removeResource.markDirty();
         }
 
-        if (original != modified && original != null && !original.equals(modified)) {
+        if (!Objects.equals(original, modified)) {
             this.markDirty();
         }
 
@@ -843,7 +842,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Set<PersistentResource> resources =
-                filter(ReadPermission.class, (Set) getRelationChecked(relation, filterExpression), skipNew);
+                filter(ReadPermission.class, getRelationChecked(relation, filterExpression), skipNew);
 
         for (PersistentResource childResource : resources) {
             if (childResource.matchesId(id)) {
@@ -1029,17 +1028,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param filterExpression the filter expression
      * @return the filtered collection
      */
-    protected <T> Collection filterInMemory(Collection collection, Optional<FilterExpression> filterExpression) {
+    protected <T> Collection<T> filterInMemory(Collection<T> collection, Optional<FilterExpression> filterExpression) {
 
         if (! filterExpression.isPresent()) {
             return collection;
         }
 
         InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
-        Predicate inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
+        @SuppressWarnings("unchecked")
+        Predicate<T> inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
         // NOTE: We can safely _skip_ tests on NEWLY created objects.
         // We assume a user can READ their object they are allowed to create.
-        return (Collection) collection.stream()
+        return collection.stream()
                 .filter(e -> requestScope.isNewResource(e) || inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
     }
@@ -1496,6 +1496,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Coerce provided value into expected class type.
      *
      * @param value provided value
+     * @param fieldName the field name
      * @param fieldClass expected class type
      * @return coerced value
      */
@@ -1586,7 +1587,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     return ((Method) accessor).invoke(target, requestScope);
                 }
                 return ((Method) accessor).invoke(target);
-            } else if (accessor instanceof Field) {
+            }
+            if (accessor instanceof Field) {
                 return ((Field) accessor).get(target);
             }
         } catch (IllegalAccessException e) {

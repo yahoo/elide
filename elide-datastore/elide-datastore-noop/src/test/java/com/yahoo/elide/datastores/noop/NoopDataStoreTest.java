@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.noop;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -13,8 +16,6 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
-
-import static org.testng.Assert.*;
 
 public class NoopDataStoreTest {
 

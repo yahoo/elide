@@ -98,7 +98,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param resource        Resource
      * @return Commit and operation expressions
      */
-    public <A extends Annotation> Expression buildSharePermissionExpressions(final PersistentResource resource) {
+    public Expression buildSharePermissionExpressions(final PersistentResource resource) {
 
         PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);
 
@@ -219,13 +219,12 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     /**
      * Builder for specific field expressions.
      *
-     * @param <A>             type parameter
      * @param condition       The condition which triggered this permission expression check
      * @param checkFn         Operation check function
      * @return Expressions representing specific field
      */
-    private <A extends Annotation> Expression buildSpecificFieldExpression(final PermissionCondition condition,
-                                                                           final Function<Check, Expression> checkFn) {
+    private Expression buildSpecificFieldExpression(final PermissionCondition condition,
+            final Function<Check, Expression> checkFn) {
         Class<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
         String field = condition.getField().isPresent() ? condition.getField().get() : null;
@@ -242,14 +241,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     /**
      * Build an expression representing any field on an entity.
      *
-     * @param <A>             type parameter
+     * @param condition       The condition which triggered this permission expression check
      * @param checkFn         check function
+     * @param scope           RequestScope
      * @return Expressions
      */
-    private <A extends Annotation> Expression buildAnyFieldExpression(final PermissionCondition condition,
-                                                                      final Function<Check, Expression> checkFn,
-                                                                      final RequestScope scope) {
-
+    private Expression buildAnyFieldExpression(final PermissionCondition condition,
+            final Function<Check, Expression> checkFn,
+            final RequestScope scope) {
 
         Class<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
@@ -279,13 +278,11 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     /**
      * Build an expression representing any field on an entity.
      *
-     * @param <A>             type parameter
      * @param resourceClass   Resource class
      * @param requestScope requestScope
      * @return Expressions
      */
-    public <A extends Annotation> FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass,
-                                                                                 RequestScope requestScope) {
+    public FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass, RequestScope requestScope) {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);

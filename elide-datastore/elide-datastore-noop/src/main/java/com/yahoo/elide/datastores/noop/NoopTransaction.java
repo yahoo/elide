@@ -7,11 +7,10 @@ package com.yahoo.elide.datastores.noop;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -95,7 +94,7 @@ public class NoopTransaction implements DataStoreTransaction {
             throw new RuntimeException(e);
         }
 
-        String uuid = ((RequestScope) scope).getUUIDFor(entity);
+        String uuid = scope.getUUIDFor(entity);
         // Side-effecting method of the PersistentResource :( however, it enables us to do this without reinventing
         // the wheel. Should probably be refactored eventually nonetheless.
         new PersistentResource<>(entity, null, uuid, scope).setId(id.toString());

@@ -26,6 +26,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
+
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,9 +148,8 @@ public class PermissionExpressionVisitorTest {
 
             if (result) {
                 return ExpressionResult.PASS;
-            } else {
-                return ExpressionResult.FAIL;
             }
+            return ExpressionResult.FAIL;
         }
     }
 }

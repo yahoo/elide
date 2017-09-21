@@ -235,8 +235,8 @@ public class JsonApiTest {
         List<Resource> included = jsonApiDocument.getIncluded();
         Resource includedChild = included.iterator().next();
         ResourceIdentifier parent = includedChild.getRelationships()
-                                                 .get("parents")
-                                                 .getResourceIdentifierData().getSingleValue();
+                .get("parents")
+                .getResourceIdentifierData().getSingleValue();
 
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
