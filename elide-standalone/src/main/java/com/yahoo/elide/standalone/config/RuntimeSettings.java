@@ -19,7 +19,7 @@ public interface RuntimeSettings extends Config {
     /**
      * Port for HTTP server to listen on.
      *
-     * Default: 8080
+     * @return Default: 8080
      */
     @DefaultValue("8080")
     int port();
@@ -31,9 +31,9 @@ public interface RuntimeSettings extends Config {
      * NOTE: This will scan for all entities in that package and bind this data to a set named "elideAllModels".
      *       If providing a custom ElideSettings object, you can inject this data into your class by using:
      *
-     *       <strong>@Inject @Named("elideAllModels") Set<Class> entities;</strong>
+     *       <strong>@Inject @Named("elideAllModels") Set&lt;Class&gt; entities;</strong>
      *
-     * Default: com.yourcompany.elide.models
+     * @return Default: com.yourcompany.elide.models
      */
     @DefaultValue("com.yourcompany.elide.models")
     String modelPackage();
@@ -46,7 +46,7 @@ public interface RuntimeSettings extends Config {
      *     <li>One of:
      *       <ul>
      *         <li><strong>public ElideSettings getElideSettings()</strong></li>
-     *         <li><strong>public Map<String, Class<? extends Check>> getCheckMappings()</strong></li>
+     *         <li><strong>public Map&lt;String, Class&lt;? extends Check&gt;&gt; getCheckMappings()</strong></li>
      *       </ul>
      *     </li>
      *     <li><strong>public DefaultOpaqueUserFunction getUserExtractionFunction()</strong></li>
@@ -54,7 +54,7 @@ public interface RuntimeSettings extends Config {
      *
      * The class is fully injectable.
      *
-     * Default: com.yourcompany.elide.security.Settings
+     * @return Default: com.yourcompany.elide.security.Settings
      */
     @DefaultValue("com.yourcompany.elide.security.Settings")
     String settingsClass();
@@ -64,7 +64,7 @@ public interface RuntimeSettings extends Config {
      * something like:
      *   <strong>yourcompany.com/api/v1/YOUR_ENTITY</strong>
      *
-     * Default: /api/v1/*
+     * @return Default: /api/v1/*
      */
     @DefaultValue("/api/v1/*")
     String jsonApiPathSpec();
@@ -72,7 +72,7 @@ public interface RuntimeSettings extends Config {
     /**
      * JAX-RS filters to register with the web service. A comma separated list containing fully qualified class names.
      *
-     * Default: ""
+     * @return Default: ""
      */
     String filters();
 
@@ -84,7 +84,7 @@ public interface RuntimeSettings extends Config {
      *
      * This class is fully injectable.
      *
-     * Default: null
+     * @return Default: null
      */
     String additionalApplicationConfiguration();
 
@@ -92,7 +92,7 @@ public interface RuntimeSettings extends Config {
      * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.
      * Namely, you are not providing your own through the settings class.
      *
-     * Default: ./settings/hibernate.cfg.xml
+     * @return Default: ./settings/hibernate.cfg.xml
      */
     @DefaultValue("./settings/hibernate.cfg.xml")
     String hibernate5Config();
@@ -101,7 +101,7 @@ public interface RuntimeSettings extends Config {
      * Determine whether or not to run in demo mode. If demo mode is set to true, then the in-memory store will be used
      * instead of hibernate. Only used if no custom ElideSettings is provided.
      *
-     * DefaultValue: false
+     * @return DefaultValue: false
      */
     @DefaultValue("false")
     boolean demoMode();

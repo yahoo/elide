@@ -13,6 +13,11 @@
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
     <url>https://github.com/yahoo/elide</url>
+    <parent>
+        <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-parent-pom</artifactId>
+        <version>3.1.2-SNAPSHOT</version>
+    </parent>
 
     <licenses>
         <license>
@@ -84,11 +89,13 @@
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
             <version>${jersey.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
             <version>${jersey.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- Logging -->

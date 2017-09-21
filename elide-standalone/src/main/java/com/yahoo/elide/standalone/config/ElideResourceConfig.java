@@ -58,6 +58,8 @@ public class ElideResourceConfig extends ResourceConfig {
 
     /**
      * Constructor
+     *
+     * @param injector Injection instance for application
      */
     @Inject
     public ElideResourceConfig(ServiceLocator injector) {

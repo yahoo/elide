@@ -17,7 +17,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 /**
  * Entry point for the Elide standalone application.
  *
- * Usage: java -cp <MODEL_JAR>:elide-standalone.jar
+ * Usage: java -cp &lt;MODEL_JAR&gt;:elide-standalone.jar
  *
  * NOTE: The settings can be passed as system properties (i.e. -D params) or set in a properties file.
  *       By default, this file will try to load the "elide-settings.properties" file from your current working directory
