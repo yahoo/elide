@@ -288,17 +288,15 @@ class EntityBinding {
         }
         Method method = (Method) fieldOrMethod;
         String name = method.getName();
-        boolean hasValidParameterCount = method.getParameterCount() == 0
-                || isRequestScopeableMethod((Method) fieldOrMethod);
+        boolean hasValidParameterCount = method.getParameterCount() == 0 || isRequestScopeableMethod(method);
 
         if (name.startsWith("get") && hasValidParameterCount) {
-            name = StringUtils.uncapitalize(name.substring("get".length()));
-        } else if (name.startsWith("is") && hasValidParameterCount) {
-            name = StringUtils.uncapitalize(name.substring("is".length()));
-        } else {
-            return null;
+            return StringUtils.uncapitalize(name.substring("get".length()));
         }
-        return name;
+        if (name.startsWith("is") && hasValidParameterCount) {
+            return StringUtils.uncapitalize(name.substring("is".length()));
+        }
+        return null;
     }
 
     /**

@@ -282,8 +282,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param requestScope requestScope
      * @return Expressions
      */
-    public FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass,
-                                                                                 RequestScope requestScope) {
+    public FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass, RequestScope requestScope) {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);

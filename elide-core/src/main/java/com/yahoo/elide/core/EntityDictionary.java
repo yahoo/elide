@@ -171,8 +171,7 @@ public class EntityDictionary {
      * @return a {@code ParseTree} expressing the permissions, if one exists
      *         or {@code null} if the permission is not specified at a class level
      */
-    public ParseTree getPermissionsForClass(Class<?> resourceClass,
-                                                       Class<? extends Annotation> annotationClass) {
+    public ParseTree getPermissionsForClass(Class<?> resourceClass, Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getClassChecksForPermission(annotationClass);
     }
@@ -187,8 +186,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-                                                       String field,
-                                                       Class<? extends Annotation> annotationClass) {
+            String field,
+            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
