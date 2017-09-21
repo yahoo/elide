@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -69,19 +70,19 @@ public class SwaggerBuilder {
         /**
          * All prior nodes in the path to the root entity.
          */
-        Stack<PathMetaData> lineage;
+        private Stack<PathMetaData> lineage;
 
         /**
          * Either the name of the root collection or the relationship.
          */
         @Getter
-        String name;
+        private String name;
 
         /**
          * Either the type of the root collection of the relationship.
          */
         @Getter
-        Class<?> type;
+        private Class<?> type;
 
         /**
          * Constructs a PathMetaData for a 'root' entity.
@@ -99,9 +100,8 @@ public class SwaggerBuilder {
         public String getCollectionUrl() {
             if (lineage.isEmpty()) {
                 return "/" + name;
-            } else {
-                return lineage.peek().getInstanceUrl() + "/" + name;
             }
+            return lineage.peek().getInstanceUrl() + "/" + name;
         }
 
         /**
@@ -173,13 +173,13 @@ public class SwaggerBuilder {
 
             Response okSingularResponse = new Response()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.contrib.swagger.property.Datum(new com.yahoo.elide.contrib.swagger
-                            .property.Relationship(typeName)));
+                    .schema(new com.yahoo.elide.contrib.swagger.property.Datum(
+                            new Relationship(typeName)));
 
             Response okPluralResponse = new Response()
                     .description("Successful response")
-                    .schema(new com.yahoo.elide.contrib.swagger.property.Data(new com.yahoo.elide.contrib.swagger
-                            .property.Relationship(typeName)));
+                    .schema(new com.yahoo.elide.contrib.swagger.property.Data(
+                            new Relationship(typeName)));
 
             Response okEmptyResponse = new Response()
                     .description("Successful response");
@@ -408,7 +408,6 @@ public class SwaggerBuilder {
          * @return the JSON-API 'include' query parameter for some GET operations.
          */
         private Parameter getIncludeParameter() {
-            String typeName = dictionary.getJsonAliasFor(type);
             List<String> relationshipNames = dictionary.getRelationships(type);
 
             return new QueryParameter()
@@ -424,7 +423,6 @@ public class SwaggerBuilder {
          * @return the Elide 'page' query parameter for some GET operations.
          */
         private List<Parameter> getPageParameters() {
-            String [] pageParamNames = new String [] {"number", "size", "offset", "limit"};
             List<Parameter> params = new ArrayList<>();
 
             params.add(new QueryParameter()
@@ -466,14 +464,12 @@ public class SwaggerBuilder {
          * @return the JSON-API 'sort' query parameter for some GET operations.
          */
         private Parameter getSortParameter() {
-            String typeName = dictionary.getJsonAliasFor(type);
-
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
                     .filter((name) -> {
                         Class<?> attributeClass = dictionary.getType(type, name);
                         return (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass));
                     })
-                    .map((name) -> (List<String>) Arrays.asList(name, "-" + name))
+                    .map((name) -> Arrays.asList(name, "-" + name))
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
@@ -540,22 +536,17 @@ public class SwaggerBuilder {
         /**
          * Returns true if this path is a shorter path to the same entity than the given path.
          * @param compare The path to compare against.
-         * @return
+         * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
             if (lineage.isEmpty()) {
                 return this.type.equals(compare.type);
             }
 
-            if (!this.type.equals(compare.type) || !this.name.equals(compare.name)) {
-                return false;
-            }
-
-            if (compare.lineage.isEmpty()) {
-                return false;
-            }
-
-            return lineage.peek().shorterThan(compare.lineage.peek());
+            return this.type.equals(compare.type)
+                    && this.name.equals(compare.name)
+                    && !compare.lineage.isEmpty()
+                    && lineage.peek().shorterThan(compare.lineage.peek());
         }
 
         @Override
@@ -569,25 +560,14 @@ public class SwaggerBuilder {
 
             PathMetaData that = (PathMetaData) o;
 
-            if (!lineage.equals(that.lineage)) {
-                return false;
-            }
-            if (!name.equals(that.name)) {
-                return false;
-            }
-            if (!type.equals(that.type)) {
-                return false;
-            }
-
-            return true;
+            return lineage.equals(that.lineage)
+                    && name.equals(that.name)
+                    && type.equals(that.type);
         }
 
         @Override
         public int hashCode() {
-            int result = lineage.hashCode();
-            result = 31 * result + name.hashCode();
-            result = 31 * result + type.hashCode();
-            return result;
+            return Objects.hash(lineage, name, type);
         }
 
         /**

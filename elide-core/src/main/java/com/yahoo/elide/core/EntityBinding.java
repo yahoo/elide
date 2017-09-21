@@ -293,21 +293,18 @@ public class EntityBinding {
     public static String getFieldName(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getName();
-        } else {
-            Method method = (Method) fieldOrMethod;
-            String name = method.getName();
-            boolean hasValidParameterCount = method.getParameterCount() == 0
-                    || isRequestScopeableMethod((Method) fieldOrMethod);
-
-            if (name.startsWith("get") && hasValidParameterCount) {
-                name = StringUtils.uncapitalize(name.substring("get".length()));
-            } else if (name.startsWith("is") && hasValidParameterCount) {
-                name = StringUtils.uncapitalize(name.substring("is".length()));
-            } else {
-                return null;
-            }
-            return name;
         }
+        Method method = (Method) fieldOrMethod;
+        String name = method.getName();
+        boolean hasValidParameterCount = method.getParameterCount() == 0 || isRequestScopeableMethod(method);
+
+        if (name.startsWith("get") && hasValidParameterCount) {
+            return StringUtils.uncapitalize(name.substring("get".length()));
+        }
+        if (name.startsWith("is") && hasValidParameterCount) {
+            return StringUtils.uncapitalize(name.substring("is".length()));
+        }
+        return null;
     }
 
     /**
@@ -342,9 +339,8 @@ public class EntityBinding {
     private static Class<?> getFieldType(AccessibleObject fieldOrMethod) {
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getType();
-        } else {
-            return ((Method) fieldOrMethod).getReturnType();
         }
+        return ((Method) fieldOrMethod).getReturnType();
     }
 
     private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {

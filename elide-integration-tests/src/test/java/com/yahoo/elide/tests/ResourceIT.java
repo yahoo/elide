@@ -39,6 +39,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -383,7 +384,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/2")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -441,7 +442,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -486,7 +487,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -510,7 +511,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
     }
 
     @Test(priority = 7)
@@ -525,7 +526,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -718,7 +719,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -760,7 +761,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/parent/4/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
     }
 
     @Test(priority = 11)
@@ -944,7 +945,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/fun/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         final String expected1 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.json");
         final String actual1 = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
@@ -959,7 +960,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/fun/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         final String expected2 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.json");
         final String actual2 = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
         assertEqualDocuments(actual2, expected2);
@@ -1184,7 +1185,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .post("/parent/5/children/6/relationships/parents")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
@@ -1207,7 +1208,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .delete("/parent/5/children/6/relationships/parents")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-length", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
@@ -1801,7 +1802,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .patch("/user/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header("content-lenth", (String) null);
+            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected));
@@ -1817,8 +1818,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .body(request)
             .patch("/user/1")
             .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN)
-            .header("content-lenth", (String) null);
+            .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.

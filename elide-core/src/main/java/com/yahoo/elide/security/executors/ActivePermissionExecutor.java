@@ -56,7 +56,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      *
      * @param requestScope Request scope
      */
-    public ActivePermissionExecutor(final com.yahoo.elide.core.RequestScope requestScope) {
+    public ActivePermissionExecutor(final RequestScope requestScope) {
         this(false, requestScope);
     }
 
@@ -66,7 +66,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param verbose True if executor should produce verbose output to caller
      * @param requestScope Request scope
      */
-    public ActivePermissionExecutor(boolean verbose, final com.yahoo.elide.core.RequestScope requestScope) {
+    public ActivePermissionExecutor(boolean verbose, final RequestScope requestScope) {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
@@ -307,9 +307,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         if (expressionExecutor.isPresent()) {
             return expressionExecutor.get().apply(expression);
-        } else {
-            return expressionResult;
         }
+        return expressionResult;
     }
 
     /**
@@ -452,7 +451,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
             }
             return DEFERRED;
-        } else if (result == FAIL) {
+        }
+        if (result == FAIL) {
             ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(),
                     expression, mode);
             log.trace("{}", e.getLoggedMessage());

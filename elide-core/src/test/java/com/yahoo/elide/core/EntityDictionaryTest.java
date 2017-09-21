@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.mockito.Mockito.mock;
+
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
@@ -76,6 +78,20 @@ public class EntityDictionaryTest extends EntityDictionary {
             annotation = this.getAttributeOrRelationAnnotation(FunWithPermissions.class, ReadPermission.class, field);
             Assert.assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
+    }
+
+    @Test
+    public void testBindingInitializerPriorToBindingEntityClass() {
+        @Entity
+        @Include
+        class Foo {
+            public int bar;
+        }
+
+        Initializer<Foo> initializer = mock(Initializer.class);
+        this.bindInitializer(initializer, Foo.class);
+
+        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
     }
 
     @Test

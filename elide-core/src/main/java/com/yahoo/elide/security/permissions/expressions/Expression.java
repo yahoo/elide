@@ -27,6 +27,7 @@ public interface Expression {
     /**
      * Evaluate an expression.
      *
+     * @param mode mode for evaluating security expressions
      * @return The result of the fully evaluated expression.
      */
     ExpressionResult evaluate(EvaluationMode mode);

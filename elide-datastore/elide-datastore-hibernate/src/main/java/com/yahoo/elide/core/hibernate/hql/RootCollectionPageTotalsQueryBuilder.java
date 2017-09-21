@@ -29,7 +29,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
                                                 EntityDictionary dictionary,
                                                 Session session) {
         super(dictionary, session);
-        this.entityClass = entityClass;
+        this.entityClass = dictionary.lookupEntityClass(entityClass);
     }
 
     @Override

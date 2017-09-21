@@ -174,8 +174,7 @@ public class EntityDictionary {
      * @return a {@code ParseTree} expressing the permissions, if one exists
      *         or {@code null} if the permission is not specified at a class level
      */
-    public ParseTree getPermissionsForClass(Class<?> resourceClass,
-                                                       Class<? extends Annotation> annotationClass) {
+    public ParseTree getPermissionsForClass(Class<?> resourceClass, Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getClassChecksForPermission(annotationClass);
     }
@@ -190,8 +189,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-                                                       String field,
-                                                       Class<? extends Annotation> annotationClass) {
+            String field,
+            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
@@ -660,6 +659,9 @@ public class EntityDictionary {
      * @param cls         Class to bind initialization
      */
     public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
+        if (! entityBindings.containsKey(lookupEntityClass(cls))) {
+            bindEntity(cls);
+        }
         getEntityBinding(cls).setInitializer(initializer);
     }
 
@@ -679,6 +681,10 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
+        if (entityBindings.containsKey(lookupEntityClass(cls))) {
+            return;
+        }
+
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
         Exclude exclude = annotation instanceof Exclude ? (Exclude) annotation : null;

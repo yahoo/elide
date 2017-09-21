@@ -6,7 +6,6 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang3.ClassUtils;
 
@@ -24,11 +23,11 @@ public class EpochToDateConverter implements Converter {
         try {
             if (ClassUtils.isAssignable(value.getClass(), String.class)) {
                 return stringToDate(cls, (String) value);
-            } else if (ClassUtils.isAssignable(value.getClass(), Number.class, true)) {
-                return numberToDate(cls, (Number) value);
-            } else {
-                throw new UnsupportedOperationException(value.getClass().getSimpleName() + " is not a valid epoch");
             }
+            if (ClassUtils.isAssignable(value.getClass(), Number.class, true)) {
+                return numberToDate(cls, (Number) value);
+            }
+            throw new UnsupportedOperationException(value.getClass().getSimpleName() + " is not a valid epoch");
         } catch (IndexOutOfBoundsException | ReflectiveOperationException
                 | UnsupportedOperationException | IllegalArgumentException e) {
             throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);

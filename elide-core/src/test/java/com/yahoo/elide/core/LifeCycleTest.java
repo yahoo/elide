@@ -34,6 +34,9 @@ import static org.mockito.Mockito.when;
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
+    private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
+    private EntityDictionary dictionary;
+
     public class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
             super(checks);
@@ -48,9 +51,6 @@ public class LifeCycleTest {
             return super.lookupEntityClass(objClass);
         }
     }
-
-    private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
-    private EntityDictionary dictionary;
 
     LifeCycleTest() {
         dictionary = new TestEntityDictionary(new HashMap<>());

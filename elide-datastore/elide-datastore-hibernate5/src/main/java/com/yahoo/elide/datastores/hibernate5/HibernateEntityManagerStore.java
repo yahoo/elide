@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.jpa.HibernateEntityManager;
@@ -32,7 +31,6 @@ public class HibernateEntityManagerStore extends HibernateStore {
      * @return session Hibernate session from EntityManager.
      */
     @Override
-    @SuppressWarnings("deprecation")
     public Session getSession() {
         return entityManager.getSession();
     }
@@ -43,7 +41,7 @@ public class HibernateEntityManagerStore extends HibernateStore {
      * @return transaction
      */
     @Override
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("resource")
     public DataStoreTransaction beginTransaction() {
         Session session = getSession();
         session.beginTransaction();

@@ -41,17 +41,19 @@ public class FilterExpressionNormalizationVisitor implements Visitor<FilterExpre
             FilterExpression left = (new NotFilterExpression(((AndFilterExpression) nfe).getLeft())).accept(this);
             FilterExpression right = (new NotFilterExpression(((AndFilterExpression) nfe).getRight())).accept(this);
             return new OrFilterExpression(left, right);
-        } else if (nfe instanceof OrFilterExpression) {
+        }
+        if (nfe instanceof OrFilterExpression) {
             FilterExpression left = (new NotFilterExpression(((OrFilterExpression) nfe).getLeft())).accept(this);
             FilterExpression right = (new NotFilterExpression(((OrFilterExpression) nfe).getRight())).accept(this);
             return new AndFilterExpression(left, right);
-        } else if (nfe instanceof FilterPredicate) {
+        }
+        if (nfe instanceof FilterPredicate) {
             ((FilterPredicate) nfe).negate();
             return nfe;
-        } else if (nfe instanceof NotFilterExpression) {
-            return (((NotFilterExpression) nfe).getNegated()).accept(this);
-        } else {
-            return nfe;
         }
+        if (nfe instanceof NotFilterExpression) {
+            return (((NotFilterExpression) nfe).getNegated()).accept(this);
+        }
+        return nfe;
     }
 }

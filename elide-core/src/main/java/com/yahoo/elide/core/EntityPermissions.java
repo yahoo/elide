@@ -122,7 +122,7 @@ public class EntityPermissions implements CheckInstantiator {
         expression = Arrays.asList(allChecks)
                            .stream()
                            .map(this::instantiateCheck)
-                           .map(check -> dictionary.getCheckIdentifier((Class<? extends Check>) check.getClass()))
+                           .map(check -> dictionary.getCheckIdentifier(check.getClass()))
                            .reduce("",
                                    (current, next) -> current.isEmpty()
                                            ? next

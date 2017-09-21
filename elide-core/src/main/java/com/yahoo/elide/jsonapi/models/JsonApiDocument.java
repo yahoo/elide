@@ -101,7 +101,8 @@ public class JsonApiDocument {
         Collection<Resource> resources = data.get();
         if ((resources == null || other.getData().get() == null) && resources != other.getData().get()) {
             return false;
-        } else if (resources != null) {
+        }
+        if (resources != null) {
             if (resources.size() != other.getData().get().size()
                 || !resources.stream().allMatch(other.getData().get()::contains)) {
                 return false;

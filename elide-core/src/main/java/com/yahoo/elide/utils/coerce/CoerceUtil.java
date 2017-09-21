@@ -40,6 +40,7 @@ public class CoerceUtil {
     /**
      * Convert value to target class.
      *
+     * @param <T> type
      * @param value value to convert
      * @param cls   class to convert to
      * @return coerced value
