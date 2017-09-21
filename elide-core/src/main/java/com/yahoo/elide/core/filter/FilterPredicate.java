@@ -6,19 +6,19 @@
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -29,65 +29,51 @@ import java.util.function.Predicate;
  */
 @EqualsAndHashCode
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
-    @Getter @NonNull private List<PathElement> path;
+    @Getter @NonNull private Path path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
     private static final String UNDERSCORE = "_";
     private static final String PERIOD = ".";
 
-    public static boolean toManyInPath(EntityDictionary dictionary, List<PathElement> path) {
-        return path.stream()
+    public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
+        return path.getPathElements().stream()
                 .map(element -> dictionary.getRelationshipType(element.getType(), element.getFieldName()))
                 .anyMatch(RelationshipType::isToMany);
     }
 
-    /**
-     * The path taken through data model associations to reference the field in the operator.
-     * eg. author.books.publisher.name
-     */
-    @AllArgsConstructor
-    @ToString
-    @EqualsAndHashCode
-    @Deprecated
-    //TODO - replace this with the Path class in Elide 4.0
-    public static class PathElement {
-        @Getter private Class type;
-        @Getter private Class fieldType;
-        @Getter private String fieldName;
+    public FilterPredicate(Path.PathElement pathElement, Operator op, List<Object> values) {
+        this(new Path(Arrays.asList(pathElement)), op, values);
     }
 
-    public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
-        this(Collections.singletonList(pathElement), op, values);
+    public FilterPredicate(Path.PathElement pathElement, Operator op) {
+        this(new Path(Arrays.asList(pathElement)), op, Collections.emptyList());
     }
 
-    public FilterPredicate(PathElement pathElement, Operator op) {
-        this(Collections.singletonList(pathElement), op, Collections.emptyList());
-    }
-
-    public FilterPredicate(List<PathElement> path, Operator op) {
+    public FilterPredicate(Path path, Operator op) {
         this(path, op, Collections.emptyList());
     }
 
-    public FilterPredicate(List<PathElement> path, Operator op, List<Object> values) {
+    public FilterPredicate(Path path, Operator op, List<Object> values) {
         this.path = path;
         this.operator = op;
         this.values = values;
     }
 
     public FilterPredicate(FilterPredicate copy) {
-        this.path = new ArrayList<>(copy.getPath());
+        this.path = new Path(new ArrayList<>(copy.getPath().getPathElements()));
         this.operator = copy.getOperator();
         this.values = new ArrayList<>(copy.getValues());
     }
 
     public String getField() {
-        PathElement last = path.get(path.size() - 1);
+        List<Path.PathElement> elements = path.getPathElements();
+        Path.PathElement last = elements.get(elements.size() - 1);
         return last.getFieldName();
     }
 
     public String getFieldPath() {
         StringBuilder fieldPath = new StringBuilder();
-        for (PathElement pathElement : path) {
+        for (Path.PathElement pathElement : path.getPathElements()) {
             if (fieldPath.length() != 0) {
                 fieldPath.append(PERIOD);
             }
@@ -109,13 +95,15 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
      * @return An alias for the path.
      */
     public String getAlias() {
-        PathElement last = path.get(path.size() - 1);
+        List<Path.PathElement> elements = path.getPathElements();
 
-        if (path.size() == 1) {
+        Path.PathElement last = elements.get(elements.size() - 1);
+
+        if (elements.size() == 1) {
             return getTypeAlias(last.getType());
         }
 
-        PathElement previous = path.get(path.size() - 2);
+        Path.PathElement previous = elements.get(elements.size() - 2);
 
         return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
     }
@@ -129,7 +117,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public Class getEntityType() {
-        PathElement first = path.get(0);
+        List<Path.PathElement> elements = path.getPathElements();
+        Path.PathElement first = elements.get(0);
         return first.getType();
     }
 
@@ -158,15 +147,16 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     @Override
     public String toString() {
+        List<Path.PathElement> elements = path.getPathElements();
         StringBuilder formattedPath = new StringBuilder();
-        if (!path.isEmpty()) {
-            formattedPath.append(StringUtils.uncapitalize(path.get(0).getType().getSimpleName()));
+        if (!elements.isEmpty()) {
+            formattedPath.append(StringUtils.uncapitalize(elements.get(0).getType().getSimpleName()));
         }
 
-        for (PathElement element : path) {
+        for (Path.PathElement element : elements) {
             formattedPath.append(PERIOD).append(element.getFieldName());
-        }
 
+        }
         return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 

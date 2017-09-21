@@ -8,8 +8,9 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 
@@ -68,9 +69,7 @@ public class FilterExpressionCheckObj {
 
     //Predicate that restrict resource's id to be the same as cuurent User's id.
     public static FilterPredicate createUserPredicate(RequestScope requestScope, boolean setUserId, long setId) {
-        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, long.class, "id");
-        pathList.add(path1);
+        Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         int userId = (int) requestScope.getUser().getOpaqueUser();
@@ -79,7 +78,7 @@ public class FilterExpressionCheckObj {
         } else {
             value.add((long) userId);
         }
-        return new FilterPredicate(pathList, op, value);
+        return new FilterPredicate(path1, op, value);
     }
 
     public static class CheckRestrictUser extends FilterExpressionCheck {
@@ -98,13 +97,11 @@ public class FilterExpressionCheckObj {
 
         @Override
         public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
-            List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-            FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(FilterExpressionCheckObj.class, long.class, "id");
-            pathList.add(path1);
+            Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();
             value.add((long) 2);
-            return new FilterPredicate(pathList, op, value);
+            return new FilterPredicate(path1, op, value);
         }
 
         public CheckLE() {

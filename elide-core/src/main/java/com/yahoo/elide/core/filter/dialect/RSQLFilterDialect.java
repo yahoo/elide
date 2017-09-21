@@ -7,9 +7,9 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -196,10 +196,10 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             this.allowNestedToManyAssociations = allowNestedToManyAssociations;
         }
 
-        private List<PathElement> buildPath(Class rootEntityType, String selector) {
+        private Path buildPath(Class rootEntityType, String selector) {
             String[] associationNames = selector.split("\\.");
 
-            List<PathElement> path = new ArrayList<>();
+            List<Path.PathElement> path = new ArrayList<>();
             Class entityType = rootEntityType;
 
             for (String associationName : associationNames) {
@@ -211,11 +211,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                             String.format("No such association %s for type %s", associationName, typeName));
                 }
 
-                path.add(new PathElement(entityType, fieldType, associationName));
+                path.add(new Path.PathElement(entityType, fieldType, associationName));
 
                 entityType = fieldType;
             }
-            return path;
+            return new Path(path);
         }
 
         @Override
@@ -263,7 +263,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             ComparisonOperator op = node.getOperator();
             String relationship = node.getSelector();
             List<String> arguments = node.getArguments();
-            List<PathElement> path = buildPath(entityType, relationship);
+            Path path = buildPath(entityType, relationship);
 
             if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
                 throw new RSQLParseException(String.format("Invalid association %s", relationship));
@@ -274,7 +274,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return buildIsNullOperator(path, arguments);
             }
 
-            Class<?> relationshipType = path.get(path.size() - 1).getFieldType();
+            List<Path.PathElement> elements = path.getPathElements();
+            Class<?> relationshipType = elements.get(elements.size() - 1).getFieldType();
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
@@ -294,7 +295,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new RSQLParseException(String.format("Invalid Operator %s", op.getSymbol()));
         }
 
-        private FilterExpression equalityExpression(String argument, List<PathElement> path, List<Object> values) {
+        private FilterExpression equalityExpression(String argument, Path path, List<Object> values) {
             boolean startsWith = argument.startsWith("*");
             boolean endsWith = argument.endsWith("*");
             if (startsWith && endsWith && argument.length() > 2) {
@@ -320,7 +321,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          *
          * @return Returns Predicate for '=isnull=' case depending on its arguments.
          */
-        private FilterExpression buildIsNullOperator(List<PathElement> path, List<String> arguments) {
+        private FilterExpression buildIsNullOperator(Path path, List<String> arguments) {
             Operator elideOP;
             try {
                 boolean argBool = CoerceUtil.coerce(arguments.get(0), boolean.class);

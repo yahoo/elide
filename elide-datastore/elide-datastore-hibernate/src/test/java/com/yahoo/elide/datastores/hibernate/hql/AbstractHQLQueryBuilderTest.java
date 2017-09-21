@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -63,28 +64,28 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
     @Test
     public void testFilterJoinClause() {
-        List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, String.class, TITLE)
+        List<Path.PathElement> chapterTitlePath = Arrays.asList(
+                new Path.PathElement(Author.class, Book.class, BOOKS),
+                new Path.PathElement(Book.class, Chapter.class, "chapters"),
+                new Path.PathElement(Chapter.class, String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
-                chapterTitlePath,
+                new Path(chapterTitlePath),
                 Operator.IN, Arrays.asList(ABC, DEF));
 
         FilterPredicate titlePredicateDuplicate = new FilterPredicate(
-                chapterTitlePath,
+                new Path(chapterTitlePath),
                 Operator.IN, Arrays.asList(ABC, DEF));
 
-        List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, String.class, NAME)
+        List<Path.PathElement>  publisherNamePath = Arrays.asList(
+                new Path.PathElement(Author.class, Book.class, BOOKS),
+                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
-                publisherNamePath,
+                new Path(publisherNamePath),
                 Operator.IN, Arrays.asList("Pub1"));
 
         OrFilterExpression orExpression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
@@ -142,9 +143,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
     @Test
     public void testSettingQueryParams() {
-        List<FilterPredicate.PathElement> idPath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, Chapter.class, "id")
-        );
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
 
         FilterPredicate idPredicate = new FilterPredicate(idPath,
                 Operator.IN, Arrays.asList(ABC, DEF));

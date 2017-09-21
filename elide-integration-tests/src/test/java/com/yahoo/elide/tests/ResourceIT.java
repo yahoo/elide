@@ -13,6 +13,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -49,7 +50,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -1892,9 +1892,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @DataProvider (name = "like_queries_hql")
     public Object[][] queryProviderHQL() {
-        List<FilterPredicate.PathElement> pathToTitle = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, String.class, "title")
-        );
+        Path.PathElement pathToTitle = new Path.PathElement(Book.class, String.class, "title");
+
         return new Object[][]{
                 {new FilterPredicate(pathToTitle, Operator.INFIX, Arrays.asList("with%perce")), 1},
                 {new FilterPredicate(pathToTitle, Operator.PREFIX, Arrays.asList("titlewith%perce")), 1},

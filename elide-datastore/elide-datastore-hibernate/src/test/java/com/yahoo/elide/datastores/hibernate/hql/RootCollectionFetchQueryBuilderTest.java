@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -78,24 +79,24 @@ public class RootCollectionFetchQueryBuilderTest {
     @Test
     public void testRootFetchWithJoinFilter() {
 
-        List<FilterPredicate.PathElement> chapterTitlePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, Chapter.class, "chapters"),
-                new FilterPredicate.PathElement(Chapter.class, String.class, TITLE)
+        List<Path.PathElement> chapterTitlePath = Arrays.asList(
+                new Path.PathElement(Author.class, Book.class, BOOKS),
+                new Path.PathElement(Book.class, Chapter.class, "chapters"),
+                new Path.PathElement(Chapter.class, String.class, TITLE)
         );
 
         FilterPredicate titlePredicate = new FilterPredicate(
-                chapterTitlePath,
+                new Path(chapterTitlePath),
                 Operator.IN, Arrays.asList("ABC", "DEF"));
 
-        List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Author.class, Book.class, BOOKS),
-                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, String.class, "name")
+        List<Path.PathElement>  publisherNamePath = Arrays.asList(
+                new Path.PathElement(Author.class, Book.class, BOOKS),
+                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new Path.PathElement(Publisher.class, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
-                publisherNamePath,
+                new Path(publisherNamePath),
                 Operator.IN, Arrays.asList("Pub1"));
 
         OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
@@ -130,9 +131,7 @@ public class RootCollectionFetchQueryBuilderTest {
         Map<String, Sorting.SortOrder> sorting = new HashMap<>();
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
-        List<FilterPredicate.PathElement> idPath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, Chapter.class, "id")
-        );
+        Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
 
         FilterPredicate idPredicate = new FilterPredicate(
                 idPath,

@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -57,13 +58,11 @@ public class Filtered  {
     }
 
     static private FilterPredicate getPredicateOfId(long id) {
-        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(Filtered.class, long.class, "id");
-        pathList.add(path1);
+        Path.PathElement path1 = new Path.PathElement(Filtered.class, long.class, "id");
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add(id);
-        return new FilterPredicate(pathList, op, value);
+        return new FilterPredicate(path1, op, value);
     }
 
     /**

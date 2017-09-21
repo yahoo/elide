@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.hibernate.hql;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
@@ -115,13 +116,13 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 Arrays.asList(book)
         );
 
-        List<FilterPredicate.PathElement>  publisherNamePath = Arrays.asList(
-                new FilterPredicate.PathElement(Book.class, Publisher.class, PUBLISHER),
-                new FilterPredicate.PathElement(Publisher.class, String.class, "name")
+        List<Path.PathElement>  publisherNamePath = Arrays.asList(
+                new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
+                new Path.PathElement(Publisher.class, String.class, "name")
         );
 
         FilterPredicate publisherNamePredicate = new FilterPredicate(
-                publisherNamePath,
+                new Path(publisherNamePath),
                 Operator.IN, Arrays.asList("Pub1"));
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(

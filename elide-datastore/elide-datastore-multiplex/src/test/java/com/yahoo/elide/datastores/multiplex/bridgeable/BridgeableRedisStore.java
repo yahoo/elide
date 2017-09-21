@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.multiplex.bridgeable;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -151,7 +152,7 @@ public class BridgeableRedisStore implements DataStore {
                             scope);
                 } else if ("redisActions".equals(relationName)) {
                     FilterExpression updatedExpression = new FilterPredicate(
-                            new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
+                            new Path.PathElement(entityClass, String.class, "user_id"),
                             Operator.IN,
                             Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                     );
@@ -172,7 +173,7 @@ public class BridgeableRedisStore implements DataStore {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
                 FilterExpression filterExpression = new FilterPredicate(
-                        new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
+                        new Path.PathElement(entityClass, String.class, "user_id"),
                         Operator.IN,
                         Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                 );
