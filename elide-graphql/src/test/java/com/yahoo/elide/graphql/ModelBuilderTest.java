@@ -6,10 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
-import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.core.EntityDictionary;
-
 import example.Author;
 import example.Book;
 import example.Publisher;
@@ -22,6 +19,8 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
 
 public class ModelBuilderTest {
     private EntityDictionary dictionary;

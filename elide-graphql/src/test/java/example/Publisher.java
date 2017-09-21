@@ -3,43 +3,51 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.books;
+package example;
 
 import com.yahoo.elide.annotation.Include;
-import lombok.Getter;
-import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 
 /**
- * An author's pen-name
+ * Model for publisher.
  */
 @Entity
 @Include
-public class Pseudonym {
+public class Publisher {
     private long id;
-    private Author author;
-
-    @Getter @Setter
     private String name;
+    private Set<Book> books = new HashSet<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
         return id;
     }
+
     public void setId(long id) {
         this.id = id;
     }
 
-    @OneToOne
-    public Author getAuthor() {
-        return author;
+    public String getName() {
+        return name;
     }
-    public void setAuthor(Author author) {
-        this.author = author;
+
+    public void setName(String title) {
+        this.name = title;
+    }
+
+    @OneToMany(mappedBy = "publisher")
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(Set<Book> books) {
+        this.books = books;
     }
 }
