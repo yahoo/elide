@@ -30,6 +30,7 @@ import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -55,10 +56,10 @@ import java.util.function.Supplier;
  */
 @Slf4j
 public class Elide {
-    private final ElideSettings elideSettings;
+    @Getter private final ElideSettings elideSettings;
     private final AuditLogger auditLogger;
-    private final DataStore dataStore;
-    private final JsonApiMapper mapper;
+    @Getter private final DataStore dataStore;
+    @Getter private final JsonApiMapper mapper;
 
     /**
      * Instantiates a new Elide instance.
