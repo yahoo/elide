@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Tests Building a HQL Filter.
@@ -57,8 +58,14 @@ public class HQLFilterOperationTest {
         HQLFilterOperation filterOp = new HQLFilterOperation();
         String query = filterOp.apply(not);
 
-        String expected = "WHERE NOT (((name IN (:" + p2.getParameterName() + ") OR genre IN (:"
-                + p3.getParameterName() + ")) AND authors.name IN (:" + p1.getParameterName() + ")))";
+        String p1Params = p1.getNamedParameters().stream()
+                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
+        String p2Params = p2.getNamedParameters().stream()
+                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
+        String p3Params = p3.getNamedParameters().stream()
+                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
+        String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
+                + "AND authors.name IN (" + p1Params + ")))";
         Assert.assertEquals(query, expected);
     }
 

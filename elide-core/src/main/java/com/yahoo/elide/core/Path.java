@@ -14,16 +14,17 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a path in the entity relationship graph
  */
 @EqualsAndHashCode
 public class Path {
-    @Getter
-    private List<PathElement> pathElements;
     private static final String PERIOD = ".";
     private static final String UNDERSCORE = "_";
+
+    @Getter private List<PathElement> pathElements;
     /**
      * The path taken through data model associations to reference a given field.
      * eg. author.books.publisher.name
@@ -65,6 +66,10 @@ public class Path {
                         + fieldName);
             }
         }
+    }
+
+    public Optional<PathElement> lastElement() {
+        return pathElements.isEmpty() ? Optional.empty() : Optional.of(pathElements.get(pathElements.size() - 1));
     }
 
     public String getFieldPath() {

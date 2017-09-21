@@ -98,11 +98,13 @@ public abstract class AbstractHQLQueryBuilder {
     protected void supplyFilterQueryParameters(Query query, Collection<FilterPredicate> predicates) {
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
-                String name = filterPredicate.getParameterName();
                 if (filterPredicate.isMatchingOperator()) {
-                    query.setParameter(name, filterPredicate.getStringValueEscaped("%", "\\"));
+                    query.setParameter(filterPredicate.getParameterName(),
+                            filterPredicate.getStringValueEscaped("%", "\\"));
                 } else {
-                    query.setParameterList(name, filterPredicate.getValues());
+                    filterPredicate.getNamedParameters().forEach(param -> {
+                        query.setParameter(param.getKey(), param.getValue());
+                    });
                 }
             }
         }

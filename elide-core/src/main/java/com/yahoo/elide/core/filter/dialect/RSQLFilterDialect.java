@@ -27,7 +27,6 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import javax.ws.rs.core.MultivaluedMap;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,8 +52,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
             ImmutableMap.<ComparisonOperator, Operator>builder()
-                    .put(RSQLOperators.IN, Operator.IN)
-                    .put(RSQLOperators.NOT_IN, Operator.NOT)
                     .put(RSQLOperators.LESS_THAN, Operator.LT)
                     .put(RSQLOperators.GREATER_THAN, Operator.GT)
                     .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
@@ -282,10 +280,10 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
-            if (op.equals(RSQLOperators.EQUAL)) {
+            if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values);
             }
-            if (op.equals(RSQLOperators.NOT_EQUAL)) {
+            if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values));
             }
             if (OPERATOR_MAP.containsKey(op)) {
@@ -309,6 +307,14 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             if (endsWith && argument.length() > 1) {
                 String value = argument.substring(0, argument.length() - 1);
                 return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE, Collections.singletonList(value));
+            }
+
+            Optional<Path.PathElement> filteredAttribute = path.lastElement();
+            Boolean isStringLike = filteredAttribute
+                    .map(e -> e.getFieldType().isAssignableFrom(String.class))
+                    .orElse(false);
+            if (isStringLike) {
+                return new FilterPredicate(path, Operator.IN_INSENSITIVE, values);
             }
 
             return new FilterPredicate(path, Operator.IN, values);

@@ -16,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Predicate class.
@@ -88,6 +91,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
      */
     public String getParameterName() {
         return getFieldPath().replace(PERIOD, UNDERSCORE) + UNDERSCORE + Integer.toHexString(hashCode());
+    }
+
+    public List<Pair<String, Object>> getNamedParameters() {
+        String baseName = getParameterName() + UNDERSCORE;
+        return IntStream.range(0, values.size())
+                .mapToObj(idx -> Pair.of(String.format("%s%d", baseName, idx), values.get(idx)))
+                .collect(Collectors.toList());
     }
 
     /**

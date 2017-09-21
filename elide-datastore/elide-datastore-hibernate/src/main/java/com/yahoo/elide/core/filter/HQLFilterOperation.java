@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -13,10 +14,11 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.base.Preconditions;
-
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * FilterOperation that creates Hibernate query language fragments.
@@ -24,6 +26,7 @@ import java.util.Set;
 public class HQLFilterOperation implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
     private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
+    public static final String PARAM_JOIN = ", ";
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
@@ -47,43 +50,93 @@ public class HQLFilterOperation implements FilterOperation<String> {
         //HQL doesn't support 'this', but it does support aliases.
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
+        String hql;
         String alias = filterPredicate.getParameterName();
+        List<Pair<String, Object>> params = filterPredicate.getNamedParameters();
         switch (filterPredicate.getOperator()) {
             case IN:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("%s IN (:%s)", fieldPath, alias);
+                return String.format("%s IN (%s)", fieldPath, params.stream()
+                        .map(p -> ":" + p.getKey())
+                        .collect(Collectors.joining(PARAM_JOIN)));
+
+            case IN_INSENSITIVE:
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
+                return String.format("lower(%s) IN (%s)", fieldPath, params.stream()
+                        .map(p -> String.format("lower(:%s)", p.getKey()))
+                        .collect(Collectors.joining(PARAM_JOIN)));
+
             case NOT:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("%s NOT IN (:%s)", fieldPath, alias);
+                return String.format("%s NOT IN (%s)", fieldPath, params.stream()
+                        .map(p -> ":" + p.getKey())
+                        .collect(Collectors.joining(PARAM_JOIN)));
+
+            case NOT_INSENSITIVE:
+                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
+                return String.format("lower(%s) NOT IN (%s)", fieldPath, params.stream()
+                        .map(p -> String.format("lower(:%s)", p.getKey()))
+                        .collect(Collectors.joining(PARAM_JOIN)));
+
             case PREFIX:
                 return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
+
             case PREFIX_CASE_INSENSITIVE:
                 assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT(lower(:%s), '%%')", fieldPath, alias);
+
             case POSTFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
+
             case POSTFIX_CASE_INSENSITIVE:
                 assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s))", fieldPath, alias);
+
             case INFIX:
                 return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
+
             case INFIX_CASE_INSENSITIVE:
                 assertValidValues(fieldPath, alias);
                 return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s), '%%')", fieldPath, alias);
+
+            case LT:
+                return String.format("%s < %s", fieldPath, params.size() == 1
+                        ? ":" + params.get(0).getKey()
+                        : String.format("least(%s)", params.stream()
+                                .map(p -> ":" + p.getKey())
+                                .collect(Collectors.joining(PARAM_JOIN))));
+
+            case LE:
+                return String.format("%s <= %s", fieldPath, params.size() == 1
+                        ? ":" + params.get(0).getKey()
+                        : String.format("least(%s)", params.stream()
+                                .map(p -> ":" + p.getKey())
+                                .collect(Collectors.joining(PARAM_JOIN))));
+
+            case GT:
+                return String.format("%s > %s", fieldPath, params.size() == 1
+                        ? ":" + params.get(0).getKey()
+                        : String.format("greatest(%s)", params.stream()
+                                .map(p -> ":" + p.getKey())
+                                .collect(Collectors.joining(PARAM_JOIN))));
+
+            case GE:
+                return String.format("%s >= %s", fieldPath, params.size() == 1
+                        ? params.get(0).getKey()
+                        : String.format("greatest(%s)", params.stream()
+                                .map(p -> ":" + p.getKey())
+                                .collect(Collectors.joining(PARAM_JOIN))));
+
+            // Not parametric checks
             case ISNULL:
                 return String.format("%s IS NULL", fieldPath);
+
             case NOTNULL:
                 return String.format("%s IS NOT NULL", fieldPath);
-            case LT:
-                return String.format("%s < :%s", fieldPath, alias);
-            case LE:
-                return String.format("%s <= :%s", fieldPath, alias);
-            case GT:
-                return String.format("%s > :%s", fieldPath, alias);
-            case GE:
-                return String.format("%s >= :%s", fieldPath, alias);
+
             case TRUE:
                 return "(1 = 1)";
+
             case FALSE:
                 return "(1 = 0)";
 
