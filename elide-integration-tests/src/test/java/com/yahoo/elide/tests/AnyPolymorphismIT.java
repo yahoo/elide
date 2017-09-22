@@ -10,7 +10,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.utils.JsonParser;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 
 public class AnyPolymorphismIT {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
@@ -41,12 +41,22 @@ public class AnyPolymorphismIT {
 
     @Test
     public void testAny() {
+        final String propertyPath = "/property";
+        final String relationshipType = "data.relationships.myStuff.data.type";
+        final String relationshipId = "data.relationships.myStuff.data.id";
+        final String tractorType = "tractor";
+        final String smartphoneType = "smartphone";
+        final String includedType = "included[0].type";
+        final String includedId = "included[0].id";
+        final String includedSize = "included.size()";
+        final int horsepower = 102;
+
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
-                .post("/property")
+                .post(propertyPath)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -56,7 +66,7 @@ public class AnyPolymorphismIT {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/AnyPolymorphismIT/AddSmartphoneProperty.json"))
-                .post("/property")
+                .post(propertyPath)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -65,48 +75,48 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/1")
+                .get(propertyPath + "/1")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.myStuff.data.type", equalTo("tractor"),
-                        "data.relationships.myStuff.data.id", equalTo("1"));
+                .body(relationshipType, equalTo(tractorType),
+                        relationshipId, equalTo("1"));
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/2")
+                .get(propertyPath + "/2")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.myStuff.data.type", equalTo("smartphone"),
-                        "data.relationships.myStuff.data.id", equalTo("1"));
+                .body(relationshipType, equalTo(smartphoneType),
+                        relationshipId, equalTo("1"));
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/1?include=myStuff")
+                .get(propertyPath + "/1?include=myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("included[0].type", equalTo("tractor"),
-                        "included[0].id", equalTo("1"),
-                        "included[0].attributes.horsepower", equalTo(102),
-                        "included.size()", equalTo(1));
+                .body(includedType, equalTo(tractorType),
+                        includedId, equalTo("1"),
+                        "included[0].attributes.horsepower", equalTo(horsepower),
+                        includedSize, equalTo(1));
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/2?include=myStuff")
+                .get(propertyPath + "/2?include=myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("included[0].type", equalTo("smartphone"),
-                        "included[0].id", equalTo("1"),
+                .body(includedType, equalTo(smartphoneType),
+                        includedId, equalTo("1"),
                         "included[0].attributes.type", equalTo("android"),
-                        "included.size()", equalTo(1));
+                        includedSize, equalTo(1));
     }
 }
