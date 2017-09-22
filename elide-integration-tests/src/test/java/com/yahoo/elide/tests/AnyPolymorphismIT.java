@@ -17,7 +17,7 @@ public class AnyPolymorphismIT {
     private final JsonParser jsonParser = new JsonParser();
 
     @BeforeClass
-    public void setup() {
+    public void setUp() {
         //Create a tractor
         RestAssured
                 .given()
