@@ -38,7 +38,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     @Getter @NonNull private Path path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
-//    @Getter @NonNull private String fieldPath;
 
     public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
         return path.getPathElements().stream()

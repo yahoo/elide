@@ -28,8 +28,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
     private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
     public static final String PARAM_JOIN = ", ";
-    public static final Function<FilterParameter, String> LOWERED_PARAMETER =
-            p -> String.format("lower(%s)", p.getPlaceholder());
+    public static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
+            String.format("lower(%s)", p.getPlaceholder());
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
@@ -54,7 +54,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
         List<FilterParameter> params = filterPredicate.getParameters();
-        String firstPlaceholder = params.size() > 0 ? params.get(0).getPlaceholder() : null;
+        String firstParam = params.size() > 0 ? params.get(0).getPlaceholder() : null;
         switch (filterPredicate.getOperator()) {
             case IN:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
@@ -81,49 +81,37 @@ public class HQLFilterOperation implements FilterOperation<String> {
                         .collect(Collectors.joining(PARAM_JOIN)));
 
             case PREFIX:
-                return String.format("%s LIKE CONCAT(%s, '%%')", fieldPath, firstPlaceholder);
+                return String.format("%s LIKE CONCAT(%s, '%%')", fieldPath, firstParam);
 
             case PREFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstPlaceholder);
-                return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", fieldPath, firstPlaceholder);
+                assertValidValues(fieldPath, firstParam);
+                return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", fieldPath, firstParam);
 
             case POSTFIX:
-                return String.format("%s LIKE CONCAT('%%', %s)", fieldPath, firstPlaceholder);
+                return String.format("%s LIKE CONCAT('%%', %s)", fieldPath, firstParam);
 
             case POSTFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstPlaceholder);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", fieldPath, firstPlaceholder);
+                assertValidValues(fieldPath, firstParam);
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", fieldPath, firstParam);
 
             case INFIX:
-                return String.format("%s LIKE CONCAT('%%', %s, '%%')", fieldPath, firstPlaceholder);
+                return String.format("%s LIKE CONCAT('%%', %s, '%%')", fieldPath, firstParam);
 
             case INFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstPlaceholder);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", fieldPath, firstPlaceholder);
+                assertValidValues(fieldPath, firstParam);
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", fieldPath, firstParam);
 
             case LT:
-                return String.format("%s < %s", fieldPath, params.size() == 1 ? firstPlaceholder
-                        : String.format("least(%s)", params.stream()
-                                .map(FilterParameter::getPlaceholder)
-                                .collect(Collectors.joining(PARAM_JOIN))));
+                return String.format("%s < %s", fieldPath, params.size() == 1 ? firstParam : leastClause(params));
 
             case LE:
-                return String.format("%s <= %s", fieldPath, params.size() == 1 ? firstPlaceholder
-                        : String.format("least(%s)", params.stream()
-                                .map(FilterParameter::getPlaceholder)
-                                .collect(Collectors.joining(PARAM_JOIN))));
+                return String.format("%s <= %s", fieldPath, params.size() == 1 ? firstParam : leastClause(params));
 
             case GT:
-                return String.format("%s > %s", fieldPath, params.size() == 1 ? firstPlaceholder
-                        : String.format("greatest(%s)", params.stream()
-                                .map(FilterParameter::getPlaceholder)
-                                .collect(Collectors.joining(PARAM_JOIN))));
+                return String.format("%s > %s", fieldPath, params.size() == 1 ? firstParam : greatestClause(params));
 
             case GE:
-                return String.format("%s >= %s", fieldPath, params.size() == 1 ? firstPlaceholder
-                        : String.format("greatest(%s)", params.stream()
-                                .map(FilterParameter::getPlaceholder)
-                                .collect(Collectors.joining(PARAM_JOIN))));
+                return String.format("%s >= %s", fieldPath, params.size() == 1 ? firstParam : greatestClause(params));
 
             // Not parametric checks
             case ISNULL:
@@ -141,6 +129,18 @@ public class HQLFilterOperation implements FilterOperation<String> {
             default:
                 throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
         }
+    }
+
+    private String greatestClause(List<FilterParameter> params) {
+        return String.format("greatest(%s)", params.stream()
+                .map(FilterParameter::getPlaceholder)
+                .collect(Collectors.joining(PARAM_JOIN)));
+    }
+
+    private String leastClause(List<FilterParameter> params) {
+        return String.format("least(%s)", params.stream()
+                .map(FilterParameter::getPlaceholder)
+                .collect(Collectors.joining(PARAM_JOIN)));
     }
 
     private void assertValidValues(String fieldPath, String alias) {

@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,9 +43,9 @@ import java.util.stream.Collectors;
  * FilterDialect which implements support for RSQL filter dialect.
  */
 public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
-
+    private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
+    private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
-
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
 
     /* Subset of operators that map directly to Elide operators */
@@ -57,6 +56,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
                     .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
                     .build();
+
 
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
@@ -77,19 +77,19 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
             throws ParseException {
         if (filterParams.size() != 1) {
-            throw new ParseException("There can only be a single filter query parameter");
+            throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
         MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
-            throw new ParseException("Invalid query parameter: " + queryParamName);
+            throw new ParseException(INVALID_QUERY_PARAMETER + queryParamName);
         }
         List<String> queryParamValues = entry.getValue();
 
         if (queryParamValues.size() != 1) {
-            throw new ParseException("There can only be a single filter query parameter");
+            throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
         String queryParamValue = queryParamValues.get(0);
@@ -97,16 +97,13 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         /*
          * Extract the last collection in the URL.
          */
-        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
+        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
+        if (normalizedPath.startsWith("/")) {
+            normalizedPath = normalizedPath.substring(1);
         }
 
-        String[] pathComponents = path.split("/");
-        String lastPathComponent = "";
-        if (pathComponents.length > 0) {
-            lastPathComponent = pathComponents[pathComponents.length - 1];
-        }
+        String[] pathComponents = normalizedPath.split("/");
+        String lastPathComponent = pathComponents.length > 0 ? pathComponents[pathComponents.length - 1] : "";
 
         /*
          * TODO - create a visitor which extracts the type/class of the last path component.
@@ -128,8 +125,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String>
-            filterParams) throws ParseException {
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+            throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
 
@@ -147,7 +144,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
                 Class entityType = dictionary.getEntityClass(typeName);
                 if (entityType == null) {
-                    throw new ParseException("Invalid query parameter: " + paramName);
+                    throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
                 }
 
                 String expressionText = paramValues.get(0);
@@ -160,14 +157,14 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     throw new ParseException(e.getMessage());
                 }
             } else {
-                throw new ParseException("Invalid query parameter: " + paramName);
+                throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
             }
         }
         return expressionByType;
     }
 
     /**
-     * Allows base RSQLParseException to carry a parameterized message.
+     * Allows base RSQLParseException to carry a parametrized message.
      */
     public static class RSQLParseException extends RSQLParserException {
         private String message;
@@ -271,8 +268,9 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return buildIsNullOperator(path, arguments);
             }
 
-            List<Path.PathElement> elements = path.getPathElements();
-            Class<?> relationshipType = elements.get(elements.size() - 1).getFieldType();
+            Class<?> relationshipType = path.lastElement()
+                    .map(Path.PathElement::getFieldType)
+                    .orElseThrow(() -> new IllegalStateException("Path must not be empty"));
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
@@ -308,8 +306,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE, Collections.singletonList(value));
             }
 
-            Optional<Path.PathElement> filteredAttribute = path.lastElement();
-            Boolean isStringLike = filteredAttribute
+            Boolean isStringLike = path.lastElement()
                     .map(e -> e.getFieldType().isAssignableFrom(String.class))
                     .orElse(false);
             if (isStringLike) {

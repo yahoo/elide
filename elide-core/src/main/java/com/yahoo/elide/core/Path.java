@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Represents a path in the entity relationship graph
+ * Represents a path in the entity relationship graph.
  */
 @EqualsAndHashCode
 public class Path {
