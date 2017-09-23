@@ -9,15 +9,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +28,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
     private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
     public static final String PARAM_JOIN = ", ";
+    public static final Function<FilterParameter, String> LOWERED_PARAMETER =
+            p -> String.format("lower(%s)", p.getPlaceholder());
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
@@ -50,81 +53,76 @@ public class HQLFilterOperation implements FilterOperation<String> {
         //HQL doesn't support 'this', but it does support aliases.
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
-        String hql;
-        String alias = filterPredicate.getParameterName();
-        List<Pair<String, Object>> params = filterPredicate.getNamedParameters();
+        List<FilterParameter> params = filterPredicate.getParameters();
+        String firstPlaceholder = params.size() > 0 ? params.get(0).getPlaceholder() : null;
         switch (filterPredicate.getOperator()) {
             case IN:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s IN (%s)", fieldPath, params.stream()
-                        .map(p -> ":" + p.getKey())
+                        .map(FilterParameter::getPlaceholder)
                         .collect(Collectors.joining(PARAM_JOIN)));
 
             case IN_INSENSITIVE:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("lower(%s) IN (%s)", fieldPath, params.stream()
-                        .map(p -> String.format("lower(:%s)", p.getKey()))
+                        .map(LOWERED_PARAMETER)
                         .collect(Collectors.joining(PARAM_JOIN)));
 
             case NOT:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("%s NOT IN (%s)", fieldPath, params.stream()
-                        .map(p -> ":" + p.getKey())
+                        .map(FilterParameter::getPlaceholder)
                         .collect(Collectors.joining(PARAM_JOIN)));
 
             case NOT_INSENSITIVE:
                 Preconditions.checkState(!filterPredicate.getValues().isEmpty());
                 return String.format("lower(%s) NOT IN (%s)", fieldPath, params.stream()
-                        .map(p -> String.format("lower(:%s)", p.getKey()))
+                        .map(LOWERED_PARAMETER)
                         .collect(Collectors.joining(PARAM_JOIN)));
 
             case PREFIX:
-                return String.format("%s LIKE CONCAT(:%s, '%%')", fieldPath, alias);
+                return String.format("%s LIKE CONCAT(%s, '%%')", fieldPath, firstPlaceholder);
 
             case PREFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, alias);
-                return String.format("lower(%s) LIKE CONCAT(lower(:%s), '%%')", fieldPath, alias);
+                assertValidValues(fieldPath, firstPlaceholder);
+                return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", fieldPath, firstPlaceholder);
 
             case POSTFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s)", fieldPath, alias);
+                return String.format("%s LIKE CONCAT('%%', %s)", fieldPath, firstPlaceholder);
 
             case POSTFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, alias);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s))", fieldPath, alias);
+                assertValidValues(fieldPath, firstPlaceholder);
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", fieldPath, firstPlaceholder);
 
             case INFIX:
-                return String.format("%s LIKE CONCAT('%%', :%s, '%%')", fieldPath, alias);
+                return String.format("%s LIKE CONCAT('%%', %s, '%%')", fieldPath, firstPlaceholder);
 
             case INFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, alias);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(:%s), '%%')", fieldPath, alias);
+                assertValidValues(fieldPath, firstPlaceholder);
+                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", fieldPath, firstPlaceholder);
 
             case LT:
-                return String.format("%s < %s", fieldPath, params.size() == 1
-                        ? ":" + params.get(0).getKey()
+                return String.format("%s < %s", fieldPath, params.size() == 1 ? firstPlaceholder
                         : String.format("least(%s)", params.stream()
-                                .map(p -> ":" + p.getKey())
+                                .map(FilterParameter::getPlaceholder)
                                 .collect(Collectors.joining(PARAM_JOIN))));
 
             case LE:
-                return String.format("%s <= %s", fieldPath, params.size() == 1
-                        ? ":" + params.get(0).getKey()
+                return String.format("%s <= %s", fieldPath, params.size() == 1 ? firstPlaceholder
                         : String.format("least(%s)", params.stream()
-                                .map(p -> ":" + p.getKey())
+                                .map(FilterParameter::getPlaceholder)
                                 .collect(Collectors.joining(PARAM_JOIN))));
 
             case GT:
-                return String.format("%s > %s", fieldPath, params.size() == 1
-                        ? ":" + params.get(0).getKey()
+                return String.format("%s > %s", fieldPath, params.size() == 1 ? firstPlaceholder
                         : String.format("greatest(%s)", params.stream()
-                                .map(p -> ":" + p.getKey())
+                                .map(FilterParameter::getPlaceholder)
                                 .collect(Collectors.joining(PARAM_JOIN))));
 
             case GE:
-                return String.format("%s >= %s", fieldPath, params.size() == 1
-                        ? params.get(0).getKey()
+                return String.format("%s >= %s", fieldPath, params.size() == 1 ? firstPlaceholder
                         : String.format("greatest(%s)", params.stream()
-                                .map(p -> ":" + p.getKey())
+                                .map(FilterParameter::getPlaceholder)
                                 .collect(Collectors.joining(PARAM_JOIN))));
 
             // Not parametric checks
@@ -171,12 +169,6 @@ public class HQLFilterOperation implements FilterOperation<String> {
         return filterString.toString();
     }
 
-    public String apply(FilterExpression filterExpression) {
-        HQLQueryVisitor visitor = new HQLQueryVisitor();
-        return "WHERE " + filterExpression.accept(visitor);
-
-    }
-
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
         HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
         return "WHERE " + filterExpression.accept(visitor);
@@ -188,16 +180,11 @@ public class HQLFilterOperation implements FilterOperation<String> {
      */
     public class HQLQueryVisitor implements Visitor<String> {
         private boolean prefixWithAlias;
+        private String query;
 
         public HQLQueryVisitor(boolean prefixWithAlias) {
             this.prefixWithAlias = prefixWithAlias;
         }
-
-        public HQLQueryVisitor() {
-            this(false);
-        }
-
-        private String query;
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {

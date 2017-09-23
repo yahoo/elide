@@ -7,20 +7,20 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.Visitor;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -32,11 +32,13 @@ import java.util.stream.IntStream;
  */
 @EqualsAndHashCode
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
+    private static final String UNDERSCORE = "_";
+    private static final String PERIOD = ".";
+
     @Getter @NonNull private Path path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
-    private static final String UNDERSCORE = "_";
-    private static final String PERIOD = ".";
+//    @Getter @NonNull private String fieldPath;
 
     public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
         return path.getPathElements().stream()
@@ -44,59 +46,47 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .anyMatch(RelationshipType::isToMany);
     }
 
-    public FilterPredicate(Path.PathElement pathElement, Operator op, List<Object> values) {
+    public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
         this(new Path(Arrays.asList(pathElement)), op, values);
     }
 
-    public FilterPredicate(Path.PathElement pathElement, Operator op) {
-        this(new Path(Arrays.asList(pathElement)), op, Collections.emptyList());
-    }
-
-    public FilterPredicate(Path path, Operator op) {
-        this(path, op, Collections.emptyList());
+    public FilterPredicate(FilterPredicate copy) {
+        this(copy.path, copy.operator, copy.values);
     }
 
     public FilterPredicate(Path path, Operator op, List<Object> values) {
-        this.path = path;
+        this.path = new Path(path);
         this.operator = op;
-        this.values = values;
-    }
+        this.values = new ArrayList<>(values);
 
-    public FilterPredicate(FilterPredicate copy) {
-        this.path = new Path(new ArrayList<>(copy.getPath().getPathElements()));
-        this.operator = copy.getOperator();
-        this.values = new ArrayList<>(copy.getValues());
+        // TODO: figure out why this cannot be here :(
+//        this.fieldPath = this.path.getPathElements().stream()
+//                .map(PathElement::getFieldName)
+//                .collect(Collectors.joining(PERIOD));
     }
 
     public String getField() {
-        List<Path.PathElement> elements = path.getPathElements();
-        Path.PathElement last = elements.get(elements.size() - 1);
-        return last.getFieldName();
+        return path.lastElement()
+                .map(PathElement::getFieldName)
+                .orElse(null);
     }
 
     public String getFieldPath() {
-        StringBuilder fieldPath = new StringBuilder();
-        for (Path.PathElement pathElement : path.getPathElements()) {
-            if (fieldPath.length() != 0) {
-                fieldPath.append(PERIOD);
-            }
-            fieldPath.append(pathElement.getFieldName());
-        }
-        return fieldPath.toString();
+        return path.getPathElements().stream()
+                .map(PathElement::getFieldName)
+                .collect(Collectors.joining(PERIOD));
     }
 
     /**
-     * Get a unique name for this predicate to be used as a parameter name.
-     * @return unique name
+     * Compute the parameter value/name pairings.
+     * @return the filter parameters for this predicate
      */
-    public String getParameterName() {
-        return getFieldPath().replace(PERIOD, UNDERSCORE) + UNDERSCORE + Integer.toHexString(hashCode());
-    }
-
-    public List<Pair<String, Object>> getNamedParameters() {
-        String baseName = getParameterName() + UNDERSCORE;
+    public List<FilterParameter> getParameters() {
+        String baseName = String.format("%s_%s_",
+                getFieldPath().replace(PERIOD, UNDERSCORE),
+                Integer.toHexString(hashCode()));
         return IntStream.range(0, values.size())
-                .mapToObj(idx -> Pair.of(String.format("%s%d", baseName, idx), values.get(idx)))
+                .mapToObj(idx -> new FilterParameter(String.format("%s%d", baseName, idx), values.get(idx)))
                 .collect(Collectors.toList());
     }
 
@@ -105,20 +95,22 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
      * @return An alias for the path.
      */
     public String getAlias() {
-        List<Path.PathElement> elements = path.getPathElements();
+        List<PathElement> elements = path.getPathElements();
 
-        Path.PathElement last = elements.get(elements.size() - 1);
+        PathElement last = elements.get(elements.size() - 1);
 
         if (elements.size() == 1) {
             return getTypeAlias(last.getType());
         }
 
-        Path.PathElement previous = elements.get(elements.size() - 2);
+        PathElement previous = elements.get(elements.size() - 2);
 
         return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
     }
 
     /**
+     * Build an HQL friendly alias for a class.
+     *
      * @param type The type to alias
      * @return type name alias that will likely not conflict with other types or with reserved keywords.
      */
@@ -127,8 +119,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public Class getEntityType() {
-        List<Path.PathElement> elements = path.getPathElements();
-        Path.PathElement first = elements.get(0);
+        List<PathElement> elements = path.getPathElements();
+        PathElement first = elements.get(0);
         return first.getType();
     }
 
@@ -142,10 +134,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return operator.contextualize(getFieldPath(), values, dictionary);
     }
 
-    public String getStringValueEscaped(String specialCharacter, String escapeCharacter) {
-        return getValues().get(0).toString().replace(specialCharacter, escapeCharacter + specialCharacter);
-    }
-
     public boolean isMatchingOperator() {
         return operator == Operator.INFIX
                 || operator == Operator.INFIX_CASE_INSENSITIVE
@@ -157,13 +145,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     @Override
     public String toString() {
-        List<Path.PathElement> elements = path.getPathElements();
+        List<PathElement> elements = path.getPathElements();
         StringBuilder formattedPath = new StringBuilder();
         if (!elements.isEmpty()) {
             formattedPath.append(StringUtils.uncapitalize(elements.get(0).getType().getSimpleName()));
         }
 
-        for (Path.PathElement element : elements) {
+        for (PathElement element : elements) {
             formattedPath.append(PERIOD).append(element.getFieldName());
 
         }
@@ -171,8 +159,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public void negate() {
-        Operator op = this.getOperator();
-        switch (op) {
+        switch (operator) {
             case GE:
                 this.operator = Operator.LT;
                 break;
@@ -205,6 +192,24 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 break;
             default:
                 throw new InvalidOperatorNegationException();
+        }
+    }
+
+    /**
+     * A wrapper for filter parameters, for HQL injection.
+     */
+    @AllArgsConstructor
+    public static class FilterParameter {
+        @Getter private String name;
+        @Getter private Object value;
+
+        public String getPlaceholder() {
+            return ":" + name;
+        }
+
+        public String escapeMatching() {
+            // It is unclear why replaceAll here breaks our tests
+            return value.toString().replace("%", "\\%");
         }
     }
 }

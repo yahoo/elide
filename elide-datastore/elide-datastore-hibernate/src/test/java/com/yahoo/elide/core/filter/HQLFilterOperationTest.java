@@ -56,14 +56,14 @@ public class HQLFilterOperationTest {
         NotFilterExpression not = new NotFilterExpression(and);
 
         HQLFilterOperation filterOp = new HQLFilterOperation();
-        String query = filterOp.apply(not);
+        String query = filterOp.apply(not, false);
 
-        String p1Params = p1.getNamedParameters().stream()
-                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
-        String p2Params = p2.getNamedParameters().stream()
-                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
-        String p3Params = p3.getNamedParameters().stream()
-                .map(p -> ":" + p.getKey()).collect(Collectors.joining(", "));
+        String p1Params = p1.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
+        String p2Params = p2.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
+        String p3Params = p3.getParameters().stream()
+                .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
                 + "AND authors.name IN (" + p1Params + ")))";
         Assert.assertEquals(query, expected);

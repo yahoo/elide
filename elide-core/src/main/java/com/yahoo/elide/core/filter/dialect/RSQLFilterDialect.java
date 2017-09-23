@@ -173,8 +173,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         private String message;
 
         RSQLParseException(String message) {
-            super(new Throwable() {
-            });
+            super(null);
             this.message = message;
         }
 
@@ -328,17 +327,18 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          * @return Returns Predicate for '=isnull=' case depending on its arguments.
          */
         private FilterExpression buildIsNullOperator(Path path, List<String> arguments) {
-            Operator elideOP;
+            String arg = arguments.get(0);
             try {
-                boolean argBool = CoerceUtil.coerce(arguments.get(0), boolean.class);
-                if (argBool) {
+                Operator elideOP;
+                boolean wantsNull = CoerceUtil.coerce(arg, boolean.class);
+                if (wantsNull) {
                     elideOP = Operator.ISNULL;
                 } else {
                     elideOP = Operator.NOTNULL;
                 }
-                return new FilterPredicate(path, elideOP);
-            } catch (InvalidValueException e) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isnull="));
+                return new FilterPredicate(path, elideOP, Collections.emptyList());
+            } catch (InvalidValueException ignored) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
             }
         }
     }

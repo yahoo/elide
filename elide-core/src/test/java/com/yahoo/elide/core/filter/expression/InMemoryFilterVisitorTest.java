@@ -105,10 +105,10 @@ public class InMemoryFilterVisitorTest {
         Assert.assertTrue(fn.test(author));
 
         // Test TRUE/FALSE
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.TRUE);
+        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.TRUE, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.FALSE);
+        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.FALSE, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
@@ -127,21 +127,22 @@ public class InMemoryFilterVisitorTest {
         author = new Author();
         author.setId(1L);
         author.setName("AuthorForTest");
+        Path.PathElement pathElement = new Path.PathElement(Author.class, String.class, "name");
 
         // When name is not null
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.ISNULL, Collections.emptyList());
+        expression = new FilterPredicate(pathElement, Operator.ISNULL, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.NOTNULL, Collections.emptyList());
+        expression = new FilterPredicate(pathElement, Operator.NOTNULL, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // When name is null
         author.setName(null);
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.ISNULL, Collections.emptyList());
+        expression = new FilterPredicate(pathElement, Operator.ISNULL, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.NOTNULL, Collections.emptyList());
+        expression = new FilterPredicate(pathElement, Operator.NOTNULL, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -151,49 +152,50 @@ public class InMemoryFilterVisitorTest {
         author = new Author();
         author.setId(1L);
         author.setName("AuthorForTest");
+        Path.PathElement pathElement = new Path.PathElement(Author.class, String.class, "name");
 
         // When prefix, infix, postfix are correctly matched
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.PREFIX, Arrays.asList("Author"));
+        expression = new FilterPredicate(pathElement, Operator.PREFIX, Arrays.asList("Author"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.INFIX, Arrays.asList("For"));
+        expression = new FilterPredicate(pathElement, Operator.INFIX, Arrays.asList("For"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.POSTFIX, Arrays.asList("Test"));
+        expression = new FilterPredicate(pathElement, Operator.POSTFIX, Arrays.asList("Test"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // When prefix, infix, postfix are correctly matched if case-insensitive
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.PREFIX, Arrays.asList("author"));
+        expression = new FilterPredicate(pathElement, Operator.PREFIX, Arrays.asList("author"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.INFIX, Arrays.asList("for"));
+        expression = new FilterPredicate(pathElement, Operator.INFIX, Arrays.asList("for"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.POSTFIX, Arrays.asList("test"));
+        expression = new FilterPredicate(pathElement, Operator.POSTFIX, Arrays.asList("test"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // When prefix, infix, postfix are not matched
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.PREFIX, Arrays.asList("error"));
+        expression = new FilterPredicate(pathElement, Operator.PREFIX, Arrays.asList("error"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.INFIX, Arrays.asList("error"));
+        expression = new FilterPredicate(pathElement, Operator.INFIX, Arrays.asList("error"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.POSTFIX, Arrays.asList("error"));
+        expression = new FilterPredicate(pathElement, Operator.POSTFIX, Arrays.asList("error"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // When values is null
         author.setName(null);
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.PREFIX, Arrays.asList("Author"));
+        expression = new FilterPredicate(pathElement, Operator.PREFIX, Arrays.asList("Author"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.INFIX, Arrays.asList("For"));
+        expression = new FilterPredicate(pathElement, Operator.INFIX, Arrays.asList("For"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"), Operator.POSTFIX, Arrays.asList("Test"));
+        expression = new FilterPredicate(pathElement, Operator.POSTFIX, Arrays.asList("Test"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -202,44 +204,45 @@ public class InMemoryFilterVisitorTest {
     public void compareOpPredicateTests() throws Exception {
         author = new Author();
         author.setId(10L);
+        Path.PathElement pathElement = new Path.PathElement(Author.class, Long.class, "id");
 
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LT, Arrays.asList("11"));
+        expression = new FilterPredicate(pathElement, Operator.LT, Arrays.asList("11"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LE, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.LE, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GT, Arrays.asList("9"));
+        expression = new FilterPredicate(pathElement, Operator.GT, Arrays.asList("9"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GE, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.GE, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LT, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.LT, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LE, Arrays.asList("9"));
+        expression = new FilterPredicate(pathElement, Operator.LE, Arrays.asList("9"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GT, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.GT, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GE, Arrays.asList("11"));
+        expression = new FilterPredicate(pathElement, Operator.GE, Arrays.asList("11"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // when val is null
         author.setId(null);
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LT, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.LT, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LE, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.LE, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GT, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.GT, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GE, Arrays.asList("10"));
+        expression = new FilterPredicate(pathElement, Operator.GE, Arrays.asList("10"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -248,29 +251,30 @@ public class InMemoryFilterVisitorTest {
     public void negativeTests() throws Exception {
         author = new Author();
         author.setId(10L);
+        Path.PathElement pathElement = new Path.PathElement(Author.class, Long.class, "id");
 
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LT, Arrays.asList("11")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LT, Arrays.asList("11")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LE, Arrays.asList("10")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LE, Arrays.asList("10")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GT, Arrays.asList("9")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GT, Arrays.asList("9")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GE, Arrays.asList("10")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GE, Arrays.asList("10")));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LT, Arrays.asList("10")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LT, Arrays.asList("10")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.LE, Arrays.asList("9")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LE, Arrays.asList("9")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GT, Arrays.asList("10")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GT, Arrays.asList("10")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(new Path.PathElement(Author.class, Long.class, "id"), Operator.GE, Arrays.asList("11")));
+        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GE, Arrays.asList("11")));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
     }

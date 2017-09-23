@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,12 +37,12 @@ public class Path {
         @Getter private String fieldName;
     }
 
-    public Path(List<PathElement> pathElements) {
-        this.pathElements = new ArrayList(pathElements);
+    public Path(Path copy) {
+        this(copy.pathElements);
     }
 
-    public Path(PathElement pathElement) {
-        this(Arrays.asList(pathElement));
+    public Path(List<PathElement> pathElements) {
+        this.pathElements = new ArrayList(pathElements);
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {

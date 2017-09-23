@@ -91,29 +91,26 @@ public abstract class AbstractHQLQueryBuilder {
 
     /**
      * Given a collection of filter predicates and a Hibernate query, populates the named parameters in the
-     * Hibernate query
+     * Hibernate query.
+     *
      * @param query The HQL query
      * @param predicates The predicates to extract named parameter values from
      */
     protected void supplyFilterQueryParameters(Query query, Collection<FilterPredicate> predicates) {
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
-                if (filterPredicate.isMatchingOperator()) {
-                    query.setParameter(filterPredicate.getParameterName(),
-                            filterPredicate.getStringValueEscaped("%", "\\"));
-                } else {
-                    filterPredicate.getNamedParameters().forEach(param -> {
-                        query.setParameter(param.getKey(), param.getValue());
-                    });
-                }
+                boolean shouldEscape = filterPredicate.isMatchingOperator();
+                filterPredicate.getParameters().forEach(param -> {
+                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                });
             }
         }
     }
 
     /**
      * Extracts all the HQL JOIN clauses from given filter expression.
-     * @param filterExpression
-     * @return
+     * @param filterExpression the filter expression to extract a join clause from
+     * @return an HQL join clause
      */
     protected String getJoinClauseFromFilters(FilterExpression filterExpression) {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
@@ -132,13 +129,14 @@ public abstract class AbstractHQLQueryBuilder {
      */
     protected void addPaginationToQuery(Query query) {
         if (pagination.isPresent()) {
-            query.setFirstResult(pagination.get().getOffset());
-            query.setMaxResults(pagination.get().getLimit());
+            Pagination pagination = this.pagination.get();
+            query.setFirstResult(pagination.getOffset());
+            query.setMaxResults(pagination.getLimit());
         }
     }
 
     /**
-     * Extracts a join clause from a filter predicate (if it exists)
+     * Extracts a join clause from a filter predicate (if it exists).
      * @param predicate The predicate to examine
      * @param alreadyJoined A set of joins that have already been computed.
      * @return A HQL string representing the join
