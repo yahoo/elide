@@ -17,7 +17,7 @@ import javax.persistence.OneToOne;
 
 @Entity
 @Include(rootLevel = true, type = "noShareBid")
-@SharePermission(expression = "deny all")
+@SharePermission()
 public class NoShareBiDirectional {
     private Long id;
     private NoShareBiDirectional other;

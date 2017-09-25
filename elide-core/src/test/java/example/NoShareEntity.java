@@ -6,13 +6,11 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@SharePermission(expression = "deny all")
 @Include(rootLevel = true, type = "noshare") // optional here because class has this name
 // Hibernate
 @Entity

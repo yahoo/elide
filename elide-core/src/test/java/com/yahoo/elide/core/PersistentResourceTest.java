@@ -48,6 +48,9 @@ import example.Parent;
 import example.Right;
 import example.Shape;
 import example.TestCheckMappings;
+import example.packageshareable.ContainerWithPackageShare;
+import example.packageshareable.ShareableWithPackageShare;
+import example.packageshareable.UnshareableWithEntityUnshare;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
@@ -144,6 +147,9 @@ public class PersistentResourceTest extends PersistentResource {
         dictionary.bindEntity(Invoice.class);
         dictionary.bindEntity(LineItem.class);
         dictionary.bindEntity(ComputedBean.class);
+        dictionary.bindEntity(ContainerWithPackageShare.class);
+        dictionary.bindEntity(ShareableWithPackageShare.class);
+        dictionary.bindEntity(UnshareableWithEntityUnshare.class);
     }
 
     @Test
@@ -1750,6 +1756,51 @@ public class PersistentResourceTest extends PersistentResource {
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void testSharePermissionErrorOnUpdateRelationshipPackageLevel() {
+        ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
+
+        UnshareableWithEntityUnshare unshareableWithEntityUnshare = new UnshareableWithEntityUnshare();
+        unshareableWithEntityUnshare.setContainerWithPackageShare(containerWithPackageShare);
+
+        List<Resource> unShareableList = new ArrayList<>();
+        unShareableList.add(new ResourceIdentifier("unshareableWithEntityUnshare", "1").castToResource());
+        Relationship unShareales = new Relationship(null, new Data<>(unShareableList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        when(tx.loadObject(eq(UnshareableWithEntityUnshare.class), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
+
+        containerResource.updateRelation("unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope));
+    }
+
+    @Test
+    public void testSharePermissionSuccessOnUpdateManyRelationshipPackageLevel() {
+        ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
+
+        ShareableWithPackageShare shareableWithPackageShare = new ShareableWithPackageShare();
+        shareableWithPackageShare.setContainerWithPackageShare(containerWithPackageShare);
+
+        List<Resource> shareableList = new ArrayList<>();
+        shareableList.add(new ResourceIdentifier("shareableWithPackageShare", "1").castToResource());
+        Relationship shareables = new Relationship(null, new Data<>(shareableList));
+
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        when(tx.loadObject(eq(ShareableWithPackageShare.class), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
+
+        containerResource.updateRelation("shareableWithPackageShares", shareables.toPersistentResources(goodScope));
+
+        Assert.assertEquals(containerWithPackageShare.getShareableWithPackageShares().size(), 1);
+        Assert.assertTrue(containerWithPackageShare.getShareableWithPackageShares().contains(shareableWithPackageShare));
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testSharePermissionErrorOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
@@ -2065,7 +2116,7 @@ public class PersistentResourceTest extends PersistentResource {
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
     @DeletePermission(expression = "allow all")
-    @SharePermission(expression = "allow all")
+    @SharePermission()
     public static final class ChangeSpecChild {
         @Id
         public long id;

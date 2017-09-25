@@ -97,7 +97,10 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      *
      * @param resource        Resource
      * @return Commit and operation expressions
+     *
+     * @deprecated Trying to evaluate SharePermission should fall to ReadPermission in elide 4.0
      */
+    @Deprecated
     public Expression buildSharePermissionExpressions(final PersistentResource resource) {
 
         PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);

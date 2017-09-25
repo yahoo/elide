@@ -29,7 +29,7 @@ import java.util.List;
 @Entity
 @Table(name = "filterExpressionCheckObj")
 @Include(rootLevel = true)
-@SharePermission(expression = "allow all")
+@SharePermission()
 @ReadPermission(expression = "checkLE OR deny all")  //ReadPermission for object id <= 2
 public class FilterExpressionCheckObj {
     private long id;

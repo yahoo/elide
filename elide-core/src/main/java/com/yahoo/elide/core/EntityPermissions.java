@@ -79,7 +79,10 @@ public class EntityPermissions implements CheckInstantiator {
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
             fieldOrMethodList.stream()
                     .forEach(member -> bindMemberPermissions(fieldPermissions, member, annotationClass));
-            if (classPermission != null || !fieldPermissions.isEmpty()) {
+            if (annotationClass == SharePermission.class
+                    && EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass)) != null) {
+                bindings.put(SharePermission.class, new AnnotationBinding(null, fieldPermissions));
+            } else if (classPermission != null || !fieldPermissions.isEmpty()) {
                 bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));
             }
         }
@@ -101,6 +104,9 @@ public class EntityPermissions implements CheckInstantiator {
 
     private ParseTree getPermissionExpressionTree(Class<? extends Annotation> annotationClass, Annotation annotation) {
         try {
+            if (annotationClass == SharePermission.class) {
+                return null;
+            }
             String expression = (String) annotationClass.getMethod("expression").invoke(annotation);
 
             boolean hasExpression = !expression.isEmpty();

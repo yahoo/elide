@@ -42,7 +42,7 @@ import java.util.Set;
  */
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
-@SharePermission(expression = "allow all")
+@SharePermission()
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
 @Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,

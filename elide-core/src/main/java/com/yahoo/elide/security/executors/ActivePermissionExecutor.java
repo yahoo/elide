@@ -94,7 +94,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Check permission on class.
+     * Check permission on class. Checking on SharePermission falls to check ReadPermission.
      *
      * @param annotationClass annotation class
      * @param resource resource
@@ -111,7 +111,14 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                    ChangeSpec changeSpec) {
         Supplier<Expression> expressionSupplier = () -> {
             if (SharePermission.class == annotationClass) {
-                return expressionBuilder.buildSharePermissionExpressions(resource);
+                if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
+                    return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
+                } else {
+                    ForbiddenAccessException e = new ForbiddenAccessException("Missing SharePermission for "
+                            + resource.getResourceClass().getName());
+                    log.trace("{}", e.getLoggedMessage());
+                    throw e;
+                }
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };

@@ -1,31 +1,29 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.example.models;
+package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.ManyToOne;
 
 /**
- * Model for Users (author of posts and author of comments).
+ * Entity level Unshareable bean.
  */
 @Entity
-@Table(name = "user")
+@SharePermission(sharable = false)
 @Include(rootLevel = true)
-@SharePermission()
-//@CreatePermission(expression = "Prefab.Role.All")
-public class User {
+public class UnshareableWithEntityUnshare {
     private long id;
-    private String name;
-    private Role role;
+    private ContainerWithPackageShare container;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,19 +35,12 @@ public class User {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    public ContainerWithPackageShare getContainerWithPackageShare() {
+        return container;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
+    public void setContainerWithPackageShare(ContainerWithPackageShare container) {
+        this.container = container;
     }
 }
