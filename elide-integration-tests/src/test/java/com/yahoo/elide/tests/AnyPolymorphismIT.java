@@ -16,6 +16,9 @@ public class AnyPolymorphismIT {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private final JsonParser jsonParser = new JsonParser();
 
+    private final int horsepower = 102;
+
+
     @BeforeClass
     public void setUp() {
         //Create a tractor
@@ -49,7 +52,6 @@ public class AnyPolymorphismIT {
         final String includedType = "included[0].type";
         final String includedId = "included[0].id";
         final String includedSize = "included.size()";
-        final int horsepower = 102;
 
         RestAssured
                 .given()
@@ -120,7 +122,6 @@ public class AnyPolymorphismIT {
                         "included[0].attributes.type", equalTo("android"),
                         includedSize, equalTo(1));
 
-
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -130,6 +131,20 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.size()", equalTo(2));
+    }
+
+    public void testAnySubpaths() {
+        final String propertyPath = "/property";
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .post(propertyPath)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_CREATED);
 
         RestAssured
                 .given()
@@ -150,7 +165,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.horsepower", equalTo(horsepower),
-                         "data.id", equalTo("1"));
+                        "data.id", equalTo("1"));
 
         //single entity so no page appropriate stuff
         RestAssured
