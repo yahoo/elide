@@ -17,6 +17,12 @@ public class AnyPolymorphismIT {
     private final JsonParser jsonParser = new JsonParser();
 
     private final int horsepower = 102;
+    private final String one = "1";
+
+    private final String propertyPath = "/property";
+
+    private final String tractorAsPropertyFile = "/AnyPolymorphismIT/AddTractorProperty.json";
+    private final String smartphoneAsPropertyFile = "/AnyPolymorphismIT/AddSmartphoneProperty.json";
 
 
     @BeforeClass
@@ -44,7 +50,6 @@ public class AnyPolymorphismIT {
 
     @Test
     public void testAny() {
-        final String propertyPath = "/property";
         final String relationshipType = "data.relationships.myStuff.data.type";
         final String relationshipId = "data.relationships.myStuff.data.id";
         final String tractorType = "tractor";
@@ -57,7 +62,7 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(jsonParser.getJson(tractorAsPropertyFile))
                 .post(propertyPath)
                 .then()
                 .assertThat()
@@ -67,7 +72,7 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddSmartphoneProperty.json"))
+                .body(jsonParser.getJson(smartphoneAsPropertyFile))
                 .post(propertyPath)
                 .then()
                 .assertThat()
@@ -82,7 +87,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body(relationshipType, equalTo(tractorType),
-                        relationshipId, equalTo("1"));
+                        relationshipId, equalTo(one));
 
         RestAssured
                 .given()
@@ -93,7 +98,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body(relationshipType, equalTo(smartphoneType),
-                        relationshipId, equalTo("1"));
+                        relationshipId, equalTo(one));
 
         RestAssured
                 .given()
@@ -104,7 +109,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body(includedType, equalTo(tractorType),
-                        includedId, equalTo("1"),
+                        includedId, equalTo(one),
                         "included[0].attributes.horsepower", equalTo(horsepower),
                         includedSize, equalTo(1));
 
@@ -118,7 +123,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body(includedType, equalTo(smartphoneType),
-                        includedId, equalTo("1"),
+                        includedId, equalTo(one),
                         "included[0].attributes.type", equalTo("android"),
                         includedSize, equalTo(1));
 
@@ -134,13 +139,11 @@ public class AnyPolymorphismIT {
     }
 
     public void testAnySubpaths() {
-        final String propertyPath = "/property";
-
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(jsonParser.getJson(tractorAsPropertyFile))
                 .post(propertyPath)
                 .then()
                 .assertThat()
@@ -165,7 +168,7 @@ public class AnyPolymorphismIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.horsepower", equalTo(horsepower),
-                        "data.id", equalTo("1"));
+                        "data.id", equalTo(one));
 
         //single entity so no page appropriate stuff
         RestAssured
