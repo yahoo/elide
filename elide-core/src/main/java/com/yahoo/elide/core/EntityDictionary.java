@@ -121,7 +121,7 @@ public class EntityDictionary {
         return entityBindings.getOrDefault(entitySearched, EntityBinding.EMPTY_BINDING);
     }
 
-    protected boolean isMappedInterface(Class<?> interfaceClass) {
+    public boolean isMappedInterface(Class<?> interfaceClass) {
         return interfaceClass.isInterface() && interfaceClass.isAnnotationPresent(MappedInterface.class);
     }
 

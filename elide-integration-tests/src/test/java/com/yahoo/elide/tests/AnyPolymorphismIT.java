@@ -106,6 +106,7 @@ public class AnyPolymorphismIT {
                         "included[0].attributes.horsepower", equalTo(horsepower),
                         includedSize, equalTo(1));
 
+
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -118,5 +119,48 @@ public class AnyPolymorphismIT {
                         includedId, equalTo("1"),
                         "included[0].attributes.type", equalTo("android"),
                         includedSize, equalTo(1));
+
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.size()", equalTo(2));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "?page[totals]")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("meta.page.totalRecords", equalTo(2));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "/1/myStuff")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.horsepower", equalTo(horsepower),
+                         "data.id", equalTo("1"));
+
+        //single entity so no page appropriate stuff
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "/1/myStuff?page[totals]")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("meta", equalTo(null));
     }
 }
