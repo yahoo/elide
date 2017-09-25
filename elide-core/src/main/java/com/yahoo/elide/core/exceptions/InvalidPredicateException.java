@@ -14,8 +14,4 @@ public class InvalidPredicateException extends HttpStatusException {
     public InvalidPredicateException(String message) {
         super(HttpStatus.SC_BAD_REQUEST, message);
     }
-
-    public InvalidPredicateException(String message, Throwable cause) {
-        super(HttpStatus.SC_BAD_REQUEST, message, null, cause);
-    }
 }

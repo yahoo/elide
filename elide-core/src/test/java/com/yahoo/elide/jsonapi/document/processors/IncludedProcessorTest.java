@@ -63,7 +63,7 @@ public class IncludedProcessorTest {
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())
                         .withEntityDictionary(dictionary)
-                        .build());
+                        .build(), false);
 
         //Create objects
         Parent parent1 = newParent(1);

@@ -59,7 +59,7 @@ public class JsonApiTest {
                         .withJsonApiMapper(mapper)
                         .withAuditLogger(testLogger)
                         .withEntityDictionary(dictionary)
-                        .build());
+                        .build(), false);
     }
 
     @Test

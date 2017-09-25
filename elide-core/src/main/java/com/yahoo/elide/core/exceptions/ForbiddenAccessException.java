@@ -23,15 +23,13 @@ public class ForbiddenAccessException extends HttpStatusException {
     @Getter private final Optional<Expression.EvaluationMode> evaluationMode;
 
     public ForbiddenAccessException(String message) {
-        super(HttpStatus.SC_FORBIDDEN, null, message);
-        this.expression = Optional.empty();
-        this.evaluationMode = Optional.empty();
+        this(message, null, null);
     }
 
     public ForbiddenAccessException(String message, Expression expression, Expression.EvaluationMode mode) {
         super(HttpStatus.SC_FORBIDDEN, null, null, () -> message + ": " + expression);
-        this.expression = Optional.of(expression);
-        this.evaluationMode = Optional.of(mode);
+        this.expression = Optional.ofNullable(expression);
+        this.evaluationMode = Optional.ofNullable(mode);
     }
 
     public String getLoggedMessage() {

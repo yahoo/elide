@@ -345,7 +345,7 @@ public class PermissionToFilterExpressionVisitorTest {
 
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, null, elideSettings);
+        return requestScope = new com.yahoo.elide.core.RequestScope(null, null, null, john, null, elideSettings, false);
     }
 
     @Entity

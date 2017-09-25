@@ -90,26 +90,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param user the user making this request
      * @param queryParams the query parameters
      * @param elideSettings Elide settings object
-     */
-    @Deprecated
-    public RequestScope(String path,
-                        JsonApiDocument jsonApiDocument,
-                        DataStoreTransaction transaction,
-                        User user,
-                        MultivaluedMap<String, String> queryParams,
-                        ElideSettings elideSettings) {
-        this(path, jsonApiDocument, transaction, user, queryParams, elideSettings, false);
-    }
-
-    /**
-     * Create a new RequestScope with specified update status code.
-     *
-     * @param path the URL path
-     * @param jsonApiDocument the document for this request
-     * @param transaction the transaction for this request
-     * @param user the user making this request
-     * @param queryParams the query parameters
-     * @param elideSettings Elide settings object
      * @param mutatesMultipleEntities Whether or not this request involves bulk edits to entities
      *                                (patch extension or graphQL).
      */

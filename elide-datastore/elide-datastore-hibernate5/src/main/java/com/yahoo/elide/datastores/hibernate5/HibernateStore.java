@@ -5,13 +5,11 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-
-import com.google.common.base.Preconditions;
-
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
