@@ -18,8 +18,16 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private final JsonParser jsonParser = new JsonParser();
 
+    private final String sep = "/";
+
     private final int horsepower = 102;
     private final String one = "1";
+    private final String tractorType = "tractor";
+    private final String smartphoneType = "smartphone";
+
+    private final String relationshipType = "data.relationships.myStuff.data.type";
+    private final String relationshipId = "data.relationships.myStuff.data.id";
+    private final String idPath = "data.id";
 
     private final String propertyPath = "/property";
 
@@ -52,10 +60,6 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
     @Test
     public void testAny() {
-        final String relationshipType = "data.relationships.myStuff.data.type";
-        final String relationshipId = "data.relationships.myStuff.data.id";
-        final String tractorType = "tractor";
-        final String smartphoneType = "smartphone";
         final String includedType = "included[0].type";
         final String includedId = "included[0].id";
         final String includedSize = "included.size()";
@@ -70,7 +74,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract()
-                .path("data.id");
+                .path(idPath);
 
         String id2 = RestAssured
                 .given()
@@ -82,13 +86,13 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract()
-                .path("data.id");
+                .path(idPath);
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id1)
+                .get(propertyPath + sep + id1)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -99,18 +103,20 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id2)
+                .get(propertyPath + sep + id2)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body(relationshipType, equalTo(smartphoneType),
                         relationshipId, equalTo(one));
 
+        String query = "?include=myStuff";
+
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id1 + "?include=myStuff")
+                .get(propertyPath + sep + id1 + query)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -124,7 +130,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/"  + id2 + "?include=myStuff")
+                .get(propertyPath + sep + id2 + query)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -155,16 +161,18 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
-                .body("data.relationships.myStuff.data.type", equalTo("tractor"))
+                .body(relationshipType, equalTo(tractorType))
                 .extract()
-                .path("data.id");
+                .path(idPath);
+
+        String prefix = "{\"data\": {\"id\": \"" + id;
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": {\"type\": \"smartphone\", \"id\": \"1\"}}}}}")
-                .patch(propertyPath + "/" + id)
+                .body(prefix + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": {\"type\": \"smartphone\", \"id\": \"1\"}}}}}")
+                .patch(propertyPath + sep + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -173,19 +181,19 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id)
+                .get(propertyPath + sep + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.myStuff.data.type", equalTo("smartphone"));
+                .body(relationshipType, equalTo(smartphoneType));
 
         //delete relation
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": null}}}}")
-                .patch(propertyPath + "/" + id)
+                .body(prefix + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": null}}}}")
+                .patch(propertyPath + sep + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -194,7 +202,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id)
+                .get(propertyPath + sep + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -213,7 +221,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract()
-                .path("data.id");
+                .path(idPath);
 
         RestAssured
                 .given()
@@ -229,7 +237,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id + "/myStuff")
+                .get(propertyPath + sep + id + "/myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -241,7 +249,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id + "/myStuff?page[totals]")
+                .get(propertyPath + sep + id + "/myStuff?page[totals]")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -252,7 +260,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/" + id + "?filter[tractor]=horsepower==103")
+                .get(propertyPath + sep + id + "?filter[tractor]=horsepower==103")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);

@@ -893,8 +893,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, type);
         }
         if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
-           throw new InvalidOperationException(
-                   "Cannot apply filters to polymorphic relations mapped with MappedInterface");
+            throw new InvalidOperationException(
+                    "Cannot apply filters to polymorphic relations mapped with MappedInterface");
         }
         final String valType = dictionary.getJsonAliasFor(entityClass);
         return requestScope.getFilterExpressionByType(valType);
