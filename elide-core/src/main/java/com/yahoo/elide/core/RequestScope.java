@@ -75,7 +75,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final boolean mutatingMultipleEntities;
 
     private final MultipleFilterDialect filterDialect;
-    private final Map<String, FilterExpression> expressionsByType;
+    @Getter private final Map<String, FilterExpression> expressionsByType;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;

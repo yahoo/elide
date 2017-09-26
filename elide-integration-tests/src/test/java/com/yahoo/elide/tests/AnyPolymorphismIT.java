@@ -7,12 +7,14 @@ package com.yahoo.elide.tests;
 
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 import com.yahoo.elide.utils.JsonParser;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 
-public class AnyPolymorphismIT {
+public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private final JsonParser jsonParser = new JsonParser();
 
@@ -58,7 +60,7 @@ public class AnyPolymorphismIT {
         final String includedId = "included[0].id";
         final String includedSize = "included.size()";
 
-        RestAssured
+        String id1 = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -66,9 +68,11 @@ public class AnyPolymorphismIT {
                 .post(propertyPath)
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CREATED);
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract()
+                .path("data.id");
 
-        RestAssured
+        String id2 = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -76,13 +80,15 @@ public class AnyPolymorphismIT {
                 .post(propertyPath)
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CREATED);
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract()
+                .path("data.id");
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/1")
+                .get(propertyPath + "/" + id1)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -93,7 +99,7 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/2")
+                .get(propertyPath + "/" + id2)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -104,7 +110,7 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/1?include=myStuff")
+                .get(propertyPath + "/" + id1 + "?include=myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -118,7 +124,7 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/2?include=myStuff")
+                .get(propertyPath + "/"  + id2 + "?include=myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -138,8 +144,9 @@ public class AnyPolymorphismIT {
                 .body("data.size()", equalTo(2));
     }
 
-    public void testAnySubpaths() {
-        RestAssured
+    @Test
+    public void testAnyupdate() {
+        String id = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -147,7 +154,66 @@ public class AnyPolymorphismIT {
                 .post(propertyPath)
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CREATED);
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.relationships.myStuff.data.type", equalTo("tractor"))
+                .extract()
+                .path("data.id");
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": {\"type\": \"smartphone\", \"id\": \"1\"}}}}}")
+                .patch(propertyPath + "/" + id)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "/" + id)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.myStuff.data.type", equalTo("smartphone"));
+
+        //delete relation
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\": {\"id\": \"" + id + "\", \"type\": \"property\", \"relationships\": {\"myStuff\": {\"data\": null}}}}")
+                .patch(propertyPath + "/" + id)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "/" + id)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.myStuff.data", equalTo(null));
+    }
+
+    @Test
+    public void testAnySubpaths() {
+        String id = RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson(tractorAsPropertyFile))
+                .post(propertyPath)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract()
+                .path("data.id");
 
         RestAssured
                 .given()
@@ -157,13 +223,13 @@ public class AnyPolymorphismIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("meta.page.totalRecords", equalTo(2));
+                .body("meta.page.totalRecords", greaterThan(0));
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/1/myStuff")
+                .get(propertyPath + "/" + id + "/myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -175,10 +241,20 @@ public class AnyPolymorphismIT {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get(propertyPath + "/1/myStuff?page[totals]")
+                .get(propertyPath + "/" + id + "/myStuff?page[totals]")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("meta", equalTo(null));
+
+        //Filtering is not supported for these types.
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get(propertyPath + "/" + id + "?filter[tractor]=horsepower==103")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 }
