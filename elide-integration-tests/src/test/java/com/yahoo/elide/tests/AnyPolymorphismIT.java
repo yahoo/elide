@@ -242,7 +242,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.horsepower", equalTo(horsepower),
-                        "data.id", equalTo(one));
+                        idPath, equalTo(one));
 
         //single entity so no page appropriate stuff
         RestAssured
