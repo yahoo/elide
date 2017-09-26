@@ -22,7 +22,7 @@ import java.util.Collection;
  * Model for authors.
  */
 @Entity
-@SharePermission()
+@SharePermission
 @Table(name = "author")
 @Include(rootLevel = true)
 public class Author {

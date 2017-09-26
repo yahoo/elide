@@ -20,7 +20,7 @@ import javax.persistence.Table;
  * A shareable bean.
  */
 @Entity
-@SharePermission()
+@SharePermission
 @Table(name = "shareable")
 @Include(rootLevel = true, type = "shareable")
 public class Shareable {

@@ -25,7 +25,7 @@ import java.util.Collection;
 @Entity
 @Table(name = "author")
 @Include(rootLevel = true)
-@SharePermission()
+@SharePermission
 @Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,

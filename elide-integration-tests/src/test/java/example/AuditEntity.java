@@ -30,7 +30,7 @@ import java.util.List;
 @CreatePermission(expression = "allow all")
 @DeletePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
-@SharePermission()
+@SharePermission
 public class AuditEntity {
     private Long id;
     private AuditEntity otherEntity;

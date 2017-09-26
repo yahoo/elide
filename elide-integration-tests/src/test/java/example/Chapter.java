@@ -18,7 +18,7 @@ import javax.persistence.Id;
 
 @Entity
 @Include(rootLevel = true, type = "chapter")
-@SharePermission()
+@SharePermission
 public class Chapter {
     private Long id;
     @Getter @Setter private String title;

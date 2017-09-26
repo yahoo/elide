@@ -2116,7 +2116,7 @@ public class PersistentResourceTest extends PersistentResource {
     @ReadPermission(expression = "allow all")
     @UpdatePermission(expression = "allow all")
     @DeletePermission(expression = "allow all")
-    @SharePermission()
+    @SharePermission
     public static final class ChangeSpecChild {
         @Id
         public long id;

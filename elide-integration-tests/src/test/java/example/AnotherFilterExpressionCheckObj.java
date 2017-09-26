@@ -28,7 +28,7 @@ import java.util.List;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission()
+@SharePermission
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)

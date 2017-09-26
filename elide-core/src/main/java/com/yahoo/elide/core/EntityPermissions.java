@@ -75,15 +75,17 @@ public class EntityPermissions implements CheckInstantiator {
                              Collection<AccessibleObject> fieldOrMethodList)  {
         this.dictionary = dictionary;
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
-            ParseTree classPermission = bindClassPermissions(cls, annotationClass);
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
             fieldOrMethodList.stream()
                     .forEach(member -> bindMemberPermissions(fieldPermissions, member, annotationClass));
             if (annotationClass == SharePermission.class
                     && EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass)) != null) {
                 bindings.put(SharePermission.class, new AnnotationBinding(null, fieldPermissions));
-            } else if (classPermission != null || !fieldPermissions.isEmpty()) {
-                bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));
+            } else {
+                ParseTree classPermission = bindClassPermissions(cls, annotationClass);
+                if (classPermission != null || !fieldPermissions.isEmpty()) {
+                    bindings.put(annotationClass, new AnnotationBinding(classPermission, fieldPermissions));
+                }
             }
         }
     }
@@ -104,9 +106,6 @@ public class EntityPermissions implements CheckInstantiator {
 
     private ParseTree getPermissionExpressionTree(Class<? extends Annotation> annotationClass, Annotation annotation) {
         try {
-            if (annotationClass == SharePermission.class) {
-                return null;
-            }
             String expression = (String) annotationClass.getMethod("expression").invoke(annotation);
 
             boolean hasExpression = !expression.isEmpty();

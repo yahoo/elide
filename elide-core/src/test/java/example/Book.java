@@ -36,7 +36,7 @@ import javax.persistence.Table;
  * Model for books.
  */
 @Entity
-@SharePermission()
+@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
