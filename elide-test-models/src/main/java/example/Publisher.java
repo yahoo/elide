@@ -7,20 +7,25 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
- * Publisher for book/author example.
+ * Model for publisher.
  */
 @Entity
 @Include
 public class Publisher {
     private long id;
     private String name;
+    private Set<Book> books = new HashSet<>();
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
         return id;
     }
@@ -33,7 +38,16 @@ public class Publisher {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String title) {
+        this.name = title;
+    }
+
+    @OneToMany(mappedBy = "publisher")
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(Set<Book> authors) {
+        this.books = books;
     }
 }

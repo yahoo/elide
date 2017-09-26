@@ -7,11 +7,24 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
-import org.hibernate.annotations.Formula;
+import com.yahoo.elide.security.RequestScope;
 
-import javax.persistence.Column;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,11 +32,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Model for books.
@@ -32,7 +43,6 @@ import java.util.Collection;
 @SharePermission(expression = "allow all")
 @Table(name = "book")
 @Include(rootLevel = true)
-@Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",
@@ -44,9 +54,9 @@ public class Book {
     private String language;
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
-    private Collection<Chapter> chapters = new ArrayList<>();
-    private String editorName;
-    private Publisher publisher;
+    private boolean onCreateBookCalled = false;
+    private Publisher publisher = null;
+    private Collection<Chapter> chapters;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -89,20 +99,6 @@ public class Book {
         return this.publishDate;
     }
 
-    /**
-     * Demonstrates a more complex ranking use case.
-     * @return The number of chapters in a book.
-     */
-    @Formula(value = "(SELECT COUNT(*) FROM book AS b JOIN book_chapter AS bc ON bc.book_id = b.id WHERE id=b.id)")
-    public int getChapterCount() {
-        return chapters.size();
-    }
-
-    public void setChapterCount(int unused) {
-        //NOOP
-        return;
-    }
-
     @OneToMany
     @JoinTable(
             name = "book_chapter",
@@ -115,8 +111,8 @@ public class Book {
 
     public void setChapters(Collection<Chapter> chapters) {
         this.chapters = chapters;
-    }
 
+    }
     @ManyToMany
     public Collection<Author> getAuthors() {
         return authors;
@@ -126,22 +122,77 @@ public class Book {
         this.authors = authors;
     }
 
-    // Case sensitive collation for MySQL:
-    @Column(columnDefinition = "varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL")
-    public String getEditorName() {
-        return editorName;
-    }
-
-    public void setEditorName(String editorName) {
-        this.editorName = editorName;
-    }
-
-    @ManyToOne
+    @OneToOne
     public Publisher getPublisher() {
         return publisher;
     }
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
+    }
+
+    @OnUpdatePreSecurity("title")
+    public void onUpdateTitle(RequestScope requestScope) {
+       // title attribute updated
+    }
+
+    @OnCreatePreSecurity
+    public void onCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @OnDeletePreSecurity
+    public void onDeleteBook(RequestScope requestScope) {
+       // book entity deleted
+    }
+
+    @OnUpdatePreCommit("title")
+    public void preUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @OnCreatePreCommit
+    public void preCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @OnDeletePreCommit
+    public void preDeleteBook(RequestScope requestScope) {
+        // book entity deleted
+    }
+
+    @OnUpdatePostCommit("title")
+    public void postUpdateTitle(RequestScope requestScope) {
+        // title attribute updated
+    }
+
+    @OnCreatePostCommit
+    public void postCreateBook(RequestScope requestScope) {
+        // book entity created
+    }
+
+    @OnDeletePostCommit
+    public void postDeleteBook(RequestScope requestScope) {
+        // book entity deleted
+    }
+
+    @OnReadPreSecurity
+    public void preRead(RequestScope requestScope) {
+        // book being read pre security
+    }
+
+    @OnReadPreCommit("title")
+    public void preCommitRead(RequestScope requestScope) {
+        // book being read pre commit
+    }
+
+    @OnReadPostCommit
+    public void postRead(RequestScope requestScope) {
+        // book being read post commit
+    }
+
+    @OnUpdatePreCommit
+    public void alwaysOnUpdate() {
+        // should be called on _any_ update
     }
 }

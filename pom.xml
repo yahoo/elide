@@ -16,6 +16,7 @@
 
     <modules>
         <module>elide-annotations</module>
+        <module>elide-test-models</module>
         <module>elide-core</module>
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
@@ -132,6 +133,11 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-servlet</artifactId>
                 <version>${version.jetty}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.8.7</version>
             </dependency>
 
             <!-- Test dependencies -->
