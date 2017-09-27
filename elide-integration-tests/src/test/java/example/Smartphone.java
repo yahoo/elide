@@ -34,6 +34,7 @@ public class Smartphone extends BaseId implements Device {
                 break;
             default:
                 os = "who cares?";
+                break;
         }
 
         return os;
