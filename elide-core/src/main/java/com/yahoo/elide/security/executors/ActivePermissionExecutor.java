@@ -114,10 +114,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
                 } else {
-                    ForbiddenAccessException e = new ForbiddenAccessException("Missing SharePermission for "
-                            + resource.getResourceClass().getName());
-                    log.trace("{}", e.getLoggedMessage());
-                    throw e;
+                    return expressionBuilder.FAIL_EXPRESSION;
                 }
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);

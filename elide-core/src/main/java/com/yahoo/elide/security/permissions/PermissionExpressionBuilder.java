@@ -43,6 +43,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     private final ExpressionResultCache cache;
 
     private static final Expression SUCCESSFUL_EXPRESSION = OrExpression.SUCCESSFUL_EXPRESSION;
+    public static final Expression FAIL_EXPRESSION = OrExpression.FAILURE_EXPRESSION;
 
     /**
      * Constructor.
