@@ -137,7 +137,8 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .body(includedType, equalTo(smartphoneType),
                         includedId, equalTo(one),
                         "included[0].attributes.type", equalTo("android"),
-                        includedSize, equalTo(1));
+                        includedSize, equalTo(1),
+                        "included[0].attributes.operatingSystem", equalTo("some dessert"));
 
         RestAssured
                 .given()
