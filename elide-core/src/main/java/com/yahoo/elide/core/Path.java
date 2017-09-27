@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -42,29 +43,30 @@ public class Path {
     }
 
     public Path(List<PathElement> pathElements) {
-        this.pathElements = new ArrayList(pathElements);
+        this.pathElements = ImmutableList.copyOf(pathElements);
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
-        pathElements = new ArrayList<>();
+        List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
         Class<?> currentClass = entityClass;
         for (String fieldName : fieldNames) {
             if (dictionary.isRelation(currentClass, fieldName)) {
                 Class<?> relationClass = dictionary.getParameterizedType(currentClass, fieldName);
-                pathElements.add(new PathElement(currentClass, relationClass, fieldName));
+                elements.add(new PathElement(currentClass, relationClass, fieldName));
                 currentClass = relationClass;
             } else if (dictionary.isAttribute(currentClass, fieldName)
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
-                pathElements.add(new PathElement(currentClass, attributeClass, fieldName));
+                elements.add(new PathElement(currentClass, attributeClass, fieldName));
             } else {
                 throw new InvalidValueException(dictionary.getJsonAliasFor(currentClass)
                         + " doesn't contain the field "
                         + fieldName);
             }
         }
+        pathElements = ImmutableList.copyOf(elements);
     }
 
     public Optional<PathElement> lastElement() {

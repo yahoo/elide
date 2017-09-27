@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
@@ -19,8 +21,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -34,10 +35,13 @@ import java.util.stream.IntStream;
 public class FilterPredicate implements FilterExpression, Function<RequestScope, Predicate> {
     private static final String UNDERSCORE = "_";
     private static final String PERIOD = ".";
+    private static final PathElement[] ELEMENT_ARRAY = new PathElement[0];
 
     @Getter @NonNull private Path path;
     @Getter @NonNull private Operator operator;
     @Getter @NonNull private List<Object> values;
+    @Getter @NonNull private String field;
+    @Getter @NonNull private String fieldPath;
 
     public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
         return path.getPathElements().stream()
@@ -46,7 +50,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {
-        this(new Path(Arrays.asList(pathElement)), op, values);
+        this(new Path(Collections.singletonList(pathElement)), op, values);
     }
 
     public FilterPredicate(FilterPredicate copy) {
@@ -54,24 +58,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public FilterPredicate(Path path, Operator op, List<Object> values) {
-        this.path = new Path(path);
         this.operator = op;
-        this.values = new ArrayList<>(values);
-
-        // TODO: figure out why this cannot be here :(
-//        this.fieldPath = this.path.getPathElements().stream()
-//                .map(PathElement::getFieldName)
-//                .collect(Collectors.joining(PERIOD));
-    }
-
-    public String getField() {
-        return path.lastElement()
+        this.path = new Path(path);
+        this.values = ImmutableList.copyOf(values);
+        this.field = path.lastElement()
                 .map(PathElement::getFieldName)
                 .orElse(null);
-    }
-
-    public String getFieldPath() {
-        return path.getPathElements().stream()
+        this.fieldPath = path.getPathElements().stream()
                 .map(PathElement::getFieldName)
                 .collect(Collectors.joining(PERIOD));
     }
@@ -87,6 +80,11 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return IntStream.range(0, values.size())
                 .mapToObj(idx -> new FilterParameter(String.format("%s%d", baseName, idx), values.get(idx)))
                 .collect(Collectors.toList());
+    }
+
+    public FilterPredicate scopedBy(PathElement scope) {
+        List<PathElement> pathElements = Lists.asList(scope, path.getPathElements().toArray(ELEMENT_ARRAY));
+        return new FilterPredicate(new Path(pathElements), operator, values);
     }
 
     /**

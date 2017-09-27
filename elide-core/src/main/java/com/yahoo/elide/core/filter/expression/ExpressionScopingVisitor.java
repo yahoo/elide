@@ -5,16 +5,23 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
+import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
 
 /**
  * A Visitor which deep clones an entire filter expression.
  */
-public class ExpressionCloneVisitor implements Visitor<FilterExpression> {
+public class ExpressionScopingVisitor implements Visitor<FilterExpression> {
+
+    PathElement scope;
+
+    public ExpressionScopingVisitor(PathElement scope) {
+        this.scope = scope;
+    }
 
     @Override
     public FilterExpression visitPredicate(FilterPredicate filterPredicate) {
-        return new FilterPredicate(filterPredicate);
+        return filterPredicate.scopedBy(scope);
     }
 
     @Override

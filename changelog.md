@@ -1,4 +1,10 @@
 # Change Log
+## 4.0.0
+**Features**
+ * RSQL queries that compare strings are now case-insensitive. There is not currently a way to make 
+   case sensitive RSQL queries, however the RSQL spec does not provide this either. 
+   Fixes #387
+
 ## 3.1.2
 **Features**
  * Add Elide standalone application library
