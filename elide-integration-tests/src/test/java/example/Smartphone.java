@@ -25,7 +25,7 @@ public class Smartphone extends BaseId implements Device {
     @Transient
     public String getOperatingSystem() {
         String os;
-        switch(type) {
+        switch (type) {
             case "android":
                 os = "some dessert";
                 break;
