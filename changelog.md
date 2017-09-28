@@ -1,4 +1,7 @@
 # Change Log
+## 3.1.3
+ * Add support for @Any relationships through a @MappedInterface
+
 ## 3.1.2
 **Fixes**
  * Fix for issue #508
