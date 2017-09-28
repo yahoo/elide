@@ -15,7 +15,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * A permission that is checked whenever an object is loaded without the context of a lineage and assigned
- * to a relationship or collection.
+ * to a relationship or collection. If SharePermission is specified, checking SharePermission falls back to checking
+ * ReadPermission. Otherwise, the entity is not shareable.
  */
 @Target({TYPE, PACKAGE})
 @Retention(RUNTIME)
@@ -23,14 +24,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface SharePermission {
 
     /**
-     * An expression of checks that will be parsed via ANTLR. For example:
-     * {@code @SharePermission(expression="Prefab.Role.All")} or
-     * {@code @SharePermission(expression="Prefab.Role.All and Prefab.Role.UpdateOnCreate")}
+     * A boolean value indicating if the entity is shareable. If not specifying, shareable is true. Setting shareable to
+     * false provide a way to override package level SharePermission.
      *
-     * All of {@linkplain com.yahoo.elide.security.checks.prefab the built-in checks} are name-spaced as
-     * {@code Prefab.CHECK} without the {@code Check} suffix
-     *
-     * @return the expression string to be parsed
+     * @return the boolean if entity is shareable
      */
-    String expression() default "";
+    boolean sharable() default true;
 }

@@ -67,7 +67,9 @@ The Elide standalone application is for all new and existing users of Elide. Thi
 
 ## <a name="gettingstarted"></a>Getting Started
 
-A simple example of setting up an Elide service without security.
+Below we'll walk through a complete example of setting up an Elide service without security.
+
+**If you're interested in seeing a more complete example, check out our [ready-to-run example](https://github.com/DennisMcWherter/elide-example-blog-kotlin).**
 
 ### Setup a Database (MySQL)
 

@@ -5,8 +5,11 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
+
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
@@ -22,18 +25,14 @@ import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
-import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
@@ -43,6 +42,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     private final ExpressionResultCache cache;
 
     private static final Expression SUCCESSFUL_EXPRESSION = OrExpression.SUCCESSFUL_EXPRESSION;
+    public static final Expression FAIL_EXPRESSION = OrExpression.FAILURE_EXPRESSION;
 
     /**
      * Constructor.
@@ -90,41 +90,6 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 );
 
         return buildExpressionFn.apply(leafBuilderFn);
-    }
-
-    /**
-     * Build an expression that checks share permissions on a bean.
-     *
-     * @param resource        Resource
-     * @return Commit and operation expressions
-     */
-    public Expression buildSharePermissionExpressions(final PersistentResource resource) {
-
-        PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);
-
-        Class<?> resourceClass = resource.getResourceClass();
-        if (!entityDictionary.entityHasChecksForPermission(resourceClass, SharePermission.class)) {
-            SharePermissionExpression unshared = new SharePermissionExpression(condition);
-            return unshared;
-        }
-
-        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                null,
-                cache
-        );
-
-        final Function<Function<Check, Expression>, Expression> expressionFunction =
-                (checkFn) -> {
-                    ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass,
-                            SharePermission.class);
-                    Expression entityExpression = expressionFromParseTree(classPermissions, checkFn);
-                    return new SharePermissionExpression(condition, entityExpression);
-                };
-
-        return expressionFunction.apply(leafBuilderFn);
     }
 
     /**

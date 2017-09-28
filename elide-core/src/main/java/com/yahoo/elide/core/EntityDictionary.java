@@ -672,7 +672,8 @@ public class EntityDictionary {
      * @return true if entityClass is shareable.  False otherwise.
      */
     public boolean isShareable(Class<?> entityClass) {
-        return getAnnotation(entityClass, SharePermission.class) != null;
+        return getAnnotation(entityClass, SharePermission.class) != null
+                && getAnnotation(entityClass, SharePermission.class).sharable();
     }
 
     /**

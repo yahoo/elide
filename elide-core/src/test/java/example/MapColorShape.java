@@ -22,7 +22,7 @@ import java.util.Map;
 @Entity
 @Table(name = "color_shape")
 @Include(rootLevel = true)
-@SharePermission(expression = "allow all")
+@SharePermission
 public class MapColorShape {
     private long id;
     private String name;

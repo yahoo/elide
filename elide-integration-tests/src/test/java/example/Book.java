@@ -29,7 +29,7 @@ import java.util.Collection;
  * Model for books.
  */
 @Entity
-@SharePermission(expression = "allow all")
+@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Paginate

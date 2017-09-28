@@ -1,9 +1,9 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2017, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example;
+package example.packageshareable;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
@@ -14,18 +14,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
- * A shareable bean.
+ * Entity level Unshareable bean.
  */
 @Entity
-@SharePermission
-@Table(name = "shareable")
-@Include(rootLevel = true, type = "shareable")
-public class Shareable {
+@SharePermission(sharable = false)
+@Include(rootLevel = true)
+public class UnshareableWithEntityUnshare {
     private long id;
-    private Container container;
+    private ContainerWithPackageShare container;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,11 +36,11 @@ public class Shareable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    public Container getContainer() {
+    public ContainerWithPackageShare getContainerWithPackageShare() {
         return container;
     }
 
-    public void setContainer(Container container) {
+    public void setContainerWithPackageShare(ContainerWithPackageShare container) {
         this.container = container;
     }
 }

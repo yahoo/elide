@@ -29,7 +29,7 @@ import java.util.List;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission(expression = "allow all")
+@SharePermission
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)
