@@ -240,17 +240,6 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .body("errors[0]", containsString("Unknown collection"));
 
-        //single entity so no page appropriate stuff
-        RestAssured
-                .given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/" + id + "/myStuff?page[totals]")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("meta", equalTo(null));
-
         //Filtering is not supported for these types.
         RestAssured
                 .given()
