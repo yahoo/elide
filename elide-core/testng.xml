@@ -42,11 +42,6 @@
             <class name="com.yahoo.elide.jsonapi.document.processors.IncludedProcessorTest" />
         </classes>
     </test> <!-- Test -->
-    <test name="com.yahoo.elide.jsonapi.document.processors.SortProcessorTest">
-        <classes>
-            <class name="com.yahoo.elide.jsonapi.document.processors.SortProcessorTest" />
-        </classes>
-    </test> <!-- Test -->
     <test name="com.yahoo.elide.jsonapi.models.PatchTest">
         <classes>
             <class name="com.yahoo.elide.jsonapi.models.PatchTest" />

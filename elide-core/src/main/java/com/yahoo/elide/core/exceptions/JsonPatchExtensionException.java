@@ -15,13 +15,8 @@ public class JsonPatchExtensionException extends HttpStatusException {
     private final Pair<Integer, JsonNode> response;
 
     public JsonPatchExtensionException(int status, final JsonNode errorNode) {
-        super(status);
+        super(status, null);
         response = Pair.of(status, errorNode);
-    }
-
-    public JsonPatchExtensionException(final Pair<Integer, JsonNode> response) {
-        super(response.getLeft());
-        this.response = response;
     }
 
     public Pair<Integer, JsonNode> getResponse() {

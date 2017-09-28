@@ -16,6 +16,6 @@ public class TransactionException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
 
     public TransactionException(Throwable e) {
-        super(HttpStatus.SC_LOCKED, formatExceptionCause(e), null, e);
+        super(HttpStatus.SC_LOCKED, formatExceptionCause(e), e, null);
     }
 }

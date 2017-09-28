@@ -18,10 +18,10 @@ public class InvalidValueException extends HttpStatusException {
     }
 
     public InvalidValueException(Object value, String verboseMessage) {
-        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value, verboseMessage);
+        super(HttpStatus.SC_BAD_REQUEST, "Invalid value: " + value, null, () -> verboseMessage);
     }
 
     public InvalidValueException(String message, Throwable cause) {
-        super(HttpStatus.SC_BAD_REQUEST, message, null, cause);
+        super(HttpStatus.SC_BAD_REQUEST, message, cause, null);
     }
 }
