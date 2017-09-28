@@ -150,20 +150,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
-     * Create a resource in the database.
-     * @param entityClass the entity class
-     * @param requestScope the request scope
-     * @param uuid the uuid
-     * @param <T> type of resource
-     * @return persistent resource
-     * @deprecated Will be removed in Elide 4. Instead use
-     */
-    @Deprecated
-    public static <T> PersistentResource<T> createObject(Class<T> entityClass, RequestScope requestScope, String uuid) {
-        return createObject(null, entityClass, requestScope, Optional.ofNullable(uuid));
-    }
-
-    /**
      * Construct a new resource from the ID provided.
      *
      * @param obj the obj
@@ -180,47 +166,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
         dictionary.initializeEntity(obj);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param parent the parent
-     * @param obj the obj
-     * @param requestScope the request scope
-     * @deprecated Will be removed in Elide 4, instead use
-     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
-     */
-    @Deprecated
-    public PersistentResource(PersistentResource<?> parent, T obj, RequestScope requestScope) {
-        this(obj, parent, requestScope.getUUIDFor(obj), requestScope);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param obj the obj
-     * @param requestScope the request scope
-     * @deprecated Will be removed in Elide 4, instead use
-     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
-     */
-    @Deprecated
-    public PersistentResource(T obj, RequestScope requestScope) {
-        this(obj, null, requestScope.getUUIDFor(obj), requestScope);
-    }
-
-    /**
-     * Constructor for testing.
-     *
-     * @param obj the obj
-     * @param parent the parent
-     * @param requestScope the request scope
-     * @deprecated Will be removed in Elide 4, instead use
-     *  {@code PersistentResource(T,PersistentResource,String,RequestScope)}
-     */
-    @Deprecated
-    protected PersistentResource(T obj, PersistentResource<?> parent, RequestScope requestScope) {
-        this(obj, parent, requestScope.getUUIDFor(obj), requestScope);
     }
 
     /**

@@ -44,23 +44,6 @@ public class Sorting {
     }
 
     /**
-     * Checks to see if the sorting rules are valid for the given JPA class.
-     * @param entityClass The target jpa entity
-     * @param dictionary The elide entity dictionary
-     * @param <T> The Type of the target entity
-     * @return The validity of the sorting rules on the target class
-     * @throws InvalidValueException when sorting values are not valid for the jpa entity
-     */
-    @Deprecated
-    public <T> boolean hasValidSortingRules(final Class<T> entityClass,
-                                        final EntityDictionary dictionary) throws InvalidValueException {
-
-        //This validates the paths for the given entityClass or throws InvalidValueException
-        getValidSortingRules(entityClass, dictionary);
-        return true;
-    }
-
-    /**
      * Given the sorting rules validate sorting rules against the entities bound to the entityClass.
      * @param entityClass  The root class for sorting (eg. /book?sort=-title this would be package.Book)
      * @param dictionary The elide entity dictionary
