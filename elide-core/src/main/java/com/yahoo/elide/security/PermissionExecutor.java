@@ -10,6 +10,7 @@ import com.yahoo.elide.security.permissions.ExpressionResult;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Interface describing classes responsible for managing the life-cycle and execution of checks.
@@ -20,7 +21,6 @@ public interface PermissionExecutor {
     /**
      * Check permission on class.
      *
-     * @param <A> type parameter
      * @param annotationClass annotation class
      * @param resource resource
      * @see com.yahoo.elide.annotation.CreatePermission
@@ -29,64 +29,40 @@ public interface PermissionExecutor {
      * @see com.yahoo.elide.annotation.DeletePermission
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass, PersistentResource resource);
-
-    /**
-     * Check permission on class.
-     *
-     * @param <A> type parameter
-     * @param annotationClass annotation class
-     * @param resource resource
-     * @param changeSpec ChangeSpec
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     * @return the results of evaluating the permission
-     */
-    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                            PersistentResource resource,
-                                                            ChangeSpec changeSpec);
+    ExpressionResult checkPermission(Class<? extends Annotation> annotationClass, PersistentResource resource);
 
     /**
      * Check for permissions on a specific field.
      *
-     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
-                                                                          ChangeSpec changeSpec,
-                                                                          Class<A> annotationClass,
-                                                                          String field);
+    ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource, ChangeSpec changeSpec,
+                                                   Class<? extends Annotation> annotationClass, String field);
 
     /**
      * Check for permissions on a specific field deferring all checks.
      *
-     * @param <A> type parameter
      * @param resource resource
      * @param changeSpec changepsec
      * @param annotationClass annotation class
      * @param field field to check
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
-                                                                                  ChangeSpec changeSpec,
-                                                                                  Class<A> annotationClass,
-                                                                                  String field);
+    ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource, ChangeSpec changeSpec,
+                                                           Class<? extends Annotation> annotationClass, String field);
 
     /**
      * Check strictly user permissions on an entity.
      *
-     * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
+    ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<? extends Annotation> annotationClass);
 
     /**
      * Get the read filter, if defined.
@@ -106,8 +82,8 @@ public interface PermissionExecutor {
      *
      * @return a description describing check execution
      */
-    default String printCheckStats() {
-        return null;
+    default String checkStats() {
+        return "";
     }
 
     /**
@@ -117,5 +93,36 @@ public interface PermissionExecutor {
      */
     default boolean isVerbose() {
         return false;
+    }
+
+    /**
+     * A supplier that caches it's return.
+     *
+     * @param <T> the type to be supplied
+     */
+    class Memoize<T> implements Supplier<T> {
+
+        T value;
+        Supplier<T> source;
+
+        private Memoize(Supplier<T> supplier) {
+            this.source = supplier;
+        }
+
+        @Override
+        public T get() {
+            value = source.get();
+            return value;
+        }
+
+        /**
+         * Create a supplier that only computes its value once.
+         * @param source a non-caching suplier
+         * @param <T> the type to be supplied
+         * @return a caching supplier
+         */
+        public static <T> Supplier<T> memoized(Supplier<T> source) {
+            return new Memoize<>(source);
+        }
     }
 }

@@ -49,7 +49,6 @@ import javax.persistence.GeneratedValue;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -1774,38 +1773,41 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return filteredSet;
     }
 
-    private static <A extends Annotation> ExpressionResult checkPermission(
-            Class<A> annotationClass, PersistentResource resource) {
+    private static ExpressionResult checkPermission(Class<? extends Annotation> annotationClass,
+                                                    PersistentResource resource) {
         return resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
     }
 
-    private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass) {
+    private ExpressionResult checkFieldAwarePermissions(Class<? extends Annotation> annotationClass) {
         return requestScope.getPermissionExecutor().checkPermission(annotationClass, this);
     }
 
-    private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass,
-                                                                   String fieldName,
-                                                                   Object modified,
-                                                                   Object original) {
-        ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
-                ? new ChangeSpec(this, fieldName, original, modified)
-                : null;
-
+    private ExpressionResult checkFieldAwarePermissions(Class<? extends Annotation> annotationClass,
+                                                        String fieldName,
+                                                        Object modified,
+                                                        Object original) {
+        ChangeSpec changeSpec = changeSpecForUpdate(annotationClass, fieldName, modified, original);
         return requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
 
-    private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
-                                                                        String fieldName,
-                                                                        Object modified,
-                                                                        Object original) {
-        ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
-                ? new ChangeSpec(this, fieldName, original, modified)
-                : null;
-
+    private ExpressionResult checkFieldAwareDeferPermissions(Class<? extends Annotation> annotationClass,
+                                                             String fieldName,
+                                                             Object modified,
+                                                             Object original) {
+        ChangeSpec changeSpec = changeSpecForUpdate(annotationClass, fieldName, modified, original);
         return requestScope
                 .getPermissionExecutor()
                 .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
+    }
+
+    private ChangeSpec changeSpecForUpdate(Class<? extends Annotation> annotation,
+                                           String fieldName,
+                                           Object modified,
+                                           Object original) {
+        return (UpdatePermission.class.isAssignableFrom(annotation))
+                ? new ChangeSpec(this, fieldName, original, modified)
+                : null;
     }
 
     protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,

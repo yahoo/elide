@@ -1772,7 +1772,7 @@ public class PersistentResourceTest extends PersistentResource {
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         when(tx.loadObject(eq(UnshareableWithEntityUnshare.class), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
 
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope));
@@ -1793,7 +1793,7 @@ public class PersistentResourceTest extends PersistentResource {
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         when(tx.loadObject(eq(ShareableWithPackageShare.class), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
 
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("shareableWithPackageShares", shareables.toPersistentResources(goodScope));

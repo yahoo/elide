@@ -15,37 +15,30 @@ import java.lang.annotation.Annotation;
 import java.util.Optional;
 
 /**
- * Permission executor intended to bypass all security checks. I.e. this is effectively a no-op.
+ * Permission executor intended to bypass all security checks. (i.e. this is effectively a no-op)
  */
 public class BypassPermissionExecutor implements PermissionExecutor {
     @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                                   PersistentResource resource) {
+    public ExpressionResult checkPermission(Class<? extends Annotation> annotationClass, PersistentResource resource) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                                   PersistentResource resource,
-                                                                   ChangeSpec changeSpec) {
+    public ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource, ChangeSpec changeSpec,
+                                                          Class<? extends Annotation> annotationClass, String field) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(
-            PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
+    public ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
+                                                                  ChangeSpec changeSpec,
+                                                                  Class<? extends Annotation> annotationClass,
+                                                                  String field) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(
-            PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
-        return ExpressionResult.PASS;
-    }
-
-    @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
-                                                                        Class<A> annotationClass) {
+    public ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<? extends Annotation> annotationClass) {
         return ExpressionResult.PASS;
     }
 

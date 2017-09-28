@@ -37,8 +37,7 @@ public class PermissionExecutorTest {
 
         PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
@@ -78,8 +77,7 @@ public class PermissionExecutorTest {
 
         PersistentResource resource = newResource(new Model(), Model.class);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
@@ -101,7 +99,7 @@ public class PermissionExecutorTest {
     public void testReadFieldAwareSuccessAllAnyField() {
         PersistentResource resource = newResource(SampleBean.class);
         RequestScope requestScope = resource.getRequestScope();
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, new ChangeSpec(null, null, null, null));
+        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
@@ -359,21 +357,20 @@ public class PermissionExecutorTest {
     public void testNoCache() {
         PersistentResource resource = newResource(AnnotationOnlyRecord.class);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
     }
 
     @Test
     public void testUserCheckCache() {
         PersistentResource resource = newResource(UserCheckCacheRecord.class);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
+
         // This should cache for updates, reads, etc.
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
-        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
+        requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource);
+        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
+        requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource);
     }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
