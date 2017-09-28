@@ -117,8 +117,10 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        Class<?> entitySearched = isMappedInterface(entityClass) ? entityClass : lookupEntityClass(entityClass);
-        return entityBindings.getOrDefault(entitySearched, EntityBinding.EMPTY_BINDING);
+        if (isMappedInterface(entityClass)) {
+            return EntityBinding.EMPTY_BINDING;
+        }
+        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EntityBinding.EMPTY_BINDING);
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
