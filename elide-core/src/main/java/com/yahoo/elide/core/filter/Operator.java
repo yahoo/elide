@@ -102,7 +102,7 @@ public enum Operator {
     NOTNULL("notnull", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.isNotNull(field, requestScope);
+            return (val) -> !Operator.isNull(field, requestScope).test(val);
         }
     },
 
@@ -175,6 +175,9 @@ public enum Operator {
     //
     // Predicate generation
     //
+
+    //
+    // In with strict equality
     private static <T> Predicate<T> in(String field, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
             Object val = getFieldValue(entity, field, requestScope);
@@ -185,6 +188,8 @@ public enum Operator {
         };
     }
 
+    //
+    // String-like In with optional transformation
     private static <T> Predicate<T> in(String field, List<Object> values,
                                        RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -200,6 +205,8 @@ public enum Operator {
         };
     }
 
+    //
+    // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(String field, List<Object> values,
                                            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -217,6 +224,8 @@ public enum Operator {
         };
     }
 
+    //
+    // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(String field, List<Object> values,
                                             RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -234,6 +243,8 @@ public enum Operator {
         };
     }
 
+    //
+    // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(String field, List<Object> values,
                                           RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -251,60 +262,26 @@ public enum Operator {
         };
     }
 
+    //
+    // Null checking
     private static <T> Predicate<T> isNull(String field, RequestScope requestScope) {
         return (T entity) -> getFieldValue(entity, field, requestScope) == null;
     }
 
-    private static <T> Predicate<T> isNotNull(String field, RequestScope requestScope) {
-        return (T entity) -> getFieldValue(entity, field, requestScope) != null;
-    }
-
     private static <T> Predicate<T> lt(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("LT can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) < 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult < 0);
     }
 
     private static <T> Predicate<T> le(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("LE can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) <= 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult <= 0);
     }
 
     private static <T> Predicate<T> gt(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("GT can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) > 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult > 0);
     }
 
     private static <T> Predicate<T> ge(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("GE can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) >= 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult >= 0);
     }
 
     private static <T> Predicate<T> isTrue() {
@@ -324,7 +301,7 @@ public enum Operator {
      * @param requestScope Request scope
      * @return the value of the field
      */
-    public static <T> Object getFieldValue(T entity, String fieldPath, RequestScope requestScope) {
+    private static <T> Object getFieldValue(T entity, String fieldPath, RequestScope requestScope) {
         Object val = entity;
         for (String field : fieldPath.split("\\.")) {
             if ("this".equals(field)) {
@@ -335,11 +312,25 @@ public enum Operator {
         return val;
     }
 
-    private static int getComparisonResult(Object val, Object rawFilterVal) {
-        Object filterVal = CoerceUtil.coerce(rawFilterVal, val.getClass());
-        Comparable filterComp = CoerceUtil.coerce(filterVal, Comparable.class);
-        Comparable valComp = CoerceUtil.coerce(val, Comparable.class);
+    private static <T> Predicate<T> getComparator(String field, List<Object> values,
+                                                  RequestScope requestScope, Predicate<Integer> condition) {
+        return (T entity) -> {
+            if (values.size() == 0) {
+                throw new InvalidPredicateException("No value to compare");
+            }
+            Object fieldVal = getFieldValue(entity, field, requestScope);
+            return fieldVal != null
+                    && values.stream()
+                    .anyMatch(testVal -> condition.test(compare(fieldVal, testVal)));
+        };
 
-        return valComp.compareTo(filterComp);
+    }
+
+    private static int compare(Object fieldValue, Object rawTestValue) {
+        Object testValue = CoerceUtil.coerce(rawTestValue, fieldValue.getClass());
+        Comparable testComp = CoerceUtil.coerce(testValue, Comparable.class);
+        Comparable fieldComp = CoerceUtil.coerce(fieldValue, Comparable.class);
+
+        return fieldComp.compareTo(testComp);
     }
 }

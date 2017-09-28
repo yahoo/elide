@@ -39,13 +39,12 @@ public class OperatorTest {
         }
     }
 
-    private final EntityDictionary dictionary;
     private final RequestScope requestScope;
     private Author author;
     private Predicate fn;
 
     OperatorTest() {
-        dictionary = new TestEntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
         requestScope = Mockito.mock(RequestScope.class);
         when(requestScope.getDictionary()).thenReturn(dictionary);
@@ -160,6 +159,7 @@ public class OperatorTest {
         author = new Author();
         author.setId(10L);
 
+        // single value
         fn = Operator.LT.contextualize("id", Collections.singletonList("11"), requestScope);
         Assert.assertTrue(fn.test(author));
         fn = Operator.LE.contextualize("id", Collections.singletonList("10"), requestScope);
@@ -168,13 +168,15 @@ public class OperatorTest {
         Assert.assertTrue(fn.test(author));
         fn = Operator.GE.contextualize("id", Collections.singletonList("10"), requestScope);
         Assert.assertTrue(fn.test(author));
-        fn = Operator.LT.contextualize("id", Collections.singletonList("10"), requestScope);
+
+        // multiple values
+        fn = Operator.LT.contextualize("id", Arrays.asList("10", "9"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.LE.contextualize("id", Collections.singletonList("9"), requestScope);
+        fn = Operator.LE.contextualize("id", Arrays.asList("9", "8"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GT.contextualize("id", Collections.singletonList("10"), requestScope);
+        fn = Operator.GT.contextualize("id", Arrays.asList("10", "11"), requestScope);
         Assert.assertFalse(fn.test(author));
-        fn = Operator.GE.contextualize("id", Collections.singletonList("11"), requestScope);
+        fn = Operator.GE.contextualize("id", Arrays.asList("11", "12"), requestScope);
         Assert.assertFalse(fn.test(author));
 
         // when val is null
@@ -254,34 +256,6 @@ public class OperatorTest {
 
         try {
             Operator.POSTFIX.contextualize("name", Collections.emptyList(), requestScope).test(author);
-            Assert.assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            Assert.assertTrue(true);
-        }
-
-        try {
-            Operator.LT.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
-            Assert.assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            Assert.assertTrue(true);
-        }
-
-        try {
-            Operator.LE.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
-            Assert.assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            Assert.assertTrue(true);
-        }
-
-        try {
-            Operator.GT.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
-            Assert.assertTrue(false);
-        } catch (InvalidPredicateException e) {
-            Assert.assertTrue(true);
-        }
-
-        try {
-            Operator.GE.contextualize("id", Arrays.asList(10, 10), requestScope).test(author);
             Assert.assertTrue(false);
         } catch (InvalidPredicateException e) {
             Assert.assertTrue(true);
