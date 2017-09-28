@@ -234,7 +234,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/property/" + id + "/device")
+                .get("/device")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
