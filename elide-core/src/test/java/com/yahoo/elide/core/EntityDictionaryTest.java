@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -240,5 +241,20 @@ public class EntityDictionaryTest extends EntityDictionary {
             && !attrs.contains("excludedEntityList"));
         Assert.assertTrue(!rels.contains("excludedEntity") && !rels.contains("excludedRelationship")
             && !rels.contains("excludedEntityList"));
+    }
+
+    @MappedInterface
+    public interface SuitableInterface { }
+
+    public interface BadInterface { }
+
+    @Test
+    public void testMappedInterface() {
+        Assert.assertEquals(getEntityBinding(SuitableInterface.class), EntityBinding.EMPTY_BINDING);
+    }
+
+    @Test(expectedExceptions = java.lang.IllegalArgumentException.class)
+    public void testBadInterface() {
+        getEntityBinding(BadInterface.class);
     }
 }

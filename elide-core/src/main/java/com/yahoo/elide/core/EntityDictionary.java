@@ -12,6 +12,7 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.security.checks.Check;
@@ -116,7 +117,14 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
+        if (isMappedInterface(entityClass)) {
+            return EntityBinding.EMPTY_BINDING;
+        }
         return entityBindings.getOrDefault(lookupEntityClass(entityClass), EntityBinding.EMPTY_BINDING);
+    }
+
+    public boolean isMappedInterface(Class<?> interfaceClass) {
+        return interfaceClass.isInterface() && interfaceClass.isAnnotationPresent(MappedInterface.class);
     }
 
     /**

@@ -23,6 +23,7 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -890,9 +891,29 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (entityClass == null) {
             throw new InvalidAttributeException(relationName, type);
         }
+        if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
+            throw new InvalidOperationException(
+                    "Cannot apply filters to polymorphic relations mapped with MappedInterface");
+        }
         final String valType = dictionary.getJsonAliasFor(entityClass);
         return requestScope.getFilterExpressionByType(valType);
     }
+
+    /**
+     * Checks to see if any filters are meant to to applied to a polymorphic Any/ManyToAny relationship
+     * @param entityInterface a @MappedInterface
+     * @return whether or not there are any typed filter expressions meant for this polymorphic interface
+     */
+    private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
+        for (String filterType : requestScope.getExpressionsByType().keySet()) {
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            if (entityInterface.isAssignableFrom(polyMorphicClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Gets the relational entities to a entity (author/1/books) - books would be fetched here.
