@@ -82,6 +82,13 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Create a copy of this filter that is scoped by scope. This is used in calculating page totals, we need to
+     * scope this filter in the context of it's parent.
+     *
+     * @param scope the path element to add to the head of the path
+     * @return the scoped filter expression.
+     */
     public FilterPredicate scopedBy(PathElement scope) {
         List<PathElement> pathElements = Lists.asList(scope, path.getPathElements().toArray(ELEMENT_ARRAY));
         return new FilterPredicate(new Path(pathElements), operator, values);
