@@ -8,7 +8,7 @@ package com.yahoo.elide.tests;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -16,8 +16,9 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 
-public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
+public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private final JsonParser jsonParser = new JsonParser();
 
@@ -34,11 +35,31 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .statusCode(HttpStatus.SC_CREATED);
 
         //Create a smartphone
+        final String smartphonePath = "/smartphone";
+
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\": {\"type\": \"smartphone\", \"attributes\": {\"type\": \"android\" }}}")
+                .post(smartphonePath)
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\": {\"type\": \"smartphone\", \"attributes\": {\"type\": \"iphone\" }}}")
+                .post(smartphonePath)
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body("{\"data\": {\"type\": \"smartphone\", \"attributes\": {\"type\": \"iphone\" }}}")
                 .post("/smartphone")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
@@ -246,6 +267,135 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/property/" + id + "?filter[tractor]=horsepower==103")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testManyToAny() {
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson("/AnyPolymorphismIT/AddBoxOfStuff.json"))
+                .post("/stuffbox")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.relationships.myStuff.data.size()", equalTo(2));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.myStuff.data.size()", equalTo(2),
+                        "data.relationships.myStuff.data.type", hasItems("tractor", "smartphone"));
+
+        //update
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson("/AnyPolymorphismIT/PatchBoxOfStuff.json"))
+                .patch("/stuffbox/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.myStuff.data.size()", equalTo(3));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1" + "?include=myStuff")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("included.size", equalTo(3),
+                        "included.type", hasItems("smartphone", "tractor"),
+                        "included.id", hasItems("1", "2"),
+                        "included.attributes.operatingSystem", hasItems("iOS", "some dessert"));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1" + "/myStuff")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1" + "/myStuff/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        //remove all relationships
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson("/AnyPolymorphismIT/RemoveAllStuff.json"))
+                .patch("/stuffbox/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.myStuff.data.size()", equalTo(0));
+
+        /**
+         * Unfortunately due to limitations in hibernate
+         * we cannot paginate or filter ManyToAny
+         */
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("stuffbox/1/myStuff?page[number]=2&page[limit]=1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors[0]", containsString("Cannot paginate"));
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("stuffbox/1/myStuff?filter[tractor]=horsepower===103")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("stuffbox/1/myStuff?sort=horsepower")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);

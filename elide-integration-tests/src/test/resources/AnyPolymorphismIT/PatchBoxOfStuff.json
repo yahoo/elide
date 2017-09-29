@@ -1,0 +1,24 @@
+{
+  "data": {
+    "id": "1",
+    "type": "stuffbox",
+    "relationships": {
+      "myStuff": {
+        "data": [
+          {
+            "type": "smartphone",
+            "id": "1"
+          },
+          {
+            "type": "tractor",
+            "id": "1"
+          },
+          {
+            "type": "smartphone",
+            "id": "2"
+          }
+        ]
+      }
+    }
+  }
+}

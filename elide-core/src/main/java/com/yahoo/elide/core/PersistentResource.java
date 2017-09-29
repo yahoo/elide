@@ -14,6 +14,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -833,6 +834,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
 
+            if (dictionary.isMappedInterface(entityType) && idField == null) {
+                throw new InvalidOperationException("Cannot filter by ID on this polymorphic type");
+            }
+
             filterExpression = Optional.of(new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityType,
@@ -927,8 +932,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
-        if (! requestScope.getPagination().isDefaultInstance()
-                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
+        boolean isAnyToMany = dictionary.isMappedInterface(relationClass)
+                && dictionary.getAttributeOrRelationAnnotation(obj.getClass(), ToMany.class, relationName) != null;
+        if (isAnyToMany || (! requestScope.getPagination().isDefaultInstance()
+                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope))) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }
@@ -1269,7 +1276,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (String field : relationshipFields) {
             TreeMap<String, Resource> orderedById = new TreeMap<>(lengthFirstComparator);
             for (PersistentResource relationship : relationshipFunction.apply(field)) {
-                orderedById.put(relationship.getId(),
+                orderedById.put(relationship.getId() + relationship.getType(),
                         new ResourceIdentifier(relationship.getType(), relationship.getId()).castToResource());
 
             }
