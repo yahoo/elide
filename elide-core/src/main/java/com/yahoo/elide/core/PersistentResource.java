@@ -14,7 +14,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
@@ -932,9 +931,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
-        boolean isAnyToMany = dictionary.isMappedInterface(relationClass)
-                && dictionary.getAttributeOrRelationAnnotation(obj.getClass(), ToMany.class, relationName) != null;
-        if (isAnyToMany || (! requestScope.getPagination().isDefaultInstance()
+        if (dictionary.isMappedInterface(relationClass) || (! requestScope.getPagination().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope))) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));

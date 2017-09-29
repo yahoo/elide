@@ -274,7 +274,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void testManyToAny() {
-        RestAssured
+        String id = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -282,13 +282,15 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .post("/stuffbox")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .body("data.relationships.myStuff.data.size()", equalTo(2));
+                .body("data.relationships.myStuff.data.size()", equalTo(2))
+                .extract()
+                .path("data.id");
 
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1")
+                .get("/stuffbox/" + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -301,7 +303,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/AnyPolymorphismIT/PatchBoxOfStuff.json"))
-                .patch("/stuffbox/1")
+                .patch("/stuffbox/" + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -310,7 +312,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1")
+                .get("/stuffbox/" + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -320,7 +322,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1" + "?include=myStuff")
+                .get("/stuffbox/" + id + "?include=myStuff")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
@@ -329,31 +331,13 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                         "included.id", hasItems("1", "2"),
                         "included.attributes.operatingSystem", hasItems("iOS", "some dessert"));
 
-        RestAssured
-                .given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1" + "/myStuff")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-
-        RestAssured
-                .given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1" + "/myStuff/1")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-
         //remove all relationships
         RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(jsonParser.getJson("/AnyPolymorphismIT/RemoveAllStuff.json"))
-                .patch("/stuffbox/1")
+                .patch("/stuffbox/" + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -362,11 +346,27 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("/stuffbox/1")
+                .get("/stuffbox/" + id)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.relationships.myStuff.data.size()", equalTo(0));
+
+    }
+
+    @Test
+    public void unsupportedManyToAnyOperations() {
+        String id = RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(jsonParser.getJson("/AnyPolymorphismIT/AddBoxOfStuff.json"))
+                .post("/stuffbox")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.relationships.myStuff.data.size()", equalTo(2))
+                .extract()
+                .path("data.id");
 
         /**
          * Unfortunately due to limitations in hibernate
@@ -376,7 +376,25 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("stuffbox/1/myStuff?page[number]=2&page[limit]=1")
+                .get("/stuffbox/" + id + "/myStuff")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/" + id + "/myStuff/1")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+        RestAssured
+                .given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/stuffbox/" + id + "/myStuff?page[number]=2&page[limit]=1")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
@@ -386,7 +404,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("stuffbox/1/myStuff?filter[tractor]=horsepower===103")
+                .get("/stuffbox/" + id + "/myStuff?filter[tractor]=horsepower===103")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -395,7 +413,7 @@ public class AnyPolymorphismIT extends AbstractIntegrationTestInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .get("stuffbox/1/myStuff?sort=horsepower")
+                .get("/stuffbox/" + id + "/myStuff?sort=horsepower")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
