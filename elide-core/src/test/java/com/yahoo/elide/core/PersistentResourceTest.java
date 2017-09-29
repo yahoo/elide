@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -48,7 +47,6 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Right;
 import example.Shape;
-import example.TestCheckMappings;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
@@ -93,35 +91,12 @@ import static org.mockito.Mockito.when;
 /**
  * Test PersistentResource.
  */
-public class PersistentResourceTest extends PersistentResource {
+public class PersistentResourceTest extends PersistenceResourceTestSetup {
+
     private final RequestScope goodUserScope;
     private final RequestScope badUserScope;
-    private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
-
-    private final ElideSettings elideSettings;
 
     public PersistentResourceTest() {
-        super(
-                new Child(),
-                null,
-                null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, null, null, null,
-                        new ElideSettingsBuilder(null)
-                            .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                            .withAuditLogger(MOCK_AUDIT_LOGGER)
-                            .withDefaultMaxPageSize(10)
-                            .withDefaultPageSize(10)
-                            .build(),
-                        false)
-        );
-
-        elideSettings = new ElideSettingsBuilder(null)
-                .withEntityDictionary(dictionary)
-                .withAuditLogger(MOCK_AUDIT_LOGGER)
-                .withDefaultMaxPageSize(10)
-                .withDefaultPageSize(10)
-                .build();
-
         goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), null, elideSettings, false);
         badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),

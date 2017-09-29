@@ -1791,6 +1791,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
 
+        if (UpdatePermission.class.isAssignableFrom(annotationClass)
+                && this.requestScope.isNewResource(this)) {
+            return requestScope.getPermissionExecutor()
+                    .checkSpecificFieldPermissions(this, changeSpec, CreatePermission.class, fieldName);
+        }
         return requestScope.getPermissionExecutor()
                 .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
     }
@@ -1803,6 +1808,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
 
+        if (UpdatePermission.class.isAssignableFrom(annotationClass)
+                && this.requestScope.isNewResource(this.getObject())) {
+            return requestScope.getPermissionExecutor()
+                    .checkSpecificFieldPermissionsDeferred(this, changeSpec, CreatePermission.class, fieldName);
+        }
         return requestScope
                 .getPermissionExecutor()
                 .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);

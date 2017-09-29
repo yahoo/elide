@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.security.executors;
 
-import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -203,7 +204,8 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class)
+                    || annotationClass == UpdatePermission.class
+                    || annotationClass == CreatePermission.class)
                     && requestScope.getNewPersistentResources().contains(resource)) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }

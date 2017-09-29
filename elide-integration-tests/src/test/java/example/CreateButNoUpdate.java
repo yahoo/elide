@@ -27,6 +27,7 @@ public class CreateButNoUpdate {
     public Long id;
     public String textValue;
 
+    @CreatePermission(expression = "deny all")
     @UpdatePermission(expression = "deny all")
     public String cannotModify = "unmodified";
 

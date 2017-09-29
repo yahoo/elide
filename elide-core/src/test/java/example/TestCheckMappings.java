@@ -40,6 +40,9 @@ public class TestCheckMappings {
                     put("shouldCache", PermissionExecutorTest.ShouldCache.class);
                     put("peUserCheck", PermissionExecutorTest.UserCheckTest.class);
                     put("passingCommit", PermissionExecutorTest.PassingCommitCheck.class);
+                    put("isUserOne", UserIdChecks.UserOneCheck.class);
+                    put("isUserTwo", UserIdChecks.UserTwoCheck.class);
+                    put("isUserThree", UserIdChecks.UserThreeCheck.class);
                 }
             };
 
