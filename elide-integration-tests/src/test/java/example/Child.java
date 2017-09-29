@@ -34,6 +34,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -162,7 +163,8 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new FilterPredicate(new Path.PathElement(Child.class, Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new Path.PathElement(Child.class, Long.class, "id"), Operator.NOTNULL,
+                    Collections.emptyList());
         }
     }
 

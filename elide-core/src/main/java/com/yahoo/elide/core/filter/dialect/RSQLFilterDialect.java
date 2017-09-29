@@ -27,7 +27,6 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import javax.ws.rs.core.MultivaluedMap;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -44,21 +43,20 @@ import java.util.stream.Collectors;
  * FilterDialect which implements support for RSQL filter dialect.
  */
 public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
-
+    private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
+    private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
-
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
             ImmutableMap.<ComparisonOperator, Operator>builder()
-                    .put(RSQLOperators.IN, Operator.IN)
-                    .put(RSQLOperators.NOT_IN, Operator.NOT)
                     .put(RSQLOperators.LESS_THAN, Operator.LT)
                     .put(RSQLOperators.GREATER_THAN, Operator.GT)
                     .put(RSQLOperators.GREATER_THAN_OR_EQUAL, Operator.GE)
                     .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
                     .build();
+
 
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
@@ -79,19 +77,19 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
             throws ParseException {
         if (filterParams.size() != 1) {
-            throw new ParseException("There can only be a single filter query parameter");
+            throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
         MultivaluedMap.Entry<String, List<String>> entry = filterParams.entrySet().iterator().next();
         String queryParamName = entry.getKey();
 
         if (!"filter".equals(queryParamName)) {
-            throw new ParseException("Invalid query parameter: " + queryParamName);
+            throw new ParseException(INVALID_QUERY_PARAMETER + queryParamName);
         }
         List<String> queryParamValues = entry.getValue();
 
         if (queryParamValues.size() != 1) {
-            throw new ParseException("There can only be a single filter query parameter");
+            throw new ParseException(SINGLE_PARAMETER_ONLY);
         }
 
         String queryParamValue = queryParamValues.get(0);
@@ -99,16 +97,13 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         /*
          * Extract the last collection in the URL.
          */
-        path = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (path.startsWith("/")) {
-            path = path.substring(1);
+        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
+        if (normalizedPath.startsWith("/")) {
+            normalizedPath = normalizedPath.substring(1);
         }
 
-        String[] pathComponents = path.split("/");
-        String lastPathComponent = "";
-        if (pathComponents.length > 0) {
-            lastPathComponent = pathComponents[pathComponents.length - 1];
-        }
+        String[] pathComponents = normalizedPath.split("/");
+        String lastPathComponent = pathComponents.length > 0 ? pathComponents[pathComponents.length - 1] : "";
 
         /*
          * TODO - create a visitor which extracts the type/class of the last path component.
@@ -130,8 +125,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String>
-            filterParams) throws ParseException {
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+            throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
 
@@ -149,7 +144,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
                 Class entityType = dictionary.getEntityClass(typeName);
                 if (entityType == null) {
-                    throw new ParseException("Invalid query parameter: " + paramName);
+                    throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
                 }
 
                 String expressionText = paramValues.get(0);
@@ -162,21 +157,20 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     throw new ParseException(e.getMessage());
                 }
             } else {
-                throw new ParseException("Invalid query parameter: " + paramName);
+                throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
             }
         }
         return expressionByType;
     }
 
     /**
-     * Allows base RSQLParseException to carry a parameterized message.
+     * Allows base RSQLParseException to carry a parametrized message.
      */
     public static class RSQLParseException extends RSQLParserException {
         private String message;
 
         RSQLParseException(String message) {
-            super(new Throwable() {
-            });
+            super(null);
             this.message = message;
         }
 
@@ -274,18 +268,19 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return buildIsNullOperator(path, arguments);
             }
 
-            List<Path.PathElement> elements = path.getPathElements();
-            Class<?> relationshipType = elements.get(elements.size() - 1).getFieldType();
+            Class<?> relationshipType = path.lastElement()
+                    .map(Path.PathElement::getFieldType)
+                    .orElseThrow(() -> new IllegalStateException("Path must not be empty"));
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
                     .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
-            if (op.equals(RSQLOperators.EQUAL)) {
+            if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values);
             }
-            if (op.equals(RSQLOperators.NOT_EQUAL)) {
+            if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values));
             }
             if (OPERATOR_MAP.containsKey(op)) {
@@ -311,6 +306,13 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE, Collections.singletonList(value));
             }
 
+            Boolean isStringLike = path.lastElement()
+                    .map(e -> e.getFieldType().isAssignableFrom(String.class))
+                    .orElse(false);
+            if (isStringLike) {
+                return new FilterPredicate(path, Operator.IN_INSENSITIVE, values);
+            }
+
             return new FilterPredicate(path, Operator.IN, values);
         }
 
@@ -322,17 +324,18 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          * @return Returns Predicate for '=isnull=' case depending on its arguments.
          */
         private FilterExpression buildIsNullOperator(Path path, List<String> arguments) {
-            Operator elideOP;
+            String arg = arguments.get(0);
             try {
-                boolean argBool = CoerceUtil.coerce(arguments.get(0), boolean.class);
-                if (argBool) {
+                Operator elideOP;
+                boolean wantsNull = CoerceUtil.coerce(arg, boolean.class);
+                if (wantsNull) {
                     elideOP = Operator.ISNULL;
                 } else {
                     elideOP = Operator.NOTNULL;
                 }
-                return new FilterPredicate(path, elideOP);
-            } catch (InvalidValueException e) {
-                throw new RSQLParseException(String.format("Invalid value for operator =isnull="));
+                return new FilterPredicate(path, elideOP, Collections.emptyList());
+            } catch (InvalidValueException ignored) {
+                throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
             }
         }
     }

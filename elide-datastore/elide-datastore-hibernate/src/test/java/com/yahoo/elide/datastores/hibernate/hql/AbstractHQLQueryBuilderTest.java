@@ -145,17 +145,16 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     public void testSettingQueryParams() {
         Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
 
-        FilterPredicate idPredicate = new FilterPredicate(idPath,
-                Operator.IN, Arrays.asList(ABC, DEF));
-
         Query query = mock(Query.class);
-        supplyFilterQueryParameters(query, Arrays.asList(idPredicate));
+        FilterPredicate predicate = new FilterPredicate(idPath, Operator.IN, Arrays.asList(ABC, DEF));
+        supplyFilterQueryParameters(query, Arrays.asList(predicate));
 
-        verify(query, times(1)).setParameterList(anyString(), any());
+        verify(query, times(2)).setParameter(anyString(), any());
 
-        idPredicate = new FilterPredicate(idPath, Operator.INFIX, Arrays.asList(ABC));
+        query = mock(Query.class);
+        predicate = new FilterPredicate(idPath, Operator.INFIX, Arrays.asList(ABC));
+        supplyFilterQueryParameters(query, Arrays.asList(predicate));
 
-        supplyFilterQueryParameters(query, Arrays.asList(idPredicate));
         verify(query, times(1)).setParameter(anyString(), any());
     }
 

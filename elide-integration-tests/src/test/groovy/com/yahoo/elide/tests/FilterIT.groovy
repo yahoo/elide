@@ -490,7 +490,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterImplicitSingle() {
         int scienceFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("genre").asText().equals("Science Fiction")) {
+            if (node.get("attributes").get("genre").asText().equalsIgnoreCase("Science Fiction")) {
                 scienceFictionBookCount += 1
             }
         }
@@ -499,19 +499,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def scienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre]=Science Fiction").asString())
+                RestAssured.get("/book?filter[book.genre]=Science fiction").asString())
 
         Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
 
         /* Test RSQL Typed */
-        scienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre=='Science Fiction'").asString())
+        String response = RestAssured.get("/book?filter[book]=genre=='Science fiction'").asString()
+        scienceFictionBooks = mapper.readTree(response)
 
         Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
 
         /* Test RSQL Global */
         scienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre=='Science Fiction'").asString())
+                RestAssured.get("/book?filter=genre=='Science fiction'").asString())
 
         Assert.assertEquals(scienceFictionBookCount, scienceFictionBooks.get("data").size())
 
@@ -521,7 +521,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterInSingle() {
         int literaryFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("genre").asText().equals("Literary Fiction")) {
+            if (node.get("attributes").get("genre").asText().equalsIgnoreCase("Literary Fiction")) {
                 literaryFictionBookCount += 1
             }
         }
@@ -530,19 +530,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def literaryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre][in]=Literary Fiction").asString())
+                RestAssured.get("/book?filter[book.genre][in]=Literary fiction").asString())
 
         Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
 
         /* Test RSQL Typed */
         literaryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre=in='Literary Fiction'").asString())
+                RestAssured.get("/book?filter[book]=genre=in='Literary fiction'").asString())
 
         Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
 
         /* Test RSQL Global */
         literaryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre=in='Literary Fiction'").asString())
+                RestAssured.get("/book?filter=genre=in='Literary fiction'").asString())
 
         Assert.assertEquals(literaryFictionBookCount, literaryFictionBooks.get("data").size())
     }
@@ -552,7 +552,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         int nonLiteraryFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
             if (!node.get("attributes").get("genre").isNull()
-                    && !node.get("attributes").get("genre").asText().equals("Literary Fiction")) {
+                    && !node.get("attributes").get("genre").asText().equalsIgnoreCase("Literary Fiction")) {
                 nonLiteraryFictionBookCount += 1
             }
         }
@@ -561,19 +561,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def nonLiteraryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre][not]=Literary Fiction").asString())
+                RestAssured.get("/book?filter[book.genre][not]=Literary fiction").asString())
 
         Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
 
         /* Test RSQL typed */
         nonLiteraryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre!='Literary Fiction'").asString())
+                RestAssured.get("/book?filter[book]=genre!='Literary fiction'").asString())
 
         Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
 
         /* Test RSQL global */
         nonLiteraryFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre!='Literary Fiction'").asString())
+                RestAssured.get("/book?filter=genre!='Literary fiction'").asString())
 
         Assert.assertEquals(nonLiteraryFictionBookCount, nonLiteraryFictionBooks.get("data").size())
     }
@@ -583,8 +583,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
         int nonFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
             if (!node.get("attributes").get("genre").isNull()
-                    && !node.get("attributes").get("genre").asText().equals("Literary Fiction")
-                    && !node.get("attributes").get("genre").asText().equals("Science Fiction")) {
+                    && !node.get("attributes").get("genre").asText().equalsIgnoreCase("Literary Fiction")
+                    && !node.get("attributes").get("genre").asText().equalsIgnoreCase("Science Fiction")) {
                 nonFictionBookCount += 1
             }
         }
@@ -593,19 +593,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test default */
         def nonFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre][not]=Literary Fiction,Science Fiction").asString())
+                RestAssured.get("/book?filter[book.genre][not]=Literary fiction,Science fiction").asString())
 
         Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
 
         /* Test RSQL typed */
-        nonFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre=out=('Literary Fiction','Science Fiction')").asString())
+        String response = RestAssured.get("/book?filter[book]=genre=out=('Literary fiction','Science fiction')").asString()
+        nonFictionBooks = mapper.readTree(response)
 
         Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
 
         /* Test RSQL global */
         nonFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre=out=('Literary Fiction','Science Fiction')").asString())
+                RestAssured.get("/book?filter=genre=out=('Literary fiction','Science fiction')").asString())
 
         Assert.assertEquals(nonFictionBookCount, nonFictionBooks.get("data").size())
     }
@@ -614,8 +614,8 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterInMultipleSingle() {
         int literaryAndScienceFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("genre").asText().equals("Literary Fiction")
-                    || node.get("attributes").get("genre").asText().equals("Science Fiction")) {
+            if (node.get("attributes").get("genre").asText().equalsIgnoreCase("Literary Fiction")
+                    || node.get("attributes").get("genre").asText().equalsIgnoreCase("Science Fiction")) {
                 literaryAndScienceFictionBookCount += 1
             }
         }
@@ -624,19 +624,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def literaryAndScienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre][in]=Literary Fiction,Science Fiction").asString())
+                RestAssured.get("/book?filter[book.genre][in]=Literary fiction,Science fiction").asString())
 
         Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
 
         /* Test RSQL typed */
         literaryAndScienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre=in=('Literary Fiction','Science Fiction')").asString())
+                RestAssured.get("/book?filter[book]=genre=in=('Literary fiction','Science fiction')").asString())
 
         Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
 
         /* Test RSQL global */
         literaryAndScienceFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre=in=('Literary Fiction','Science Fiction')").asString())
+                RestAssured.get("/book?filter=genre=in=('Literary fiction','Science fiction')").asString())
 
         Assert.assertEquals(literaryAndScienceFictionBookCount, literaryAndScienceFictionBooks.get("data").size())
     }
@@ -645,7 +645,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterPostfix() {
         int genreEndsWithFictionBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("genre").asText().endsWith("Fiction")) {
+            if (node.get("attributes").get("genre").asText().toLowerCase().endsWith("fiction")) {
                 genreEndsWithFictionBookCount += 1
             }
         }
@@ -654,19 +654,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def genreEndsWithFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.genre][postfix]=Fiction").asString())
+                RestAssured.get("/book?filter[book.genre][postfix]=fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
 
         /* Test RSQL Typed */
         genreEndsWithFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=genre==*Fiction").asString())
+                RestAssured.get("/book?filter[book]=genre==*fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
 
         /* Test RSQL Global */
         genreEndsWithFictionBooks = mapper.readTree(
-                RestAssured.get("/book?filter=genre==*Fiction").asString())
+                RestAssured.get("/book?filter=genre==*fiction").asString())
 
         Assert.assertEquals(genreEndsWithFictionBookCount, genreEndsWithFictionBooks.get("data").size())
     }
@@ -675,7 +675,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterPrefix() {
         int titleStartsWithTheBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("title").asText().startsWith("The")) {
+            if (node.get("attributes").get("title").asText().toLowerCase().startsWith("the")) {
                 titleStartsWithTheBookCount += 1
             }
         }
@@ -705,7 +705,7 @@ class FilterIT extends AbstractIntegrationTestInitializer {
     void testRootFilterPrefixWithSpecialChars() {
         int titleStartsWithTheBookCount = 0
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("title").asText().startsWith("I'm")) {
+            if (node.get("attributes").get("title").asText().toLowerCase().startsWith("i'm")) {
                 titleStartsWithTheBookCount += 1
             }
         }
@@ -714,19 +714,19 @@ class FilterIT extends AbstractIntegrationTestInitializer {
 
         /* Test Default */
         def titleStartsWithTheBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book.title][prefix]=I'm").asString())
+                RestAssured.get("/book?filter[book.title][prefix]=i'm").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
 
         /* Test RSQL Typed */
         titleStartsWithTheBooks = mapper.readTree(
-                RestAssured.get("/book?filter[book]=title=='I\\'m*'").asString())
+                RestAssured.get("/book?filter[book]=title=='i\\'m*'").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
 
         /* Test RSQL Global */
         titleStartsWithTheBooks = mapper.readTree(
-                RestAssured.get("/book?filter=title=='I\\'m*'").asString())
+                RestAssured.get("/book?filter=title=='i\\'m*'").asString())
 
         Assert.assertEquals(titleStartsWithTheBookCount, titleStartsWithTheBooks.get("data").size())
     }
