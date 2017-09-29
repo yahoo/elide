@@ -13,7 +13,6 @@ import com.yahoo.elide.books.Author;
 import com.yahoo.elide.books.Book;
 import com.yahoo.elide.books.Pseudonym;
 import com.yahoo.elide.books.Publisher;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
-    protected RequestScope requestScope;
+    protected GraphQLRequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
 
@@ -60,8 +59,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
-        requestScope = new RequestScope("/", null, tx, null, null,
-                settings, false);
+        requestScope = new GraphQLRequestScope(tx, null, null, settings);
     }
 
     private void initTestData(InMemoryTransaction tx) {

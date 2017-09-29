@@ -312,6 +312,9 @@ public class InMemoryTransaction implements DataStoreTransaction {
                     if (endIdx > sorted.size()) {
                         endIdx = sorted.size();
                     }
+                    if (p.isGenerateTotals()) {
+                        p.setPageTotals(sorted.size());
+                    }
                     return sorted.subList(offset, endIdx);
                 })
                 .orElse(sorted);

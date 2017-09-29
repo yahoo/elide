@@ -11,6 +11,9 @@ import graphql.ExecutionResult;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Test the Fetch operation.
  */
@@ -278,5 +281,101 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}";
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         Assert.assertTrue(!result.getErrors().isEmpty());
+    }
+
+    @Test
+    public void testPageTotalsRoot() throws JsonProcessingException {
+        String graphQLRequest = "{"
+                + "book { "
+                + "id "
+                + "title "
+                + "__bookTotalRecords "
+                + "}"
+                + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
+        for (Map<String, Object> resultValues : results) {
+            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
+        }
+    }
+
+    @Test
+    public void testPageTotalsRootWithFilter() throws JsonProcessingException {
+        String graphQLRequest = "{"
+                + "book(filter: \"title==\\\"Libro*\\\"\") { "
+                + "id "
+                + "title "
+                + "__bookTotalRecords "
+                + "}"
+                + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
+        for (Map<String, Object> resultValues : results) {
+            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 2L);
+        }
+    }
+
+    @Test
+    public void testPageTotalsRootWithPagination() throws JsonProcessingException {
+        String graphQLRequest = "{"
+                + "book(first: \"1\", offset: \"1\") { "
+                + "id "
+                + "title "
+                + "__bookTotalRecords "
+                + "}"
+                + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
+        for (Map<String, Object> resultValues : results) {
+            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
+        }
+    }
+
+    @Test
+    public void testPageTotalsRootWithIds() throws JsonProcessingException {
+        String graphQLRequest = "{"
+                + "book(ids: [\"1\"]) { "
+                + "id "
+                + "title "
+                + "__bookTotalRecords "
+                + "}"
+                + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0).get("__bookTotalRecords"), 1L);
+    }
+
+    @Test
+    public void testPageTotalsRelationship() throws JsonProcessingException {
+        String graphQLRequest = "{"
+                + "author { "
+                + "id "
+                + "books { "
+                + "id "
+                + "__bookTotalRecords "
+                + "}"
+                + "}"
+                + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        List<Map<String, Object>> results = getValuesForRelationship(result, "author");
+        Map<String, Object> author1 = results.get(0);
+        Map<String, Object> author2 = results.get(1);
+        List<Map<String, Object>> books = (List) author1.get("books");
+        // Author1 has 2 books
+        for (Map<String, Object> book : books) {
+            Assert.assertEquals(book.get("__bookTotalRecords"), 2L);
+        }
+
+        books = (List) author2.get("books");
+        // Author2 has 1 book
+        for (Map<String, Object> book : books) {
+            Assert.assertEquals(book.get("__bookTotalRecords"), 1L);
+        }
+    }
+
+    private List<Map<String, Object>> getValuesForRelationship(ExecutionResult result, String relName) {
+        Map<String, List<Map<String, Object>>> resultMap = (Map) result.getData();
+        return resultMap.get(relName);
     }
 }

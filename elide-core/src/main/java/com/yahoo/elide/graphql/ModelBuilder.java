@@ -57,7 +57,6 @@ public class ModelBuilder {
     private GraphQLArgument pageOffsetArgument;
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
-    private GraphQLObjectType metaObject;
     private GraphQLConversionUtils generator;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
@@ -104,27 +103,6 @@ public class ModelBuilder {
                 .name(ARGUMENT_OFFSET)
                 .type(Scalars.GraphQLString)
                 .build();
-
-        metaObject = newObject()
-                .name("__metaObject")
-                .field(newFieldDefinition()
-                    .name("page")
-                    .dataFetcher(dataFetcher)
-                    .type(newObject()
-                        .name("__pageObject")
-                        .field(newFieldDefinition()
-                            .name("totalPages")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).field(newFieldDefinition()
-                            .name("totalRecords")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).build()
-                    )
-                ).build();
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
@@ -188,6 +166,10 @@ public class ModelBuilder {
         return schema;
     }
 
+    public static String getTotalRecordKey(String entityName) {
+        return "__" + entityName + "TotalRecords";
+    }
+
     /**
      * Builds a graphQL output object from an entity class.
      * @param entityClass The class to use to construct the output object.
@@ -230,9 +212,11 @@ public class ModelBuilder {
                 .dataFetcher(dataFetcher)
                 .type(customIdType));
 
+        // Additional special fields
         builder.field(newFieldDefinition()
-                    .name("__meta")
-                    .type(metaObject));
+                .name(getTotalRecordKey(entityName))
+                .dataFetcher(dataFetcher)
+                .type(Scalars.GraphQLLong));
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);

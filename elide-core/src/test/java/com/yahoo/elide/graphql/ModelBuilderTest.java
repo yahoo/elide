@@ -14,13 +14,7 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import graphql.Scalars;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -37,9 +31,10 @@ public class ModelBuilderTest {
     private static final String SORT = "sort";
     private static final String FIRST = "first";
     private static final String OFFSET = "offset";
-    private static final String META = "__meta";
-    private static final String PAGE = "page";
     private static final String TYPE = "type";
+
+    // Meta fields
+    private static final String BOOK_TOTAL_RECORDS = "__bookTotalRecords";
 
     private static final String BOOK = "book";
     private static final String BOOKS = "books";
@@ -70,12 +65,7 @@ public class ModelBuilderTest {
         GraphQLSchema schema = builder.build();
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
-        Assert.assertNotNull(bookType.getFieldDefinition(META));
-        GraphQLObjectType metaObject = (GraphQLObjectType) bookType.getFieldDefinition(META).getType();
-        Assert.assertNotNull(metaObject.getFieldDefinition(PAGE));
-        GraphQLObjectType pageObject = (GraphQLObjectType) metaObject.getFieldDefinition(PAGE).getType();
-        Assert.assertNotNull(pageObject.getFieldDefinition("totalPages"));
-        Assert.assertNotNull(pageObject.getFieldDefinition("totalRecords"));
+        Assert.assertNotNull(bookType.getFieldDefinition(BOOK_TOTAL_RECORDS));
     }
 
     @Test

@@ -20,7 +20,7 @@ import java.util.Optional;
  * Encapsulates GraphQL's DataFetchingEnvironment
  */
 public class Environment {
-    public final RequestScope requestScope;
+    public final GraphQLRequestScope requestScope;
     public final Optional<List<String>> ids;
     public final Optional<String> sort;
     public final Optional<List<Map<String, Object>>> data;
@@ -36,7 +36,7 @@ public class Environment {
     public Environment(DataFetchingEnvironment environment) {
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = (RequestScope) environment.getContext();
+        requestScope = (GraphQLRequestScope) environment.getContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_OFFSET));
