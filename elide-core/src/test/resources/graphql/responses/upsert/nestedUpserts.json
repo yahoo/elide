@@ -1,0 +1,20 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "name": "John Snow",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "title": "Changed Again"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

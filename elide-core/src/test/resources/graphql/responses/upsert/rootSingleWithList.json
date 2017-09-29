@@ -1,0 +1,18 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "abc"
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "xyz"
+        }
+      }
+    ]
+  }
+}

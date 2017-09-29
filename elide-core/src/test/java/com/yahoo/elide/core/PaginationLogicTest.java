@@ -80,7 +80,7 @@ public class PaginationLogicTest {
 
     @Test
     public void checkValidOffsetAndFirstRequest() {
-        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), elideSettings).get();
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), true, elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -89,11 +89,12 @@ public class PaginationLogicTest {
 
         Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getOffset(), 1);
         Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getLimit(), 10);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).isGenerateTotals(), true);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkErroneousPageLimit() {
-        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), elideSettings).get();
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), false, elideSettings).get();
 
         // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
         // This is because the particular root entity determines the pagination limits
@@ -106,22 +107,22 @@ public class PaginationLogicTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkBadOffset() {
-        Pagination.fromOffsetAndFirst(Optional.of("-1"), Optional.of("1000"), elideSettings);
+        Pagination.fromOffsetAndFirst(Optional.of("-1"), Optional.of("1000"), false, elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkBadOffsetString() {
-        Pagination.fromOffsetAndFirst(Optional.of("NaN"), Optional.of("1000"), elideSettings);
+        Pagination.fromOffsetAndFirst(Optional.of("NaN"), Optional.of("1000"), false, elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkBadLimit() {
-        Pagination.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), elideSettings);
+        Pagination.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), false, elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void checkBadLimitString() {
-        Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("NaN"), elideSettings);
+        Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("NaN"), false, elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)

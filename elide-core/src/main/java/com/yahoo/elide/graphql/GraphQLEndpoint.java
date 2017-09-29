@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -79,7 +78,7 @@ public class GraphQLEndpoint {
             ObjectMapper mapper = elide.getMapper().getObjectMapper();
             JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
-            RequestScope requestScope = new RequestScope(path, null, tx, user, null, elide.getElideSettings());
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, null, elide.getElideSettings());
             ExecutionResult result = api.execute(
                     jsonDocument.get("query").asText(),
                     jsonDocument.get("operationName").asText(),

@@ -46,7 +46,7 @@ public class ModelBuilder {
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
     public static final String ARGUMENT_FIRST = "first";
-    public static final String ARGUMENT_OFFSET = "offset";
+    public static final String ARGUMENT_AFTER = "after";
     public static final String ARGUMENT_OPERATION = "op";
 
     private EntityDictionary dictionary;
@@ -57,8 +57,8 @@ public class ModelBuilder {
     private GraphQLArgument pageOffsetArgument;
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
-    private GraphQLObjectType metaObject;
     private GraphQLConversionUtils generator;
+    private GraphQLObjectType pageInfoObject;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
@@ -101,30 +101,29 @@ public class ModelBuilder {
                 .build();
 
         pageOffsetArgument = newArgument()
-                .name(ARGUMENT_OFFSET)
+                .name(ARGUMENT_AFTER)
                 .type(Scalars.GraphQLString)
                 .build();
 
-        metaObject = newObject()
-                .name("__metaObject")
+        pageInfoObject = newObject()
+                .name("__pageInfoObject")
                 .field(newFieldDefinition()
-                    .name("page")
-                    .dataFetcher(dataFetcher)
-                    .type(newObject()
-                        .name("__pageObject")
-                        .field(newFieldDefinition()
-                            .name("totalPages")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).field(newFieldDefinition()
-                            .name("totalRecords")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).build()
-                    )
-                ).build();
+                        .name("hasNextPage")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLBoolean))
+                .field(newFieldDefinition()
+                        .name("startCursor")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
+                .field(newFieldDefinition()
+                        .name("endCursor")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
+                .field(newFieldDefinition()
+                        .name("totalRecords")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLLong))
+                .build();
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
@@ -168,7 +167,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .type(new GraphQLList(buildQueryObject(clazz))));
+                    .type(buildQueryObject(clazz)));
         }
 
         /*
@@ -231,8 +230,19 @@ public class ModelBuilder {
                 .type(customIdType));
 
         builder.field(newFieldDefinition()
-                    .name("__meta")
-                    .type(metaObject));
+                        .name("edges")
+                        .dataFetcher(dataFetcher)
+                        .type(buildEdgesObject(entityName, new GraphQLTypeReference(entityName))))
+                .field(newFieldDefinition()
+                        .name("pageInfo")
+                        .dataFetcher(dataFetcher)
+                        .type(pageInfoObject));
+
+        // Additional special fields
+//        builder.field(newFieldDefinition()
+//                .name(getTotalRecordKey(entityName))
+//                .dataFetcher(dataFetcher)
+//                .type(Scalars.GraphQLLong));
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
@@ -277,6 +287,7 @@ public class ModelBuilder {
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             } else {
+                GraphQLTypeReference description = new GraphQLTypeReference(relationshipEntityName);
                 builder.field(newFieldDefinition()
                                 .name(relationship)
                                 .dataFetcher(dataFetcher)
@@ -287,7 +298,7 @@ public class ModelBuilder {
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
-                                .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
+                                .type(buildConnectionObject(relationshipEntityName, description))
                 );
             }
         }
@@ -295,6 +306,34 @@ public class ModelBuilder {
         GraphQLObjectType queryObject = builder.build();
         queryObjectRegistry.put(entityClass, queryObject);
         return queryObject;
+    }
+
+    private GraphQLObjectType buildConnectionObject(String relationName, GraphQLTypeReference entityType) {
+        return newObject()
+                .name("__connection__" + relationName)
+                .field(newFieldDefinition()
+                        .name("edges")
+                        .dataFetcher(dataFetcher)
+                        .type(buildEdgesObject(relationName, entityType)))
+                .field(newFieldDefinition()
+                        .name("pageInfo")
+                        .dataFetcher(dataFetcher)
+                        .type(pageInfoObject))
+                .build();
+    }
+
+    private GraphQLList buildEdgesObject(String relationName, GraphQLTypeReference entityType) {
+        return new GraphQLList(newObject()
+                .name("__edges__" + relationName)
+//                .field(newFieldDefinition()
+//                        .name("cursor")
+//                         .dataFetcher(dataFetcher)
+//                        .type(Scalars.GraphQLLong))
+                .field(newFieldDefinition()
+                        .name("node")
+                        .dataFetcher(dataFetcher)
+                        .type(entityType))
+                .build());
     }
 
     /**

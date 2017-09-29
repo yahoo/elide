@@ -1,0 +1,17 @@
+{
+  book(sort: "-publisher.id,id") {
+    edges {
+      node {
+        id
+        title
+        publisher {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}

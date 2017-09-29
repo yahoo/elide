@@ -1,0 +1,20 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "title": "Book Numero Dos"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
