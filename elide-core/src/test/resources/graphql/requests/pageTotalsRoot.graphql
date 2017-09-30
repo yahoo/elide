@@ -1,0 +1,15 @@
+{
+  book {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+    }
+  }
+}

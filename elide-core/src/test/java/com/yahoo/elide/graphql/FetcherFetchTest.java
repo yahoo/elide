@@ -284,19 +284,21 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testPageTotalsRoot() throws JsonProcessingException {
-        String graphQLRequest = "{"
-                + "book { "
-                + "id "
-                + "title "
-                + "__bookTotalRecords "
-                + "}"
-                + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
-        for (Map<String, Object> resultValues : results) {
-            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
-        }
+    public void testPageTotalsRoot() throws Exception {
+//        String graphQLRequest = "{"
+//                + "book { "
+//                + "id "
+//                + "title "
+//                + "__bookTotalRecords "
+//                + "}"
+//                + "}";
+        String graphQLRequest = loadGraphQLRequest("pageTotalsRoot.graphql");
+//        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        assertQueryEquals(graphQLRequest, "abc");
+//        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
+//        for (Map<String, Object> resultValues : results) {
+//            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
+//        }
     }
 
     @Test

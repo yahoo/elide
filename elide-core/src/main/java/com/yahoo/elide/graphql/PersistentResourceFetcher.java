@@ -20,6 +20,10 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.EdgesContainer;
+import com.yahoo.elide.graphql.containers.NodeContainer;
+import com.yahoo.elide.graphql.containers.PageInfoContainer;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -39,8 +43,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
@@ -52,7 +54,17 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
 
-    private static final Pattern PAGE_INFO_PATTERN = Pattern.compile("^__(.+)TotalRecords$");
+    private static final String EDGES_KEYWORD = "edges";
+    private static final String NODE_KEYWORD = "node";
+
+    // Page info keywords
+    private static final String PAGE_INFO_KEYWORD = "pageInfo";
+    private static final String PAGE_INFO_HAS_NEXT_PAGE_KEYWORD = "hasNextPage";
+    private static final String PAGE_INFO_START_CURSOR_KEYWORD = "startCursor";
+    private static final String PAGE_INFO_END_CURSOR_KEYWORD = "endCursor";
+    private static final String PAGE_INFO_TOTAL_RECORDS_KEYWORD = "totalRecords";
+
+    private Optional<Pagination> lastPaginationObject = Optional.empty();
 
     PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
@@ -145,39 +157,105 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("FETCH must not include data");
         }
 
-        Class<?> entityClass;
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-
         /* check whether current object has a parent or not */
         if (context.isRoot()) {
-            entityClass = dictionary.getEntityClass(context.field.getName());
-            String entityType = dictionary.getJsonAliasFor(entityClass);
-            boolean generateTotals = requestContainsPageInfo(entityType, context.field);
-            return fetchObject(context, context.requestScope, entityClass, context.ids, context.sort,
-                    context.offset, context.first, context.filters, generateTotals);
-
+            return handleRootQuery(context);
         } else { /* fetch attribute or relationship */
+            if (context.rawSource instanceof ConnectionContainer) {
+                return handleConnectionQuery(context);
+            }
+            if (context.rawSource instanceof EdgesContainer) {
+                return handleEdgesQuery(context);
+            }
+            if (context.rawSource instanceof PageInfoContainer) {
+                return handlePageInfoQuery(context);
+            }
+            if (context.rawSource instanceof NodeContainer) {
+                return handleNodeQuery(context);
+            }
             Class parentClass = context.parentResource.getResourceClass();
-            String idFieldName = dictionary.getIdFieldName(parentClass);
             String fieldName = context.field.getName();
-            Matcher matcher = PAGE_INFO_PATTERN.matcher(fieldName);
-            if (matcher.matches()) {
-                return context.requestScope.getTotalRecordCounts().getOrDefault(context.field.getName(), -1L);
-            }
-            if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-                return context.parentResource.getAttribute(fieldName);
-            } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-                String entityType = dictionary.getJsonAliasFor(dictionary.getParameterizedType(parentClass, fieldName));
-                boolean generateTotals = requestContainsPageInfo(entityType, context.field);
-                return fetchRelationship(context, context.parentResource,
-                        fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
-                        generateTotals);
-            } else if (Objects.equals(idFieldName, fieldName)) {
-                return new DeferredId(context.parentResource);
-            } else {
-                throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
-            }
+            throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
         }
+    }
+
+    private Object handleRootQuery(Environment context) {
+        EntityDictionary dictionary = context.requestScope.getDictionary();
+        Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
+        String entityType = dictionary.getJsonAliasFor(entityClass);
+        boolean generateTotals = requestContainsPageInfo(entityType, context.field);
+        Set<PersistentResource> resources = fetchObject(context, context.requestScope, entityClass, context.ids,
+                context.sort, context.offset, context.first, context.filters, generateTotals);
+        return new ConnectionContainer(resources, lastPaginationObject);
+    }
+
+    private Object handleConnectionQuery(Environment context) {
+        String fieldName = context.field.getName();
+        ConnectionContainer container = (ConnectionContainer) context.rawSource;
+
+        switch (fieldName) {
+            case EDGES_KEYWORD:
+                return container.getPersistentResources().stream()
+                        .map(EdgesContainer::new)
+                        .collect(Collectors.toList());
+            case PAGE_INFO_KEYWORD:
+                return new PageInfoContainer(context.parentResource);
+            default:
+                break;
+        }
+
+        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in a connection object.");
+    }
+
+    private Object handleEdgesQuery(Environment context) {
+        String fieldName = context.field.getName();
+
+        if (NODE_KEYWORD.equals(fieldName)) {
+            return new NodeContainer(context.parentResource);
+        }
+        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an edges object.");
+    }
+
+    private Object handlePageInfoQuery(Environment context) {
+        String fieldName = context.field.getName();
+
+        switch (fieldName) {
+            case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD:
+                return true; // TODO: Compute.
+            case PAGE_INFO_START_CURSOR_KEYWORD:
+                return 123L; // TODO: Get values.
+            case PAGE_INFO_END_CURSOR_KEYWORD:
+                return 456L; // TODO: Get values.
+            case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
+                return 789L; // TODO: Get value.
+            default:
+                break;
+        }
+
+        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an pageInfo object.");
+    }
+
+    private Object handleNodeQuery(Environment context) {
+        EntityDictionary dictionary = context.requestScope.getDictionary();
+        Class parentClass = context.parentResource.getResourceClass();
+        String fieldName = context.field.getName();
+        String idFieldName = dictionary.getIdFieldName(parentClass);
+
+        if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
+            return context.parentResource.getAttribute(fieldName);
+        }
+        if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
+            String entityType = dictionary.getJsonAliasFor(dictionary.getParameterizedType(parentClass, fieldName));
+            boolean generateTotals = requestContainsPageInfo(entityType, context.field);
+            return fetchRelationship(context, context.parentResource,
+                    fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
+                    generateTotals);
+        }
+        if (Objects.equals(idFieldName, fieldName)) {
+            return new DeferredId(context.parentResource);
+        }
+        throw new BadRequestException("Unrecognized object: " + fieldName + " for: "
+                + parentClass.getName() + " in node");
     }
 
     /**
@@ -243,6 +321,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             String key = ModelBuilder.getTotalRecordKey(typeName);
             pagination.ifPresent(p -> context.requestScope.getTotalRecordCounts().put(key, p.getPageTotals()));
         }
+
+        // I don't like doing this... We should rearrange and clean up later, but we want to move quickly on this
+        // if possible.
+        lastPaginationObject = pagination;
 
         return records;
     }

@@ -19,11 +19,15 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import org.apache.tools.ant.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -153,5 +157,11 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         return errors.stream()
                 .map(GraphQLError::getMessage)
                 .collect(Collectors.joining(", "));
+    }
+
+    public String loadGraphQLRequest(String fileName) throws IOException {
+        try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/requests/" + fileName)) {
+            return FileUtils.readFully(new InputStreamReader(in));
+        }
     }
 }

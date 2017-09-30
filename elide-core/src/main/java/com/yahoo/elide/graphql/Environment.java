@@ -8,6 +8,8 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
 import graphql.language.Field;
@@ -27,6 +29,7 @@ public class Environment {
     public final Optional<String> filters;
     public final Optional<String> offset;
     public final Optional<String> first;
+    public final Object rawSource;
 
     public final PersistentResource parentResource;
     public final GraphQLType parentType;
@@ -47,8 +50,15 @@ public class Environment {
 
         outputType = environment.getFieldType();
 
-        parentResource = environment.getSource() instanceof RequestScope ? null
-                : (PersistentResource) environment.getSource();
+        rawSource = environment.getSource();
+
+        if (rawSource instanceof RequestScope || rawSource instanceof ConnectionContainer) {
+            parentResource = null;
+        } else if (rawSource instanceof PersistentResourceContainer) {
+            parentResource = ((PersistentResourceContainer) rawSource).getPersistentResource();
+        } else {
+            parentResource = (PersistentResource) rawSource;
+        }
 
         field = environment.getFields().get(0);
 
@@ -59,6 +69,6 @@ public class Environment {
     }
 
     public boolean isRoot() {
-        return parentResource == null;
+        return parentResource == null && !(rawSource instanceof ConnectionContainer);
     }
 }
