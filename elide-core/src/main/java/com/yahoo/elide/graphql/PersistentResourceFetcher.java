@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 
@@ -186,7 +187,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         boolean generateTotals = requestContainsPageInfo(entityType, context.field);
         Set<PersistentResource> resources = fetchObject(context, context.requestScope, entityClass, context.ids,
                 context.sort, context.offset, context.first, context.filters, generateTotals);
-        return new ConnectionContainer(resources, lastPaginationObject);
+        return new ConnectionContainer(resources, lastPaginationObject, entityType);
     }
 
     private Object handleConnectionQuery(Environment context) {
@@ -199,7 +200,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                         .map(EdgesContainer::new)
                         .collect(Collectors.toList());
             case PAGE_INFO_KEYWORD:
-                return new PageInfoContainer(context.parentResource);
+                return new PageInfoContainer(container);
             default:
                 break;
         }
@@ -218,21 +219,35 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     private Object handlePageInfoQuery(Environment context) {
         String fieldName = context.field.getName();
+        PageInfoContainer container = (PageInfoContainer) context.rawSource;
+        ConnectionContainer connectionContainer = container.getConnectionContainer();
+        Optional<Pagination> pagination = connectionContainer.getPagination();
 
-        switch (fieldName) {
-            case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD:
-                return true; // TODO: Compute.
-            case PAGE_INFO_START_CURSOR_KEYWORD:
-                return 123L; // TODO: Get values.
-            case PAGE_INFO_END_CURSOR_KEYWORD:
-                return 456L; // TODO: Get values.
-            case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
-                return 789L; // TODO: Get value.
-            default:
-                break;
-        }
+        List<String> ids = connectionContainer.getPersistentResources().stream()
+                .map(PersistentResource::getId)
+                .sorted()
+                .collect(Collectors.toList());
 
-        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an pageInfo object.");
+        return pagination.map(pageValue -> {
+            switch (fieldName) {
+                case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD: {
+                    int numResults = ids.size();
+                    int nextOffset = numResults + pageValue.getOffset();
+                    return nextOffset < pageValue.getPageTotals();
+                }
+                case PAGE_INFO_START_CURSOR_KEYWORD:
+                    return pageValue.getOffset();
+                case PAGE_INFO_END_CURSOR_KEYWORD:
+                    return pageValue.getOffset() + ids.size();
+                case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
+                    return pageValue.getPageTotals();
+                default:
+                    break;
+            }
+            throw new BadRequestException("Invalid request. Looking for field: "
+                    + fieldName + " in an pageInfo object.");
+        }).orElseThrow(() -> new BadRequestException("Could not generate pagination information for type: "
+                + connectionContainer.getTypeName()));
     }
 
     private Object handleNodeQuery(Environment context) {
@@ -315,13 +330,6 @@ public class PersistentResourceFetcher implements DataFetcher {
                     requestScope)
         );
 
-        // Pagination record limit is updated via mutation :(
-        // We will perpetuate this travesty -.-
-        if (generateTotals) {
-            String key = ModelBuilder.getTotalRecordKey(typeName);
-            pagination.ifPresent(p -> context.requestScope.getTotalRecordCounts().put(key, p.getPageTotals()));
-        }
-
         // I don't like doing this... We should rearrange and clean up later, but we want to move quickly on this
         // if possible.
         lastPaginationObject = pagination;
@@ -370,10 +378,8 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* check for toOne relationships */
         Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
 
-        if (generateTotals) {
-            String key = ModelBuilder.getTotalRecordKey(typeName);
-            pagination.ifPresent(p -> context.requestScope.getTotalRecordCounts().put(key, p.getPageTotals()));
-        }
+        // Need to clean this up. This mutation feels brittle.
+        lastPaginationObject = pagination;
 
         if (isToOne) {
             return relations.iterator().next();
@@ -671,8 +677,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     private boolean requestContainsPageInfo(String entityType, Field field) {
-        String metaFieldName = ModelBuilder.getTotalRecordKey(entityType);
         return field.getSelectionSet().getSelections().stream()
-                .anyMatch(f -> f instanceof Field && metaFieldName.equals(((Field) f).getName()));
+                .anyMatch(f -> f instanceof Field && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
     }
 }

@@ -5,16 +5,15 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import com.yahoo.elide.core.PersistentResource;
 import lombok.Getter;
 
 /**
  * Container for nodes.
  */
-public class PageInfoContainer implements PersistentResourceContainer {
-    @Getter private final PersistentResource persistentResource;
+public class PageInfoContainer implements NestedContainer {
+    @Getter private final ConnectionContainer connectionContainer;
 
-    public PageInfoContainer(PersistentResource persistentResource) {
-        this.persistentResource = persistentResource;
+    public PageInfoContainer(ConnectionContainer connectionContainer) {
+        this.connectionContainer = connectionContainer;
     }
 }

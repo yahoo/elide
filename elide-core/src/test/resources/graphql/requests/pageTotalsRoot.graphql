@@ -10,6 +10,7 @@
       endCursor
       startCursor
       hasNextPage
+      totalRecords
     }
   }
 }

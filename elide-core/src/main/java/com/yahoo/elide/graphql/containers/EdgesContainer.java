@@ -13,6 +13,6 @@ import lombok.Getter;
  * Container for edges.
  */
 @AllArgsConstructor
-public class EdgesContainer implements PersistentResourceContainer {
+public class EdgesContainer implements PersistentResourceContainer, NestedContainer {
     @Getter private final PersistentResource persistentResource;
 }

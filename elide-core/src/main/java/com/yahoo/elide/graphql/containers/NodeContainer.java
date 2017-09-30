@@ -13,6 +13,6 @@ import lombok.Getter;
  * Container for nodes.
  */
 @AllArgsConstructor
-public class NodeContainer implements PersistentResourceContainer {
+public class NodeContainer implements PersistentResourceContainer, NestedContainer {
     @Getter private final PersistentResource persistentResource;
 }

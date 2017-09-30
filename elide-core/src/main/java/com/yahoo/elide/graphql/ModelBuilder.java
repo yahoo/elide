@@ -58,7 +58,6 @@ public class ModelBuilder {
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
     private GraphQLConversionUtils generator;
-    private GraphQLObjectType edgesObject;
     private GraphQLObjectType pageInfoObject;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
@@ -110,15 +109,19 @@ public class ModelBuilder {
                 .name("__pageInfoObject")
                 .field(newFieldDefinition()
                         .name("hasNextPage")
+                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLBoolean))
                 .field(newFieldDefinition()
                         .name("startCursor")
-                        .type(Scalars.GraphQLLong))
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("endCursor")
-                        .type(Scalars.GraphQLLong))
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("totalRecords")
+                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLLong))
                 .build();
 
@@ -182,10 +185,6 @@ public class ModelBuilder {
                 )));
 
         return schema;
-    }
-
-    public static String getTotalRecordKey(String entityName) {
-        return "__" + entityName + "TotalRecords";
     }
 
     /**

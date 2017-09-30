@@ -17,7 +17,8 @@ import java.util.Set;
  * Container representing a GraphQL "connection" object.
  */
 @AllArgsConstructor
-public class ConnectionContainer {
+public class ConnectionContainer implements NestedContainer {
     @Getter private final Set<PersistentResource> persistentResources;
     @Getter private final Optional<Pagination> pagination;
+    @Getter private final String typeName;
 }
