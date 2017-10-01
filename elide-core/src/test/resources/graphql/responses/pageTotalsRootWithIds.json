@@ -1,0 +1,15 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno"
+        }
+      }
+    ],
+    "pageInfo": {
+      "totalRecords": 1
+    }
+  }
+}

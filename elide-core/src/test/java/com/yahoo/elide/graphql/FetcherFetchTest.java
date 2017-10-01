@@ -21,7 +21,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     private static String NOT_IMPLEMENTED = "not implemented";
 
     @Test
-    public void testRootSingle() throws JsonProcessingException {
+    public void testRootSingle() throws Exception {
         String graphQLRequest = "{"
                 + "book(ids: [\"1\"]) { "
                 + "id "
@@ -47,7 +47,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootMultipleIds() throws JsonProcessingException {
+    public void testRootMultipleIds() throws Exception {
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\", \"2\"]) { "
                 + "id "
@@ -69,7 +69,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollection() throws JsonProcessingException {
+    public void testRootCollection() throws Exception {
         String graphQLRequest = "{ "
                 + "book { "
                 + "id "
@@ -99,7 +99,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedSingle() throws JsonProcessingException {
+    public void testNestedSingle() throws Exception {
         String graphQLRequest = "{ "
                 + "author(ids: [\"1\"]) { "
                 + "name "
@@ -121,7 +121,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollection() throws JsonProcessingException {
+    public void testNestedCollection() throws Exception {
         String graphQLRequest = "{ "
                 + "author(ids: [\"1\"]) { "
                 + "books(ids: [\"1\"]) { "
@@ -143,7 +143,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionSort() throws JsonProcessingException {
+    public void testRootCollectionSort() throws Exception {
         String graphQLRequest = "{ "
                 + "book(sort: \"-title\") { "
                 + "id "
@@ -157,7 +157,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionMultiSort() throws JsonProcessingException {
+    public void testRootCollectionMultiSort() throws Exception {
         String graphQLRequest = "{ "
                 + "book(sort: \"-publisher.id,id\") { "
                 + "id "
@@ -175,7 +175,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollectionSort() throws JsonProcessingException {
+    public void testNestedCollectionSort() throws Exception {
         String graphQLRequest = "{ "
                 + "author(ids: [\"1\"]) { "
                 + "books(sort: \"title\") { "
@@ -200,7 +200,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionPaginate() throws JsonProcessingException {
+    public void testRootCollectionPaginate() throws Exception {
         /* Only first argument */
         String graphQLRequest = "{ "
                 + "book(first: \"1\") { "
@@ -235,7 +235,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollectionPaginate() throws JsonProcessingException {
+    public void testNestedCollectionPaginate() throws Exception {
         String graphQLRequest = "{ "
                 + "author(ids: [\"1\"]) { "
                 + "books(first: \"1\", offset: \"1\") { "
@@ -256,7 +256,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollectionFilter() throws JsonProcessingException {
+    public void testNestedCollectionFilter() throws Exception {
         String graphQLRequest = "{ author(ids: [\"1\"]) { books(filter: \"title==\\\"Libro U*\\\"\") { id title } } }";
         String expectedResponse = "{\"author\":[{\"books\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}]}";
 
@@ -264,7 +264,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionFilter() throws JsonProcessingException {
+    public void testRootCollectionFilter() throws Exception {
         String graphQLRequest = "{ book(filter: \"title==\\\"Libro U*\\\"\") { id title } }";
         String expectedResponse = "{\"book\":[{\"id\":\"1\",\"title\":\"Libro Uno\"}]}";
 
@@ -272,7 +272,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testFailuresWithBody() throws JsonProcessingException {
+    public void testFailuresWithBody() throws Exception {
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "
                 + "id "
@@ -285,99 +285,27 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testPageTotalsRoot() throws Exception {
-//        String graphQLRequest = "{"
-//                + "book { "
-//                + "id "
-//                + "title "
-//                + "__bookTotalRecords "
-//                + "}"
-//                + "}";
-        String graphQLRequest = loadGraphQLRequest("pageTotalsRoot.graphql");
-//        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        assertQueryEquals(graphQLRequest, "abc");
-//        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
-//        for (Map<String, Object> resultValues : results) {
-//            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
-//        }
+        runComparisonTest("pageTotalsRoot");
     }
 
     @Test
-    public void testPageTotalsRootWithFilter() throws JsonProcessingException {
-        String graphQLRequest = "{"
-                + "book(filter: \"title==\\\"Libro*\\\"\") { "
-                + "id "
-                + "title "
-                + "__bookTotalRecords "
-                + "}"
-                + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
-        for (Map<String, Object> resultValues : results) {
-            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 2L);
-        }
+    public void testPageTotalsRootWithFilter() throws Exception {
+        runComparisonTest("pageTotalsRootWithFilter");
     }
 
     @Test
-    public void testPageTotalsRootWithPagination() throws JsonProcessingException {
-        String graphQLRequest = "{"
-                + "book(first: \"1\", offset: \"1\") { "
-                + "id "
-                + "title "
-                + "__bookTotalRecords "
-                + "}"
-                + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
-        for (Map<String, Object> resultValues : results) {
-            Assert.assertEquals(resultValues.get("__bookTotalRecords"), 3L);
-        }
+    public void testPageTotalsRootWithPagination() throws Exception {
+        // TODO: Rename first and offset parameters
+        runComparisonTest("pageTotalsRootWithPagination");
     }
 
     @Test
-    public void testPageTotalsRootWithIds() throws JsonProcessingException {
-        String graphQLRequest = "{"
-                + "book(ids: [\"1\"]) { "
-                + "id "
-                + "title "
-                + "__bookTotalRecords "
-                + "}"
-                + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        List<Map<String, Object>> results = getValuesForRelationship(result, "book");
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(results.get(0).get("__bookTotalRecords"), 1L);
+    public void testPageTotalsRootWithIds() throws Exception {
+        runComparisonTest("pageTotalsRootWithIds");
     }
 
     @Test
-    public void testPageTotalsRelationship() throws JsonProcessingException {
-        String graphQLRequest = "{"
-                + "author { "
-                + "id "
-                + "books { "
-                + "id "
-                + "__bookTotalRecords "
-                + "}"
-                + "}"
-                + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        List<Map<String, Object>> results = getValuesForRelationship(result, "author");
-        Map<String, Object> author1 = results.get(0);
-        Map<String, Object> author2 = results.get(1);
-        List<Map<String, Object>> books = (List) author1.get("books");
-        // Author1 has 2 books
-        for (Map<String, Object> book : books) {
-            Assert.assertEquals(book.get("__bookTotalRecords"), 2L);
-        }
-
-        books = (List) author2.get("books");
-        // Author2 has 1 book
-        for (Map<String, Object> book : books) {
-            Assert.assertEquals(book.get("__bookTotalRecords"), 1L);
-        }
-    }
-
-    private List<Map<String, Object>> getValuesForRelationship(ExecutionResult result, String relName) {
-        Map<String, List<Map<String, Object>>> resultMap = (Map) result.getData();
-        return resultMap.get(relName);
+    public void testPageTotalsRelationship() throws Exception {
+        runComparisonTest("pageTotalsRelationship");
     }
 }

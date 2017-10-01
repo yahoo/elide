@@ -16,7 +16,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     /* CREATING NEW OBJECTS */
     /* ==================== */
     @Test
-    public void testCreateRootSingle() throws JsonProcessingException {
+    public void testCreateRootSingle() throws Exception {
         String graphQLRequest = "mutation { "
                 + "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { "
                 + "title "
@@ -32,7 +32,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testCreateRootCollection() throws JsonProcessingException {
+    public void testCreateRootCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}] ) { "
                 + "id "
@@ -53,7 +53,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testCreateNestedSingle() throws JsonProcessingException {
+    public void testCreateNestedSingle() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "id "
@@ -75,7 +75,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testCreateNestedCollection() throws JsonProcessingException {
+    public void testCreateNestedCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "id "
@@ -102,7 +102,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     /* UPDATING EXISTING OBJECTS */
     /* ========================= */
     @Test
-    public void testRootSingleWithId() throws JsonProcessingException {
+    public void testRootSingleWithId() throws Exception {
         //author 1 already exist, should update
         String graphQLRequest = "mutation { "
                 + "author(op:UPSERT, data: {id: \"1\", name: \"abc\" }) { "
@@ -121,7 +121,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootSingleWithList() throws JsonProcessingException {
+    public void testRootSingleWithList() throws Exception {
         //book 1 and 2 already exist, should update
         String graphQLRequest = "mutation { "
                 + "book(op:UPSERT, data: [{id: \"1\", title: \"abc\"}, {id: \"2\", title: \"xyz\"}]) { "
@@ -143,7 +143,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionMixedIds() throws JsonProcessingException {
+    public void testRootCollectionMixedIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
         String graphQLRequest = "mutation { "
                 + "book(op:UPSERT, data: [{id: \"1\", title: \"my id\"}, {id: \"42\", title: \"xyz\"}, {title: \"abc\"}]) { "
@@ -164,7 +164,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedSingleUpdate() throws JsonProcessingException {
+    public void testNestedSingleUpdate() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "id "
@@ -188,7 +188,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollection() {
+    public void testNestedCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "id "
@@ -215,7 +215,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testUpsertOnCollection() {
+    public void testUpsertOnCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(op:UPSERT, data: {name: \"John Snow\", books: [{id: \"1\", title: \"my id\"}, {title: \"abc\"}]}) { "
                 + "name "
@@ -238,7 +238,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNonCreatedIdReferenceCollection() {
+    public void testNonCreatedIdReferenceCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(op:UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"3\", title: \"updated title\"}, {title: \"abc\"}, {id: \"2\", title: \"new title\"}]}) { "
                 + "id "
@@ -269,7 +269,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testCrossCyclicRelationships() {
+    public void testCrossCyclicRelationships() throws Exception {
         String graphQLRequest = "mutation {"
                 + "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\", authors: [{id: \"1\", name: \"Ned Stark\"}]}]}) {"
                 + "id "
@@ -303,7 +303,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedUpserts() {
+    public void testNestedUpserts() throws Exception {
         String graphQLRequest = "mutation {"
                 + "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\"}, {id: \"2\", title: \"Foobar\"}]}) {"
                 + "name "
@@ -324,7 +324,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNonCreatedIdOnlyRequest2Back() {
+    public void testNonCreatedIdOnlyRequest2Back() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(op:UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"3\", title: \"updated again\"}, {id: \"123\", title: \"the new one\"}, {id: \"2\", title: \"newish title\"}]}) { "
                 + "id "

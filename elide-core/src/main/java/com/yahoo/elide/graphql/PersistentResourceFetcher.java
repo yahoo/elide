@@ -381,19 +381,21 @@ public class PersistentResourceFetcher implements DataFetcher {
         // Need to clean this up. This mutation feels brittle.
         lastPaginationObject = pagination;
 
-        if (isToOne) {
-            return relations.iterator().next();
-        } else {
-            return relations;
-        }
+        return new ConnectionContainer(relations, pagination, typeName);
+
+//        if (isToOne) {
+//            return relations.iterator().next();
+//        } else {
+//            return relations;
+//        }
     }
 
     /**
      * handle UPSERT operation
      * @param context Environment encapsulating graphQL's request environment
-     * @return list of {@link PersistentResource} objects
+     * @return Connection object.
      */
-    private Set<PersistentResource> upsertObjects(Environment context) {
+    private ConnectionContainer upsertObjects(Environment context) {
         /* sanity check for id and data argument w UPSERT */
         if (context.ids.isPresent()) {
             throw new BadRequestException("UPSERT must not include ids");
@@ -440,9 +442,13 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
         }
 
-        return entitySet.stream()
+        String entityName = dictionary.getJsonAliasFor(entityClass);
+
+        Set<PersistentResource> resources = entitySet.stream()
                 .map(Entity::toPersistentResource)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        return new ConnectionContainer(resources, Optional.empty(), entityName);
     }
 
     /**
@@ -635,7 +641,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         Set<PersistentResource> existingObjects = (Set<PersistentResource>) fetchObjects(context);
-        Set<PersistentResource> upsertedObjects = upsertObjects(context);
+        Set<PersistentResource> upsertedObjects = upsertObjects(context).getPersistentResources();
         Set<PersistentResource> toDelete = Sets.difference(existingObjects, upsertedObjects);
 
         if (!context.isRoot()) { /* has parent */

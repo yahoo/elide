@@ -127,7 +127,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         tx.commit(null);
     }
 
-    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
+    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
@@ -138,7 +138,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
             LOG.debug(mapper.writeValueAsString(result.getData()));
-            Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
+            Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
+                    mapper.readTree(expectedResponse));
         } catch (JsonProcessingException e) {
             Assert.fail("JSON parsing exception", e);
         }
@@ -163,5 +164,17 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/requests/" + fileName)) {
             return FileUtils.readFully(new InputStreamReader(in));
         }
+    }
+
+    public String loadGraphQLResponse(String fileName) throws IOException {
+        try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
+            return FileUtils.readFully(new InputStreamReader(in));
+        }
+    }
+
+    public void runComparisonTest(String testName) throws Exception {
+        String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
+        String graphQLResponse = loadGraphQLResponse(testName + ".json");
+        assertQueryEquals(graphQLRequest, graphQLResponse);
     }
 }

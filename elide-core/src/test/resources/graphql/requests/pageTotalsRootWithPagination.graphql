@@ -1,0 +1,16 @@
+{
+  book(first: "1", offset: "1") {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      totalRecords
+      startCursor
+      endCursor
+      hasNextPage
+    }
+  }
+}

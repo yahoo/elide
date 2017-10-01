@@ -23,7 +23,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootIdNoData() throws JsonProcessingException {
+    public void testRootIdNoData() throws Exception {
         String graphQLRequest = "mutation { "
                     + "author(op:DELETE, ids: [\"1\"]) { "
                     + "id "
@@ -62,7 +62,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollection() throws JsonProcessingException {
+    public void testRootCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "book(op:DELETE, ids: [\"1\", \"2\"]) { "
                 + "id "
@@ -108,7 +108,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
 
 
     @Test
-    public void testNestedSingleId() throws JsonProcessingException {
+    public void testNestedSingleId() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "books(op:DELETE, ids: [\"1\"]) { "
@@ -140,7 +140,7 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedCollection() throws JsonProcessingException {
+    public void testNestedCollection() throws Exception {
         String graphQLRequest = "mutation { "
                 + "author(ids: [\"1\"]) { "
                 + "books(op:DELETE, ids: [\"1\", \"2\"]) { "
