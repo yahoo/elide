@@ -137,7 +137,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
-            LOG.debug(mapper.writeValueAsString(result.getData()));
+            LOG.info(mapper.writeValueAsString(result.getData()));
             Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
                     mapper.readTree(expectedResponse));
         } catch (JsonProcessingException e) {
