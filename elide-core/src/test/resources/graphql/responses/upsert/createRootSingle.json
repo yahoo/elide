@@ -1,0 +1,11 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "title": "Book Numero Dos"
+        }
+      }
+    ]
+  }
+}

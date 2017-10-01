@@ -16,85 +16,22 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     /* ==================== */
     @Test
     public void testCreateRootSingle() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "book(op: UPSERT, data: {title: \"Book Numero Dos\"} ) { "
-                + "title "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"book\":[{"
-                + "\"title\":\"Book Numero Dos\""
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("createRootSingle");
     }
 
     @Test
     public void testCreateRootCollection() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "book(op: UPSERT, data: [{title: \"Book Numero Dos\"},{title:\"Book Numero Tres\"}] ) { "
-                + "id "
-                + "title "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"book\":[{"
-                + "\"id\":\"4\","
-                + "\"title\":\"Book Numero Dos\""
-                + "},{"
-                + "\"id\":\"5\","
-                + "\"title\":\"Book Numero Tres\""
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("createRootCollection");
     }
 
     @Test
     public void testCreateNestedSingle() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(ids: [\"1\"]) { "
-                + "id "
-                + "books(op: UPSERT, data: {title: \"Book Numero Dos\"}) { "
-                + "title "
-                + "} "
-                + "} "
-                + "} ";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"books\":[{"
-                + "\"title\":\"Book Numero Dos\""
-                + "}]"
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("createNestedSingle");
     }
 
     @Test
     public void testCreateNestedCollection() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(ids: [\"1\"]) { "
-                + "id "
-                + "books(op: UPSERT, data: [{title: \"Book Numero Dos\"}, {title: \"Book Numero Tres\"}]) { "
-                + "title "
-                + "} "
-                + "} "
-                + "} ";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"books\":[{"
-                + "\"title\":\"Book Numero Dos\""
-                + "},{"
-                + "\"title\":\"Book Numero Tres\""
-                + "}]"
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("createNestedCollection");
     }
 
     /* ========================= */
@@ -103,42 +40,13 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootSingleWithId() throws Exception {
         //author 1 already exist, should update
-        String graphQLRequest = "mutation { "
-                + "author(op:UPSERT, data: {id: \"1\", name: \"abc\" }) { "
-                + "id "
-                + "name "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"name\":\"abc\""
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("rootSingleWithId");
     }
 
     @Test
     public void testRootSingleWithList() throws Exception {
         //book 1 and 2 already exist, should update
-        String graphQLRequest = "mutation { "
-                + "book(op:UPSERT, data: [{id: \"1\", title: \"abc\"}, {id: \"2\", title: \"xyz\"}]) { "
-                + "id "
-                + "title "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"book\":[{"
-                + "\"id\":\"1\","
-                + "\"title\":\"abc\""
-                + "},{"
-                + "\"id\":\"2\","
-                + "\"title\":\"xyz\""
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("rootSingleWithList");
     }
 
     @Test
@@ -349,5 +257,10 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
                 + "}]"
                 + "}";
         assertQueryEquals(graphQLRequest, expectedResponse);
+    }
+
+    @Override
+    public void runComparisonTest(String testName) throws Exception {
+        super.runComparisonTest("upsert/" + testName);
     }
 }
