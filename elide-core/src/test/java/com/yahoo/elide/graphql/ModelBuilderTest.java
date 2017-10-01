@@ -33,8 +33,12 @@ public class ModelBuilderTest {
     private static final String OFFSET = "offset";
     private static final String TYPE = "type";
 
+    // Connection fields
+    private static final String EDGES = "edges";
+    private static final String NODE = "node";
+
     // Meta fields
-    private static final String BOOK_TOTAL_RECORDS = "__bookTotalRecords";
+    private static final String PAGE_INFO = "pageInfo";
 
     private static final String BOOK = "book";
     private static final String BOOKS = "books";
@@ -58,14 +62,14 @@ public class ModelBuilderTest {
     }
 
     @Test
-    public void testMetaObject() {
+    public void testPageInfoObject() {
         DataFetcher fetcher = mock(DataFetcher.class);
         ModelBuilder builder = new ModelBuilder(dictionary, fetcher);
 
         GraphQLSchema schema = builder.build();
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
-        Assert.assertNotNull(bookType.getFieldDefinition(BOOK_TOTAL_RECORDS));
+        Assert.assertNotNull(bookType.getFieldDefinition(PAGE_INFO));
     }
 
     @Test
@@ -130,17 +134,18 @@ public class ModelBuilderTest {
         Assert.assertTrue(addressType.getFieldDefinition("street2").getType().equals(Scalars.GraphQLString));
 
 
-        GraphQLList authorsType = (GraphQLList) bookType.getFieldDefinition(AUTHORS).getType();
+        GraphQLObjectType authorsType = (GraphQLObjectType) bookType.getFieldDefinition(AUTHORS).getType();
+        GraphQLObjectType authorsNodeType = getConnectedType(authorsType, null);
 
-        Assert.assertTrue(authorsType.getWrappedType().equals(authorType));
+        Assert.assertTrue(authorsNodeType.equals(authorType));
 
         Assert.assertTrue(authorType.getFieldDefinition(NAME).getType().equals(Scalars.GraphQLString));
 
         Assert.assertTrue(validateEnum(Author.AuthorType.class,
                 (GraphQLEnumType) authorType.getFieldDefinition(TYPE).getType()));
 
-        GraphQLList booksType = (GraphQLList) authorType.getFieldDefinition(BOOKS).getType();
-        Assert.assertTrue(booksType.getWrappedType().equals(bookType));
+        GraphQLObjectType booksNodeType = getConnectedType(authorType, BOOKS);
+        Assert.assertTrue(booksNodeType.equals(bookType));
 
         GraphQLInputObjectType bookInputType = (GraphQLInputObjectType) schema.getType(BOOK_INPUT);
         GraphQLInputObjectType authorInputType = (GraphQLInputObjectType) schema.getType(AUTHOR_INPUT);
@@ -157,6 +162,16 @@ public class ModelBuilderTest {
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(BOOKS).getType();
         Assert.assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+    }
+
+    private GraphQLObjectType getConnectedType(GraphQLObjectType root, String connectionName) {
+        GraphQLList edgesType = (GraphQLList) root.getFieldDefinition(EDGES).getType();
+        GraphQLObjectType rootType =  (GraphQLObjectType)
+                ((GraphQLObjectType) edgesType.getWrappedType()).getFieldDefinition(NODE).getType();
+        if (connectionName == null) {
+            return rootType;
+        }
+        return getConnectedType((GraphQLObjectType) rootType.getFieldDefinition(connectionName).getType(), null);
     }
 
     private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {

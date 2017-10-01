@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
 /**
