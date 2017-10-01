@@ -30,7 +30,7 @@ public class ModelBuilderTest {
     private static final String FILTER = "filter";
     private static final String SORT = "sort";
     private static final String FIRST = "first";
-    private static final String OFFSET = "offset";
+    private static final String AFTER = "after";
     private static final String TYPE = "type";
 
     // Connection fields
@@ -88,7 +88,7 @@ public class ModelBuilderTest {
         Assert.assertNotNull(bookField.getArgument(FILTER));
         Assert.assertNotNull(bookField.getArgument(SORT));
         Assert.assertNotNull(bookField.getArgument(FIRST));
-        Assert.assertNotNull(bookField.getArgument(OFFSET));
+        Assert.assertNotNull(bookField.getArgument(AFTER));
 
         /* book.publisher is a 'to one' relationship so it should be missing all but the data parameter */
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
@@ -97,7 +97,7 @@ public class ModelBuilderTest {
         Assert.assertNull(publisherField.getArgument(FILTER));
         Assert.assertNull(publisherField.getArgument(SORT));
         Assert.assertNull(publisherField.getArgument(FIRST));
-        Assert.assertNull(publisherField.getArgument(OFFSET));
+        Assert.assertNull(publisherField.getArgument(AFTER));
 
         /* book.authors is a 'to many' relationship so it should have all query parameters defined */
         GraphQLFieldDefinition authorField = bookType.getFieldDefinition(AUTHORS);
@@ -105,7 +105,7 @@ public class ModelBuilderTest {
         Assert.assertNotNull(authorField.getArgument(FILTER));
         Assert.assertNotNull(authorField.getArgument(SORT));
         Assert.assertNotNull(authorField.getArgument(FIRST));
-        Assert.assertNotNull(authorField.getArgument(OFFSET));
+        Assert.assertNotNull(authorField.getArgument(AFTER));
     }
 
     @Test

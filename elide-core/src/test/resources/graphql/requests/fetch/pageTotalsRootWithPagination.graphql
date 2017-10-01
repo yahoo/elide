@@ -1,5 +1,5 @@
 {
-  book(first: "1", offset: "1") {
+  book(first: "1", after: "1") {
     edges {
       node {
         id

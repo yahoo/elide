@@ -46,7 +46,7 @@ public class ModelBuilder {
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
     public static final String ARGUMENT_FIRST = "first";
-    public static final String ARGUMENT_OFFSET = "offset";
+    public static final String ARGUMENT_AFTER = "after";
     public static final String ARGUMENT_OPERATION = "op";
 
     private EntityDictionary dictionary;
@@ -101,7 +101,7 @@ public class ModelBuilder {
                 .build();
 
         pageOffsetArgument = newArgument()
-                .name(ARGUMENT_OFFSET)
+                .name(ARGUMENT_AFTER)
                 .type(Scalars.GraphQLString)
                 .build();
 

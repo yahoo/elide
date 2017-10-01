@@ -41,7 +41,7 @@ public class Environment {
         requestScope = (GraphQLRequestScope) environment.getContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
-        offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_OFFSET));
+        offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));
         first = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FIRST));
         sort = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_SORT));
 
