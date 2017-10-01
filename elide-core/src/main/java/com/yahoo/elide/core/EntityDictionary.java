@@ -399,6 +399,28 @@ public class EntityDictionary {
     }
 
     /**
+     * Get a list of elide-bound relationships.
+     *
+     * @param entityClass Entity class to find relationships for
+     * @return List of elide-bound relationship names.
+     */
+    public List<String> getElideBoundRelationships(Class<?> entityClass) {
+        return getRelationships(entityClass).stream()
+                .filter(relationName -> getBindings().contains(getParameterizedType(entityClass, relationName)))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get a list of elide-bound relationships.
+     *
+     * @param entity Entity instance to find relationships for
+     * @return List of elide-bound relationship names.
+     */
+    public List<String> getElideBoundRelationships(Object entity) {
+        return getElideBoundRelationships(entity.getClass());
+    }
+
+    /**
      * Determine whether or not a method is request scopeable.
      *
      * @param entity  Entity instance
@@ -987,7 +1009,7 @@ public class EntityDictionary {
             results.add(transform.apply(clazz));
             visited.add(clazz);
 
-            for (String relationship : getRelationships(clazz)) {
+            for (String relationship : getElideBoundRelationships(clazz)) {
                 Class<?> relationshipClass = getParameterizedType(clazz, relationship);
 
                 try {

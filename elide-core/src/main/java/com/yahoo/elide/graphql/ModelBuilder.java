@@ -238,12 +238,6 @@ public class ModelBuilder {
                         .dataFetcher(dataFetcher)
                         .type(pageInfoObject));
 
-        // Additional special fields
-//        builder.field(newFieldDefinition()
-//                .name(getTotalRecordKey(entityName))
-//                .dataFetcher(dataFetcher)
-//                .type(Scalars.GraphQLLong));
-
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
             if (excludedEntities.contains(attributeClass)) {
@@ -269,7 +263,7 @@ public class ModelBuilder {
             );
         }
 
-        for (String relationship : dictionary.getRelationships(entityClass)) {
+        for (String relationship : dictionary.getElideBoundRelationships(entityClass)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
             if (excludedEntities.contains(relationshipClass)) {
                 continue;
@@ -418,7 +412,7 @@ public class ModelBuilder {
      */
     private void resolveInputObjectRelationships() {
         inputObjectRegistry.forEach((clazz, inputObj) -> {
-            for (String relationship : dictionary.getRelationships(clazz)) {
+            for (String relationship : dictionary.getElideBoundRelationships(clazz)) {
                 log.info("Resolving relationship {} for {}", relationship, clazz.getName());
                 Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
                 if (excludedEntities.contains(relationshipClass)) {

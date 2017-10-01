@@ -24,6 +24,7 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.EdgesContainer;
 import com.yahoo.elide.graphql.containers.NodeContainer;
 import com.yahoo.elide.graphql.containers.PageInfoContainer;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -304,6 +305,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
+            List<Object> coercedIds = idList.stream()
+                    .map(id -> CoerceUtil.coerce(id, idType))
+                    .collect(Collectors.toList());
+
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             FilterExpression idFilter = new FilterPredicate(
                     new Path.PathElement(
@@ -311,7 +316,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                             idType,
                             idField),
                     Operator.IN,
-                    new ArrayList<>(idList));
+                    new ArrayList<>(coercedIds));
             FilterExpression filterExpression = filter
                     .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
                     .orElse(idFilter);
