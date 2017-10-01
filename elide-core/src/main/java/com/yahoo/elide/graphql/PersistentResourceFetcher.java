@@ -20,10 +20,8 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.graphql.containers.ConnectionContainer;
-import com.yahoo.elide.graphql.containers.EdgesContainer;
-import com.yahoo.elide.graphql.containers.NodeContainer;
-import com.yahoo.elide.graphql.containers.PageInfoContainer;
+import com.yahoo.elide.graphql.containers.*;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -54,15 +52,7 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
 
-    private static final String EDGES_KEYWORD = "edges";
-    private static final String NODE_KEYWORD = "node";
-
-    // Page info keywords
-    private static final String PAGE_INFO_KEYWORD = "pageInfo";
-    private static final String PAGE_INFO_HAS_NEXT_PAGE_KEYWORD = "hasNextPage";
-    private static final String PAGE_INFO_START_CURSOR_KEYWORD = "startCursor";
-    private static final String PAGE_INFO_END_CURSOR_KEYWORD = "endCursor";
-    private static final String PAGE_INFO_TOTAL_RECORDS_KEYWORD = "totalRecords";
+    public static final String PAGE_INFO_KEYWORD = "pageInfo";
 
     PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
@@ -158,115 +148,29 @@ public class PersistentResourceFetcher implements DataFetcher {
         /* check whether current object has a parent or not */
         if (context.isRoot()) {
             return handleRootQuery(context);
-        } else { /* fetch attribute or relationship */
-            if (context.rawSource instanceof ConnectionContainer) {
-                return handleConnectionQuery(context);
-            }
-            if (context.rawSource instanceof EdgesContainer) {
-                return handleEdgesQuery(context);
-            }
-            if (context.rawSource instanceof PageInfoContainer) {
-                return handlePageInfoQuery(context);
-            }
-            if (context.rawSource instanceof NodeContainer) {
-                return handleNodeQuery(context);
-            }
-            Class parentClass = context.parentResource.getResourceClass();
-            String fieldName = context.field.getName();
-            throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
+        } else if (context.rawSource instanceof GraphQLContainer) { /* fetch attribute or relationship */
+            return ((GraphQLContainer) context.rawSource).process(context, this);
         }
+
+        // If we somehow are not root and not part of a GraphQL container, fail gracefully with an error message.
+        Class parentClass = context.parentResource.getResourceClass();
+        String fieldName = context.field.getName();
+        throw new IllegalStateException("Illegal fetch. Tried to access field: " + fieldName + " for: " + parentClass);
     }
 
-    private Object handleRootQuery(Environment context) {
+    /**
+     * Handle a request from the root.
+     *
+     * @param context Environment context
+     * @return Connection object returned from the root
+     */
+    private ConnectionContainer handleRootQuery(Environment context) {
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
         String entityType = dictionary.getJsonAliasFor(entityClass);
         boolean generateTotals = requestContainsPageInfo(entityType, context.field);
         return fetchObject(context, context.requestScope, entityClass, context.ids,
                 context.sort, context.offset, context.first, context.filters, generateTotals);
-    }
-
-    private Object handleConnectionQuery(Environment context) {
-        String fieldName = context.field.getName();
-        ConnectionContainer container = (ConnectionContainer) context.rawSource;
-
-        switch (fieldName) {
-            case EDGES_KEYWORD:
-                return container.getPersistentResources().stream()
-                        .map(EdgesContainer::new)
-                        .collect(Collectors.toList());
-            case PAGE_INFO_KEYWORD:
-                return new PageInfoContainer(container);
-            default:
-                break;
-        }
-
-        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in a connection object.");
-    }
-
-    private Object handleEdgesQuery(Environment context) {
-        String fieldName = context.field.getName();
-
-        if (NODE_KEYWORD.equals(fieldName)) {
-            return new NodeContainer(context.parentResource);
-        }
-        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an edges object.");
-    }
-
-    private Object handlePageInfoQuery(Environment context) {
-        String fieldName = context.field.getName();
-        PageInfoContainer container = (PageInfoContainer) context.rawSource;
-        ConnectionContainer connectionContainer = container.getConnectionContainer();
-        Optional<Pagination> pagination = connectionContainer.getPagination();
-
-        List<String> ids = connectionContainer.getPersistentResources().stream()
-                .map(PersistentResource::getId)
-                .sorted()
-                .collect(Collectors.toList());
-
-        return pagination.map(pageValue -> {
-            switch (fieldName) {
-                case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD: {
-                    int numResults = ids.size();
-                    int nextOffset = numResults + pageValue.getOffset();
-                    return nextOffset < pageValue.getPageTotals();
-                }
-                case PAGE_INFO_START_CURSOR_KEYWORD:
-                    return pageValue.getOffset();
-                case PAGE_INFO_END_CURSOR_KEYWORD:
-                    return pageValue.getOffset() + ids.size();
-                case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
-                    return pageValue.getPageTotals();
-                default:
-                    break;
-            }
-            throw new BadRequestException("Invalid request. Looking for field: "
-                    + fieldName + " in an pageInfo object.");
-        }).orElseThrow(() -> new BadRequestException("Could not generate pagination information for type: "
-                + connectionContainer.getTypeName()));
-    }
-
-    private Object handleNodeQuery(Environment context) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-        Class parentClass = context.parentResource.getResourceClass();
-        String fieldName = context.field.getName();
-        String idFieldName = dictionary.getIdFieldName(parentClass);
-
-        if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            return context.parentResource.getAttribute(fieldName);
-        }
-        if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-            String entityType = dictionary.getJsonAliasFor(dictionary.getParameterizedType(parentClass, fieldName));
-            boolean generateTotals = requestContainsPageInfo(entityType, context.field);
-            return fetchRelationship(context, context.parentResource,
-                    fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
-                    generateTotals);
-        }
-        if (Objects.equals(idFieldName, fieldName)) {
-            return new DeferredId(context.parentResource);
-        }
-        throw new BadRequestException("Unrecognized object: " + fieldName + " for: "
-                + parentClass.getName() + " in node");
     }
 
     /**
@@ -304,6 +208,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
+            List<Object> coercedIds = idList.stream()
+                    .map(id -> CoerceUtil.coerce(id, idType))
+                    .collect(Collectors.toList());
+
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             FilterExpression idFilter = new FilterPredicate(
                     new Path.PathElement(
@@ -311,7 +219,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                             idType,
                             idField),
                     Operator.IN,
-                    new ArrayList<>(idList));
+                    new ArrayList<>(coercedIds));
             FilterExpression filterExpression = filter
                     .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
                     .orElse(idFilter);
@@ -342,7 +250,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return persistence resource object(s)
      */
-    private Object fetchRelationship(Environment context,
+    public Object fetchRelationship(Environment context,
                                      PersistentResource parentResource,
                                      String fieldName,
                                      Optional<List<String>> ids,
@@ -662,7 +570,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         });
     }
 
-    private boolean requestContainsPageInfo(String entityType, Field field) {
+    public static boolean requestContainsPageInfo(String entityType, Field field) {
         return field.getSelectionSet().getSelections().stream()
                 .anyMatch(f -> f instanceof Field && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
     }

@@ -7,7 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.graphql.containers.NestedContainer;
+import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -68,6 +68,6 @@ public class Environment {
     }
 
     public boolean isRoot() {
-        return parentResource == null && !(rawSource instanceof NestedContainer);
+        return parentResource == null && !(rawSource instanceof GraphQLContainer);
     }
 }

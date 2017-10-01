@@ -30,7 +30,8 @@ public class GraphQLIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void fetchRootSingle() throws IOException {
-        String graphQLRequest = "{ book(id: \"1\") { edges { node { id title } } } }";
+        String graphQLQuery = "{ book(ids: [\\\"1\\\"]) { edges { node { id title } } } }";
+        String graphQLRequest = "{ \"query\": \"" + graphQLQuery + "\" }";
 
         RestAssured.given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -38,6 +39,6 @@ public class GraphQLIT extends AbstractIntegrationTestInitializer {
                 .body(graphQLRequest)
                 .post("/graphQL")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED);
+                .statusCode(HttpStatus.SC_OK);
     }
 }

@@ -6,13 +6,31 @@
 package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import javax.ws.rs.BadRequestException;
 
 /**
  * Container for edges.
  */
 @AllArgsConstructor
-public class EdgesContainer implements PersistentResourceContainer, NestedContainer {
+public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer {
     @Getter private final PersistentResource persistentResource;
+
+    private static final String NODE_KEYWORD = "node";
+
+    @Override
+    public Object process(Environment context, PersistentResourceFetcher fetcher) {
+        String fieldName = context.field.getName();
+
+        // TODO: Cursor
+        if (NODE_KEYWORD.equals(fieldName)) {
+            return new NodeContainer(context.parentResource);
+        }
+
+        throw new BadRequestException("Invalid request. Looking for field: " + fieldName + " in an edges object.");
+    }
 }

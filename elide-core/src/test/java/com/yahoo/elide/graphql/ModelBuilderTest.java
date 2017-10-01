@@ -121,8 +121,8 @@ public class ModelBuilderTest {
         Assert.assertNotEquals(schema.getType(BOOK_INPUT), null);
         Assert.assertNotEquals(schema.getType("root"), null);
 
-        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
-        GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(AUTHOR);
+        GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
+        GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);
 
         Assert.assertTrue(bookType.getFieldDefinition(TITLE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition(GENRE).getType().equals(Scalars.GraphQLString));
@@ -144,7 +144,7 @@ public class ModelBuilderTest {
         Assert.assertTrue(validateEnum(Author.AuthorType.class,
                 (GraphQLEnumType) authorType.getFieldDefinition(TYPE).getType()));
 
-        GraphQLObjectType booksNodeType = getConnectedType(authorType, BOOKS);
+        GraphQLObjectType booksNodeType = (GraphQLObjectType) authorType.getFieldDefinition(BOOKS).getType();
         Assert.assertTrue(booksNodeType.equals(bookType));
 
         GraphQLInputObjectType bookInputType = (GraphQLInputObjectType) schema.getType(BOOK_INPUT);
