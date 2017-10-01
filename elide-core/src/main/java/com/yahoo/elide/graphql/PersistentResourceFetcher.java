@@ -64,8 +64,6 @@ public class PersistentResourceFetcher implements DataFetcher {
     private static final String PAGE_INFO_END_CURSOR_KEYWORD = "endCursor";
     private static final String PAGE_INFO_TOTAL_RECORDS_KEYWORD = "totalRecords";
 
-    private Optional<Pagination> lastPaginationObject = Optional.empty();
-
     PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
     }
@@ -184,9 +182,8 @@ public class PersistentResourceFetcher implements DataFetcher {
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
         String entityType = dictionary.getJsonAliasFor(entityClass);
         boolean generateTotals = requestContainsPageInfo(entityType, context.field);
-        Set<PersistentResource> resources = fetchObject(context, context.requestScope, entityClass, context.ids,
+        return fetchObject(context, context.requestScope, entityClass, context.ids,
                 context.sort, context.offset, context.first, context.filters, generateTotals);
-        return new ConnectionContainer(resources, lastPaginationObject, entityType);
     }
 
     private Object handleConnectionQuery(Environment context) {
@@ -285,7 +282,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
-    private Set<PersistentResource> fetchObject(Environment context, RequestScope requestScope, Class entityClass,
+    private ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters, boolean generateTotals) {
@@ -329,11 +326,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                     requestScope)
         );
 
-        // I don't like doing this... We should rearrange and clean up later, but we want to move quickly on this
-        // if possible.
-        lastPaginationObject = pagination;
-
-        return records;
+        return new ConnectionContainer(records, pagination, typeName);
     }
 
     /**
@@ -374,19 +367,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                     filter, sorting, pagination);
         }
 
-        /* check for toOne relationships */
-        Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
-
-        // Need to clean this up. This mutation feels brittle.
-        lastPaginationObject = pagination;
-
         return new ConnectionContainer(relations, pagination, typeName);
-
-//        if (isToOne) {
-//            return relations.iterator().next();
-//        } else {
-//            return relations;
-//        }
     }
 
     /**
@@ -538,7 +519,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    false);
+                    false).getPersistentResources();
 
             if (loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
                 upsertedResource = PersistentResource.createObject(parentResource,

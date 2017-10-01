@@ -109,7 +109,6 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testPageTotalsRootWithPagination() throws Exception {
-        // TODO: Rename first and offset parameters
         runComparisonTest("pageTotalsRootWithPagination");
     }
 
