@@ -1,0 +1,18 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno"
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos"
+        }
+      }
+    ]
+  }
+}

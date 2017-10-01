@@ -595,9 +595,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("DELETE must include ids argument");
         }
 
-        Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        Set<PersistentResource> toDelete = ((ConnectionContainer) fetchObjects(context)).getPersistentResources();
         toDelete.forEach(PersistentResource::deleteResource);
-        return toDelete;
+        return new ConnectionContainer(toDelete, Optional.empty(), "TODO");
     }
 
     /**
