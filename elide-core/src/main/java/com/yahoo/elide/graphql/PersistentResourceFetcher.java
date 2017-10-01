@@ -44,7 +44,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 

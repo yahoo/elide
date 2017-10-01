@@ -52,211 +52,42 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionMixedIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        String graphQLRequest = "mutation { "
-                + "book(op:UPSERT, data: [{id: \"1\", title: \"my id\"}, {id: \"42\", title: \"xyz\"}, {title: \"abc\"}]) { "
-                + "title "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"book\":[{"
-                + "\"title\":\"my id\""
-                + "},{"
-                + "\"title\":\"xyz\""
-                + "},{"
-                + "\"title\":\"abc\""
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("rootCollectionMixedIds");
     }
 
     @Test
     public void testNestedSingleUpdate() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(ids: [\"1\"]) { "
-                + "id "
-                + "books(op:UPSERT, data: {id: \"1\", title: \"abc\"}) { "
-                + "id "
-                + "title "
-                + "} "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"books\":[{"
-                + "\"id\":\"1\","
-                + "\"title\":\"abc\""
-                + "}]"
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("nestedSingleUpdate");
     }
 
     @Test
     public void testNestedCollection() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(ids: [\"1\"]) { "
-                + "id "
-                + "books(op:UPSERT, data: [{id: \"1\", title: \"abc\"}, {id: \"2\", title: \"xyz\"}]) { "
-                + "id "
-                + "title "
-                + "} "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"books\":[{"
-                + "\"id\":\"1\","
-                + "\"title\":\"abc\""
-                + "},{"
-                + "\"id\":\"2\","
-                + "\"title\":\"xyz\""
-                + "}]"
-                + "}]"
-                + "}";
-
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("nestedCollection");
     }
 
     @Test
     public void testUpsertOnCollection() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(op:UPSERT, data: {name: \"John Snow\", books: [{id: \"1\", title: \"my id\"}, {title: \"abc\"}]}) { "
-                + "name "
-                + "books(sort: \"-title\") { "
-                + "title "
-                + "} "
-                + "} "
-                + "}";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"name\":\"John Snow\","
-                + "\"books\":[{"
-                + "\"title\":\"my id\""
-                + "},{"
-                + "\"title\":\"abc\""
-                + "}]"
-                + "}]"
-                + "}";
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("uspertOnCollection");
     }
 
     @Test
     public void testNonCreatedIdReferenceCollection() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(op:UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"3\", title: \"updated title\"}, {title: \"abc\"}, {id: \"2\", title: \"new title\"}]}) { "
-                + "id "
-                + "name "
-                + "books(sort: \"-title\") { "
-                + "title "
-                + "} "
-                + "} "
-                + "}";
-
-        //These are not in the same order as the request.
-        //Both updating and creating new objects in the collection
-        //cannot guarantee the order of the resulting collection.
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"name\":\"John Snow\","
-                + "\"books\":[{"
-                + "\"title\":\"updated title\""
-                + "},{"
-                + "\"title\":\"new title\""
-                + "},{"
-                + "\"title\":\"abc\""
-                + "}]"
-                + "}]"
-                + "}";
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("nonCreatedIdReferenceCollection");
     }
 
     @Test
     public void testCrossCyclicRelationships() throws Exception {
-        String graphQLRequest = "mutation {"
-                + "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\", authors: [{id: \"1\", name: \"Ned Stark\"}]}]}) {"
-                + "id "
-                + "name "
-                + "books(ids: [\"1\"]) { "
-                + "id "
-                + "title "
-                + "authors(ids: [\"1\"]) { "
-                + "id "
-                + "name "
-                + "}"
-                + "}"
-                + "}"
-                + "}";
-
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"name\":\"Ned Stark\","
-                + "\"books\":[{"
-                + "\"id\":\"1\","
-                + "\"title\":\"Libro One\","
-                + "\"authors\":[{"
-                + "\"id\":\"1\","
-                + "\"name\":\"Ned Stark\""
-                + "}]"
-                + "}]"
-                + "}]"
-                + "}";
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("crossCyclicRelationships");
     }
 
     @Test
     public void testNestedUpserts() throws Exception {
-        String graphQLRequest = "mutation {"
-                + "author(op: UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"1\", title: \"Libro One\"}, {id: \"2\", title: \"Foobar\"}]}) {"
-                + "name "
-                + "books(op:UPSERT, data: {id: \"1\", title: \"Changed Again\"}) {"
-                + "title "
-                + "}"
-                + "}"
-                + "}";
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"name\":\"John Snow\","
-                + "\"books\":[{"
-                + "\"title\":\"Changed Again\""
-                + "}]"
-                + "}]"
-                + "}";
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("nestedUpserts");
     }
 
     @Test
     public void testNonCreatedIdOnlyRequest2Back() throws Exception {
-        String graphQLRequest = "mutation { "
-                + "author(op:UPSERT, data: {id: \"1\", name: \"John Snow\", books: [{id: \"3\", title: \"updated again\"}, {id: \"123\", title: \"the new one\"}, {id: \"2\", title: \"newish title\"}]}) { "
-                + "id "
-                + "name "
-                + "books(ids: [\"3\", \"123\"], sort: \"title\") { "
-                + "title "
-                + "} "
-                + "} "
-                + "}";
-
-        //These are not in the same order as the request.
-        //Both updating and creating new objects in the collection
-        //cannot guarantee the order of the resulting collection.
-        String expectedResponse = "{"
-                + "\"author\":[{"
-                + "\"id\":\"1\","
-                + "\"name\":\"John Snow\","
-                + "\"books\":[{"
-                + "\"title\":\"the new one\""
-                + "},{"
-                + "\"title\":\"updated again\""
-                + "}]"
-                + "}]"
-                + "}";
-        assertQueryEquals(graphQLRequest, expectedResponse);
+        runComparisonTest("nonCreatedIdOnlyRequest2Back");
     }
 
     @Override

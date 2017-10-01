@@ -7,8 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.NestedContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import graphql.schema.DataFetchingEnvironment;
