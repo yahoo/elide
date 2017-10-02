@@ -11,6 +11,11 @@ import org.testng.annotations.Test;
  * Test the Add operation.
  */
 public class FetcherUpsertTest extends PersistentResourceFetcherTest {
+
+    public FetcherUpsertTest() {
+        super(true);
+    }
+
     /* ==================== */
     /* CREATING NEW OBJECTS */
     /* ==================== */

@@ -43,6 +43,15 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQLRequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
+    private final boolean isMutating;
+
+    public PersistentResourceFetcherTest() {
+        this(false);
+    }
+
+    public PersistentResourceFetcherTest(boolean isMutating) {
+        this.isMutating = isMutating;
+    }
 
     @BeforeMethod
     public void setupFetcherTest() {
@@ -63,7 +72,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
-        requestScope = new GraphQLRequestScope(tx, null, null, settings, false);
+        requestScope = new GraphQLRequestScope(tx, null, null, settings, isMutating);
     }
 
     private void initTestData(InMemoryTransaction tx) {
