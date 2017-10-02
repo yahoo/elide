@@ -24,11 +24,17 @@ public class GraphQLRequestScope extends RequestScope {
     public GraphQLRequestScope(DataStoreTransaction transaction,
                                User user,
                                MultivaluedHashMap<String, String> queryParams,
-                               ElideSettings elideSettings) {
+                               ElideSettings elideSettings,
+                               boolean isMutating) {
         // TODO: We're going to break out the two request scopes. `RequestScope` should become an interface and
         // we should have a GraphQLRequestScope and a JSONAPIRequestScope.
-        // TODO: What should mutate multiple entity value be? There is a problem with this setting in practice.
-        // Namely, we don't filter or paginate in the data store.
-        super("/", null, transaction, user, queryParams, elideSettings, false);
+        super("/", null, transaction, user, queryParams, elideSettings, isMutating);
+    }
+
+    @Override
+    public void saveOrCreateObjects() {
+        if (isMutatingMultipleEntities()) {
+            super.saveOrCreateObjects();
+        }
     }
 }

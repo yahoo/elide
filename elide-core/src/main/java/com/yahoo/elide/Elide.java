@@ -22,6 +22,7 @@ import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
 import com.yahoo.elide.generated.parsers.CoreLexer;
 import com.yahoo.elide.generated.parsers.CoreParser;
+import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.parsers.BaseVisitor;
@@ -30,6 +31,8 @@ import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -44,11 +47,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -60,6 +65,11 @@ public class Elide {
     private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
+
+    private static final String QUERY = "query";
+    private static final String OPERATION_NAME = "operationName";
+    private static final String VARIABLES = "variables";
+    private static final String MUTATION = "mutation";
 
     /**
      * Instantiates a new Elide instance.
@@ -75,7 +85,65 @@ public class Elide {
     }
 
     /**
-     * Handle GET.
+     * Handle a GraphQL POST request.
+     *
+     * @param api GraphQL API object to process request with
+     * @param queryParams Query parameters for request
+     * @param graphQLDocument GraphQL document to process
+     * @param opaqueUser Opaque user object
+     * @return Elide response with result.
+     */
+    public ElideResponse graphqlPost(GraphQL api,
+                                     MultivaluedHashMap<String, String> queryParams,
+                                     String graphQLDocument,
+                                     Object opaqueUser) {
+        JsonNode jsonDocument;
+        try {
+            jsonDocument = mapper.getObjectMapper().readTree(graphQLDocument);
+        } catch (IOException e) {
+            log.debug("Could not parse input json document: {}", graphQLDocument, e);
+            return new ElideResponse(HttpStatus.SC_BAD_REQUEST, "Failed to parse input request json.");
+        }
+
+        if (!jsonDocument.has(QUERY)) {
+            return new ElideResponse(HttpStatus.SC_BAD_REQUEST, "A `query` key is required.");
+        }
+
+        String query = jsonDocument.get(QUERY).asText();
+        boolean isMutating = query.trim().startsWith(MUTATION);
+        Supplier<DataStoreTransaction> transactionSupplier = isMutating ? dataStore::beginTransaction
+                : dataStore::beginReadTransaction;
+
+        String operationName = jsonDocument.has(OPERATION_NAME) ? jsonDocument.get(OPERATION_NAME).asText() : null;
+
+        return handleRequest(!isMutating, opaqueUser, transactionSupplier, (tx, user) -> {
+            GraphQLRequestScope requestScope =
+                    new GraphQLRequestScope(tx, user, queryParams, elideSettings, isMutating);
+            try {
+                Supplier<Pair<Integer, JsonNode>> graphqlExecutor = () -> {
+                    ExecutionResult result;
+                    if (jsonDocument.has(VARIABLES)) {
+                        Map<String, Object> variables = mapper
+                                .getObjectMapper()
+                                .convertValue(jsonDocument.get(VARIABLES), Map.class);
+                        result = api.execute(query, operationName, requestScope, variables);
+                    } else {
+                        result = api.execute(query, operationName, requestScope);
+                    }
+                    boolean hasErrors = !result.getErrors().isEmpty();
+                    int returnCode = hasErrors ? HttpStatus.SC_PARTIAL_CONTENT : HttpStatus.SC_OK;
+                    JsonNode jsonResult = mapper.getObjectMapper().valueToTree(result);
+                    return Pair.of(returnCode, jsonResult);
+                };
+                return new HandlerResult(requestScope, graphqlExecutor);
+            } catch (RuntimeException e) {
+                return new HandlerResult(requestScope, e);
+            }
+        });
+    }
+
+    /**
+     * Handle GET for JSON API.
      *
      * @param path the path
      * @param queryParams the query params
@@ -98,7 +166,7 @@ public class Elide {
     }
 
     /**
-     * Handle POST.
+     * Handle POST for JSON API.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
@@ -120,7 +188,7 @@ public class Elide {
     }
 
     /**
-     * Handle PATCH.
+     * Handle PATCH for JSON API.
      *
      * @param contentType the content type
      * @param accept the accept
@@ -162,7 +230,7 @@ public class Elide {
     }
 
     /**
-     * Handle DELETE.
+     * Handle DELETE for JSON API.
      *
      * @param path the path
      * @param jsonApiDocument the json api document
