@@ -90,6 +90,11 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         runComparisonTest("nonCreatedIdOnlyRequest2Back");
     }
 
+    @Test
+    public void testSetComputedAttribute() throws Exception {
+        runComparisonTest("setComputedAttribute");
+    }
+
     @Override
     public void runComparisonTest(String testName) throws Exception {
         super.runComparisonTest("upsert/" + testName);

@@ -1,0 +1,16 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "specialOrEcho": "The special string"
+        }
+      },
+      {
+        "node": {
+          "specialOrEcho": "The special string"
+        }
+      }
+    ]
+  }
+}

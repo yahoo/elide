@@ -1,0 +1,9 @@
+mutation {
+  author(op: UPSERT, data: {specialOrEcho: "Echo this"}) {
+    edges {
+      node {
+        specialOrEcho
+      }
+    }
+  }
+}

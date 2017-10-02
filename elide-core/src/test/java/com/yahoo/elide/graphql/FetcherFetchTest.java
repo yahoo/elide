@@ -122,6 +122,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
         runComparisonTest("pageTotalsRelationship");
     }
 
+    @Test
+    public void testComputedAttributes() throws Exception {
+        runComparisonTest("computedAttributes");
+    }
+
     @Override
     public void runComparisonTest(String testName) throws Exception {
         // Preface with "fetch" directory:

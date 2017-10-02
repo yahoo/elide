@@ -6,16 +6,11 @@
 package com.yahoo.elide.books;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -43,6 +38,7 @@ public class Author {
     private String name;
     private AuthorType type;
     private Address homeAddress;
+    private String specialOrEcho = "The special string";
 
     public String getName() {
         return name;
@@ -91,6 +87,17 @@ public class Author {
     }
     public void setPenName(Pseudonym penName) {
         this.penName = penName;
+    }
+
+    // TODO: Eventually we should support multiple argument computed attributes to be used as API _functions_
+    @ComputedAttribute
+    @Transient
+    public String getSpecialOrEcho() {
+        return specialOrEcho;
+    }
+
+    public void setSpecialOrEcho(String specialOrEcho) {
+        this.specialOrEcho = specialOrEcho;
     }
 
     @Override
