@@ -8,6 +8,7 @@ package com.yahoo.elide.parsers.state;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -40,7 +41,7 @@ public class RecordState extends BaseState {
         try {
             RelationshipType type = dictionary.getRelationshipType(resource.getObject(), subCollection);
             if (type == RelationshipType.NONE) {
-                throw new InvalidCollectionException(subCollection);
+                throw new ForbiddenAccessException(subCollection);
             }
             String entityName =
                     dictionary.getJsonAliasFor(dictionary.getParameterizedType(resource.getObject(), subCollection));

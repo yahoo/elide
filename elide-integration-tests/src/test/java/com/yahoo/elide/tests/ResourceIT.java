@@ -353,7 +353,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void failChild() throws Exception {
         String expected = jsonParser.getJson("/ResourceIT/failChild.json");
 
-        given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
+        given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_FORBIDDEN)
         .body(equalTo(expected));
     }
 
@@ -361,7 +361,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void failFieldRequest() throws Exception {
         String expected = jsonParser.getJson("/ResourceIT/failFieldRequest.json");
 
-        given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
+        given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_FORBIDDEN)
         .body(equalTo(expected));
     }
 
@@ -1560,7 +1560,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("{\"errors\":[{\"detail\":null,\"status\":403}]}"));
+                .body(equalTo("{\"errors\":[{\"detail\":\"Entity not found\",\"status\":404}]}"));
     }
 
     @Test(priority = 38)
@@ -1957,7 +1957,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void badChildCollection() {
-        given().when().get("/user/1/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given().when().get("/user/1/oops").then().statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
     @Test
