@@ -52,8 +52,6 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
 
-    public static final String PAGE_INFO_KEYWORD = "pageInfo";
-
     PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
     }
@@ -145,32 +143,8 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("FETCH must not include data");
         }
 
-        /* check whether current object has a parent or not */
-        if (context.isRoot()) {
-            return handleRootQuery(context);
-        } else if (context.rawSource instanceof GraphQLContainer) { /* fetch attribute or relationship */
-            return ((GraphQLContainer) context.rawSource).process(context, this);
-        }
-
-        // If we somehow are not root and not part of a GraphQL container, fail gracefully with an error message.
-        Class parentClass = context.parentResource.getResourceClass();
-        String fieldName = context.field.getName();
-        throw new IllegalStateException("Illegal fetch. Tried to access field: " + fieldName + " for: " + parentClass);
-    }
-
-    /**
-     * Handle a request from the root.
-     *
-     * @param context Environment context
-     * @return Connection object returned from the root
-     */
-    private ConnectionContainer handleRootQuery(Environment context) {
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
-        String entityType = dictionary.getJsonAliasFor(entityClass);
-        boolean generateTotals = requestContainsPageInfo(entityType, context.field);
-        return fetchObject(context, context.requestScope, entityClass, context.ids,
-                context.sort, context.offset, context.first, context.filters, generateTotals);
+        // Process fetch object for this container
+        return context.container.processFetch(context, this);
     }
 
     /**
@@ -186,7 +160,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
-    private ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
+    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
                                                 Optional<String> filters, boolean generateTotals) {
@@ -319,7 +293,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         /* upsert */
         for (Entity entity : entitySet) {
-            graphWalker(entity, (e) -> upsertObject(context, e));
+            graphWalker(entity, (entityObject) -> upsertObject(context, entityObject));
         }
 
         /* fixup relationships */
@@ -483,9 +457,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("DELETE must include ids argument");
         }
 
-        Set<PersistentResource> toDelete = ((ConnectionContainer) fetchObjects(context)).getPersistentResources();
+        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+        Set<PersistentResource> toDelete = connection.getPersistentResources();
         toDelete.forEach(PersistentResource::deleteResource);
-        return new ConnectionContainer(toDelete, Optional.empty(), "TODO");
+        return new ConnectionContainer(toDelete, Optional.empty(), connection.getTypeName());
     }
 
     /**
@@ -568,10 +543,5 @@ public class PersistentResourceFetcher implements DataFetcher {
                 throw new InvalidPredicateException("Could not parse filter for type: " + typeName);
             }
         });
-    }
-
-    public static boolean requestContainsPageInfo(String entityType, Field field) {
-        return field.getSelectionSet().getSelections().stream()
-                .anyMatch(f -> f instanceof Field && PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
     }
 }

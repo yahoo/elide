@@ -23,7 +23,7 @@ public class EdgesContainer implements PersistentResourceContainer, GraphQLConta
     private static final String NODE_KEYWORD = "node";
 
     @Override
-    public Object process(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
 
         // TODO: Cursor

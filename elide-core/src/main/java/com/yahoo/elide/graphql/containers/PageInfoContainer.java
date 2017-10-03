@@ -33,7 +33,7 @@ public class PageInfoContainer implements GraphQLContainer {
     }
 
     @Override
-    public Object process(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
         ConnectionContainer connectionContainer = getConnectionContainer();
         Optional<Pagination> pagination = connectionContainer.getPagination();

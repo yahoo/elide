@@ -91,7 +91,7 @@ public class ModelBuilderTest {
         Assert.assertNotNull(bookField.getArgument(AFTER));
 
         /* book.publisher is a 'to one' relationship so it should be missing all but the data parameter */
-        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(BOOK);
+        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType("__node__" + BOOK);
         GraphQLFieldDefinition publisherField = bookType.getFieldDefinition("publisher");
         Assert.assertNotNull(publisherField.getArgument(DATA));
         Assert.assertNull(publisherField.getArgument(FILTER));
@@ -144,8 +144,9 @@ public class ModelBuilderTest {
         Assert.assertTrue(validateEnum(Author.AuthorType.class,
                 (GraphQLEnumType) authorType.getFieldDefinition(TYPE).getType()));
 
+        // Node type != connection type
         GraphQLObjectType booksNodeType = (GraphQLObjectType) authorType.getFieldDefinition(BOOKS).getType();
-        Assert.assertTrue(booksNodeType.equals(bookType));
+        Assert.assertFalse(booksNodeType.equals(bookType));
 
         GraphQLInputObjectType bookInputType = (GraphQLInputObjectType) schema.getType(BOOK_INPUT);
         GraphQLInputObjectType authorInputType = (GraphQLInputObjectType) schema.getType(AUTHOR_INPUT);

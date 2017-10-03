@@ -12,5 +12,5 @@ import com.yahoo.elide.graphql.PersistentResourceFetcher;
  * Interface describing how to process GraphQL request at each step.
  */
 public interface GraphQLContainer {
-    Object process(Environment context, PersistentResourceFetcher fetcher);
+    Object processFetch(Environment context, PersistentResourceFetcher fetcher);
 }

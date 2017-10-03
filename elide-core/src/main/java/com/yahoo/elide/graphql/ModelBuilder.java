@@ -200,14 +200,14 @@ public class ModelBuilder {
             return connectionObjectRegistry.get(entityClass);
         }
 
-        String relationName = dictionary.getJsonAliasFor(entityClass);
+        String entityName = dictionary.getJsonAliasFor(entityClass);
 
         GraphQLObjectType connectionObject = newObject()
-                .name(relationName)
+                .name(entityName)
                 .field(newFieldDefinition()
                         .name("edges")
                         .dataFetcher(dataFetcher)
-                        .type(buildEdgesObject(relationName, buildQueryObject(entityClass))))
+                        .type(buildEdgesObject(entityName, buildQueryObject(entityClass))))
                 .field(newFieldDefinition()
                         .name("pageInfo")
                         .dataFetcher(dataFetcher)

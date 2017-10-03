@@ -82,7 +82,7 @@ public class GraphQLEndpoint {
             ObjectMapper mapper = elide.getMapper().getObjectMapper();
             JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, null, elide.getElideSettings());
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
 
             if (!jsonDocument.has(QUERY)) {
                 return Response.status(400).entity("A `query` key is required.").build();

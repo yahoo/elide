@@ -16,7 +16,7 @@ import lombok.Getter;
 import javax.ws.rs.BadRequestException;
 import java.util.Objects;
 
-import static com.yahoo.elide.graphql.PersistentResourceFetcher.requestContainsPageInfo;
+import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPageInfo;
 
 /**
  * Container for nodes.
@@ -26,7 +26,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
     @Getter private final PersistentResource persistentResource;
 
     @Override
-    public Object process(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class parentClass = context.parentResource.getResourceClass();
         String fieldName = context.field.getName();
@@ -36,8 +36,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             return context.parentResource.getAttribute(fieldName);
         }
         if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-            String entityType = dictionary.getJsonAliasFor(dictionary.getParameterizedType(parentClass, fieldName));
-            boolean generateTotals = requestContainsPageInfo(entityType, context.field);
+            boolean generateTotals = requestContainsPageInfo(context.field);
             return fetcher.fetchRelationship(context, context.parentResource,
                     fieldName, context.ids, context.offset, context.first, context.sort, context.filters,
                     generateTotals);

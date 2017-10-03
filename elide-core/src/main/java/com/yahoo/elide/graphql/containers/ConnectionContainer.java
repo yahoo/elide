@@ -28,10 +28,10 @@ public class ConnectionContainer implements GraphQLContainer {
     @Getter private final String typeName;
 
     private static final String EDGES_KEYWORD = "edges";
-    private static final String PAGE_INFO_KEYWORD = PersistentResourceFetcher.PAGE_INFO_KEYWORD;
+    public static final String PAGE_INFO_KEYWORD = "pageInfo";
 
     @Override
-    public Object process(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
 
         switch (fieldName) {

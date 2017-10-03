@@ -63,7 +63,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
-        requestScope = new GraphQLRequestScope(tx, null, null, settings);
+        requestScope = new GraphQLRequestScope(tx, null, settings);
     }
 
     private void initTestData(InMemoryTransaction tx) {
