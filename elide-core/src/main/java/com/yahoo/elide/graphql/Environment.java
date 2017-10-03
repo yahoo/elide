@@ -7,7 +7,9 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.graphql.containers.GraphQLContainer;
+import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
+import com.yahoo.elide.graphql.containers.RootContainer;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
 import graphql.language.Field;
@@ -20,13 +22,15 @@ import java.util.Optional;
  * Encapsulates GraphQL's DataFetchingEnvironment
  */
 public class Environment {
-    public final RequestScope requestScope;
+    public final GraphQLRequestScope requestScope;
     public final Optional<List<String>> ids;
     public final Optional<String> sort;
     public final Optional<List<Map<String, Object>>> data;
     public final Optional<String> filters;
     public final Optional<String> offset;
     public final Optional<String> first;
+    public final Object rawSource;
+    public final GraphQLContainer container;
 
     public final PersistentResource parentResource;
     public final GraphQLType parentType;
@@ -36,10 +40,10 @@ public class Environment {
     public Environment(DataFetchingEnvironment environment) {
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = (RequestScope) environment.getContext();
+        requestScope = (GraphQLRequestScope) environment.getContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
-        offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_OFFSET));
+        offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));
         first = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FIRST));
         sort = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_SORT));
 
@@ -47,8 +51,14 @@ public class Environment {
 
         outputType = environment.getFieldType();
 
-        parentResource = environment.getSource() instanceof RequestScope ? null
-                : (PersistentResource) environment.getSource();
+        rawSource = environment.getSource();
+        container = isRoot() ? new RootContainer() : (GraphQLContainer) rawSource;
+
+        if (rawSource instanceof PersistentResourceContainer) {
+            parentResource = ((PersistentResourceContainer) rawSource).getPersistentResource();
+        } else {
+            parentResource = null;
+        }
 
         field = environment.getFields().get(0);
 
@@ -59,6 +69,6 @@ public class Environment {
     }
 
     public boolean isRoot() {
-        return parentResource == null;
+        return !(rawSource instanceof GraphQLContainer);
     }
 }

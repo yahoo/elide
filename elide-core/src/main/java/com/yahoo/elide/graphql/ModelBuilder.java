@@ -46,7 +46,7 @@ public class ModelBuilder {
     public static final String ARGUMENT_FILTER = "filter";
     public static final String ARGUMENT_SORT = "sort";
     public static final String ARGUMENT_FIRST = "first";
-    public static final String ARGUMENT_OFFSET = "offset";
+    public static final String ARGUMENT_AFTER = "after";
     public static final String ARGUMENT_OPERATION = "op";
 
     private EntityDictionary dictionary;
@@ -57,11 +57,12 @@ public class ModelBuilder {
     private GraphQLArgument pageOffsetArgument;
     private GraphQLArgument pageFirstArgument;
     private GraphQLArgument sortArgument;
-    private GraphQLObjectType metaObject;
     private GraphQLConversionUtils generator;
+    private GraphQLObjectType pageInfoObject;
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
+    private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
     /**
@@ -101,33 +102,33 @@ public class ModelBuilder {
                 .build();
 
         pageOffsetArgument = newArgument()
-                .name(ARGUMENT_OFFSET)
+                .name(ARGUMENT_AFTER)
                 .type(Scalars.GraphQLString)
                 .build();
 
-        metaObject = newObject()
-                .name("__metaObject")
+        pageInfoObject = newObject()
+                .name("__pageInfoObject")
                 .field(newFieldDefinition()
-                    .name("page")
-                    .dataFetcher(dataFetcher)
-                    .type(newObject()
-                        .name("__pageObject")
-                        .field(newFieldDefinition()
-                            .name("totalPages")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).field(newFieldDefinition()
-                            .name("totalRecords")
-                            .dataFetcher(dataFetcher)
-                            .type(Scalars.GraphQLLong)
-                            .build()
-                        ).build()
-                    )
-                ).build();
+                        .name("hasNextPage")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLBoolean))
+                .field(newFieldDefinition()
+                        .name("startCursor")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
+                .field(newFieldDefinition()
+                        .name("endCursor")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLString))
+                .field(newFieldDefinition()
+                        .name("totalRecords")
+                        .dataFetcher(dataFetcher)
+                        .type(Scalars.GraphQLLong))
+                .build();
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
+        connectionObjectRegistry = new HashMap<>();
         excludedEntities = new HashSet<>();
     }
 
@@ -168,24 +169,54 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .type(new GraphQLList(buildQueryObject(clazz))));
+                    .type(buildConnectionObject(clazz)));
         }
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
-        dictionary.walkEntityGraph(rootClasses, this::buildQueryObject);
+        dictionary.walkEntityGraph(rootClasses, this::buildConnectionObject);
 
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(root)
                 .mutation(root)
                 .build(new HashSet<>(CollectionUtils.union(
-                        queryObjectRegistry.values(),
+                        connectionObjectRegistry.values(),
                         inputObjectRegistry.values()
                 )));
 
         return schema;
+    }
+
+    /**
+     * Builds a GraphQL connection object from an entity class.
+     *
+     * @param entityClass The class to use to construct the output object
+     * @return The GraphQL object.
+     */
+    private GraphQLObjectType buildConnectionObject(Class<?> entityClass) {
+        if (connectionObjectRegistry.containsKey(entityClass)) {
+            return connectionObjectRegistry.get(entityClass);
+        }
+
+        String entityName = dictionary.getJsonAliasFor(entityClass);
+
+        GraphQLObjectType connectionObject = newObject()
+                .name(entityName)
+                .field(newFieldDefinition()
+                        .name("edges")
+                        .dataFetcher(dataFetcher)
+                        .type(buildEdgesObject(entityName, buildQueryObject(entityClass))))
+                .field(newFieldDefinition()
+                        .name("pageInfo")
+                        .dataFetcher(dataFetcher)
+                        .type(pageInfoObject))
+                .build();
+
+        connectionObjectRegistry.put(entityClass, connectionObject);
+
+        return connectionObject;
     }
 
     /**
@@ -202,8 +233,8 @@ public class ModelBuilder {
 
         String entityName = dictionary.getJsonAliasFor(entityClass);
 
-        GraphQLObjectType.Builder builder = newObject();
-        builder.name(entityName);
+        GraphQLObjectType.Builder builder = newObject()
+                .name("__node__" + entityName);
 
         String id = dictionary.getIdFieldName(entityClass);
 
@@ -230,10 +261,6 @@ public class ModelBuilder {
                 .dataFetcher(dataFetcher)
                 .type(customIdType));
 
-        builder.field(newFieldDefinition()
-                    .name("__meta")
-                    .type(metaObject));
-
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
             if (excludedEntities.contains(attributeClass)) {
@@ -259,7 +286,7 @@ public class ModelBuilder {
             );
         }
 
-        for (String relationship : dictionary.getRelationships(entityClass)) {
+        for (String relationship : dictionary.getElideBoundRelationships(entityClass)) {
             Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
             if (excludedEntities.contains(relationshipClass)) {
                 continue;
@@ -287,7 +314,7 @@ public class ModelBuilder {
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
-                                .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
+                                .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             }
         }
@@ -295,6 +322,20 @@ public class ModelBuilder {
         GraphQLObjectType queryObject = builder.build();
         queryObjectRegistry.put(entityClass, queryObject);
         return queryObject;
+    }
+
+    private GraphQLList buildEdgesObject(String relationName, GraphQLOutputType entityType) {
+        return new GraphQLList(newObject()
+                .name("__edges__" + relationName)
+//                .field(newFieldDefinition()
+//                        .name("cursor")
+//                         .dataFetcher(dataFetcher)
+//                        .type(Scalars.GraphQLLong))
+                .field(newFieldDefinition()
+                        .name("node")
+                        .dataFetcher(dataFetcher)
+                        .type(entityType))
+                .build());
     }
 
     /**
@@ -379,7 +420,7 @@ public class ModelBuilder {
      */
     private void resolveInputObjectRelationships() {
         inputObjectRegistry.forEach((clazz, inputObj) -> {
-            for (String relationship : dictionary.getRelationships(clazz)) {
+            for (String relationship : dictionary.getElideBoundRelationships(clazz)) {
                 log.info("Resolving relationship {} for {}", relationship, clazz.getName());
                 Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
                 if (excludedEntities.contains(relationshipClass)) {

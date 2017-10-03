@@ -1,0 +1,23 @@
+{
+  author {
+    edges {
+      node {
+        id
+        books {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+          pageInfo {
+            totalRecords
+          }
+        }
+      }
+    }
+    pageInfo {
+      totalRecords
+    }
+  }
+}

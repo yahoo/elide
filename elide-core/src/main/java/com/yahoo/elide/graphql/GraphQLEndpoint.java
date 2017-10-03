@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -42,12 +41,17 @@ import java.util.function.Function;
 @Slf4j
 @Singleton
 @Produces(MediaType.APPLICATION_JSON)
-@Path("/graphQLx")
+@Path("/")
 public class GraphQLEndpoint {
 
     private Elide elide;
     private GraphQL api;
     protected final Function<SecurityContext, Object> getUser;
+
+    private static final String QUERY = "query";
+    private static final String OPERATION_NAME = "operationName";
+    private static final String VARIABLES = "variables";
+    private static final String MUTATION = "mutation";
 
     @Inject
     public GraphQLEndpoint(
@@ -73,23 +77,49 @@ public class GraphQLEndpoint {
     public Response post(
             @Context SecurityContext securityContext,
             String graphQLDocument) {
-        String path = "/";
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             ObjectMapper mapper = elide.getMapper().getObjectMapper();
             JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
-            RequestScope requestScope = new RequestScope(path, null, tx, user, null, elide.getElideSettings());
-            ExecutionResult result = api.execute(
-                    jsonDocument.get("query").asText(),
-                    jsonDocument.get("operationName").asText(),
-                    requestScope,
-                    mapper.convertValue(jsonDocument.get("variables"), Map.class));
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
+
+            if (!jsonDocument.has(QUERY)) {
+                return Response.status(400).entity("A `query` key is required.").build();
+            }
+
+            String query = jsonDocument.get(QUERY).asText();
+
+            String operationName = null;
+            if (jsonDocument.has(OPERATION_NAME)) {
+                operationName = jsonDocument.get(OPERATION_NAME).asText();
+            }
+
+            ExecutionResult result;
+            if (jsonDocument.has(VARIABLES)) {
+                Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+                result = api.execute(query, operationName, requestScope, variables);
+            } else {
+                result = api.execute(query, operationName, requestScope);
+            }
+
+            if (query.startsWith(MUTATION)) {
+                requestScope.saveOrCreateObjects();
+            }
+
+            // TODO: Audit? Runtime hooks? Commit-time permission checks?
+            // TODO: Still some work to be done here..
+
+            tx.commit(requestScope);
+
             return Response.ok(mapper.writeValueAsString(result.getData())).build();
         } catch (JsonProcessingException e) {
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e), isVerbose);
+        } catch (Exception | Error e) {
+            log.debug("Unhandled error or exception.", e);
+            throw e;
         }
     }
 

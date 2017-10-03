@@ -1,0 +1,13 @@
+{
+  book(ids: ["1"]) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      totalRecords
+    }
+  }
+}

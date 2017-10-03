@@ -13,18 +13,21 @@ import com.yahoo.elide.books.Author;
 import com.yahoo.elide.books.Book;
 import com.yahoo.elide.books.Pseudonym;
 import com.yahoo.elide.books.Publisher;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import org.apache.tools.ant.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +40,7 @@ import java.util.stream.Collectors;
  */
 public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     protected GraphQL api;
-    protected RequestScope requestScope;
+    protected GraphQLRequestScope requestScope;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
 
@@ -60,8 +63,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         InMemoryTransaction tx = (InMemoryTransaction) store.beginTransaction();
         initTestData(tx);
 
-        requestScope = new RequestScope("/", null, tx, null, null,
-                settings, false);
+        requestScope = new GraphQLRequestScope(tx, null, settings);
     }
 
     private void initTestData(InMemoryTransaction tx) {
@@ -125,7 +127,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         tx.commit(null);
     }
 
-    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) {
+    protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
@@ -135,8 +137,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         requestScope.getTransaction().commit(requestScope);
         Assert.assertEquals(result.getErrors().size(), 0, "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
-            LOG.debug(mapper.writeValueAsString(result.getData()));
-            Assert.assertEquals(mapper.writeValueAsString(result.getData()), expectedResponse);
+            LOG.info(mapper.writeValueAsString(result.getData()));
+            Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getData())),
+                    mapper.readTree(expectedResponse));
         } catch (JsonProcessingException e) {
             Assert.fail("JSON parsing exception", e);
         }
@@ -155,5 +158,23 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         return errors.stream()
                 .map(GraphQLError::getMessage)
                 .collect(Collectors.joining(", "));
+    }
+
+    public String loadGraphQLRequest(String fileName) throws IOException {
+        try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/requests/" + fileName)) {
+            return FileUtils.readFully(new InputStreamReader(in));
+        }
+    }
+
+    public String loadGraphQLResponse(String fileName) throws IOException {
+        try (InputStream in = PersistentResourceFetcherTest.class.getResourceAsStream("/graphql/responses/" + fileName)) {
+            return FileUtils.readFully(new InputStreamReader(in));
+        }
+    }
+
+    public void runComparisonTest(String testName) throws Exception {
+        String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
+        String graphQLResponse = loadGraphQLResponse(testName + ".json");
+        assertQueryEquals(graphQLRequest, graphQLResponse);
     }
 }

@@ -20,6 +20,8 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.graphql.containers.*;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -141,34 +143,13 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("FETCH must not include data");
         }
 
-        Class<?> entityClass;
-        EntityDictionary dictionary = context.requestScope.getDictionary();
-
-        /* check whether current object has a parent or not */
-        if (context.isRoot()) {
-            entityClass = dictionary.getEntityClass(context.field.getName());
-            return fetchObject(context.requestScope, entityClass, context.ids, context.sort,
-                    context.offset, context.first, context.filters);
-
-        } else { /* fetch attribute or relationship */
-            Class parentClass = context.parentResource.getResourceClass();
-            String idFieldName = dictionary.getIdFieldName(parentClass);
-            String fieldName = context.field.getName();
-            if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-                return context.parentResource.getAttribute(fieldName);
-            } else if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
-                return fetchRelationship(context.parentResource,
-                        fieldName, context.ids, context.offset, context.first, context.sort, context.filters);
-            } else if (Objects.equals(idFieldName, fieldName)) {
-                return new DeferredId(context.parentResource);
-            } else {
-                throw new BadRequestException("Unrecognized object: " + fieldName + " for: " + parentClass.getName());
-            }
-        }
+        // Process fetch object for this container
+        return context.container.processFetch(context, this);
     }
 
     /**
      * Fetches a root-level entity.
+     * @param context Context for request
      * @param requestScope Request scope
      * @param entityClass Entity class
      * @param ids List of ids (can be NULL)
@@ -176,21 +157,22 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param offset Pagination offset argument
      * @param first Pagination first argument
      * @param filters Filter params
+     * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return {@link PersistentResource} object(s)
      */
-    private Set<PersistentResource> fetchObject(RequestScope requestScope, Class entityClass,
+    public ConnectionContainer fetchObject(Environment context, RequestScope requestScope, Class entityClass,
                                                 Optional<List<String>> ids, Optional<String> sort,
                                                 Optional<String> offset, Optional<String> first,
-                                                Optional<String> filters) {
+                                                Optional<String> filters, boolean generateTotals) {
         EntityDictionary dictionary = requestScope.getDictionary();
         String typeName = dictionary.getJsonAliasFor(entityClass);
 
-        Optional<Pagination> pagination = buildPagination(first, offset);
+        Optional<Pagination> pagination = buildPagination(first, offset, generateTotals);
         Optional<Sorting> sorting = buildSorting(sort);
         Optional<FilterExpression> filter = buildFilter(typeName, filters, requestScope);
 
         /* fetching a collection */
-        return ids.map((idList) -> {
+        Set<PersistentResource> records = ids.map((idList) -> {
             /* handle empty list of ids */
             if (idList.isEmpty()) {
                 throw new BadRequestException("Empty list passed to ids");
@@ -200,6 +182,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
+            List<Object> coercedIds = idList.stream()
+                    .map(id -> CoerceUtil.coerce(id, idType))
+                    .collect(Collectors.toList());
+
             /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
             FilterExpression idFilter = new FilterPredicate(
                     new Path.PathElement(
@@ -207,47 +193,51 @@ public class PersistentResourceFetcher implements DataFetcher {
                             idType,
                             idField),
                     Operator.IN,
-                    new ArrayList<>(idList));
+                    new ArrayList<>(coercedIds));
             FilterExpression filterExpression = filter
                     .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
                     .orElse(idFilter);
 
-            return PersistentResource.loadRecords(entityClass,
+             return PersistentResource.loadRecords(entityClass,
                     Optional.of(filterExpression), sorting, pagination, requestScope);
-        }).orElseGet(() -> {
-            Set<PersistentResource> records = PersistentResource.loadRecords(entityClass,
+        }).orElseGet(() ->
+            PersistentResource.loadRecords(entityClass,
                     filter,
                     sorting,
                     pagination,
-                    requestScope);
+                    requestScope)
+        );
 
-            return records;
-        });
+        return new ConnectionContainer(records, pagination, typeName);
     }
 
     /**
      * Fetches a relationship for a top-level entity.
      *
+     * @param context Request context
      * @param parentResource Parent object
      * @param fieldName Field type
      * @param ids List of ids
      * @param offset Pagination offset
      * @param first Pagination first
      * @param filters Filter string
+     * @param generateTotals True if page totals should be generated for this type, false otherwise
      * @return persistence resource object(s)
      */
-    private Object fetchRelationship(PersistentResource parentResource,
+    public Object fetchRelationship(Environment context,
+                                     PersistentResource parentResource,
                                      String fieldName,
                                      Optional<List<String>> ids,
                                      Optional<String> offset,
                                      Optional<String> first,
                                      Optional<String> sort,
-                                     Optional<String> filters) {
+                                     Optional<String> filters,
+                                     boolean generateTotals) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
         Class entityClass = dictionary.getParameterizedType(parentResource.getObject(), fieldName);
         String typeName = dictionary.getJsonAliasFor(entityClass);
 
-        Optional<Pagination> pagination = buildPagination(first, offset);
+        Optional<Pagination> pagination = buildPagination(first, offset, generateTotals);
         Optional<Sorting> sorting = buildSorting(sort);
         Optional<FilterExpression> filter = buildFilter(typeName, filters, parentResource.getRequestScope());
 
@@ -259,22 +249,15 @@ public class PersistentResourceFetcher implements DataFetcher {
                     filter, sorting, pagination);
         }
 
-        /* check for toOne relationships */
-        Boolean isToOne = parentResource.getRelationshipType(fieldName).isToOne();
-
-        if (isToOne) {
-            return relations.iterator().next();
-        } else {
-            return relations;
-        }
+        return new ConnectionContainer(relations, pagination, typeName);
     }
 
     /**
      * handle UPSERT operation
      * @param context Environment encapsulating graphQL's request environment
-     * @return list of {@link PersistentResource} objects
+     * @return Connection object.
      */
-    private Set<PersistentResource> upsertObjects(Environment context) {
+    private ConnectionContainer upsertObjects(Environment context) {
         /* sanity check for id and data argument w UPSERT */
         if (context.ids.isPresent()) {
             throw new BadRequestException("UPSERT must not include ids");
@@ -310,7 +293,7 @@ public class PersistentResourceFetcher implements DataFetcher {
 
         /* upsert */
         for (Entity entity : entitySet) {
-            graphWalker(entity, this::upsertObject);
+            graphWalker(entity, (entityObject) -> upsertObject(context, entityObject));
         }
 
         /* fixup relationships */
@@ -321,9 +304,13 @@ public class PersistentResourceFetcher implements DataFetcher {
             }
         }
 
-        return entitySet.stream()
+        String entityName = dictionary.getJsonAliasFor(entityClass);
+
+        Set<PersistentResource> resources = entitySet.stream()
                 .map(Entity::toPersistentResource)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        return new ConnectionContainer(resources, Optional.empty(), entityName);
     }
 
     /**
@@ -384,10 +371,11 @@ public class PersistentResourceFetcher implements DataFetcher {
 
     /**
      * updates or creates existing/new entities
+     * @param context request context
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Entity entity) {
+    private PersistentResource upsertObject(Environment context, Entity entity) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
@@ -407,12 +395,13 @@ public class PersistentResourceFetcher implements DataFetcher {
                     requestScope,
                     id);
         } else {
-            Set<PersistentResource> loadedResource = fetchObject(requestScope, entity.getEntityClass(),
+            Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
                     Optional.of(Arrays.asList(id.get())),
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    Optional.empty());
+                    Optional.empty(),
+                    false).getPersistentResources();
 
             if (loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
                 upsertedResource = PersistentResource.createObject(parentResource,
@@ -468,9 +457,10 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("DELETE must include ids argument");
         }
 
-        Set<PersistentResource> toDelete = (Set<PersistentResource>) fetchObjects(context);
+        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+        Set<PersistentResource> toDelete = connection.getPersistentResources();
         toDelete.forEach(PersistentResource::deleteResource);
-        return toDelete;
+        return new ConnectionContainer(toDelete, Optional.empty(), connection.getTypeName());
     }
 
     /**
@@ -514,7 +504,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         Set<PersistentResource> existingObjects = (Set<PersistentResource>) fetchObjects(context);
-        Set<PersistentResource> upsertedObjects = upsertObjects(context);
+        Set<PersistentResource> upsertedObjects = upsertObjects(context).getPersistentResources();
         Set<PersistentResource> toDelete = Sets.difference(existingObjects, upsertedObjects);
 
         if (!context.isRoot()) { /* has parent */
@@ -525,8 +515,10 @@ public class PersistentResourceFetcher implements DataFetcher {
         return upsertedObjects;
     }
 
-    private Optional<Pagination> buildPagination(Optional<String> first, Optional<String> offset) {
-        return Pagination.fromOffsetAndFirst(first, offset, settings);
+    private Optional<Pagination> buildPagination(Optional<String> first,
+                                                 Optional<String> offset,
+                                                 boolean generateTotals) {
+        return Pagination.fromOffsetAndFirst(first, offset, generateTotals, settings);
     }
 
     private Optional<Sorting> buildSorting(Optional<String> sort) {

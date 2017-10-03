@@ -1,0 +1,10 @@
+{
+  author(ids: ["1"]) {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}

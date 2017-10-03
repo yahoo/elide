@@ -87,11 +87,13 @@ public class Pagination {
      *
      * @param firstOpt Provided first string
      * @param offsetOpt Provided offset string
+     * @param generatePageTotals True if page totals should be generated, false otherwise
      * @param elideSettings Elide settings object containing default pagination values
      * @return The new Pagination object.
      */
     public static Optional<Pagination> fromOffsetAndFirst(Optional<String> firstOpt,
                                                           Optional<String> offsetOpt,
+                                                          boolean generatePageTotals,
                                                           ElideSettings elideSettings) {
         return firstOpt.map(firstString -> {
             int offset;
@@ -114,10 +116,20 @@ public class Pagination {
                 {
                     put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset);
                     put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
+                    if (generatePageTotals) {
+                        put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
+                    }
                 }
             };
 
-            return getPagination(pageData, elideSettings);
+            return Optional.of(getPagination(pageData, elideSettings));
+        }).orElseGet(() -> {
+            if (generatePageTotals) {
+                Pagination pagination = getDefaultPagination(elideSettings);
+                pagination.pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
+                return Optional.of(pagination);
+            }
+            return Optional.empty();
         });
     }
 

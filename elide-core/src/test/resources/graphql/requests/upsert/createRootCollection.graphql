@@ -1,0 +1,10 @@
+mutation {
+  book(op: UPSERT, data: [{title: "Book Numero Dos"},{title:"Book Numero Tres"}] ) {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}
