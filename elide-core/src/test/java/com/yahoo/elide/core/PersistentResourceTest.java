@@ -22,7 +22,7 @@ import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.exceptions.EntityForbiddenException;
+import com.yahoo.elide.core.exceptions.ForbiddenEntityException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -864,7 +864,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertEquals(((Child) result.getObject()).getId(), 1, "The correct relationship element should be returned");
     }
 
-    @Test(expectedExceptions = EntityForbiddenException.class)
+    @Test(expectedExceptions = ForbiddenEntityException.class)
     public void testGetRelationByInvalidId() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child1 = newChild(1);
@@ -1513,7 +1513,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertEquals(loaded.getObject(), child1, "The load function should return the requested child object");
     }
 
-    @Test(expectedExceptions = EntityForbiddenException.class)
+    @Test(expectedExceptions = ForbiddenEntityException.class)
     public void testLoadRecordInvalidId() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         User goodUser = new User(1);
@@ -1524,7 +1524,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource.loadRecord(Child.class, "1", goodScope);
     }
 
-    @Test(expectedExceptions = EntityForbiddenException.class)
+    @Test(expectedExceptions = ForbiddenEntityException.class)
     public void testLoadRecordForbidden() {
         NoReadEntity noRead = new NoReadEntity();
         noRead.setId(1);

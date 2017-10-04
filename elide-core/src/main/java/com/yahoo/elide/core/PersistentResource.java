@@ -24,7 +24,7 @@ import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.exceptions.EntityForbiddenException;
+import com.yahoo.elide.core.exceptions.ForbiddenEntityException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -275,7 +275,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             obj = tx.loadObject(loadClass, (Serializable) CoerceUtil.coerce(id, idType),
                     permissionFilter, requestScope);
             if (obj == null) {
-                throw new EntityForbiddenException();
+                throw new ForbiddenEntityException();
             }
         }
 
@@ -286,7 +286,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 resource.checkFieldAwarePermissions(ReadPermission.class);
             }
         } catch (ForbiddenAccessException e) {
-            throw new EntityForbiddenException();
+            throw new ForbiddenEntityException();
         }
 
         return resource;
@@ -326,7 +326,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         DataStoreTransaction tx = requestScope.getTransaction();
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
-            return Collections.emptySet();
+            throw new ForbiddenAccessException(requestScope.getDictionary().getJsonAliasFor(loadClass));
         }
 
         EntityDictionary dictionary = requestScope.getDictionary();
@@ -860,7 +860,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<String> missedIds = Sets.difference(new HashSet<>(ids), allExpectedIds);
 
         if (!missedIds.isEmpty()) {
-            throw new EntityForbiddenException();
+            throw new ForbiddenEntityException();
         }
 
         return allResources;

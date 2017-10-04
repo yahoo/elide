@@ -337,7 +337,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     public void failRootCollection() throws Exception {
         String expected = jsonParser.getJson("/ResourceIT/failRootCollection.json");
 
-        given().when().get("/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
+        given().when().get("/unknown").then().statusCode(HttpStatus.SC_FORBIDDEN)
         .body(equalTo(expected));
     }
 
@@ -1947,7 +1947,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
     @Test
     public void badRoot() {
-        given().when().get("/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given().when().get("/oops").then().statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
     @Test

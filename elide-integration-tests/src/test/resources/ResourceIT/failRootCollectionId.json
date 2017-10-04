@@ -1,1 +1,1 @@
-{"errors":["NonRevealingForbiddenAccessException: Entity not found"]}
+{"errors":["ForbiddenEntityException: Entity not found"]}

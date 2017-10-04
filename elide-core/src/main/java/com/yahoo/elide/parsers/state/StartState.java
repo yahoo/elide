@@ -7,6 +7,8 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.ForbiddenEntityException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -27,7 +29,7 @@ public class StartState extends BaseState {
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
+            throw new ForbiddenAccessException(entityName);
         }
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty()));
     }
@@ -39,7 +41,7 @@ public class StartState extends BaseState {
         String id = ctx.entity().id().getText();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
+            throw new ForbiddenEntityException();
         }
 
         PersistentResource record = PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
@@ -54,7 +56,7 @@ public class StartState extends BaseState {
 
         Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
+            throw new ForbiddenAccessException(entityName);
         }
 
         PersistentResource record = PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
@@ -68,7 +70,7 @@ public class StartState extends BaseState {
         String id = ctx.entity().id().getText();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
+            throw new ForbiddenEntityException();
         }
 
         PersistentResource record = PersistentResource.loadRecord(entityClass, id, state.getRequestScope());

@@ -8,12 +8,12 @@ package com.yahoo.elide.core.exceptions;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
- * Requested object ID is.
+ * Requested object is.
  *
  * {@link com.yahoo.elide.core.HttpStatus#SC_NOT_FOUND invalid}
  */
-public class EntityForbiddenException extends HttpStatusException {
-    public EntityForbiddenException() {
+public class ForbiddenEntityException extends HttpStatusException {
+    public ForbiddenEntityException() {
         super(HttpStatus.SC_NOT_FOUND, String.format("Entity not found"));
     }
 }
