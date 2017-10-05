@@ -3,12 +3,17 @@
     "edges": [
       {
         "node": {
-          "specialOrEcho": "The special string"
+          "bookTitlesWithPrefix": [
+            "default_Libro Uno",
+            "default_Libro Dos"
+          ]
         }
       },
       {
         "node": {
-          "specialOrEcho": "The special string"
+          "bookTitlesWithPrefix": [
+            "default_Doctor Zhivago"
+          ]
         }
       }
     ]

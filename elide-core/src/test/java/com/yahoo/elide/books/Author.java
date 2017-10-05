@@ -13,6 +13,9 @@ import com.yahoo.elide.annotation.SharePermission;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Model for authors.
@@ -38,7 +41,7 @@ public class Author {
     private String name;
     private AuthorType type;
     private Address homeAddress;
-    private String specialOrEcho = "The special string";
+    private String prefix = "default_";
 
     public String getName() {
         return name;
@@ -92,12 +95,30 @@ public class Author {
     // TODO: Eventually we should support multiple argument computed attributes to be used as API _functions_
     @ComputedAttribute
     @Transient
-    public String getSpecialOrEcho() {
-        return specialOrEcho;
+    public List<String> getBookTitlesWithPrefix() {
+        if (getBooks() == null) {
+            return Collections.emptyList();
+        }
+        return getBooks().stream()
+                .map(book -> getPrefix() + book.getTitle())
+                .collect(Collectors.toList());
     }
 
-    public void setSpecialOrEcho(String specialOrEcho) {
-        this.specialOrEcho = specialOrEcho;
+    public void setBookTitlesWithPrefix(List<String> unused) {
+        // Do nothing
+        System.out.println("hm");
+    }
+
+    @Transient
+    @ComputedAttribute
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        if (prefix != null) {
+            this.prefix = prefix;
+        }
     }
 
     @Override

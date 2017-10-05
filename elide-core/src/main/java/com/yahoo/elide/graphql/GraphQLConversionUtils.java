@@ -245,21 +245,16 @@ public class GraphQLConversionUtils {
                 return null;
             }
 
-            return (new GraphQLList(classToQueryObject(listType, ledger, fetcher)));
+            // If this is a collection of a boxed type scalar, we want to unwrap it properly
+            GraphQLOutputType outputType = fetchScalarOrObjectOutput(listType, ledger, fetcher);
+
+            return new GraphQLList(outputType);
 
         /* If the attribute is an enum */
         } else if (attributeClass.isEnum()) {
             return classToEnumType(attributeClass);
         } else {
-
-            /* Attempt to convert a scalar type */
-            GraphQLOutputType outputType = classToScalarType(attributeClass);
-            if (outputType == null) {
-
-                /* Attempt to convert an object type */
-                outputType = classToQueryObject(attributeClass, ledger, fetcher);
-            }
-            return outputType;
+            return fetchScalarOrObjectOutput(attributeClass, ledger, fetcher);
         }
     }
 
@@ -332,21 +327,15 @@ public class GraphQLConversionUtils {
                 return null;
             }
 
-            return new GraphQLList(classToInputObject(listType, ledger));
+            GraphQLInputType inputType = fetchScalarOrObjectInput(listType, ledger);
+
+            return new GraphQLList(inputType);
 
         /* If the attribute is an enum */
         } else if (attributeClass.isEnum()) {
                 return classToEnumType(attributeClass);
         } else {
-
-            /* Attempt to convert a scalar type */
-            GraphQLInputType inputType = classToScalarType(attributeClass);
-            if (inputType == null) {
-
-                /* Attempt to convert an object type */
-                inputType = classToInputObject(attributeClass, ledger);
-            }
-            return inputType;
+            return fetchScalarOrObjectInput(attributeClass, ledger);
         }
     }
 
@@ -429,5 +418,28 @@ public class GraphQLConversionUtils {
         }
 
         return objectBuilder.build();
+    }
+
+    private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
+                                                        ConversionLedger ledger,
+                                                        DataFetcher fetcher) {
+        /* Attempt to convert a scalar type */
+        GraphQLOutputType outputType = classToScalarType(conversionClass);
+        if (outputType == null) {
+                /* Attempt to convert an object type */
+            outputType = classToQueryObject(conversionClass, ledger, fetcher);
+        }
+        return outputType;
+    }
+
+    private GraphQLInputType fetchScalarOrObjectInput(Class<?> conversionClass, ConversionLedger ledger) {
+        /* Attempt to convert a scalar type */
+        GraphQLInputType inputType = classToScalarType(conversionClass);
+        if (inputType == null) {
+
+                /* Attempt to convert an object type */
+            inputType = classToInputObject(conversionClass, ledger);
+        }
+        return inputType;
     }
 }

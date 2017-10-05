@@ -3,7 +3,7 @@
     "edges": [
       {
         "node": {
-          "specialOrEcho": "Echo this"
+          "specialOrEcho": "MyPrefix"
         }
       }
     ]

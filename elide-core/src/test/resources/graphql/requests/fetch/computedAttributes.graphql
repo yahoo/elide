@@ -2,7 +2,7 @@
   author {
     edges {
       node {
-        specialOrEcho
+        bookTitlesWithPrefix
       }
     }
   }

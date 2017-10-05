@@ -1,8 +1,8 @@
 mutation {
-  author(op: UPSERT, data: {specialOrEcho: "Echo this"}) {
+  author(op: UPSERT, data: {prefix: "MyPrefix", bookTitlesWithPrefix: ["I", "should", "do", "nothing!"]}) {
     edges {
       node {
-        specialOrEcho
+        bookTitlesWithPrefix
       }
     }
   }
