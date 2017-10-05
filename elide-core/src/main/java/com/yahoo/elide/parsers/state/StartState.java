@@ -10,7 +10,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.ForbiddenEntityException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
@@ -70,7 +69,7 @@ public class StartState extends BaseState {
         String id = ctx.entity().id().getText();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new ForbiddenEntityException();
+            throw new ForbiddenAccessException(entityName);
         }
 
         PersistentResource record = PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
@@ -81,7 +80,7 @@ public class StartState extends BaseState {
                     state.getRequestScope().getExpressionForRelation(record, relationName);
             record.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(relationName);
+            throw new ForbiddenAccessException(entityName);
         }
 
         state.setState(new RelationshipTerminalState(record, relationName));
