@@ -1,0 +1,21 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "bookTitlesWithPrefix": [
+            "default_Libro Uno",
+            "default_Libro Dos"
+          ]
+        }
+      },
+      {
+        "node": {
+          "bookTitlesWithPrefix": [
+            "default_Doctor Zhivago"
+          ]
+        }
+      }
+    ]
+  }
+}

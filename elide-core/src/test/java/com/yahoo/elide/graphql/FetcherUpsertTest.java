@@ -90,6 +90,12 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         runComparisonTest("nonCreatedIdOnlyRequest2Back");
     }
 
+    // TODO: Reeanble when supporting arguments into computed attributes.
+    @Test(enabled = false)
+    public void testSetComputedAttribute() throws Exception {
+        runComparisonTest("setComputedAttribute");
+    }
+
     @Override
     public void runComparisonTest(String testName) throws Exception {
         super.runComparisonTest("upsert/" + testName);

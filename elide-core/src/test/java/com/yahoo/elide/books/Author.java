@@ -6,18 +6,16 @@
 package com.yahoo.elide.books;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Model for authors.
@@ -43,6 +41,7 @@ public class Author {
     private String name;
     private AuthorType type;
     private Address homeAddress;
+    private String prefix = "default_";
 
     public String getName() {
         return name;
@@ -91,6 +90,35 @@ public class Author {
     }
     public void setPenName(Pseudonym penName) {
         this.penName = penName;
+    }
+
+    // TODO: Eventually we should support multiple argument computed attributes to be used as API _functions_
+    @ComputedAttribute
+    @Transient
+    public List<String> getBookTitlesWithPrefix() {
+        if (getBooks() == null) {
+            return Collections.emptyList();
+        }
+        return getBooks().stream()
+                .map(book -> getPrefix() + book.getTitle())
+                .collect(Collectors.toList());
+    }
+
+    public void setBookTitlesWithPrefix(List<String> unused) {
+        // Do nothing
+        System.out.println("hm");
+    }
+
+    @Transient
+    @ComputedAttribute
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        if (prefix != null) {
+            this.prefix = prefix;
+        }
     }
 
     @Override
