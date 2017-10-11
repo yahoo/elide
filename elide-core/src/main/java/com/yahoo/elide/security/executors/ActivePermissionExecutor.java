@@ -199,13 +199,23 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
         Supplier<Expression> expressionSupplier = () -> {
-            return expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+            if (annotationClass == UpdatePermission.class
+                    && requestScope.getNewResources().contains(resource)) {
+                return expressionBuilder.buildSpecificFieldExpressions(resource,
+                        CreatePermission.class,
+                        field,
+                        changeSpec);
+            } else {
+                return expressionBuilder.buildSpecificFieldExpressions(resource,
+                        annotationClass,
+                        field,
+                        changeSpec);
+            }
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class
-                    || annotationClass == CreatePermission.class)
+                    || annotationClass == UpdatePermission.class)
                     && requestScope.getNewPersistentResources().contains(resource)) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }

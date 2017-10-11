@@ -26,16 +26,9 @@ import static org.mockito.Mockito.when;
 
 public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
-    private User userOne;
-    private User userTwo;
-    private User userThree;
-
     private RequestScope userOneScope;
     private RequestScope userTwoScope;
     private RequestScope userThreeScope;
-
-    private DataStoreTransaction tx;
-
 
     public UpdateOnCreateTest() {
         super();
@@ -54,14 +47,14 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         Book book = new Book();
         Author author = new Author();
 
-        tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
 
-        userOne = new User(1);
-        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings);
-        userTwo = new User(2);
-        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings);
-        userThree = new User(3);
-        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings);
+        User userOne = new User(1);
+        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings, false);
+        User userTwo = new User(2);
+        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings, false);
+        User userThree = new User(3);
+        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings, false);
 
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         when(tx.loadObject(eq(UpdateAndCreate.class),

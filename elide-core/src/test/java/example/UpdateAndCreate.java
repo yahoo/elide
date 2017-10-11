@@ -25,7 +25,7 @@ import java.util.Collection;
 @Include(rootLevel = true)
 @CreatePermission(expression = "isUserOne OR isUserTwo")
 @UpdatePermission(expression = "isUserTwo")
-@SharePermission(expression = "allow all")
+@SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",
