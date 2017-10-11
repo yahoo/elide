@@ -30,10 +30,6 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     private RequestScope userTwoScope;
     private RequestScope userThreeScope;
 
-    public UpdateOnCreateTest() {
-        super();
-    }
-
     @BeforeTest
     public void init() {
         dictionary.bindEntity(Author.class);
