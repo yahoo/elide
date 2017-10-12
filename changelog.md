@@ -1,4 +1,8 @@
 # Change Log
+## 3.1.4
+**Fixes**
+ * Fix NPE in filter path expansion
+
 ## 3.1.3
  * Add support for @Any relationships through a @MappedInterface
 
