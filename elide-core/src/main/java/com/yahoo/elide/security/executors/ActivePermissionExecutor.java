@@ -198,33 +198,32 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
+        //We would want to evaluate the expression in the CreatePermission in case of
+        // update checks on newly created entities
+        Class expressionAnnotation = annotationClass.isAssignableFrom(UpdatePermission.class)
+                && requestScope.getNewResources().contains(resource)
+                ? CreatePermission.class
+                : annotationClass;
+
         Supplier<Expression> expressionSupplier = () -> {
-            if (annotationClass == UpdatePermission.class
-                    && requestScope.getNewResources().contains(resource)) {
                 return expressionBuilder.buildSpecificFieldExpressions(resource,
-                        CreatePermission.class,
+                        expressionAnnotation,
                         field,
                         changeSpec);
-            } else {
-                return expressionBuilder.buildSpecificFieldExpressions(resource,
-                        annotationClass,
-                        field,
-                        changeSpec);
-            }
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
                     || annotationClass == UpdatePermission.class)
                     && requestScope.getNewPersistentResources().contains(resource)) {
-                return executeUserChecksDeferInline(annotationClass, expression);
+                return executeUserChecksDeferInline(expressionAnnotation, expression);
             }
-            return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+            return executeExpressions(expression, expressionAnnotation, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
         return checkPermissions(
                 resource.getResourceClass(),
-                annotationClass,
+                expressionAnnotation,
                 Optional.of(field),
                 expressionSupplier,
                 expressionExecutor);
