@@ -333,6 +333,9 @@ public enum Operator {
                 continue;
             }
             val = PersistentResource.getValue(val, field, requestScope);
+            if (val == null) {
+                break;
+            }
         }
         return val;
     }
