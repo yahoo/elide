@@ -43,6 +43,7 @@ public class TestCheckMappings {
                     put("isUserOne", UserIdChecks.UserOneCheck.class);
                     put("isUserTwo", UserIdChecks.UserTwoCheck.class);
                     put("isUserThree", UserIdChecks.UserThreeCheck.class);
+                    put("isUserFour", UserIdChecks.UserFourCheck.class);
                 }
             };
 

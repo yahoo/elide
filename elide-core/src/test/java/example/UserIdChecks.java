@@ -48,7 +48,20 @@ public class UserIdChecks {
 
         @Override
         public String checkIdentifier() {
-            return "UserTwo";
+            return "UserThree";
+        }
+    }
+
+    public static class UserFourCheck extends UserCheck {
+        @Override
+        public boolean ok(User user) {
+            Integer id = (Integer) user.getOpaqueUser();
+            return id.equals(4);
+        }
+
+        @Override
+        public String checkIdentifier() {
+            return "UserFour";
         }
     }
 }

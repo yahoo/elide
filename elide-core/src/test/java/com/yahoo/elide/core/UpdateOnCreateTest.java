@@ -12,7 +12,6 @@ import example.Author;
 import example.Book;
 import example.UpdateAndCreate;
 import org.mockito.Answers;
-import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -29,6 +28,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     private RequestScope userOneScope;
     private RequestScope userTwoScope;
     private RequestScope userThreeScope;
+    private RequestScope userFourScope;
 
     @BeforeTest
     public void init() {
@@ -51,6 +51,8 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings, false);
         User userThree = new User(3);
         userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings, false);
+        User userFour = new User(4);
+        userFourScope = new RequestScope(null, null, tx, userFour, null, elideSettings, false);
 
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         when(tx.loadObject(eq(UpdateAndCreate.class),
@@ -70,173 +72,180 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         )).thenReturn(author);
     }
 
+    //----------------------------------------- ** Entity Creation ** -------------------------------------------------
     @Test
-    public void testUpdateOnCreateUserOne() {
-
+    public void createPermissionCheckClassAnnotationForCreatingAnEntitySuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
-                "1",
-                userOneScope);
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
-                "1",
-                userOneScope);
-
-        created.updateAttribute("name", "");
-        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        created.updateAttribute("alias", "");
-        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        created.addRelation("books", loadedBook);
-        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.addRelation("author", loadedAuthor);
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-
-        });
-    }
-
-    @Test
-    public void testNormalUpdateUserOne() {
-        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
-                "1",
-                userOneScope);
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
-                "1",
-                userOneScope);
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
-                "1",
-                userOneScope);
-
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("name", "");
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("alias", "");
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.addRelation("books", loadedBook);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.addRelation("author", loadedAuthor);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-
-        });
-    }
-
-    @Test
-    public void testUpdateOnCreateUserTwo() {
-        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userTwoScope, Optional.of("uuid"));
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
-                "1",
-                userTwoScope);
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
-                "1",
-                userTwoScope);
-
-        created.updateAttribute("name", "");
-        created.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
-        created.updateAttribute("alias", "");
-        created.addRelation("books", loadedBook);
-        created.addRelation("author", loadedAuthor);
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test
-    public void testNormalUpdateUserTwo() {
+    public void createPermissionCheckFieldAnnotationForCreatingAnEntitySuccessCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void createPermissionCheckFieldAnnotationForCreatingAnEntityFailureCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("uuid"));
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    //----------------------------------------- ** Update Attribute ** ------------------------------------------------
+    @Test
+    public void updatePermissionInheritedForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
                 userTwoScope);
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
-                "1",
-                userTwoScope);
-        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
-                "1",
-                userTwoScope);
-
         loaded.updateAttribute("name", "");
-        loaded.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void updatePermissionInheritedForAttributeFailureCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+                "1",
+                userOneScope);
+        loaded.updateAttribute("name", "");
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test
+    public void updatePermissionOverwrittenForAttributeSuccessCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+                "1",
+                userFourScope);
         loaded.updateAttribute("alias", "");
-        loaded.addRelation("books", loadedBook);
-        loaded.addRelation("author", loadedAuthor);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void updatePermissionOverwrittenForAttributeFailureCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+                "1",
+                userThreeScope);
+        loaded.updateAttribute("alias", "");
         loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
 
+    //----------------------------------------- ** Update Relation  ** -----------------------------------------------
     @Test
-    public void testUpdateOnCreateUserThree() {
-        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
-        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+    public void updatePermissionInheritedForRelationSuccessCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
-                userThreeScope);
+                userTwoScope);
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
                 "1",
-                userThreeScope);
+                userTwoScope);
+        loaded.addRelation("books", loadedBook);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
 
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.updateAttribute("name", "");
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.addRelation("books", loadedBook);
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            created.addRelation("author", loadedAuthor);
-            created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-
-        });
-
-        created.updateAttribute("alias", "");
-        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
-
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void updatePermissionInheritedForRelationFailureCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+                "1",
+                userOneScope);
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
+                "1",
+                userOneScope);
+        loaded.addRelation("books", loadedBook);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test
-    public void testNormalUpdateUserThree() {
+    public void updatePermissionOverwrittenForRelationSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
                 "1",
                 userThreeScope);
         PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
                 "1",
                 userThreeScope);
+        loaded.addRelation("author", loadedAuthor);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void updatePermissionOverwrittenForRelationFailureCase() {
+        PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
+                "1",
+                userTwoScope);
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+                "1",
+                userTwoScope);
+        loaded.addRelation("author", loadedAuthor);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    //----------------------------------------- ** Update Attribute On Create ** --------------------------------------
+    @Test
+    public void createPermissionInheritedForAttributeSuccessCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
+        created.updateAttribute("name", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void createPermissionInheritedForAttributeFailureCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
+        created.updateAttribute("name", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test
+    public void createPermissionOverwrittenForAttributeSuccessCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
+        created.updateAttribute("alias", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void createPermissionOverwrittenForAttributeFailureCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("uuid"));
+        created.updateAttribute("alias", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+
+    //----------------------------------------- ** Update Relation On Create ** --------------------------------------
+    @Test
+    public void createPermissionInheritedForRelationSuccessCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
+        PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
+                "1",
+                userOneScope);
+        created.addRelation("books", loadedBook);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void createPermissionInheritedForRelationFailureCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
         PersistentResource<Book> loadedBook = PersistentResource.loadRecord(Book.class,
                 "1",
                 userThreeScope);
+        created.addRelation("books", loadedBook);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
 
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("name", "");
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("type", UpdateAndCreate.AuthorType.CONTRACTED);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.updateAttribute("alias", "");
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.addRelation("books", loadedBook);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
-        });
-        Assert.assertThrows(ForbiddenAccessException.class, () -> {
-            loaded.addRelation("author", loadedAuthor);
-            loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    @Test
+    public void createPermissionOverwrittenForRelationSuccessCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userTwoScope, Optional.of("uuid"));
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+                "1",
+                userTwoScope);
+        created.addRelation("author", loadedAuthor);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+    }
 
-        });
+    @Test(expectedExceptions = ForbiddenAccessException.class)
+    public void createPermissionOverwrittenForRelationFailureCase() {
+        PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
+        PersistentResource<Author> loadedAuthor = PersistentResource.loadRecord(Author.class,
+                "1",
+                userOneScope);
+        created.addRelation("author", loadedAuthor);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 }

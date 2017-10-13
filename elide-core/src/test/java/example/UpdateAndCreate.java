@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
-import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.OneToMany;
@@ -21,7 +20,6 @@ import java.util.Collection;
  * Model for authors.
  */
 @Entity
-@Table(name = "author")
 @Include(rootLevel = true)
 @CreatePermission(expression = "isUserOne OR isUserTwo")
 @UpdatePermission(expression = "isUserTwo")
@@ -68,6 +66,7 @@ public class UpdateAndCreate {
     }
 
     @CreatePermission(expression = "isUserOne OR isUserTwo OR isUserThree")
+    @UpdatePermission(expression = "isUserTwo OR isUserFour")
     public String getAlias() {
         return alias;
     }
@@ -95,6 +94,7 @@ public class UpdateAndCreate {
     }
 
     @CreatePermission(expression = "isUserTwo")
+    @UpdatePermission(expression = "isUserThree")
     @OneToOne
     public Author getAuthor() {
         return author;
