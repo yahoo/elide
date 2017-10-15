@@ -19,6 +19,7 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -82,9 +83,73 @@ public class RelationshipTerminalState extends BaseState {
         return () -> Pair.of(HttpStatus.SC_OK, mapper.toJsonObject(doc));
     }
 
+    /**
+     * Handles PATCH requests for relationship updates.
+     * <p>
+     * If request does not modify relationship, returns {@link com.yahoo.elide.core.HttpStatus#SC_NO_CONTENT}. If the
+     * request does modify the relationship <b>in other ways than those specified by the request</b>, returns
+     * {@link com.yahoo.elide.core.HttpStatus#SC_OK}. For example
+     * <p>
+     * A book B was going to be published by publisher P1, if we change the publisher of B to publisher P2, then the
+     * relationship between B and P1 also changes, although we only request a relationship change on book B.
+     *
+     * @param state  The state that contains information about request
+     *
+     * @return a pair of response code and response body
+     */
     @Override
     public Supplier<Pair<Integer, JsonNode>> handlePatch(StateContext state) {
-        return handleRequest(state, this::patch);
+        Data<Resource> data = state.getJsonApiDocument().getData();
+        RequestScope requestScope = state.getRequestScope();
+
+        if (relationshipType.isToMany() && data == null) {
+            throw new InvalidEntityBodyException("Expected data but received null");
+        }
+
+        if (relationshipType.isToMany()) {
+            Collection<Resource> resources = data.get();
+            if (resources == null) { // relationship is not modified
+                return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+            }
+            if (!resources.isEmpty()) { // to-many relationship cannot result in unrequested modification
+                boolean isUpdated = record.updateRelation(
+                        relationshipName,
+                        new Relationship(null, new Data<>(resources)).toPersistentResources(requestScope)
+                );
+                return () -> Pair.of(
+                        isUpdated ? requestScope.getUpdateStatusCode() : HttpStatus.SC_NO_CONTENT,
+                        null
+                );
+            } else {
+                record.clearRelation(relationshipName);
+                return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+            }
+        } else if (relationshipType.isToOne()) {
+            if (data != null) {
+                Resource resource = data.getSingleValue();
+                Relationship relationship = new Relationship(null, new Data<>(resource));
+                Pair<Boolean, PersistentResource> pair = record.updateToOneRelation(
+                        relationshipName,
+                        relationship.toPersistentResources(requestScope)
+                );
+                boolean isUpdated = pair.getLeft();
+                PersistentResource newResource = pair.getRight();
+
+                if (newResource != null) {
+                    return () -> Pair.of(HttpStatus.SC_OK, getResponseBody(newResource, requestScope));
+                } else {
+                    return () -> Pair.of(
+                            isUpdated ? requestScope.getUpdateStatusCode() : HttpStatus.SC_NO_CONTENT,
+                            null
+                    );
+                }
+            } else { // relationship is not modified
+                record.clearRelation(relationshipName);
+                return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
+            }
+        } else {
+            throw new IllegalStateException("Bad relationship type");
+        }
     }
 
     @Override
@@ -97,49 +162,11 @@ public class RelationshipTerminalState extends BaseState {
         return handleRequest(state, this::delete);
     }
 
-    /*
-     * Base on the JSON API docs relationship updates MUST return 204 unless the server has made additional modification
-     * to the relationship. http://jsonapi.org/format/#crud-updating-relationship-responses
-     */
     private Supplier<Pair<Integer, JsonNode>> handleRequest(StateContext state,
                                                             BiFunction<Data<Resource>, RequestScope, Boolean> handler) {
         Data<Resource> data = state.getJsonApiDocument().getData();
         handler.apply(data, state.getRequestScope());
-        // TODO: figure out if we've made modifications that differ from those requested by client
         return () -> Pair.of(HttpStatus.SC_NO_CONTENT, null);
-    }
-
-    private boolean patch(Data<Resource> data, RequestScope requestScope) {
-        boolean isUpdated;
-
-        if (relationshipType.isToMany() && data == null) {
-            throw new InvalidEntityBodyException("Expected data but received null");
-        }
-
-        if (relationshipType.isToMany()) {
-            Collection<Resource> resources = data.get();
-            if (resources == null) {
-                return false;
-            }
-            if (!resources.isEmpty()) {
-                isUpdated = record.updateRelation(relationshipName,
-                        new Relationship(null, new Data<>(resources)).toPersistentResources(requestScope));
-            } else {
-                isUpdated = record.clearRelation(relationshipName);
-            }
-        } else if (relationshipType.isToOne()) {
-            if (data != null) {
-                Resource resource = data.getSingleValue();
-                Relationship relationship = new Relationship(null, new Data<>(resource));
-                isUpdated = record.updateRelation(relationshipName, relationship.toPersistentResources(requestScope));
-            } else {
-                isUpdated = record.clearRelation(relationshipName);
-            }
-        } else {
-            throw new IllegalStateException("Bad relationship type");
-        }
-
-        return isUpdated;
     }
 
     private boolean post(Data<Resource> data, RequestScope requestScope) {

@@ -44,6 +44,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.ServerErrorException;
@@ -410,6 +411,74 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Performs a full replacement on to-one relationships, similar to {@link #updateRelation(String, Set)}.
+     *
+     * @param fieldName  The field name
+     * @param resourceIdentifiers  The resource identifiers
+     *
+     * @return a pair of Boolean(TRUE if object updated, FALSE otherwise) and
+     * {@link com.yahoo.elide.core.PersistentResource}. If the relationship is modified in other ways than those
+     * specified by a request, this {@link com.yahoo.elide.core.PersistentResource} will be the new relationship,
+     * otherwise it will be null
+     */
+    public Pair<Boolean, PersistentResource> updateToOneRelation(
+            String fieldName,
+            Set<PersistentResource> resourceIdentifiers
+    ) {
+        Set<PersistentResource> resources = filter(
+                ReadPermission.class,
+                getRelationUncheckedUnfiltered(fieldName)
+        );
+
+        PersistentResource resource = (resources.isEmpty()) ? null : resources.iterator().next();
+        Object original = (resource == null) ? null : resource.getObject();
+        PersistentResource modifiedResource =
+                (resourceIdentifiers == null || resourceIdentifiers.isEmpty())
+                        ? null
+                        : resourceIdentifiers.iterator().next();
+        Object modified = (modifiedResource == null) ? null : modifiedResource.getObject();
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, modified, original);
+
+        Object newValue = null;
+        PersistentResource newResource = null;
+        if (resourceIdentifiers != null && !resourceIdentifiers.isEmpty()) {
+            newResource = resourceIdentifiers.iterator().next();
+            newValue = newResource.getObject();
+        }
+
+        PersistentResource oldResource = !resources.isEmpty() ? resources.iterator().next() : null;
+
+        if (oldResource == null) {
+            if (newValue == null) {
+                return Pair.of(Boolean.FALSE, null);
+            }
+            checkSharePermission(resourceIdentifiers);
+        } else if (oldResource.getObject().equals(newValue)) {
+            return Pair.of(Boolean.FALSE, null);
+        } else {
+            checkSharePermission(resourceIdentifiers);
+            if (hasInverseRelation(fieldName)) {
+                deleteInverseRelation(fieldName, oldResource.getObject());
+                oldResource.markDirty();
+            }
+        }
+
+        if (newResource != null) {
+            if (hasInverseRelation(fieldName)) {
+                addInverseRelation(fieldName, newValue);
+                newResource.markDirty();
+            }
+        }
+
+        this.setValueChecked(fieldName, newValue);
+        //hook for updateToOneRelation
+        transaction.updateToOneRelation(transaction, obj, fieldName, newValue, requestScope);
+
+        this.markDirty();
+        return Pair.of(Boolean.TRUE, oldResource.getId().compareTo(newResource.getId()) != 0 ? newResource : null);
+    }
+
+    /**
      * Updates a to-many relationship.
      * @param fieldName the field name
      * @param resourceIdentifiers the resource identifiers
@@ -431,7 +500,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (resourceIdentifiers.isEmpty()) {
             requested = new LinkedHashSet<>();
         } else {
-
             // TODO - this resource does not include a lineage. This could cause issues for audit.
             requested = resourceIdentifiers;
         }
@@ -1889,6 +1957,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     /**
      * Mark this object as dirty.
+     * <p>
+     * An object is marked as dirty when this object has been modified.
      */
     private void markDirty() {
         requestScope.getDirtyResources().add(this);
