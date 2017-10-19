@@ -73,22 +73,29 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     }
 
     //----------------------------------------- ** Entity Creation ** -------------------------------------------------
+
+    //Create allowed based on class level expression
     @Test
     public void createPermissionCheckClassAnnotationForCreatingAnEntitySuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
+    //Create allowed based on field level expression
     @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntitySuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
+    //Create denied based on field level expression
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void createPermissionCheckFieldAnnotationForCreatingAnEntityFailureCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userFourScope, Optional.of("uuid"));
     }
 
     //----------------------------------------- ** Update Attribute ** ------------------------------------------------
+    //Expression for field inherited from class level expression
     @Test
     public void updatePermissionInheritedForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
@@ -105,6 +112,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.updateAttribute("name", "");
     }
 
+    //Class level expression overwritten by field level expression
     @Test
     public void updatePermissionOverwrittenForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
@@ -123,6 +131,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
 
     //----------------------------------------- ** Update Relation  ** -----------------------------------------------
+    //Expression for relation inherited from class level expression
     @Test
     public void updatePermissionInheritedForRelationSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
@@ -145,6 +154,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         loaded.addRelation("books", loadedBook);
     }
 
+    //Class level expression overwritten by field level expression
     @Test
     public void updatePermissionOverwrittenForRelationSuccessCase() {
         PersistentResource<UpdateAndCreate> loaded = PersistentResource.loadRecord(UpdateAndCreate.class,
@@ -168,6 +178,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     }
 
     //----------------------------------------- ** Update Attribute On Create ** --------------------------------------
+    //Expression for field inherited from class level expression
     @Test
     public void createPermissionInheritedForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
@@ -180,6 +191,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.updateAttribute("name", "");
     }
 
+    //Class level expression overwritten by field level expression
     @Test
     public void createPermissionOverwrittenForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
@@ -194,6 +206,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
 
     //----------------------------------------- ** Update Relation On Create ** --------------------------------------
+    //Expression for relation inherited from class level expression
     @Test
     public void createPermissionInheritedForRelationSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
@@ -212,6 +225,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         created.addRelation("books", loadedBook);
     }
 
+    //Class level expression overwritten by field level expression
     @Test
     public void createPermissionOverwrittenForRelationSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userTwoScope, Optional.of("uuid"));

@@ -22,13 +22,12 @@ import javax.persistence.Id;
 @Entity
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "updateOnCreate OR deny all")
+@UpdatePermission(expression = "deny all")
 public class CreateButNoUpdate {
     public Long id;
     public String textValue;
 
     @CreatePermission(expression = "deny all")
-    @UpdatePermission(expression = "deny all")
     public String cannotModify = "unmodified";
 
     @Id

@@ -123,8 +123,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class)
+            if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
                     && requestScope.getNewPersistentResources().contains(resource)) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
@@ -213,8 +212,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class)
+            if (((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
                     && requestScope.getNewPersistentResources().contains(resource)) {
                 return executeUserChecksDeferInline(expressionAnnotation, expression);
             }

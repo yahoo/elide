@@ -21,8 +21,8 @@ import java.util.Collection;
  */
 @Entity
 @Include(rootLevel = true)
-@CreatePermission(expression = "isUserOne OR isUserTwo")
-@UpdatePermission(expression = "isUserTwo")
+@CreatePermission(expression = "Principal is user one OR Principal is user two")
+@UpdatePermission(expression = "Principal is user two")
 @SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
@@ -65,8 +65,8 @@ public class UpdateAndCreate {
         this.name = name;
     }
 
-    @CreatePermission(expression = "isUserOne OR isUserTwo OR isUserThree")
-    @UpdatePermission(expression = "isUserTwo OR isUserFour")
+    @CreatePermission(expression = "Principal is user one OR Principal is user two OR Principal is user three")
+    @UpdatePermission(expression = "Principal is user two OR Principal is user four")
     public String getAlias() {
         return alias;
     }
@@ -75,7 +75,7 @@ public class UpdateAndCreate {
         this.alias = alias;
     }
 
-    @CreatePermission(expression = "isUserTwo")
+    @CreatePermission(expression = "Principal is user two")
     public AuthorType getType() {
         return type;
     }
@@ -93,8 +93,8 @@ public class UpdateAndCreate {
         this.books = books;
     }
 
-    @CreatePermission(expression = "isUserTwo")
-    @UpdatePermission(expression = "isUserThree")
+    @CreatePermission(expression = "Principal is user two")
+    @UpdatePermission(expression = "Principal is user three")
     @OneToOne
     public Author getAuthor() {
         return author;
