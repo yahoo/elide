@@ -102,6 +102,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userTwoScope);
         loaded.updateAttribute("name", "");
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -119,6 +120,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userFourScope);
         loaded.updateAttribute("alias", "");
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -141,6 +143,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userTwoScope);
         loaded.addRelation("books", loadedBook);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -164,6 +167,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userThreeScope);
         loaded.addRelation("author", loadedAuthor);
+        loaded.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -183,6 +187,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     public void createPermissionInheritedForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userOneScope, Optional.of("uuid"));
         created.updateAttribute("name", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -196,6 +201,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     public void createPermissionOverwrittenForAttributeSuccessCase() {
         PersistentResource<UpdateAndCreate> created = PersistentResource.createObject(null, UpdateAndCreate.class, userThreeScope, Optional.of("uuid"));
         created.updateAttribute("alias", "");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -214,6 +220,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userOneScope);
         created.addRelation("books", loadedBook);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
@@ -233,6 +240,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 "1",
                 userTwoScope);
         created.addRelation("author", loadedAuthor);
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
