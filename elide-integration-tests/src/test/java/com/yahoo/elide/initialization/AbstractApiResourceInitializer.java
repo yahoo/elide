@@ -67,7 +67,8 @@ public abstract class AbstractApiResourceInitializer {
 
         ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
         graphqlServlet.setInitOrder(2);
-        graphqlServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
+        graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
+                com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
         graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
