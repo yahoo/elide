@@ -6,13 +6,13 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.books.Address;
-import com.yahoo.elide.books.Author;
-import com.yahoo.elide.books.Book;
-import com.yahoo.elide.books.Pseudonym;
-import com.yahoo.elide.books.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.checks.Check;
+import example.Address;
+import example.Author;
+import example.Book;
+import example.Pseudonym;
+import example.Publisher;
 import org.testng.annotations.BeforeClass;
 
 import java.util.HashMap;

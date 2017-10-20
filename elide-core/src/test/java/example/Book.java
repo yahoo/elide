@@ -50,7 +50,6 @@ public class Book {
     private String language;
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
-    private boolean onCreateBookCalled = false;
     private Publisher publisher = null;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
