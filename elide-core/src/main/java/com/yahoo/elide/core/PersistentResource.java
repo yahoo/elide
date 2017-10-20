@@ -1764,7 +1764,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (String field : fields) {
             try {
                 if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
-                    checkFieldAwarePermissions(ReadPermission.class, field, (Object) null, (Object) null);
+                    checkFieldAwareReadPermissions(field);
                     filteredSet.add(field);
                 }
             } catch (ForbiddenAccessException e) {
@@ -1783,16 +1783,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         return requestScope.getPermissionExecutor().checkPermission(annotationClass, this);
     }
 
-    private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass,
-                                                                   String fieldName,
-                                                                   Object modified,
-                                                                   Object original) {
-        ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
-                ? new ChangeSpec(this, fieldName, original, modified)
-                : null;
-
+    private <A extends Annotation> ExpressionResult checkFieldAwareReadPermissions(String fieldName) {
         return requestScope.getPermissionExecutor()
-                .checkSpecificFieldPermissions(this, changeSpec, annotationClass, fieldName);
+                .checkSpecificFieldPermissions(this, null, ReadPermission.class, fieldName);
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
