@@ -772,7 +772,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .body("{\"data\":{\"type\":\"excludedRelationship\",\"id\":\"1\"}}")
                 .delete("/parent/4/children/4/relationships/excludedRelationship")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test(priority = 11)

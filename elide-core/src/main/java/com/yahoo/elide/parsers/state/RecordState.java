@@ -9,14 +9,14 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.ForbiddenEntityException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.models.SingleElementSet;
 
 import com.google.common.base.Preconditions;
 
@@ -67,7 +67,7 @@ public class RecordState extends BaseState {
             }
             state.setState(nextState);
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(subCollection);
+            throw new ForbiddenAccessException(subCollection);
         }
     }
 
@@ -80,7 +80,7 @@ public class RecordState extends BaseState {
             PersistentResource nextRecord = resource.getRelation(subCollection, id);
             state.setState(new RecordTerminalState(nextRecord));
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(subCollection);
+            throw new ForbiddenEntityException();
         }
     }
 
@@ -91,7 +91,7 @@ public class RecordState extends BaseState {
         try {
             state.setState(new RecordState(resource.getRelation(subCollection, id)));
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(subCollection);
+            throw new ForbiddenAccessException(subCollection);
         }
     }
 
@@ -104,7 +104,7 @@ public class RecordState extends BaseState {
         try {
             childRecord = resource.getRelation(subCollection, id);
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(subCollection);
+            throw new ForbiddenAccessException(subCollection);
         }
 
         String relationName = ctx.relationship().term().getText();
@@ -113,7 +113,7 @@ public class RecordState extends BaseState {
                         state.getRequestScope().getExpressionForRelation(resource, subCollection);
             childRecord.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
         } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(relationName);
+            throw new ForbiddenAccessException(relationName);
         }
 
         state.setState(new RelationshipTerminalState(childRecord, relationName));
