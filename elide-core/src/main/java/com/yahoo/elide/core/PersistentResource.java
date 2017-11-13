@@ -952,7 +952,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, type);
         }
 
-        checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
+        try {
+            checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
+        } catch (ForbiddenAccessException e) {
+            return false;
+        }
 
         return !shouldSkipCollection(
                 dictionary.getParameterizedType(obj, relationName),

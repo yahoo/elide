@@ -1,4 +1,8 @@
 # Change Log
+## 3.1.4
+**Fixes**
+ * properly handle ForbiddenAccess for Include
+
 ## 3.1.3
  * Add support for @Any relationships through a @MappedInterface
 
