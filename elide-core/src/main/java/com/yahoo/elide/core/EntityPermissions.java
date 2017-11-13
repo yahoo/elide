@@ -15,6 +15,7 @@ import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.checks.Check;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
@@ -143,6 +144,7 @@ public class EntityPermissions implements CheckInstantiator {
             }
         });
         ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
+        parser.setErrorHandler(new BailErrorStrategy());
         lexer.reset();
         return parser.start();
     }
