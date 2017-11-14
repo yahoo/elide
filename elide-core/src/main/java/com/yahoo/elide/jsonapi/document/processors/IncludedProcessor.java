@@ -7,6 +7,7 @@ package com.yahoo.elide.jsonapi.document.processors;
 
 import com.google.common.collect.Lists;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -77,7 +78,14 @@ public class IncludedProcessor implements DocumentProcessor {
         //Pop off a relation of relation path
         String relation = relationPath.remove(0);
 
-        rec.getRelationCheckedFiltered(relation).forEach(resource -> {
+        Set<PersistentResource> collection;
+        try {
+            collection = rec.getRelationCheckedFiltered(relation);
+        } catch (ForbiddenAccessException e) {
+            return;
+        }
+
+        collection.forEach(resource -> {
             jsonApiDocument.addIncluded(resource.toResource());
 
             //If more relations left in the path, process a level deeper
