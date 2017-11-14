@@ -1,7 +1,7 @@
 # Change Log
 ## 3.1.4
 **Fixes**
- * properly handle ForbiddenAccess for Include
+ * Instead of ForbiddenAccess for denied Include, filter to empty set.
 
 ## 3.1.3
  * Add support for @Any relationships through a @MappedInterface
