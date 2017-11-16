@@ -238,12 +238,6 @@ public class Elide {
         } catch (HttpStatusException e) {
             return buildErrorResponse(e, isVerbose);
 
-        } catch (ValidationException e) {
-            return buildErrorResponse(
-                new HttpStatusException(HttpStatus.SC_BAD_REQUEST, e.getMessage()) {},
-                isVerbose
-            );
-
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e), isVerbose);
 
@@ -251,6 +245,14 @@ public class Elide {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
         } catch (Exception e) {
+            if (e instanceof ValidationException) {
+                return buildErrorResponse(
+                    new HttpStatusException(HttpStatus.SC_BAD_REQUEST, e.getMessage()) {
+                    },
+                    isVerbose
+                );
+            }
+
             return buildErrorResponse(new InternalServerErrorException(e), isVerbose);
 
         } catch (Error e) {
