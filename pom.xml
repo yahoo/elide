@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>3.1.4</version>
+    <version>3.1.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -56,7 +56,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>3.1.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <prerequisites>
@@ -91,7 +91,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>3.1.4</version>
+                <version>3.1.5-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
