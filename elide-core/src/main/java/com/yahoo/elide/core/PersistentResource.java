@@ -991,11 +991,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Optional<FilterExpression> computedFilters = filterExpression;
 
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
-                FilterExpression mergedExpression =
-                        new AndFilterExpression(filterExpression.get(), permissionFilter.get());
-                computedFilters = Optional.of(mergedExpression);
+            FilterExpression mergedExpression =
+                    new AndFilterExpression(filterExpression.get(), permissionFilter.get());
+            computedFilters = Optional.of(mergedExpression);
         } else if (permissionFilter.isPresent()) {
-                computedFilters = permissionFilter;
+            computedFilters = permissionFilter;
         }
 
 
