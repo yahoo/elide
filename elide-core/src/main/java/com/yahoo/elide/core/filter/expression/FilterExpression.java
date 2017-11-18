@@ -9,5 +9,5 @@ package com.yahoo.elide.core.filter.expression;
  * A filter expression.
  */
 public interface FilterExpression {
-    public <T> T accept(Visitor<T> visitor);
+    public <T> T accept(FilterExpressionVisitor<T> visitor);
 }

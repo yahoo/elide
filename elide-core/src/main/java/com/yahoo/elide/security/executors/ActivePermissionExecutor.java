@@ -316,10 +316,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         }
 
-        if (expressionExecutor.isPresent()) {
-            return expressionExecutor.get().apply(expression);
-        }
-        return expressionResult;
+        return expressionExecutor
+                .map(executor -> executor.apply(expression))
+                .orElse(expressionResult);
     }
 
     /**

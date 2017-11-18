@@ -12,14 +12,16 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 
 /**
  * FilterOperation that creates Hibernate query language fragments.
@@ -152,23 +154,6 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
     }
 
-    @Override
-    public String applyAll(Set<FilterPredicate> filterPredicates) {
-        StringBuilder filterString = new StringBuilder();
-
-        for (FilterPredicate filterPredicate : filterPredicates) {
-            if (filterString.length() == 0) {
-                filterString.append("WHERE ");
-            } else {
-                filterString.append(" AND ");
-            }
-
-            filterString.append(apply(filterPredicate));
-        }
-
-        return filterString.toString();
-    }
-
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
         HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
         return "WHERE " + filterExpression.accept(visitor);
@@ -178,9 +163,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
     /**
      * Filter expression visitor which builds an HQL query.
      */
-    public class HQLQueryVisitor implements Visitor<String> {
+    public class HQLQueryVisitor implements FilterExpressionVisitor<String> {
         private boolean prefixWithAlias;
-        private String query;
 
         public HQLQueryVisitor(boolean prefixWithAlias) {
             this.prefixWithAlias = prefixWithAlias;
@@ -188,31 +172,49 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            query = apply(filterPredicate, prefixWithAlias);
-            return query;
+            return apply(filterPredicate, prefixWithAlias);
         }
 
         @Override
         public String visitAndExpression(AndFilterExpression expression) {
-            String left = expression.getLeft().accept(this);
-            String right = expression.getRight().accept(this);
-            query = "(" + left + " AND " + right + ")";
-            return query;
+            FilterExpression left = expression.getLeft();
+            FilterExpression right = expression.getRight();
+            boolean skipLeft = cannotEvaluate(left);
+            boolean skipRight = cannotEvaluate(right);
+            if (skipLeft && skipRight) {
+                throw new IllegalStateException("Cannot build a filter from two non-filtering expressions");
+            } else if (skipLeft) {
+                return right.accept(this);
+            } else if (skipRight) {
+                return left.accept(this);
+            }
+            return "(" + left.accept(this) + " AND " + right.accept(this) + ")";
         }
 
         @Override
         public String visitOrExpression(OrFilterExpression expression) {
-            String left = expression.getLeft().accept(this);
-            String right = expression.getRight().accept(this);
-            query = "(" + left + " OR " + right + ")";
-            return query;
+            FilterExpression left = expression.getLeft();
+            FilterExpression right = expression.getRight();
+            boolean skipLeft = cannotEvaluate(left);
+            boolean skipRight = cannotEvaluate(right);
+            if (skipLeft && skipRight) {
+                throw new IllegalStateException("Cannot build a filter from two non-filtering expressions");
+            } else if (skipLeft) {
+                return right.accept(this);
+            } else if (skipRight) {
+                return left.accept(this);
+            }
+            return "(" + left.accept(this) + " OR " + right.accept(this) + ")";
+        }
+
+        private boolean cannotEvaluate(FilterExpression expression) {
+            return expression == NO_EVALUATION_EXPRESSION || expression == FALSE_USER_CHECK_EXPRESSION;
         }
 
         @Override
         public String visitNotExpression(NotFilterExpression expression) {
             String negated = expression.getNegated().accept(this);
-            query = "NOT (" + negated + ")";
-            return query;
+            return "NOT (" + negated + ")";
         }
     }
 }

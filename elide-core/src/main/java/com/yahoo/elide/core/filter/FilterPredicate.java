@@ -14,7 +14,7 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -129,7 +129,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     @Override
-    public <T> T accept(Visitor<T> visitor) {
+    public <T> T accept(FilterExpressionVisitor<T> visitor) {
         return visitor.visitPredicate(this);
     }
 

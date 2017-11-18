@@ -24,7 +24,7 @@ public class OrFilterExpression implements FilterExpression {
 
     }
     @Override
-    public <T> T accept(Visitor<T> visitor) {
+    public <T> T accept(FilterExpressionVisitor<T> visitor) {
         return visitor.visitOrExpression(this);
     }
 

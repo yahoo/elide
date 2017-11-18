@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
@@ -273,7 +273,7 @@ public class BridgeableRedisStore implements DataStore {
     /**
      * Small example parser.
      */
-    private static class FilterExpressionParser implements Visitor<RedisFilter> {
+    private static class FilterExpressionParser implements FilterExpressionVisitor<RedisFilter> {
         @Override
         public RedisFilter visitPredicate(FilterPredicate predicate) {
             return new RedisFilter(

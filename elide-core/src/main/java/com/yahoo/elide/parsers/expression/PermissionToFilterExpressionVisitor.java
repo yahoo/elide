@@ -14,7 +14,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -39,7 +39,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
 
     public static final FilterExpression NO_EVALUATION_EXPRESSION = new FilterExpression() {
         @Override
-        public <T> T accept(Visitor<T> visitor) {
+        public <T> T accept(FilterExpressionVisitor<T> visitor) {
             return (T) this;
         }
         @Override
@@ -50,7 +50,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
 
     public static final FilterExpression FALSE_USER_CHECK_EXPRESSION = new FilterExpression() {
         @Override
-        public <T> T accept(Visitor<T> visitor) {
+        public <T> T accept(FilterExpressionVisitor<T> visitor) {
             return (T) this;
         }
         @Override

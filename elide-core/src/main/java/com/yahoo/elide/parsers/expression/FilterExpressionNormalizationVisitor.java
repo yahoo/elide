@@ -9,15 +9,15 @@ package com.yahoo.elide.parsers.expression;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
 
 
 /**
  * Expression Visitor.
  */
-public class FilterExpressionNormalizationVisitor implements Visitor<FilterExpression> {
+public class FilterExpressionNormalizationVisitor implements FilterExpressionVisitor<FilterExpression> {
 
     @Override
     public FilterExpression visitPredicate(FilterPredicate filterPredicate) {
@@ -38,13 +38,15 @@ public class FilterExpressionNormalizationVisitor implements Visitor<FilterExpre
     public FilterExpression visitNotExpression(NotFilterExpression fe) {
         FilterExpression nfe = fe.getNegated();
         if (nfe instanceof AndFilterExpression) {
-            FilterExpression left = (new NotFilterExpression(((AndFilterExpression) nfe).getLeft())).accept(this);
-            FilterExpression right = (new NotFilterExpression(((AndFilterExpression) nfe).getRight())).accept(this);
+            AndFilterExpression and = (AndFilterExpression) nfe;
+            FilterExpression left = (new NotFilterExpression(and.getLeft())).accept(this);
+            FilterExpression right = (new NotFilterExpression(and.getRight())).accept(this);
             return new OrFilterExpression(left, right);
         }
         if (nfe instanceof OrFilterExpression) {
-            FilterExpression left = (new NotFilterExpression(((OrFilterExpression) nfe).getLeft())).accept(this);
-            FilterExpression right = (new NotFilterExpression(((OrFilterExpression) nfe).getRight())).accept(this);
+            OrFilterExpression or = (OrFilterExpression) nfe;
+            FilterExpression left = (new NotFilterExpression(or.getLeft())).accept(this);
+            FilterExpression right = (new NotFilterExpression(or.getRight())).accept(this);
             return new AndFilterExpression(left, right);
         }
         if (nfe instanceof FilterPredicate) {

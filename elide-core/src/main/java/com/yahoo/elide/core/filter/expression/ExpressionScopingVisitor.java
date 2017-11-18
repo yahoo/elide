@@ -11,7 +11,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 /**
  * A Visitor which deep clones an entire filter expression.
  */
-public class ExpressionScopingVisitor implements Visitor<FilterExpression> {
+public class ExpressionScopingVisitor implements FilterExpressionVisitor<FilterExpression> {
 
     PathElement scope;
 
