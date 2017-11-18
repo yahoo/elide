@@ -11,9 +11,9 @@ import com.yahoo.elide.core.filter.FilterPredicate;
  * Visitor which walks the filter expression abstract syntax tree.
  * @param <T> The return type of the visitor
  */
-public interface Visitor<T> {
-    public T visitPredicate(FilterPredicate filterPredicate);
-    public T visitAndExpression(AndFilterExpression expression);
-    public T visitOrExpression(OrFilterExpression expression);
-    public T visitNotExpression(NotFilterExpression expression);
+public interface FilterExpressionVisitor<T> {
+    T visitPredicate(FilterPredicate filterPredicate);
+    T visitAndExpression(AndFilterExpression expression);
+    T visitOrExpression(OrFilterExpression expression);
+    T visitNotExpression(NotFilterExpression expression);
 }

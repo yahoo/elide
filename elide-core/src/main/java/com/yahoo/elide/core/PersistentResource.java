@@ -873,15 +873,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         String typeAlias = dictionary.getJsonAliasFor(entityType);
 
         return new FilterPredicate(
-                new Path.PathElement(
-                        entityType,
-                        idType,
-                        idField),
+                new Path.PathElement(entityType, idType, idField),
                 Operator.IN,
                 ids.stream()
-                        // Filter out new ids from our expression-- these don't exist in the datastore yet
-                        .filter(id -> requestScope.getObjectById(typeAlias, id) == null)
-                        .map(id -> CoerceUtil.coerce(id, idType)).collect(Collectors.toList()));
+                        .filter(id -> requestScope.getObjectById(typeAlias, id) == null) // these don't exist yet
+                        .map(id -> CoerceUtil.coerce(id, idType))
+                        .collect(Collectors.toList()));
     }
 
     /**
@@ -987,16 +984,18 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw new InvalidAttributeException(relationName, this.getType());
         }
 
-        pagination = pagination.map(p -> p.evaluate(relationClass));
+        Optional<Pagination> computedPagination = pagination.map(p -> p.evaluate(relationClass));
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(relationClass, requestScope);
+        Optional<FilterExpression> computedFilters = filterExpression;
+
         if (permissionFilter.isPresent() && filterExpression.isPresent()) {
                 FilterExpression mergedExpression =
                         new AndFilterExpression(filterExpression.get(), permissionFilter.get());
-                filterExpression = Optional.of(mergedExpression);
+                computedFilters = Optional.of(mergedExpression);
         } else if (permissionFilter.isPresent()) {
-                filterExpression = permissionFilter;
+                computedFilters = permissionFilter;
         }
 
 
@@ -1009,11 +1008,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     Optional.empty(), sorting, Optional.empty(), requestScope);
 
             if (val instanceof Collection) {
-                val = filterInMemory((Collection) val, filterExpression);
+                val = filterInMemory((Collection) val, computedFilters);
             }
         } else {
             val = transaction.getRelation(transaction, obj, relationName,
-                    filterExpression, sorting, pagination, requestScope);
+                    computedFilters, sorting, computedPagination, requestScope);
         }
 
         if (val == null) {
@@ -1023,7 +1022,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-           resources = new PersistentResourceSet(this, filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
                     new PersistentResource(val, this, requestScope.getUUIDFor(val), requestScope));

@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -156,7 +155,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public Object getRelation(DataStoreTransaction relationTx,
                               Object entity,
                               String relationName,
-                              Optional<FilterExpression> filterExpression,
+                              Optional<FilterExpression> filter,
                               Optional<Sorting> sorting,
                               Optional<Pagination> pagination,
                               RequestScope scope) {
@@ -169,35 +168,22 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
         // If different transactions, check if bridgeable and try to bridge
         if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
+            BridgeableTransaction bridgeableTx = (BridgeableTransaction) relationTx;
             RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relationName);
-            BridgeableTransaction bridgeableTransaction = (BridgeableTransaction) relationTx;
+            Serializable id = filter.map(fe -> extractId(fe, idFieldName, relationClass)).orElse(null);
+
             if (relationType.isToMany()) {
-                return filterExpression
-                        .map(fe -> {
-                            Serializable id = extractId(fe, idFieldName, relationClass);
-                            if (id == null) {
-                                return bridgeableTransaction.bridgeableLoadObjects(this,
-                                        entity, relationName, filterExpression, sorting, pagination, scope);
-                            }
-                            return bridgeableTransaction.bridgeableLoadObject(this,
-                                    entity, relationName, id, filterExpression, scope);
-                        })
-                        .orElseGet(() -> bridgeableTransaction.bridgeableLoadObjects(this,
-                        entity, relationName, filterExpression, sorting, pagination, scope));
+                return id == null ? bridgeableTx.bridgeableLoadObjects(
+                                this, entity, relationName, filter, sorting, pagination, scope)
+                        : bridgeableTx.bridgeableLoadObject(this, entity, relationName, id, filter, scope);
             }
-            return filterExpression
-                    .map(fe -> {
-                        Serializable id = extractId(fe, idFieldName, relationClass);
-                        return bridgeableTransaction.bridgeableLoadObject(this,
-                                entity, relationName, id, filterExpression, scope);
-                    })
-                    .orElseGet(() -> bridgeableTransaction.bridgeableLoadObject(this,
-                            entity, relationName, null, filterExpression, scope));
+
+            return bridgeableTx.bridgeableLoadObject(this, entity, relationName, id, filter, scope);
+
         }
 
         // Otherwise, rely on existing underlying transaction to call correctly into relationTx
-        return entityTransaction.getRelation(relationTx, entity,
-                relationName, filterExpression, sorting, pagination, scope);
+        return entityTransaction.getRelation(relationTx, entity, relationName, filter, sorting, pagination, scope);
     }
 
     @Override
@@ -217,8 +203,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                     String relationName, Object relationshipValue, RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
-        entityTransaction.updateToOneRelation(relationTx, entity, relationName,
-                relationshipValue, scope);
+        entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
@@ -238,16 +223,12 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                    String idFieldName,
                                    Class<?> relationClass) {
         Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
-        for (FilterPredicate predicate : predicates) {
-            List<Object> values = predicate.getValues();
-            Class<?> entityClass = predicate.getEntityType();
-            if (relationClass == entityClass
-                    && predicate.getOperator() == Operator.IN
-                    && idFieldName.equals(predicate.getField())
-                    && values.size() == 1) {
-                return (Serializable) values.get(0);
-            }
-        }
-        return null;
+        return predicates.stream()
+                .filter(p -> p.getEntityType() == relationClass && p.getOperator() == Operator.IN)
+                .filter(p -> p.getValues().size() == 1)
+                .filter(p -> p.getField().equals(idFieldName))
+                .findFirst()
+                .map(p -> (Serializable) p.getValues().get(0))
+                .orElse(null);
     }
 }

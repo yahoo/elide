@@ -23,7 +23,7 @@ public class AndFilterExpression implements FilterExpression {
 
     }
     @Override
-    public <T> T accept(Visitor<T> visitor) {
+    public <T> T accept(FilterExpressionVisitor<T> visitor) {
         return visitor.visitAndExpression(this);
     }
 

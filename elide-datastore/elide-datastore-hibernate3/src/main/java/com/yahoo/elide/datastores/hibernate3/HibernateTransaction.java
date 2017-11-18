@@ -125,20 +125,17 @@ public class HibernateTransaction implements DataStoreTransaction {
             String idField = dictionary.getIdFieldName(entityClass);
 
             //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
-            FilterPredicate idExpression = new FilterPredicate(
-                    new Path.PathElement(
-                            entityClass,
-                            idType,
-                            idField),
-                    Operator.IN,
-                    Collections.singletonList(id));
-
-            FilterExpression joinedExpression;
-            if (filterExpression.isPresent()) {
-                joinedExpression = new AndFilterExpression(filterExpression.get(), idExpression);
+            FilterPredicate idExpression;
+            Path.PathElement idPath = new Path.PathElement(entityClass, idType, idField);
+            if (id != null) {
+                idExpression = new FilterPredicate(idPath, Operator.IN, Collections.singletonList(id));
             } else {
-                joinedExpression = idExpression;
+                idExpression = new FilterPredicate(idPath, Operator.FALSE, Collections.emptyList());
             }
+
+            FilterExpression joinedExpression = filterExpression
+                    .map(fe -> (FilterExpression) new AndFilterExpression(fe, idExpression))
+                    .orElse(idExpression);
 
             QueryWrapper query =
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)

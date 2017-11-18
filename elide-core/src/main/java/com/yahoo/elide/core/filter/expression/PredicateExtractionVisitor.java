@@ -15,7 +15,7 @@ import java.util.HashSet;
  * A Visitor which extracts the set of predicates from a filter FilterExpression.
  * Should only be used in Elide 2.0 scope
  */
-public class PredicateExtractionVisitor implements Visitor<Collection<FilterPredicate>> {
+public class PredicateExtractionVisitor implements FilterExpressionVisitor<Collection<FilterPredicate>> {
     @Getter Collection<FilterPredicate> filterPredicates;
 
     /**

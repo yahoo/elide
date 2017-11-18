@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
 import com.yahoo.elide.security.checks.InlineCheck;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -20,6 +21,7 @@ import java.util.function.Predicate;
  *
  * @param <T> Type of class
  */
+@Slf4j
 public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
 
     /**
@@ -63,9 +65,14 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @return true if the object pass evaluation against Predicate.
      */
     public boolean applyPredicateToObject(T object, FilterPredicate filterPredicate, RequestScope requestScope) {
-        String fieldPath = filterPredicate.getFieldPath();
-        com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
-        Predicate fn = filterPredicate.getOperator().contextualize(fieldPath, filterPredicate.getValues(), scope);
-        return fn.test(object);
+        try {
+            String fieldPath = filterPredicate.getFieldPath();
+            com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
+            Predicate fn = filterPredicate.getOperator().contextualize(fieldPath, filterPredicate.getValues(), scope);
+            return fn.test(object);
+        } catch (Exception e) {
+            log.error("Failed to apply predicate {}", filterPredicate, e);
+            return false;
+        }
     }
 }

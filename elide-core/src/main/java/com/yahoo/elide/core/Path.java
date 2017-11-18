@@ -15,6 +15,7 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Represents a path in the entity relationship graph.
@@ -60,10 +61,11 @@ public class Path {
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
                 elements.add(new PathElement(currentClass, attributeClass, fieldName));
+            } else if (fieldName.equals("this")) {
+                elements.add(new PathElement(currentClass, null, fieldName));
             } else {
-                throw new InvalidValueException(dictionary.getJsonAliasFor(currentClass)
-                        + " doesn't contain the field "
-                        + fieldName);
+                String alias = dictionary.getJsonAliasFor(currentClass);
+                throw new InvalidValueException(alias + " doesn't contain the field " + fieldName);
             }
         }
         pathElements = ImmutableList.copyOf(elements);
@@ -74,14 +76,9 @@ public class Path {
     }
 
     public String getFieldPath() {
-        StringBuilder fieldPath = new StringBuilder();
-        for (PathElement pathElement : pathElements) {
-            if (fieldPath.length() != 0) {
-                fieldPath.append(PERIOD);
-            }
-            fieldPath.append(pathElement.getFieldName());
-        }
-        return fieldPath.toString();
+        return pathElements.stream()
+                .map(PathElement::getFieldName)
+                .collect(Collectors.joining(PERIOD));
     }
 
     /**
@@ -89,18 +86,26 @@ public class Path {
      * @return An alias for the path.
      */
     public String getAlias() {
-        PathElement last = pathElements.get(pathElements.size() - 1);
-
-        if (pathElements.size() == 1) {
-            return getTypeAlias(last.getType());
+        if (pathElements.size() < 2) {
+            return lastElement()
+                    .map(e -> getTypeAlias(e.getType()))
+                    .orElse(null);
         }
 
         PathElement previous = pathElements.get(pathElements.size() - 2);
-
         return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
     }
 
+    @Override
+    public String toString() {
+        return pathElements.size() == 0 ? "EMPTY"
+                : pathElements.stream()
+                        .map(e -> '[' + e.getType().getSimpleName() + ']' + PERIOD + e.getFieldName())
+                .collect(Collectors.joining("/"));
+    }
+
     /**
+     * Convert a class name into a hibernate friendly name.
      * @param type The type to alias
      * @return type name alias that will likely not conflict with other types or with reserved keywords.
      */
