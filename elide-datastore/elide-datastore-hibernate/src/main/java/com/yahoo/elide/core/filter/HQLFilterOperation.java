@@ -164,6 +164,8 @@ public class HQLFilterOperation implements FilterOperation<String> {
      * Filter expression visitor which builds an HQL query.
      */
     public class HQLQueryVisitor implements FilterExpressionVisitor<String> {
+        public static final String TWO_NON_FILTERING_EXPRESSIONS =
+                "Cannot build a filter from two non-filtering expressions";
         private boolean prefixWithAlias;
 
         public HQLQueryVisitor(boolean prefixWithAlias) {
@@ -182,7 +184,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
             boolean skipLeft = cannotEvaluate(left);
             boolean skipRight = cannotEvaluate(right);
             if (skipLeft && skipRight) {
-                throw new IllegalStateException("Cannot build a filter from two non-filtering expressions");
+                throw new IllegalStateException(TWO_NON_FILTERING_EXPRESSIONS);
             } else if (skipLeft) {
                 return right.accept(this);
             } else if (skipRight) {
@@ -198,7 +200,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
             boolean skipLeft = cannotEvaluate(left);
             boolean skipRight = cannotEvaluate(right);
             if (skipLeft && skipRight) {
-                throw new IllegalStateException("Cannot build a filter from two non-filtering expressions");
+                throw new IllegalStateException(TWO_NON_FILTERING_EXPRESSIONS);
             } else if (skipLeft) {
                 return right.accept(this);
             } else if (skipRight) {
