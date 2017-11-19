@@ -17,7 +17,6 @@ import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.inject.Inject;
-import javax.servlet.Filter;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 import java.util.List;
@@ -49,7 +48,7 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                bind(Util.getAllEntities(settings.getModelPackage().getName())).to(Set.class).named("elideAllModels");
+                bind(Util.getAllEntities(settings.getModelPackageName())).to(Set.class).named("elideAllModels");
             }
         });
 

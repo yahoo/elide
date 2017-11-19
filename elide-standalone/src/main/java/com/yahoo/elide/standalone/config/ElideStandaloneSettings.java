@@ -54,9 +54,10 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        DataStore dataStore = isDemoMode() ? new InMemoryDataStore(getModelPackage())
+        Package modelPackage = Package.getPackage(getModelPackageName());
+        DataStore dataStore = isDemoMode() ? new InMemoryDataStore(modelPackage)
                 : new InjectionAwareHibernateStore(
-                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackage().getName()));
+                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
         MultipleFilterDialect filterDialect = new MultipleFilterDialect(
                 Arrays.asList(new RSQLFilterDialect(dictionary), new DefaultFilterDialect(dictionary)),
@@ -100,8 +101,8 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: com.yourcompany.elide.models
      */
-    default Package getModelPackage() {
-        return Package.getPackage("com.yourcompany.elide.models");
+    default String getModelPackageName() {
+        return "com.yourcompany.elide.models";
     }
 
     /**
