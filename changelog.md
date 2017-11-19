@@ -1,5 +1,8 @@
 # Change Log
 ## 3.2.0
+**Features**
+ * Updated interface to beta standalone application. Plans to finalize this before Elide 4.0 release.
+
 **Fixes**
  * Rollback relationship handling change.
 

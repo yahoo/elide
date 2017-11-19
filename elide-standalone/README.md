@@ -5,7 +5,6 @@ Table of Contents
   * [Who is this for?](#whofor)
   * [Getting Started](#gettingstarted)
   * [Usage](#usage)
-    * [Settings Overview](#settings-overview)
     * [Settings Class](#settings-class)
     * [Filters](#filters)
     * [Additional Configuration](#additional-config)
@@ -16,49 +15,29 @@ Table of Contents
 The Elide standalone application is a configurable web server using Elide. While Elide is typically a pluggable **middleware** framework, we have constructed a flexible and complete service to allow you to get started quickly.
 
 The Elide standalone application takes an opinionated stance on its technology stack (i.e. jersey/jetty), but provides many opportunities for users to configure the behavior of their application. To use the Elide standalone application, there are only a few steps:
-  1. Build a jar containing `elide-standalone`, your models, security checks, and additional application configuration.
-  1. Configure _Elide standalone_ using the `elide-settings.properties` file
+  1. Configure ElideStandalone by either implementing the ElideStandaloneSettings interface, or providing basic security configuration.
+  1. Build an uber jar containing `elide-standalone`, your models, security checks, and additional application configuration.
   1. Start your web service:
-     * `$ java -jar YOUR_APP.jar` (for fully built app)
-     * `$ java -cp elide-standalone.jar:YOUR_MODEL_AND_SECURITY.jar com.yahoo.elide.standalone.Main` (for application)
+     * `$ java -jar YOUR_APP.jar`
 
 To include `elide-standalone` into your project, add the single dependency:
 ```xml
 <dependency>
   <groupId>com.yahoo.elide</groupId>
   <artifact>elide-standalone</artifact>
-  <version>3.1.2</version>
+  <version>3.1.5</version>
 </dependency>
 ```
 
-Similarly, if you would prefer to build a full application (recommended) rather than using the application jar, then build a shaded jar. An example in maven is as follows:
+To actually start your Elide application, add the following to your main method:
 
-```xml
-<build>
-        <plugins>
-            ...
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.yahoo.elide.standalone.Main</mainClass>
-                        </transformer>
-                    </transformers>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+```java
+public class Main {
+  public static void main(String[] args) {
+    ElideStandalone elide = new ElideStandalone(new YourElideSettingsImpl());
+    elide.start();
+  }
+}
 ```
 
 ## <a name="whofor"></a>Who is this for?
@@ -90,7 +69,7 @@ import javax.persistence.Id;
 
 @Entity
 @Include(rootLevel = true)
-class Post {
+public class Post {
     private long id;
     private String content;
     
@@ -156,7 +135,7 @@ An example `pom.xml` for building the model:
                 <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.yahoo.elide.standalone.Main</mainClass>
+                            <mainClass>com.yourcompany.elide.app.YourMain</mainClass>
                          </transformer>
                     </transformers>
                 </configuration>
@@ -180,28 +159,29 @@ then run:
 $ mvn clean package
 ```
 
+### Starting Elide
+
+To start Elide, just run the `start()` method somewhere in your main function:
+
+```java
+public class YourMain {
+  public static void main(String[] args) {
+    ElideStandalone elide = new ElideStandalone(new MySettings());
+    elide.start();
+  }
+}
+```
+
 ### Configure Elide Standalone
 
-```properties
-# Web server port
-port=8080
-
-# Package containing models
-modelPackage=com.yourcompany.elide.models
-
-# Load hibernate config
-hibernate5Config=./settings/hibernate.cfg.xml
-
-# Root path of the JSON-API API
-jsonApiPathSpec=/api/v1/*
-```
+While you can provide a user extraction function and checks alone, more advanced configuration is done by implementing the `ElideStandaloneSettings` interface.
 
 ### Run Your Service
 
-Using the provided `hibernate.cfg.xml`, you can now run your service (as long as `elide-settings.properties` is in your CWD or in `$CWD/settings/elide-settings.properties`):
+Using the provided `hibernate.cfg.xml`, you can now run your service.
 
 ```
-$ java -cp bin/elide-standalone.jar:example-models-1.0-SNAPSHOT.jar com.yahoo.elide.standalone.Main
+$ java -jar YOUR_APP.jar
 ```
 
 ### Query Your Service
@@ -238,82 +218,17 @@ $ curl http://localhost:8080/api/v1/post
 
 Using Elide standalone out of box is intended to require minimal effort. For persistence (i.e. `demoMode=false`) you will minimally need a Hibernate5-compatible database (i.e. MySQL), a `Settings` class, and your JPA-annotated data models.
 
-### <a name="settings-overview"></a>Settings Overview
-
-There are a variety of configurable options for Elide standalone. The application will _attempt_ to read this from eihter `./elide-settings.properties` or `./settings/elide-settings.properties` on disk or `/elide-settings.properties` in your classpath. If you store your settings file elsewhere, please provide a system property to the JVM: `-DelideSettings=/path/to/your/settings`. The following options are availble to be set in your settings file:
-
-<table>
-<thead>
-<tr><th>Setting</th><th>Default</th><th>Description</th></tr>
-</thead>
-<tr>
-  <td>port</td>
-  <td>8080</td>
-  <td>Port for web server to listen</td>
-</tr>
-<tr>
-  <td>modelPackage</td>
-  <td>com.yourcompany.elide.models</td>
-  <td>Package containing models</td>
-  </tr>
-<tr>
-  <td>settingsClass</td>
-  <td>com.yourcompany.elide.security.Settings</td>
-  <td><a href="#settings-class">Programmatic service information</a></td>
-</tr>
-<tr>
-  <td>filters</td>
-  <td>null</td>
-  <td>Comma-separated list of web service filters</td>
-</tr>
-<tr>
-  <td>additionalApplicationConfiguration</td>
-  <td>null</td>
-  <td>Extra configuration for servlet</td>
-</tr>
-<tr>
-  <td>hibernate5Config*</td>
-  <td>./settings/hibernate.cfg.xml</td>
-  <td>Hibernate config</td>
-</tr>
-<tr>
-  <td>demoMode*</td>
-  <td>false</td>
-  <td>Enable/disable demo mode</td>
-</tr>
-</table>
-
-__* Unused if custom `ElideSettings` object is provided__
-
 ### <a name="settings-class"></a>Settings Class
 
-The `Settings` class is the one that provides all the necessary code-related information to Elide standalone for proper setup. This class is **not required** for anyone expecting to use Elide standalone; defaults can be used for all the gathered settings. If this is not provided, all checks names resolve to fully qualified class names of the checks themselves (so you can still even leverage security).
+ElideStandalone is configured by implementing the ElideStandaloneSettings interface. Please see the ElideStandaloneSettings class for documentation about fields.
 
-It supports the following methods:
-
-```java
-public Map<String, Class<? extends Check>> getCheckMappings();
-public ElideSettings getElideSettings();
-public DefaultOpaqueUserFunction getUserExtractionFunction();
-```
-
-which should be derived from their respective providers: [CheckMappingsProvider](./src/main/java/com/yahoo/elide/standalone/interfaces/CheckMappingsProvider.java), [ElideSettingsProvider](./src/main/java/com/yahoo/elide/standalone/interfaces/ElideSettingsProvider.java), [UserExtractionFunctionProvider](./src/main/java/com/yahoo/elide/standalone/interfaces/UserExtractionFunctionProvider.java).  
-
-  * `getElideSettings()` This method produces a fully configured `ElideSettings` object to use.
-  * `getCheckMappings()` This method provides all security rule check mappings.
-  * `getUserExtractionFunction()` This method provides the mechanism for extracting a user from a java `SecurityContext`.
-
-If the `getElideSettings()` method is present, then it is used in place of `getCheckMappings()`. Implementing the latter, however, provides an easier initial setup if the application defaults work well for you. The latter exists for greater configuration flexibility (i.e. custom filter dialects, permission executors, datastores, etc.). 
-
-The `getUserExtractionFunction()` method is always used. If none is provided, a default one is provided for you. The default implementation merely extracts the `Principal` object from the request's `SecurityContext`.
-
-This class is **fully injectable**. That provides some useful basic functionality. Namely, you can inject a list of all your entities in your package by simply adding:
+Similarly, if you need other metadata across your application, it is important to note that the injector is bound with the following:
 
 ```java
 @Inject @Named("elideAllModels") Set<Class> entities;
 ```
 
-Similarly, you can inject the hk2 `ServiceLocator` if you wish to use injection throughout your application.
+Likewise, you can inject the hk2 `ServiceLocator` if you wish to use injection throughout your application.
 
 ### <a name="filters"></a>Filters
 
@@ -321,11 +236,7 @@ Filters are JAX-RS or Jersey filter classes. These classes can be used for authe
 
 ### <a name="additional-config"></a>Additional Configuration
 
-You can add additional configuration by specifying the `additionalApplicationConfiguration` class. This class is fully injectable and supports the following methods:
-
-```java
-public void configure(ResourceConfig);
-```
+You can add additional configuration by specifying the `applicationConfigurator` method. The class (i.e. the `Consumer`) is fully injectable and will take in the root Jersey `ResourceConfig` for your application.
 
 This method accepts a `ResourceConfig` object so you can continue to modify it as necessary.
 
