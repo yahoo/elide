@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.0-alpha</version>
+            <version>4.0-alpha-1</version>
         </dependency>
         <!-- Additional dependencies -->
         <dependency>
