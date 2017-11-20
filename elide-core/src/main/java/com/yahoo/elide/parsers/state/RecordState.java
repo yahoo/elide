@@ -37,14 +37,22 @@ public class RecordState extends BaseState {
     public void handle(StateContext state, SubCollectionReadCollectionContext ctx) {
         String subCollection = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
+        Class<?> entityClass;
+        String entityName;
         try {
             RelationshipType type = dictionary.getRelationshipType(resource.getObject(), subCollection);
             if (type == RelationshipType.NONE) {
                 throw new InvalidCollectionException(subCollection);
             }
-            String entityName =
-                    dictionary.getJsonAliasFor(dictionary.getParameterizedType(resource.getObject(), subCollection));
-            Class<?> entityClass = dictionary.getEntityClass(entityName);
+            Class<?> paramType = dictionary.getParameterizedType(resource.getObject(), subCollection);
+            if (dictionary.isMappedInterface(paramType)) {
+                entityName = paramType.getSimpleName();
+                entityClass = paramType;
+            } else {
+                entityName = dictionary.getJsonAliasFor(paramType);
+                entityClass = dictionary.getEntityClass(entityName);
+
+            }
             if (entityClass == null) {
                 throw new IllegalArgumentException("Unknown type " + entityName);
             }

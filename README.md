@@ -1,13 +1,13 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/986e1e05fee64702a2377272d664ec6d)](https://www.codacy.com/app/Elide/elide?utm_source=github.com&utm_medium=referral&utm_content=yahoo/elide&utm_campaign=badger)
 [![Gitter](https://badges.gitter.im/yahoo/elide.svg)](https://gitter.im/yahoo/elide?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 
-![Elide Logo](https://cdn.rawgit.com/yahoo/elide/master/elide.svg)
+![Elide Logo](http://elide.io/assets/images/elide.svg)
 
 *Read this in other languages: [中文](./README-zh.md).*
 
 ## What Is Elide?
 
-Elide is a Java library that lets you stand up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
+Elide is a Java library that lets you set up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
 Elide is designed to quickly build and deploy **production quality** web services that expose data models as services.  Elide provides:
   1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
   2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.
@@ -16,7 +16,7 @@ Elide is designed to quickly build and deploy **production quality** web service
   5. **Audit** Logging can be customized for any operation on any entity.
   6. **Extension** Elide allows the ability to customize business logic for any CRUD operation on the model.  Any persistence backend can be skinned with JSON-API by wiring in a JPA provider or by implementing a custom `DataStore`.
   7. **Test** Elide includes a test framework that explores the full surface of the API looking for security vulnerabilities.
-  8. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification.  Alternatively, Elide can be used with any [JSON API client library](http://jsonapi.org/implementations/).
+  8. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification. Alternatively, Elide can be used with any [JSON API client library](http://jsonapi.org/implementations/).
 
 ## Documentation
 

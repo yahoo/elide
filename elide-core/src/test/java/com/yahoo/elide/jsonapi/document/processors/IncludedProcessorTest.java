@@ -6,6 +6,7 @@
 package com.yahoo.elide.jsonapi.document.processors;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -16,6 +17,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
 import example.Child;
+import example.FunWithPermissions;
 import example.Parent;
 import example.TestCheckMappings;
 import org.mockito.Answers;
@@ -25,6 +27,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -49,6 +52,8 @@ public class IncludedProcessorTest {
     private PersistentResource<Child> childRecord3;
     private PersistentResource<Child> childRecord4;
 
+    private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
+
     @BeforeMethod
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
@@ -56,14 +61,22 @@ public class IncludedProcessorTest {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
+        dictionary.bindEntity(FunWithPermissions.class);
+
+        ElideSettings elideSettings = new ElideSettingsBuilder(null)
+                .withAuditLogger(new TestAuditLogger())
+                .withEntityDictionary(dictionary)
+                .build();
 
         RequestScope goodUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), null,
-                new ElideSettingsBuilder(null)
-                        .withAuditLogger(new TestAuditLogger())
-                        .withEntityDictionary(dictionary)
-                        .build(), false);
+                elideSettings, false);
+
+        RequestScope badUserScope = new RequestScope(null,
+                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
+                new User(-1), null,
+                elideSettings, false);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -74,6 +87,8 @@ public class IncludedProcessorTest {
         Child child2 = newChild(3);
         Child child3 = newChild(4);
         Child child4 = newChild(5);
+
+        FunWithPermissions funWithPermissions = newFunWithPermissions(1);
 
         //Form relationships
         parent1.setSpouses(new HashSet<>(Collections.singletonList(parent2)));
@@ -94,6 +109,8 @@ public class IncludedProcessorTest {
         childRecord2  = new PersistentResource<>(child2, null, goodUserScope.getUUIDFor(child2), goodUserScope);
         childRecord3  = new PersistentResource<>(child3, null, goodUserScope.getUUIDFor(child3), goodUserScope);
         childRecord4  = new PersistentResource<>(child4, null, goodUserScope.getUUIDFor(child4), goodUserScope);
+
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, goodUserScope.getUUIDFor(funWithPermissions), badUserScope);
     }
 
     @Test
@@ -184,6 +201,18 @@ public class IncludedProcessorTest {
     }
 
     @Test
+    public void testIncludeForbiddenRelationship() {
+        JsonApiDocument jsonApiDocument = new JsonApiDocument();
+
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put(INCLUDE, Collections.singletonList("relation1"));
+        includedProcessor.execute(jsonApiDocument, funWithPermissionsRecord, Optional.of(queryParams));
+
+        Assert.assertNull(jsonApiDocument.getIncluded(),
+                "Included Processor included forbidden relationship");
+    }
+
+    @Test
     public void testNoQueryParams() throws Exception {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.empty());
@@ -218,5 +247,12 @@ public class IncludedProcessorTest {
         child.setId(id);
         child.setParents(new HashSet<>());
         return child;
+    }
+
+    private FunWithPermissions newFunWithPermissions(int id) {
+        FunWithPermissions funWithPermissions = new FunWithPermissions();
+        funWithPermissions.setId(id);
+        funWithPermissions.setRelation1(new HashSet<>());
+        return funWithPermissions;
     }
 }

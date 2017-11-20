@@ -1,0 +1,14 @@
+{
+  "data": {
+    "type": "property",
+    "attributes": {},
+    "relationships": {
+      "myStuff": {
+        "data": {
+          "type": "smartphone",
+          "id": "1"
+        }
+      }
+    }
+  }
+}

@@ -21,6 +21,7 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -310,9 +311,29 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         if (entityClass == null) {
             throw new InvalidAttributeException(relationName, parent.getType());
         }
+        if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
+            throw new InvalidOperationException(
+                    "Cannot apply filters to polymorphic relations mapped with MappedInterface");
+        }
         final String valType = dictionary.getJsonAliasFor(entityClass);
         return getFilterExpressionByType(valType);
     }
+
+    /**
+     * Checks to see if any filters are meant to to applied to a polymorphic Any/ManyToAny relationship.
+     * @param entityInterface a @MappedInterface
+     * @return whether or not there are any typed filter expressions meant for this polymorphic interface
+     */
+    private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
+        for (String filterType : expressionsByType.keySet()) {
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            if (entityInterface.isAssignableFrom(polyMorphicClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Extracts any query params that start with 'filter'.

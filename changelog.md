@@ -5,6 +5,22 @@
    case sensitive RSQL queries, however the RSQL spec does not provide this either. 
    Fixes #387
 
+## 3.2.0
+**Features**
+ * Updated interface to beta standalone application. Plans to finalize this before Elide 4.0 release.
+
+**Fixes**
+ * Rollback relationship handling change.
+ * Handle ForbiddenAccess only for denied Include, instead of filtering to empty set.
+
+## 3.1.4       
+**Fixes**      
+ * Instead of ForbiddenAccess for denied Include, filter to empty set.     
+ * Generate error when parsing permission expression fails.
+
+## 3.1.3
+ * Add support for @Any relationships through a @MappedInterface
+
 ## 3.1.2
 **Features**
  * Add Elide standalone application library
