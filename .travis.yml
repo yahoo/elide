@@ -28,7 +28,7 @@
   script: mvn -B -q clean verify # coveralls:report
   after_success:
     - test "${TRAVIS_PULL_REQUEST}" == "false" && mvn -B versioneye:update
-    - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn -B deploy --settings travis/settings.xml
+    - test "${TRAVIS_TAG}" != "" && mvn -B deploy --settings travis/settings.xml
 #  before_deploy: cat travis/bintray_template.json | sed s/\$\{TRAVIS_TAG\}/${TRAVIS_TAG}/g > travis/release.json
 #  deploy:
 #    on:
