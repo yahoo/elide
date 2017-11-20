@@ -9,8 +9,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
@@ -20,7 +18,6 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.SecurityContext;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,14 +53,11 @@ public interface ElideStandaloneSettings {
         DataStore dataStore = new InjectionAwareHibernateStore(
                 injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-        MultipleFilterDialect filterDialect = new MultipleFilterDialect(
-                Arrays.asList(new RSQLFilterDialect(dictionary), new DefaultFilterDialect(dictionary)),
-                Arrays.asList(new RSQLFilterDialect(dictionary), new DefaultFilterDialect(dictionary)));
         return new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
-                .withJoinFilterDialect(filterDialect)
-                .withSubqueryFilterDialect(filterDialect)
+                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .build();
 
     }
