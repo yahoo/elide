@@ -9,7 +9,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -54,9 +53,7 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        Package modelPackage = Package.getPackage(getModelPackageName());
-        DataStore dataStore = isDemoMode() ? new InMemoryDataStore(modelPackage)
-                : new InjectionAwareHibernateStore(
+        DataStore dataStore = new InjectionAwareHibernateStore(
                 injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
         MultipleFilterDialect filterDialect = new MultipleFilterDialect(
@@ -145,15 +142,5 @@ public interface ElideStandaloneSettings {
      */
     default String getHibernate5ConfigPath() {
         return "./settings/hibernate.cfg.xml";
-    }
-
-    /**
-     * Determine whether or not to run in demo mode. If demo mode is set to true, then the in-memory store will be used
-     * instead of hibernate. Only used if no custom ElideSettings is provided.
-     *
-     * @return DefaultValue: false
-     */
-    default boolean isDemoMode() {
-        return false;
     }
 }
