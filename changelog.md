@@ -2,6 +2,7 @@
 ## 3.2.0
 **Fixes**
  * Rollback relationship handling change.
+ * Handle ForbiddenAccess only for denied Include, instead of filtering to empty set.
 
 ## 3.1.4       
 **Fixes**      
