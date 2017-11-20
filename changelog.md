@@ -1,4 +1,13 @@
 # Change Log
+## 3.2.0
+**Fixes**
+ * Rollback relationship handling change.
+
+## 3.1.4       
+**Fixes**      
+ * Instead of ForbiddenAccess for denied Include, filter to empty set.     
+ * Generate error when parsing permission expression fails.
+
 ## 3.1.3
  * Add support for @Any relationships through a @MappedInterface
 
