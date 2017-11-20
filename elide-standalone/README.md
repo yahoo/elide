@@ -25,7 +25,7 @@ To include `elide-standalone` into your project, add the single dependency:
 <dependency>
   <groupId>com.yahoo.elide</groupId>
   <artifact>elide-standalone</artifact>
-  <version>3.1.5</version>
+  <version>3.2.0</version>
 </dependency>
 ```
 
