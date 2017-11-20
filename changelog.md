@@ -1,7 +1,11 @@
 # Change Log
-## 3.1.4
+## 3.2.0
 **Fixes**
- * Instead of ForbiddenAccess for denied Include, filter to empty set.
+ * Rollback relationship handling change.
+
+## 3.1.4       
+**Fixes**      
+ * Instead of ForbiddenAccess for denied Include, filter to empty set.     
  * Generate error when parsing permission expression fails.
 
 ## 3.1.3

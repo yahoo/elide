@@ -800,21 +800,21 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
     }
 
-    @Test
+    @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testGetRelationForbiddenByEntity() {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", goodUserScope);
-        Assert.assertEquals(noreadResource.getRelationCheckedFiltered("child").size(), 0);
+        noreadResource.getRelationCheckedFiltered("child");
     }
 
-    @Test
+    @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testGetRelationForbiddenByField() {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
 
-        Assert.assertEquals(funResource.getRelationCheckedFiltered("relation1").size(), 0);
+        funResource.getRelationCheckedFiltered("relation1");
     }
 
     @Test
@@ -835,13 +835,13 @@ public class PersistentResourceTest extends PersistentResource {
         fcResource.getAttribute("public1");
     }
 
-    @Test
+    @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testGetRelationForbiddenByEntity2() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        Assert.assertEquals(fcResource.getRelationCheckedFiltered("private2").size(), 0);
+        fcResource.getRelationCheckedFiltered("private2");
     }
 
     @Test(expectedExceptions = ForbiddenAccessException.class)
