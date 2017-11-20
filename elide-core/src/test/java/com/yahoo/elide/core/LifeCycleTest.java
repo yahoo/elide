@@ -13,12 +13,12 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import example.Author;
 import example.Book;
-import example.TestCheckMappings;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +52,7 @@ public class LifeCycleTest {
     }
 
     LifeCycleTest() {
-        dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
     }
