@@ -18,7 +18,7 @@
     only:
       - master
       - elide-4.x
-      - "/^[0-9]+\\.[0-9]+\\.[0-9]+/"
+      - "/^[0-9]+\\.[0-9]+(\\.[0-9]+|-(alpha|beta)-[0-9]+)/"
   # build steps
   before_install:
     - curl -sL https://github.com/jpm4j/jpm4j.installers/raw/master/dist/biz.aQute.jpm.run.jar >jpm4j.jar
