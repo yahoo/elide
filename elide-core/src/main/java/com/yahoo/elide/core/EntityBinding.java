@@ -188,6 +188,11 @@ public class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
         Class<?> fieldType = getFieldType(fieldOrMethod);
 
+        if (idType != null && fieldType.isAssignableFrom(idType)) {
+            // don't override idType with super class idType
+            return;
+        }
+
         //Add id field to type map for the entity
         fieldsToTypes.put(fieldName, fieldType);
 
