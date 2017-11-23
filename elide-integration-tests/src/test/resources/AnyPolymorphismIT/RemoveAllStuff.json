@@ -1,0 +1,11 @@
+{
+  "data": {
+    "id": "1",
+    "type": "stuffbox",
+    "relationships": {
+      "myStuff": {
+        "data": []
+      }
+    }
+  }
+}

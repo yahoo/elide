@@ -833,6 +833,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Object idVal = CoerceUtil.coerce(id, idType);
             String idField = dictionary.getIdFieldName(entityType);
 
+            if (dictionary.isMappedInterface(entityType) && idField == null) {
+                throw new InvalidOperationException("Cannot filter by ID on this polymorphic type");
+            }
+
             filterExpression = Optional.of(new FilterPredicate(
                     new FilterPredicate.PathElement(
                             entityType,
@@ -927,8 +931,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
-        if (! requestScope.getPagination().isDefaultInstance()
-                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
+        if (dictionary.isMappedInterface(relationClass) || (! requestScope.getPagination().isDefaultInstance()
+                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope))) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }
@@ -1269,7 +1273,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         for (String field : relationshipFields) {
             TreeMap<String, Resource> orderedById = new TreeMap<>(lengthFirstComparator);
             for (PersistentResource relationship : relationshipFunction.apply(field)) {
-                orderedById.put(relationship.getId(),
+                orderedById.put(relationship.getId() + relationship.getType(),
                         new ResourceIdentifier(relationship.getType(), relationship.getId()).castToResource());
 
             }
