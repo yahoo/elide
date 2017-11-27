@@ -478,13 +478,15 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("REPLACE must include ids argument");
         }
 
-        Set<PersistentResource> toRemove = (Set<PersistentResource>) fetchObjects(context);
+
+        ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
+        Set<PersistentResource> toRemove = connection.getPersistentResources();
         if (!context.isRoot()) { /* has parent */
             toRemove.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
         } else { /* is root */
             toRemove.forEach(PersistentResource::deleteResource);
         }
-        return toRemove;
+        return new ConnectionContainer(toRemove, Optional.empty(), connection.getTypeName());
     }
 
     /**
