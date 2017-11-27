@@ -49,8 +49,11 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
         // Part 1: Delete the objects
         runComparisonTest("nestedCollectionPt1");
 
-        // Part 2: Make sure objects are really gone
+        // Part 2: Make sure objects are really gone from the relationship
         runComparisonTest("nestedCollectionPt2");
+
+        // Part 3: Make sure objects are not deleted
+        runComparisonTest("nestedCollectionPt3");
     }
 
     @Override
