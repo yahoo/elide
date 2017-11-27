@@ -145,6 +145,24 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         }
     }
 
+    protected void assertQueryFailsWith(String graphQLRequest, String expectedResponse) throws Exception {
+        boolean isMutation = graphQLRequest.startsWith("mutation");
+
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        if (isMutation) {
+            requestScope.saveOrCreateObjects();
+        }
+        requestScope.getTransaction().commit(requestScope);
+        Assert.assertNotEquals(result.getErrors().size(), 0, "Expected errors. Received none.");
+        try {
+            LOG.info(mapper.writeValueAsString(result.getErrors()));
+            Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getErrors())),
+                    mapper.readTree(expectedResponse));
+        } catch (JsonProcessingException e) {
+            Assert.fail("JSON parsing exception", e);
+        }
+    }
+
     protected void assertQueryFails(String graphQLRequest) {
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
 
@@ -173,8 +191,21 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     public void runComparisonTest(String testName) throws Exception {
+        runComparisonTest(testName, this::assertQueryEquals);
+    }
+
+    public void runErrorComparisonTest(String testName) throws Exception {
+        runComparisonTest(testName, this::assertQueryFailsWith);
+    }
+
+    protected void runComparisonTest(String testName, EvaluationFunction evalFn) throws Exception {
         String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
         String graphQLResponse = loadGraphQLResponse(testName + ".json");
-        assertQueryEquals(graphQLRequest, graphQLResponse);
+        evalFn.evaluate(graphQLRequest, graphQLResponse);
+    }
+
+    @FunctionalInterface
+    protected interface EvaluationFunction {
+        void evaluate(String graphQLRequest, String graphQLResponse) throws Exception;
     }
 }

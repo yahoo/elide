@@ -1,0 +1,330 @@
+[
+  {
+    "exception": {
+      "cause": null,
+      "stackTrace": [
+        {
+          "methodName": "replaceObjects",
+          "fileName": "PersistentResourceFetcher.java",
+          "lineNumber": 503,
+          "className": "com.yahoo.elide.graphql.PersistentResourceFetcher",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "get",
+          "fileName": "PersistentResourceFetcher.java",
+          "lineNumber": 101,
+          "className": "com.yahoo.elide.graphql.PersistentResourceFetcher",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "resolveField",
+          "fileName": "ExecutionStrategy.java",
+          "lineNumber": 40,
+          "className": "graphql.execution.ExecutionStrategy",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "execute",
+          "fileName": "SimpleExecutionStrategy.java",
+          "lineNumber": 18,
+          "className": "graphql.execution.SimpleExecutionStrategy",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "executeOperation",
+          "fileName": "Execution.java",
+          "lineNumber": 58,
+          "className": "graphql.execution.Execution",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "execute",
+          "fileName": "Execution.java",
+          "lineNumber": 33,
+          "className": "graphql.execution.Execution",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "execute",
+          "fileName": "GraphQL.java",
+          "lineNumber": 78,
+          "className": "graphql.GraphQL",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "execute",
+          "fileName": "GraphQL.java",
+          "lineNumber": 55,
+          "className": "graphql.GraphQL",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "execute",
+          "fileName": "GraphQL.java",
+          "lineNumber": 47,
+          "className": "graphql.GraphQL",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "assertQueryFailsWith",
+          "fileName": "PersistentResourceFetcherTest.java",
+          "lineNumber": 152,
+          "className": "com.yahoo.elide.graphql.PersistentResourceFetcherTest",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runComparisonTest",
+          "fileName": "PersistentResourceFetcherTest.java",
+          "lineNumber": 205,
+          "className": "com.yahoo.elide.graphql.PersistentResourceFetcherTest",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runErrorComparisonTest",
+          "fileName": "PersistentResourceFetcherTest.java",
+          "lineNumber": 199,
+          "className": "com.yahoo.elide.graphql.PersistentResourceFetcherTest",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runErrorComparisonTest",
+          "fileName": "FetcherReplaceTest.java",
+          "lineNumber": 24,
+          "className": "com.yahoo.elide.graphql.FetcherReplaceTest",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "testReplaceWithIdsFails",
+          "fileName": "FetcherReplaceTest.java",
+          "lineNumber": 14,
+          "className": "com.yahoo.elide.graphql.FetcherReplaceTest",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invoke0",
+          "fileName": "NativeMethodAccessorImpl.java",
+          "lineNumber": -2,
+          "className": "sun.reflect.NativeMethodAccessorImpl",
+          "nativeMethod": true
+        },
+        {
+          "methodName": "invoke",
+          "fileName": "NativeMethodAccessorImpl.java",
+          "lineNumber": 62,
+          "className": "sun.reflect.NativeMethodAccessorImpl",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invoke",
+          "fileName": "DelegatingMethodAccessorImpl.java",
+          "lineNumber": 43,
+          "className": "sun.reflect.DelegatingMethodAccessorImpl",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invoke",
+          "fileName": "Method.java",
+          "lineNumber": 498,
+          "className": "java.lang.reflect.Method",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invokeMethod",
+          "fileName": "MethodInvocationHelper.java",
+          "lineNumber": 85,
+          "className": "org.testng.internal.MethodInvocationHelper",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invokeMethod",
+          "fileName": "Invoker.java",
+          "lineNumber": 639,
+          "className": "org.testng.internal.Invoker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invokeTestMethod",
+          "fileName": "Invoker.java",
+          "lineNumber": 816,
+          "className": "org.testng.internal.Invoker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invokeTestMethods",
+          "fileName": "Invoker.java",
+          "lineNumber": 1124,
+          "className": "org.testng.internal.Invoker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "invokeTestMethods",
+          "fileName": "TestMethodWorker.java",
+          "lineNumber": 125,
+          "className": "org.testng.internal.TestMethodWorker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "TestMethodWorker.java",
+          "lineNumber": 108,
+          "className": "org.testng.internal.TestMethodWorker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "privateRun",
+          "fileName": "TestRunner.java",
+          "lineNumber": 774,
+          "className": "org.testng.TestRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "TestRunner.java",
+          "lineNumber": 624,
+          "className": "org.testng.TestRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runTest",
+          "fileName": "SuiteRunner.java",
+          "lineNumber": 359,
+          "className": "org.testng.SuiteRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runSequentially",
+          "fileName": "SuiteRunner.java",
+          "lineNumber": 354,
+          "className": "org.testng.SuiteRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "privateRun",
+          "fileName": "SuiteRunner.java",
+          "lineNumber": 312,
+          "className": "org.testng.SuiteRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "SuiteRunner.java",
+          "lineNumber": 261,
+          "className": "org.testng.SuiteRunner",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runSuite",
+          "fileName": "SuiteRunnerWorker.java",
+          "lineNumber": 52,
+          "className": "org.testng.SuiteRunnerWorker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "SuiteRunnerWorker.java",
+          "lineNumber": 86,
+          "className": "org.testng.SuiteRunnerWorker",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runSuitesSequentially",
+          "fileName": "TestNG.java",
+          "lineNumber": 1215,
+          "className": "org.testng.TestNG",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "runSuitesLocally",
+          "fileName": "TestNG.java",
+          "lineNumber": 1140,
+          "className": "org.testng.TestNG",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "TestNG.java",
+          "lineNumber": 1048,
+          "className": "org.testng.TestNG",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "run",
+          "fileName": "IDEARemoteTestNG.java",
+          "lineNumber": 72,
+          "className": "org.testng.IDEARemoteTestNG",
+          "nativeMethod": false
+        },
+        {
+          "methodName": "main",
+          "fileName": "RemoteTestNGStarter.java",
+          "lineNumber": 123,
+          "className": "org.testng.RemoteTestNGStarter",
+          "nativeMethod": false
+        }
+      ],
+      "response": {
+        "context": {
+          "headers": {},
+          "entity": null,
+          "entityType": null,
+          "entityAnnotations": [],
+          "entityStream": {
+            "committed": false,
+            "closed": false
+          },
+          "length": -1,
+          "language": null,
+          "location": null,
+          "committed": false,
+          "entityClass": null,
+          "links": [],
+          "mediaType": null,
+          "allowedMethods": [],
+          "entityTag": null,
+          "stringHeaders": {},
+          "responseCookies": {},
+          "acceptableLanguages": [
+            "*"
+          ],
+          "requestCookies": {},
+          "lengthLong": -1,
+          "acceptableMediaTypes": [
+            {
+              "type": "*",
+              "subtype": "*",
+              "parameters": {},
+              "quality": 1000,
+              "wildcardType": true,
+              "wildcardSubtype": true
+            }
+          ],
+          "lastModified": null,
+          "date": null
+        },
+        "status": 400,
+        "length": -1,
+        "language": null,
+        "location": null,
+        "statusInfo": "BAD_REQUEST",
+        "links": [],
+        "mediaType": null,
+        "allowedMethods": [],
+        "cookies": {},
+        "entityTag": null,
+        "stringHeaders": {},
+        "metadata": {},
+        "lastModified": null,
+        "date": null,
+        "entity": null,
+        "headers": {}
+      },
+      "message": "REPLACE must not include ids argument",
+      "localizedMessage": "REPLACE must not include ids argument",
+      "suppressed": []
+    },
+    "message": "Exception while fetching data: javax.ws.rs.BadRequestException: REPLACE must not include ids argument",
+    "errorType": "DataFetchingException",
+    "locations": null
+  }
+]
