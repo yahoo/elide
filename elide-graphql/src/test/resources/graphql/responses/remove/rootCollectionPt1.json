@@ -3,17 +3,14 @@
     "edges": [
       {
         "node": {
-          "id": "1"
+          "id": "1",
+          "title": "Libro Uno"
         }
       },
       {
         "node": {
-          "id": "2"
-        }
-      },
-      {
-        "node": {
-          "id": "3"
+          "id": "2",
+          "title": "Libro Dos"
         }
       }
     ]
