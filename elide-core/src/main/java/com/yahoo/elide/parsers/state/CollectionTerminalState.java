@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -138,6 +139,7 @@ public class CollectionTerminalState extends BaseState {
 
             collection = PersistentResource.loadRecords(
                 entityClass,
+                new ArrayList<>(), //Empty list of IDs
                 filterExpression,
                 sorting,
                 pagination,

@@ -27,7 +27,17 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
         runComparisonTest("rootIdNoDataPt1");
 
         // Part2: Make sure it's really gone
-        runComparisonTest("rootIdNoDataPt2");
+        String graphQLRequest = "{\n"
+                + "  author(ids: [\"1\"]) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        id\n"
+                + "        name\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+        assertQueryFails(graphQLRequest);
     }
 
     @Test
@@ -46,7 +56,17 @@ public class FetcherDeleteTest extends PersistentResourceFetcherTest {
         runComparisonTest("rootCollectionPt1");
 
         // Part 2: Make sure objects are really gone
-        runComparisonTest("rootCollectionPt2");
+        String graphQLRequest = "{\n"
+                + "  book(ids: [\"1\", \"2\"]) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        id\n"
+                + "        title\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+        assertQueryFails(graphQLRequest);
     }
 
     @Test

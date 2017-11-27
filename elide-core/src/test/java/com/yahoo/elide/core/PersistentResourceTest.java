@@ -1486,7 +1486,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
-        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class,
+        Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class, new ArrayList<>(),
                 Optional.empty(), Optional.empty(), Optional.empty(), goodScope);
 
         Set<Child> expected = Sets.newHashSet(child1, child4, child5);

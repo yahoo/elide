@@ -9,19 +9,15 @@ package com.yahoo.elide.graphql;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.*;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -178,30 +174,11 @@ public class PersistentResourceFetcher implements DataFetcher {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
-            /* access records from internal db and return */
-            Class<?> idType = dictionary.getIdType(entityClass);
-            String idField = dictionary.getIdFieldName(entityClass);
-
-            List<Object> coercedIds = idList.stream()
-                    .map(id -> CoerceUtil.coerce(id, idType))
-                    .collect(Collectors.toList());
-
-            /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-            FilterExpression idFilter = new FilterPredicate(
-                    new Path.PathElement(
-                            entityClass,
-                            idType,
-                            idField),
-                    Operator.IN,
-                    new ArrayList<>(coercedIds));
-            FilterExpression filterExpression = filter
-                    .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
-                    .orElse(idFilter);
-
-             return PersistentResource.loadRecords(entityClass,
-                    Optional.of(filterExpression), sorting, pagination, requestScope);
+             return PersistentResource.loadRecords(entityClass, idList,
+                    filter, sorting, pagination, requestScope);
         }).orElseGet(() ->
             PersistentResource.loadRecords(entityClass,
+                    new ArrayList<>(), //Empty list of IDs
                     filter,
                     sorting,
                     pagination,
@@ -395,21 +372,22 @@ public class PersistentResourceFetcher implements DataFetcher {
                     requestScope,
                     id);
         } else {
-            Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
-                    Optional.of(Arrays.asList(id.get())),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    false).getPersistentResources();
+            try {
+                Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
+                        Optional.of(Arrays.asList(id.get())),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        false).getPersistentResources();
+                upsertedResource = loadedResource.iterator().next();
 
-            if (loadedResource.isEmpty()) { /* edge case where provided id doesn't exist */
+            //The ID doesn't exist yet.  Let's create the object.
+            } catch (InvalidObjectIdentifierException e) {
                 upsertedResource = PersistentResource.createObject(parentResource,
                         entity.getEntityClass(),
                         requestScope,
                         id);
-            } else {
-                upsertedResource = loadedResource.iterator().next();
             }
         }
 
