@@ -308,34 +308,69 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param loadClass the load class
      * @param requestScope the request scope
+     * @param ids a list of object identifiers to optionally load.  Can be empty.
      * @return a filtered collection of resources loaded from the datastore.
      */
     public static Set<PersistentResource> loadRecords(
             Class<?> loadClass,
-            Optional<FilterExpression> filterExpression,
+            List<String> ids,
+            Optional<FilterExpression> filter,
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope requestScope) {
 
+        EntityDictionary dictionary = requestScope.getDictionary();
+        FilterExpression filterExpression;
+
         DataStoreTransaction tx = requestScope.getTransaction();
 
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
-            return Collections.emptySet();
+            if (ids.isEmpty()) {
+                return Collections.emptySet();
+            } else {
+                throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
+            }
         }
 
-        EntityDictionary dictionary = requestScope.getDictionary();
         if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
         }
 
-        Iterable list;
-        list = tx.loadObjects(loadClass, filterExpression, sorting,
-                pagination.map(p -> p.evaluate(loadClass)), requestScope);
-        Set<PersistentResource> resources = new PersistentResourceSet(list, requestScope);
-        resources = filter(ReadPermission.class, resources);
-        return resources;
+        Set<PersistentResource> newResources = new LinkedHashSet<>();
+        if (!ids.isEmpty()) {
+            String typeAlias = dictionary.getJsonAliasFor(loadClass);
+            newResources = requestScope.getNewPersistentResources().stream()
+                        .filter(resource -> typeAlias.equals(resource.getType())
+                                && ids.contains(resource.getUUID().orElse("")))
+                        .collect(Collectors.toSet());
+            FilterExpression idExpression = buildIdFilterExpression(ids, loadClass, dictionary, requestScope);
+
+            // Combine filters if necessary
+            filterExpression = filter
+                    .map(fe -> (FilterExpression) new AndFilterExpression(idExpression, fe))
+                    .orElse(idExpression);
+        } else {
+            filterExpression = filter.orElse(null);
+        }
+
+        Set<PersistentResource> existingResources = filter(ReadPermission.class,
+                new PersistentResourceSet(tx.loadObjects(loadClass, Optional.ofNullable(filterExpression), sorting,
+                pagination.map(p -> p.evaluate(loadClass)), requestScope), requestScope));
+
+        Set<PersistentResource> allResources = Sets.union(newResources, existingResources);
+
+        Set<String> allExpectedIds = allResources.stream()
+                .map(resource -> (String) resource.getUUID().orElseGet(resource::getId))
+                .collect(Collectors.toSet());
+        Set<String> missedIds = Sets.difference(new HashSet<>(ids), allExpectedIds);
+
+        if (!missedIds.isEmpty()) {
+            throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
+        }
+
+        return allResources;
     }
 
     /**
@@ -801,7 +836,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * Load a single entity relation from the PersistentResource. Example: GET /book/2
      *
      * @param relation the relation
-     * @param ids the id
+     * @param ids a list of object identifiers to optionally load.  Can be empty.
      * @return PersistentResource relation
      */
     public Set<PersistentResource> getRelation(String relation,
@@ -828,7 +863,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                                 && ids.contains(resource.getUUID().orElse("")))
                         .collect(Collectors.toSet());
 
-                FilterExpression idExpression = buildIdFilterExpression(ids, entityType);
+                FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);
 
                 // Combine filters if necessary
                 filterExpression = filter
@@ -867,18 +902,29 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param entityType Type of entity
      * @return Filter expression for given ids and type.
      */
-    private FilterExpression buildIdFilterExpression(List<String> ids, Class entityType) {
+    private static FilterExpression buildIdFilterExpression(List<String> ids,
+                                                            Class entityType,
+                                                            EntityDictionary dictionary,
+                                                            RequestScope scope) {
         Class<?> idType = dictionary.getIdType(entityType);
         String idField = dictionary.getIdFieldName(entityType);
         String typeAlias = dictionary.getJsonAliasFor(entityType);
 
-        return new FilterPredicate(
-                new Path.PathElement(entityType, idType, idField),
+        List<Object> coercedIds = ids.stream()
+                .filter(id -> scope.getObjectById(typeAlias, id) == null) // these don't exist yet
+                .map(id -> CoerceUtil.coerce(id, idType))
+                .collect(Collectors.toList());
+
+        /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
+        FilterExpression idFilter = new FilterPredicate(
+                new Path.PathElement(
+                        entityType,
+                        idType,
+                        idField),
                 Operator.IN,
-                ids.stream()
-                        .filter(id -> requestScope.getObjectById(typeAlias, id) == null) // these don't exist yet
-                        .map(id -> CoerceUtil.coerce(id, idType))
-                        .collect(Collectors.toList()));
+                new ArrayList<>(coercedIds));
+
+        return idFilter;
     }
 
     /**

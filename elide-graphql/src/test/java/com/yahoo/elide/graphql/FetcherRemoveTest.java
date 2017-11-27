@@ -60,7 +60,17 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
         runComparisonTest("rootCollectionPt1");
 
         // Part 2: Make sure objects are really gone
-        runComparisonTest("rootCollectionPt2");
+        String graphQLRequest = "{\n"
+                + "  book(ids: [\"1\", \"2\"]) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        id\n"
+                + "        title\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+        assertQueryFails(graphQLRequest);
     }
 
     @Test
