@@ -32,6 +32,16 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
         assertQueryFails(graphQLRequest);
     }
 
+
+    public void testRootCollectionNothingToRemove() throws Exception {
+        String graphQLRequest = "mutation { "
+                + "book(op:REMOVE, ids: [\"4\"]) { "
+                + "edges { node { id } } "
+                + "}"
+                + "}";
+        assertQueryFails(graphQLRequest);
+    }
+
     @Test
     public void testNestedBadInput() {
         String graphQLRequest = "mutation { "
@@ -45,6 +55,15 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testRootCollection() throws Exception {
+        // Part 1: Delete the objects
+        runComparisonTest("rootCollectionPt1");
+
+        // Part 2: Make sure objects are really gone
+        runComparisonTest("rootCollectionPt2");
+    }
+
+    @Test
     public void testNestedCollection() throws Exception {
         // Part 1: Delete the objects
         runComparisonTest("nestedCollectionPt1");
@@ -54,6 +73,19 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
 
         // Part 3: Make sure objects are not deleted
         runComparisonTest("nestedCollectionPt3");
+    }
+
+    @Test
+    public void testNestedCollectionNothingToRemove() throws Exception {
+        String graphQLRequest = "mutation { "
+                + "author(ids: [\"1\"]) { "
+                + "edges { node {"
+                + "books(op:REMOVE, ids: [\"4\"]) { "
+                + "edges { node { id } } "
+                + "} } }"
+                + "}"
+                + "}";
+        assertQueryFails(graphQLRequest);
     }
 
     @Override
