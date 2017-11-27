@@ -1,0 +1,18 @@
+mutation {
+  book {
+    edges {
+      node {
+        id
+        title
+        authors(op: REPLACE, data:[]) {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
