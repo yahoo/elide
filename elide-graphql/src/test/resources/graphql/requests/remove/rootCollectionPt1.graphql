@@ -1,5 +1,5 @@
 mutation {
-  book(op:DELETE, ids: ["1", "2"]) {
+  book(op:REMOVE, ids: ["1", "2"]) {
     edges {
       node {
         id
