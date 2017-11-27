@@ -493,7 +493,7 @@ public class PersistentResourceFetcher implements DataFetcher {
      * @param context Environment encapsulating graphQL's request environment
      * @return set of replaced {@link PersistentResource} object(s)
      */
-    private Object replaceObjects(Environment context) {
+    private ConnectionContainer replaceObjects(Environment context) {
         /* sanity check for id and data argument w REPLACE */
         if (!context.data.isPresent()) {
             throw new BadRequestException("REPLACE must include data argument");
@@ -503,9 +503,11 @@ public class PersistentResourceFetcher implements DataFetcher {
             throw new BadRequestException("REPLACE must not include ids argument");
         }
 
-        Set<PersistentResource> existingObjects = (Set<PersistentResource>) fetchObjects(context);
-        Set<PersistentResource> upsertedObjects = upsertObjects(context).getPersistentResources();
-        Set<PersistentResource> toDelete = Sets.difference(existingObjects, upsertedObjects);
+        ConnectionContainer existingObjects =
+                (ConnectionContainer) context.container.processFetch(context, this);
+        ConnectionContainer upsertedObjects = upsertObjects(context);
+        Set<PersistentResource> toDelete =
+                Sets.difference(existingObjects.getPersistentResources(), upsertedObjects.getPersistentResources());
 
         if (!context.isRoot()) { /* has parent */
             toDelete.forEach(item -> context.parentResource.removeRelation(context.field.getName(), item));
