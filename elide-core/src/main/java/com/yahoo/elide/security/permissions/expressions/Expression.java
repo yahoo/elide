@@ -16,7 +16,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 public interface Expression {
 
     /**
-     * Different modes of evaluating security expressions
+     * Different modes of evaluating security expressions.
      */
     public enum EvaluationMode {
         USER_CHECKS_ONLY,   /* Only the user checks are evaluated */
