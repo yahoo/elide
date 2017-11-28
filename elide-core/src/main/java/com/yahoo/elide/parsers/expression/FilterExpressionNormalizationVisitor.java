@@ -26,36 +26,40 @@ public class FilterExpressionNormalizationVisitor implements FilterExpressionVis
 
     @Override
     public FilterExpression visitAndExpression(AndFilterExpression expression) {
-        return new AndFilterExpression(expression.getLeft().accept(this), expression.getRight().accept(this));
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
+        return new AndFilterExpression(left.accept(this), right.accept(this));
     }
 
     @Override
     public FilterExpression visitOrExpression(OrFilterExpression expression) {
-        return new OrFilterExpression(expression.getLeft().accept(this), expression.getRight().accept(this));
+        FilterExpression left = expression.getLeft();
+        FilterExpression right = expression.getRight();
+        return new OrFilterExpression(left.accept(this), right.accept(this));
     }
 
     @Override
     public FilterExpression visitNotExpression(NotFilterExpression fe) {
-        FilterExpression nfe = fe.getNegated();
-        if (nfe instanceof AndFilterExpression) {
-            AndFilterExpression and = (AndFilterExpression) nfe;
-            FilterExpression left = (new NotFilterExpression(and.getLeft())).accept(this);
-            FilterExpression right = (new NotFilterExpression(and.getRight())).accept(this);
+        FilterExpression inner = fe.getNegated();
+        if (inner instanceof AndFilterExpression) {
+            AndFilterExpression and = (AndFilterExpression) inner;
+            FilterExpression left = new NotFilterExpression(and.getLeft()).accept(this);
+            FilterExpression right = new NotFilterExpression(and.getRight()).accept(this);
             return new OrFilterExpression(left, right);
         }
-        if (nfe instanceof OrFilterExpression) {
-            OrFilterExpression or = (OrFilterExpression) nfe;
-            FilterExpression left = (new NotFilterExpression(or.getLeft())).accept(this);
-            FilterExpression right = (new NotFilterExpression(or.getRight())).accept(this);
+        if (inner instanceof OrFilterExpression) {
+            OrFilterExpression or = (OrFilterExpression) inner;
+            FilterExpression left = new NotFilterExpression(or.getLeft()).accept(this);
+            FilterExpression right = new NotFilterExpression(or.getRight()).accept(this);
             return new AndFilterExpression(left, right);
         }
-        if (nfe instanceof FilterPredicate) {
-            ((FilterPredicate) nfe).negate();
-            return nfe;
+        if (inner instanceof FilterPredicate) {
+            ((FilterPredicate) inner).negate();
+            return inner;
         }
-        if (nfe instanceof NotFilterExpression) {
-            return (((NotFilterExpression) nfe).getNegated()).accept(this);
+        if (inner instanceof NotFilterExpression) {
+            return (((NotFilterExpression) inner).getNegated()).accept(this);
         }
-        return nfe;
+        return inner;
     }
 }

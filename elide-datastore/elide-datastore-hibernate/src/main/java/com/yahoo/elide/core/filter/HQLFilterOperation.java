@@ -20,9 +20,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-
 /**
  * FilterOperation that creates Hibernate query language fragments.
  */
@@ -181,15 +178,6 @@ public class HQLFilterOperation implements FilterOperation<String> {
         public String visitAndExpression(AndFilterExpression expression) {
             FilterExpression left = expression.getLeft();
             FilterExpression right = expression.getRight();
-            boolean skipLeft = cannotEvaluate(left);
-            boolean skipRight = cannotEvaluate(right);
-            if (skipLeft && skipRight) {
-                throw new IllegalStateException(TWO_NON_FILTERING_EXPRESSIONS);
-            } else if (skipLeft) {
-                return right.accept(this);
-            } else if (skipRight) {
-                return left.accept(this);
-            }
             return "(" + left.accept(this) + " AND " + right.accept(this) + ")";
         }
 
@@ -197,20 +185,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
         public String visitOrExpression(OrFilterExpression expression) {
             FilterExpression left = expression.getLeft();
             FilterExpression right = expression.getRight();
-            boolean skipLeft = cannotEvaluate(left);
-            boolean skipRight = cannotEvaluate(right);
-            if (skipLeft && skipRight) {
-                throw new IllegalStateException(TWO_NON_FILTERING_EXPRESSIONS);
-            } else if (skipLeft) {
-                return right.accept(this);
-            } else if (skipRight) {
-                return left.accept(this);
-            }
             return "(" + left.accept(this) + " OR " + right.accept(this) + ")";
-        }
-
-        private boolean cannotEvaluate(FilterExpression expression) {
-            return expression == NO_EVALUATION_EXPRESSION || expression == FALSE_USER_CHECK_EXPRESSION;
         }
 
         @Override
