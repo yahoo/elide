@@ -127,6 +127,35 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
         runComparisonTest("computedAttributes");
     }
 
+    @Test
+    public void testSchemaIntrospection() throws Exception {
+        String graphQLRequest = "{"
+            + "__schema {"
+            + "types {"
+            + "   name"
+            + "}"
+            + "}"
+            + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+
+        Assert.assertTrue(result.getErrors().isEmpty());
+    }
+
+    @Test
+    public void testTypeIntrospection() throws Exception {
+        String graphQLRequest = "{"
+            + "__type(name: \"author\") {"
+            + "   name"
+            + "   fields {"
+            + "     name"
+            + "   }"
+            + "}"
+            + "}";
+        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+
+        Assert.assertTrue(result.getErrors().isEmpty());
+    }
+
     @Override
     public void runComparisonTest(String testName) throws Exception {
         // Preface with "fetch" directory:
