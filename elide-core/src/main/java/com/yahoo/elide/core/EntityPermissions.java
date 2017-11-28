@@ -134,7 +134,7 @@ public class EntityPermissions implements CheckInstantiator {
         return expression;
     }
 
-    private ParseTree parseExpression(String expression) {
+    public static ParseTree parseExpression(String expression) {
         ANTLRInputStream is = new ANTLRInputStream(expression);
         ExpressionLexer lexer = new ExpressionLexer(is);
         lexer.removeErrorListeners();
