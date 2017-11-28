@@ -22,6 +22,8 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
 
+import java.util.Objects;
+
 
 /**
  * PermissionToFilterExpressionVisitor parses a permission parseTree and returns the corresponding FilterExpression
@@ -90,11 +92,11 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     @Override
     public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
         FilterExpression expression = visit(ctx.expression());
-        if (expression == TRUE_USER_CHECK_EXPRESSION) {
+        if (Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)) {
             return FALSE_USER_CHECK_EXPRESSION;
-        } else if (expression == FALSE_USER_CHECK_EXPRESSION) {
+        } else if (Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION)) {
             return TRUE_USER_CHECK_EXPRESSION;
-        } else if (expression == NO_EVALUATION_EXPRESSION) {
+        } else if (Objects.equals(expression, NO_EVALUATION_EXPRESSION)) {
             return NO_EVALUATION_EXPRESSION;
         }
         return new NotFilterExpression(expression);
@@ -151,12 +153,12 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     private boolean expressionWillFail(FilterExpression expression) {
-        return expression == FALSE_USER_CHECK_EXPRESSION || operator(expression) == Operator.FALSE;
+        return Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION) || operator(expression) == Operator.FALSE;
     }
 
     private boolean expressionWillNotFilter(FilterExpression expression) {
-        return expression == NO_EVALUATION_EXPRESSION
-                || expression == TRUE_USER_CHECK_EXPRESSION
+        return Objects.equals(expression, NO_EVALUATION_EXPRESSION)
+                || Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)
                 || operator(expression) == Operator.TRUE;
     }
 

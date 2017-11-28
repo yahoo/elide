@@ -61,7 +61,7 @@ public class Path {
                     || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
                 Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
                 elements.add(new PathElement(currentClass, attributeClass, fieldName));
-            } else if (fieldName.equals("this")) {
+            } else if ("this".equals(fieldName)) {
                 elements.add(new PathElement(currentClass, null, fieldName));
             } else {
                 String alias = dictionary.getJsonAliasFor(currentClass);
