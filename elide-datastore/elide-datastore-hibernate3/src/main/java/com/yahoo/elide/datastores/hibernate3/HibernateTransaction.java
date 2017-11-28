@@ -148,7 +148,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
     }
 
-
     @Override
     public Iterable<Object> loadObjects(
             Class<?> entityClass,

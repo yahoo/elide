@@ -255,7 +255,9 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         FilterExpression entityFilter = filterExpressionFromParseTree(classPermissions, forType, requestScope);
 
         //case where the permissions does not have ANY filterExpressionCheck
-        if (entityFilter == FALSE_USER_CHECK_EXPRESSION || entityFilter == NO_EVALUATION_EXPRESSION) {
+        if (entityFilter == FALSE_USER_CHECK_EXPRESSION
+                || entityFilter == NO_EVALUATION_EXPRESSION
+                || entityFilter == TRUE_USER_CHECK_EXPRESSION) {
             entityFilter = null;
         }
 
@@ -310,6 +312,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         if (permissions == null) {
             return null;
         }
+
         FilterExpression expression = new PermissionToFilterExpressionVisitor(entityDictionary, scope, type)
                 .visit(permissions);
         return expression.accept(new FilterExpressionNormalizationVisitor());
