@@ -162,41 +162,43 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 
-    public void negate() {
+    public FilterPredicate negate() {
+        Operator newOp;
         switch (operator) {
             case GE:
-                this.operator = Operator.LT;
+                newOp = Operator.LT;
                 break;
             case GT:
-                this.operator = Operator.LE;
+                newOp = Operator.LE;
                 break;
             case LE:
-                this.operator = Operator.GT;
+                newOp = Operator.GT;
                 break;
             case LT:
-                this.operator = Operator.GE;
+                newOp = Operator.GE;
                 break;
             case IN:
-                this.operator = Operator.NOT;
+                newOp = Operator.NOT;
                 break;
             case NOT:
-                this.operator = Operator.IN;
+                newOp = Operator.IN;
                 break;
             case TRUE:
-                this.operator = Operator.FALSE;
+                newOp = Operator.FALSE;
                 break;
             case FALSE:
-                this.operator = Operator.TRUE;
+                newOp = Operator.TRUE;
                 break;
             case ISNULL:
-                this.operator = Operator.NOTNULL;
+                newOp = Operator.NOTNULL;
                 break;
             case NOTNULL:
-                this.operator = Operator.ISNULL;
+                newOp = Operator.ISNULL;
                 break;
             default:
                 throw new InvalidOperatorNegationException();
         }
+        return new FilterPredicate(this.path, newOp, this.values);
     }
 
     /**

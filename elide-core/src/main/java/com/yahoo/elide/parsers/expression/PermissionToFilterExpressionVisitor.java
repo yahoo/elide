@@ -139,17 +139,12 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
             return FALSE_USER_CHECK_EXPRESSION;
         }
 
-        // (NO_EVALUATION_EXPRESSION AND FilterExpression) => FilterExpression
-        // (NO_EVALUATION_EXPRESSION AND NO_EVALUATION_EXPRESSION) => NO_EVALUATION_EXPRESSION
-        if (left == NO_EVALUATION_EXPRESSION && right == NO_EVALUATION_EXPRESSION) {
-            return left;
-        }
         if (expressionWillNotFilter(left)) {
-            return right == TRUE_USER_CHECK_EXPRESSION ? NO_EVALUATION_EXPRESSION : right;
+            return right;
         }
 
         if (expressionWillNotFilter(right)) {
-            return left == TRUE_USER_CHECK_EXPRESSION ? NO_EVALUATION_EXPRESSION : left;
+            return left;
         }
 
         return new AndFilterExpression(left, right);

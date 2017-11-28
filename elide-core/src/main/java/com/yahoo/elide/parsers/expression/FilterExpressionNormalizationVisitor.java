@@ -53,12 +53,13 @@ public class FilterExpressionNormalizationVisitor implements FilterExpressionVis
             FilterExpression right = new NotFilterExpression(or.getRight()).accept(this);
             return new AndFilterExpression(left, right);
         }
-        if (inner instanceof FilterPredicate) {
-            ((FilterPredicate) inner).negate();
-            return inner;
-        }
         if (inner instanceof NotFilterExpression) {
-            return (((NotFilterExpression) inner).getNegated()).accept(this);
+            NotFilterExpression not = (NotFilterExpression) inner;
+            return (not.getNegated()).accept(this);
+        }
+        if (inner instanceof FilterPredicate) {
+            FilterPredicate filter = (FilterPredicate) inner;
+            return filter.negate();
         }
         return inner;
     }
