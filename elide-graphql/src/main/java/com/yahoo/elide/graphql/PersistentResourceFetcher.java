@@ -17,7 +17,7 @@ import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.graphql.containers.*;
+import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -174,16 +174,11 @@ public class PersistentResourceFetcher implements DataFetcher {
                 throw new BadRequestException("Empty list passed to ids");
             }
 
-             return PersistentResource.loadRecords(entityClass, idList,
+            return PersistentResource.loadRecords(entityClass, idList,
                     filter, sorting, pagination, requestScope);
-        }).orElseGet(() ->
-            PersistentResource.loadRecords(entityClass,
-                    new ArrayList<>(), //Empty list of IDs
-                    filter,
-                    sorting,
-                    pagination,
-                    requestScope)
-        );
+        }).orElseGet(() -> PersistentResource.loadRecords(
+                entityClass, /* Empty list of IDs */ new ArrayList<>(), filter, sorting, pagination, requestScope
+        ));
 
         return new ConnectionContainer(records, pagination, typeName);
     }
