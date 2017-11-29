@@ -5,12 +5,6 @@
         "node": {
           "books": {
             "edges": [
-              {
-                "node": {
-                  "id": "1",
-                  "title": "Libro Uno"
-                }
-              }
             ]
           }
         }

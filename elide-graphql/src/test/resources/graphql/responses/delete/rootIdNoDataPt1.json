@@ -1,12 +1,6 @@
 {
   "author": {
     "edges": [
-      {
-        "node": {
-          "id": "1",
-          "name": "Mark Twain"
-        }
-      }
     ]
   }
 }
