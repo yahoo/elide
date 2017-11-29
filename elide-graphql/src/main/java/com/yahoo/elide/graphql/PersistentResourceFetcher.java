@@ -433,7 +433,12 @@ public class PersistentResourceFetcher implements DataFetcher {
         ConnectionContainer connection = (ConnectionContainer) fetchObjects(context);
         Set<PersistentResource> toDelete = connection.getPersistentResources();
         toDelete.forEach(PersistentResource::deleteResource);
-        return new ConnectionContainer(toDelete, Optional.empty(), connection.getTypeName());
+
+        return new ConnectionContainer(
+                Sets.difference(connection.getPersistentResources(), toDelete),
+                Optional.empty(),
+                connection.getTypeName()
+        );
     }
 
     /**
@@ -459,7 +464,12 @@ public class PersistentResourceFetcher implements DataFetcher {
         } else { /* is root */
             toRemove.forEach(PersistentResource::deleteResource);
         }
-        return new ConnectionContainer(toRemove, Optional.empty(), connection.getTypeName());
+
+        return new ConnectionContainer(
+                Sets.difference(connection.getPersistentResources(), toRemove),
+                Optional.empty(),
+                connection.getTypeName()
+        );
     }
 
     /**
