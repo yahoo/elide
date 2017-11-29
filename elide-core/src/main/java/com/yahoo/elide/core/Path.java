@@ -40,7 +40,7 @@ public class Path {
     }
 
     public Path(Path copy) {
-        this(copy.pathElements);
+        this.pathElements = copy.pathElements;
     }
 
     public Path(List<PathElement> pathElements) {

@@ -54,7 +54,11 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public FilterPredicate(FilterPredicate copy) {
-        this(copy.path, copy.operator, copy.values);
+        this.operator = copy.operator;
+        this.path = copy.path;
+        this.values = copy.values;
+        this.field = copy.field;
+        this.fieldPath = copy.fieldPath;
     }
 
     public FilterPredicate(Path path, Operator op, List<Object> values) {
@@ -198,7 +202,9 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
             default:
                 throw new InvalidOperatorNegationException();
         }
-        return new FilterPredicate(this.path, newOp, this.values);
+        FilterPredicate copy = new FilterPredicate(this);
+        copy.operator = newOp;
+        return copy;
     }
 
     /**
