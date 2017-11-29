@@ -37,11 +37,11 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     private static final String PERIOD = ".";
     private static final PathElement[] ELEMENT_ARRAY = new PathElement[0];
 
-    @Getter @NonNull private Path path;
-    @Getter @NonNull private Operator operator;
-    @Getter @NonNull private List<Object> values;
-    @Getter @NonNull private String field;
-    @Getter @NonNull private String fieldPath;
+    @Getter @NonNull final private Path path;
+    @Getter @NonNull final private Operator operator;
+    @Getter @NonNull final private List<Object> values;
+    @Getter @NonNull final private String field;
+    @Getter @NonNull final private String fieldPath;
 
     public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
         return path.getPathElements().stream()
@@ -54,23 +54,25 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public FilterPredicate(FilterPredicate copy) {
-        this.operator = copy.operator;
-        this.path = copy.path;
-        this.values = copy.values;
-        this.field = copy.field;
-        this.fieldPath = copy.fieldPath;
+        this(copy.path, copy.operator, copy.values, copy.field, copy.fieldPath);
     }
 
     public FilterPredicate(Path path, Operator op, List<Object> values) {
+        this(
+                new Path(path),
+                op,
+                ImmutableList.copyOf(values),
+                path.lastElement().map(PathElement::getFieldName).orElse(null),
+                path.getPathElements().stream().map(PathElement::getFieldName).collect(Collectors.joining(PERIOD))
+        );
+    }
+
+    private FilterPredicate(Path path, Operator op, List<Object> values, String field, String fieldPath) {
+        this.path = path;
         this.operator = op;
-        this.path = new Path(path);
-        this.values = ImmutableList.copyOf(values);
-        this.field = path.lastElement()
-                .map(PathElement::getFieldName)
-                .orElse(null);
-        this.fieldPath = path.getPathElements().stream()
-                .map(PathElement::getFieldName)
-                .collect(Collectors.joining(PERIOD));
+        this.values = values;
+        this.field = field;
+        this.fieldPath = fieldPath;
     }
 
     /**
@@ -202,9 +204,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
             default:
                 throw new InvalidOperatorNegationException();
         }
-        FilterPredicate copy = new FilterPredicate(this);
-        copy.operator = newOp;
-        return copy;
+        return new FilterPredicate(this.path, newOp, this.values, this.field, this.fieldPath);
     }
 
     /**
