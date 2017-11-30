@@ -25,7 +25,7 @@ public class Path {
     private static final String PERIOD = ".";
     private static final String UNDERSCORE = "_";
 
-    @Getter private List<PathElement> pathElements;
+    @Getter private final List<PathElement> pathElements;
     /**
      * The path taken through data model associations to reference a given field.
      * eg. author.books.publisher.name
@@ -34,13 +34,13 @@ public class Path {
     @ToString
     @EqualsAndHashCode
     public static class PathElement {
-        @Getter private Class type;
-        @Getter private Class fieldType;
-        @Getter private String fieldName;
+        @Getter private final Class type;
+        @Getter private final Class fieldType;
+        @Getter private final String fieldName;
     }
 
     public Path(Path copy) {
-        this(copy.pathElements);
+        this.pathElements = copy.pathElements;
     }
 
     public Path(List<PathElement> pathElements) {
