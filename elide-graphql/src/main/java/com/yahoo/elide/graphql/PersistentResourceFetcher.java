@@ -30,7 +30,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -436,7 +436,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         toDelete.forEach(PersistentResource::deleteResource);
 
         return new ConnectionContainer(
-                new HashSet<>(),
+                Collections.emptySet(),
                 Optional.empty(),
                 connection.getTypeName()
         );
@@ -467,7 +467,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         return new ConnectionContainer(
-                new HashSet<>(),
+                Collections.emptySet(),
                 Optional.empty(),
                 connection.getTypeName()
         );
