@@ -267,7 +267,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.info("Building query attribute {} {} for entity {}",
+            log.debug("Building query attribute {} {} for entity {}",
                     attribute,
                     attributeClass.getName(),
                     entityClass.getName());
@@ -366,7 +366,7 @@ public class ModelBuilder {
      * @return The constructed input object stub.
      */
     private GraphQLInputType buildInputObjectStub(Class<?> clazz) {
-        log.info("Building input object for {}", clazz.getName());
+        log.debug("Building input object for {}", clazz.getName());
 
         String entityName = dictionary.getJsonAliasFor(clazz);
 
@@ -385,7 +385,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.info("Building input attribute {} {} for entity {}",
+            log.debug("Building input attribute {} {} for entity {}",
                     attribute,
                     attributeClass.getName(),
                     clazz.getName());
@@ -421,7 +421,7 @@ public class ModelBuilder {
     private void resolveInputObjectRelationships() {
         inputObjectRegistry.forEach((clazz, inputObj) -> {
             for (String relationship : dictionary.getElideBoundRelationships(clazz)) {
-                log.info("Resolving relationship {} for {}", relationship, clazz.getName());
+                log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
                 Class<?> relationshipClass = dictionary.getParameterizedType(clazz, relationship);
                 if (excludedEntities.contains(relationshipClass)) {
                     continue;

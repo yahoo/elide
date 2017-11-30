@@ -226,30 +226,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Check strictly user permissions on a specific field and entity.
-     *
-     * @param <A> type parameter
-     * @param resource Resource
-     * @param annotationClass Annotation class
-     * @param field Field
-     */
-    @Deprecated
-    @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
-                                                                        Class<A> annotationClass,
-                                                                        String field) {
-        Supplier<Expression> expressionSupplier = () -> {
-            return expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
-        };
-
-        return checkOnlyUserPermissions(
-                resource.getResourceClass(),
-                annotationClass,
-                Optional.of(field),
-                expressionSupplier);
-    }
-
-    /**
      * Check strictly user permissions on an entity.
      *
      * @param <A> type parameter
@@ -403,15 +379,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         });
         commitCheckQueue.clear();
-    }
-
-    @Override
-    @Deprecated
-    public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
-                                                      Class resourceClass, String field) {
-        ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));
-
-        return (result == PASS);
     }
 
     /**
