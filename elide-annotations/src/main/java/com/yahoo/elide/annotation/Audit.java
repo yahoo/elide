@@ -51,13 +51,6 @@ public @interface Audit {
     Action[] action() default {Action.CREATE, Action.UPDATE, Action.DELETE};
 
     /**
-     * Regular expression applied to the path segments of the URI.  The audit only occurs if the expression
-     * is empty or it matches the request URI
-     * @return the string (default = "")
-     */
-    String path() default "";
-
-    /**
      * Operation code.
      *
      * @return the int (default = -1)
