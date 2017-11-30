@@ -16,7 +16,7 @@ import org.hibernate.SessionFactory;
 /**
  * Implementation for HibernateStore supporting SessionFactory.
  */
-public class HibernateSessionFactoryStore extends HibernateStore {
+public class HibernateSessionFactoryStore extends AbstractHibernateStore {
 
     protected HibernateSessionFactoryStore(SessionFactory aSessionFactory,
                                            boolean isScrollEnabled,

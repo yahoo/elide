@@ -15,7 +15,7 @@ import org.hibernate.metadata.ClassMetadata;
 /**
  * Hibernate5 store supporting the EntityManager.
  */
-public class HibernateEntityManagerStore extends HibernateStore {
+public class HibernateEntityManagerStore extends AbstractHibernateStore {
     protected final HibernateEntityManager entityManager;
 
     public HibernateEntityManagerStore(HibernateEntityManager entityManager,

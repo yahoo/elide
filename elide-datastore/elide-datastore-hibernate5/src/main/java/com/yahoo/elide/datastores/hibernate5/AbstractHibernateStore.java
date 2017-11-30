@@ -17,7 +17,7 @@ import org.hibernate.metadata.ClassMetadata;
 /**
  * Hibernate interface library.
  */
-public abstract class HibernateStore implements DataStore {
+public abstract class AbstractHibernateStore implements DataStore {
     protected final SessionFactory sessionFactory;
     protected final boolean isScrollEnabled;
     protected final ScrollMode scrollMode;
@@ -30,7 +30,7 @@ public abstract class HibernateStore implements DataStore {
      * @param isScrollEnabled Whether or not scrolling is enabled on driver
      * @param scrollMode Scroll mode to use for scrolling driver
      */
-    protected HibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
+    protected AbstractHibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
         this(aSessionFactory, isScrollEnabled, scrollMode, HibernateTransaction::new);
     }
 
@@ -45,10 +45,10 @@ public abstract class HibernateStore implements DataStore {
      * @param scrollMode Scroll mode to use for scrolling driver
      * @param transactionSupplier Supplier for transaction
      */
-    protected HibernateStore(SessionFactory aSessionFactory,
-                             boolean isScrollEnabled,
-                             ScrollMode scrollMode,
-                             HibernateTransactionSupplier transactionSupplier) {
+    protected AbstractHibernateStore(SessionFactory aSessionFactory,
+                                     boolean isScrollEnabled,
+                                     ScrollMode scrollMode,
+                                     HibernateTransactionSupplier transactionSupplier) {
         this.sessionFactory = aSessionFactory;
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
@@ -88,7 +88,7 @@ public abstract class HibernateStore implements DataStore {
             return this;
         }
 
-        public HibernateStore build() {
+        public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
             } else if (entityManager != null) {
