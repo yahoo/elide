@@ -5,12 +5,9 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
-import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.exceptions.TransactionException;
-import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,7 +17,7 @@ import org.hibernate.metadata.ClassMetadata;
 /**
  * Hibernate interface library.
  */
-public class HibernateStore implements DataStore {
+public abstract class AbstractHibernateStore implements DataStore {
     protected final SessionFactory sessionFactory;
     protected final boolean isScrollEnabled;
     protected final ScrollMode scrollMode;
@@ -33,7 +30,7 @@ public class HibernateStore implements DataStore {
      * @param isScrollEnabled Whether or not scrolling is enabled on driver
      * @param scrollMode Scroll mode to use for scrolling driver
      */
-    protected HibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
+    protected AbstractHibernateStore(SessionFactory aSessionFactory, boolean isScrollEnabled, ScrollMode scrollMode) {
         this(aSessionFactory, isScrollEnabled, scrollMode, HibernateTransaction::new);
     }
 
@@ -48,10 +45,10 @@ public class HibernateStore implements DataStore {
      * @param scrollMode Scroll mode to use for scrolling driver
      * @param transactionSupplier Supplier for transaction
      */
-    protected HibernateStore(SessionFactory aSessionFactory,
-                             boolean isScrollEnabled,
-                             ScrollMode scrollMode,
-                             HibernateTransactionSupplier transactionSupplier) {
+    protected AbstractHibernateStore(SessionFactory aSessionFactory,
+                                     boolean isScrollEnabled,
+                                     ScrollMode scrollMode,
+                                     HibernateTransactionSupplier transactionSupplier) {
         this.sessionFactory = aSessionFactory;
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
@@ -91,7 +88,7 @@ public class HibernateStore implements DataStore {
             return this;
         }
 
-        public HibernateStore build() {
+        public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
             } else if (entityManager != null) {
@@ -113,36 +110,16 @@ public class HibernateStore implements DataStore {
      * Get current Hibernate session.
      *
      * @return session
-     * @deprecated since 3.0.7. This functionality has been moved to HibernateSessionFactoryStore and
-     *             HibernateEntityManagerStore. This will become _abstract_ in Elide 4.0.
      */
-    @Deprecated
-    public Session getSession() {
-        try {
-            Session session = sessionFactory.getCurrentSession();
-            Preconditions.checkNotNull(session);
-            Preconditions.checkArgument(session.isConnected());
-            return session;
-        } catch (HibernateException e) {
-            throw new TransactionException(e);
-        }
-    }
+    abstract public Session getSession();
 
     /**
      * Start Hibernate transaction.
      *
      * @return transaction
-     * @deprecated since 3.0.7. This functionality has been moved to HibernateSessionFactoryStore and
-     *             HibernateEntityManagerStore. This will become _abstract_ in Elide 4.0.
      */
     @Override
-    @Deprecated
-    public DataStoreTransaction beginTransaction() {
-        Session session = sessionFactory.getCurrentSession();
-        Preconditions.checkNotNull(session);
-        session.beginTransaction();
-        return transactionSupplier.get(session, isScrollEnabled, scrollMode);
-    }
+    abstract public DataStoreTransaction beginTransaction();
 
     /**
      * Functional interface for describing a method to supply a custom Hibernate transaction.

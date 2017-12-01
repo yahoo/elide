@@ -96,7 +96,7 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
 
-        return new HibernateStore.Builder(em)
+        return new AbstractHibernateStore.Builder(em)
                 .withScrollEnabled(true)
                 .withScrollMode(ScrollMode.FORWARD_ONLY)
                 .build();

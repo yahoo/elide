@@ -5,7 +5,10 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.TransactionException;
+import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -13,7 +16,7 @@ import org.hibernate.SessionFactory;
 /**
  * Implementation for HibernateStore supporting SessionFactory.
  */
-public class HibernateSessionFactoryStore extends HibernateStore {
+public class HibernateSessionFactoryStore extends AbstractHibernateStore {
 
     protected HibernateSessionFactoryStore(SessionFactory aSessionFactory,
                                            boolean isScrollEnabled,
@@ -27,10 +30,15 @@ public class HibernateSessionFactoryStore extends HibernateStore {
      * @return session
      */
     @Override
-    @SuppressWarnings("deprecation")
     public Session getSession() {
-        // TODO: After removing, we should move logic from superclass to here
-        return super.getSession();
+        try {
+            Session session = sessionFactory.getCurrentSession();
+            Preconditions.checkNotNull(session);
+            Preconditions.checkArgument(session.isConnected());
+            return session;
+        } catch (HibernateException e) {
+            throw new TransactionException(e);
+        }
     }
 
     /**
@@ -39,9 +47,10 @@ public class HibernateSessionFactoryStore extends HibernateStore {
      * @return transaction
      */
     @Override
-    @SuppressWarnings("deprecation")
     public DataStoreTransaction beginTransaction() {
-        // TODO: After removing, we should move logic from superclass to here
-        return super.beginTransaction();
+        Session session = sessionFactory.getCurrentSession();
+        Preconditions.checkNotNull(session);
+        session.beginTransaction();
+        return transactionSupplier.get(session, isScrollEnabled, scrollMode);
     }
 }
