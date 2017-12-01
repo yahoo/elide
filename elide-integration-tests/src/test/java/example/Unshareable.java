@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Unshareable bean.
+ * DisallowShare bean.
  */
 @Entity
 @Table(name = "unshareable")

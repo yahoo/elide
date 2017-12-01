@@ -152,6 +152,283 @@ class GraphQLEndointTest {
         assert200EqualBody(response, graphQLResponse)
     }
 
+    @Test
+    void testValidSecretField() {
+        String graphQLRequest =
+                '''
+                {
+                  book {
+                    edges {
+                      node {
+                        user1SecretField
+                      }
+                    }
+                  }
+                }  
+                '''
+        String graphQLResponse =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "user1SecretField": "this is a secret for user 1 only1"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, graphQLResponse)
+    }
+
+    @Test
+    void testInvalidSecretField() {
+        String graphQLRequest =
+                '''
+                {
+                  book {
+                    edges {
+                      node {
+                        user1SecretField
+                      }
+                    }
+                  }
+                }  
+                '''
+        def response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
+        assertHasErrors(response)
+    }
+
+    @Test
+    void testPartialResponse() {
+        String graphQLRequest =
+                '''
+                {
+                  book {
+                    edges {
+                      node {
+                        user1SecretField
+                      }
+                    }
+                  }
+                  book {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }  
+                '''
+        String expectedData =
+                '''
+                {
+                  "book": {
+                        "edges": [
+                          {
+                            "node": {
+                              "user1SecretField": null,
+                              "id": "1",
+                              "title": "My first book"
+                            }
+                          }
+                        ]
+                      }
+                }
+                '''
+        def response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
+        assertHasErrors(response)
+        assert200DataEqual(response, expectedData)
+    }
+
+    @Test
+    void testFailedMutationAndRead() {
+        String graphQLRequest =
+                '''
+                mutation {
+                  book(op: UPSERT, data: {id: "1", title: "my new book!", authors:[{id:"2"}]}) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }  
+                '''
+
+        def response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
+        assertHasErrors(response)
+
+        graphQLRequest =
+                '''
+                {
+                  book {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+                '''
+        String expected =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "1",
+                            "title": "My first book"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+        response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+    }
+
+    @Test(enabled = false)
+    void testNonShareable() {
+        String graphQLRequest =
+                '''
+                mutation {
+                  book(op: UPSERT, data: {id: "123", title: "my new book!", noShare:{id:"2"}}) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }  
+                '''
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+    }
+
+    @Test
+    void testSuccessfulMutation() {
+        String graphQLRequest =
+                '''
+                mutation {
+                  book(op: UPSERT, data: {id: "123", title: "my new book!", authors:[{id:"2"}]}) {
+                    edges {
+                      node {
+                        id
+                        title
+                        user1SecretField
+                      }
+                    }
+                  }
+                }  
+                '''
+        String expected =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "2",
+                            "title": "my new book!",
+                            "user1SecretField": "this is a secret for user 1 only1"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+
+        graphQLRequest =
+                '''
+                {
+                  book {
+                    edges {
+                      node {
+                        id
+                        title
+                        authors {
+                          edges {
+                            node {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }  
+                '''
+        expected =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                  "book": {
+                    "edges": [
+                      {
+                        "node": {
+                          "id": "1",
+                          "title": "My first book",
+                          "authors": {
+                            "edges": [
+                              {
+                                "node": {
+                                  "id": "1",
+                                  "name": "Ricky Carmichael"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "node": {
+                          "id": "2",
+                          "title": "my new book!",
+                          "authors": {
+                            "edges": [
+                              {
+                                "node": {
+                                  "id": "2",
+                                  "name": "The Silent Author"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+              '''
+        response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+    }
+
     static String graphQLRequestToJSON(String request) {
         JsonNode node = JsonNodeFactory.instance.objectNode()
         node.put("query", request)
@@ -169,5 +446,17 @@ class GraphQLEndointTest {
         JsonNode expectedNode = mapper.readTree(expected)
         JsonNode actualNode = extract200Response(response)
         Assert.assertEquals(actualNode, expectedNode)
+    }
+
+    static assert200DataEqual(Response response, String expected) {
+        ObjectMapper mapper = new ObjectMapper()
+        JsonNode expectedNode = mapper.readTree(expected)
+        JsonNode actualNode = extract200Response(response)
+        Assert.assertEquals(actualNode.get("data"), expectedNode)
+    }
+
+    static assertHasErrors(Response response) {
+        JsonNode node = extract200Response(response)
+        Assert.assertFalse(node.get("errors").asList().isEmpty())
     }
 }

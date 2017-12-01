@@ -108,7 +108,7 @@ public class GraphQLEndpoint {
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (query.startsWith(MUTATION)) {
+            if (query.trim().startsWith(MUTATION)) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {
