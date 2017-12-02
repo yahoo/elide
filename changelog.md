@@ -11,6 +11,9 @@
    case sensitive RSQL queries, however the RSQL spec does not provide this either. 
    Fixes #387
 
+**Fixes**
+ * Updated PreSecurity lifecycle hooks to run prior to inline checks like they should.
+
 **Misc**
  * All deprecated functions from Elide 3.0 have been removed.
  * `FilterPredicates` have been restructure to share a common `Path` with other Elide code.
