@@ -35,20 +35,34 @@ class GraphQLEndointTest {
     SecurityContext user1 = Mockito.mock(SecurityContext)
     SecurityContext user2 = Mockito.mock(SecurityContext)
 
+    class User implements Principal {
+        StringBuilder log = new StringBuilder();
+        String name;
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public User withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public void appendLog(String stmt) {
+            log.append(stmt);
+        }
+
+        public String getLog() {
+            return log.toString();
+            log = new StringBuilder();
+        }
+    }
+
     @BeforeTest
     void setup() {
-        Mockito.when(user1.getUserPrincipal()).thenReturn(new Principal() {
-            @Override
-            String getName() {
-                return "1"
-            }
-        })
-        Mockito.when(user2.getUserPrincipal()).thenReturn(new Principal() {
-            @Override
-            String getName() {
-                return "2"
-            }
-        })
+        Mockito.when(user1.getUserPrincipal()).thenReturn(new User().withName("1"));
+        Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
     }
 
     @BeforeMethod
@@ -119,7 +133,7 @@ class GraphQLEndointTest {
                   }
                 }
               }
-            }            
+            }
             '''
         String graphQLResponse =
                 '''
@@ -164,7 +178,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         String graphQLResponse =
                 '''
@@ -199,7 +213,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         def response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
         assertHasErrors(response)
@@ -225,7 +239,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         String expectedData =
                 '''
@@ -261,7 +275,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
 
         def response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
@@ -315,10 +329,52 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
         assert200EqualBody(response, expected)
+    }
+
+    @Test
+    void testLifeCycleHooks () {
+        String graphQLRequest =
+                '''
+                mutation {
+                  book(op: UPSERT, data: {id: "1", title: "my new book!"}) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+                '''
+        String expected =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "1",
+                            "title": "my new book!"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+
+        def expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
+
+        Assert.assertEquals(user1.getUserPrincipal().getLog(), expectedLog)
     }
 
     @Test
@@ -335,7 +391,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         String expected =
                 '''
@@ -379,7 +435,7 @@ class GraphQLEndointTest {
                       }
                     }
                   }
-                }  
+                }
                 '''
         expected =
                 '''
