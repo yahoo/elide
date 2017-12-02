@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.google.common.collect.Sets
 import com.yahoo.elide.Elide
 import com.yahoo.elide.ElideSettingsBuilder
+import com.yahoo.elide.audit.AuditLogger
 import com.yahoo.elide.core.EntityDictionary
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction
@@ -34,6 +35,7 @@ class GraphQLEndointTest {
     GraphQLEndpoint endpoint
     SecurityContext user1 = Mockito.mock(SecurityContext)
     SecurityContext user2 = Mockito.mock(SecurityContext)
+    AuditLogger audit = Mockito.mock(AuditLogger)
 
     class User implements Principal {
         StringBuilder log = new StringBuilder();
@@ -74,6 +76,7 @@ class GraphQLEndointTest {
         Elide elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withAuditLogger(audit)
                         .build())
         endpoint = new GraphQLEndpoint(elide, new DefaultOpaqueUserFunction() {
             @Override
@@ -337,6 +340,10 @@ class GraphQLEndointTest {
 
     @Test
     void testLifeCycleHooks () {
+        /* Separate user 1 so it doesn't interfere */
+        SecurityContext user = Mockito.mock(SecurityContext)
+        Mockito.when(user.getUserPrincipal()).thenReturn(new User().withName("1"));
+
         String graphQLRequest =
                 '''
                 mutation {
@@ -369,12 +376,36 @@ class GraphQLEndointTest {
                 }
                 '''
 
-        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        def response = endpoint.post(user, graphQLRequestToJSON(graphQLRequest))
         assert200EqualBody(response, expected)
 
         def expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
 
-        Assert.assertEquals(user1.getUserPrincipal().getLog(), expectedLog)
+        Assert.assertEquals(user.getUserPrincipal().getLog(), expectedLog)
+    }
+
+    @Test
+    void testAuditLogging () {
+        Mockito.reset(audit)
+
+        String graphQLRequest =
+                '''
+                mutation {
+                  book(op: UPSERT, data: {title: "my new book!"}) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+                '''
+        endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+
+        Mockito.verify(audit, Mockito.times(1)).log(Mockito.any())
+        Mockito.verify(audit, Mockito.times(1)).commit(Mockito.any())
+        Mockito.verify(audit, Mockito.times(1)).clear()
     }
 
     @Test

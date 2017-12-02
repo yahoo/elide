@@ -5,6 +5,7 @@
  */
 package graphqlEndpointTestModels;
 
+import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -33,6 +34,10 @@ import java.util.Set;
 @ReadPermission(expression = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2)
 @UpdatePermission(expression = UserChecks.IS_USER_1)
 @DeletePermission(expression = UserChecks.IS_USER_1)
+@Audit(action = Audit.Action.CREATE,
+       operation = 10,
+       logStatement = "{0}",
+       logExpressions = {"${book.title}"})
 public class Book {
     long id;
     String title;
