@@ -37,7 +37,7 @@ public class Author {
     Set<Book> books = new HashSet<>();
     DisallowShare noShare;
 
-    static final String PERMISSION = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2;
+    public static final String PERMISSION = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

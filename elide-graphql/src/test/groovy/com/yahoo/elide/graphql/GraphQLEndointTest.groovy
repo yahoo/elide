@@ -17,6 +17,7 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction
 import graphqlEndpointTestModels.Author
 import graphqlEndpointTestModels.Book
+import graphqlEndpointTestModels.DisallowShare
 import graphqlEndpointTestModels.security.UserChecks
 import org.mockito.Mockito
 import org.testng.Assert
@@ -38,26 +39,26 @@ class GraphQLEndointTest {
     AuditLogger audit = Mockito.mock(AuditLogger)
 
     class User implements Principal {
-        StringBuilder log = new StringBuilder();
-        String name;
+        StringBuilder log = new StringBuilder()
+        String name
 
         @Override
         public String getName() {
-            return name;
+            return name
         }
 
         public User withName(String name) {
-            this.name = name;
-            return this;
+            this.name = name
+            return this
         }
 
         public void appendLog(String stmt) {
-            log.append(stmt);
+            log.append(stmt)
         }
 
         public String getLog() {
-            return log.toString();
-            log = new StringBuilder();
+            return log.toString()
+            log = new StringBuilder()
         }
     }
 
@@ -91,6 +92,7 @@ class GraphQLEndointTest {
         Book book1 = new Book()
         Author author1 = new Author()
         Author author2 = new Author()
+        DisallowShare noShare = new DisallowShare();
 
         book1.setId(1L)
         book1.setTitle("My first book")
@@ -103,13 +105,17 @@ class GraphQLEndointTest {
         author2.setId(2)
         author2.setName("The Silent Author")
 
+        noShare.setId(1L)
+
         tx.createObject(book1, null)
         tx.createObject(author1, null)
         tx.createObject(author2, null)
+        tx.createObject(noShare, null)
 
         tx.save(book1, null)
         tx.save(author1, null)
         tx.save(author2, null)
+        tx.save(noShare, null)
 
         tx.commit(null)
 
@@ -170,7 +176,7 @@ class GraphQLEndointTest {
     }
 
     @Test
-    void testValidSecretField() {
+    void testCanReadRestrictedFieldWithAppropriateAccess() {
         String graphQLRequest =
                 '''
                 {
@@ -205,7 +211,7 @@ class GraphQLEndointTest {
     }
 
     @Test
-    void testInvalidSecretField() {
+    void testCannotReadRestrictedField() {
         String graphQLRequest =
                 '''
                 {
@@ -319,22 +325,98 @@ class GraphQLEndointTest {
         assert200EqualBody(response, expected)
     }
 
-    @Test(enabled = false)
+    @Test
     void testNonShareable() {
         String graphQLRequest =
                 '''
                 mutation {
-                  book(op: UPSERT, data: {id: "123", title: "my new book!", noShare:{id:"2"}}) {
+                  book{
                     edges {
                       node {
                         id
-                        title
+                        authors(op: UPSERT, data: {id: "123", name: "my new author", noShare:{id:"1"}}) {
+                          edges {
+                            node {
+                              id
+                              name
+                              noShare {
+                                edges {
+                                  node {
+                                    id
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
                       }
                     }
                   }
                 }
                 '''
         def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+
+        assertHasErrors(response)
+
+        graphQLRequest =
+                '''
+                {
+                  book{
+                    edges {
+                      node {
+                        id
+                        authors {
+                          edges {
+                            node {
+                              id
+                              name
+                              noShare {
+                                edges {
+                                  node {
+                                    id
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                '''
+        def expected =
+                '''
+                {
+                  "errors": [],
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "1",
+                            "authors": {
+                              "edges": [
+                                {
+                                  "node": {
+                                    "id": "1",
+                                    "name": "Ricky Carmichael",
+                                    "noShare": {
+                                      "edges": []
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+
+        response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
         assert200EqualBody(response, expected)
     }
 
