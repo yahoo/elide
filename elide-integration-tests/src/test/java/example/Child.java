@@ -13,8 +13,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.FilterPredicate.PathElement;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
@@ -34,6 +34,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ import java.util.Set;
  */
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
-@SharePermission(expression = "allow all")
+@SharePermission
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
 @Include(rootLevel = true, type = "child")
 @Audit(action = Audit.Action.DELETE,
@@ -162,7 +163,8 @@ public class Child {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new FilterPredicate(new PathElement(Child.class, Long.class, "id"), Operator.NOTNULL);
+            return new FilterPredicate(new Path.PathElement(Child.class, Long.class, "id"), Operator.NOTNULL,
+                    Collections.emptyList());
         }
     }
 

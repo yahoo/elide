@@ -19,6 +19,7 @@ public class OrExpression implements Expression {
     private final Expression right;
 
     public static final OrExpression SUCCESSFUL_EXPRESSION = new OrExpression(Results.SUCCESS, null);
+    public static final OrExpression FAILURE_EXPRESSION = new OrExpression(Results.FAILURE, null);
 
     /**
      * Constructor.

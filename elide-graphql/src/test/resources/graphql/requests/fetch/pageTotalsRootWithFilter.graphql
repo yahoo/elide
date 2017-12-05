@@ -1,0 +1,13 @@
+{
+  book(filter: "title==\"Libro*\"") {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      totalRecords
+    }
+  }
+}

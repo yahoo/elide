@@ -10,6 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
@@ -60,7 +61,10 @@ public class RecordState extends BaseState {
                     new CollectionTerminalState(entityClass, Optional.of(resource), Optional.of(subCollection));
             Set<PersistentResource> collection = null;
             if (type.isToOne()) {
-                collection = resource.getRelationCheckedFiltered(subCollection);
+                Optional<FilterExpression> filterExpression =
+                        state.getRequestScope().getExpressionForRelation(resource, subCollection);
+                collection = resource.getRelationCheckedFiltered(subCollection,
+                        filterExpression, Optional.empty(), Optional.empty());
             }
             if (collection instanceof SingleElementSet) {
                 PersistentResource record = ((SingleElementSet<PersistentResource>) collection).getValue();
@@ -112,7 +116,9 @@ public class RecordState extends BaseState {
 
         String relationName = ctx.relationship().term().getText();
         try {
-            childRecord.getRelationCheckedFiltered(relationName);
+            Optional<FilterExpression> filterExpression =
+                        state.getRequestScope().getExpressionForRelation(resource, subCollection);
+            childRecord.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
         } catch (InvalidAttributeException e) {
             throw new InvalidCollectionException(relationName);
         }

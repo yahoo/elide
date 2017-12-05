@@ -8,11 +8,13 @@ package com.yahoo.elide.core.exceptions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -23,41 +25,26 @@ import java.util.function.Supplier;
 public abstract class HttpStatusException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    protected final int status;
-    private final Supplier<String> verboseMessageSupplier;
 
-    public HttpStatusException(int status) {
-        this(status, null);
-    }
+    protected final int status;
+    private final Optional<Supplier<String>> verboseMessageSupplier;
 
     public HttpStatusException(int status, String message) {
         this(status, message, (Throwable) null, null);
     }
 
-    @Deprecated
-    public HttpStatusException(int status, String message, String verboseMessage) {
-        this(status, message, verboseMessage, null);
-    }
-
-    @Deprecated
-    public HttpStatusException(int status, String message, String verboseMessage, Throwable cause) {
-        this(status, message, cause, () -> verboseMessage);
-    }
-
     public HttpStatusException(int status, String message, Throwable cause, Supplier<String> verboseMessageSupplier) {
         super(message, cause, true, log.isTraceEnabled());
         this.status = status;
-        this.verboseMessageSupplier = verboseMessageSupplier;
+        this.verboseMessageSupplier = Optional.ofNullable(verboseMessageSupplier);
     }
 
     protected static String formatExceptionCause(Throwable e) {
         // if the throwable has a cause use that, otherwise the throwable is the cause
-        Throwable error = e.getCause() == null
-                ? e
-                : e.getCause();
-        return error == null
-                ? null : error.getMessage() == null ? error.toString()
-                : error.getMessage();
+        Throwable error = e.getCause() == null ? e : e.getCause();
+        return error != null
+                ? StringUtils.defaultIfBlank(error.getMessage(), error.toString())
+                : null;
     }
 
     public Pair<Integer, JsonNode> getErrorResponse() {
@@ -80,10 +67,8 @@ public abstract class HttpStatusException extends RuntimeException {
     }
 
     public String getVerboseMessage() {
-        String verboseMessage = (verboseMessageSupplier == null) ? null : verboseMessageSupplier.get();
-        return verboseMessage != null
-                ? verboseMessage
-                : toString();
+        return verboseMessageSupplier.map(Supplier::get)
+                .orElse(toString());
     }
 
     public int getStatus() {

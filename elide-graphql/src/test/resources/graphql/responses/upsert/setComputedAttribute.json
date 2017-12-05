@@ -1,0 +1,11 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "specialOrEcho": "MyPrefix"
+        }
+      }
+    ]
+  }
+}

@@ -29,10 +29,24 @@ public enum Operator {
         }
     },
 
+    IN_INSENSITIVE("ini", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return Operator.in(field, values, requestScope, FOLD_CASE);
+        }
+    },
+
     NOT("not", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.notIn(field, values, requestScope);
+            return (T entity) -> !Operator.in(field, values, requestScope).test(entity);
+        }
+    },
+
+    NOT_INSENSITIVE("noti", true) {
+        @Override
+        public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
+            return (T entity) -> !Operator.in(field, values, requestScope, FOLD_CASE).test(entity);
         }
     },
 
@@ -46,35 +60,35 @@ public enum Operator {
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.prefix(field, values, requestScope);
+            return Operator.prefix(field, values, requestScope, Function.identity());
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.postfix(field, values, requestScope);
+            return Operator.postfix(field, values, requestScope, Function.identity());
         }
     },
 
     POSTFIX_CASE_INSENSITIVE("postfixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.postfix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+            return Operator.postfix(field, values, requestScope, FOLD_CASE);
         }
     },
 
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.infix(field, values, requestScope);
+            return Operator.infix(field, values, requestScope, Function.identity());
         }
     },
 
     INFIX_CASE_INSENSITIVE("infixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.infix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+            return Operator.infix(field, values, requestScope, FOLD_CASE);
         }
     },
 
@@ -88,7 +102,7 @@ public enum Operator {
     NOTNULL("notnull", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.isNotNull(field, requestScope);
+            return (val) -> !Operator.isNull(field, requestScope).test(val);
         }
     },
 
@@ -133,8 +147,10 @@ public enum Operator {
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
             return Operator.isFalse();
         }
-    };
+    },
+    ;
 
+    public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
     @Getter private final boolean parameterized;
 
@@ -159,6 +175,9 @@ public enum Operator {
     //
     // Predicate generation
     //
+
+    //
+    // In with strict equality
     private static <T> Predicate<T> in(String field, List<Object> values, RequestScope requestScope) {
         return (T entity) -> {
             Object val = getFieldValue(entity, field, requestScope);
@@ -169,20 +188,25 @@ public enum Operator {
         };
     }
 
-    private static <T> Predicate<T> notIn(String field, List<Object> values, RequestScope requestScope) {
+    //
+    // String-like In with optional transformation
+    private static <T> Predicate<T> in(String field, List<Object> values,
+                                       RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
-            Object val = getFieldValue(entity, field, requestScope);
+            Class type = requestScope.getDictionary().getType(entity, field);
+            if (!type.isAssignableFrom(String.class)) {
+                throw new IllegalStateException("Cannot case insensitive compare non-string values");
+            }
 
-            return val == null || values.stream()
-                    .map(v -> CoerceUtil.coerce(v, val.getClass()))
-                    .noneMatch(val::equals);
+            String val = transform.apply((String) getFieldValue(entity, field, requestScope));
+            return val != null && values.stream()
+                    .map(v -> transform.apply(CoerceUtil.coerce(v, String.class)))
+                    .anyMatch(val::equals);
         };
     }
 
-    private static <T> Predicate<T> prefix(String field, List<Object> values, RequestScope requestScope) {
-        return prefix(field, values, requestScope, Function.identity());
-    }
-
+    //
+    // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(String field, List<Object> values,
                                            RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -200,10 +224,8 @@ public enum Operator {
         };
     }
 
-    private static <T> Predicate<T> postfix(String field, List<Object> values, RequestScope requestScope) {
-        return postfix(field, values, requestScope, Function.identity());
-    }
-
+    //
+    // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(String field, List<Object> values,
                                             RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -221,10 +243,8 @@ public enum Operator {
         };
     }
 
-    private static <T> Predicate<T> infix(String field, List<Object> values, RequestScope requestScope) {
-        return infix(field, values, requestScope, Function.identity());
-    }
-
+    //
+    // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(String field, List<Object> values,
                                           RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
@@ -242,79 +262,34 @@ public enum Operator {
         };
     }
 
+    //
+    // Null checking
     private static <T> Predicate<T> isNull(String field, RequestScope requestScope) {
-        return (T entity) -> {
-            Object val = getFieldValue(entity, field, requestScope);
-            return val == null;
-        };
-    }
-
-    private static <T> Predicate<T> isNotNull(String field, RequestScope requestScope) {
-        return (T entity) -> {
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null;
-        };
+        return (T entity) -> getFieldValue(entity, field, requestScope) == null;
     }
 
     private static <T> Predicate<T> lt(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("LT can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) < 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult < 0);
     }
 
     private static <T> Predicate<T> le(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("LE can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) <= 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult <= 0);
     }
 
     private static <T> Predicate<T> gt(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("GT can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) > 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult > 0);
     }
 
     private static <T> Predicate<T> ge(String field, List<Object> values, RequestScope requestScope) {
-        return (T entity) -> {
-            if (values.size() != 1) {
-                throw new InvalidPredicateException("GE can only take one argument");
-            }
-            Object val = getFieldValue(entity, field, requestScope);
-
-            return val != null
-                    && getComparisonResult(val, values.get(0)) >= 0;
-        };
+        return getComparator(field, values, requestScope, compareResult -> compareResult >= 0);
     }
 
     private static <T> Predicate<T> isTrue() {
-        return (T entity) -> {
-            return true;
-        };
+        return (T entity) -> true;
     }
 
     private static <T> Predicate<T> isFalse() {
-        return (T entity) -> {
-            return false;
-        };
+        return (T entity) -> false;
     }
 
     /**
@@ -326,7 +301,7 @@ public enum Operator {
      * @param requestScope Request scope
      * @return the value of the field
      */
-    public static <T> Object getFieldValue(T entity, String fieldPath, RequestScope requestScope) {
+    private static <T> Object getFieldValue(T entity, String fieldPath, RequestScope requestScope) {
         Object val = entity;
         for (String field : fieldPath.split("\\.")) {
             if ("this".equals(field)) {
@@ -337,11 +312,25 @@ public enum Operator {
         return val;
     }
 
-    private static int getComparisonResult(Object val, Object rawFilterVal) {
-        Object filterVal = CoerceUtil.coerce(rawFilterVal, val.getClass());
-        Comparable filterComp = CoerceUtil.coerce(filterVal, Comparable.class);
-        Comparable valComp = CoerceUtil.coerce(val, Comparable.class);
+    private static <T> Predicate<T> getComparator(String field, List<Object> values,
+                                                  RequestScope requestScope, Predicate<Integer> condition) {
+        return (T entity) -> {
+            if (values.size() == 0) {
+                throw new InvalidPredicateException("No value to compare");
+            }
+            Object fieldVal = getFieldValue(entity, field, requestScope);
+            return fieldVal != null
+                    && values.stream()
+                    .anyMatch(testVal -> condition.test(compare(fieldVal, testVal)));
+        };
 
-        return valComp.compareTo(filterComp);
+    }
+
+    private static int compare(Object fieldValue, Object rawTestValue) {
+        Object testValue = CoerceUtil.coerce(rawTestValue, fieldValue.getClass());
+        Comparable testComp = CoerceUtil.coerce(testValue, Comparable.class);
+        Comparable fieldComp = CoerceUtil.coerce(fieldValue, Comparable.class);
+
+        return fieldComp.compareTo(testComp);
     }
 }

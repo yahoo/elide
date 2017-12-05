@@ -1,0 +1,51 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "3",
+          "title": "Doctor Zhivago",
+          "publisher": {
+            "edges": [
+              {
+                "node": {
+                  "id": "2"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "publisher": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title": "Libro Dos",
+          "publisher": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

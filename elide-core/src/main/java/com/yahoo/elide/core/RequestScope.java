@@ -20,6 +20,8 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -72,33 +74,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final int updateStatusCode;
     @Getter private final boolean mutatingMultipleEntities;
 
-    private final MultipleFilterDialect filterDialect;
-    @Getter private final Map<String, FilterExpression> expressionsByType;
+    @Getter private final MultipleFilterDialect filterDialect;
+    private final Map<String, FilterExpression> expressionsByType;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
 
     final private transient HashMap<Class, LinkedHashSet<Runnable>> queuedTriggers;
-
-    /**
-     * Create a new RequestScope with specified update status code.
-     *
-     * @param path the URL path
-     * @param jsonApiDocument the document for this request
-     * @param transaction the transaction for this request
-     * @param user the user making this request
-     * @param queryParams the query parameters
-     * @param elideSettings Elide settings object
-     */
-    @Deprecated
-    public RequestScope(String path,
-                        JsonApiDocument jsonApiDocument,
-                        DataStoreTransaction transaction,
-                        User user,
-                        MultivaluedMap<String, String> queryParams,
-                        ElideSettings elideSettings) {
-        this(path, jsonApiDocument, transaction, user, queryParams, elideSettings, false);
-    }
 
     /**
      * Create a new RequestScope with specified update status code.
@@ -319,6 +301,41 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
+     * Get the filter expression for a particular relationship
+     * @param parent The object which has the relationship
+     * @param relationName The relationship name
+     * @return A type specific filter expression for the given relationship
+     */
+    public Optional<FilterExpression> getExpressionForRelation(PersistentResource parent, String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(parent.getObject(), relationName);
+        if (entityClass == null) {
+            throw new InvalidAttributeException(relationName, parent.getType());
+        }
+        if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
+            throw new InvalidOperationException(
+                    "Cannot apply filters to polymorphic relations mapped with MappedInterface");
+        }
+        final String valType = dictionary.getJsonAliasFor(entityClass);
+        return getFilterExpressionByType(valType);
+    }
+
+    /**
+     * Checks to see if any filters are meant to to applied to a polymorphic Any/ManyToAny relationship.
+     * @param entityInterface a @MappedInterface
+     * @return whether or not there are any typed filter expressions meant for this polymorphic interface
+     */
+    private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
+        for (String filterType : expressionsByType.keySet()) {
+            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType);
+            if (entityInterface.isAssignableFrom(polyMorphicClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Extracts any query params that start with 'filter'.
      * @param queryParams request query params
      * @return extracted filter params
@@ -401,17 +418,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         switch (crudAction) {
             case CREATE:
-                queueTrigger.accept(OnCreatePreSecurity.class);
                 queueTrigger.accept(OnCreatePreCommit.class);
                 queueTrigger.accept(OnCreatePostCommit.class);
                 break;
             case UPDATE:
-                queueTrigger.accept(OnUpdatePreSecurity.class);
                 queueTrigger.accept(OnUpdatePreCommit.class);
                 queueTrigger.accept(OnUpdatePostCommit.class);
                 break;
             case DELETE:
-                queueTrigger.accept(OnDeletePreSecurity.class);
                 queueTrigger.accept(OnDeletePreCommit.class);
                 queueTrigger.accept(OnDeletePostCommit.class);
                 break;

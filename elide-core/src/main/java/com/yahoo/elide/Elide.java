@@ -30,6 +30,7 @@ import com.yahoo.elide.parsers.GetVisitor;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -55,10 +56,10 @@ import java.util.function.Supplier;
  */
 @Slf4j
 public class Elide {
-    private final ElideSettings elideSettings;
-    private final AuditLogger auditLogger;
-    private final DataStore dataStore;
-    private final JsonApiMapper mapper;
+    @Getter private final ElideSettings elideSettings;
+    @Getter private final AuditLogger auditLogger;
+    @Getter private final DataStore dataStore;
+    @Getter private final JsonApiMapper mapper;
 
     /**
      * Instantiates a new Elide instance.
@@ -84,7 +85,7 @@ public class Elide {
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings, false);
             BaseVisitor visitor = new GetVisitor(requestScope);
             try {
                 Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -107,7 +108,7 @@ public class Elide {
     public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
             BaseVisitor visitor = new PostVisitor(requestScope);
             try {
                 Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -146,7 +147,7 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
@@ -173,7 +174,7 @@ public class Elide {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             try {
                 Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));

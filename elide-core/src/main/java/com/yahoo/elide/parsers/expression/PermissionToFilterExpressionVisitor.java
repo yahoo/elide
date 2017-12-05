@@ -14,13 +14,15 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
+
+import java.util.Objects;
 
 
 /**
@@ -37,9 +39,13 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     private final Class entityClass;
     private final RequestScope requestScope;
 
+    /**
+     * This is a constant that represents a check that we cannot evaluate at extraction time.
+     * Usually this is an inline or commit-time check.
+     */
     public static final FilterExpression NO_EVALUATION_EXPRESSION = new FilterExpression() {
         @Override
-        public <T> T accept(Visitor<T> visitor) {
+        public <T> T accept(FilterExpressionVisitor<T> visitor) {
             return (T) this;
         }
         @Override
@@ -48,14 +54,31 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         }
     };
 
+    /**
+     * This represents a user check that has evaluated to false.
+     */
     public static final FilterExpression FALSE_USER_CHECK_EXPRESSION = new FilterExpression() {
         @Override
-        public <T> T accept(Visitor<T> visitor) {
+        public <T> T accept(FilterExpressionVisitor<T> visitor) {
             return (T) this;
         }
         @Override
         public String toString() {
             return "FALSE_USER_CHECK_EXPRESSION";
+        }
+    };
+
+    /**
+     * This represents a user check that has evaluated to true.
+     */
+    public static final FilterExpression TRUE_USER_CHECK_EXPRESSION = new FilterExpression() {
+        @Override
+        public <T> T accept(FilterExpressionVisitor<T> visitor) {
+            return (T) this;
+        }
+        @Override
+        public String toString() {
+            return "TRUE_USER_EXPRESSION";
         }
     };
 
@@ -67,28 +90,40 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
+    public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
+        FilterExpression expression = visit(ctx.expression());
+        if (Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        } else if (Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION)) {
+            return TRUE_USER_CHECK_EXPRESSION;
+        } else if (Objects.equals(expression, NO_EVALUATION_EXPRESSION)) {
+            return NO_EVALUATION_EXPRESSION;
+        }
+        return new NotFilterExpression(expression);
+    }
+
+    @Override
     public FilterExpression visitOR(ExpressionParser.ORContext ctx) {
         FilterExpression left = visit(ctx.left);
         FilterExpression right = visit(ctx.right);
 
-        // short circuit if TRUE
-        if (operator(left) == Operator.TRUE) {
+        if (expressionWillNotFilter(left)) {
             return left;
         }
 
-        // short circuit if TRUE
-        if (operator(right) == Operator.TRUE) {
+        if (expressionWillNotFilter(right)) {
             return right;
         }
 
-        if (left == NO_EVALUATION_EXPRESSION || right == NO_EVALUATION_EXPRESSION) {
-            return NO_EVALUATION_EXPRESSION;
+        boolean leftFails = expressionWillFail(left);
+        boolean rightFails = expressionWillFail(right);
+        if (leftFails && rightFails) {
+            return FALSE_USER_CHECK_EXPRESSION;
         }
-
-        if (left == FALSE_USER_CHECK_EXPRESSION || operator(left) == Operator.FALSE) {
+        if (leftFails) {
             return right;
         }
-        if (right == FALSE_USER_CHECK_EXPRESSION || operator(right) == Operator.FALSE) {
+        if (rightFails) {
             return left;
         }
 
@@ -96,68 +131,63 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
-    public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
-        return new NotFilterExpression(visit(ctx.expression()));
+    public FilterExpression visitAND(ExpressionParser.ANDContext ctx) {
+        FilterExpression left = visit(ctx.left);
+        FilterExpression right = visit(ctx.right);
+
+        // (FALSE_USER_CHECK_EXPRESSION AND FilterExpression) => FALSE_USER_CHECK_EXPRESSION
+        // (FALSE_USER_CHECK_EXPRESSION AND NO_EVALUATION_EXPRESSION) => FALSE_USER_CHECK_EXPRESSION
+        if (expressionWillFail(left) || expressionWillFail(right)) {
+            return FALSE_USER_CHECK_EXPRESSION;
+        }
+
+        if (expressionWillNotFilter(left)) {
+            return right;
+        }
+
+        if (expressionWillNotFilter(right)) {
+            return left;
+        }
+
+        return new AndFilterExpression(left, right);
+    }
+
+    private boolean expressionWillFail(FilterExpression expression) {
+        return Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION) || operator(expression) == Operator.FALSE;
+    }
+
+    private boolean expressionWillNotFilter(FilterExpression expression) {
+        return Objects.equals(expression, NO_EVALUATION_EXPRESSION)
+                || Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)
+                || operator(expression) == Operator.TRUE;
     }
 
     @Override
     public FilterExpression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
         Check check = getCheck(dictionary, ctx.getText());
         if (check instanceof FilterExpressionCheck) {
-            FilterExpression filterExpression =
-                    ((FilterExpressionCheck) check).getFilterExpression(entityClass, requestScope);
+            FilterExpressionCheck filterCheck = (FilterExpressionCheck) check;
+            FilterExpression filterExpression = filterCheck.getFilterExpression(entityClass, requestScope);
+
             if (filterExpression == null) {
-                throw new IllegalStateException("FilterExpression null is not permitted.");
+                throw new IllegalStateException("FilterCheck#getFilterExpression must not return null.");
             }
+
             return filterExpression;
         }
+
         if (UserCheck.class.isAssignableFrom(check.getClass())) {
             boolean userCheckResult = check.ok(requestScope.getUser());
-            return userCheckResult ? NO_EVALUATION_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
+            return userCheckResult ? TRUE_USER_CHECK_EXPRESSION : FALSE_USER_CHECK_EXPRESSION;
         }
+
         return NO_EVALUATION_EXPRESSION;
     }
 
-    @Override
-    public FilterExpression visitAND(ExpressionParser.ANDContext ctx) {
-        FilterExpression left = visit(ctx.left);
-        FilterExpression right = visit(ctx.right);
-
-        //Case (FALSE_USER_CHECK_EXPRESSION AND FE):  should evaluate to FALSE_USER_CHECK_EXPRESSION
-        //Case (FALSE_USER_CHECK_EXPRESSION AND NO_EVALUATION_EXPRESSION): should also evaluate to
-        // FALSE_USER_CHECK_EXPRESSION
-        if (left == FALSE_USER_CHECK_EXPRESSION || right == FALSE_USER_CHECK_EXPRESSION) {
-            return FALSE_USER_CHECK_EXPRESSION;
-        }
-
-        if (operator(left) == Operator.FALSE) {
-            return FALSE_USER_CHECK_EXPRESSION;
-        }
-
-        if (operator(right) == Operator.FALSE) {
-            return FALSE_USER_CHECK_EXPRESSION;
-        }
-
-        //Case (NO_EVALUATION_EXPRESSION AND FilterExpression): should ignore NO_EVALUATION_EXPRESSION and return
-        // FilterExpression.
-        //Case (NO_EVALUATION_EXPRESSION AND NO_EVALUATION_EXPRESSION): returns NO_EVALUATION_EXPRESSION.
-        if (left == NO_EVALUATION_EXPRESSION || operator(left) == Operator.TRUE) {
-            return right;
-        }
-
-        if (right == NO_EVALUATION_EXPRESSION || operator(right) == Operator.TRUE) {
-            return left;
-        }
-
-        //Case (FilterExpression AND FilterExpression): should return the AND expression of them.
-        return new AndFilterExpression(left, right);
-    }
-
     private Operator operator(FilterExpression expression) {
-        if (expression instanceof FilterPredicate) {
-            return ((FilterPredicate) expression).getOperator();
-        }
-        return null;
+        return expression instanceof FilterPredicate
+                ? ((FilterPredicate) expression).getOperator()
+                : null;
     }
 
     @Override

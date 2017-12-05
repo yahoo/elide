@@ -6,7 +6,6 @@
 package com.yahoo.elide.security.permissions;
 
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
@@ -22,7 +21,6 @@ import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
-import com.yahoo.elide.security.permissions.expressions.SharePermissionExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -30,9 +28,11 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
@@ -43,6 +43,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     private final ExpressionResultCache cache;
 
     private static final Expression SUCCESSFUL_EXPRESSION = OrExpression.SUCCESSFUL_EXPRESSION;
+    public static final Expression FAIL_EXPRESSION = OrExpression.FAILURE_EXPRESSION;
 
     /**
      * Constructor.
@@ -90,41 +91,6 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 );
 
         return buildExpressionFn.apply(leafBuilderFn);
-    }
-
-    /**
-     * Build an expression that checks share permissions on a bean.
-     *
-     * @param resource        Resource
-     * @return Commit and operation expressions
-     */
-    public Expression buildSharePermissionExpressions(final PersistentResource resource) {
-
-        PermissionCondition condition = new PermissionCondition(SharePermission.class, resource);
-
-        Class<?> resourceClass = resource.getResourceClass();
-        if (!entityDictionary.entityHasChecksForPermission(resourceClass, SharePermission.class)) {
-            SharePermissionExpression unshared = new SharePermissionExpression(condition);
-            return unshared;
-        }
-
-        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                null,
-                cache
-        );
-
-        final Function<Function<Check, Expression>, Expression> expressionFunction =
-                (checkFn) -> {
-                    ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass,
-                            SharePermission.class);
-                    Expression entityExpression = expressionFromParseTree(classPermissions, checkFn);
-                    return new SharePermissionExpression(condition, entityExpression);
-                };
-
-        return expressionFunction.apply(leafBuilderFn);
     }
 
     /**
@@ -278,51 +244,59 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
     /**
      * Build an expression representing any field on an entity.
      *
-     * @param resourceClass   Resource class
+     * @param forType   Resource class
      * @param requestScope requestScope
      * @return Expressions
      */
-    public FilterExpression buildAnyFieldFilterExpression(Class<?> resourceClass, RequestScope requestScope) {
+    public FilterExpression buildAnyFieldFilterExpression(Class<?> forType, RequestScope requestScope) {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
-        ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
-        FilterExpression entityFilterExpression =
-                filterExpressionFromParseTree(classPermissions, resourceClass, requestScope);
+        ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, annotationClass);
+        FilterExpression entityFilter = filterExpressionFromParseTree(classPermissions, forType, requestScope);
+
         //case where the permissions does not have ANY filterExpressionCheck
-        if (entityFilterExpression == FALSE_USER_CHECK_EXPRESSION
-                || entityFilterExpression == NO_EVALUATION_EXPRESSION) {
-            entityFilterExpression = null;
+        if (entityFilter == FALSE_USER_CHECK_EXPRESSION
+                || entityFilter == NO_EVALUATION_EXPRESSION
+                || entityFilter == TRUE_USER_CHECK_EXPRESSION) {
+            entityFilter = null;
         }
-        Set<String> sparseFields = requestScope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
-        FilterExpression allFieldsFilterExpression = entityFilterExpression;
-        List<String> fields = entityDictionary.getAllFields(resourceClass);
+
+        Set<String> sparseFields = requestScope.getSparseFields().get(entityDictionary.getJsonAliasFor(forType));
+        FilterExpression allFieldsFilterExpression = entityFilter;
+        List<String> fields = entityDictionary.getAllFields(forType).stream()
+                .filter(field -> sparseFields == null || sparseFields.contains(field))
+                .collect(Collectors.toList());
+
         for (String field : fields) {
-            // ignore sparse fields
-            if (sparseFields != null && !sparseFields.contains(field)) {
-                continue;
-            }
-            ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
-            FilterExpression fieldExpression =
-                    filterExpressionFromParseTree(fieldPermissions, resourceClass, requestScope);
-            if (fieldExpression == null || fieldExpression == FALSE_USER_CHECK_EXPRESSION) {
-                if (entityFilterExpression == null) {
-                    //If the class FilterExpression is also null, we should just return null to allow the field with
-                    // null FE be able to see all records.
-                    return null;
-                }
-                continue;
-            }
-            if (fieldExpression == NO_EVALUATION_EXPRESSION) {
-                // For in memory check, we should just return null to allow the field with
-                // memory expression be able to see all records.
+            ParseTree fieldPermissions = entityDictionary.getPermissionsForField(forType, field, annotationClass);
+            FilterExpression fieldExpression = filterExpressionFromParseTree(fieldPermissions, forType, requestScope);
+
+            if (fieldExpression == null && entityFilter == null) {
+                // When the class FilterExpression and the field FilterExpression are null because at least
+                // this field will be visible across all instances
                 return null;
             }
-            if (allFieldsFilterExpression == null) {
-                allFieldsFilterExpression = fieldExpression;
-            } else {
+
+            if (fieldExpression == null || fieldExpression == FALSE_USER_CHECK_EXPRESSION) {
+                // When the expression is null no permissions have been defined for this field
+                // When the expression is FALSE_USER_CHECK_EXPRESSION this field is not accessible to the user
+                // In either case this field is not useful for filtering when loading records
+                continue;
+            }
+
+            if (fieldExpression == NO_EVALUATION_EXPRESSION || fieldExpression == TRUE_USER_CHECK_EXPRESSION) {
+                // When the expression is NO_EVALUATION_EXPRESSION we must evaluate check in memory across all instances
+                // When the expression is TRUE_USER_CHECK_EXPRESSION all records can be loaded
+                return null;
+            }
+
+            if (allFieldsFilterExpression != null) {
                 allFieldsFilterExpression = new OrFilterExpression(allFieldsFilterExpression, fieldExpression);
+            } else {
+                allFieldsFilterExpression = fieldExpression;
             }
         }
+
         return allFieldsFilterExpression;
     }
 
@@ -334,14 +308,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return new PermissionExpressionVisitor(entityDictionary, checkFn).visit(permissions);
     }
 
-    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Class entityClass,
-            RequestScope requestScope) {
+    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Class type, RequestScope scope) {
         if (permissions == null) {
             return null;
         }
-        FilterExpression permissionFilter =
-                        new PermissionToFilterExpressionVisitor(entityDictionary, requestScope, entityClass)
-                                .visit(permissions).accept(new FilterExpressionNormalizationVisitor());
-        return permissionFilter;
+
+        FilterExpression expression = new PermissionToFilterExpressionVisitor(entityDictionary, scope, type)
+                .visit(permissions);
+        return expression.accept(new FilterExpressionNormalizationVisitor());
     }
 }

@@ -8,8 +8,9 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
@@ -28,7 +29,7 @@ import java.util.List;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission(expression = "allow all")
+@SharePermission
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)
@@ -75,14 +76,12 @@ public class AnotherFilterExpressionCheckObj {
     }
 
     public static FilterPredicate createFilterPredicate() {
-        List<FilterPredicate.PathElement> pathList = new ArrayList<>();
-        FilterPredicate.PathElement path1 = new FilterPredicate.PathElement(AnotherFilterExpressionCheckObj.class,
+        Path.PathElement path1 = new Path.PathElement(AnotherFilterExpressionCheckObj.class,
                 long.class, "createDate");
-        pathList.add(path1);
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
         value.add(1999L);
-        return new FilterPredicate(pathList, op, value);
+        return new FilterPredicate(path1, op, value);
     }
 
     public static class CheckActsLikeFilter extends FilterExpressionCheck {

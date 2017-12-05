@@ -51,6 +51,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -58,7 +59,7 @@ import java.util.stream.Stream;
  *
  * @see com.yahoo.elide.annotation.Include#type
  */
-class EntityBinding {
+public class EntityBinding {
 
     private static final List<Method> OBJ_METHODS = Arrays.asList(Object.class.getMethods());
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
@@ -113,8 +114,15 @@ class EntityBinding {
 
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
-        fieldOrMethodList.addAll(Arrays.asList(cls.getFields()));
-        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods()));
+        fieldOrMethodList.addAll(Arrays.asList(cls.getFields())
+                .stream()
+                .filter((field) -> ! Modifier.isStatic(field.getModifiers()))
+                .collect(Collectors.toList()));
+
+        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
+                .stream()
+                .filter((method) -> ! Modifier.isStatic(method.getModifiers()))
+                .collect(Collectors.toList()));
 
         bindEntityFields(cls, type, fieldOrMethodList);
 

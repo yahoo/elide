@@ -1,0 +1,16 @@
+mutation {
+  author(ids: ["1"]) {
+    edges {
+      node {
+        books(op:REMOVE, ids: ["1", "2"]) {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,16 +8,15 @@ package example;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
 @Include(rootLevel = true, type = "smartphone")
-@SharePermission(expression = "allow all")
+@SharePermission
 public class Smartphone extends BaseId implements Device {
     @Getter @Setter private String type;
 

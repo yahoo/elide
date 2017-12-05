@@ -1,0 +1,51 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "title": "Libro Uno"
+                }
+              },
+              {
+                "node": {
+                  "id": "2",
+                  "title": "Libro Dos"
+                }
+              }
+            ],
+            "pageInfo": {
+              "totalRecords": 2
+            }
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "id": "3",
+                  "title": "Doctor Zhivago"
+                }
+              }
+            ],
+            "pageInfo": {
+              "totalRecords": 1
+            }
+          }
+        }
+      }
+    ],
+    "pageInfo": {
+      "totalRecords": 2
+    }
+  }
+}

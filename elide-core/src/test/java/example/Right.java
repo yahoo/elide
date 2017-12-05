@@ -23,7 +23,7 @@ import java.util.Set;
 
 
 @Include(rootLevel = true, type = "right") // optional here because class has this name
-@SharePermission(expression = "allow all")
+@SharePermission
 @UpdatePermission(expression = "deny all")
 @Entity
 @Table(name = "xright")     // right is SQL keyword

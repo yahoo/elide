@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi.document.processors;
 import com.google.common.collect.Lists;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -78,9 +79,10 @@ public class IncludedProcessor implements DocumentProcessor {
         //Pop off a relation of relation path
         String relation = relationPath.remove(0);
 
+        Optional<FilterExpression> filterExpression = rec.getRequestScope().getExpressionForRelation(rec, relation);
         Set<PersistentResource> collection;
         try {
-            collection = rec.getRelationCheckedFiltered(relation);
+            collection = rec.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
         } catch (ForbiddenAccessException e) {
             return;
         }

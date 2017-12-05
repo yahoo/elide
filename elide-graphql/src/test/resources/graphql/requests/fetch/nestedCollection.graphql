@@ -1,0 +1,16 @@
+{
+  author(ids: ["1"]) {
+    edges {
+      node {
+        books(ids: ["1"]) {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+}

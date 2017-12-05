@@ -35,7 +35,7 @@ import java.util.Set;
 @ReadPermission(expression = "parentInitCheckOp OR allow all")
 @UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
 @DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
-@SharePermission(expression = "allow all")
+@SharePermission
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate

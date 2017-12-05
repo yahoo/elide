@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.multiplex.bridgeable;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -15,7 +16,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.expression.Visitor;
+import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.sort.Sorting;
@@ -151,7 +152,7 @@ public class BridgeableRedisStore implements DataStore {
                             scope);
                 } else if ("redisActions".equals(relationName)) {
                     FilterExpression updatedExpression = new FilterPredicate(
-                            new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
+                            new Path.PathElement(entityClass, String.class, "user_id"),
                             Operator.IN,
                             Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                     );
@@ -172,7 +173,7 @@ public class BridgeableRedisStore implements DataStore {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
                 FilterExpression filterExpression = new FilterPredicate(
-                        new FilterPredicate.PathElement(entityClass, String.class, "user_id"),
+                        new Path.PathElement(entityClass, String.class, "user_id"),
                         Operator.IN,
                         Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
                 );
@@ -272,7 +273,7 @@ public class BridgeableRedisStore implements DataStore {
     /**
      * Small example parser.
      */
-    private static class FilterExpressionParser implements Visitor<RedisFilter> {
+    private static class FilterExpressionParser implements FilterExpressionVisitor<RedisFilter> {
         @Override
         public RedisFilter visitPredicate(FilterPredicate predicate) {
             return new RedisFilter(

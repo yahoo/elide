@@ -71,12 +71,12 @@ public class IncludedProcessorTest {
         RequestScope goodUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(1), null,
-                elideSettings);
+                elideSettings, false);
 
         RequestScope badUserScope = new RequestScope(null,
                 new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
                 new User(-1), null,
-                elideSettings);
+                elideSettings, false);
 
         //Create objects
         Parent parent1 = newParent(1);

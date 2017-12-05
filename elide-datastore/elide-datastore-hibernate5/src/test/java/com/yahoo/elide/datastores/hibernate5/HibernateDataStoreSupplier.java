@@ -63,7 +63,7 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
 
-        return new HibernateStore.Builder(metadataImplementor.buildSessionFactory())
+        return new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())
                 .withScrollEnabled(true)
                 .withScrollMode(ScrollMode.FORWARD_ONLY)
                 .build();

@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-contrib-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>3.2.1-SNAPSHOT</version>
+        <version>4.0-beta-1</version>
     </parent>
 
     <licenses>
@@ -42,14 +42,14 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-core</artifactId>
-            <version>3.2.1-SNAPSHOT</version>
+            <version>4.0-beta-1</version>
         </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
     	    <artifactId>elide-integration-tests</artifactId>
-            <version>3.2.1-SNAPSHOT</version>
+            <version>4.0-beta-1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

@@ -7,36 +7,36 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnReadPostCommit;
 import com.yahoo.elide.annotation.OnReadPreCommit;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
  * Model for books.
  */
 @Entity
-@SharePermission(expression = "allow all")
+@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
@@ -50,7 +50,7 @@ public class Book {
     private String language;
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
-    private boolean onCreateBookCalled = false;
+    private Publisher publisher = null;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -100,6 +100,15 @@ public class Book {
 
     public void setAuthors(Collection<Author> authors) {
         this.authors = authors;
+    }
+
+    @OneToOne
+    public Publisher getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(Publisher publisher) {
+        this.publisher = publisher;
     }
 
     @OnUpdatePreSecurity("title")

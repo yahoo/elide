@@ -37,7 +37,7 @@ public class Common {
     }
 
     /**
-     * A generic check which denies any mutation that sets a field value to anything other than null
+     * A generic check which denies any mutation that sets a field value to anything other than null.
      * The check is handy in case where we want to prevent the sharing of the child entity with a different parent
      * but at the same time allows the removal of the child from the relationship with the existing parent
      * @param <T> the type of object that this check guards

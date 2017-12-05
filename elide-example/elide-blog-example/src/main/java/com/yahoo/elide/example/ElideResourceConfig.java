@@ -8,7 +8,7 @@ package com.yahoo.elide.example;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.datastores.hibernate5.HibernateStore;
+import com.yahoo.elide.datastores.hibernate5.AbstractHibernateStore;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -30,7 +30,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
-                bind(new Elide(new ElideSettingsBuilder(new HibernateStore.Builder(sessionFactory).build())
+                bind(new Elide(new ElideSettingsBuilder(new AbstractHibernateStore.Builder(sessionFactory).build())
                         .withAuditLogger(new Slf4jLogger())
                         .build()))
                         .to(Elide.class).named("elide");

@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.security.executors;
 
-import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -94,7 +95,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Check permission on class.
+     * Check permission on class. Checking on SharePermission falls to check ReadPermission.
      *
      * @param annotationClass annotation class
      * @param resource resource
@@ -111,16 +112,18 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                    ChangeSpec changeSpec) {
         Supplier<Expression> expressionSupplier = () -> {
             if (SharePermission.class == annotationClass) {
-                return expressionBuilder.buildSharePermissionExpressions(resource);
+                if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
+                    return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
+                } else {
+                    return expressionBuilder.FAIL_EXPRESSION;
+                }
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
             // for newly created object in PatchRequest limit to User checks
-            if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class)
-                    && requestScope.getNewPersistentResources().contains(resource)) {
+            if (requestScope.getNewPersistentResources().contains(resource)) {
                 return executeUserChecksDeferInline(annotationClass, expression);
             }
             return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
@@ -193,49 +196,33 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
+        //We would want to evaluate the expression in the CreatePermission in case of
+        // update checks on newly created entities
+        Class expressionAnnotation = annotationClass.isAssignableFrom(UpdatePermission.class)
+                && requestScope.getNewResources().contains(resource)
+                ? CreatePermission.class
+                : annotationClass;
+
         Supplier<Expression> expressionSupplier = () -> {
-            return expressionBuilder.buildSpecificFieldExpressions(resource, annotationClass, field, changeSpec);
+                return expressionBuilder.buildSpecificFieldExpressions(resource,
+                        expressionAnnotation,
+                        field,
+                        changeSpec);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
-            if ((((RequestScope) resource.getRequestScope()).isMutatingMultipleEntities()
-                    || annotationClass == UpdatePermission.class)
-                    && requestScope.getNewPersistentResources().contains(resource)) {
-                return executeUserChecksDeferInline(annotationClass, expression);
+            if (requestScope.getNewPersistentResources().contains(resource)) {
+                return executeUserChecksDeferInline(expressionAnnotation, expression);
             }
-            return executeExpressions(expression, annotationClass, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
+            return executeExpressions(expression, expressionAnnotation, Expression.EvaluationMode.INLINE_CHECKS_ONLY);
         };
 
         return checkPermissions(
                 resource.getResourceClass(),
-                annotationClass,
+                expressionAnnotation,
                 Optional.of(field),
                 expressionSupplier,
                 expressionExecutor);
-    }
-
-    /**
-     * Check strictly user permissions on a specific field and entity.
-     *
-     * @param <A> type parameter
-     * @param resource Resource
-     * @param annotationClass Annotation class
-     * @param field Field
-     */
-    @Deprecated
-    @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(PersistentResource<?> resource,
-                                                                        Class<A> annotationClass,
-                                                                        String field) {
-        Supplier<Expression> expressionSupplier = () -> {
-            return expressionBuilder.buildUserCheckFieldExpressions(resource, annotationClass, field);
-        };
-
-        return checkOnlyUserPermissions(
-                resource.getResourceClass(),
-                annotationClass,
-                Optional.of(field),
-                expressionSupplier);
     }
 
     /**
@@ -305,10 +292,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         }
 
-        if (expressionExecutor.isPresent()) {
-            return expressionExecutor.get().apply(expression);
-        }
-        return expressionResult;
+        return expressionExecutor
+                .map(executor -> executor.apply(expression))
+                .orElse(expressionResult);
     }
 
     /**
@@ -393,15 +379,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             }
         });
         commitCheckQueue.clear();
-    }
-
-    @Override
-    @Deprecated
-    public boolean shouldShortCircuitPermissionChecks(Class<? extends Annotation> annotationClass,
-                                                      Class resourceClass, String field) {
-        ExpressionResult result = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field));
-
-        return (result == PASS);
     }
 
     /**

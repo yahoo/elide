@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>3.2.1-SNAPSHOT</version>
+    <version>4.0-beta-1</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -17,6 +17,7 @@
     <modules>
         <module>elide-annotations</module>
         <module>elide-core</module>
+        <module>elide-graphql</module>
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
         <module>elide-example</module>
@@ -71,6 +72,7 @@
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
         <version.logback>1.1.7</version.logback>
@@ -91,7 +93,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>3.2.1-SNAPSHOT</version>
+                <version>4.0-beta-1</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -392,6 +394,26 @@
                     <mergeAfterCreate>true</mergeAfterCreate>
                     <skipScopes>test</skipScopes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[${min.jdk.version},${max.jdk.version}]</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <extensions>

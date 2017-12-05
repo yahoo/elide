@@ -15,6 +15,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Optional;
 
 /**
  * Tests parsing the page params for json-api pagination.
@@ -75,6 +76,53 @@ public class PaginationLogicTest {
         Pagination pageData = Pagination.parseQueryParams(queryParams, elideSettings);
         Assert.assertEquals(pageData.getOffset(), Pagination.DEFAULT_OFFSET);
         Assert.assertEquals(pageData.getLimit(), Pagination.DEFAULT_PAGE_LIMIT);
+    }
+
+    @Test
+    public void checkValidOffsetAndFirstRequest() {
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("10"), Optional.of("1"), true, elideSettings).get();
+
+        // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
+        // This is because the particular root entity determines the pagination limits
+        Assert.assertEquals(pageData.getOffset(), 0);
+        Assert.assertEquals(pageData.getLimit(), 500);
+
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getOffset(), 1);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getLimit(), 10);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).isGenerateTotals(), true);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkErroneousPageLimit() {
+        Pagination pageData = Pagination.fromOffsetAndFirst(Optional.of("100000"), Optional.of("1"), false, elideSettings).get();
+
+        // NOTE: This is always set to default until evaluate. Then the appropriate value should be used.
+        // This is because the particular root entity determines the pagination limits
+        Assert.assertEquals(pageData.getOffset(), 0);
+        Assert.assertEquals(pageData.getLimit(), 500);
+
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getOffset(), 1);
+        Assert.assertEquals(pageData.evaluate(PaginationLogicTest.class).getLimit(), 500);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadOffset() {
+        Pagination.fromOffsetAndFirst(Optional.of("-1"), Optional.of("1000"), false, elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadOffsetString() {
+        Pagination.fromOffsetAndFirst(Optional.of("NaN"), Optional.of("1000"), false, elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadLimit() {
+        Pagination.fromOffsetAndFirst(Optional.of("0"), Optional.of("1"), false, elideSettings);
+    }
+
+    @Test(expectedExceptions = InvalidValueException.class)
+    public void checkBadLimitString() {
+        Pagination.fromOffsetAndFirst(Optional.of("1"), Optional.of("NaN"), false, elideSettings);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)

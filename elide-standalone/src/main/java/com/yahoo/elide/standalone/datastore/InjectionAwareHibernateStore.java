@@ -6,7 +6,7 @@
 package com.yahoo.elide.standalone.datastore;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.hibernate5.HibernateStore;
+import com.yahoo.elide.datastores.hibernate5.HibernateSessionFactoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.hibernate.ScrollMode;
@@ -20,7 +20,7 @@ import java.util.Collection;
  * to populate any @Inject fields.
  */
 @Slf4j
-public class InjectionAwareHibernateStore extends HibernateStore {
+public class InjectionAwareHibernateStore extends HibernateSessionFactoryStore {
 
     private final ServiceLocator injector;
 

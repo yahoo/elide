@@ -2,7 +2,7 @@
   "data": [
     {
       "type": "parent",
-      "id": "14",
+      "id": "15",
       "attributes": {
         "firstName": "Parent2"
       },
@@ -11,7 +11,27 @@
           "data": [
             {
               "type": "child",
-              "id": "10"
+              "id": "12"
+            }
+          ]
+        },
+        "spouses": {
+          "data": []
+        }
+      }
+    },
+    {
+      "type": "parent",
+      "id": "14",
+      "attributes": {
+        "firstName": "Parent1"
+      },
+      "relationships": {
+        "children": {
+          "data": [
+            {
+              "type": "child",
+              "id": "12"
             }
           ]
         },
@@ -23,26 +43,6 @@
     {
       "type": "parent",
       "id": "13",
-      "attributes": {
-        "firstName": "Parent1"
-      },
-      "relationships": {
-        "children": {
-          "data": [
-            {
-              "type": "child",
-              "id": "10"
-            }
-          ]
-        },
-        "spouses": {
-          "data": []
-        }
-      }
-    },
-    {
-      "type": "parent",
-      "id": "12",
       "attributes": {
         "firstName": "omg. I have kidz."
       },

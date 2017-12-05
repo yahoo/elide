@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>3.2.1-SNAPSHOT</version>
+        <version>4.0-beta-1</version>
     </parent>
 
     <licenses>
@@ -29,7 +29,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>3.2.1-SNAPSHOT</version>
+            <version>4.0-beta-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-graphql</artifactId>
+            <version>4.0-beta-1</version>
         </dependency>
         <!-- Additional dependencies -->
         <dependency>
@@ -128,7 +133,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <scope>2.7.22</scope>
+            <!--<version>2.7.22</version>-->
         </dependency>
 
         <dependency>

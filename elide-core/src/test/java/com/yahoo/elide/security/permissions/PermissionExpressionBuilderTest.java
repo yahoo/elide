@@ -9,7 +9,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
@@ -18,13 +17,15 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.expressions.Expression;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.persistence.Entity;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.persistence.Entity;
 
 public class PermissionExpressionBuilderTest {
 
@@ -118,59 +119,8 @@ public class PermissionExpressionBuilderTest {
 
      }
 
-    @Test
-    public void testSharePermissionExpressionText() {
-        @Entity
-        @Include
-        @SharePermission(expression = "user has no access")
-        class Model {
-        }
-
-        dictionary.bindEntity(Model.class);
-
-        PersistentResource resource = newResource(new Model(), Model.class);
-
-        Expression expression = builder.buildSharePermissionExpressions(resource);
-
-
-        Assert.assertEquals(expression.toString(),
-                "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION [SHARE "
-                        + "ENTITY((user has no access \u001B[34mWAS UNEVALUATED\u001B[m))]");
-
-        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
-
-        Assert.assertEquals(expression.toString(),
-                "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION [SHARE "
-                        + "ENTITY((user has no access \u001B[31mFAILED\u001B[m))]");
-
-    }
-
-    @Test
-    public void testMissingSharePermissionExpressionText() {
-        @Entity
-        @Include
-        class Model {
-        }
-
-        dictionary.bindEntity(Model.class);
-
-        PersistentResource resource = newResource(new Model(), Model.class);
-
-        Expression expression = builder.buildSharePermissionExpressions(resource);
-
-        Assert.assertEquals(expression.toString(),
-                "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION "
-                        + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
-
-        expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
-
-        Assert.assertEquals(expression.toString(),
-                "SHARE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  FOR EXPRESSION "
-                        + "[SHARE ENTITY(NOT MARKED SHAREABLE)]");
-    }
-
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, elideSettings, false);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }

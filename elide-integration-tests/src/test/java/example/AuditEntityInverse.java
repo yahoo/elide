@@ -26,7 +26,7 @@ import java.util.List;
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
 @DeletePermission(expression = "allow all")
-@SharePermission(expression = "allow all")
+@SharePermission
 public class AuditEntityInverse {
     private Long id;
     private List<AuditEntity> entities;

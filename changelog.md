@@ -1,4 +1,23 @@
 # Change Log
+## 4.0.0-beta
+**Features**
+ * Elide now supports GraphQL (as well as JSON-API).  This feature is in beta.  Read the [docs](elide.io) for specifics.  Until the artifact moves to stable,
+   we may change the semantics of the GraphQL API through a minor Elide version release.
+ * The semantics of `CreationPermission` have changed and can now apply towards fields as well as entities.  `UpdatePermission` is never
+   checked for newly created objects.
+ * The semantics of `SharePermission` have changed.  `SharePermission` can no longer have an expression defined.  It either denies permission
+   or exactly matches `ReadPermission`.
+ * RSQL queries that compare strings are now case-insensitive. There is not currently a way to make 
+   case sensitive RSQL queries, however the RSQL spec does not provide this either. 
+   Fixes #387
+
+**Fixes**
+ * Updated PreSecurity lifecycle hooks to run prior to inline checks like they should.
+
+**Misc**
+ * All deprecated functions from Elide 3.0 have been removed.
+ * `FilterPredicates` have been restructure to share a common `Path` with other Elide code.
+
 ## 3.2.0
 **Features**
  * Updated interface to beta standalone application. Plans to finalize this before Elide 4.0 release.

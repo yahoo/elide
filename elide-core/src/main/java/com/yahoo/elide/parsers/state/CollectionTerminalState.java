@@ -17,7 +17,9 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -31,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -118,20 +121,29 @@ public class CollectionTerminalState extends BaseState {
         final Set<PersistentResource> collection;
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
-        final boolean hasSortingOrPagination = requestScope.getPagination() != null
-                || requestScope.getSorting() != null;
+
+        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
+        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
+
         if (parent.isPresent()) {
-            if (hasSortingOrPagination) {
-                collection = parent.get().getRelationCheckedFilteredWithSortingAndPagination(relationName.get());
-            } else {
-                collection = parent.get().getRelationCheckedFiltered(relationName.get());
-            }
+            Optional<FilterExpression> filterExpression =
+                    requestScope.getExpressionForRelation(parent.get(), relationName.get());
+
+            collection = parent.get().getRelationCheckedFiltered(
+                    relationName.get(),
+                    filterExpression,
+                    sorting,
+                    pagination);
         } else {
-            if (hasSortingOrPagination) {
-                collection = PersistentResource.loadRecordsWithSortingAndPagination(entityClass, requestScope);
-            } else {
-                collection = PersistentResource.loadRecords(entityClass, requestScope);
-            }
+            Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
+
+            collection = PersistentResource.loadRecords(
+                entityClass,
+                new ArrayList<>(), //Empty list of IDs
+                filterExpression,
+                sorting,
+                pagination,
+                requestScope);
         }
 
         return collection;
@@ -172,9 +184,7 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PersistentResource pResource = PersistentResource.createObject(
-                parent.orElse(null), newObjectClass, requestScope, id);
-
-        assignId(pResource, id);
+                parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
 
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {
@@ -198,27 +208,5 @@ public class CollectionTerminalState extends BaseState {
         }
 
         return pResource;
-    }
-
-    /**
-     * Assign provided id if id field is not generated.
-     *
-     * @param persistentResource resource
-     * @param id resource id
-     */
-    private void assignId(PersistentResource persistentResource, String id) {
-
-        //If id field is not a `@GeneratedValue` persist the provided id
-        if (!persistentResource.isIdGenerated()) {
-            if (id != null && !id.isEmpty()) {
-                persistentResource.setId(id);
-            } else {
-                //If expecting id to persist and id is not present, throw exception
-                throw new InvalidValueException(
-                        persistentResource.toResource(),
-                        "No id provided, cannot persist " + persistentResource.getObject()
-                );
-            }
-        }
     }
 }

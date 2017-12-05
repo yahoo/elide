@@ -47,7 +47,7 @@ public class RSQLFilterDialectTest {
         Assert.assertEquals(expressionMap.size(), 1);
         Assert.assertEquals(expressionMap.get("book").toString(),
                 "((book.title INFIX_CASE_INSENSITIVE [foo] AND NOT (book.title PREFIX_CASE_INSENSITIVE [bar])) "
-                        + "AND (book.genre IN [sci-fi, action] OR book.publishDate GT [123]))"
+                        + "AND (book.genre IN_INSENSITIVE [sci-fi, action] OR book.publishDate GT [123]))"
         );
     }
 
@@ -63,7 +63,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "(book.title INFIX_CASE_INSENSITIVE [foo] AND book.authors.name IN [Hemingway])"
+                "(book.title INFIX_CASE_INSENSITIVE [foo] AND book.authors.name IN_INSENSITIVE [Hemingway])"
         );
     }
 
@@ -79,7 +79,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "book.title IN [Hemingway]"
+                "book.title IN_INSENSITIVE [Hemingway]"
         );
     }
 
@@ -95,7 +95,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "NOT (book.title IN [Hemingway])"
+                "NOT (book.title IN_INSENSITIVE [Hemingway])"
         );
     }
 
@@ -111,7 +111,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "book.title IN [Hemingway]"
+                "book.title IN_INSENSITIVE [Hemingway]"
         );
     }
 
@@ -127,7 +127,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "book.title NOT [Hemingway]"
+                "NOT (book.title IN_INSENSITIVE [Hemingway])"
         );
     }
 
@@ -179,7 +179,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))"
+                "(book.title IN_INSENSITIVE [foo] AND (book.title IN_INSENSITIVE [bar] AND book.title IN_INSENSITIVE [baz]))"
         );
     }
 

@@ -6,11 +6,12 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.ExpressionCloneVisitor;
+import com.yahoo.elide.core.filter.expression.ExpressionScopingVisitor;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
@@ -72,12 +73,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
 
         //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
         FilterPredicate idExpression = new FilterPredicate(
-                new FilterPredicate.PathElement(
-                        parentType,
-                        idType,
-                        idField),
-                Operator.IN,
-                Collections.singletonList(idVal));
+                new PathElement(parentType, idType, idField), Operator.IN, Collections.singletonList(idVal));
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         String joinClause = "";
@@ -90,26 +86,22 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String relationshipAlias = parentAlias + UNDERSCORE + relationshipName;
 
         if (filterExpression.isPresent()) {
-
-            //Copy the filter expression because we are going to muck with it (and it may be used elsewhere)
-            ExpressionCloneVisitor cloner = new ExpressionCloneVisitor();
-            FilterExpression copy = filterExpression.get().accept(cloner);
+            // Copy and scope the filter expression for the join clause
+            ExpressionScopingVisitor visitor = new ExpressionScopingVisitor(
+                    new PathElement(parentType, relationship.getChildType(), relationship.getRelationshipName()));
+            FilterExpression scoped = filterExpression
+                    .map(fe -> fe.accept(visitor))
+                    .orElseThrow(() -> new IllegalStateException("Filter expression cloned to null"));
 
             //For each filter predicate, prepend the predicate with the parent:
             //books.title = 'Foobar' becomes author.books.title = 'Foobar'
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor(new ArrayList<>());
-            predicates = copy.accept(extractor);
-            predicates.stream().forEach(predicate -> {
-                predicate.getPath().add(0, new FilterPredicate.PathElement(
-                        parentType,
-                        relationship.getChildType(),
-                        relationship.getRelationshipName()));
-            });
 
+            predicates = scoped.accept(extractor);
             predicates.add(idExpression);
 
             //Join together the provided filter expression with the expression which selects the collection owner.
-            FilterExpression joinedExpression = new AndFilterExpression(copy, idExpression);
+            FilterExpression joinedExpression = new AndFilterExpression(scoped, idExpression);
 
             //Build the JOIN clause from the filter predicate
             joinClause = getJoinClauseFromFilters(joinedExpression);

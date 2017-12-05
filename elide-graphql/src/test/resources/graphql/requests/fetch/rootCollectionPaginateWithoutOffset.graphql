@@ -1,0 +1,10 @@
+{
+  book(first: "1") {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}
