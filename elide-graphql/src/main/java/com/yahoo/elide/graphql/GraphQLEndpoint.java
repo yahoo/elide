@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -18,6 +19,7 @@ import com.yahoo.elide.security.User;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -83,6 +86,7 @@ public class GraphQLEndpoint {
             JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
             GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             if (!jsonDocument.has(QUERY)) {
                 return Response.status(400).entity("A `query` key is required.").build();
@@ -103,28 +107,70 @@ public class GraphQLEndpoint {
                 result = api.execute(query, operationName, requestScope);
             }
 
-            if (query.startsWith(MUTATION)) {
+            tx.preCommit();
+            requestScope.runQueuedPreSecurityTriggers();
+            requestScope.getPermissionExecutor().executeCommitChecks();
+            if (query.trim().startsWith(MUTATION)) {
+                if (!result.getErrors().isEmpty()) {
+                    HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
+                        {
+                            put("errors", result.getErrors());
+                            put("data", new HashMap<>());
+                        }
+                    };
+                    // Do not commit.
+                    return Response.ok(mapper.writeValueAsString(abortedResponseObject)).build();
+                }
                 requestScope.saveOrCreateObjects();
             }
 
-            // TODO: Audit? Runtime hooks? Commit-time permission checks?
-            // TODO: Still some work to be done here..
-
+            requestScope.runQueuedPreCommitTriggers();
+            elide.getAuditLogger().commit(requestScope);
             tx.commit(requestScope);
+            requestScope.runQueuedPostCommitTriggers();
 
-            return Response.ok(mapper.writeValueAsString(result.getData())).build();
+            if (log.isTraceEnabled()) {
+                requestScope.getPermissionExecutor().printCheckStats();
+            }
+
+            return Response.ok(mapper.writeValueAsString(result)).build();
         } catch (JsonProcessingException e) {
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e), isVerbose);
+        } catch (ForbiddenAccessException e) {
+            return buildErrorResponse(new HttpStatusException(200, "") {
+                @Override
+                public int getStatus() {
+                    return 200;
+                }
+
+                @Override
+                public Pair<Integer, JsonNode> getErrorResponse() {
+                    return e.getErrorResponse();
+                }
+
+                @Override
+                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+                    return e.getVerboseErrorResponse();
+                }
+
+                @Override
+                public String getVerboseMessage() {
+                    return e.getVerboseMessage();
+                }
+            }, isVerbose);
         } catch (Exception | Error e) {
             log.debug("Unhandled error or exception.", e);
             throw e;
+        } finally {
+            elide.getAuditLogger().clear();
         }
     }
 
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         return Response.status(error.getStatus())
-                .entity(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse()).build();
+                .entity(isVerbose
+                        ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
     }
 }

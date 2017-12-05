@@ -184,7 +184,7 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
                 false);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
-        resource.setValue("title", "new title");
+        resource.setValueChecked("title", "new title");
         scope.runQueuedPreSecurityTriggers();
         verify(book, times(0)).onCreateBook(scope);
         verify(book, times(0)).onDeleteBook(scope);
