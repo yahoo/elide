@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.0-alpha-3</version>
+    <version>4.0-beta-1</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -72,6 +72,7 @@
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
         <version.logback>1.1.7</version.logback>
@@ -92,7 +93,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>4.0-alpha-3</version>
+                <version>4.0-beta-1</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
