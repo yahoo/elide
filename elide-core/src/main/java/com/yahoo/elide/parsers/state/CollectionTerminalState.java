@@ -186,8 +186,6 @@ public class CollectionTerminalState extends BaseState {
         PersistentResource pResource = PersistentResource.createObject(
                 parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
 
-        assignId(pResource, id);
-
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
@@ -210,27 +208,5 @@ public class CollectionTerminalState extends BaseState {
         }
 
         return pResource;
-    }
-
-    /**
-     * Assign provided id if id field is not generated.
-     *
-     * @param persistentResource resource
-     * @param id resource id
-     */
-    private void assignId(PersistentResource persistentResource, String id) {
-
-        //If id field is not a `@GeneratedValue` persist the provided id
-        if (!persistentResource.isIdGenerated()) {
-            if (id != null && !id.isEmpty()) {
-                persistentResource.setId(id);
-            } else {
-                //If expecting id to persist and id is not present, throw exception
-                throw new InvalidValueException(
-                        persistentResource.toResource(),
-                        "No id provided, cannot persist " + persistentResource.getObject()
-                );
-            }
-        }
     }
 }

@@ -340,7 +340,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
-        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("uuid")); // should throw here
+        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1")); // should throw here
     }
 
     @Test
@@ -1568,7 +1568,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
-        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("uuid"));
+        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 

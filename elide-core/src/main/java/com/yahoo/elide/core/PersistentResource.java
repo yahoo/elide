@@ -27,6 +27,7 @@ import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -130,6 +131,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         String id = uuid.orElse(null);
 
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
+
+        //The ID must be assigned before we add it to the new resources set.  Persistent resource
+        //hashcode and equals are only based on the ID/UUID & type.
+        assignId(newResource, id);
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
@@ -1896,5 +1901,27 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
         log.debug("Caught an unexpected exception (rethrowing as internal server error)", e);
         return new ServerErrorException("Unexpected exception caught", Response.Status.INTERNAL_SERVER_ERROR, e);
+    }
+
+    /**
+     * Assign provided id if id field is not generated.
+     *
+     * @param persistentResource resource
+     * @param id resource id
+     */
+    private static void assignId(PersistentResource persistentResource, String id) {
+
+        //If id field is not a `@GeneratedValue` persist the provided id
+        if (!persistentResource.isIdGenerated()) {
+            if (id != null && !id.isEmpty()) {
+                persistentResource.setId(id);
+            } else {
+                //If expecting id to persist and id is not present, throw exception
+                throw new InvalidValueException(
+                        persistentResource.toResource(),
+                        "No id provided, cannot persist " + persistentResource.getObject()
+                );
+            }
+        }
     }
 }
