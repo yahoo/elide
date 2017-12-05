@@ -17,6 +17,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.graphql.GraphQLEndointTest;
 import com.yahoo.elide.security.RequestScope;
+import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
 
 import javax.persistence.Entity;
@@ -31,8 +32,9 @@ import java.util.Set;
 @Include(rootLevel = true)
 @Entity
 @CreatePermission(expression = UserChecks.IS_USER_1)
-@ReadPermission(expression = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2)
-@UpdatePermission(expression = UserChecks.IS_USER_1)
+@ReadPermission(expression = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2 + " OR NOT "
+        + CommitChecks.IS_NOT_USER_3)
+@UpdatePermission(expression = CommitChecks.IS_NOT_USER_3 + " AND NOT " + UserChecks.IS_USER_2)
 @DeletePermission(expression = UserChecks.IS_USER_1)
 @Audit(action = Audit.Action.CREATE,
        operation = 10,

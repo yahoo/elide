@@ -18,6 +18,7 @@ import com.yahoo.elide.resources.DefaultOpaqueUserFunction
 import graphqlEndpointTestModels.Author
 import graphqlEndpointTestModels.Book
 import graphqlEndpointTestModels.DisallowShare
+import graphqlEndpointTestModels.security.CommitChecks
 import graphqlEndpointTestModels.security.UserChecks
 import org.mockito.Mockito
 import org.testng.Assert
@@ -36,6 +37,7 @@ class GraphQLEndointTest {
     GraphQLEndpoint endpoint
     SecurityContext user1 = Mockito.mock(SecurityContext)
     SecurityContext user2 = Mockito.mock(SecurityContext)
+    SecurityContext user3 = Mockito.mock(SecurityContext)
     AuditLogger audit = Mockito.mock(AuditLogger)
 
     class User implements Principal {
@@ -66,6 +68,7 @@ class GraphQLEndointTest {
     void setup() {
         Mockito.when(user1.getUserPrincipal()).thenReturn(new User().withName("1"));
         Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
+        Mockito.when(user3.getUserPrincipal()).thenReturn(new User().withName("3"));
     }
 
     @BeforeMethod
@@ -74,6 +77,7 @@ class GraphQLEndointTest {
         Map<String, Class> checkMappings = new HashMap<>()
         checkMappings[UserChecks.IS_USER_1] = UserChecks.IsUserId.One.class
         checkMappings[UserChecks.IS_USER_2] = UserChecks.IsUserId.Two.class
+        checkMappings[CommitChecks.IS_NOT_USER_3] = CommitChecks.IsNotUser3.class
         Elide elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
@@ -596,6 +600,26 @@ class GraphQLEndointTest {
               '''
         response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
         assert200EqualBody(response, expected)
+    }
+
+    @Test
+    void testFailedCommitCheck() {
+        // NOTE: User 3 cannot update books.
+        def graphQLRequest =
+                '''
+                mutation {
+                  book(op:UPSERT, data:{id:"1", title:"update title"}) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+                '''
+        def response = endpoint.post(user3, graphQLRequestToJSON(graphQLRequest))
+        assertHasErrors(response)
     }
 
     static String graphQLRequestToJSON(String request) {

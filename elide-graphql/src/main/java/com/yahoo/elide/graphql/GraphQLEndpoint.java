@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -18,6 +19,7 @@ import com.yahoo.elide.security.User;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -136,6 +138,28 @@ public class GraphQLEndpoint {
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             return buildErrorResponse(new TransactionException(e), isVerbose);
+        } catch (ForbiddenAccessException e) {
+            return buildErrorResponse(new HttpStatusException(200, "") {
+                @Override
+                public int getStatus() {
+                    return 200;
+                }
+
+                @Override
+                public Pair<Integer, JsonNode> getErrorResponse() {
+                    return e.getErrorResponse();
+                }
+
+                @Override
+                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+                    return e.getVerboseErrorResponse();
+                }
+
+                @Override
+                public String getVerboseMessage() {
+                    return e.getVerboseMessage();
+                }
+            }, isVerbose);
         } catch (Exception | Error e) {
             log.debug("Unhandled error or exception.", e);
             throw e;
@@ -146,6 +170,7 @@ public class GraphQLEndpoint {
 
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         return Response.status(error.getStatus())
-                .entity(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse()).build();
+                .entity(isVerbose
+                        ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
     }
 }
