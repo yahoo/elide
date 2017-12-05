@@ -1,5 +1,5 @@
 # Change Log
-## 4.0.0-beta
+## 4.0-beta-1
 **Features**
  * Elide now supports GraphQL (as well as JSON-API).  This feature is in beta.  Read the [docs](elide.io) for specifics.  Until the artifact moves to stable,
    we may change the semantics of the GraphQL API through a minor Elide version release.
