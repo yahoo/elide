@@ -132,6 +132,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
 
+        //The ID must be assigned before we add it to the new resources set.  Persistent resource
+        //hashcode and equals are only based on the ID/UUID & type.
         assignId(newResource, id);
 
         // Keep track of new resources for non shareable resources
