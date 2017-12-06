@@ -232,18 +232,23 @@ public class Elide {
             return buildErrorResponse(e, isVerbose);
 
         } catch (JsonPatchExtensionException e) {
+            log.debug("JSON patch extension exception caught", e);
             return buildResponse(e.getResponse());
 
         } catch (HttpStatusException e) {
+            log.debug("Caught HTTP status exception", e);
             return buildErrorResponse(e, isVerbose);
 
         } catch (IOException e) {
+            log.error("IO Exception uncaught by Elide", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
 
         } catch (ParseCancellationException e) {
+            log.error("Parse cancellation exception uncaught by Elide", e);
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
         } catch (Exception e) {
+            log.error("Generic exception uncaught by Elide", e);
             return buildErrorResponse(new InternalServerErrorException(e), isVerbose);
 
         } catch (Error e) {
