@@ -1911,6 +1911,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return (RuntimeException) exception;
         }
         log.debug("Caught an unexpected exception (rethrowing as internal server error)", e);
-        return new ServerErrorException("Unexpected exception caught", Response.Status.INTERNAL_SERVER_ERROR, e);
+        return new InternalServerErrorException("Unexpected exception caught", e);
     }
 }
