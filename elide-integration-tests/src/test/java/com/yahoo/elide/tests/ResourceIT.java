@@ -231,6 +231,17 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
+        String createAnotherAnother =
+                jsonParser.getJson("/ResourceIT/createAnotherFilterExpressionCheckObj2.json");
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(createAnotherAnother)
+                .post("/anotherFilterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
         //The User ID is set to one so the following get request won't return record including
         // filterExpressionCheckObj.id != User'id.
 
@@ -279,6 +290,15 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().response().asString();
 
+        //test authentication pass query a relation of object
+        String getResult6 = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/anotherFilterExpressionCheckObj")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().response().asString();
+
         String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
 
         String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
@@ -291,6 +311,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         assertEquals(getResult2, expected2);
         assertEquals(getResult3, expected3);
         assertEquals(getResult5, expected5);
+        assertEquals(getResult6, expected5);
     }
 
     @Test
