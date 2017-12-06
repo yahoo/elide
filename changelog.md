@@ -1,4 +1,8 @@
 # Change Log
+## 3.2.1
+**Fixes**
+ * Add additional logging around exception handling.
+
 ## 3.2.0
 **Features**
  * Updated interface to beta standalone application. Plans to finalize this before Elide 4.0 release.
