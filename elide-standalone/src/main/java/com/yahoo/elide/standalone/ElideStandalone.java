@@ -78,11 +78,21 @@ public class ElideStandalone {
 
         context.setAttribute(ELIDE_STANDALONE_SETTINGS_ATTR, elideStandaloneSettings);
 
-        ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                elideStandaloneSettings.getJsonApiPathSpec());
-        jerseyServlet.setInitOrder(0);
-        jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.resources");
-        jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        if (elideStandaloneSettings.enableJSONAPI()) {
+            ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
+                    elideStandaloneSettings.getJsonApiPathSpec());
+            jerseyServlet.setInitOrder(0);
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.resources");
+            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
+        if (elideStandaloneSettings.enableGraphQL()) {
+            ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
+                    elideStandaloneSettings.getGraphQLApiPathSepc());
+            jerseyServlet.setInitOrder(0);
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
+            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
 
         try {
             jettyServer.start();
