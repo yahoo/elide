@@ -245,7 +245,7 @@ public class Elide {
             return buildErrorResponse(new TransactionException(e), isVerbose);
 
         } catch (ParseCancellationException e) {
-            log.error("Parse cancellation exception uncaught by Elide", e);
+            log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
         } catch (Exception e) {

@@ -135,8 +135,10 @@ public class GraphQLEndpoint {
 
             return Response.ok(mapper.writeValueAsString(result)).build();
         } catch (JsonProcessingException e) {
+            log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
+            log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ForbiddenAccessException e) {
             return buildErrorResponse(new HttpStatusException(200, "") {
