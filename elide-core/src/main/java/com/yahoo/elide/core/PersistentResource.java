@@ -47,10 +47,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.GeneratedValue;
-import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -1911,6 +1908,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return (RuntimeException) exception;
         }
         log.debug("Caught an unexpected exception (rethrowing as internal server error)", e);
-        return new ServerErrorException("Unexpected exception caught", Response.Status.INTERNAL_SERVER_ERROR, e);
+        return new InternalServerErrorException("Unexpected exception caught", e);
     }
 }

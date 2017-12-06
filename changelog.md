@@ -1,4 +1,9 @@
 # Change Log
+## 3.2.1
+**Fixes**
+ * PersistentResource now throws an exception that Elide can handle internally, rather than delegating
+ error handling to the container.
+
 ## 3.2.0
 **Features**
  * Updated interface to beta standalone application. Plans to finalize this before Elide 4.0 release.
