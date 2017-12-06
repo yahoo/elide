@@ -1,4 +1,9 @@
 # Change Log
+
+## 4.0-beta-2
+**Fixes**
+ * Root collection loads now push down security filter predicates.
+
 ## 4.0-beta-1
 **Features**
  * Elide now supports GraphQL (as well as JSON-API).  This feature is in beta.  Read the [docs](elide.io) for specifics.  Until the artifact moves to stable,
