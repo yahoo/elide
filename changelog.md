@@ -3,6 +3,7 @@
 ## 4.0-beta-4
 **Fixes**
  * Ignore provided-- but null-- operation names and variables in GraphQL requests.
+ * Add additional logging around exception handling.
 
 ## 4.0-beta-3
 **Fixes**
@@ -39,10 +40,6 @@
 **Misc**
  * All deprecated functions from Elide 3.0 have been removed.
  * `FilterPredicates` have been restructure to share a common `Path` with other Elide code.
-
-## 3.2.1
-**Fixes**
- * Add additional logging around exception handling.
 
 ## 3.2.0
 **Features**
