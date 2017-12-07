@@ -141,6 +141,7 @@ public class GraphQLEndpoint {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
         } catch (ForbiddenAccessException e) {
+            log.debug("Forbidden access exception caught", e);
             return buildErrorResponse(new HttpStatusException(200, "") {
                 @Override
                 public int getStatus() {
