@@ -278,6 +278,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         DataStoreTransaction tx = requestScope.getTransaction();
 
+
         if (shouldSkipCollection(loadClass, ReadPermission.class, requestScope)) {
             if (ids.isEmpty()) {
                 return Collections.emptySet();
@@ -286,6 +287,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
+
         if (pagination.isPresent() && !pagination.get().isDefaultInstance()
                 && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
             throw new InvalidPredicateException(String.format("Cannot paginate %s",
@@ -293,6 +295,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
+
         if (!ids.isEmpty()) {
             String typeAlias = dictionary.getJsonAliasFor(loadClass);
             newResources = requestScope.getNewPersistentResources().stream()
@@ -307,6 +310,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     .orElse(idExpression);
         } else {
             filterExpression = filter.orElse(null);
+        }
+
+        Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass, requestScope);
+        if (permissionFilter.isPresent()) {
+            filterExpression = new AndFilterExpression(filterExpression, permissionFilter.get());
         }
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,

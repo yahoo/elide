@@ -1,7 +1,9 @@
 # Change Log
+
 ## 4.0-beta-2
 **Fixes**
-* Avoid throwing exceptions that must be handled by the containing application, instead throw exceptions that will be handled directly within Elide.
+ * Root collection loads now push down security filter predicates.
+ * Avoid throwing exceptions that must be handled by the containing application, instead throw exceptions that will be handled directly within Elide.
 
 ## 4.0-beta-1
 **Features**
