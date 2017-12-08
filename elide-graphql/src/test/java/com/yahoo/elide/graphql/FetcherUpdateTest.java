@@ -12,6 +12,9 @@ import org.testng.annotations.Test;
  */
 public class FetcherUpdateTest extends PersistentResourceFetcherTest {
 
+    private static final String NO_ID_ERROR =
+            "Exception while fetching data: javax.ws.rs.BadRequestException: UPDATE data objects must include ids";
+
     @Test
     public void testRootSingleWithId() throws Exception {
         //author 1 already exist, should update
@@ -27,13 +30,16 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionInvalidIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        runErrorComparisonTest("rootCollectionInvalidIds");
+        String expectedMessage =
+                "Exception while fetching data: InvalidObjectIdentifierException: Unknown identifier '[42]' for book";
+        runErrorComparisonTest("rootCollectionInvalidIds", expectedMessage);
     }
 
     @Test
     public void testRootCollectionMissingIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        runErrorComparisonTest("rootCollectionMissingIds");
+        String expectedMessage = NO_ID_ERROR;
+        runErrorComparisonTest("rootCollectionMissingIds", expectedMessage);
     }
 
     @Test
@@ -47,8 +53,9 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNonCreatedIdReferenceCollection() throws Exception {
-        runComparisonTest("nonCreatedIdReferenceCollection");
+    public void testNestedCollectionMissingIds() throws Exception {
+        String expectedMessage = NO_ID_ERROR;
+        runErrorComparisonTest("nestedCollectionMissingIds", expectedMessage);
     }
 
     @Test
@@ -62,8 +69,8 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNonCreatedIdOnlyRequest2Back() throws Exception {
-        runComparisonTest("nonCreatedIdOnlyRequest2Back");
+    public void testUpdateComplexGraph() throws Exception {
+        runComparisonTest("updateComplexGraph");
     }
 
     // TODO: Reeanble when supporting arguments into computed attributes.
@@ -78,7 +85,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Override
-    public void runErrorComparisonTest(String testName) throws Exception {
-        super.runErrorComparisonTest("update/" + testName);
+    public void runErrorComparisonTest(String testName, String expectedMessage) throws Exception {
+        super.runErrorComparisonTest("update/" + testName, expectedMessage);
     }
 }

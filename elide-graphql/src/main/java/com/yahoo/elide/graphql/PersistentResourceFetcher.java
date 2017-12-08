@@ -229,26 +229,35 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     private ConnectionContainer upsertObjects(Environment context) {
-        return upsertOrUpdateObjects(context, (entityObject) -> upsertObject(context, entityObject));
+        return upsertOrUpdateObjects(
+                context,
+                (entityObject) -> upsertObject(context, entityObject),
+                RelationshipOp.UPSERT);
     }
 
     private ConnectionContainer updateObjects(Environment context) {
-        return upsertOrUpdateObjects(context, (entityObject) -> updateObject(context, entityObject));
+        return upsertOrUpdateObjects(
+                context,
+                (entityObject) -> updateObject(context, entityObject),
+                RelationshipOp.UPDATE);
     }
 
     /**
-     * handle UPSERT operation
+     * handle UPSERT or UPDATE operation
      * @param context Environment encapsulating graphQL's request environment
+     * @param updateFunc controls the behavior of how the update (or upsert) is performed.
      * @return Connection object.
      */
-    private ConnectionContainer upsertOrUpdateObjects(Environment context, Executor updateFunc) {
-        /* sanity check for id and data argument w UPSERT */
+    private ConnectionContainer upsertOrUpdateObjects(Environment context,
+                                                      Executor updateFunc,
+                                                      RelationshipOp operation) {
+        /* sanity check for id and data argument w UPSERT/UPDATE */
         if (context.ids.isPresent()) {
-            throw new BadRequestException("UPSERT must not include ids");
+            throw new BadRequestException(operation + " must not include ids");
         }
 
         if (!context.data.isPresent()) {
-            throw new BadRequestException("UPSERT must include data argument");
+            throw new BadRequestException(operation + " must include data argument");
         }
 
         Class<?> entityClass;
@@ -275,7 +284,7 @@ public class PersistentResourceFetcher implements DataFetcher {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
-        /* upsert */
+        /* apply function to upsert/update the object */
         for (Entity entity : entitySet) {
             graphWalker(entity, updateFunc);
         }
@@ -306,7 +315,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * Forms the graph from data {@param input} and upserts {@param function} all the nodes
+     * Forms the graph from data {@param input} and executes a function {@param function} on all the nodes
      * @param entity Resource entity
      * @param function Function to process nodes
      * @return set of {@link PersistentResource} objects
@@ -408,7 +417,7 @@ public class PersistentResourceFetcher implements DataFetcher {
         PersistentResource updatedResource;
 
         if (!id.isPresent()) {
-            throw new BadRequestException("UPDATE must include ids");
+            throw new BadRequestException("UPDATE data objects must include ids");
         } else {
             Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
                 Optional.of(Arrays.asList(id.get())),

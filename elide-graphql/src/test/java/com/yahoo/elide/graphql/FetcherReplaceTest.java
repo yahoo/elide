@@ -27,7 +27,9 @@ public class FetcherReplaceTest extends PersistentResourceFetcherTest {
     // FIXME: Remove stack traces from error handler...
     @Test(enabled = false)
     public void testReplaceWithIdsFails() throws Exception {
-        runErrorComparisonTest("replaceWithIdsFails");
+        String expectedMessage = "Exception while fetching data: javax.ws.rs.BadRequestException: REPLACE "
+                + "must not include ids argument";
+        runErrorComparisonTest("replaceWithIdsFails", expectedMessage);
     }
 
     @Override
@@ -36,7 +38,7 @@ public class FetcherReplaceTest extends PersistentResourceFetcherTest {
     }
 
     @Override
-    public void runErrorComparisonTest(String testName) throws Exception {
-        super.runErrorComparisonTest("replace/" + testName);
+    public void runErrorComparisonTest(String testName, String expectedMessage) throws Exception {
+        super.runErrorComparisonTest("replace/" + testName, expectedMessage);
     }
 }
