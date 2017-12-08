@@ -1,4 +1,8 @@
 # Change Log
+## 4.0-beta-2
+**Fixes**
+* Avoid throwing exceptions that must be handled by the containing application, instead throw exceptions that will be handled directly within Elide.
+
 ## 4.0-beta-1
 **Features**
  * Elide now supports GraphQL (as well as JSON-API).  This feature is in beta.  Read the [docs](elide.io) for specifics.  Until the artifact moves to stable,
