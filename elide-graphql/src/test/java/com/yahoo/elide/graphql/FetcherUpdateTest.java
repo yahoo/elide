@@ -25,9 +25,15 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testRootCollectionMixedIds() throws Exception {
+    public void testRootCollectionInvalidIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
         runErrorComparisonTest("rootCollectionInvalidIds");
+    }
+
+    @Test
+    public void testRootCollectionMissingIds() throws Exception {
+        // Update 1, create for id 42, create new book with title "abc"
+        runErrorComparisonTest("rootCollectionMissingIds");
     }
 
     @Test
