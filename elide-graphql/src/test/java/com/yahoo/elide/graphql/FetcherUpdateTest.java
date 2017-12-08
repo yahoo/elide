@@ -11,32 +11,7 @@ import org.testng.annotations.Test;
  * Test the Add operation.
  */
 public class FetcherUpdateTest extends PersistentResourceFetcherTest {
-    /* ==================== */
-    /* CREATING NEW OBJECTS */
-    /* ==================== */
-    @Test
-    public void testCreateRootSingle() throws Exception {
-        runComparisonTest("createRootSingle");
-    }
 
-    @Test
-    public void testCreateRootCollection() throws Exception {
-        runComparisonTest("createRootCollection");
-    }
-
-    @Test
-    public void testCreateNestedSingle() throws Exception {
-        runComparisonTest("createNestedSingle");
-    }
-
-    @Test
-    public void testCreateNestedCollection() throws Exception {
-        runComparisonTest("createNestedCollection");
-    }
-
-    /* ========================= */
-    /* UPDATING EXISTING OBJECTS */
-    /* ========================= */
     @Test
     public void testRootSingleWithId() throws Exception {
         //author 1 already exist, should update
@@ -52,7 +27,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionMixedIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        runComparisonTest("rootCollectionMixedIds");
+        runErrorComparisonTest("rootCollectionInvalidIds");
     }
 
     @Test
@@ -66,11 +41,6 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testUpsertOnCollection() throws Exception {
-        runComparisonTest("uspertOnCollection");
-    }
-
-    @Test
     public void testNonCreatedIdReferenceCollection() throws Exception {
         runComparisonTest("nonCreatedIdReferenceCollection");
     }
@@ -81,8 +51,8 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testNestedUpserts() throws Exception {
-        runComparisonTest("nestedUpserts");
+    public void testNestedUpdates() throws Exception {
+        runComparisonTest("nestedUpdates");
     }
 
     @Test
@@ -98,6 +68,11 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
 
     @Override
     public void runComparisonTest(String testName) throws Exception {
-        super.runComparisonTest("upsert/" + testName);
+        super.runComparisonTest("update/" + testName);
+    }
+
+    @Override
+    public void runErrorComparisonTest(String testName) throws Exception {
+        super.runErrorComparisonTest("update/" + testName);
     }
 }

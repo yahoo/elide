@@ -1,5 +1,5 @@
 mutation {
-  author(op: UPSERT, data: {prefix: "MyPrefix", bookTitlesWithPrefix: ["I", "should", "do", "nothing!"]}) {
+  author(op: UPDATE, ids: ["1"], data: {prefix: "MyPrefix", bookTitlesWithPrefix: ["I", "should", "do", "nothing!"]}) {
     edges {
       node {
         bookTitlesWithPrefix
