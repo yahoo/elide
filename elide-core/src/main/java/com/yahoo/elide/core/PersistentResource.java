@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -1513,12 +1514,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     method.invoke(obj);
                 }
             } catch (ReflectiveOperationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
-                }
-                if (e.getCause() instanceof Error) {
-                    throw (Error) e.getCause();
-                }
+                Throwables.propagateIfPossible(e.getCause());
                 throw new IllegalArgumentException(e);
             }
         }
