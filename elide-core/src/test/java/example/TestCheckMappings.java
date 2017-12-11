@@ -44,6 +44,7 @@ public class TestCheckMappings {
                     put("Principal is user two", UserIdChecks.UserTwoCheck.class);
                     put("Principal is user three", UserIdChecks.UserThreeCheck.class);
                     put("Principal is user four", UserIdChecks.UserFourCheck.class);
+                    put("Book operation check", Book.BookOperationCheck.class);
                 }
             };
 

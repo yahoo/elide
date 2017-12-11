@@ -4,6 +4,7 @@
 **Fixes**
  * Root collection loads now push down security filter predicates.
  * Avoid throwing exceptions that must be handled by the containing application, instead throw exceptions that will be handled directly within Elide.
+ * Restore OnCreatePreSecurity lifecycle hook to occur after fields are populated.
 
 ## 4.0-beta-1
 **Features**

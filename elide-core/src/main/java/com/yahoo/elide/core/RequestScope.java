@@ -418,6 +418,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
         switch (crudAction) {
             case CREATE:
+                queueTrigger.accept(OnCreatePreSecurity.class);
                 queueTrigger.accept(OnCreatePreCommit.class);
                 queueTrigger.accept(OnCreatePostCommit.class);
                 break;

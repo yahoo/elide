@@ -7,11 +7,11 @@ package com.yahoo.elide.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -136,7 +136,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         // Keep track of new resources for non shareable resources
         requestScope.getNewPersistentResources().add(newResource);
-        newResource.runTriggers(OnCreatePreSecurity.class, "");
         checkPermission(CreatePermission.class, newResource);
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
@@ -1515,9 +1514,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                     method.invoke(obj);
                 }
             } catch (ReflectiveOperationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
-                }
+                Throwables.propagateIfPossible(e.getCause());
                 throw new IllegalArgumentException(e);
             }
         }

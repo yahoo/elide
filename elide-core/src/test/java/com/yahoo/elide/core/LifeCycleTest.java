@@ -6,6 +6,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,9 +28,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
@@ -71,7 +75,8 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
-        elide.post("/book", bookBody, null);
+        ElideResponse response = elide.post("/book", bookBody, null);
+        assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
         verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
@@ -157,23 +162,32 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValue("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).checkPermission(scope);
+
         scope.runQueuedPreSecurityTriggers();
         verify(book, times(1)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
+        verify(book, never()).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
         verify(book, times(1)).preCreateBook(scope);
-        verify(book, times(0)).preDeleteBook(scope);
-        verify(book, times(0)).preUpdateTitle(scope);
+        verify(book, never()).preDeleteBook(scope);
+        verify(book, never()).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
+        verify(book, never()).checkPermission(scope);
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
         verify(book, times(1)).postCreateBook(scope);
-        verify(book, times(0)).postDeleteBook(scope);
-        verify(book, times(0)).postUpdateTitle(scope);
+        verify(book, never()).postDeleteBook(scope);
+        verify(book, never()).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
+        verify(book, times(1)).checkPermission(scope);
     }
 
     @Test
@@ -185,23 +199,35 @@ public class LifeCycleTest {
                 false);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.setValueChecked("title", "new title");
-        scope.runQueuedPreSecurityTriggers();
-        verify(book, times(0)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
-        verify(book, times(0)).alwaysOnUpdate();
+        verify(book, never()).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.runQueuedPreSecurityTriggers();
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, times(1)).onUpdateTitle(scope);
+        verify(book, times(1)).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
-        verify(book, times(0)).preCreateBook(scope);
-        verify(book, times(0)).preDeleteBook(scope);
+        verify(book, never()).preCreateBook(scope);
+        verify(book, never()).preDeleteBook(scope);
         verify(book, times(1)).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
-        verify(book, times(0)).postCreateBook(scope);
-        verify(book, times(0)).postDeleteBook(scope);
+        verify(book, never()).postCreateBook(scope);
+        verify(book, never()).postDeleteBook(scope);
         verify(book, times(1)).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
@@ -215,24 +241,39 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
                 false);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateTitle(scope);
+        verify(book, never()).preRead(scope);
+        verify(book, never()).checkPermission(scope);
+
         resource.deleteResource();
-        scope.runQueuedPreSecurityTriggers();
-        verify(book, times(0)).onCreateBook(scope);
+        verify(book, never()).onCreateBook(scope);
         verify(book, times(1)).onDeleteBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
-        verify(book, times(0)).preRead(scope);
+        verify(book, never()).onUpdateTitle(scope);
+        verify(book, never()).preRead(scope);
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.runQueuedPreSecurityTriggers();
+        verify(book, never()).onCreateBook(scope);
+        verify(book, times(1)).onDeleteBook(scope);
+        verify(book, never()).onUpdateTitle(scope);
+        verify(book, never()).preRead(scope);
 
         scope.runQueuedPreCommitTriggers();
-        verify(book, times(0)).preCreateBook(scope);
+        verify(book, never()).preCreateBook(scope);
         verify(book, times(1)).preDeleteBook(scope);
-        verify(book, times(0)).preUpdateTitle(scope);
-        verify(book, times(0)).preCommitRead(scope);
+        verify(book, never()).preUpdateTitle(scope);
+        verify(book, never()).preCommitRead(scope);
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
-        verify(book, times(0)).postCreateBook(scope);
+        verify(book, never()).postCreateBook(scope);
         verify(book, times(1)).postDeleteBook(scope);
-        verify(book, times(0)).postUpdateTitle(scope);
-        verify(book, times(0)).postRead(scope);
+        verify(book, never()).postUpdateTitle(scope);
+        verify(book, never()).postRead(scope);
     }
 
     @Test
@@ -244,22 +285,29 @@ public class LifeCycleTest {
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         resource.getValueChecked("title");
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateTitle(scope);
+        verify(book, times(1)).preRead(scope);
+
         scope.runQueuedPreSecurityTriggers();
-        verify(book, times(0)).onCreateBook(scope);
-        verify(book, times(0)).onDeleteBook(scope);
-        verify(book, times(0)).onUpdateTitle(scope);
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
 
         scope.runQueuedPreCommitTriggers();
-        verify(book, times(0)).preCreateBook(scope);
-        verify(book, times(0)).preDeleteBook(scope);
-        verify(book, times(0)).preUpdateTitle(scope);
+        verify(book, never()).preCreateBook(scope);
+        verify(book, never()).preDeleteBook(scope);
+        verify(book, never()).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
 
+        scope.getPermissionExecutor().executeCommitChecks();
+
         scope.runQueuedPostCommitTriggers();
-        verify(book, times(0)).postCreateBook(scope);
-        verify(book, times(0)).postDeleteBook(scope);
-        verify(book, times(0)).postUpdateTitle(scope);
+        verify(book, never()).postCreateBook(scope);
+        verify(book, never()).postDeleteBook(scope);
+        verify(book, never()).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
     }
 
