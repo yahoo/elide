@@ -88,6 +88,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             case UPSERT:
                 return upsertObjects(context);
 
+            case UPDATE:
+                return updateObjects(context);
+
             case DELETE:
                 return deleteObjects(context);
 
@@ -225,19 +228,36 @@ public class PersistentResourceFetcher implements DataFetcher {
         return new ConnectionContainer(relations, pagination, typeName);
     }
 
+    private ConnectionContainer upsertObjects(Environment context) {
+        return upsertOrUpdateObjects(
+                context,
+                (entityObject) -> upsertObject(context, entityObject),
+                RelationshipOp.UPSERT);
+    }
+
+    private ConnectionContainer updateObjects(Environment context) {
+        return upsertOrUpdateObjects(
+                context,
+                (entityObject) -> updateObject(context, entityObject),
+                RelationshipOp.UPDATE);
+    }
+
     /**
-     * handle UPSERT operation
+     * handle UPSERT or UPDATE operation
      * @param context Environment encapsulating graphQL's request environment
+     * @param updateFunc controls the behavior of how the update (or upsert) is performed.
      * @return Connection object.
      */
-    private ConnectionContainer upsertObjects(Environment context) {
-        /* sanity check for id and data argument w UPSERT */
+    private ConnectionContainer upsertOrUpdateObjects(Environment context,
+                                                      Executor updateFunc,
+                                                      RelationshipOp operation) {
+        /* sanity check for id and data argument w UPSERT/UPDATE */
         if (context.ids.isPresent()) {
-            throw new BadRequestException("UPSERT must not include ids");
+            throw new BadRequestException(operation + " must not include ids");
         }
 
         if (!context.data.isPresent()) {
-            throw new BadRequestException("UPSERT must include data argument");
+            throw new BadRequestException(operation + " must include data argument");
         }
 
         Class<?> entityClass;
@@ -264,9 +284,9 @@ public class PersistentResourceFetcher implements DataFetcher {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
-        /* upsert */
+        /* apply function to upsert/update the object */
         for (Entity entity : entitySet) {
-            graphWalker(entity, (entityObject) -> upsertObject(context, entityObject));
+            graphWalker(entity, updateFunc);
         }
 
         /* fixup relationships */
@@ -295,7 +315,7 @@ public class PersistentResourceFetcher implements DataFetcher {
     }
 
     /**
-     * Forms the graph from data {@param input} and upserts {@param function} all the nodes
+     * Forms the graph from data {@param input} and executes a function {@param function} on all the nodes
      * @param entity Resource entity
      * @param function Function to process nodes
      * @return set of {@link PersistentResource} objects
@@ -388,6 +408,28 @@ public class PersistentResourceFetcher implements DataFetcher {
         }
 
         return updateAttributes(upsertedResource, entity, attributes);
+    }
+
+    private PersistentResource updateObject(Environment context, Entity entity) {
+        Set<Entity.Attribute> attributes = entity.getAttributes();
+        Optional<String> id = entity.getId();
+        RequestScope requestScope = entity.getRequestScope();
+        PersistentResource updatedResource;
+
+        if (!id.isPresent()) {
+            throw new BadRequestException("UPDATE data objects must include ids");
+        } else {
+            Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
+                Optional.of(Arrays.asList(id.get())),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                false).getPersistentResources();
+            updatedResource = loadedResource.iterator().next();
+        }
+
+        return updateAttributes(updatedResource, entity, attributes);
     }
 
     /**

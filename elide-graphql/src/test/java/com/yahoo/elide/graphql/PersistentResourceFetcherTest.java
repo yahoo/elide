@@ -145,7 +145,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         }
     }
 
-    protected void assertQueryFailsWith(String graphQLRequest, String expectedResponse) throws Exception {
+    protected void assertQueryFailsWith(String graphQLRequest, String expectedMessage) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
@@ -155,9 +155,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         requestScope.getTransaction().commit(requestScope);
         Assert.assertNotEquals(result.getErrors().size(), 0, "Expected errors. Received none.");
         try {
+            String message = result.getErrors().get(0).getMessage();
             LOG.info(mapper.writeValueAsString(result.getErrors()));
-            Assert.assertEquals(mapper.readTree(mapper.writeValueAsString(result.getErrors())),
-                    mapper.readTree(expectedResponse));
+            Assert.assertEquals(message, expectedMessage);
         } catch (JsonProcessingException e) {
             Assert.fail("JSON parsing exception", e);
         }
@@ -194,8 +194,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         runComparisonTest(testName, this::assertQueryEquals);
     }
 
-    public void runErrorComparisonTest(String testName) throws Exception {
-        runComparisonTest(testName, this::assertQueryFailsWith);
+    public void runErrorComparisonTest(String testName, String expectedMessage) throws Exception {
+        String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
+        assertQueryFailsWith(graphQLRequest, expectedMessage);
     }
 
     protected void runComparisonTest(String testName, EvaluationFunction evalFn) throws Exception {

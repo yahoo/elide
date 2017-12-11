@@ -14,5 +14,6 @@ public enum RelationshipOp {
     DELETE,
     UPSERT,
     REPLACE,
-    REMOVE
+    REMOVE,
+    UPDATE
 }
