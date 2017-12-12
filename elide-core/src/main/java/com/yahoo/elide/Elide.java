@@ -45,6 +45,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.bind.ValidationException;
 
 import java.io.File;
 import java.io.IOException;
@@ -245,6 +246,14 @@ public class Elide {
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
         } catch (Exception e) {
+            if (e instanceof ValidationException) {
+                return buildErrorResponse(
+                    new HttpStatusException(HttpStatus.SC_BAD_REQUEST, e.getMessage()) {
+                    },
+                    isVerbose
+                );
+            }
+
             return buildErrorResponse(new InternalServerErrorException(e), isVerbose);
 
         } catch (Error e) {
