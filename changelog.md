@@ -1,4 +1,8 @@
 # Change Log
+## 4.0-beta-3
+**Fixes**
+ * Updated MIT attribution for portions of MutableGraphQLInputObjectType
+
 ## 4.0-beta-2
 **Fixes**
  * Root collection loads now push down security filter predicates.
