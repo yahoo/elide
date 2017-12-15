@@ -135,6 +135,11 @@ public class Book {
        // title attribute updated
     }
 
+    @OnUpdatePreSecurity("genre")
+    public void onUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+       // genre attribute updated
+    }
+
     @OnCreatePreSecurity
     public void onCreateBook(RequestScope requestScope) {
         // book entity created
@@ -154,6 +159,11 @@ public class Book {
         // title attribute updated
     }
 
+    @OnUpdatePreCommit("genre")
+    public void preUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+        // genre attribute updated
+    }
+
     @OnCreatePreCommit
     public void preCreateBook(RequestScope requestScope) {
         // book entity created
@@ -167,6 +177,11 @@ public class Book {
     @OnUpdatePostCommit("title")
     public void postUpdateTitle(RequestScope requestScope) {
         // title attribute updated
+    }
+
+    @OnUpdatePostCommit("genre")
+    public void postUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+        // genre attribute updated
     }
 
     @OnCreatePostCommit
