@@ -404,7 +404,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param crudAction CRUD action
      */
     protected void queueTriggers(PersistentResource<?> resource, CRUDAction crudAction) {
-        queueTriggers(resource, "", crudAction, Optional.empty());
+        queueTriggers(resource, PersistentResource.CLASS_NO_FIELD, crudAction, Optional.empty());
     }
 
     /**
@@ -420,7 +420,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                                  CRUDAction crudAction,
                                  Optional<ChangeSpec> changeSpec) {
         Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(
-                () -> resource.runTriggers(cls, fieldName, changeSpec)
+            () -> resource.runTriggers(cls, fieldName, changeSpec)
         );
 
         switch (crudAction) {
