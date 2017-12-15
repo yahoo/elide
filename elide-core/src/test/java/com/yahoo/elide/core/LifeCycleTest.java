@@ -10,6 +10,7 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import example.Author;
@@ -195,7 +196,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
                 false);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.setValueChecked("title", "new title");
@@ -229,6 +230,51 @@ public class LifeCycleTest {
         verify(book, never()).postCreateBook(scope);
         verify(book, never()).postDeleteBook(scope);
         verify(book, times(1)).postUpdateTitle(scope);
+        verify(book, times(1)).postRead(scope);
+        verify(book, times(1)).alwaysOnUpdate();
+    }
+
+    @Test
+    public void testUpdateWithChangeSpec() {
+        Book book = mock(Book.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
+
+        //Verify changeSpec is passed to hooks
+        resource.setValueChecked("genre", "new genre");
+
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.runQueuedPreSecurityTriggers();
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.runQueuedPreCommitTriggers();
+        verify(book, never()).preCreateBook(scope);
+        verify(book, never()).preDeleteBook(scope);
+        verify(book, times(1)).preUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).alwaysOnUpdate();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(book, times(1)).checkPermission(scope);
+
+        scope.runQueuedPostCommitTriggers();
+        verify(book, never()).postCreateBook(scope);
+        verify(book, never()).postDeleteBook(scope);
+        verify(book, times(1)).postUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
     }

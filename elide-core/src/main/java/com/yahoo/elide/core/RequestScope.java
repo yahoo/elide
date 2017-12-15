@@ -31,6 +31,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
@@ -403,7 +404,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param crudAction CRUD action
      */
     protected void queueTriggers(PersistentResource<?> resource, CRUDAction crudAction) {
-        queueTriggers(resource, "", crudAction);
+        queueTriggers(resource, "", crudAction, Optional.empty());
     }
 
     /**
@@ -412,9 +413,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param fieldName Field name for which to specify trigger
      * @param crudAction CRUD Action
+     * @param changeSpec Optional ChangeSpec to pass to the lifecycle hook
      */
-    protected void queueTriggers(PersistentResource<?> resource, String fieldName, CRUDAction crudAction) {
-        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(() -> resource.runTriggers(cls, fieldName));
+    protected void queueTriggers(PersistentResource<?> resource,
+                                 String fieldName,
+                                 CRUDAction crudAction,
+                                 Optional<ChangeSpec> changeSpec) {
+        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(
+                () -> resource.runTriggers(cls, fieldName, changeSpec)
+        );
 
         switch (crudAction) {
             case CREATE:
