@@ -91,6 +91,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
+    static final String CLASS_NO_FIELD = "";
 
     /**
      * The Dictionary.
@@ -696,7 +697,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @throws ForbiddenAccessException the forbidden access exception
      */
     public void deleteResource() throws ForbiddenAccessException {
-        runTriggers(OnDeletePreSecurity.class, "", Optional.empty());
+        runTriggers(OnDeletePreSecurity.class, CLASS_NO_FIELD);
         checkPermission(DeletePermission.class, this);
 
         /*
@@ -1320,7 +1321,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     protected void setValueChecked(String fieldName, Object newValue) {
         Object existingValue = getValueUnchecked(fieldName);
         ChangeSpec spec = new ChangeSpec(this, fieldName, existingValue, newValue);
-        runTriggers(OnUpdatePreSecurity.class, "", Optional.empty());
+        runTriggers(OnUpdatePreSecurity.class, CLASS_NO_FIELD);
         runTriggers(OnUpdatePreSecurity.class, fieldName, Optional.of(spec));
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
         setValue(fieldName, newValue);
@@ -1352,8 +1353,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         requestScope.queueTriggers(this, CRUDAction.READ);
         requestScope.queueTriggers(this, fieldName, CRUDAction.READ, Optional.empty());
         // Run the pre-security checks:
-        runTriggers(OnReadPreSecurity.class, "", Optional.empty());
-        runTriggers(OnReadPreSecurity.class, fieldName, Optional.empty());
+        runTriggers(OnReadPreSecurity.class, CLASS_NO_FIELD);
+        runTriggers(OnReadPreSecurity.class, fieldName);
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, requestScope);
     }
@@ -1368,8 +1369,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         requestScope.queueTriggers(this, CRUDAction.READ);
         requestScope.queueTriggers(this, fieldName, CRUDAction.READ, Optional.empty());
         // Run the pre-security checks:
-        runTriggers(OnReadPreSecurity.class, "", Optional.empty());
-        runTriggers(OnReadPreSecurity.class, fieldName, Optional.empty());
+        runTriggers(OnReadPreSecurity.class, CLASS_NO_FIELD);
+        runTriggers(OnReadPreSecurity.class, fieldName);
         return getValue(getObject(), fieldName, requestScope);
     }
 
@@ -1495,6 +1496,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE, Optional.of(changeSpec));
         requestScope.queueTriggers(this, (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE);
         auditField(new ChangeSpec(this, fieldName, original, value));
+    }
+
+    <A extends Annotation> void runTriggers(Class<A> annotationClass,
+                                            String fieldName) {
+        runTriggers(annotationClass, fieldName, Optional.empty());
     }
 
     <A extends Annotation> void runTriggers(Class<A> annotationClass,
