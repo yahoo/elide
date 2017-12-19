@@ -1,12 +1,12 @@
 # Change Log
 
-## 4.0-beta-4
-**Features**
- * ChangeSpec is now passed to OnUpdate life cycle hooks (allowing the hooks to see the before & after change to a given field).
-
 ## 4.0-beta-3
 **Fixes**
  * Updated MIT attribution for portions of MutableGraphQLInputObjectType
+ * getRelation (single) call filters in-memory to avoid collision on multiple objects being created in the same transaction.
+
+**Features**
+ * ChangeSpec is now passed to OnUpdate life cycle hooks (allowing the hooks to see the before & after change to a given field).
 
 ## 4.0-beta-2
 **Fixes**

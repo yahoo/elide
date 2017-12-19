@@ -790,7 +790,14 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
       if (resources.isEmpty()) {
             return null;
       }
-      return resources.iterator().next();
+      // If this is an in-memory object (i.e. UUID being created within tx), datastore may not be able to filter.
+      // If we get multiple results back, make sure we find the right id first.
+      for (PersistentResource resource : resources) {
+          if (resource.matchesId(id)) {
+              return resource;
+          }
+      }
+      return null;
     }
 
     /**
