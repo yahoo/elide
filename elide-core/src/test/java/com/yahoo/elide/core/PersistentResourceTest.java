@@ -800,6 +800,26 @@ public class PersistentResourceTest extends PersistentResource {
         Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
     }
 
+    @Test
+    public void testGetSingleRelationInMemory() {
+        // Ensure we don't break when we try to get a specific relationship in memory (i.e. not yet pushed to datastore)
+        Parent parent = newParent(1);
+        Child child1 = newChild(1, "paul john");
+        Child child2 = newChild(2, "john buzzard");
+        Child child3 = newChild(3, "chris smith");
+        parent.setChildren(Sets.newHashSet(child1, child2, child3));
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(eq(tx), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1, child2, child3));
+
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodUserScope);
+
+        PersistentResource childResource = parentResource.getRelation("children", "2");
+
+        Assert.assertEquals(childResource.getId(), "2");
+        Assert.assertEquals(((Child) childResource.getObject()).getName(), "john buzzard");
+    }
+
     @Test(expectedExceptions = ForbiddenAccessException.class)
     public void testGetRelationForbiddenByEntity() {
         NoReadEntity noread = new NoReadEntity();
