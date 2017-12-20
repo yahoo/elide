@@ -13,7 +13,7 @@ a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API)
 ### Security Comes Standard
 Control access to fields and entities through a declarative, intuitive permission syntax.
 
-### Mobile Friendly
+### Mobile Friendly APIs
 JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned. 
 Our opinionated approach for mutations addresses common application scenarios:
 * Create a new object and add it to an existing collection in the same operation.
@@ -21,6 +21,8 @@ Our opinionated approach for mutations addresses common application scenarios:
 * Differentiate between deleting an object vs disassociating an object from a relationship (but not deleting it).
 * Change the composition of a relationship to something different.
 * Reference a newly created object inside other mutation operations.
+
+Filtering, sorting, and pagination are supported out of the box.
 
 ### Atomicity For Complex Writes
 Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
