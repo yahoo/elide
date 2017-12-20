@@ -7,41 +7,30 @@
 
 ## What Is Elide?
 
-Elide is a Java library that lets you set up a [JSON API](http://jsonapi.org) web service with minimal effort starting from a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
-Elide is designed to quickly build and deploy **production quality** web services that expose data models as services.  Elide provides:
-  1. **Access** to JPA entities via JSON API CRUD operations.  Entities can be explicitly included or excluded via annotations.
-  2. **Patch Extension** Elide supports the [JSON API Patch extension](http://jsonapi.org/extensions/jsonpatch/) allowing multiple create, edit, and delete operations in a single request.
-  3. **Atomic Requests** All requests to the library (including the patch extension) can be embedded in transactions to ensure operational integrity.
-  4. **Authorization** All operations on entities and their fields can be assigned custom permission checks limiting who has access to your data.
-  5. **Audit** Logging can be customized for any operation on any entity.
-  6. **Extension** Elide allows the ability to customize business logic for any CRUD operation on the model.  Any persistence backend can be skinned with JSON-API by wiring in a JPA provider or by implementing a custom `DataStore`.
-  7. **Test** Elide includes a test framework that explores the full surface of the API looking for security vulnerabilities.
-  8. **Client API** Elide is developed in conjunction with a Javascript client library that insulates developers from changes to the specification. Alternatively, Elide can be used with any [JSON API client library](http://jsonapi.org/implementations/).
+Elide provides opinionated APIs for web & mobile applications.  Elide is a Java library that lets you set up a [GraphQL](graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
+a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).    
+
+### Security Comes Standard
+Controlling access to your data is as simple as defining your rules and annotating your models.
+
+### Mobile Friendly
+JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned. 
+
+### Atomicity For Complex Writes
+Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
+
+### Persistence Layer Agnostic
+Elide is agnostic to your particular persistence strategy. Use an ORM or provide your own implementation of a data store.
+
+### Schema Introspection
+Explore, understand, and compose queries against your Elide API through generated Swagger documentation or GraphQL schema.
+
+### Customize 
+Customize the behavior of data model operations with computed attributes, data validation annotations, and request lifecycle hooks.
 
 ## Documentation
 
 More information about Elide can be found at [elide.io](http://elide.io/).
-
-## Elide on Maven
-
-To integrate Elide into your project, simply include elide-core into your project's pom.xml:
-
-```xml
-<!-- Elide -->
-<dependency>
-    <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-core</artifactId>
-</dependency>
-```
-
-Additionally, if you do not plan to write your own data store, select the appropriate data store for your setup and include it as well. For instance, if you plan on using the "in-memory database" (not recommended for production use) then you would add the following:
-
-```xml
-<dependency>
-    <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-datastore-inmemorydb</artifactId>
-</dependency>
-```
 
 ## Development
 
@@ -62,4 +51,4 @@ If you are contributing to Elide using an IDE, such as IntelliJ, make sure to in
 
 ## License
 
-The use and distribution terms for this software are covered by the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html).
+Elide is 100% open source and released under the commercial-friendly Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html).
