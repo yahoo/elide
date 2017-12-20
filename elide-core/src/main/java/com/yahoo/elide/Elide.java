@@ -15,6 +15,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -43,6 +44,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -248,12 +250,17 @@ public class Elide {
             log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
             return buildErrorResponse(new InvalidURLException(e), isVerbose);
 
-        } catch (Exception e) {
-            log.error("Generic exception uncaught by Elide", e);
-            return buildErrorResponse(new InternalServerErrorException(e), isVerbose);
+        } catch (ConstraintViolationException e) {
+            log.debug("Constraint violation exception caught", e);
+            String message = "Constraint violation";
+            if (!e.getConstraintViolations().isEmpty()) {
+                // Return error for the first constraint violation
+                message = e.getConstraintViolations().iterator().next().getMessage();
+            }
+            return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
 
-        } catch (Error e) {
-            log.error("Error uncaught by Elide", e);
+        } catch (Exception | Error e) {
+            log.error("Error or exception uncaught by Elide", e);
             throw e;
 
         } finally {

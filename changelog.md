@@ -4,6 +4,10 @@
 **Fixes**
  * Ignore provided-- but null-- operation names and variables in GraphQL requests.
  * Add additional logging around exception handling.
+ * Don't swallow generic Exception in Elide. Log it and bubble it up to caller.
+
+**Features**
+ * Handle ConstraintViolationException's by extracting the first constraint validation failure.
 
 ## 4.0-beta-3
 **Fixes**
