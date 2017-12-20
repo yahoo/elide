@@ -7,7 +7,7 @@
 
 ## What Is Elide?
 
-Elide provides opinionated APIs for web & mobile applications.  Elide is a Java library that lets you set up a [GraphQL](graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
+[Elide](http://elide.io/) provides opinionated APIs for web & mobile applications.  Elide is a Java library that lets you set up a [GraphQL](graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
 a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).    
 
 ### Security Comes Standard
@@ -15,6 +15,12 @@ Control access to fields and entities through a declarative, intuitive permissio
 
 ### Mobile Friendly
 JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned. 
+Our opinionated approach for mutations addresses common application scenarios:
+* Create a new object and add it to an existing collection in the same operation.
+* Create a set of related, composite objects (a subgraph) and connect it to an existing, persisted graph.
+* Differentiate between deleting an object vs disassociating an object from a relationship (but not deleting it).
+* Change the composition of a relationship to something different.
+* Reference a newly created object inside other mutation operations.
 
 ### Atomicity For Complex Writes
 Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
