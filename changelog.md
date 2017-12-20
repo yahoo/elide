@@ -3,6 +3,7 @@
 ## 4.0-beta-4
 **Fixes**
  * Ignore provided-- but null-- operation names and variables in GraphQL requests.
+ * Add additional logging around exception handling.
 
 ## 4.0-beta-3
 **Fixes**
