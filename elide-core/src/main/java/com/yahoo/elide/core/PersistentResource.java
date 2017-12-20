@@ -312,7 +312,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass, requestScope);
         if (permissionFilter.isPresent()) {
-            filterExpression = new AndFilterExpression(filterExpression, permissionFilter.get());
+            if (filterExpression != null) {
+                filterExpression = new AndFilterExpression(filterExpression, permissionFilter.get());
+            } else {
+                filterExpression = permissionFilter.get();
+            }
         }
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,

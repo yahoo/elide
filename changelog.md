@@ -5,6 +5,7 @@
  * Ignore provided-- but null-- operation names and variables in GraphQL requests.
  * Add additional logging around exception handling.
  * Don't swallow generic Exception in Elide. Log it and bubble it up to caller.
+ * Fix a bug where null filter expressions were possible if no filter was passed in by the user, but permission filters existed.
 
 **Features**
  * Handle ConstraintViolationException's by extracting the first constraint validation failure.
