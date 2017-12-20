@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0-beta-4
+**Fixes**
+ * Ignore provided-- but null-- operation names and variables in GraphQL requests.
+
 ## 4.0-beta-3
 **Fixes**
  * Updated MIT attribution for portions of MutableGraphQLInputObjectType
