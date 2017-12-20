@@ -95,12 +95,12 @@ public class GraphQLEndpoint {
             String query = jsonDocument.get(QUERY).asText();
 
             String operationName = null;
-            if (jsonDocument.has(OPERATION_NAME)) {
+            if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
                 operationName = jsonDocument.get(OPERATION_NAME).asText();
             }
 
             ExecutionResult result;
-            if (jsonDocument.has(VARIABLES)) {
+            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
                 Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
                 result = api.execute(query, operationName, requestScope, variables);
             } else {
