@@ -11,7 +11,7 @@ Elide provides opinionated APIs for web & mobile applications.  Elide is a Java 
 a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).    
 
 ### Security Comes Standard
-Controlling access to your data is as simple as defining your rules and annotating your models.
+Control access to fields and entities through a declarative, intuitive permission syntax.
 
 ### Mobile Friendly
 JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned. 
