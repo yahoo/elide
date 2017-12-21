@@ -51,6 +51,18 @@ public class ModelBuilderTest {
     private static final String GENRE = "genre";
     private static final String LANGUAGE = "language";
 
+    // TODO: We need more tests. I've updated the models to contain all of the situations below, but we should _esnure_
+    // the generated result is exactly correct:
+    //
+    //   * Duplicate enums in same objects
+    //   * Duplicate Set<Enum> across objects
+    //   * Duplicate types across objects
+    //   * Enum as map keys
+    //   * Enum as map values
+    //   * Duplicate maps of the same type
+    //
+    // This is all important for ensuring we don't duplicate typenames which is a requirement in the latest graphql-java
+
     @BeforeSuite
     public void init() {
         dictionary = new EntityDictionary(Collections.EMPTY_MAP);

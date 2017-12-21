@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,11 @@ public class GraphQLConversionUtils {
     protected NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     protected EntityDictionary entityDictionary;
 
+    private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();
+    private final Map<Class, GraphQLInputObjectType> inputConversions = new HashMap<>();
+    private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
+    private final Map<String, GraphQLList> mapConversions = new HashMap<>();
+
     public GraphQLConversionUtils(EntityDictionary dictionary) {
         this.entityDictionary = dictionary;
     }
@@ -60,8 +66,11 @@ public class GraphQLConversionUtils {
          * @return
          */
         public boolean isAlreadyConverted(Class<?> candidate) {
-            log.warn("Cycle detected: {}", candidate);
-            return generatedTypes.contains(candidate);
+            if (generatedTypes.contains(candidate)) {
+                log.warn("Cycle detected: {}", candidate);
+                return true;
+            }
+            return false;
         }
 
         /**
@@ -105,19 +114,26 @@ public class GraphQLConversionUtils {
     /**
      * Converts an enum to a GraphQLEnumType.
      * @param enumClazz the Enum to convert
-     * @return A new GraphQLEnum type.
+     * @return A GraphQLEnum type for class.
      */
-    public GraphQLEnumType classToEnumType(Class<?> enumClazz, String prefix) {
-        Enum [] values = (Enum []) enumClazz.getEnumConstants();
-
-        GraphQLEnumType.Builder builder = newEnum()
-            .name(prefix + toValidNameName(enumClazz.getName()));
-
-        for (Enum value : values) {
-            builder.value(prefix + toValidNameName(value.name()), value);
+    public GraphQLEnumType classToEnumType(Class<?> enumClazz) {
+        if (enumConversions.containsKey(enumClazz)) {
+            return enumConversions.get(enumClazz);
         }
 
-        return builder.build();
+        Enum [] values = (Enum []) enumClazz.getEnumConstants();
+
+        GraphQLEnumType.Builder builder = newEnum().name(toValidNameName(enumClazz.getName()));
+
+        for (Enum value : values) {
+            builder.value(toValidNameName(value.name()), value);
+        }
+
+        GraphQLEnumType enumResult = builder.build();
+
+        enumConversions.put(enumClazz, enumResult);
+
+        return enumResult;
     }
 
     /**
@@ -126,28 +142,40 @@ public class GraphQLConversionUtils {
      * @param keyClazz The map key class
      * @param valueClazz The map value class
      * @param fetcher The Datafetcher to assign to the created GraphQL object.
-     * @param typeNamePrefix Prefix for the typename of the created object.
      * @param ledger Used to detect cycles.
      * @return The created type.
      */
     public  GraphQLList classToQueryMap(Class<?> keyClazz,
                                         Class<?> valueClazz,
                                         DataFetcher fetcher,
-                                        String typeNamePrefix,
                                         ConversionLedger ledger) {
-        return new GraphQLList(
+        String mapName = toValidNameName(keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+
+        if (mapConversions.containsKey(mapName)) {
+            return mapConversions.get(mapName);
+        }
+
+        GraphQLOutputType keyType = keyClazz.isEnum()
+                ? classToEnumType(keyClazz) : classToQueryObject(keyClazz, ledger, fetcher);
+        GraphQLOutputType valueType = valueClazz.isEnum()
+                ? classToEnumType(valueClazz) : classToQueryObject(valueClazz, ledger, fetcher);
+        GraphQLList outputMap = new GraphQLList(
             newObject()
-                .name(toValidNameName(typeNamePrefix + keyClazz.getName() + valueClazz.getCanonicalName() + MAP))
+                .name(mapName)
                 .field(newFieldDefinition()
                         .name(KEY)
                         .dataFetcher(fetcher)
-                        .type(classToQueryObject(keyClazz, ledger, fetcher, typeNamePrefix)))
+                        .type(keyType))
                 .field(newFieldDefinition()
                         .name(VALUE)
                         .dataFetcher(fetcher)
-                        .type(classToQueryObject(valueClazz, ledger, fetcher, typeNamePrefix)))
+                        .type(valueType))
                 .build()
         );
+
+        mapConversions.put(mapName, outputMap);
+
+        return mapConversions.get(mapName);
     }
 
     /**
@@ -155,25 +183,36 @@ public class GraphQLConversionUtils {
      * maps by creating a list of key/value pairs.
      * @param keyClazz The map key class
      * @param valueClazz The map value class
-     * @param typeNamePrefix Prefix of the typename for the created object.
      * @param ledger Used to detect cycles.
      * @return The created type.
      */
     public GraphQLList classToInputMap(Class<?> keyClazz,
                                        Class<?> valueClazz,
-                                       String typeNamePrefix,
                                        ConversionLedger ledger) {
-        return new GraphQLList(
+        String mapName = toValidNameName("__input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+
+        if (mapConversions.containsKey(mapName)) {
+            return mapConversions.get(mapName);
+        }
+
+        GraphQLInputType keyType = keyClazz.isEnum() ? classToEnumType(keyClazz) : classToInputObject(keyClazz, ledger);
+        GraphQLInputType valueType = valueClazz.isEnum()
+                ? classToEnumType(valueClazz) : classToInputObject(valueClazz, ledger);
+        GraphQLList inputMap = new GraphQLList(
             newInputObject()
-                .name(toValidNameName(typeNamePrefix + keyClazz.getName() + valueClazz.getCanonicalName() + MAP))
+                .name(mapName)
                 .field(newInputObjectField()
                         .name(KEY)
-                        .type(classToInputObject(keyClazz, typeNamePrefix, ledger)))
+                        .type(keyType))
                 .field(newInputObjectField()
                         .name(VALUE)
-                        .type(classToInputObject(valueClazz, typeNamePrefix, ledger)))
+                        .type(valueType))
                 .build()
         );
+
+        mapConversions.put(mapName, inputMap);
+
+        return inputMap;
     }
 
     /**
@@ -182,21 +221,18 @@ public class GraphQLConversionUtils {
      * @param attributeClass The attribute class.
      * @param attribute The name of the attribute.
      * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
-     * @param typeNamePrefix Prefix for typename when creating a field. This is notably useful for stubs.
      * @return A newly created GraphQL Query Type or null if the underlying type cannot be converted.
      */
     public GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
                                                     Class<?> attributeClass,
                                                     String attribute,
-                                                    DataFetcher fetcher,
-                                                    String typeNamePrefix) {
+                                                    DataFetcher fetcher) {
         return attributeToQueryObject(
                 parentClass,
                 attributeClass,
                 attribute,
                 fetcher,
                 entityDictionary,
-                typeNamePrefix,
                 new ConversionLedger());
     }
 
@@ -207,22 +243,30 @@ public class GraphQLConversionUtils {
      * @param attribute The name of the attribute.
      * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
      * @param dictionary The dictionary that contains the runtime type information for the parent class.
-     * @param typenamePrefix Type name prefix when naming attributes
      * @param ledger Keeps track of which entities have already been converted.
      *
-     * @return A newly created GraphQL Query Type or null if the underlying type cannot be converted.
+     * @return A GraphQL Query Type (either newly created or singleton instance for class) or
+     *         null if the underlying type cannot be converted.
      */
     protected GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
                                                     Class<?> attributeClass,
                                                     String attribute,
                                                     DataFetcher fetcher,
                                                     EntityDictionary dictionary,
-                                                    String typenamePrefix,
                                                     ConversionLedger ledger) {
 
         /* Detect cycles */
         if (ledger.isAlreadyConverted(attributeClass)) {
             return null;
+        }
+
+        /* Determine if we've already processed this item. */
+        if (outputConversions.containsKey(attributeClass)) {
+            return outputConversions.get(attributeClass);
+        }
+
+        if (enumConversions.containsKey(attributeClass)) {
+            return enumConversions.get(attributeClass);
         }
 
         /* We don't support Class */
@@ -242,7 +286,7 @@ public class GraphQLConversionUtils {
                 return null;
             }
 
-            return classToQueryMap(keyType, valueType, fetcher, typenamePrefix, ledger);
+            return classToQueryMap(keyType, valueType, fetcher, ledger);
 
         /* If the attribute is a collection */
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
@@ -255,15 +299,21 @@ public class GraphQLConversionUtils {
             }
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
-            GraphQLOutputType outputType = fetchScalarOrObjectOutput(listType, ledger, fetcher, typenamePrefix);
+            GraphQLOutputType outputType;
+
+            if (listType.isEnum()) {
+                outputType = classToEnumType(listType);
+            } else {
+                outputType = fetchScalarOrObjectOutput(listType, ledger, fetcher);
+            }
 
             return new GraphQLList(outputType);
 
         /* If the attribute is an enum */
         } else if (attributeClass.isEnum()) {
-            return classToEnumType(attributeClass, typenamePrefix);
+            return classToEnumType(attributeClass);
         } else {
-            return fetchScalarOrObjectOutput(attributeClass, ledger, fetcher, typenamePrefix);
+            return fetchScalarOrObjectOutput(attributeClass, ledger, fetcher);
         }
     }
 
@@ -272,19 +322,16 @@ public class GraphQLConversionUtils {
      * @param parentClass The elide entity class.
      * @param attributeClass The attribute class.
      * @param attribute The name of the attribute.
-     * @param typeNamePrefix Prefix for the typename of the created object.
      * @return A newly created GraphQL Input Type or null if the underlying type cannot be converted.
      */
     public GraphQLInputType attributeToInputObject(Class<?> parentClass,
                                                    Class<?> attributeClass,
-                                                   String attribute,
-                                                   String typeNamePrefix) {
+                                                   String attribute) {
         return attributeToInputObject(
                 parentClass,
                 attributeClass,
                 attribute,
                 entityDictionary,
-                typeNamePrefix,
                 new ConversionLedger());
     }
 
@@ -295,7 +342,10 @@ public class GraphQLConversionUtils {
      * @return Sanitized form of input string
      */
     protected String toValidNameName(String input) {
-        return input.replace(".", "_").replace("$", "__");
+        return input
+                .replace(".", "_") // Replaces package qualifier on class names
+                .replace("$", "__1") // Replaces inner-class qualifier
+                .replace("[", "___2"); // Replaces primitive list qualifier ([B == array of bytes)
     }
 
     /**
@@ -304,7 +354,6 @@ public class GraphQLConversionUtils {
      * @param attributeClass The attribute class.
      * @param attribute The name of the attribute.
      * @param dictionary The dictionary that contains the runtime type information for the parent class.
-     * @param typeNamePrefix Prefix for the typename of the created object.
      * @param ledger Keeps track of which entities have already been converted.
      *
      * @return A newly created GraphQL Input Type or null if the underlying type cannot be converted.
@@ -313,12 +362,20 @@ public class GraphQLConversionUtils {
                                                    Class<?> attributeClass,
                                                    String attribute,
                                                    EntityDictionary dictionary,
-                                                   String typeNamePrefix,
                                                    ConversionLedger ledger) {
 
         /* Detect cycles */
         if (ledger.isAlreadyConverted(attributeClass)) {
             return null;
+        }
+
+        /* Determine if we've already processed this attribute */
+        if (inputConversions.containsKey(attributeClass)) {
+            return inputConversions.get(attributeClass);
+        }
+
+        if (enumConversions.containsKey(attributeClass)) {
+            return enumConversions.get(attributeClass);
         }
 
         /* We don't support Class */
@@ -338,7 +395,7 @@ public class GraphQLConversionUtils {
                 return null;
             }
 
-            return classToInputMap(keyType, valueType, typeNamePrefix, ledger);
+            return classToInputMap(keyType, valueType, ledger);
 
         /* If the attribute is a collection */
         } else if (Collection.class.isAssignableFrom(attributeClass)) {
@@ -351,15 +408,21 @@ public class GraphQLConversionUtils {
                 return null;
             }
 
-            GraphQLInputType inputType = fetchScalarOrObjectInput(listType, typeNamePrefix, ledger);
+            GraphQLInputType inputType;
+
+            if (listType.isEnum()) {
+                inputType = classToEnumType(listType);
+            } else {
+                inputType = fetchScalarOrObjectInput(listType, ledger);
+            }
 
             return new GraphQLList(inputType);
 
         /* If the attribute is an enum */
         } else if (attributeClass.isEnum()) {
-                return classToEnumType(attributeClass, typeNamePrefix);
+                return classToEnumType(attributeClass);
         } else {
-            return fetchScalarOrObjectInput(attributeClass, typeNamePrefix, ledger);
+            return fetchScalarOrObjectInput(attributeClass, ledger);
         }
     }
 
@@ -368,14 +431,12 @@ public class GraphQLConversionUtils {
      * @param clazz The non Elide object class
      * @param ledger Keeps track of cycles
      * @param fetcher The data fetcher to assign the newly created GraphQL object
-     * @param typeNamePrefix Typename prefix when assigning a type to the newly created object.
      * @return A newly created GraphQL object.
      */
     public GraphQLObjectType classToQueryObject(
             Class<?> clazz,
             ConversionLedger ledger,
-            DataFetcher fetcher,
-            String typeNamePrefix) {
+            DataFetcher fetcher) {
         log.info("Building query object for type: {}", clazz.getName());
         if (ledger.isAlreadyConverted(clazz)) {
             throw new IllegalArgumentException("Cycle detected when generating type for class" + clazz.getName());
@@ -384,6 +445,11 @@ public class GraphQLConversionUtils {
 
         if (!nonEntityDictionary.hasBinding(clazz)) {
             nonEntityDictionary.bindEntity(clazz);
+        }
+
+        /* Check if we've already converted this */
+        if (outputConversions.containsKey(clazz)) {
+            return outputConversions.get(clazz);
         }
 
         GraphQLObjectType.Builder objectBuilder = newObject();
@@ -398,7 +464,7 @@ public class GraphQLConversionUtils {
 
             GraphQLOutputType attributeType =
                     attributeToQueryObject(clazz,
-                            attributeClass, attribute, fetcher, nonEntityDictionary, typeNamePrefix, ledger);
+                            attributeClass, attribute, fetcher, nonEntityDictionary, ledger);
             if (attributeType == null) {
                 continue;
             }
@@ -407,17 +473,21 @@ public class GraphQLConversionUtils {
 
             objectBuilder.field(fieldBuilder);
         }
-        return objectBuilder.build();
+
+        GraphQLObjectType object = objectBuilder.build();
+
+        outputConversions.put(clazz, object);
+
+        return object;
     }
 
     /**
      * Converts a non Elide object into a Input Query object.  Any attribute which cannot be converted is skipped.
      * @param clazz The non Elide object class
-     * @param typeNamePrefix Prefix for the typename of the created object
      * @param ledger Keeps track of cycles
      * @return A newly created GraphQL object.
      */
-    public GraphQLInputObjectType classToInputObject(Class<?> clazz, String typeNamePrefix, ConversionLedger ledger) {
+    public GraphQLInputObjectType classToInputObject(Class<?> clazz, ConversionLedger ledger) {
         log.info("Building input object for type: {}", clazz.getName());
         if (ledger.isAlreadyConverted(clazz)) {
             throw new IllegalArgumentException("Cycle2 detected when generating type for class" + clazz.getName());
@@ -428,8 +498,13 @@ public class GraphQLConversionUtils {
             nonEntityDictionary.bindEntity(clazz);
         }
 
+        /* Check if we've already converted this */
+        if (inputConversions.containsKey(clazz)) {
+            return inputConversions.get(clazz);
+        }
+
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName(clazz.getName()) + "Input");
+        objectBuilder.name(toValidNameName("__input__" + clazz.getName()));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);
@@ -439,8 +514,7 @@ public class GraphQLConversionUtils {
                     .name(attribute);
 
             GraphQLInputType attributeType =
-                    attributeToInputObject(clazz,
-                            attributeClass, attribute, nonEntityDictionary, typeNamePrefix, ledger);
+                    attributeToInputObject(clazz, attributeClass, attribute, nonEntityDictionary, ledger);
 
             if (attributeType == null) {
                 continue;
@@ -449,31 +523,33 @@ public class GraphQLConversionUtils {
             objectBuilder.field(fieldBuilder);
         }
 
-        return objectBuilder.build();
+        GraphQLInputObjectType object = objectBuilder.build();
+
+        inputConversions.put(clazz, object);
+
+        return object;
     }
 
     private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
                                                         ConversionLedger ledger,
-                                                        DataFetcher fetcher,
-                                                        String typeNamePrefix) {
+                                                        DataFetcher fetcher) {
         /* Attempt to convert a scalar type */
         GraphQLOutputType outputType = classToScalarType(conversionClass);
         if (outputType == null) {
                 /* Attempt to convert an object type */
-            outputType = classToQueryObject(conversionClass, ledger, fetcher, typeNamePrefix);
+            outputType = classToQueryObject(conversionClass, ledger, fetcher);
         }
         return outputType;
     }
 
     private GraphQLInputType fetchScalarOrObjectInput(Class<?> conversionClass,
-                                                      String typeNamePrefix,
                                                       ConversionLedger ledger) {
         /* Attempt to convert a scalar type */
         GraphQLInputType inputType = classToScalarType(conversionClass);
         if (inputType == null) {
 
                 /* Attempt to convert an object type */
-            inputType = classToInputObject(conversionClass, typeNamePrefix, ledger);
+            inputType = classToInputObject(conversionClass, ledger);
         }
         return inputType;
     }

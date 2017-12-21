@@ -24,6 +24,9 @@ import com.yahoo.elide.security.RequestScope;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -51,6 +54,10 @@ public class Book {
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
+    private Date publicationDate = null;
+    private Date lastPurchasedDate = null;
+    private Author.AuthorType authorType;
+    private Set<PublicationFormat> publicationFormats = new HashSet<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -109,6 +116,38 @@ public class Book {
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
+    }
+
+    public Date getPublicationDate() {
+        return publicationDate;
+    }
+
+    public void setPublicationDate(Date publicationDate) {
+        this.publicationDate = publicationDate;
+    }
+
+    public Date getLastPurchasedDate() {
+        return lastPurchasedDate;
+    }
+
+    public void setLastPurchasedDate(Date lastPurchasedDate) {
+        this.lastPurchasedDate = lastPurchasedDate;
+    }
+
+    public Author.AuthorType getAuthorType() {
+        return authorType;
+    }
+
+    public void setAuthorType(Author.AuthorType authorType) {
+        this.authorType = authorType;
+    }
+
+    public Set<PublicationFormat> getPublicationFormats() {
+        return publicationFormats;
+    }
+
+    public void setPublicationFormats(Set<PublicationFormat> publicationFormats) {
+        this.publicationFormats = publicationFormats;
     }
 
     @OnUpdatePreSecurity("title")

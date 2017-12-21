@@ -65,6 +65,8 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
+    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
+
     /**
      * Class constructor, constructs the custom arguments to handle mutations
      * @param dictionary elide entity dictionary
@@ -77,7 +79,7 @@ public class ModelBuilder {
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
-                .type(generator.classToEnumType(RelationshipOp.class, ""))
+                .type(generator.classToEnumType(RelationshipOp.class))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -276,7 +278,7 @@ public class ModelBuilder {
                     entityClass.getName());
 
             GraphQLType attributeType =
-                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher, "");
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
 
             if (attributeType == null) {
                 continue;
@@ -389,19 +391,27 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     clazz.getName());
 
-            GraphQLInputType attributeType = generator.attributeToInputObject(clazz,
-                    attributeClass, attribute, "__input");
+            GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
 
             /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {
-                MutableGraphQLInputObjectType wrappedType =
-                    new MutableGraphQLInputObjectType(
-                        attributeType.getName() + ARGUMENT_INPUT,
-                            ((GraphQLInputObjectType) attributeType).getDescription(),
-                            ((GraphQLInputObjectType) attributeType).getFields()
-                        );
-                attributeType = wrappedType;
-
+                String objectName = attributeType.getName() + ARGUMENT_INPUT;
+                if (!convertedInputs.containsKey(objectName)) {
+                    MutableGraphQLInputObjectType wrappedType =
+                            new MutableGraphQLInputObjectType(
+                                    entityName + "__" + attributeType.getName() + ARGUMENT_INPUT,
+                                    ((GraphQLInputObjectType) attributeType).getDescription(),
+                                    ((GraphQLInputObjectType) attributeType).getFields()
+                            );
+                    convertedInputs.put(objectName, wrappedType);
+                    attributeType = wrappedType;
+                } else {
+                    attributeType = convertedInputs.get(objectName);
+                }
+            } else {
+                String attributeTypeName = attributeType.getName();
+                convertedInputs.putIfAbsent(attributeTypeName, attributeType);
+                attributeType = convertedInputs.get(attributeTypeName);
             }
 
             builder.field(newInputObjectField()
