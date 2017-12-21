@@ -12,9 +12,6 @@ import org.testng.annotations.Test;
  */
 public class FetcherUpdateTest extends PersistentResourceFetcherTest {
 
-    private static final String NO_ID_ERROR =
-            "Exception while fetching data: javax.ws.rs.BadRequestException: UPDATE data objects must include ids";
-
     @Test
     public void testRootSingleWithId() throws Exception {
         //author 1 already exist, should update
@@ -30,15 +27,14 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootCollectionInvalidIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        String expectedMessage =
-                "Exception while fetching data: InvalidObjectIdentifierException: Unknown identifier '[42]' for book";
+        String expectedMessage = "Exception while fetching data (/book) : Unknown identifier '[42]' for book";
         runErrorComparisonTest("rootCollectionInvalidIds", expectedMessage);
     }
 
     @Test
     public void testRootCollectionMissingIds() throws Exception {
         // Update 1, create for id 42, create new book with title "abc"
-        String expectedMessage = NO_ID_ERROR;
+        String expectedMessage = "Exception while fetching data (/book) : UPDATE data objects must include ids";
         runErrorComparisonTest("rootCollectionMissingIds", expectedMessage);
     }
 
@@ -54,7 +50,7 @@ public class FetcherUpdateTest extends PersistentResourceFetcherTest {
 
     @Test
     public void testNestedCollectionMissingIds() throws Exception {
-        String expectedMessage = NO_ID_ERROR;
+        String expectedMessage = "Exception while fetching data (/author) : UPDATE data objects must include ids";
         runErrorComparisonTest("nestedCollectionMissingIds", expectedMessage);
     }
 

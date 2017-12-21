@@ -118,7 +118,7 @@ public class ModelBuilderTest {
         Assert.assertNotEquals(schema.getType(BOOK), null);
         Assert.assertNotEquals(schema.getType(AUTHOR_INPUT), null);
         Assert.assertNotEquals(schema.getType(BOOK_INPUT), null);
-        Assert.assertNotEquals(schema.getType("root"), null);
+        Assert.assertNotEquals(schema.getType("__root"), null);
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);

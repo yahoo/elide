@@ -77,7 +77,7 @@ public class ModelBuilder {
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
-                .type(generator.classToEnumType(RelationshipOp.class))
+                .type(generator.classToEnumType(RelationshipOp.class, ""))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -156,7 +156,7 @@ public class ModelBuilder {
         resolveInputObjectRelationships();
 
         /* Construct root object */
-        GraphQLObjectType.Builder root = newObject().name("root");
+        GraphQLObjectType.Builder root = newObject().name("__root");
         for (Class<?> clazz : rootClasses) {
             String entityName = dictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
@@ -172,6 +172,9 @@ public class ModelBuilder {
                     .type(buildConnectionObject(clazz)));
         }
 
+        GraphQLObjectType queryRoot = root.build();
+        GraphQLObjectType mutationRoot = root.name("__mutation_root").build();
+
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
@@ -179,8 +182,8 @@ public class ModelBuilder {
 
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
-                .query(root)
-                .mutation(root)
+                .query(queryRoot)
+                .mutation(mutationRoot)
                 .build(new HashSet<>(CollectionUtils.union(
                         connectionObjectRegistry.values(),
                         inputObjectRegistry.values()
@@ -239,7 +242,7 @@ public class ModelBuilder {
         String id = dictionary.getIdFieldName(entityClass);
 
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
-        GraphQLScalarType customIdType = new GraphQLScalarType(id, "custom id type", new Coercing() {
+        GraphQLScalarType customIdType = new GraphQLScalarType("__id__" + entityName, "custom id type", new Coercing() {
             @Override
             public Object serialize(Object o) {
                 return o;
@@ -273,7 +276,7 @@ public class ModelBuilder {
                     entityClass.getName());
 
             GraphQLType attributeType =
-                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher, "");
 
             if (attributeType == null) {
                 continue;
@@ -327,10 +330,6 @@ public class ModelBuilder {
     private GraphQLList buildEdgesObject(String relationName, GraphQLOutputType entityType) {
         return new GraphQLList(newObject()
                 .name("__edges__" + relationName)
-//                .field(newFieldDefinition()
-//                        .name("cursor")
-//                         .dataFetcher(dataFetcher)
-//                        .type(Scalars.GraphQLLong))
                 .field(newFieldDefinition()
                         .name("node")
                         .dataFetcher(dataFetcher)
@@ -390,7 +389,8 @@ public class ModelBuilder {
                     attributeClass.getName(),
                     clazz.getName());
 
-            GraphQLInputType attributeType = generator.attributeToInputObject(clazz, attributeClass, attribute);
+            GraphQLInputType attributeType = generator.attributeToInputObject(clazz,
+                    attributeClass, attribute, "__input");
 
             /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {
