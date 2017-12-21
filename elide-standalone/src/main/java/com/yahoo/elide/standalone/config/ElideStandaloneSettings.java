@@ -108,6 +108,33 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * API root path specification for the GraphQL endpoint. Namely, this is the root uri for GraphQL.
+     *
+     * @return Default: /graphql/api/v1
+     */
+    default String getGraphQLApiPathSepc() {
+        return "/graphql/api/v1";
+    }
+
+    /**
+     * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
+     *
+     * @return Default: True
+     */
+    default boolean enableJSONAPI() {
+        return true;
+    }
+
+    /**
+     * Enable the GraphQL endpoint. If false, the endpoint will be disabled.
+     *
+     * @return Default: True
+     */
+    default boolean enableGraphQL() {
+        return true;
+    }
+
+    /**
      * JAX-RS filters to register with the web service.
      *
      * @return Default: Empty

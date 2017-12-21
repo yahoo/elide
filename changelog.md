@@ -9,6 +9,7 @@
 
 **Features**
  * Handle ConstraintViolationException's by extracting the first constraint validation failure.
+ * Include GraphQL in Elide standalone by default with ability to remove it via dependency management.
 
 ## 4.0-beta-3
 **Fixes**
