@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,12 +90,14 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         book1.setTitle("Libro Uno");
         book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book1.setPublisher(publisher1);
+        book1.setPublicationDate(new Date(1514397817135L));
 
         Book book2 = new Book();
         book2.setId(2L);
         book2.setTitle("Libro Dos");
         book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
         book2.setPublisher(publisher1);
+        book2.setPublicationDate(new Date(0L));
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));

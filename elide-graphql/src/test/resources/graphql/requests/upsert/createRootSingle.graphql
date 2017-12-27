@@ -1,8 +1,9 @@
 mutation {
-  book(op: UPSERT, data: {title: "Book Numero Dos"} ) {
+  book(op: UPSERT, data: {title: "Book Numero Dos", publicationDate: 123} ) {
     edges {
       node {
         title
+        publicationDate
       }
     }
   }

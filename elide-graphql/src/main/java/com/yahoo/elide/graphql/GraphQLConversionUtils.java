@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -106,6 +107,8 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLShort;
         } else if (clazz.equals(String.class)) {
             return Scalars.GraphQLString;
+        } else if (Date.class.isAssignableFrom(clazz)) {
+            return GraphQLScalars.GRAPHQL_DATE_TYPE;
         }
 
         return null;

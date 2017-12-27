@@ -3,7 +3,8 @@
     "edges": [
       {
         "node": {
-          "title": "Book Numero Dos"
+          "title": "Book Numero Dos",
+          "publicationDate": 123
         }
       }
     ]
