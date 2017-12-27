@@ -158,10 +158,26 @@ public class GraphQLConversionUtils {
             return mapConversions.get(mapName);
         }
 
-        GraphQLOutputType keyType = keyClazz.isEnum()
-                ? classToEnumType(keyClazz) : classToQueryObject(keyClazz, ledger, fetcher);
-        GraphQLOutputType valueType = valueClazz.isEnum()
-                ? classToEnumType(valueClazz) : classToQueryObject(valueClazz, ledger, fetcher);
+        GraphQLOutputType keyType;
+        if (keyClazz.isEnum()) {
+            keyType = classToEnumType(keyClazz);
+        } else {
+            keyType = fetchScalarOrObjectOutput(keyClazz, ledger, fetcher);
+            if (keyType == null) {
+                keyType = classToQueryObject(keyClazz, ledger, fetcher);
+            }
+        }
+
+        GraphQLOutputType valueType;
+        if (valueClazz.isEnum()) {
+            valueType = classToEnumType(valueClazz);
+        } else {
+            valueType = fetchScalarOrObjectOutput(valueClazz, ledger, fetcher);
+            if (valueType == null) {
+                valueType = classToQueryObject(valueClazz, ledger, fetcher);
+            }
+        }
+
         GraphQLList outputMap = new GraphQLList(
             newObject()
                 .name(mapName)
@@ -198,9 +214,26 @@ public class GraphQLConversionUtils {
             return mapConversions.get(mapName);
         }
 
-        GraphQLInputType keyType = keyClazz.isEnum() ? classToEnumType(keyClazz) : classToInputObject(keyClazz, ledger);
-        GraphQLInputType valueType = valueClazz.isEnum()
-                ? classToEnumType(valueClazz) : classToInputObject(valueClazz, ledger);
+        GraphQLInputType keyType;
+        if (keyClazz.isEnum()) {
+            keyType = classToEnumType(keyClazz);
+        } else {
+             keyType = fetchScalarOrObjectInput(keyClazz, ledger);
+            if (keyType == null) {
+                keyType = classToInputObject(keyClazz, ledger);
+            }
+        }
+
+        GraphQLInputType valueType;
+        if (valueClazz.isEnum()) {
+            valueType = classToEnumType(valueClazz);
+        } else {
+            valueType = fetchScalarOrObjectInput(valueClazz, ledger);
+            if (valueType == null) {
+                valueType = classToInputObject(valueClazz, ledger);
+            }
+        }
+
         GraphQLList inputMap = new GraphQLList(
             newInputObject()
                 .name(mapName)
