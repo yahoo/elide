@@ -152,7 +152,6 @@ class GraphQLEndointTest {
         String graphQLResponse =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -173,8 +172,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
         def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
@@ -206,7 +204,6 @@ class GraphQLEndointTest {
         String graphQLResponse =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -227,8 +224,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
         def variables = ["bookId": "1"]
@@ -253,7 +249,6 @@ class GraphQLEndointTest {
         String graphQLResponse =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -264,8 +259,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
         def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
@@ -368,7 +362,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -380,8 +373,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
         response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest))
@@ -451,7 +443,6 @@ class GraphQLEndointTest {
         def expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -475,8 +466,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
 
@@ -506,7 +496,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -518,8 +507,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
 
@@ -574,7 +562,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -587,8 +574,7 @@ class GraphQLEndointTest {
                         }
                       ]
                     }
-                  },
-                  "extensions": null
+                  }
                 }
                 '''
 
@@ -619,7 +605,6 @@ class GraphQLEndointTest {
         expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                   "book": {
                     "edges": [
@@ -657,8 +642,7 @@ class GraphQLEndointTest {
                       }
                     ]
                   }
-                },
-                "extensions": null
+                }
               }
               '''
         response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))

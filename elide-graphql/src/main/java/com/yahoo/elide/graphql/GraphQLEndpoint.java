@@ -118,7 +118,7 @@ public class GraphQLEndpoint {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {
                             put("errors", result.getErrors());
-                            put("data", new HashMap<>());
+                            put("data", null);
                         }
                     };
                     // Do not commit.
@@ -136,7 +136,7 @@ public class GraphQLEndpoint {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return Response.ok(mapper.writeValueAsString(result)).build();
+            return Response.ok(mapper.writeValueAsString(result.toSpecification())).build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);

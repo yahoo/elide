@@ -10,6 +10,7 @@
  * Support java.util.Date types as new built-in primitive. Expects datetime as epoch millis.
  * Fixed issue with supporting variables in mutations.
  * Allow for arbitrary in-transaction identifiers for upserts (treated as unique identifier for current tx only).
+ * Ensure GraphQLEndpoint returns GraphQL spec-compliant response.
 
 **Features**
  * Handle ConstraintViolationException's by extracting the first constraint validation failure.
