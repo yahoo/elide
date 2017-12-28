@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -131,9 +132,15 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
+        assertQueryEquals(graphQLRequest, expectedResponse, Collections.EMPTY_MAP);
+    }
+
+    protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables) throws Exception {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
+        // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
+        //       failure.
         if (isMutation) {
             requestScope.saveOrCreateObjects();
         }
@@ -195,6 +202,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
     public void runComparisonTest(String testName) throws Exception {
         runComparisonTest(testName, this::assertQueryEquals);
+    }
+
+    public void runComparisonTestWithVariables(String testName, Map<String, Object> variables) throws Exception {
+        String graphQLRequest = loadGraphQLRequest(testName + ".graphql");
+        String graphQLResponse = loadGraphQLResponse(testName + ".json");
+        assertQueryEquals(graphQLRequest, graphQLResponse, variables);
     }
 
     public void runErrorComparisonTest(String testName, String expectedMessage) throws Exception {
