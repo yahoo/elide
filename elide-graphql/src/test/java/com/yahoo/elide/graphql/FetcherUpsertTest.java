@@ -104,7 +104,8 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
             {
                 put("title", "My new book title from variable!");
                 put("publicationDate", "456");
-                put("publisherId", "1");
+                put("publisherId", "b9aa44b2-8193-4fb3-84ed-613ef104e7c3");
+                put("publisherName", "my new publisher");
             }
         });
     }

@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +20,6 @@ import javax.persistence.OneToMany;
  */
 @Entity
 @Include
-@SharePermission
 public class Publisher {
     private long id;
     private String name;

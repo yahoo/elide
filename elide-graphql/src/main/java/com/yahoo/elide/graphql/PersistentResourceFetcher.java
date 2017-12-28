@@ -13,6 +13,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -399,7 +400,7 @@ public class PersistentResourceFetcher implements DataFetcher {
                 upsertedResource = loadedResource.iterator().next();
 
             //The ID doesn't exist yet.  Let's create the object.
-            } catch (InvalidObjectIdentifierException e) {
+            } catch (InvalidObjectIdentifierException | InvalidValueException e) {
                 upsertedResource = PersistentResource.createObject(parentResource,
                         entity.getEntityClass(),
                         requestScope,
