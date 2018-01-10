@@ -86,7 +86,7 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
                 }
               }
             }
-          } 
+          }
         }
         """
         def expectedResponse = """
@@ -97,27 +97,6 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test(priority = 2)
-    void fetchRootSingle() {
-        def graphQLQuery = """
-        {
-          book(ids: ["1"]) {
-            edges {
-              node {
-                id
-                title
-              }
-            }
-          }
-        }
-        """
-        def expectedResponse = """
-        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984"}}]}}}
-        """
-
-        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
-    }
-
-    @Test(priority = 3)
     void createNewBooksAndAuthor() {
         def graphQLQuery = """
         mutation myMutation(\$bookName: String, \$authorName: String) {
@@ -145,11 +124,32 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
         runQueryWithExpectedResult(graphQLQuery, variables, expected)
     }
 
-    @Test(priority = 4)
+    @Test(priority = 3)
     void fetchCollection() {
         def graphQLQuery = "{ book { edges { node { id title authors { edges { node { id name } } } } } } }"
         def expected = """{"data":{"book":{"edges":[{"node":{"id":"1","title":"1984","authors":{"edges":[{"node":{"id":"1","name":"George Orwell"}}]}}},{"node":{"id":"2","title":"Grapes of Wrath","authors":{"edges":[{"node":{"id":"2","name":"John Setinbeck"}}]}}}]}}}"""
         runQueryWithExpectedResult(graphQLQuery, expected)
+    }
+
+    @Test(priority = 4)
+    void fetchRootSingle() {
+        def graphQLQuery = """
+        {
+          book(ids: ["1"]) {
+            edges {
+              node {
+                id
+                title
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
     }
 
     private void runQueryWithExpectedResult(String graphQLQuery, Map<String, Object> variables, String expected) {

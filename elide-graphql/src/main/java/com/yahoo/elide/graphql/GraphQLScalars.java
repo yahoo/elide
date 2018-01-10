@@ -23,7 +23,10 @@ public class GraphQLScalars {
     private static final String ERROR_BAD_EPOCH = "Date must be provided as epoch millis";
     private static final String ERROR_BAD_EPOCH_TYPE = "Date must be provided as string or integral in epoch millis";
 
-    public static final GraphQLScalarType GRAPHQL_DATE_TYPE = new GraphQLScalarType(
+    // TODO: Should we make this a class that can be configured? Should determine if there are other customizeable
+    // TODO: scalar types.
+    // NOTE: Non-final so it's overrideable if someone wants _different_ date representations.
+    public static GraphQLScalarType GRAPHQL_DATE_TYPE = new GraphQLScalarType(
             "Date",
             "Built-in date",
             new Coercing<Date, Long>() {
@@ -63,6 +66,34 @@ public class GraphQLScalars {
                         throw new CoercingParseValueException(ERROR_BAD_EPOCH_TYPE);
                     }
                     return parseValue(input);
+                }
+            }
+    );
+
+    public static GraphQLScalarType GRAPHQL_DEFERRED_ID = new GraphQLScalarType(
+            "DeferredID",
+            "custom id type",
+            new Coercing() {
+                @Override
+                public Object serialize(Object o) {
+                    return o;
+                }
+
+                @Override
+                public String parseValue(Object o) {
+                    return o.toString();
+                }
+
+                @Override
+                public String parseLiteral(Object o) {
+                    if (o instanceof StringValue) {
+                        return ((StringValue) o).getValue();
+                    } else if (o instanceof IntValue) {
+                        return ((IntValue) o).getValue().toString();
+                    }
+                    // Unexpected object, try to use the toString.
+                    log.debug("Found unexpected object type: {}", o.getClass());
+                    return o.toString();
                 }
             }
     );

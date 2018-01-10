@@ -9,7 +9,6 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
-import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectType;
@@ -17,7 +16,6 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
@@ -244,27 +242,10 @@ public class ModelBuilder {
         String id = dictionary.getIdFieldName(entityClass);
 
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
-        GraphQLScalarType customIdType = new GraphQLScalarType("__id__" + entityName, "custom id type", new Coercing() {
-            @Override
-            public Object serialize(Object o) {
-                return o;
-            }
-
-            @Override
-            public String parseValue(Object o) {
-                return o.toString();
-            }
-
-            @Override
-            public String parseLiteral(Object o) {
-                return o.toString();
-            }
-        });
-
         builder.field(newFieldDefinition()
                 .name(id)
                 .dataFetcher(dataFetcher)
-                .type(customIdType));
+                .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
