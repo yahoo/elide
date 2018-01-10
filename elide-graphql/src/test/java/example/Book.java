@@ -56,7 +56,7 @@ public class Book {
     private Publisher publisher = null;
     private Date publicationDate = null;
     private Date lastPurchasedDate = null;
-    private Author.AuthorType authorType;
+    private Author.AuthorType authorTypeAtTimeOfPublication;
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -134,12 +134,12 @@ public class Book {
         this.lastPurchasedDate = lastPurchasedDate;
     }
 
-    public Author.AuthorType getAuthorType() {
-        return authorType;
+    public Author.AuthorType getAuthorTypeAtTimeOfPublication() {
+        return authorTypeAtTimeOfPublication;
     }
 
-    public void setAuthorType(Author.AuthorType authorType) {
-        this.authorType = authorType;
+    public void setAuthorTypeAtTimeOfPublication(Author.AuthorType authorTypeAtTimeOfPublication) {
+        this.authorTypeAtTimeOfPublication = authorTypeAtTimeOfPublication;
     }
 
     public Set<PublicationFormat> getPublicationFormats() {

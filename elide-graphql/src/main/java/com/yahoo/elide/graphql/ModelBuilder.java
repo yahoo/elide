@@ -399,7 +399,7 @@ public class ModelBuilder {
                 if (!convertedInputs.containsKey(objectName)) {
                     MutableGraphQLInputObjectType wrappedType =
                             new MutableGraphQLInputObjectType(
-                                    entityName + "__" + attributeType.getName() + ARGUMENT_INPUT,
+                                    objectName,
                                     ((GraphQLInputObjectType) attributeType).getDescription(),
                                     ((GraphQLInputObjectType) attributeType).getFields()
                             );
