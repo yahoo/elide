@@ -126,6 +126,7 @@ public class GraphQLEndpoint {
                 }
                 requestScope.saveOrCreateObjects();
             }
+            tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
             elide.getAuditLogger().commit(requestScope);
