@@ -22,7 +22,12 @@ import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,8 +53,14 @@ public class Author {
     private Collection<Book> books = new ArrayList<>();
     private String name;
     private AuthorType type;
+    private AuthorType secondaryType;
     private Address homeAddress;
     private String prefix = "default_";
+    private Date birthDate = null;
+    private Set<PublicationFormat> publicationFormats = new HashSet<>();
+    private Map<Book, PublicationFormat> publishedBookFormats = new HashMap<>();
+    private Map<Book, PublicationFormat> favoriteBookFormats = new HashMap<>();
+    private Map<PublicationFormat, Integer> booksPublishedByFormat = new HashMap<>();
 
     public String getName() {
         return name;
@@ -65,6 +76,14 @@ public class Author {
 
     public void setType(AuthorType type) {
         this.type = type;
+    }
+
+    public AuthorType getSecondaryType() {
+        return secondaryType;
+    }
+
+    public void setSecondaryType(AuthorType secondaryType) {
+        this.secondaryType = secondaryType;
     }
 
     public Address getHomeAddress() {
@@ -127,6 +146,46 @@ public class Author {
         if (prefix != null) {
             this.prefix = prefix;
         }
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public Set<PublicationFormat> getPublicationFormats() {
+        return publicationFormats;
+    }
+
+    public void setPublicationFormats(Set<PublicationFormat> publicationFormats) {
+        this.publicationFormats = publicationFormats;
+    }
+
+    public Map<Book, PublicationFormat> getPublishedBookFormats() {
+        return publishedBookFormats;
+    }
+
+    public void setPublishedBookFormats(Map<Book, PublicationFormat> publishedBookFormats) {
+        this.publishedBookFormats = publishedBookFormats;
+    }
+
+    public Map<PublicationFormat, Integer> getBooksPublishedByFormat() {
+        return booksPublishedByFormat;
+    }
+
+    public void setBooksPublishedByFormat(Map<PublicationFormat, Integer> booksPublishedByFormat) {
+        this.booksPublishedByFormat = booksPublishedByFormat;
+    }
+
+    public Map<Book, PublicationFormat> getFavoriteBookFormats() {
+        return favoriteBookFormats;
+    }
+
+    public void setFavoriteBookFormats(Map<Book, PublicationFormat> favoriteBookFormats) {
+        this.favoriteBookFormats = favoriteBookFormats;
     }
 
     @Override

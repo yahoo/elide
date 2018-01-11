@@ -6,7 +6,8 @@
           "id": "1",
           "title": "Libro Uno",
           "genre": null,
-          "language": null
+          "language": null,
+          "publicationDate": 1514397817135
         }
       },
       {
@@ -14,7 +15,8 @@
           "id": "2",
           "title": "Libro Dos",
           "genre": null,
-          "language": null
+          "language": null,
+          "publicationDate": 0
         }
       },
       {
@@ -22,7 +24,8 @@
           "id": "3",
           "title": "Doctor Zhivago",
           "genre": null,
-          "language": null
+          "language": null,
+          "publicationDate": null
         }
       }
     ]

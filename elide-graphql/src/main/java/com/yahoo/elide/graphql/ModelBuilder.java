@@ -9,7 +9,6 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import graphql.Scalars;
-import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectType;
@@ -17,7 +16,6 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
@@ -64,6 +62,8 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
+
+    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations
@@ -156,7 +156,7 @@ public class ModelBuilder {
         resolveInputObjectRelationships();
 
         /* Construct root object */
-        GraphQLObjectType.Builder root = newObject().name("root");
+        GraphQLObjectType.Builder root = newObject().name("__root");
         for (Class<?> clazz : rootClasses) {
             String entityName = dictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
@@ -172,6 +172,9 @@ public class ModelBuilder {
                     .type(buildConnectionObject(clazz)));
         }
 
+        GraphQLObjectType queryRoot = root.build();
+        GraphQLObjectType mutationRoot = root.name("__mutation_root").build();
+
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
@@ -179,8 +182,8 @@ public class ModelBuilder {
 
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
-                .query(root)
-                .mutation(root)
+                .query(queryRoot)
+                .mutation(mutationRoot)
                 .build(new HashSet<>(CollectionUtils.union(
                         connectionObjectRegistry.values(),
                         inputObjectRegistry.values()
@@ -239,27 +242,10 @@ public class ModelBuilder {
         String id = dictionary.getIdFieldName(entityClass);
 
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
-        GraphQLScalarType customIdType = new GraphQLScalarType(id, "custom id type", new Coercing() {
-            @Override
-            public Object serialize(Object o) {
-                return o;
-            }
-
-            @Override
-            public String parseValue(Object o) {
-                return o.toString();
-            }
-
-            @Override
-            public String parseLiteral(Object o) {
-                return o.toString();
-            }
-        });
-
         builder.field(newFieldDefinition()
                 .name(id)
                 .dataFetcher(dataFetcher)
-                .type(customIdType));
+                .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : dictionary.getAttributes(entityClass)) {
             Class<?> attributeClass = dictionary.getType(entityClass, attribute);
@@ -327,10 +313,6 @@ public class ModelBuilder {
     private GraphQLList buildEdgesObject(String relationName, GraphQLOutputType entityType) {
         return new GraphQLList(newObject()
                 .name("__edges__" + relationName)
-//                .field(newFieldDefinition()
-//                        .name("cursor")
-//                         .dataFetcher(dataFetcher)
-//                        .type(Scalars.GraphQLLong))
                 .field(newFieldDefinition()
                         .name("node")
                         .dataFetcher(dataFetcher)
@@ -394,14 +376,23 @@ public class ModelBuilder {
 
             /* If the attribute is an object, we need to change its name so it doesn't conflict with query objects */
             if (attributeType instanceof GraphQLInputObjectType) {
-                MutableGraphQLInputObjectType wrappedType =
-                    new MutableGraphQLInputObjectType(
-                        attributeType.getName() + ARGUMENT_INPUT,
-                            ((GraphQLInputObjectType) attributeType).getDescription(),
-                            ((GraphQLInputObjectType) attributeType).getFields()
-                        );
-                attributeType = wrappedType;
-
+                String objectName = attributeType.getName() + ARGUMENT_INPUT;
+                if (!convertedInputs.containsKey(objectName)) {
+                    MutableGraphQLInputObjectType wrappedType =
+                            new MutableGraphQLInputObjectType(
+                                    objectName,
+                                    ((GraphQLInputObjectType) attributeType).getDescription(),
+                                    ((GraphQLInputObjectType) attributeType).getFields()
+                            );
+                    convertedInputs.put(objectName, wrappedType);
+                    attributeType = wrappedType;
+                } else {
+                    attributeType = convertedInputs.get(objectName);
+                }
+            } else {
+                String attributeTypeName = attributeType.getName();
+                convertedInputs.putIfAbsent(attributeTypeName, attributeType);
+                attributeType = convertedInputs.get(attributeTypeName);
             }
 
             builder.field(newInputObjectField()

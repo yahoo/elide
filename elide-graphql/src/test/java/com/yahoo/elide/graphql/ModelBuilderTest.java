@@ -11,7 +11,13 @@ import example.Author;
 import example.Book;
 import example.Publisher;
 import graphql.Scalars;
-import graphql.schema.*;
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -50,6 +56,18 @@ public class ModelBuilderTest {
     private static final String PUBLISH_DATE = "publishDate";
     private static final String GENRE = "genre";
     private static final String LANGUAGE = "language";
+
+    // TODO: We need more tests. I've updated the models to contain all of the situations below, but we should _esnure_
+    // the generated result is exactly correct:
+    //
+    //   * Duplicate enums in same objects
+    //   * Duplicate Set<Enum> across objects
+    //   * Duplicate types across objects
+    //   * Enum as map keys
+    //   * Enum as map values
+    //   * Duplicate maps of the same type
+    //
+    // This is all important for ensuring we don't duplicate typenames which is a requirement in the latest graphql-java
 
     @BeforeSuite
     public void init() {
@@ -118,7 +136,7 @@ public class ModelBuilderTest {
         Assert.assertNotEquals(schema.getType(BOOK), null);
         Assert.assertNotEquals(schema.getType(AUTHOR_INPUT), null);
         Assert.assertNotEquals(schema.getType(BOOK_INPUT), null);
-        Assert.assertNotEquals(schema.getType("root"), null);
+        Assert.assertNotEquals(schema.getType("__root"), null);
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);

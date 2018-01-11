@@ -7,6 +7,8 @@ package com.yahoo.elide.graphql;
 
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+
 /**
  * Test the Add operation.
  */
@@ -94,6 +96,18 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     @Test(enabled = false)
     public void testSetComputedAttribute() throws Exception {
         runComparisonTest("setComputedAttribute");
+    }
+
+    @Test
+    public void testCreateWithVariables() throws Exception {
+        super.runComparisonTestWithVariables("upsert/createWithVariables", new HashMap<String, Object>() {
+            {
+                put("title", "My new book title from variable!");
+                put("publicationDate", "456");
+                put("publisherId", "b9aa44b2-8193-4fb3-84ed-613ef104e7c3");
+                put("publisherName", "my new publisher");
+            }
+        });
     }
 
     @Override

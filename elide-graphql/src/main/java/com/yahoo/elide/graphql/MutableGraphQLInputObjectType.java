@@ -7,7 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import graphql.AssertException;
-import graphql.schema.BuilderFunction;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 
@@ -113,25 +112,6 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
             assertNotNull(field, "field can't be null");
             fields.add(field);
             return this;
-        }
-
-        /**
-         * Take a field builder in a function definition and apply. Can be used in a jdk8 lambda
-         * e.g.:
-         * <pre>
-         *     {@code
-         *      field(f -> f.name("fieldName"))
-         *     }
-         * </pre>
-         *
-         * @param builderFunction a supplier for the builder impl
-         * @return this
-         */
-        public Builder field(BuilderFunction<GraphQLInputObjectField.Builder> builderFunction) {
-            assertNotNull(builderFunction, "builderFunction should not be null");
-            GraphQLInputObjectField.Builder builder = GraphQLInputObjectField.newInputObjectField();
-            builder = builderFunction.apply(builder);
-            return field(builder);
         }
 
         /**

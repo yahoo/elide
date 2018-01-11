@@ -1,0 +1,19 @@
+mutation createWithVariables($title: String!, $publicationDate: Date!, $publisherId: ID!, $publisherName: String!) {
+  book(op: UPSERT, data: {title: $title, publicationDate: $publicationDate}) {
+    edges {
+      node {
+        id
+        title
+        publicationDate
+        publisher(op: UPSERT, data: {id: $publisherId, name: $publisherName}) {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

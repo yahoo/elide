@@ -6,6 +6,7 @@
         title
         genre
         language
+        publicationDate
       }
     }
   }

@@ -128,6 +128,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testFetchWithFragments() throws Exception {
+        runComparisonTest("fetchWithFragment");
+    }
+
+    @Test
     public void testSchemaIntrospection() throws Exception {
         String graphQLRequest = "{"
             + "__schema {"

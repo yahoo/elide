@@ -1,0 +1,48 @@
+{
+  "author": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "title": "Libro Uno"
+                }
+              },
+              {
+                "node": {
+                  "id": "2",
+                  "title": "Libro Dos"
+                }
+              }
+            ],
+            "__typename": "book"
+          },
+          "__typename": "__node__author"
+        },
+        "__typename": "__edges__author"
+      },
+      {
+        "node": {
+          "id": "2",
+          "books": {
+            "edges": [
+              {
+                "node": {
+                  "id": "3",
+                  "title": "Doctor Zhivago"
+                }
+              }
+            ],
+            "__typename": "book"
+          },
+          "__typename": "__node__author"
+        },
+        "__typename": "__edges__author"
+      }
+    ]
+  }
+}

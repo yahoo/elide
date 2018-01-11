@@ -21,6 +21,7 @@ import graphqlEndpointTestModels.DisallowShare
 import graphqlEndpointTestModels.security.CommitChecks
 import graphqlEndpointTestModels.security.UserChecks
 import org.mockito.Mockito
+import org.skyscreamer.jsonassert.JSONAssert
 import org.testng.Assert
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeTest
@@ -151,7 +152,6 @@ class GraphQLEndointTest {
         String graphQLResponse =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -180,6 +180,59 @@ class GraphQLEndointTest {
     }
 
     @Test
+    void testValidFetchWithVariables() {
+        String graphQLRequest =
+            '''
+            query myQuery($bookId: [String]) {
+              book(ids: $bookId) {
+                edges {
+                  node {
+                    id
+                    title
+                    authors {
+                      edges {
+                        node {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            '''
+        String graphQLResponse =
+                '''
+                {
+                  "data": {
+                    "book": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "1",
+                            "title": "My first book",
+                            "authors": {
+                              "edges": [
+                                {
+                                  "node": {
+                                    "name": "Ricky Carmichael"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                '''
+        def variables = ["bookId": "1"]
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest, variables))
+        assert200EqualBody(response, graphQLResponse)
+    }
+
+    @Test
     void testCanReadRestrictedFieldWithAppropriateAccess() {
         String graphQLRequest =
                 '''
@@ -196,7 +249,6 @@ class GraphQLEndointTest {
         String graphQLResponse =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -310,7 +362,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -392,7 +443,6 @@ class GraphQLEndointTest {
         def expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -446,7 +496,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -513,7 +562,6 @@ class GraphQLEndointTest {
         String expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                     "book": {
                       "edges": [
@@ -557,7 +605,6 @@ class GraphQLEndointTest {
         expected =
                 '''
                 {
-                  "errors": [],
                   "data": {
                   "book": {
                     "edges": [
@@ -623,29 +670,35 @@ class GraphQLEndointTest {
     }
 
     static String graphQLRequestToJSON(String request) {
+        return graphQLRequestToJSON(request, new HashMap<String, String>())
+    }
+
+    static String graphQLRequestToJSON(String request, Map<String, String> variables) {
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode node = JsonNodeFactory.instance.objectNode()
         node.put("query", request)
+        node.set("variables", variables == null ? null : mapper.valueToTree(variables))
         return node.toString()
     }
 
     static JsonNode extract200Response(Response response) {
+        return new ObjectMapper().readTree(extract200ResponseString(response))
+    }
+
+    static String extract200ResponseString(Response response) {
         Assert.assertEquals(response.getStatus(), 200)
-        ObjectMapper mapper = new ObjectMapper()
-        return mapper.readTree((String) response.getEntity())
+        return (String) response.getEntity()
     }
 
     static assert200EqualBody(Response response, String expected) {
-        ObjectMapper mapper = new ObjectMapper()
-        JsonNode expectedNode = mapper.readTree(expected)
-        JsonNode actualNode = extract200Response(response)
-        Assert.assertEquals(actualNode, expectedNode)
+        String actual = extract200ResponseString(response)
+        JSONAssert.assertEquals(expected, actual, true)
     }
 
     static assert200DataEqual(Response response, String expected) {
-        ObjectMapper mapper = new ObjectMapper()
-        JsonNode expectedNode = mapper.readTree(expected)
         JsonNode actualNode = extract200Response(response)
-        Assert.assertEquals(actualNode.get("data"), expectedNode)
+        String actual = new ObjectMapper().writeValueAsString(actualNode.get("data"))
+        JSONAssert.assertEquals(expected, actual, true)
     }
 
     static assertHasErrors(Response response) {

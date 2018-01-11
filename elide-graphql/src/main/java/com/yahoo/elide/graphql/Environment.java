@@ -14,6 +14,7 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
 import graphql.language.Field;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +65,12 @@ public class Environment {
 
         this.ids = Optional.ofNullable((List<String>) args.get(ModelBuilder.ARGUMENT_IDS));
 
-        List<Map<String, Object>> data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
+        List<Map<String, Object>> data;
+        if (args.get(ModelBuilder.ARGUMENT_DATA) instanceof Map) {
+            data = Arrays.asList((Map<String, Object>) args.get(ModelBuilder.ARGUMENT_DATA));
+        } else {
+            data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
+        }
         this.data = Optional.ofNullable(data);
     }
 

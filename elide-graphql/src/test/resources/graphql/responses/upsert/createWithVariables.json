@@ -1,0 +1,23 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "4",
+          "title": "My new book title from variable!",
+          "publicationDate": 456,
+          "publisher": {
+            "edges": [
+              {
+                "node": {
+                  "id": "3",
+                  "name": "my new publisher"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

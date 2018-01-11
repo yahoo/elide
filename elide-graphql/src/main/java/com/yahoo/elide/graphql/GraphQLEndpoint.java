@@ -16,6 +16,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
@@ -94,18 +95,20 @@ public class GraphQLEndpoint {
 
             String query = jsonDocument.get(QUERY).asText();
 
-            String operationName = null;
+            ExecutionInput.Builder executionInput = new ExecutionInput.Builder()
+                    .context(requestScope)
+                    .query(query);
+
             if (jsonDocument.has(OPERATION_NAME) && !jsonDocument.get(OPERATION_NAME).isNull()) {
-                operationName = jsonDocument.get(OPERATION_NAME).asText();
+                executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
 
-            ExecutionResult result;
             if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
                 Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-                result = api.execute(query, operationName, requestScope, variables);
-            } else {
-                result = api.execute(query, operationName, requestScope);
+                executionInput.variables(variables);
             }
+
+            ExecutionResult result = api.execute(executionInput);
 
             tx.preCommit();
             requestScope.runQueuedPreSecurityTriggers();
@@ -115,7 +118,7 @@ public class GraphQLEndpoint {
                     HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
                         {
                             put("errors", result.getErrors());
-                            put("data", new HashMap<>());
+                            put("data", null);
                         }
                     };
                     // Do not commit.
@@ -123,6 +126,7 @@ public class GraphQLEndpoint {
                 }
                 requestScope.saveOrCreateObjects();
             }
+            tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
             elide.getAuditLogger().commit(requestScope);
@@ -133,7 +137,7 @@ public class GraphQLEndpoint {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return Response.ok(mapper.writeValueAsString(result)).build();
+            return Response.ok(mapper.writeValueAsString(result.toSpecification())).build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
