@@ -1,4 +1,9 @@
 # Change Log
+
+## 3.2.2
+**Fixes**
+ * Ignore non-entity types if present in the hibernate class metadata in the hibernate stores. This can legitimately occur when tools like envers are used.
+
 ## 3.2.1
 **Fixes**
  * Add additional logging around exception handling.
