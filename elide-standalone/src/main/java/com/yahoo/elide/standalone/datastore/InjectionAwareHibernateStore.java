@@ -47,8 +47,18 @@ public class InjectionAwareHibernateStore extends HibernateSessionFactoryStore {
             /* bind all entities to injector */
             metadata.forEach(meta -> {
                 // Ensure they receive proper injection:
-                dictionary.bindInitializer(injector::inject, meta.getMappedClass());
-                log.debug("Elide bound entity: {}", meta.getEntityName());
+                // Since tools like envers can insert non-entities into our metadata, make sure
+                // we ignore non-entities:
+                try {
+                    // This is only used to catch an exception. If non-entity is passed, then an exception is thrown
+                    dictionary.lookupEntityClass(meta.getMappedClass());
+                    // If we have gotten this far, we can happily bind the entity
+                    dictionary.bindInitializer(injector::inject, meta.getMappedClass());
+                    log.debug("Elide bound entity: {}", meta.getEntityName());
+                } catch (IllegalArgumentException e) {
+                    // Ignore this non-entity
+                    log.debug("Elide ignoring non-entity found in hibernate metadata: {}", meta.getEntityName());
+                }
             });
         } else {
             log.info("No injector found, not binding one to entities.");

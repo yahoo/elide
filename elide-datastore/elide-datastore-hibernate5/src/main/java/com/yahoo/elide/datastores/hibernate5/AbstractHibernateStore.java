@@ -102,7 +102,21 @@ public abstract class AbstractHibernateStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
         for (ClassMetadata meta : sessionFactory.getAllClassMetadata().values()) {
-            dictionary.bindEntity(meta.getMappedClass());
+            try {
+                Class mappedClass = meta.getMappedClass();
+
+                // Ignore this result. We are just checking to see if it throws an exception meaning that
+                // provided class was _not_ an entity.
+                dictionary.lookupEntityClass(mappedClass);
+
+                // Bind if successful
+                dictionary.bindEntity(meta.getMappedClass());
+            } catch (IllegalArgumentException e)  {
+                // Ignore this entity
+                // Turns out that hibernate may include non-entity types in this list when using things
+                // like envers. Since they are not entities, we do not want to bind them into the entity
+                // dictionary
+            }
         }
     }
 
