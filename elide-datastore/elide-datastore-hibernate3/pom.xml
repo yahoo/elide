@@ -40,6 +40,7 @@
 
     <properties>
         <dataStoreSupplier>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreSupplier</dataStoreSupplier>
+        <hibernate3.version>3.6.10.Final</hibernate3.version>
     </properties>
 
     <dependencies>
@@ -77,7 +78,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>3.6.10.Final</version>
+            <version>${hibernate3.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>xml-apis</artifactId>
@@ -133,6 +134,14 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Envers testing -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+            <version>${hibernate3.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
