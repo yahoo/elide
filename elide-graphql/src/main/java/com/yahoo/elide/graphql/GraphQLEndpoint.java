@@ -8,6 +8,8 @@ package com.yahoo.elide.graphql;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -36,8 +38,11 @@ import javax.ws.rs.core.SecurityContext;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Default endpoint/servlet for using Elide and JSONAPI.
@@ -81,10 +86,60 @@ public class GraphQLEndpoint {
     public Response post(
             @Context SecurityContext securityContext,
             String graphQLDocument) {
+        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+
+        JsonNode topLevel;
+
+        try {
+             topLevel = mapper.readTree(graphQLDocument);
+        } catch (IOException e) {
+            log.debug("Invalid json body provided to GraphQL", e);
+            // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
+            // so this can be set appropriately.
+            return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), false);
+        }
+
+        Function<JsonNode, Response> executeRequest =
+                (node) -> executeGraphQLRequest(mapper, securityContext, graphQLDocument, node);
+
+        if (topLevel.isArray()) {
+            Iterator<JsonNode> nodeIterator = topLevel.iterator();
+            Iterable<JsonNode> nodeIterable = () -> nodeIterator;
+            // NOTE: Create a non-parallel stream
+            // It's unclear whether or not the expectations of the caller would be that requests are intended
+            // to run serially even outside of a single transaction. We should revisit this.
+            Stream<JsonNode> nodeStream = StreamSupport.stream(nodeIterable.spliterator(), false);
+            ArrayNode result = nodeStream
+                    .map(executeRequest)
+                    .map(response -> {
+                        try {
+                            return mapper.readTree((String) response.getEntity());
+                        } catch (IOException e) {
+                            log.debug("Caught an IO exception while trying to read response body");
+                            return JsonNodeFactory.instance.objectNode();
+                        }
+                    })
+                    .reduce(JsonNodeFactory.instance.arrayNode(),
+                            (arrayNode, node) -> arrayNode.add(node),
+                            (left, right) -> left.addAll(right));
+            try {
+                return Response.ok(mapper.writeValueAsString(result)).build();
+            } catch (IOException e) {
+                log.error("An unexpected error occurred trying to serialize array response.", e);
+                return Response.serverError().build();
+            }
+        }
+
+        return executeRequest.apply(topLevel);
+    }
+
+    private Response executeGraphQLRequest(
+            ObjectMapper mapper,
+            SecurityContext securityContext,
+            String graphQLDocument,
+            JsonNode jsonDocument) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
-            ObjectMapper mapper = elide.getMapper().getObjectMapper();
-            JsonNode jsonDocument = mapper.readTree(graphQLDocument);
             final User user = tx.accessUser(getUser.apply(securityContext));
             GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
@@ -179,5 +234,9 @@ public class GraphQLEndpoint {
         return Response.status(error.getStatus())
                 .entity(isVerbose
                         ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
+    }
+
+    private static JsonNode extractResponse(ArrayNode arrayNode, Response response) {
+        return (JsonNode) response.getEntity();
     }
 }

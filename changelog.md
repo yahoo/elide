@@ -4,6 +4,9 @@
 **Fixes**
  * Ignore non-entity types if present in the hibernate class metadata in the hibernate stores. This can legitimately occur when tools like envers are used.
 
+**Features**
+ * Support GraphQL batch requests.
+
 ## 4.0-beta-4
 **Fixes**
  * Ignore provided-- but null-- operation names and variables in GraphQL requests.
