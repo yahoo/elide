@@ -186,6 +186,113 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
         compareJsonObject(runQuery(toJsonArray(toJsonNode(graphQLQuery), toJsonNode(graphQLQuery2))), expectedResponse)
     }
 
+    @Test(priority = 6)
+    void runMultipleRequestsSameTransaction() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        def graphQLQuery = """
+        {
+          book(ids: ["1"]) {
+            edges {
+              node {
+                id
+                title
+                authors {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+          author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984","authors":{"edges":[{"node":{"id":"1","name":"George Orwell"}}]}}}]},"author":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
+    @Test(priority = 7)
+    void runMultipleRequestsSameTransactionMutation() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        // and results are consistent across a mutation.
+        def graphQLQuery = """
+        mutation {
+          book(ids: ["1"]) {
+            edges {
+              node {
+                id
+                title
+                authors(op: UPSERT, data:{id:"3", name:"Stephen King"}) {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+          author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984","authors":{"edges":[{"node":{"id":"3","name":"Stephen King"}}]}}}]},"author":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}},{"node":{"id":"3","name":"Stephen King"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
+    @Test(priority = 6)
+    void runMultipleRequestsSameTransactionWithAliases() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        def graphQLQuery = """
+        {
+          firstAuthorCollection: author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+          secondAuthorCollection: author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"firstAuthorCollection":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]},"secondAuthorCollection":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
     private void runQueryWithExpectedResult(String graphQLQuery, Map<String, Object> variables, String expected) {
         compareJsonObject(runQuery(graphQLQuery, variables), expected)
     }

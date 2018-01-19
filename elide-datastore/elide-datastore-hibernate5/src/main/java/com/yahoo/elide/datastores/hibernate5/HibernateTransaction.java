@@ -25,6 +25,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
 import com.yahoo.elide.security.User;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -43,6 +44,7 @@ import java.util.Optional;
 /**
  * Hibernate Transaction implementation.
  */
+@Slf4j
 public class HibernateTransaction implements DataStoreTransaction {
 
     private final Session session;
@@ -85,6 +87,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 session.flush();
             }
         } catch (HibernateException e) {
+            log.error("Caught hibernate exception during flush", e);
             throw new TransactionException(e);
         }
     }

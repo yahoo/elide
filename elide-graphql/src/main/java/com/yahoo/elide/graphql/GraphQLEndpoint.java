@@ -235,8 +235,4 @@ public class GraphQLEndpoint {
                 .entity(isVerbose
                         ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
     }
-
-    private static JsonNode extractResponse(ArrayNode arrayNode, Response response) {
-        return (JsonNode) response.getEntity();
-    }
 }
