@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.0-beta-2</version>
+            <version>4.0-beta-5</version>
         </dependency>
 
         <!-- MySQL Driver -->
