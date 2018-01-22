@@ -7,6 +7,7 @@ package com.yahoo.elide.tests
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.jayway.restassured.RestAssured
@@ -152,6 +153,146 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
         runQueryWithExpectedResult(graphQLQuery, expectedResponse)
     }
 
+    @Test(priority = 5)
+    void runUpdateAndFetchDifferentTransactionsBatch() {
+        def graphQLQuery = """
+        mutation {
+          book(op: UPSERT, data:{id:"abc", title: "my book created in batch!"}) {
+            edges {
+              node {
+                id
+                title
+              }
+            }
+          }
+        }
+        """
+        def graphQLQuery2 = """
+        query {
+          book(ids: "3") {
+            edges {
+              node {
+                id
+                title
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        [{"data":{"book":{"edges":[{"node":{"id":"3","title":"my book created in batch!"}}]}}},{"data":{"book":{"edges":[{"node":{"id":"3","title":"my book created in batch!"}}]}}}]
+        """
+
+        compareJsonObject(runQuery(toJsonArray(toJsonNode(graphQLQuery), toJsonNode(graphQLQuery2))), expectedResponse)
+    }
+
+    @Test(priority = 6)
+    void runMultipleRequestsSameTransaction() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        def graphQLQuery = """
+        {
+          book(ids: ["1"]) {
+            edges {
+              node {
+                id
+                title
+                authors {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+          author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984","authors":{"edges":[{"node":{"id":"1","name":"George Orwell"}}]}}}]},"author":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
+    @Test(priority = 7)
+    void runMultipleRequestsSameTransactionMutation() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        // and results are consistent across a mutation.
+        def graphQLQuery = """
+        mutation {
+          book(ids: ["1"]) {
+            edges {
+              node {
+                id
+                title
+                authors(op: UPSERT, data:{id:"3", name:"Stephen King"}) {
+                  edges {
+                    node {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+          author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"book":{"edges":[{"node":{"id":"1","title":"1984","authors":{"edges":[{"node":{"id":"3","name":"Stephen King"}}]}}}]},"author":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}},{"node":{"id":"3","name":"Stephen King"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
+    @Test(priority = 6)
+    void runMultipleRequestsSameTransactionWithAliases() {
+        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
+        def graphQLQuery = """
+        {
+          firstAuthorCollection: author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+          secondAuthorCollection: author {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+        def expectedResponse = """
+        {"data":{"firstAuthorCollection":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]},"secondAuthorCollection":{"edges":[{"node":{"id":"1","name":"George Orwell"}},{"node":{"id":"2","name":"John Setinbeck"}}]}}}
+        """
+
+        runQueryWithExpectedResult(graphQLQuery, expectedResponse)
+    }
+
     private void runQueryWithExpectedResult(String graphQLQuery, Map<String, Object> variables, String expected) {
         compareJsonObject(runQuery(graphQLQuery, variables), expected)
     }
@@ -167,21 +308,41 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
     }
 
     private ValidatableResponse runQuery(String query, Map<String, Object> variables) {
+        return runQuery(toJsonQuery(query, variables))
+    }
+
+    private ValidatableResponse runQuery(String query) {
         return RestAssured.given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(toJsonQuery(query, variables))
+                .body(query)
                 .post("/graphQL")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
     }
 
+    private String toJsonArray(JsonNode... nodes) {
+        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode()
+        for(JsonNode node : nodes) {
+            arrayNode.add(node)
+        }
+        return objectMapper.writeValueAsString(arrayNode)
+    }
+
     private String toJsonQuery(String query, Map<String, Object> variables) {
+        return objectMapper.writeValueAsString(toJsonNode(query, variables))
+    }
+
+    private JsonNode toJsonNode(String query) {
+        return toJsonNode(query, null)
+    }
+
+    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
         ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode()
         graphqlNode.put("query", query)
         if (variables != null) {
             graphqlNode.set("variables", objectMapper.valueToTree(variables))
         }
-        return objectMapper.writeValueAsString(graphqlNode)
+        return graphqlNode
     }
 }

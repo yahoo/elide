@@ -55,6 +55,14 @@ public class Environment {
         rawSource = environment.getSource();
         container = isRoot() ? new RootContainer() : (GraphQLContainer) rawSource;
 
+        if (isRoot()) {
+            // Flush (but don't commit) between root queries
+            requestScope.getDirtyResources().forEach(
+                    resource -> requestScope.getTransaction().save(resource.getObject(), requestScope)
+            );
+            requestScope.getTransaction().flush(requestScope);
+        }
+
         if (rawSource instanceof PersistentResourceContainer) {
             parentResource = ((PersistentResourceContainer) rawSource).getPersistentResource();
         } else {
