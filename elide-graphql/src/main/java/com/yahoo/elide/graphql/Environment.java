@@ -32,6 +32,7 @@ public class Environment {
     public final Optional<String> first;
     public final Object rawSource;
     public final GraphQLContainer container;
+    public final Map<String, Object> arguments;
 
     public final PersistentResource parentResource;
     public final GraphQLType parentType;
@@ -79,7 +80,10 @@ public class Environment {
         } else {
             data = (List<Map<String, Object>>) args.get(ModelBuilder.ARGUMENT_DATA);
         }
+
         this.data = Optional.ofNullable(data);
+
+        this.arguments = environment.getArguments();
     }
 
     public boolean isRoot() {

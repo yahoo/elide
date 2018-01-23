@@ -36,6 +36,7 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -74,6 +75,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
     @Getter private final boolean mutatingMultipleEntities;
+    @Getter @Setter private String historicalVersion = null;
+    @Getter @Setter private String historicalDate = null;
 
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
