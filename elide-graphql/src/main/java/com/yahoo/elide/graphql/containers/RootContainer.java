@@ -21,6 +21,11 @@ public class RootContainer implements GraphQLContainer {
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         if (isHistorySelection(context.field)) {
             return new HistoryContainer(context);
+        } else {
+            // Not a revision request
+            // TODO: Clean this up.
+            context.requestScope.setHistoricalRevision(null);
+            context.requestScope.setHistoricalDatestamp(null);
         }
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());

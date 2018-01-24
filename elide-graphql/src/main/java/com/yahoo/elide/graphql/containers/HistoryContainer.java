@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.graphql.Environment;
 
+import java.util.List;
 import java.util.Map;
 
 public class HistoryContainer extends RootContainer {
@@ -22,8 +23,8 @@ public class HistoryContainer extends RootContainer {
     HistoryContainer(Environment context) {
         Map<String, Object> args = context.arguments;
         if (args != null) {
-            context.requestScope.setHistoricalDate((String) args.get(DATE_KEY));
-            context.requestScope.setHistoricalVersion((String) args.get(REVISION_KEY));
+            context.requestScope.setHistoricalDatestamp((Long) ((List) args.get(DATE_KEY)).get(0));
+            context.requestScope.setHistoricalRevision((Long) ((List) args.get(REVISION_KEY)).get(0));
         }
     }
 }

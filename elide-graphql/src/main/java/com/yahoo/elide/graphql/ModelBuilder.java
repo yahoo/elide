@@ -201,6 +201,7 @@ public class ModelBuilder {
 
         root.field(newFieldDefinition()
                         .name("__history")
+                        .dataFetcher(dataFetcher)
                         .argument(newArgument()
                                 .name("revision")
                                 .type(new GraphQLList(Scalars.GraphQLLong))

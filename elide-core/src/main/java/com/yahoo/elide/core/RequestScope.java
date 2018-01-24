@@ -75,8 +75,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
     @Getter private final boolean mutatingMultipleEntities;
-    @Getter @Setter private String historicalVersion = null;
-    @Getter @Setter private String historicalDate = null;
+    @Getter @Setter private Long historicalRevision = null;
+    @Getter @Setter private Long historicalDatestamp = null;
 
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;

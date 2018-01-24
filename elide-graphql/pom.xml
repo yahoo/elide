@@ -42,6 +42,12 @@
     </scm>
 
     <dependencies>
+        <!-- TODO: Refactor to remove this dep from graphql -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+            <version>5.0.2.Final</version>
+        </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
