@@ -47,7 +47,7 @@ import java.util.Optional;
 @Slf4j
 public class HibernateTransaction implements DataStoreTransaction {
 
-    private final Session session;
+    protected final Session session;
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;

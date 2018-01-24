@@ -23,8 +23,12 @@ public class HistoryContainer extends RootContainer {
     HistoryContainer(Environment context) {
         Map<String, Object> args = context.arguments;
         if (args != null) {
-            context.requestScope.setHistoricalDatestamp((Long) ((List) args.get(DATE_KEY)).get(0));
-            context.requestScope.setHistoricalRevision((Long) ((List) args.get(REVISION_KEY)).get(0));
+            if (args.get(DATE_KEY) != null && ((List)args.get(DATE_KEY)).size() == 1 ) {
+                context.requestScope.setHistoricalDatestamp((Long) ((List) args.get(DATE_KEY)).get(0));
+            }
+            if (args.get(REVISION_KEY) != null && ((List)args.get(REVISION_KEY)).size() == 1 ) {
+                context.requestScope.setHistoricalRevision((Long) ((List) args.get(REVISION_KEY)).get(0));
+            }
         }
     }
 }

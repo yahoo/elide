@@ -17,6 +17,10 @@
         <version>4.0-beta-6</version>
     </parent>
 
+    <properties>
+        <hibernate5.version>5.0.2.Final</hibernate5.version>
+    </properties>
+    
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -42,6 +46,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+            <version>${hibernate5.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
