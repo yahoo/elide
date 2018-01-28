@@ -43,9 +43,9 @@ public class RevisionDataStoreSupplier implements Supplier<DataStore> {
         options.put("javax.persistence.jdbc.user", "root");
         options.put("javax.persistence.jdbc.password", "root");
         //options.put("hibernate.ejb.loaded.classes", bindClasses);
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("example-data", options);
         HibernateEntityManager em = (HibernateEntityManager) emf.createEntityManager();
-        return new HibernateRevisionsDataStore(em);
+        return new HibernateRevisionsDataStore(null);
     }
 
     private static HashSet<Class> getAllEntities(String packageName) {

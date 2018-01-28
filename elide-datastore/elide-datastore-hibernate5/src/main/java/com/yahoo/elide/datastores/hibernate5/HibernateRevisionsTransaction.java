@@ -33,7 +33,6 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
 
     public HibernateRevisionsTransaction(AuditReader auditReader, Session session) {
         super(session, false, ScrollMode.SCROLL_INSENSITIVE);
-        session.beginTransaction();
         this.auditReader = auditReader;
     }
 
