@@ -51,7 +51,8 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        DataStore dataStore = new RevisionDataStoreSupplier(getModelPackageName()).get();
+        DataStore dataStore = new InjectionAwareHibernateStore(
+                                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
         return new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)

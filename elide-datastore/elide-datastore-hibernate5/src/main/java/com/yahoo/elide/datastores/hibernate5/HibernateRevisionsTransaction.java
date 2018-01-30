@@ -49,7 +49,6 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
                              Serializable id,
                              Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
-        log.debug(String.format("Revision: %d", scope.getHistoricalRevision()));
         if (!isHistory(scope)) {
             return super.loadObject(entityClass, id, filterExpression, scope);
         }
@@ -112,7 +111,9 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
             query.setParameter("timestamp", scope.getHistoricalDatestamp());
             log.debug(String.format("Query: %s", query.toString()));
             log.debug(String.format("ts: %d", scope.getHistoricalDatestamp()));
-            return (Integer) query.uniqueResult();
+            return  query.uniqueResult() != null
+                    ? (Integer) query.uniqueResult()
+                    : 1;
         }
     }
 }

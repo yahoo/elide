@@ -190,6 +190,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             this.sparseFields = parseSparseFields(queryParams);
             this.sorting = Sorting.parseQueryParams(queryParams);
             this.pagination = Pagination.parseQueryParams(queryParams, this.getElideSettings());
+            this.setHistoricalDatestamp(parseHistoricalDatestamp(queryParams));
+            this.setHistoricalRevision(parseHistoricalRevisionNumber(queryParams));
         } else {
             this.sparseFields = Collections.emptyMap();
             this.sorting = Sorting.getDefaultEmptyInstance();
@@ -264,6 +266,30 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
 
         return result;
+    }
+
+    private static Long parseHistoricalDatestamp(MultivaluedMap<String, String> queryParams) {
+        Map<String, Set<String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
+            if (key.equals("__historicaldatestamp")) {
+                return Long.parseLong(kv.getValue().get(0));
+            }
+        }
+        return null;
+    }
+
+    private static Long parseHistoricalRevisionNumber(MultivaluedMap<String, String> queryParams) {
+        Map<String, Set<String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
+            if (key.equals("__historicalversion")) {
+                return Long.parseLong(kv.getValue().get(0));
+            }
+        }
+        return null;
     }
 
     /**
