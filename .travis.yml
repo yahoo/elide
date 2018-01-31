@@ -17,7 +17,6 @@
   branches:
     only:
       - master
-      - elide-4.x
       - "/^[0-9]+\\.[0-9]+(\\.[0-9]+|-(alpha|beta)-[0-9]+)/"
 
   # build steps
