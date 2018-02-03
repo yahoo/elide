@@ -50,7 +50,7 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 public class PersistentResourceFetcher implements DataFetcher {
     private final ElideSettings settings;
 
-    PersistentResourceFetcher(ElideSettings settings) {
+    public PersistentResourceFetcher(ElideSettings settings) {
         this.settings = settings;
     }
 
