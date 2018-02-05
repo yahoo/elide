@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.1
+**Fixes**
+ * Change `PersistentResourceFetcher` constructor visibility to public in order to allow this class instantiation outside of the elide-graphql.
+
 ## 4.0.0
 
 See: 4.0-beta-5
