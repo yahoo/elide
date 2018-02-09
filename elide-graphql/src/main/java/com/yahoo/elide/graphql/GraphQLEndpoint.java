@@ -150,6 +150,10 @@ public class GraphQLEndpoint {
 
             String query = jsonDocument.get(QUERY).asText();
 
+            // Logging all queries. It is recommended to put any private information that shouldn't be logged into
+            // the "variables" section of your query. Variable values are not logged.
+            log.info("Processing GraphQL query:\n{}", query);
+
             ExecutionInput.Builder executionInput = new ExecutionInput.Builder()
                     .context(requestScope)
                     .query(query);
