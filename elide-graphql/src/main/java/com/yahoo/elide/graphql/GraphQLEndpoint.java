@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -208,8 +207,8 @@ public class GraphQLEndpoint {
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ForbiddenAccessException e) {
-            log.debug("Forbidden access exception caught", e);
+        } catch (HttpStatusException e) {
+            log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             return buildErrorResponse(new HttpStatusException(200, "") {
                 @Override
                 public int getStatus() {
