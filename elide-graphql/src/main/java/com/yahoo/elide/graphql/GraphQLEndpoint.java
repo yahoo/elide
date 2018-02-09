@@ -199,6 +199,9 @@ public class GraphQLEndpoint {
             }
 
             return Response.ok(mapper.writeValueAsString(result.toSpecification())).build();
+        } catch (WebApplicationException e) {
+            log.debug("WebApplicationException", e);
+            return e.getResponse();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
