@@ -31,6 +31,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -180,8 +181,9 @@ public class GraphQLEndpoint {
                             put("data", null);
                         }
                     };
-                    // Do not commit.
-                    return Response.ok(mapper.writeValueAsString(abortedResponseObject)).build();
+                    // Do not commit. Throw OK response to process tx.close correctly.
+                    throw new WebApplicationException(
+                            Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }
                 requestScope.saveOrCreateObjects();
             }
@@ -235,8 +237,18 @@ public class GraphQLEndpoint {
     }
 
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        JsonNode errorNode = isVerbose
+                ? error.getVerboseErrorResponse().getRight()
+                : error.getErrorResponse().getRight();
+        String errorBody;
+        try {
+            errorBody = mapper.writeValueAsString(errorNode);
+        } catch (JsonProcessingException e) {
+            errorBody = errorNode.toString();
+        }
         return Response.status(error.getStatus())
-                .entity(isVerbose
-                        ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
+                .entity(errorBody)
+                .build();
     }
 }
