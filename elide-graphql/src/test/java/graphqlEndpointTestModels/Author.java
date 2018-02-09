@@ -21,7 +21,9 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Include
@@ -36,6 +38,7 @@ public class Author {
     String name;
     Set<Book> books = new HashSet<>();
     DisallowShare noShare;
+    Map<String, String> bookTitlesAndAwards = new HashMap<>();
 
     public static final String PERMISSION = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2;
 
@@ -83,5 +86,13 @@ public class Author {
 
     public void setNoShare(DisallowShare noShare) {
         this.noShare = noShare;
+    }
+
+    public Map<String, String> getBookTitlesAndAwards() {
+        return bookTitlesAndAwards;
+    }
+
+    public void setBookTitlesAndAwards(Map<String, String> bookTitlesAndAwards) {
+        this.bookTitlesAndAwards = bookTitlesAndAwards;
     }
 }

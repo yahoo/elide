@@ -106,9 +106,11 @@ class GraphQLEndointTest {
         author1.setId(1L)
         author1.setName("Ricky Carmichael")
         author1.setBooks(Sets.newHashSet(book1))
+        author1.setBookTitlesAndAwards(["Bookz": "Pulitzer Prize", "Lost in the Data": "PEN/Faulkner Award"])
 
         author2.setId(2)
         author2.setName("The Silent Author")
+        author2.setBookTitlesAndAwards(["Working Hard or Hardly Working": "Booker Prize"])
 
         noShare.setId(1L)
 
@@ -666,6 +668,64 @@ class GraphQLEndointTest {
                 }
                 '''
         def response = endpoint.post(user3, graphQLRequestToJSON(graphQLRequest))
+        assertHasErrors(response)
+    }
+
+    @Test
+    void testQueryAMap() {
+        def graphQLRequest =
+                '''
+                query {
+                  book {
+                    edges {
+                      node {
+                        id
+                        authors {
+                          edges {
+                            node {
+                              bookTitlesAndAwards {
+                                key
+                                value
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                '''
+        def expected = '{"data":{"book":{"edges":[{"node":{"id":"1","authors":{"edges":[{"node":{"bookTitlesAndAwards":[{"key":"Bookz","value":"Pulitzer Prize"},{"key":"Lost in the Data","value":"PEN/Faulkner Award"}]}}]}}}]}}}'
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
+        assert200EqualBody(response, expected)
+    }
+
+    @Test
+    void testQueryAMapWithBadFields() {
+        def graphQLRequest =
+                '''
+                query {
+                  book {
+                    edges {
+                      node {
+                        id
+                        authors {
+                          edges {
+                            node {
+                              bookTitlesAndAwards {
+                                key
+                                value
+                                Bookz
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                '''
+        def response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest))
         assertHasErrors(response)
     }
 

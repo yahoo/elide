@@ -14,7 +14,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import javax.ws.rs.BadRequestException;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPageInfo;
 
@@ -33,7 +35,13 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         String idFieldName = dictionary.getIdFieldName(parentClass);
 
         if (dictionary.isAttribute(parentClass, fieldName)) { /* fetch attribute properties */
-            return context.parentResource.getAttribute(fieldName);
+            Object attribute = context.parentResource.getAttribute(fieldName);
+            if (attribute instanceof Map) {
+                return ((Map<Object, Object>) attribute).entrySet().stream()
+                        .map(MapEntryContainer::new)
+                        .collect(Collectors.toList());
+            }
+            return attribute;
         }
         if (dictionary.isRelation(parentClass, fieldName)) { /* fetch relationship properties */
             boolean generateTotals = requestContainsPageInfo(context.field);
