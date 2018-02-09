@@ -4,6 +4,7 @@
 **Fixes**
  * Add support for retrieving values from java `Map` types. These are still modeled as lists of key/value pairs.
  * Log GraphQL query bodies. Private information or anything which is not intended to be logged should be passed as a variable as variables values are not logged.
+ * Handle the `Transaction not closed` error on aborted response.
 
 ## 4.0.1
 **Fixes**

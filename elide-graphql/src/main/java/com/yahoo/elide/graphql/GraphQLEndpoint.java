@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -31,6 +30,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -180,8 +180,9 @@ public class GraphQLEndpoint {
                             put("data", null);
                         }
                     };
-                    // Do not commit.
-                    return Response.ok(mapper.writeValueAsString(abortedResponseObject)).build();
+                    // Do not commit. Throw OK response to process tx.close correctly.
+                    throw new WebApplicationException(
+                            Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }
                 requestScope.saveOrCreateObjects();
             }
@@ -197,14 +198,17 @@ public class GraphQLEndpoint {
             }
 
             return Response.ok(mapper.writeValueAsString(result.toSpecification())).build();
+        } catch (WebApplicationException e) {
+            log.debug("WebApplicationException", e);
+            return e.getResponse();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             return buildErrorResponse(new InvalidEntityBodyException(graphQLDocument), isVerbose);
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ForbiddenAccessException e) {
-            log.debug("Forbidden access exception caught", e);
+        } catch (HttpStatusException e) {
+            log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             return buildErrorResponse(new HttpStatusException(200, "") {
                 @Override
                 public int getStatus() {
@@ -235,8 +239,18 @@ public class GraphQLEndpoint {
     }
 
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
+        ObjectMapper mapper = elide.getMapper().getObjectMapper();
+        JsonNode errorNode = isVerbose
+                ? error.getVerboseErrorResponse().getRight()
+                : error.getErrorResponse().getRight();
+        String errorBody;
+        try {
+            errorBody = mapper.writeValueAsString(errorNode);
+        } catch (JsonProcessingException e) {
+            errorBody = errorNode.toString();
+        }
         return Response.status(error.getStatus())
-                .entity(isVerbose
-                        ? error.getVerboseErrorResponse().getRight() : error.getErrorResponse().getRight()).build();
+                .entity(errorBody)
+                .build();
     }
 }
