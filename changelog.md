@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.2
+**Fixes**
+ * Add support for retrieving values from java `Map` types. These are still modeled as lists of key/value pairs.
+
 ## 4.0.1
 **Fixes**
  * Change `PersistentResourceFetcher` constructor visibility to public in order to allow this class instantiation outside of the elide-graphql.
