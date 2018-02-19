@@ -285,6 +285,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     private static String getRandomAlias(Class<?> entityType) {
-        return entityType.getSimpleName() + ThreadLocalRandom.current().nextInt(1, 1000);
+        return EntityDictionary.getSimpleName(entityType) + ThreadLocalRandom.current().nextInt(1, 1000);
     }
 }

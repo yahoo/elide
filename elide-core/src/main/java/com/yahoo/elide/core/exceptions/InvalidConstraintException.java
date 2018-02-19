@@ -4,6 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.exceptions;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 
 /**
@@ -23,7 +24,7 @@ public class InvalidConstraintException extends HttpStatusException {
         String message = getMessage();
 
         if (message == null) {
-            return getClass().getSimpleName();
+            return EntityDictionary.getSimpleName(getClass());
         }
 
         return message;

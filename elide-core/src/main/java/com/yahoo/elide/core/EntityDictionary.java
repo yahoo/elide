@@ -64,6 +64,7 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+    private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
@@ -95,6 +96,20 @@ public class EntityDictionary {
         String name = pkg.getName();
         int idx = name.lastIndexOf('.');
         return idx == -1 ? null : Package.getPackage(name.substring(0, idx));
+    }
+
+    /**
+     * Cache the simple name of the provided class.
+     * @param cls the {@code Class} object to be checked
+     * @return simple name
+     */
+    public static String getSimpleName(Class<?> cls) {
+        String simpleName = SIMPLE_NAMES.get(cls);
+        if (simpleName == null) {
+            simpleName = cls.getSimpleName();
+            SIMPLE_NAMES.putIfAbsent(cls, simpleName);
+        }
+        return simpleName;
     }
 
     /**

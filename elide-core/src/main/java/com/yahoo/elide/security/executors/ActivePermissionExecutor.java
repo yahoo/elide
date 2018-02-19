@@ -6,10 +6,10 @@
 package com.yahoo.elide.security.executors;
 
 import com.yahoo.elide.annotation.CreatePermission;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -34,6 +34,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.yahoo.elide.core.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
@@ -115,7 +116,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 if (requestScope.getDictionary().isShareable(resource.getResourceClass())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
                 } else {
-                    return expressionBuilder.FAIL_EXPRESSION;
+                    return PermissionExpressionBuilder.FAIL_EXPRESSION;
                 }
             }
             return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
@@ -372,9 +373,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             Expression expression = expr.getExpression();
             ExpressionResult result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
             if (result == FAIL) {
-                ForbiddenAccessException e = new ForbiddenAccessException(expr.getAnnotationClass().getSimpleName(),
+                ForbiddenAccessException e = new ForbiddenAccessException(getSimpleName(expr.getAnnotationClass()),
                         expression, Expression.EvaluationMode.ALL_CHECKS);
-                log.trace("{}", e.getLoggedMessage());
+                if (log.isTraceEnabled()) {
+                    log.trace("{}", e.getLoggedMessage());
+                }
                 throw e;
             }
         });
@@ -418,10 +421,12 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 result = expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
                 if (result == FAIL) {
                     ForbiddenAccessException e = new ForbiddenAccessException(
-                        annotationClass.getSimpleName(),
+                        getSimpleName(annotationClass),
                         expression,
                         Expression.EvaluationMode.ALL_CHECKS);
-                    log.trace("{}", e.getLoggedMessage());
+                    if (log.isTraceEnabled()) {
+                        log.trace("{}", e.getLoggedMessage());
+                    }
                     throw e;
                 }
             } else {
@@ -430,9 +435,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
             return DEFERRED;
         }
         if (result == FAIL) {
-            ForbiddenAccessException e = new ForbiddenAccessException(annotationClass.getSimpleName(),
+            ForbiddenAccessException e = new ForbiddenAccessException(getSimpleName(annotationClass),
                     expression, mode);
-            log.trace("{}", e.getLoggedMessage());
+            if (log.isTraceEnabled()) {
+                log.trace("{}", e.getLoggedMessage());
+            }
             throw e;
         }
 

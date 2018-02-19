@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 import java.math.BigInteger;
 import java.util.Date;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class GraphQLScalarsTest {
 

@@ -46,7 +46,7 @@ public class RecordState extends BaseState {
             }
             Class<?> paramType = dictionary.getParameterizedType(resource.getObject(), subCollection);
             if (dictionary.isMappedInterface(paramType)) {
-                entityName = paramType.getSimpleName();
+                entityName = EntityDictionary.getSimpleName(paramType);
                 entityClass = paramType;
             } else {
                 entityName = dictionary.getJsonAliasFor(paramType);

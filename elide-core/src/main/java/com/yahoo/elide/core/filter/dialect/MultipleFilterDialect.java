@@ -62,7 +62,9 @@ public class MultipleFilterDialect implements JoinFilterDialect, SubqueryFilterD
             try {
                 return parseFunction.apply(dialect);
             } catch (ParseException e) {
-                log.trace("Parse Failure: {}", e.getMessage());
+                if (log.isTraceEnabled()) {
+                    log.trace("Parse Failure: {}", e.getMessage());
+                }
                 if (lastFailure != null) {
                     lastFailure = new ParseException(e.getMessage() + "\n" + lastFailure.getMessage());
                 } else {

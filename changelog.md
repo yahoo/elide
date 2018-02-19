@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.3
+**Fixes**
+ * Performance enhancements including caching the `Class.getSimpleName`.
+
 ## 4.0.2
 **Fixes**
  * Add support for retrieving values from java `Map` types. These are still modeled as lists of key/value pairs.

@@ -37,7 +37,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
     @Override
     public Query build() {
 
-        if (!filterExpression.isPresent() && !pagination.isPresent() && !sorting.isPresent()) {
+        if (!filterExpression.isPresent() && !pagination.isPresent()
+                && (!sorting.isPresent() || sorting.get().isDefaultInstance())) {
             return null;
         }
 

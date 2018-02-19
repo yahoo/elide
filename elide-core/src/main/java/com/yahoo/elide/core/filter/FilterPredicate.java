@@ -152,7 +152,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         List<PathElement> elements = path.getPathElements();
         StringBuilder formattedPath = new StringBuilder();
         if (!elements.isEmpty()) {
-            formattedPath.append(StringUtils.uncapitalize(elements.get(0).getType().getSimpleName()));
+            formattedPath.append(StringUtils.uncapitalize(EntityDictionary.getSimpleName(elements.get(0).getType())));
         }
 
         for (PathElement element : elements) {
