@@ -100,7 +100,7 @@ public class Path {
     public String toString() {
         return pathElements.size() == 0 ? "EMPTY"
                 : pathElements.stream()
-                        .map(e -> '[' + e.getType().getSimpleName() + ']' + PERIOD + e.getFieldName())
+                        .map(e -> '[' + EntityDictionary.getSimpleName(e.getType()) + ']' + PERIOD + e.getFieldName())
                 .collect(Collectors.joining("/"));
     }
 

@@ -231,7 +231,9 @@ public class Elide {
             throw e;
 
         } catch (ForbiddenAccessException e) {
-            log.debug("{}", e.getLoggedMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("{}", e.getLoggedMessage());
+            }
             return buildErrorResponse(e, isVerbose);
 
         } catch (JsonPatchExtensionException e) {

@@ -7,6 +7,7 @@ package com.yahoo.elide.core.exceptions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.elide.core.EntityDictionary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,7 +79,7 @@ public abstract class HttpStatusException extends RuntimeException {
     @Override
     public String toString() {
         String message = getMessage();
-        String className = getClass().getSimpleName();
+        String className = EntityDictionary.getSimpleName(getClass());
 
         if (message == null) {
             message = className;

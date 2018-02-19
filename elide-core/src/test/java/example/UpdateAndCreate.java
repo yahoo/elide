@@ -5,14 +5,19 @@
  */
 package example;
 
-import com.yahoo.elide.annotation.*;
+import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.annotation.UpdatePermission;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
