@@ -1,9 +1,10 @@
 # Change Log
 
-## 4.0.3
+## 4.1.0
 **Fixes**
  * Performance enhancements including caching the `Class.getSimpleName`.
  * Added the ability to register functions (outside entity classes) for lifecycle hook callbacks.
+ * Fixed bug where updatePreSecurity lifecycle hook was being called for object creation.
 
 ## 4.0.2
 **Fixes**
