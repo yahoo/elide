@@ -413,7 +413,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param fieldName Field name for which to specify trigger
      * @param crudAction CRUD Action
-     * @param changeSpec Optional ChangeSpec to pass to the lifecycle hook
+     * @param changeSpec Optional ChangeSpec to pass to the functions hook
      */
     protected void queueTriggers(PersistentResource<?> resource,
                                  String fieldName,

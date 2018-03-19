@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.base.Throwables;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -23,6 +24,7 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.functions.LifeCycleHook;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -85,7 +87,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> relationshipToInverse = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
-    public final MultiValuedMap<Pair<Class, String>, Method> fieldsToTriggers = new HashSetValuedHashMap<>();
+    public final MultiValuedMap<Pair<Class, String>, LifeCycleHook> fieldsToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
@@ -361,12 +363,37 @@ public class EntityBinding {
             } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
                 value = "";
             }
-            fieldsToTriggers.put(Pair.of(annotationClass, value), (Method) fieldOrMethod);
+
+            Method method = (Method) fieldOrMethod;
+            LifeCycleHook callback = (entity, scope, changes) -> {
+                try {
+                    if (changes.isPresent() && method.getParameterCount() == 2
+                            && method.getParameterTypes()[0].isInstance(scope)
+                            && method.getParameterTypes()[1].isInstance(changes.get())) {
+                        method.invoke(entity, scope, changes.get());
+                    } else if (method.getParameterCount() == 1 && method.getParameterTypes()[0].isInstance(scope)) {
+                        method.invoke(entity, scope);
+                    } else {
+                        method.invoke(entity);
+                    }
+                } catch (ReflectiveOperationException e) {
+                    Throwables.propagateIfPossible(e.getCause());
+                    throw new IllegalArgumentException(e);
+                }
+            };
+
+            fieldsToTriggers.put(Pair.of(annotationClass, value), callback);
         }
     }
 
-    public <A extends Annotation> Collection<Method> getTriggers(Class<A> annotationClass, String fieldName) {
-        Collection<Method> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
+    public void bindTrigger(Class<? extends Annotation> annotationClass,
+                            String fieldOrMethodName,
+                            LifeCycleHook callback) {
+        fieldsToTriggers.put(Pair.of(annotationClass, fieldOrMethodName), callback);
+    }
+
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<A> annotationClass, String fieldName) {
+        Collection<LifeCycleHook> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
         return methods == null ? Collections.emptyList() : methods;
     }
 
