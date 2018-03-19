@@ -382,7 +382,7 @@ public class EntityBinding {
                 }
             };
 
-            fieldsToTriggers.put(Pair.of(annotationClass, value), callback);
+            bindTrigger(annotationClass, value, callback);
         }
     }
 

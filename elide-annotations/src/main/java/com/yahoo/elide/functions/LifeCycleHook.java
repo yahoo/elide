@@ -19,10 +19,10 @@ public interface LifeCycleHook<T> {
     /**
      * Run for a lifecycle event
      * @param elideEntity The entity that triggered the event
-     * @param scope The request scope
-     * @param changes Optionally changes that were made to the entity
+     * @param requestScope The request scope
+     * @param changes Optionally, the changes that were made to the entity
      */
     public abstract void execute(T elideEntity,
-                                 RequestScope scope,
+                                 RequestScope requestScope,
                                  Optional<ChangeSpec> changes);
 }
