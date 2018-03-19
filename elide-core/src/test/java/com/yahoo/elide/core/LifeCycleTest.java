@@ -114,7 +114,17 @@ public class LifeCycleTest {
 
         ElideResponse response = elide.post("/book", bookBody, null);
         assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
-        verify(callback, times(7)).execute(eq(book), isA(RequestScope.class), any());
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - create pre-security for the book
+         *  - read pre-commit for the book
+         *  - create pre-commit for the book
+         *  - read post-commit for the book
+         *  - create post-commit for the book
+         */
+        verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
@@ -136,6 +146,13 @@ public class LifeCycleTest {
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
+
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - read pre-commit for the book
+         *  - read post-commit for the book
+         */
         verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
@@ -160,6 +177,15 @@ public class LifeCycleTest {
 
         String contentType = "application/vnd.api+json";
         elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        /*
+         * This gets called for :
+         *  - read pre-security for the book
+         *  - update pre-security for the book.title
+         *  - read pre-commit for the book
+         *  - update pre-commit for the book.title
+         *  - read post-commit for the book
+         *  - update post-commit for the book.title
+         */
         verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
@@ -183,6 +209,12 @@ public class LifeCycleTest {
         when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
         elide.delete("/book/1", "", null);
+        /*
+         * This gets called for :
+         *  - delete pre-security for the book
+         *  - delete pre-commit for the book
+         *  - delete post-commit for the book
+         */
         verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
