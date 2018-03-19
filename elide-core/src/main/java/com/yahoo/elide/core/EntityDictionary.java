@@ -999,6 +999,13 @@ public class EntityDictionary {
         return getEntityBinding(entityClass).attributes.contains(attributeName);
     }
 
+    /**
+     * Binds a lifecycle hook to a particular field or method in an entity.
+     * @param entityClass The entity that triggers the lifecycle hook.
+     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
+     * @param fieldOrMethodName The name of the field or method
+     * @param callback The callback function to invoke.
+     */
     public void bindTrigger(Class<?> entityClass,
                             Class<? extends Annotation> annotationClass,
                             String fieldOrMethodName,
@@ -1006,6 +1013,12 @@ public class EntityDictionary {
         getEntityBinding(entityClass).bindTrigger(annotationClass, fieldOrMethodName, callback);
     }
 
+    /**
+     * Binds a lifecycle hook to a particular entity class.
+     * @param entityClass The entity that triggers the lifecycle hook.
+     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
+     * @param callback The callback function to invoke.
+     */
     public void bindTrigger(Class<?> entityClass,
                             Class<? extends Annotation> annotationClass,
                             LifeCycleHook callback) {

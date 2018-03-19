@@ -3,6 +3,7 @@
 ## 4.0.3
 **Fixes**
  * Performance enhancements including caching the `Class.getSimpleName`.
+ * Added the ability to register functions (outside entity classes) for lifecycle hook callbacks.
 
 ## 4.0.2
 **Fixes**
