@@ -15,6 +15,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -796,9 +797,9 @@ public class EntityDictionary {
         return getEntityBinding(recordClass).getAnnotation(annotationClass);
     }
 
-    public <A extends Annotation> Collection<Method> getTriggers(Class<?> cls,
-                                                                 Class<A> annotationClass,
-                                                                 String fieldName) {
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
+                                                                        Class<A> annotationClass,
+                                                                        String fieldName) {
         return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
@@ -996,6 +997,19 @@ public class EntityDictionary {
 
     public boolean isAttribute(Class<?> entityClass, String attributeName) {
         return getEntityBinding(entityClass).attributes.contains(attributeName);
+    }
+
+    public void bindTrigger(Class<?> entityClass,
+                            Class<? extends Annotation> annotationClass,
+                            String fieldOrMethodName,
+                            LifeCycleHook callback) {
+        getEntityBinding(entityClass).bindTrigger(annotationClass, fieldOrMethodName, callback);
+    }
+
+    public void bindTrigger(Class<?> entityClass,
+                            Class<? extends Annotation> annotationClass,
+                            LifeCycleHook callback) {
+        getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
     }
 
     /**

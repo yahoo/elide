@@ -9,7 +9,9 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
@@ -39,8 +41,17 @@ import static org.testng.Assert.assertEquals;
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
+    public class MockCallback implements LifeCycleHook<Book> {
+        @Override
+        public void execute(Book book, com.yahoo.elide.security.RequestScope scope, Optional<ChangeSpec> changes) {
+            System.out.println("Callback called for " + book.getTitle());
+
+        }
+    }
+
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
     private EntityDictionary dictionary;
+    private MockCallback callback;
 
     public class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
@@ -55,12 +66,15 @@ public class LifeCycleTest {
             }
             return super.lookupEntityClass(objClass);
         }
+
     }
 
-    LifeCycleTest() {
+    LifeCycleTest() throws Exception {
+        callback = mock(MockCallback.class);
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+        dictionary.bindTrigger(Book.class, OnCreatePostCommit.class, callback);
     }
 
     @Test
@@ -78,6 +92,7 @@ public class LifeCycleTest {
 
         ElideResponse response = elide.post("/book", bookBody, null);
         assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
+        verify(callback).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));

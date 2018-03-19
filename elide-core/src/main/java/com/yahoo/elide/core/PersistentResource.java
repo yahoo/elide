@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -35,6 +34,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -1529,22 +1529,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         Class<?> targetClass = obj.getClass();
 
-        Collection<Method> methods = dictionary.getTriggers(targetClass, annotationClass, fieldName);
-        for (Method method : methods) {
-            try {
-                if (changeSpec.isPresent() && method.getParameterCount() == 2
-                        && method.getParameterTypes()[0].isInstance(requestScope)
-                        && method.getParameterTypes()[1].isInstance(changeSpec.get())) {
-                    method.invoke(obj, requestScope, changeSpec.get());
-                } else if (method.getParameterCount() == 1 && method.getParameterTypes()[0].isInstance(requestScope)) {
-                    method.invoke(obj, requestScope);
-                } else {
-                    method.invoke(obj);
-                }
-            } catch (ReflectiveOperationException e) {
-                Throwables.propagateIfPossible(e.getCause());
-                throw new IllegalArgumentException(e);
-            }
+        Collection<LifeCycleHook> hooks = dictionary.getTriggers(targetClass, annotationClass, fieldName);
+        for (LifeCycleHook hook : hooks) {
+            hook.execute(obj, requestScope, changeSpec);
         }
     }
 
