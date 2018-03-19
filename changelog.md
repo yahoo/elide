@@ -3,8 +3,10 @@
 ## 4.1.0
 **Fixes**
  * Performance enhancements including caching the `Class.getSimpleName`.
+ * Fixed bug where updatePreSecurity lifecycle hook was being called for object creation.  This will no longer be true.  This changes the behavior of life cycle hooks (reason for minor version bump).
+
+**Features**
  * Added the ability to register functions (outside entity classes) for lifecycle hook callbacks.
- * Fixed bug where updatePreSecurity lifecycle hook was being called for object creation.
 
 ## 4.0.2
 **Fixes**
