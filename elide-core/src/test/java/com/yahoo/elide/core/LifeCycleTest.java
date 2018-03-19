@@ -10,6 +10,17 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
@@ -41,11 +52,11 @@ import static org.testng.Assert.assertEquals;
  * Tests the invocation & sequencing of DataStoreTransaction method invocations and life cycle events.
  */
 public class LifeCycleTest {
-    public class MockCallback implements LifeCycleHook<Book> {
-        @Override
-        public void execute(Book book, com.yahoo.elide.security.RequestScope scope, Optional<ChangeSpec> changes) {
-            System.out.println("Callback called for " + book.getTitle());
 
+    public class MockCallback<T> implements LifeCycleHook<T> {
+        @Override
+        public void execute(T object, com.yahoo.elide.security.RequestScope scope, Optional<ChangeSpec> changes) {
+            //NOOP
         }
     }
 
@@ -75,6 +86,17 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindTrigger(Book.class, OnCreatePostCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnCreatePreCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnCreatePreSecurity.class, callback);
+        dictionary.bindTrigger(Book.class, OnReadPostCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnReadPreCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnReadPreSecurity.class, callback);
+        dictionary.bindTrigger(Book.class, OnDeletePostCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnDeletePreCommit.class, callback);
+        dictionary.bindTrigger(Book.class, OnDeletePreSecurity.class, callback);
+        dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, "title", callback);
+        dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, "title", callback);
+        dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, "title", callback);
     }
 
     @Test
@@ -92,7 +114,7 @@ public class LifeCycleTest {
 
         ElideResponse response = elide.post("/book", bookBody, null);
         assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
-        verify(callback).execute(eq(book), isA(RequestScope.class), any());
+        verify(callback, times(7)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
@@ -114,6 +136,7 @@ public class LifeCycleTest {
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
+        verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
         verify(tx).flush(any());
@@ -137,6 +160,7 @@ public class LifeCycleTest {
 
         String contentType = "application/vnd.api+json";
         elide.patch(contentType, contentType, "/book/1", bookBody, null);
+        verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 
@@ -159,6 +183,7 @@ public class LifeCycleTest {
         when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
 
         elide.delete("/book/1", "", null);
+        verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 
