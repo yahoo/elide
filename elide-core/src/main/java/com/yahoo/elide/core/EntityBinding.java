@@ -365,13 +365,17 @@ public class EntityBinding {
             }
 
             Method method = (Method) fieldOrMethod;
+
+            int paramCount = method.getParameterCount();
+            Class<?> [] paramTypes = method.getParameterTypes();
+
             LifeCycleHook callback = (entity, scope, changes) -> {
                 try {
-                    if (changes.isPresent() && method.getParameterCount() == 2
-                            && method.getParameterTypes()[0].isInstance(scope)
-                            && method.getParameterTypes()[1].isInstance(changes.get())) {
+                    if (changes.isPresent() && paramCount == 2
+                            && paramTypes[0].isInstance(scope)
+                            && paramTypes[1].isInstance(changes.get())) {
                         method.invoke(entity, scope, changes.get());
-                    } else if (method.getParameterCount() == 1 && method.getParameterTypes()[0].isInstance(scope)) {
+                    } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
                         method.invoke(entity, scope);
                     } else {
                         method.invoke(entity);

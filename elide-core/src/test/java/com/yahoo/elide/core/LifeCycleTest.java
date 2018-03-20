@@ -53,16 +53,16 @@ import static org.testng.Assert.assertEquals;
  */
 public class LifeCycleTest {
 
+    private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
+    private EntityDictionary dictionary;
+    private MockCallback callback;
+
     public class MockCallback<T> implements LifeCycleHook<T> {
         @Override
         public void execute(T object, com.yahoo.elide.security.RequestScope scope, Optional<ChangeSpec> changes) {
             //NOOP
         }
     }
-
-    private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
-    private EntityDictionary dictionary;
-    private MockCallback callback;
 
     public class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
