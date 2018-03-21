@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.0
+**Fixes**
+ * Fixed bug where create-time pre-security hooks were running before any values were set.
+
 ## 4.1.0
 **Fixes**
  * Performance enhancements including caching the `Class.getSimpleName`.

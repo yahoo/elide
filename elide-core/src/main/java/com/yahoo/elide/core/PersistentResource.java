@@ -11,7 +11,6 @@ import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
 import com.yahoo.elide.annotation.OnDeletePreSecurity;
 import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
@@ -1335,12 +1334,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec spec = new ChangeSpec(this, fieldName, existingValue, newValue);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
 
-        Class<? extends Annotation> annotationClass = (isNewlyCreated)
-                ? OnCreatePreSecurity.class  : OnUpdatePreSecurity.class;
+        if (!isNewlyCreated) {
+            runTriggers(OnUpdatePreSecurity.class, CLASS_NO_FIELD);
+            runTriggers(OnUpdatePreSecurity.class, fieldName, Optional.of(spec));
+            checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
+        }
 
-        runTriggers(annotationClass, CLASS_NO_FIELD);
-        runTriggers(annotationClass, fieldName, Optional.of(spec));
-        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
         setValue(fieldName, newValue);
     }
 
