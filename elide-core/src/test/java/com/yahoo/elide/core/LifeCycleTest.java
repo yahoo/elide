@@ -233,7 +233,7 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
                 false);
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
-        resource.setValue("title", "should not affect calls since this is create!");
+        resource.setValueChecked("title", "should not affect calls since this is create!");
         Assert.assertNotNull(resource);
         verify(book, never()).onCreateBook(scope);
         verify(book, never()).checkPermission(scope);
@@ -253,14 +253,14 @@ public class LifeCycleTest {
         verify(book, never()).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
-        verify(book, times(1)).checkPermission(scope);
+        verify(book, times(2)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
         verify(book, times(1)).postCreateBook(scope);
         verify(book, never()).postDeleteBook(scope);
         verify(book, never()).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
-        verify(book, times(1)).checkPermission(scope);
+        verify(book, times(2)).checkPermission(scope);
     }
 
     @Test
