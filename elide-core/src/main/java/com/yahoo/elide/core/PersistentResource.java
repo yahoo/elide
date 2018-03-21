@@ -1337,8 +1337,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (!isNewlyCreated) {
             runTriggers(OnUpdatePreSecurity.class, CLASS_NO_FIELD);
             runTriggers(OnUpdatePreSecurity.class, fieldName, Optional.of(spec));
-            checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
         }
+
+        // TODO: Need to refactor this logic. For creates this is properly converted in the executor. This logic
+        // should be explicitly encapsulated here, not there.
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
 
         setValue(fieldName, newValue);
     }
