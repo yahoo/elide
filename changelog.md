@@ -1,4 +1,7 @@
 # Change Log
+## 4.2.0
+**Features**
+Upgraded hibernate 5 datastore to latest version (5.2.15)
 
 ## 4.1.0
 **Fixes**
