@@ -11,10 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
-import org.hibernate.metadata.ClassMetadata;
 
 import javax.persistence.metamodel.EntityType;
-import java.util.Collection;
 import java.util.Set;
 
 /**
