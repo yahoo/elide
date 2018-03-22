@@ -15,11 +15,9 @@ import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.jpa.HibernateEntityManager;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,6 +83,7 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
             throw new IllegalStateException(e);
         }
 
+        /*
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
         // create example tables from beans
@@ -95,6 +94,7 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
         if (!schemaExport.getExceptions().isEmpty()) {
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
+        */
 
         return new AbstractHibernateStore.Builder(em)
                 .withScrollEnabled(true)
