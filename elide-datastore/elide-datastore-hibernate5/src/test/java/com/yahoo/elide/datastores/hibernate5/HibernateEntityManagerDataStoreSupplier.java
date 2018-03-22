@@ -15,11 +15,15 @@ import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.jpa.HibernateEntityManager;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.TargetType;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -83,18 +87,17 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
             throw new IllegalStateException(e);
         }
 
-        /*
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
+        EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
         // create example tables from beans
-        SchemaExport schemaExport = new SchemaExport(metadataImplementor); //.setHaltOnError(true);
-        schemaExport.drop(false, true);
-        schemaExport.execute(false, true, false, true);
+        SchemaExport schemaExport = new SchemaExport();
+        schemaExport.drop(type, metadataImplementor);
+        schemaExport.execute(type, SchemaExport.Action.CREATE, metadataImplementor);
 
         if (!schemaExport.getExceptions().isEmpty()) {
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
-        */
 
         return new AbstractHibernateStore.Builder(em)
                 .withScrollEnabled(true)

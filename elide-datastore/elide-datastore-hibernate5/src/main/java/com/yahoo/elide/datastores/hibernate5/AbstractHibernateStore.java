@@ -12,7 +12,8 @@ import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.HibernateEntityManager;
-import org.hibernate.metadata.ClassMetadata;
+
+import javax.persistence.metamodel.EntityType;
 
 /**
  * Hibernate interface library.
@@ -101,16 +102,15 @@ public abstract class AbstractHibernateStore implements DataStore {
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
-        for (ClassMetadata meta : sessionFactory.getAllClassMetadata().values()) {
+        for (EntityType type : sessionFactory.getMetamodel().getEntities()) {
             try {
-                Class mappedClass = meta.getMappedClass();
-
+                Class mappedClass = type.getJavaType();
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);
 
                 // Bind if successful
-                dictionary.bindEntity(meta.getMappedClass());
+                dictionary.bindEntity(mappedClass);
             } catch (IllegalArgumentException e)  {
                 // Ignore this entity
                 // Turns out that hibernate may include non-entity types in this list when using things

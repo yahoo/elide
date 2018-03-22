@@ -14,7 +14,10 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.TargetType;
 
+import java.util.EnumSet;
 import java.util.function.Supplier;
 
 public class BridgeableStoreSupplier implements Supplier<DataStore> {
@@ -38,16 +41,15 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
 
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
-        /*
+        EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
         // create example tables from beans
-        SchemaExport schemaExport = new SchemaExport(metadataImplementor); //.setHaltOnError(true);
-        schemaExport.drop(false, true);
-        schemaExport.execute(false, true, false, true);
+        SchemaExport schemaExport = new SchemaExport();
+        schemaExport.drop(type, metadataImplementor);
+        schemaExport.execute(type, SchemaExport.Action.CREATE, metadataImplementor);
 
         if (!schemaExport.getExceptions().isEmpty()) {
-            throw new RuntimeException(schemaExport.getExceptions().toString());
+            throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
-        */
 
         LATEST_HIBERNATE_STORE = new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())
             .withScrollEnabled(true)
