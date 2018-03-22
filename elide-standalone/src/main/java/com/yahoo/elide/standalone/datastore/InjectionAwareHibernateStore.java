@@ -13,7 +13,9 @@ import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 
+import javax.persistence.metamodel.EntityType;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Hibernate store that is aware of the injector. Namely, when objects are created, the injector will run
@@ -42,24 +44,25 @@ public class InjectionAwareHibernateStore extends HibernateSessionFactoryStore {
 
         if (injector != null) {
             log.info("Binding injector to entities");
-            Collection<ClassMetadata> metadata = this.sessionFactory.getAllClassMetadata().values();
-            log.info("Found {} entities", metadata.size());
-            /* bind all entities to injector */
-            metadata.forEach(meta -> {
-                // Ensure they receive proper injection:
-                // Since tools like envers can insert non-entities into our metadata, make sure
-                // we ignore non-entities:
+            Set<EntityType<?>> types = sessionFactory.getMetamodel().getEntities();
+            log.info("Found {} entities", types.size());
+
+            for (EntityType type : sessionFactory.getMetamodel().getEntities()) {
                 try {
-                    // This is only used to catch an exception. If non-entity is passed, then an exception is thrown
-                    dictionary.lookupEntityClass(meta.getMappedClass());
-                    // If we have gotten this far, we can happily bind the entity
-                    dictionary.bindInitializer(injector::inject, meta.getMappedClass());
-                    log.debug("Elide bound entity: {}", meta.getEntityName());
-                } catch (IllegalArgumentException e) {
-                    // Ignore this non-entity
-                    log.debug("Elide ignoring non-entity found in hibernate metadata: {}", meta.getEntityName());
+                    Class mappedClass = type.getJavaType();
+                    // Ignore this result. We are just checking to see if it throws an exception meaning that
+                    // provided class was _not_ an entity.
+                    dictionary.lookupEntityClass(mappedClass);
+
+                    // Bind if successful
+                    dictionary.bindEntity(mappedClass);
+                } catch (IllegalArgumentException e)  {
+                    // Ignore this entity
+                    // Turns out that hibernate may include non-entity types in this list when using things
+                    // like envers. Since they are not entities, we do not want to bind them into the entity
+                    // dictionary
                 }
-            });
+            }
         } else {
             log.info("No injector found, not binding one to entities.");
         }
