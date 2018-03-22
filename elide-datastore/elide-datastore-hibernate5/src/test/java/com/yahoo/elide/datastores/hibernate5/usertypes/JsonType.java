@@ -9,9 +9,9 @@ package com.yahoo.elide.datastores.hibernate5.usertypes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
-import org.hibernate.engine.spi.SessionImplementor;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -66,17 +66,12 @@ public class JsonType implements UserType, ParameterizedType {
         return Objects.hashCode(object);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session,
-            Object ownerSession) throws HibernateException, SQLException {
-
-        if (resultSet.getString(names[0]) != null) {
+    public Object nullSafeGet(ResultSet resultSet, String[] strings, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
+        if (resultSet.getString(strings[0]) != null) {
 
             // Get the rawJson
-            String rawJson = resultSet.getString(names[0]);
+            String rawJson = resultSet.getString(strings[0]);
 
             try {
                 ObjectMapper mapper = new ObjectMapper();
@@ -88,24 +83,20 @@ public class JsonType implements UserType, ParameterizedType {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SessionImplementor session)
-            throws HibernateException, SQLException  {
-
-        if (value == null) {
-            preparedStatement.setNull(index, Types.NULL);
+    public void nullSafeSet(PreparedStatement preparedStatement, Object o, int i, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
+        if (o == null) {
+            preparedStatement.setNull(i, Types.NULL);
         } else {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                String json = mapper.writeValueAsString(value);
-                preparedStatement.setString(index, json);
+                String json = mapper.writeValueAsString(o);
+                preparedStatement.setString(i, json);
             } catch (JsonProcessingException e) {
                 throw new HibernateException("Could not write an instance of the mapped class to a prepared statement.");
             }
         }
+
     }
 
     /**

@@ -17,7 +17,6 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
 
 import java.util.function.Supplier;
 import javax.persistence.Entity;
@@ -54,6 +53,8 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
 
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
+        /*
+
         // create example tables from beans
         SchemaExport schemaExport = new SchemaExport(metadataImplementor); //.setHaltOnError(true);
         schemaExport.drop(false, true);
@@ -62,6 +63,7 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
         if (!schemaExport.getExceptions().isEmpty()) {
             throw new RuntimeException(schemaExport.getExceptions().toString());
         }
+        */
 
         return new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())
                 .withScrollEnabled(true)

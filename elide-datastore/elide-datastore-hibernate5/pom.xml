@@ -39,7 +39,7 @@
     </scm>
 
     <properties>
-        <hibernate5.version>5.0.2.Final</hibernate5.version>
+        <hibernate5.version>5.2.15.Final</hibernate5.version>
     </properties>
 
     <dependencies>
