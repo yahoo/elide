@@ -1,4 +1,9 @@
 # Change Log
+
+## TBD
+**Fixes**
+ * Log runtime exception as error
+
 ## 4.2.0
 **Features**
 Upgraded hibernate 5 datastore to latest version (5.2.15)
