@@ -27,13 +27,13 @@ import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
 import com.yahoo.elide.security.User;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.FlushMode;
-import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -86,7 +86,7 @@ public class HibernateTransaction implements DataStoreTransaction {
             if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
                 session.flush();
             }
-        } catch (HibernateException e) {
+        } catch (PersistenceException e) {
             log.error("Caught hibernate exception during flush", e);
             throw new TransactionException(e);
         }
@@ -97,7 +97,7 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             this.flush(scope);
             this.session.getTransaction().commit();
-        } catch (HibernateException e) {
+        } catch (PersistenceException e) {
             throw new TransactionException(e);
         }
     }

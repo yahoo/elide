@@ -8,10 +8,11 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.google.common.base.Preconditions;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+
+import javax.persistence.PersistenceException;
 
 /**
  * Implementation for HibernateStore supporting SessionFactory.
@@ -36,7 +37,7 @@ public class HibernateSessionFactoryStore extends AbstractHibernateStore {
             Preconditions.checkNotNull(session);
             Preconditions.checkArgument(session.isConnected());
             return session;
-        } catch (HibernateException e) {
+        } catch (PersistenceException e) {
             throw new TransactionException(e);
         }
     }
