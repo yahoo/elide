@@ -1,14 +1,14 @@
 # Change Log
 
-## TBD
+## 4.2.1
 **Fixes**
+ * Fixed #640
  * Log runtime exception as error
 
 ## 4.2.0
 **Features**
 Upgraded hibernate 5 datastore to latest version (5.2.15)
 
-## 4.2.0
 **Fixes**
  * Fixed bug where create-time pre-security hooks were running before any values were set.
 
