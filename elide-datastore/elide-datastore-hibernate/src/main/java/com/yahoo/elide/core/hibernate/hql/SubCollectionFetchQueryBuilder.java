@@ -42,21 +42,43 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             return null;
         }
 
+        String childAlias = FilterPredicate.getTypeAlias(relationship.getChildType());
+        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "_FOOBAR";
+        String parentName = relationship.getParentType().getCanonicalName();
+        String relationshipName = relationship.getRelationshipName();
+
         Query query = filterExpression.map(fe -> {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = fe.accept(extractor);
-            String filterClause = new HQLFilterOperation().apply(fe, NO_ALIAS);
-            Query q = session.createFilter(
-                    relationship.getChildren(),
-                    // We don't prefix with aliases because we are not joining across toMany relationships.
-                    filterClause + SPACE + getSortClause(sorting, relationship.getChildType(), NO_ALIAS)
+            String filterClause = new HQLFilterOperation().apply(fe, USE_ALIAS);
+
+            String joinClause =  getJoinClauseFromFilters(filterExpression.get());
+
+            //SELECT parent_children from Parent parent JOIN parent.children parent_children
+            Query q = session.createQuery(SELECT
+                            + childAlias
+                            + FROM
+                            + parentName + SPACE + parentAlias
+                            + JOIN
+                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                            + joinClause
+                            + SPACE
+                            + filterClause
+                            + " AND " + parentAlias + PERIOD + "id=" + dictionary.getId(relationship.getParent())
+                            + SPACE
+                            + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
             );
+
             supplyFilterQueryParameters(q, predicates);
             return q;
-        }).orElse(session.createFilter(
-                relationship.getChildren(),
-                //The root collection doesn't need prefix for order by clause.
-                getSortClause(sorting, relationship.getChildType(), NO_ALIAS)
+        }).orElse(session.createQuery(SELECT
+                            + childAlias
+                            + FROM
+                            + parentName + SPACE + parentAlias
+                            + JOIN
+                            + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                            + " WHERE " + parentAlias + PERIOD + "id=" + dictionary.getId(relationship.getParent())
+                            + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
         ));
 
         addPaginationToQuery(query);
