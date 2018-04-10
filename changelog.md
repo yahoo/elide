@@ -2,7 +2,8 @@
 
 ## 4.2.1
 **Fixes**
-Fixed #640
+ * Fixed #640
+ * Log runtime exception as error
 
 ## 4.2.0
 **Features**

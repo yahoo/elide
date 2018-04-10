@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Yahoo Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -1925,7 +1925,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
             return (RuntimeException) exception;
         }
-        log.debug("Caught an unexpected exception (rethrowing as internal server error)", e);
+        log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
         return new InternalServerErrorException("Unexpected exception caught", e);
     }
 
