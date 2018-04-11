@@ -9,8 +9,6 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
-
 /**
  * Wraps a Hibernate 3 Session allowing most data store logic
  * to not directly depend on a specific version of Hibernate.
@@ -28,12 +26,6 @@ public class SessionWrapper implements Session {
     public Query createQuery(String queryText) {
         logQuery(queryText);
         return new QueryWrapper(session.createQuery(queryText));
-    }
-
-    @Override
-    public Query createFilter(Collection collection, String queryText) {
-        logQuery(queryText);
-        return new QueryWrapper(session.createFilter(collection, queryText));
     }
 
     private static void logQuery(String queryText) {

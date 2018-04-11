@@ -5,12 +5,9 @@
  */
 package com.yahoo.elide.core.hibernate;
 
-import java.util.Collection;
-
 /**
  * Interface that represents a Hibernate session but has no dependencies on a specific version of Hibernate.
  */
 public interface Session {
     public Query createQuery(String queryText);
-    public Query createFilter(Collection collection, String queryText);
 }
