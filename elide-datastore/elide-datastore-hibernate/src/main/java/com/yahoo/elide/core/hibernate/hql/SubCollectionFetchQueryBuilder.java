@@ -43,7 +43,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         }
 
         String childAlias = FilterPredicate.getTypeAlias(relationship.getChildType());
-        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "_FOOBAR";
+        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "_fetch";
         String parentName = relationship.getParentType().getCanonicalName();
         String relationshipName = relationship.getRelationshipName();
 
@@ -65,7 +65,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + joinClause
                             + SPACE
                             + filterClause
-                            + " AND " + parentAlias + PERIOD + "id=" + dictionary.getId(relationship.getParent())
+                            + " AND " + parentAlias + "=:" + parentAlias
                             + SPACE
                             + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
             );
@@ -79,9 +79,11 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
                             + extractToOneMergeJoins(relationship.getChildType(), childAlias)
-                            + " WHERE " + parentAlias + PERIOD + "id=" + dictionary.getId(relationship.getParent())
+                            + " WHERE " + parentAlias + "=:" + parentAlias
                             + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
         ));
+
+        query.setParameter(parentAlias, relationship.getParent());
 
         addPaginationToQuery(query);
         return query;
