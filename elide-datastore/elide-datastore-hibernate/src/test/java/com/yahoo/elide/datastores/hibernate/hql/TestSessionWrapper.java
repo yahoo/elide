@@ -8,16 +8,9 @@ package com.yahoo.elide.datastores.hibernate.hql;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 
-import java.util.Collection;
-
 public class TestSessionWrapper implements Session {
     @Override
     public Query createQuery(String queryText) {
-        return new TestQueryWrapper(queryText);
-    }
-
-    @Override
-    public Query createFilter(Collection collection, String queryText) {
         return new TestQueryWrapper(queryText);
     }
 }
