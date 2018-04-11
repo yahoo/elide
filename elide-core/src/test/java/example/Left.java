@@ -21,7 +21,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.Set;
 
-
 @Include(rootLevel = true, type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
@@ -31,6 +30,10 @@ public class Left {
     private long id;
     private Set<Right> one2many;
     private Right one2one;
+    private NoDeleteEntity noDeleteOne2One;
+    private Set<Right> fieldLevelDelete;
+    private Right noUpdateOne2One;
+    private Set<Right> noInverseUpdate;
 
     @OneToOne(
             optional = false,
@@ -75,25 +78,48 @@ public class Left {
             targetEntity = Right.class,
             mappedBy = "noUpdateOne2One"
     )
-    public Right noUpdateOne2One;
+    public Right getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
+
+    public void setNoUpdateOne2One(Right noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
 
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "noUpdate"
     )
-    public Set<Right> noInverseUpdate;
+    public Set<Right> getNoInverseUpdate() {
+        return noInverseUpdate;
+    }
+
+    public void setNoInverseUpdate(Set<Right> noInverseUpdate) {
+        this.noInverseUpdate = noInverseUpdate;
+    }
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = NoDeleteEntity.class
+
     )
-    public NoDeleteEntity noDeleteOne2One;
+    public NoDeleteEntity getNoDeleteOne2One() {
+        return noDeleteOne2One;
+    }
+
+    public void setNoDeleteOne2One(NoDeleteEntity noDeleteOne2One) {
+        this.noDeleteOne2One = noDeleteOne2One;
+    }
 
     @ManyToMany(
-        cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-        targetEntity = Right.class,
-        mappedBy = "allowDeleteAtFieldLevel"
+        cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    public Set<Right> fieldLevelDelete;
+    public Set<Right> getFieldLevelDelete() {
+        return fieldLevelDelete;
+    }
+
+    public void setFieldLevelDelete(Set<Right> fieldLevelDelete) {
+        this.fieldLevelDelete = fieldLevelDelete;
+    }
 }

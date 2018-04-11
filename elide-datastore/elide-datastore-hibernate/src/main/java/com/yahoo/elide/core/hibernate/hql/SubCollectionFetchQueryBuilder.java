@@ -52,7 +52,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             Collection<FilterPredicate> predicates = fe.accept(extractor);
             String filterClause = new HQLFilterOperation().apply(fe, USE_ALIAS);
 
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get());
+            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
+                    + extractToOneMergeJoins(relationship.getChildType(), childAlias);
 
             //SELECT parent_children from Parent parent JOIN parent.children parent_children
             Query q = session.createQuery(SELECT
@@ -77,6 +78,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + parentName + SPACE + parentAlias
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
+                            + extractToOneMergeJoins(relationship.getChildType(), childAlias)
                             + " WHERE " + parentAlias + PERIOD + "id=" + dictionary.getId(relationship.getParent())
                             + getSortClause(sorting, relationship.getChildType(), USE_ALIAS)
         ));

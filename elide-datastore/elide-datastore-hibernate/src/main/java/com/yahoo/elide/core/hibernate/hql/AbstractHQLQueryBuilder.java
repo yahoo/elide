@@ -7,6 +7,7 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
@@ -42,6 +43,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String FROM = " FROM ";
     protected static final String JOIN = " JOIN ";
     protected static final String LEFT = " LEFT";
+    protected static final String FETCH = " FETCH ";
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
 
@@ -176,6 +178,24 @@ public abstract class AbstractHQLQueryBuilder {
         }
 
         return joinClause.toString();
+    }
+
+    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+        List<String> relationshipNames = dictionary.getRelationships(entityClass);
+        StringBuffer joinString = new StringBuffer("");
+        for (String relationshipName : relationshipNames) {
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
+            if (type.isToOne() && !type.isComputed()) {
+                joinString.append(LEFT);
+                joinString.append(JOIN);
+                joinString.append(FETCH);
+                joinString.append(alias);
+                joinString.append(PERIOD);
+                joinString.append(relationshipName);
+                joinString.append(" ");
+            }
+        }
+        return joinString.toString();
     }
 
     /**
