@@ -35,9 +35,6 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     private static final String BOOKS = "books";
     private static final String PUBLISHER = "publisher";
 
-    private final Class<? extends Book> bookProxyClass = new Book() {
-    }.getClass();
-
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
@@ -50,7 +47,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testRootFetch() {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                bookProxyClass, dictionary, new TestSessionWrapper());
+                Book.class, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
@@ -66,7 +63,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void testRootFetchWithSorting() {
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                bookProxyClass, dictionary, new TestSessionWrapper());
+                Book.class, dictionary, new TestSessionWrapper());
 
         Sorting sorting = mock(Sorting.class);
 
@@ -78,7 +75,7 @@ public class RootCollectionPageTotalsQueryBuilderTest {
         Pagination pagination = mock(Pagination.class);
 
         RootCollectionPageTotalsQueryBuilder builder = new RootCollectionPageTotalsQueryBuilder(
-                bookProxyClass, dictionary, new TestSessionWrapper());
+                Book.class, dictionary, new TestSessionWrapper());
 
         builder.withPossiblePagination(Optional.of(pagination));
     }

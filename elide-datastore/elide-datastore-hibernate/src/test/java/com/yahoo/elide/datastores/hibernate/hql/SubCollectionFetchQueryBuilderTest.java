@@ -35,11 +35,6 @@ public class SubCollectionFetchQueryBuilderTest {
     private static final String PUBLISHER = "publisher";
     private static final String PUB1 = "Pub1";
 
-    public static class BookProxy extends Book {
-    }
-
-    private final Class<? extends Book> bookProxyClass = BookProxy.class;
-
     @BeforeClass
     public void initialize() {
         dictionary = new EntityDictionary(new HashMap<>());
