@@ -26,6 +26,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.OneToOne;
+
 /**
  * Abstract class used to construct HQL queries.
  */
@@ -182,10 +184,16 @@ public abstract class AbstractHQLQueryBuilder {
 
     protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
-        StringBuffer joinString = new StringBuffer("");
+        StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
+                // fetch only OneToOne with mappedBy
+                OneToOne oneToOne = dictionary.getAttributeOrRelationAnnotation(
+                        entityClass, OneToOne.class, relationshipName);
+                if (oneToOne == null || oneToOne.mappedBy().isEmpty()) {
+                    continue;
+                }
                 joinString.append(LEFT);
                 joinString.append(JOIN);
                 joinString.append(FETCH);

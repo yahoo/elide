@@ -13,7 +13,7 @@ import com.yahoo.elide.core.HttpStatus;
  */
 public class InvalidAttributeException extends HttpStatusException {
     public InvalidAttributeException(String attributeName, String type, Throwable cause) {
-        super(HttpStatus.SC_NOT_FOUND, "Unknown attribute '" + attributeName + "' in " + "'" + type + "'", cause, null);
+        super(HttpStatus.SC_NOT_FOUND, "Unknown attribute '" + attributeName + "' in '" + type + "'", cause, null);
     }
 
     public InvalidAttributeException(String attributeName, String type) {
