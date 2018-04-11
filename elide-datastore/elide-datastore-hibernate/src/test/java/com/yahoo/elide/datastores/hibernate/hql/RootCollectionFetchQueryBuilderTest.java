@@ -45,20 +45,20 @@ public class RootCollectionFetchQueryBuilderTest {
         dictionary.bindEntity(Chapter.class);
     }
 
-    //@Test
+    @Test
     public void testRootFetch() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 bookProxyClass, dictionary, new TestSessionWrapper());
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book ";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book  ";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
     }
 
-    //@Test
+    @Test
     public void testRootFetchWithSorting() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
@@ -70,7 +70,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  order by example_Book.title asc";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book   order by example_Book.title asc";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
@@ -124,7 +124,7 @@ public class RootCollectionFetchQueryBuilderTest {
         Assert.assertEquals(actual, expected);
     }
 
-    //@Test
+    @Test
     public void testRootFetchWithSortingAndFilters() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 bookProxyClass, dictionary, new TestSessionWrapper());

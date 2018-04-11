@@ -43,7 +43,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         }
 
         String childAlias = FilterPredicate.getTypeAlias(relationship.getChildType());
-        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "_fetch";
+        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "__fetch";
         String parentName = relationship.getParentType().getCanonicalName();
         String relationshipName = relationship.getRelationshipName();
 
