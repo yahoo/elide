@@ -20,6 +20,7 @@ import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Publisher;
+import example.Left;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -54,6 +55,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);
         dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Left.class);
     }
 
 
@@ -95,6 +97,14 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         String expected = " LEFT JOIN example_Author.books example_Author_books  "
                 + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
                 + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Test
+    public void testFetchJoinClause() {
+        String actual = extractToOneMergeJoins(Left.class, "right_alias");
+
+        String expected = " LEFT JOIN  FETCH right_alias.noUpdateOne2One  LEFT JOIN  FETCH right_alias.one2one ";
         Assert.assertEquals(actual, expected);
     }
 

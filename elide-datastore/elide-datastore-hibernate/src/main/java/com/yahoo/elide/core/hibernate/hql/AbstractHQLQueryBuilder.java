@@ -182,6 +182,12 @@ public abstract class AbstractHQLQueryBuilder {
         return joinClause.toString();
     }
 
+    /**
+     * Builds a JOIN clause that eagerly fetches to-one relationships that Hibernate needs to hydrate.
+     * @param entityClass The entity class that is being queried in the HQL query.
+     * @param alias The HQL alias for the entity class.
+     * @return The JOIN clause that can be added to the FROM clause.
+     */
     protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
@@ -200,7 +206,7 @@ public abstract class AbstractHQLQueryBuilder {
                 joinString.append(alias);
                 joinString.append(PERIOD);
                 joinString.append(relationshipName);
-                joinString.append(" ");
+                joinString.append(SPACE);
             }
         }
         return joinString.toString();
