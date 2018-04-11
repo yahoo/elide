@@ -47,7 +47,8 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             String filterClause = new HQLFilterOperation().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
-            String joinClause =  getJoinClauseFromFilters(filterExpression.get());
+            String joinClause =  getJoinClauseFromFilters(filterExpression.get())
+                    + extractToOneMergeJoins(entityClass, entityAlias);
 
             query = session.createQuery(
                     SELECT
@@ -73,6 +74,8 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                     + entityName
                     + AS
                     + entityAlias
+                    + SPACE
+                    + extractToOneMergeJoins(entityClass, entityAlias)
                     + SPACE
                     + getSortClause(sorting, entityClass, USE_ALIAS));
         }

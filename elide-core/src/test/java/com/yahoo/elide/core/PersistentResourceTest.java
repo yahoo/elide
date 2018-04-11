@@ -1347,8 +1347,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(1);
         Right right = new Right();
         right.setId(1);
-        left.noUpdateOne2One = right;
-        right.noUpdateOne2One = left;
+        left.setNoUpdateOne2One(right);
+        right.setNoUpdateOne2One(left);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         User goodUser = new User(1);
@@ -1365,8 +1365,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(1);
         Right right = new Right();
         right.setId(1);
-        left.noUpdateOne2One = right;
-        right.noUpdateOne2One = left;
+        left.setNoUpdateOne2One(right);
+        right.setNoUpdateOne2One(left);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         User goodUser = new User(1);
@@ -1385,9 +1385,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right1.setId(1);
         Right right2 = new Right();
         right2.setId(2);
-        left.noInverseUpdate = Sets.newHashSet(right1, right2);
-        right1.noUpdate = Sets.newHashSet(left);
-        right2.noUpdate = Sets.newHashSet(left);
+        left.setNoInverseUpdate(Sets.newHashSet(right1, right2));
+        right1.setNoUpdate(Sets.newHashSet(left));
+        right2.setNoUpdate(Sets.newHashSet(left));
 
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
@@ -1405,14 +1405,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(1);
         NoDeleteEntity noDelete = new NoDeleteEntity();
         noDelete.setId(1);
-        left.noDeleteOne2One = noDelete;
+        left.setNoDeleteOne2One(noDelete);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
         Assert.assertTrue(leftResource.clearRelation("noDeleteOne2One"));
-        Assert.assertNull(leftResource.getObject().noDeleteOne2One);
+        Assert.assertNull(leftResource.getObject().getNoDeleteOne2One());
 
     }
 
@@ -1599,8 +1599,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Right right = new Right();
         right.setId(2);
 
-        left.fieldLevelDelete = Sets.newHashSet(right);
-        right.allowDeleteAtFieldLevel = Sets.newHashSet(left);
+        left.setFieldLevelDelete(Sets.newHashSet(right));
+        right.setAllowDeleteAtFieldLevel(Sets.newHashSet(left));
 
         //Bad User triggers the delete permission failure
         User badUser = new User(-1);
@@ -1609,7 +1609,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope.getUUIDFor(left), badScope);
 
         Assert.assertTrue(leftResource.clearRelation("fieldLevelDelete"));
-        Assert.assertEquals(leftResource.getObject().fieldLevelDelete.size(), 0);
+        Assert.assertEquals(leftResource.getObject().getFieldLevelDelete().size(), 0);
     }
 
 
@@ -1619,8 +1619,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(1);
         Right right = new Right();
 
-        left.noInverseUpdate = Sets.newHashSet(right);
-        right.noUpdate = Sets.newHashSet(left);
+        left.setNoInverseUpdate(Sets.newHashSet(right));
+        right.setNoUpdate(Sets.newHashSet(left));
 
         List<Resource> empty = new ArrayList<>();
         Relationship ids = new Relationship(null, new Data<>(empty));

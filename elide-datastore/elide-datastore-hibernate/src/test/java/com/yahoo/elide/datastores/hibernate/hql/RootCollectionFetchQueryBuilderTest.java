@@ -45,7 +45,7 @@ public class RootCollectionFetchQueryBuilderTest {
         dictionary.bindEntity(Chapter.class);
     }
 
-    @Test
+    //@Test
     public void testRootFetch() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 bookProxyClass, dictionary, new TestSessionWrapper());
@@ -58,7 +58,7 @@ public class RootCollectionFetchQueryBuilderTest {
         Assert.assertEquals(actual, expected);
     }
 
-    @Test
+    //@Test
     public void testRootFetchWithSorting() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 Book.class, dictionary, new TestSessionWrapper());
@@ -124,7 +124,7 @@ public class RootCollectionFetchQueryBuilderTest {
         Assert.assertEquals(actual, expected);
     }
 
-    @Test
+    //@Test
     public void testRootFetchWithSortingAndFilters() {
         RootCollectionFetchQueryBuilder builder = new RootCollectionFetchQueryBuilder(
                 bookProxyClass, dictionary, new TestSessionWrapper());

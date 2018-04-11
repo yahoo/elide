@@ -32,6 +32,9 @@ public class Right {
     private long id;
     private Left many2one;
     private Left one2one;
+    private Set<Left> allowDeleteAtFieldLevel;
+    private Left noUpdateOne2One;
+    private Set<Left> noUpdate;
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
@@ -73,19 +76,36 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    public Left noUpdateOne2One;
+    public Left getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
+
+    public void setNoUpdateOne2One(Left noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
 
     @UpdatePermission(expression = "deny all")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    public Set<Left> noUpdate;
+    public Set<Left> getNoUpdate() {
+        return noUpdate;
+    }
+
+    public void setNoUpdate(Set<Left> noUpdate) {
+        this.noUpdate = noUpdate;
+    }
 
     @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
     @UpdatePermission(expression = "allow all")
-    public Set<Left> allowDeleteAtFieldLevel;
+    public Set<Left> getAllowDeleteAtFieldLevel() {
+        return allowDeleteAtFieldLevel;
+    }
+
+    public void setAllowDeleteAtFieldLevel(Set<Left> allowDeleteAtFieldLevel) {
+        this.allowDeleteAtFieldLevel = allowDeleteAtFieldLevel;
+    }
 }

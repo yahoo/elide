@@ -30,8 +30,16 @@ public class SpecialRead {
 
     public String value;
 
+    private Child child;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    public Child child;
+    public Child getChild() {
+        return child;
+    }
+
+    public void setChild(Child child) {
+        this.child = child;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

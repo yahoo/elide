@@ -33,11 +33,54 @@ public class Right {
     private long id;
     private Left many2one;
     private Left one2one;
+    private Left noUpdateOne2One;
+    private Set<Left> noUpdate;
+    private Set<Left> noDelete;
+
+    @UpdatePermission(expression = "deny all")
+    @OneToOne(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            targetEntity = Left.class,
+            fetch = FetchType.LAZY
+    )
+    public Left getNoUpdateOne2One() {
+        return noUpdateOne2One;
+    }
+
+    public void setNoUpdateOne2One(Left noUpdateOne2One) {
+        this.noUpdateOne2One = noUpdateOne2One;
+    }
+
+    @UpdatePermission(expression = "deny all")
+    @ManyToMany(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            targetEntity = Left.class
+    )
+    public Set<Left> getNoUpdate() {
+        return noUpdate;
+    }
+
+    public void setNoUpdate(Set<Left> noUpdate) {
+        this.noUpdate = noUpdate;
+    }
+
+    @ManyToMany(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            targetEntity = Left.class
+    )
+    public Set<Left> getNoDelete() {
+        return noDelete;
+    }
+
+    public void setNoDelete(Set<Left> noDelete) {
+        this.noDelete = noDelete;
+    }
 
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class,
             fetch = FetchType.LAZY
+
     )
     public Left getOne2one() {
         return one2one;
@@ -69,25 +112,4 @@ public class Right {
     public long getId() {
         return id;
     }
-
-    @UpdatePermission(expression = "deny all")
-    @OneToOne(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class,
-            fetch = FetchType.LAZY
-    )
-    public Left noUpdateOne2One;
-
-    @UpdatePermission(expression = "deny all")
-    @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
-    )
-    public Set<Left> noUpdate;
-
-    @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            targetEntity = Left.class
-    )
-    public Set<Left> noDelete;
 }
