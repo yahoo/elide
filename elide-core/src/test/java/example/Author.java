@@ -39,7 +39,7 @@ public class Author {
         FREELANCE
     }
 
-    private Long id;
+    private long id;
     private String name;
     private Collection<Book> books = new ArrayList<>();
     private AuthorType type;
@@ -49,11 +49,11 @@ public class Author {
     private Address homeAddress;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 

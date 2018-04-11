@@ -72,7 +72,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Assert.assertNull(query);
     }
 
-    //@Test
+    @Test
     public void testSubCollectionFetchWithSorting() {
         Author author = new Author();
         author.setId(1L);
@@ -97,13 +97,15 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = " order by title asc";
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book "
+                + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
     }
 
-    //@Test
+    @Test
     public void testSubCollectionFetchWithJoinFilter() {
         Author author = new Author();
         author.setId(1L);
@@ -135,14 +137,17 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
                 .build();
 
-        String expected = "WHERE books.publisher.name IN (:books_publisher_name_XXX) ";
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book "
+                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
+                + "WHERE example_Book_publisher.name IN (:books_publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch ";
         String actual = query.getQueryText();
-        actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");
+        actual = actual.replaceFirst(":publisher_name_\\w+_\\w+", ":books_publisher_name_XXX");
 
         Assert.assertEquals(actual, expected);
     }
 
-    //@Test
+    @Test
     public void testSubCollectionFetchWithSortingAndFilters() {
         Author author = new Author();
         author.setId(1L);
@@ -178,7 +183,11 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "WHERE publisher.name IN (:publisher_name_XXX)  order by title asc";
+        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
+                + "JOIN example_Author__fetch.books example_Book "
+                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
+                + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch  order by example_Book.title asc";
+
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
 
