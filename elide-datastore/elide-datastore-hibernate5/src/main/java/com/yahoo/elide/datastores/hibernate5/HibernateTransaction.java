@@ -196,7 +196,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(
-                        entity.getClass(),
+                        dictionary.lookupEntityClass(entity.getClass()),
                         relationClass,
                         relationName,
                         entity,

@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.2
+**Fixes**
+ * Resolve hibernate proxy class for relationship
+
 ## 4.2.1
 **Fixes**
  * Fixed #640
