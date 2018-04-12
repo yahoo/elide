@@ -5,9 +5,12 @@
  * Fixed #640
  * Log runtime exception as error
 
+**Features**
+ * Added "fetch joins" for to-one relationships to improve HQL performance and limit N+1 queries.
+
 ## 4.2.0
 **Features**
-Upgraded hibernate 5 datastore to latest version (5.2.15)
+ * Upgraded hibernate 5 datastore to latest version (5.2.15)
 
 **Fixes**
  * Fixed bug where create-time pre-security hooks were running before any values were set.
@@ -83,8 +86,8 @@ See: 4.0-beta-5
    checked for newly created objects.
  * The semantics of `SharePermission` have changed.  `SharePermission` can no longer have an expression defined.  It either denies permission
    or exactly matches `ReadPermission`.
- * RSQL queries that compare strings are now case-insensitive. There is not currently a way to make 
-   case sensitive RSQL queries, however the RSQL spec does not provide this either. 
+ * RSQL queries that compare strings are now case-insensitive. There is not currently a way to make
+   case sensitive RSQL queries, however the RSQL spec does not provide this either.
    Fixes #387
 
 **Fixes**
@@ -102,9 +105,9 @@ See: 4.0-beta-5
  * Rollback relationship handling change.
  * Handle ForbiddenAccess only for denied Include, instead of filtering to empty set.
 
-## 3.1.4       
-**Fixes**      
- * Instead of ForbiddenAccess for denied Include, filter to empty set.     
+## 3.1.4
+**Fixes**
+ * Instead of ForbiddenAccess for denied Include, filter to empty set.
  * Generate error when parsing permission expression fails.
 
 ## 3.1.3
@@ -126,7 +129,7 @@ See: 4.0-beta-5
 
 ## 3.1.0
 **Fixes**
- * Use Entity name when Include is empty.  Cleanup Predicate. 
+ * Use Entity name when Include is empty.  Cleanup Predicate.
 
 ## 3.0.17
 **Features**
@@ -140,19 +143,19 @@ Cleanup equals code style
 
 ## 3.0.15
 **Fixes**
- * Use inverse relation type when updating. 
- 
+ * Use inverse relation type when updating.
+
 ## 3.0.14
 **Fixes**
  * Properly handle incorrect relationship field name in Patch request instead of `Entity is null`
  * Properly handle invalid filtering input in HQL filtering
  * Properly handle NOT in filterexpressionchecks
  * Fix parameter order in commit permission check
- 
+
 ## 3.0.13
 **Fixes**
  * Fixing regression in deferred permissions for updates
- 
+
 ## 3.0.12
 **Misc**
  * Cleanup hibernate stores to not care about multi edit transactions
@@ -229,8 +232,8 @@ Cleanup equals code style
 ## 3.0.0
 **Features**
 * Promoted `DefaultOpaqueUserFunction` to be a top-level class
-* Promoted `Elide.Builder` to be a top-level class `ElideSettingsBuilder` 
-* Revised datastore interface 
+* Promoted `Elide.Builder` to be a top-level class `ElideSettingsBuilder`
+* Revised datastore interface
     * Removed hibernate-isms
     * Made key-value persistence easier to support
 * Revised lifecycle hook model
