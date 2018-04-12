@@ -200,9 +200,7 @@ public abstract class AbstractHQLQueryBuilder {
                 if (oneToOne == null || oneToOne.mappedBy().isEmpty()) {
                     continue;
                 }
-                joinString.append(LEFT);
-                joinString.append(JOIN);
-                joinString.append(FETCH);
+                joinString.append(" LEFT JOIN FETCH ");
                 joinString.append(alias);
                 joinString.append(PERIOD);
                 joinString.append(relationshipName);
