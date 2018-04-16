@@ -1,36 +1,70 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/986e1e05fee64702a2377272d664ec6d)](https://www.codacy.com/app/Elide/elide?utm_source=github.com&utm_medium=referral&utm_content=yahoo/elide&utm_campaign=badger)
 [![Gitter](https://badges.gitter.im/yahoo/elide.svg)](https://gitter.im/yahoo/elide?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 
-![Elide Logo](http://elide.io/assets/images/elide.svg)
+![Elide Logo](http://elide.io/assets//images/elide-logo.svg)
 
 ## Elide简介
 
-Elide是一个用[JPA注释模型](http://blog.csdn.net/superdog007/article/details/22651577)轻松搭建[JSON API](http://jsonapi.org.cn/) web服务的Java library。Elide可以迅速搭建和部署高性能web服务，将数据模型以服务的形式开放访问。Elide提供
-1. JSON API CRUD操作，用以访问JPA实体对象。任何实体只需要添加注释就能以JSON API的形式开放。
-2. **PATCH扩展** - Elide支持[PATCH扩展](http://jsonapi.org.cn/extending/)功能，仅通过一个访问请求就能完成多项建造，修改，和删除实体的任务。
-3. **原子请求** - 包括PATCH扩展在内的所有请求皆为原子请求，可以和数据库事务的原子性完全兼容。
-4.  **高安全性** - 所有实体操作和实体内部数据的访问具备权限配置，让您的数据安全开放。
-5. **灵活日志** - 所有访问日志可以随意配置。
-6. **高扩展性** - Elide支持所有CRUD实体访问类型的业务需求，任何数据库只需添加一个JPA对接类或者实现一个自定义的数据存储（`datastore`）就可以变成一个支持JSON API的实体后台。
-7. **安全测试** - Elide包含一个[安全测试框架](https://github.com/yahoo/elide-testing-framework)，可以寻找和发现API安全漏洞。
-8. **客户端API** - Elide还与一个[JavaScript 客户端 library](https://github.com/yahoo/elide-js) 协同开发。Elide兼容所有[JSON AP 客户端 library](http://jsonapi.org/implementations/)。
+Elide是一个互联网和移动端应用数据API搭建平台，只需要一个简单的[JPA注释模型](http://blog.csdn.net/superdog007/article/details/22651577)
+就能帮您轻松搭建[GraphQL](https://graphql.org/)和[JSON](http://jsonapi.org.cn/) API web 服务的。
+
+### 标准完善的数据安全保障
+
+Elide提供极具规则性，简单易懂的语法规则，让您轻松搞定实体（entity）的安全访问。
+
+### 移动端性能优化 API
+
+JSON-API和GraphQL能够帮助开发者仅通过一次API接口访问就能获取与某个实体相关的所有数据，而且在移动端传输过程中减少所有不
+必要的数据，只返回被请求的数据部分。我们为您精心设计的数据处理系统帮助您解决很多常见的数据应用开发问题，例如：
+
+* 在单次请求操作中实现创建实体数据，同时将其加入现有的实体库
+* 创建存储关系复杂的多个相关实体（实体关联图），并将它们并入现有的实体库
+* 你可以选择完全删除某个实体数据，也可以选择接触实体关联（并不删除任何数据）
+* 完全自由修改实体关联定义
+* 修改实体数据的同时还可以访问加入新建实体
+
+Elide还完全支持数据筛选，排序，分页。
+
+### 任何数据写入都可以保证原子性
+
+无论是JSON-API还是GraphQL，Elide支持单个请求中实现多个数据模型的修改操作。创建新的实体，添加实体关系，修改和删除实体保证
+事务的原子性（Atomicity）。
+
+### 支持自定义数据持久化机制
+
+你可以用Elide自定义您的持久化方法策略。您可以使用Elide默认支持的ORM或者使用自行开发的数据存储机制。
+
+### 数据模型一览无余
+
+您可以借助自动生成的Swagger文档或者GraphQL数据模型了解，学习，和编写Elide API查询语句。
+
+### 配置轻松自由
+
+您可以按照您的意思轻松配置您需要的数据模型操作，比如添加复杂的二次运算实体数据，数据检查标注（data validation
+annotations），或者是自动以的访问请求中间链模块。
 
 ## 文档
+
 更多使用指南，请参见[elide.io](http://elide.io/).
 
-## 在Maven中使用Elide
-在Maven项目中加入Elide非常简单，只需在你的pom.xml中加入elide-core即可
+## 开发
 
-```xml
-<!-- Elide -->
-<dependency>
-    <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-core</artifactId>
-</dependency>
-```
+如果您想给Elide贡献代码，请在IDE中添加[Lombok](https://projectlombok.org/)插件。
 
-## Elide开发
-如果您决定参与开发Elide，请在IDE中添加[Lombok](https://projectlombok.org/)插件。
+## 教程（英文）
+
+[Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
+
+[Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
+
+[Logging Into a Spring Boot/Elide JSON API Server](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
+
+[Securing a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
+
+[Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
+
+[Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
 
 ## 开源许可
-The use and distribution terms for this software are covered by the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html).
+The use and distribution terms for this software are covered by the Apache License, Version 2.0
+(http://www.apache.org/licenses/LICENSE-2.0.html).
