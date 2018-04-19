@@ -1,5 +1,9 @@
 # Change Log
 
+## Next
+**Features**
+ * Add `CustomErrorException` and `ErrorObjects` to support custom error objects
+
 ## 4.2.2
 **Fixes**
  * Resolve hibernate proxy class for relationship
