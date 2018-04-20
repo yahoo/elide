@@ -17,7 +17,7 @@ import java.util.Objects;
  * Error Objects, see http://jsonapi.org/format/#error-objects. <br><br>
  * Builder example: <br>
  * <pre><code>
- *   ErrorObjects errorObjects = ErrorObjects.create()
+ *   ErrorObjects errorObjects = ErrorObjects.builder()
  *       .addError()
  *           .withDetail("first error message")
  *       .addError()
@@ -32,91 +32,65 @@ public class ErrorObjects {
         this.errors = Objects.requireNonNull(errors, "errors must not be null");
     }
 
-    public static ErrorObjectsBuilder create() {
-        return new ErrorObjectsBuilder(new ErrorObjects(new ArrayList<>()));
+    public static ErrorObjectsBuilder builder() {
+        return new ErrorObjectsBuilder();
     }
 
     /**
      * ErrorObjectsBuilder.
      */
     public static class ErrorObjectsBuilder {
-
-        private final ErrorObjects container;
         private final List<Map<String, Object>> errors;
+        private Map<String, Object> currentError;
 
-        ErrorObjectsBuilder(ErrorObjects container) {
-            this.container = container;
-            this.errors = container.getErrors();
+        ErrorObjectsBuilder() {
+            this.errors = new ArrayList<>();
         }
 
-        public ErrorObjectBuilder addError() {
-            Map<String, Object> errorObject = new HashMap<>();
-            errors.add(errorObject);
-            return new ErrorObjectBuilder(this, errorObject);
+        public ErrorObjectsBuilder withId(String id) {
+            return with("id", id);
+        }
+
+        public ErrorObjectsBuilder withStatus(String status) {
+            return with("status", status);
+        }
+
+        public ErrorObjectsBuilder withCode(String code) {
+            return with("code", code);
+        }
+
+        public ErrorObjectsBuilder withTitle(String title) {
+            return with("title", title);
+        }
+
+        public ErrorObjectsBuilder withDetail(String detail) {
+            return with("detail", detail);
+        }
+
+        public ErrorObjectsBuilder with(String key, Object value) {
+            currentError.put(key, value);
+            return this;
+        }
+
+        public ErrorObjectsBuilder addError() {
+            validateCurrentError();
+            Map<String, Object> error = new HashMap<>();
+            errors.add(error);
+            currentError = error;
+            return this;
         }
 
         public ErrorObjects build() {
             if (errors.isEmpty()) {
-                throw new IllegalArgumentException("at least one error object");
+                throw new IllegalArgumentException("At least one error is required");
             }
-            return container;
+            validateCurrentError();
+            return new ErrorObjects(errors);
         }
 
-        /**
-         * ErrorObjectBuilder.
-         */
-        public static class ErrorObjectBuilder {
-
-            private ErrorObjectsBuilder rootBuilder;
-            private Map<String, Object> errorObject;
-
-            ErrorObjectBuilder(ErrorObjectsBuilder rootBuilder, Map<String, Object> errorObject) {
-                this.rootBuilder = rootBuilder;
-                this.errorObject = errorObject;
-            }
-
-            public ErrorObjectBuilder withId(String id) {
-                errorObject.put("id", id);
-                return this;
-            }
-
-            public ErrorObjectBuilder withStatus(String status) {
-                errorObject.put("status", status);
-                return this;
-            }
-
-            public ErrorObjectBuilder withCode(String code) {
-                errorObject.put("code", code);
-                return this;
-            }
-
-            public ErrorObjectBuilder withTitle(String title) {
-                errorObject.put("title", title);
-                return this;
-            }
-
-            public ErrorObjectBuilder withDetail(String detail) {
-                errorObject.put("detail", detail);
-                return this;
-            }
-
-            public ErrorObjectBuilder put(String key, Object value) {
-                errorObject.put(key, value);
-                return this;
-            }
-
-            public ErrorObjectBuilder addError() {
-                if (errorObject.isEmpty()) {
-                    throw new IllegalArgumentException("empty error object is not allow");
-                }
-                return rootBuilder.addError();
-            }
-
-            public ErrorObjects build() {
-                if (errorObject.isEmpty()) {
-                    throw new IllegalArgumentException("empty error object is not allow");
-                }
-                return rootBuilder.build();
+        private void validateCurrentError() throws IllegalArgumentException {
+            if (currentError != null && currentError.isEmpty()) {
+                throw new IllegalArgumentException("Error must contain at least one key-value pair");
             }
         }
     }
