@@ -41,6 +41,7 @@ public class ElideSettingsBuilder {
     private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
     private boolean useFilterExpressions;
     private int updateStatusCode;
+    private boolean returnErrorObjects;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -77,7 +78,8 @@ public class ElideSettingsBuilder {
                 defaultMaxPageSize,
                 defaultPageSize,
                 useFilterExpressions,
-                updateStatusCode);
+                updateStatusCode,
+                returnErrorObjects);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -154,6 +156,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withUseFilterExpressions(boolean useFilterExpressions) {
         this.useFilterExpressions = useFilterExpressions;
+        return this;
+    }
+
+    public ElideSettingsBuilder withReturnErrorObjects(boolean returnErrorObjects) {
+        this.returnErrorObjects = returnErrorObjects;
         return this;
     }
 }

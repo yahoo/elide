@@ -35,4 +35,5 @@ public class ElideSettings {
     @Getter private final int defaultPageSize;
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
+    @Getter private final boolean returnErrorObjects;
 }

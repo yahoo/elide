@@ -3,6 +3,7 @@
 ## Next
 **Features**
  * Add `CustomErrorException` and `ErrorObjects` to support custom error objects
+ * Allow user to configure to return error objects
 
 ## 4.2.2
 **Fixes**

@@ -5,11 +5,8 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-
-import com.yahoo.elide.core.ErrorObjects;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.yahoo.elide.core.ErrorObjects;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Objects;
@@ -59,4 +56,3 @@ public class CustomErrorException extends HttpStatusException {
         return Pair.of(getStatus(), responseBody);
     }
 }
-

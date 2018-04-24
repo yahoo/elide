@@ -10,8 +10,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -299,6 +301,12 @@ public class Elide {
     protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         if (error instanceof InternalServerErrorException) {
             log.error("Internal Server Error", error);
+        }
+        if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
+            ErrorObjects errors = ErrorObjects.builder().addError()
+                    .withDetail(isVerbose ? error.getVerboseMessage() : error.toString()).build();
+            JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
+            return buildResponse(Pair.of(error.getStatus(), responseBody));
         }
         return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
     }

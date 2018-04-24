@@ -11,7 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.ErrorObjects;
+import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -54,6 +57,7 @@ import java.util.stream.StreamSupport;
 public class GraphQLEndpoint {
 
     private Elide elide;
+    private ElideSettings elideSettings;
     private GraphQL api;
     protected final Function<SecurityContext, Object> getUser;
 
@@ -68,6 +72,7 @@ public class GraphQLEndpoint {
             @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         log.error("Started ~~");
         this.elide = elide;
+        this.elideSettings = elide.getElideSettings();
         this.getUser = getUser;
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
@@ -229,6 +234,11 @@ public class GraphQLEndpoint {
                 public String getVerboseMessage() {
                     return e.getVerboseMessage();
                 }
+
+                @Override
+                public String toString() {
+                    return e.toString();
+                }
             }, isVerbose);
         } catch (Exception | Error e) {
             log.debug("Unhandled error or exception.", e);
@@ -240,9 +250,16 @@ public class GraphQLEndpoint {
 
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
-        JsonNode errorNode = isVerbose
-                ? error.getVerboseErrorResponse().getRight()
-                : error.getErrorResponse().getRight();
+        JsonNode errorNode;
+        if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
+            ErrorObjects errors = ErrorObjects.builder().addError()
+                    .with("message", isVerbose ? error.getVerboseMessage() : error.toString()).build();
+            errorNode = mapper.convertValue(errors, JsonNode.class);
+        } else {
+            errorNode = isVerbose
+                    ? error.getVerboseErrorResponse().getRight()
+                    : error.getErrorResponse().getRight();
+        }
         String errorBody;
         try {
             errorBody = mapper.writeValueAsString(errorNode);
