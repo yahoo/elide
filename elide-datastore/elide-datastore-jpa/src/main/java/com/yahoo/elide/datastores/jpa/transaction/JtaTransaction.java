@@ -7,17 +7,18 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.transaction.UserTransaction;
 
+/**
+ * JTA transaction implementation.
+ */
+@Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
-    private static final Logger log = LoggerFactory.getLogger(JtaTransaction.class);
-
     private final UserTransaction transaction;
 
     public JtaTransaction(EntityManager entityManager) {

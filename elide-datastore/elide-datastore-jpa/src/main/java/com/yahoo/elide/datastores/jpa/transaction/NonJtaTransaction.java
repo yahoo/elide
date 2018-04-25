@@ -10,6 +10,9 @@ import com.yahoo.elide.core.RequestScope;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+/**
+ * Non-JTA transaction implementation.
+ */
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
 

@@ -21,8 +21,7 @@ import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import com.yahoo.elide.security.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
@@ -36,29 +35,31 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-
+/**
+ * Base JPA transaction implementation class.
+ */
+@Slf4j
 public abstract class AbstractJpaTransaction implements JpaTransaction {
-    private static final Logger log = LoggerFactory.getLogger(AbstractJpaTransaction.class);
-    private static final Predicate<Collection<?>> isPersistentCollection =
+    private static final Predicate<Collection<?>> IS_PERSISTENT_COLLECTION =
             new PersistentCollectionChecker();
 
-    protected final EntityManager entityManager;
-    private final EntityManagerWrapper entityManagerWrapper;
+    protected final EntityManager em;
+    private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
 
-    protected AbstractJpaTransaction(EntityManager entityManager) {
-        this.entityManager = entityManager;
-        this.entityManagerWrapper = new EntityManagerWrapper(entityManager);
+    protected AbstractJpaTransaction(EntityManager em) {
+        this.em = em;
+        this.emWrapper = new EntityManagerWrapper(em);
     }
 
     @Override
     public void delete(Object object, RequestScope scope) {
-        deferredTasks.add(() -> entityManager.remove(object));
+        deferredTasks.add(() -> em.remove(object));
     }
 
     @Override
     public void save(Object object, RequestScope scope) {
-        deferredTasks.add(() -> entityManager.merge(object));
+        deferredTasks.add(() -> em.merge(object));
     }
 
     @Override
@@ -66,9 +67,9 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
-            FlushModeType flushMode = entityManager.getFlushMode();
+            FlushModeType flushMode = em.getFlushMode();
             if (flushMode == FlushModeType.AUTO) {
-                entityManager.flush();
+                em.flush();
             }
         } catch (PersistenceException e) {
             log.error("Caught entity manager exception during flush", e);
@@ -96,7 +97,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
-        deferredTasks.add(() -> entityManager.persist(entity));
+        deferredTasks.add(() -> em.persist(entity));
     }
 
     /**
@@ -118,7 +119,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             Class<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
-            //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
+            //Construct a predicate that selects an individual element of the relationship's parent.
             FilterPredicate idExpression;
             Path.PathElement idPath = new Path.PathElement(entityClass, idType, idField);
             if (id != null) {
@@ -132,7 +133,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     .orElse(idExpression);
 
             QueryWrapper query =
-                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, entityManagerWrapper)
+                    (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, emWrapper)
                             .withPossibleFilterExpression(Optional.of(joinedExpression))
                             .build();
 
@@ -156,8 +157,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             }
         });
 
-        final QueryWrapper query =
-                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), entityManagerWrapper)
+        QueryWrapper query =
+                (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), emWrapper)
                         .withPossibleFilterExpression(filterExpression)
                         .withPossibleSorting(sorting)
                         .withPossiblePagination(pagination)
@@ -180,7 +181,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            if (isPersistentCollection.test(filteredVal)) {
+            if (IS_PERSISTENT_COLLECTION.test(filteredVal)) {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(
@@ -196,8 +197,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     }
                 });
 
-                final QueryWrapper query = (QueryWrapper)
-                        new SubCollectionFetchQueryBuilder(relationship, dictionary, entityManagerWrapper)
+                QueryWrapper query = (QueryWrapper)
+                        new SubCollectionFetchQueryBuilder(relationship, dictionary, emWrapper)
                                 .withPossibleFilterExpression(filterExpression)
                                 .withPossibleSorting(sorting)
                                 .withPossiblePagination(pagination)
@@ -226,7 +227,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
 
         QueryWrapper query = (QueryWrapper)
-                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, entityManagerWrapper)
+                new RootCollectionPageTotalsQueryBuilder(entityClass, dictionary, emWrapper)
                         .withPossibleFilterExpression(filterExpression)
                         .build();
 
@@ -247,7 +248,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                                      EntityDictionary dictionary) {
 
         QueryWrapper query = (QueryWrapper)
-                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, entityManagerWrapper)
+                new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, emWrapper)
                         .withPossibleFilterExpression(filterExpression)
                         .build();
 

@@ -7,6 +7,9 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 
+/**
+ * Extended for JPA DataStoreTransaction.
+ */
 public interface JpaTransaction extends DataStoreTransaction {
     void begin();
 

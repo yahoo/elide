@@ -7,8 +7,7 @@ package com.yahoo.elide.datastores.jpa.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 
@@ -16,9 +15,8 @@ import javax.persistence.EntityManager;
  * Wraps a JPA EntityManager allowing most data store logic
  * to not directly depend on a specific version of JPA.
  */
+@Slf4j
 public class EntityManagerWrapper implements Session {
-    private static final Logger log = LoggerFactory.getLogger(EntityManagerWrapper.class);
-
     private EntityManager entityManager;
 
     public EntityManagerWrapper(EntityManager entityManager) {

@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction.checker.classes;
 
+/**
+ * All Hibernate PersistentCollection subclasses.
+ * Needed to exclude Hibernate dependency.
+ */
 public class HibernatePersistentCollections {
     public static final String[] CLASSES = {
             "org.hibernate.collection.internal.PersistentArrayHolder",
