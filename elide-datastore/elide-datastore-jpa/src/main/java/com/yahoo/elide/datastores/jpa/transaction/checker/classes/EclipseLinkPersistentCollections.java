@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction.checker.classes;
 
+/**
+ * All EclipseLink IndirectCollection subclasses.
+ * Needed to exclude EclipseLink dependency.
+ */
 public class EclipseLinkPersistentCollections {
     public static final String[] CLASSES = {
             "org.eclipse.persistence.indirection.IndirectList",

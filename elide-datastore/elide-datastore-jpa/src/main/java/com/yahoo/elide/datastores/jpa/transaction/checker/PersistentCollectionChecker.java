@@ -14,6 +14,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Check is collection subclass of JPA provider special persistent collection.
+ * Now supported EclipseLink and Hibernate.
+ */
 public class PersistentCollectionChecker implements Predicate<Collection<?>> {
     private final Set<String> classNames = new HashSet<>();
 

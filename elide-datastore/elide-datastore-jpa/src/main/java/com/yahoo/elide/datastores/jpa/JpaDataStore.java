@@ -13,7 +13,9 @@ import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 
-
+/**
+ * Implementation for JPA EntityManager data store.
+ */
 public class JpaDataStore implements DataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier transactionSupplier;
@@ -51,11 +53,17 @@ public class JpaDataStore implements DataStore {
         return transaction;
     }
 
+    /**
+     * Functional interface for describing a method to supply EntityManager.
+     */
     @FunctionalInterface
     public interface EntityManagerSupplier {
         EntityManager get();
     }
 
+    /**
+     * Functional interface for describing a method to supply JpaTransaction.
+     */
     @FunctionalInterface
     public interface JpaTransactionSupplier {
         JpaTransaction get(EntityManager entityManager);
