@@ -19,7 +19,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
-import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
+import com.yahoo.elide.datastores.jpa.transaction.checker.ProxyCollectionChecker;
 import com.yahoo.elide.security.User;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +40,7 @@ import java.util.function.Predicate;
  */
 @Slf4j
 public abstract class AbstractJpaTransaction implements JpaTransaction {
-    private static final Predicate<Collection<?>> IS_PERSISTENT_COLLECTION =
-            new PersistentCollectionChecker();
+    private static final Predicate<Collection<?>> IS_PROXY_COLLECTION = new ProxyCollectionChecker();
 
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
@@ -181,7 +180,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
-            if (IS_PERSISTENT_COLLECTION.test(filteredVal)) {
+            if (IS_PROXY_COLLECTION.test(filteredVal)) {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(
