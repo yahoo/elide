@@ -4,6 +4,7 @@
 **Features**
  * Add `CustomErrorException` and `ErrorObjects` to support custom error objects
  * Allow user to configure to return error objects
+ * Update `ElideStandalone` to allow users to programmatically manipulate the `ServletContextHandler`.
 
 ## 4.2.2
 **Fixes**
