@@ -14,6 +14,7 @@ import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.standalone.datastore.InjectionAwareHibernateStore;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -163,5 +164,14 @@ public interface ElideStandaloneSettings {
      */
     default String getHibernate5ConfigPath() {
         return "./settings/hibernate.cfg.xml";
+    }
+
+    /**
+     * A hook to directly modify the jetty servlet context handler as necessary.
+     *
+     * @param servletContextHandler ServletContextHandler in use by Elide standalone.
+     */
+    default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
+        // Do nothing
     }
 }
