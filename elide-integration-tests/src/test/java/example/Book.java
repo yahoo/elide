@@ -147,4 +147,8 @@ public class Book extends BaseId {
     public Editor getEditor() {
         return getPublisher().getEditor();
     }
+    @Override
+    public String toString() {
+        return "Book: " + id;
+    }
 }

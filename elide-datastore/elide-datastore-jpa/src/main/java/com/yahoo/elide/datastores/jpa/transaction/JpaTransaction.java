@@ -14,4 +14,6 @@ public interface JpaTransaction extends DataStoreTransaction {
     void begin();
 
     void rollback();
+
+    boolean isOpen();
 }

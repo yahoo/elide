@@ -68,4 +68,8 @@ public class Author {
     @ManyToMany(mappedBy = "authors")
     @Getter @Setter
     private Collection<Book> books = new ArrayList<>();
+    @Override
+    public String toString() {
+        return "Author: " + id;
+    }
 }

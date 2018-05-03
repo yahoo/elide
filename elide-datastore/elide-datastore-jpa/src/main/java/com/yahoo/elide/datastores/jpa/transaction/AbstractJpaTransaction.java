@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -59,23 +58,39 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
     @Override
     public void save(Object object, RequestScope scope) {
-        deferredTasks.add(() -> em.merge(object));
+        EntityDictionary dictionary = scope.getDictionary();
+
+        deferredTasks.add(() -> {
+            if (!em.contains(object)) {
+                em.merge(object);
+            }
+        });
     }
 
     @Override
     public void flush(RequestScope requestScope) {
+        if (!isOpen()) {
+            return;
+        }
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
             FlushModeType flushMode = em.getFlushMode();
-            if (flushMode == FlushModeType.AUTO) {
+            if (flushMode == FlushModeType.AUTO && isOpen()) {
                 em.flush();
             }
-        } catch (PersistenceException e) {
-            log.error("Caught entity manager exception during flush", e);
-            throw new TransactionException(e);
+        } catch (Exception e) {
+            try {
+                rollback();
+            } finally {
+                log.error("Caught entity manager exception during flush", e);
+                throw new TransactionException(e);
+            }
         }
     }
+
+    @Override
+    public abstract boolean isOpen();
 
     @Override
     public void commit(RequestScope scope) {
@@ -89,15 +104,22 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
     @Override
     public void close() throws IOException {
-        if (deferredTasks.size() > 0) {
+        if (isOpen()) {
             rollback();
+        }
+        if (deferredTasks.size() > 0) {
             throw new IOException("Transaction not closed");
         }
     }
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
-        deferredTasks.add(() -> em.persist(entity));
+
+         deferredTasks.add(() -> {
+            if (!em.contains(entity)) {
+                em.persist(entity);
+            }
+         });
     }
 
     /**

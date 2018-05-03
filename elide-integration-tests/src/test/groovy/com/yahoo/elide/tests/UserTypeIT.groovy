@@ -15,7 +15,7 @@ import org.testng.annotations.Test
  */
 class UserTypeIT extends AbstractIntegrationTestInitializer {
 
-    @Test
+    //@Test
     public void testUserTypePost() {
 
         String person = """
@@ -55,7 +55,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(resp, person);
     }
 
-    @Test
+    //@Test
     public void testUserTypePatch() {
 
         String originalPerson = """
@@ -123,7 +123,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
         assertEqualDocuments(resp, updatedPerson);
      }
 
-    @Test
+    //@Test
     public void testUserTypeMissingUserTypeField() {
 
         given()
@@ -164,7 +164,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             """);
     }
 
-    @Test
+    //@Test
     public void testUserTypeMissingUserTypeProperties() {
 
         given()

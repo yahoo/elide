@@ -3,15 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.hibernate5;
+package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.datastores.jpa.JpaDataStore;
-import com.yahoo.elide.datastores.jpa.transaction.JtaTransaction;
+import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.utils.ClassScanner;
-import example.Filtered;
 import example.Parent;
-import example.TestCheckMappings;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.MappingException;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -34,6 +32,7 @@ import java.util.function.Supplier;
 /**
  * Supplier of Hibernate 5 Data Store.
  */
+@Slf4j
 public class JpaDataStoreSupplier implements Supplier<DataStore> {
     private static final String JDBC_PREFIX = "jdbc:mysql://localhost:";
     private static final String JDBC_SUFFIX = "/root?serverTimezone=UTC";
@@ -43,11 +42,6 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
 
     @Override
     public DataStore get() {
-        // Add additional checks to our static check mappings map.
-        // NOTE: This is a bit hacky. We need to do a major overhaul on our test architecture
-        TestCheckMappings.MAPPINGS.put("filterCheck", Filtered.FilterCheck.class);
-        TestCheckMappings.MAPPINGS.put("filterCheck3", Filtered.FilterCheck3.class);
-
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class> bindClasses = new ArrayList<>();
 
@@ -101,7 +95,7 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
 
         return new JpaDataStore(
                 () -> { return em; },
-                (entityManager) -> { return new JtaTransaction(entityManager); }
+                (entityManager) -> { return new NonJtaTransaction(entityManager); }
         );
     }
 }

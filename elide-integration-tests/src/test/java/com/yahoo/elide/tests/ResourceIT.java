@@ -112,10 +112,6 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         p1.setChildren(childrenSet1);
 
-        tx.createObject(p1, null);
-        tx.createObject(c1, null);
-        tx.createObject(c2, null);
-
         // List tests
         Parent p2 = new Parent(); // id 3
         Parent p3 = new Parent();  // id 4
@@ -136,10 +132,14 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         p3.setSpouses(Sets.newHashSet());
         p3.setChildren(Sets.newHashSet());
 
-        tx.createObject(p2, null);
-        tx.createObject(p3, null);
+        tx.createObject(c1, null);
+        tx.createObject(c2, null);
         tx.createObject(c3, null);
         tx.createObject(c4, null);
+
+        tx.createObject(p1, null);
+        tx.createObject(p2, null);
+        tx.createObject(p3, null);
 
         Book bookWithPercentage = new Book();
         bookWithPercentage.setTitle("titlewith%percentage");

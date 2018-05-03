@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
+import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
 /**
@@ -67,6 +68,15 @@ public class JtaTransaction extends AbstractJpaTransaction {
             transaction.rollback();
         } catch (Exception e) {
             log.error("Fail UserTransaction#rollback()", e);
+        }
+    }
+
+    @Override
+    public boolean isOpen() {
+        try {
+            return (transaction.getStatus() == Status.STATUS_ACTIVE);
+        } catch (Exception e) {
+            return false;
         }
     }
 }
