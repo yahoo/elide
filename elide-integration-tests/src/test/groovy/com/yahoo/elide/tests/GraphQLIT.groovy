@@ -226,7 +226,7 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
         runQueryWithExpectedResult(graphQLQuery, expectedResponse)
     }
 
-    //@Test(priority = 7)
+    @Test(priority = 7)
     void runMultipleRequestsSameTransactionMutation() {
         // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
         // and results are consistent across a mutation.
