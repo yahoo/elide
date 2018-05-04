@@ -11,9 +11,6 @@ import com.yahoo.elide.annotation.SharePermission;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 import java.util.LinkedHashMap;
@@ -26,19 +23,8 @@ import java.util.Map;
 @Table(name = "color_shape")
 @Include(rootLevel = true)
 @SharePermission
-public class MapColorShape {
-    private long id;
+public class MapColorShape extends BaseId {
     private Map<Color, Shape> colorShapeMap = new LinkedHashMap<>();
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     @ElementCollection
     @MapKeyColumn(name = "color")

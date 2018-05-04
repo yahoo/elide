@@ -5,37 +5,20 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
 
 /**
  * Embedded test bean.
  */
 @Include(rootLevel = true)
 @Entity
-public class Embedded {
-    @JsonIgnore
-    private long id;
+public class Embedded extends BaseId {
     private Set<Long> segmentIds;
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
 
     @ElementCollection
     public Set<Long> getSegmentIds() {

@@ -5,7 +5,6 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -17,9 +16,6 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -36,9 +32,7 @@ import javax.persistence.Table;
 // Hibernate
 @Entity
 @Table(name = "fun")
-public class FunWithPermissions {
-    @JsonIgnore
-    private long id;
+public class FunWithPermissions extends BaseId {
     private String field1;
     private String field2;
 
@@ -70,16 +64,6 @@ public class FunWithPermissions {
 
     public void setRelation3(Child relation3) {
         this.relation3 = relation3;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     @ReadPermission(expression = "deny all")

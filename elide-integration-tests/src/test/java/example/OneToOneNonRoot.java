@@ -12,9 +12,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
@@ -23,22 +20,10 @@ import javax.persistence.PrimaryKeyJoinColumn;
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
 @Entity
-public class OneToOneNonRoot {
-    private Long id;
-
+public class OneToOneNonRoot extends BaseId {
     private String test;
 
     private OneToOneRoot root;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getTest() {
         return test;

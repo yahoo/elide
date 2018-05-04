@@ -11,23 +11,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 @Entity
 @Include(rootLevel = true)
 @Paginate(countable = false)
-public class EntityWithPaginateCountableFalse {
-    @Setter
-    private Long id;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId () {
-        return id;
-    }
-
+public class EntityWithPaginateCountableFalse extends BaseId {
     @Getter
     @Setter
     private String name;

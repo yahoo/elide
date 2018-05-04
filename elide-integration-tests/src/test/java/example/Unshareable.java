@@ -9,9 +9,6 @@ import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -21,19 +18,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "unshareable")
 @Include(rootLevel = true, type = "unshareable")
-public class Unshareable {
-    private long id;
+public class Unshareable extends BaseId {
     private Container container;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     public Container getContainer() {

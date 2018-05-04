@@ -14,9 +14,6 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import java.util.List;
@@ -31,21 +28,10 @@ import java.util.List;
 @DeletePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
 @SharePermission
-public class AuditEntity {
-    private Long id;
+public class AuditEntity extends BaseId {
     private AuditEntity otherEntity;
     private String value;
     private List<AuditEntityInverse> inverses;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @OneToOne
     @Audit(action = Audit.Action.UPDATE,

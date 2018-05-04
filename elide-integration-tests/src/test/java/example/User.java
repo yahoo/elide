@@ -5,7 +5,6 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -14,9 +13,6 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Transient;
 
 import java.util.Optional;
@@ -27,10 +23,7 @@ import java.util.Optional;
  */
 @Entity
 @Include(rootLevel = true)
-public class User {
-    @JsonIgnore
-    private long id;
-
+public class User extends BaseId {
     private int role;
 
     private String reversedPassword;
@@ -68,16 +61,6 @@ public class User {
      */
     public void setReversedPassword(String reversedPassword) {
         this.reversedPassword = reversedPassword;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     @UpdatePermission(expression = "adminRoleCheck OR updateOnCreate")

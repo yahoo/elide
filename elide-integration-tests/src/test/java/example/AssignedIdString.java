@@ -37,4 +37,31 @@ public class AssignedIdString {
     public void setValue(int value) {
         this.value = value;
     }
+
+    @Override
+    public int hashCode() {
+        if (id == null) {
+            return super.hashCode();
+        }
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (id == null) {
+            return super.equals(obj);
+        }
+
+        if (obj == null || !(obj instanceof AssignedIdString)) {
+            return false;
+        }
+
+        AssignedIdString other = (AssignedIdString) obj;
+
+        if (other.id == null) {
+            return (id == other.id);
+        }
+
+        return id.equals(other.id);
+    }
 }

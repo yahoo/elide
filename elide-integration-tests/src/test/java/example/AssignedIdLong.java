@@ -37,4 +37,20 @@ public class AssignedIdLong {
     public void setValue(int value) {
         this.value = value;
     }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof AssignedIdLong)) {
+            return false;
+        }
+
+        AssignedIdLong other = (AssignedIdLong) obj;
+
+        return id == other.id;
+    }
 }

@@ -15,9 +15,6 @@ import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
@@ -32,21 +29,10 @@ import java.util.List;
 @Include(rootLevel = true)
 @SharePermission
 @ReadPermission(expression = "checkLE OR deny all")  //ReadPermission for object id <= 2
-public class FilterExpressionCheckObj {
-    private long id;
+public class FilterExpressionCheckObj extends BaseId {
     private String name;
 
     private Collection<AnotherFilterExpressionCheckObj> listOfAnotherObjs = new ArrayList<>();
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     //This field only display for id == User.id (which is 1 in IT)
     @ReadPermission(expression = "checkRestrictUser")

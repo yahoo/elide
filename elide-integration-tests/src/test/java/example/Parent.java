@@ -18,7 +18,6 @@ import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.ToString;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -56,8 +55,7 @@ public class Parent extends BaseId {
     @UpdatePermission(expression = "allow all OR deny all")
     // Hibernate
     @ManyToMany(
-            targetEntity = Child.class,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE }
+            targetEntity = Child.class
     )
     @JoinTable(
             name = "Parent_Child",

@@ -16,9 +16,6 @@ import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
@@ -33,8 +30,7 @@ import java.util.List;
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)
-public class AnotherFilterExpressionCheckObj {
-    private long id;
+public class AnotherFilterExpressionCheckObj extends BaseId {
     private String anotherName;
     private long createDate = 0;
 
@@ -63,16 +59,6 @@ public class AnotherFilterExpressionCheckObj {
 
     public void setCreateDate(long createDate) {
         this.createDate = createDate;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public static FilterPredicate createFilterPredicate() {
