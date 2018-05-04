@@ -15,9 +15,6 @@ import com.yahoo.elide.security.checks.OperationCheck;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import java.util.Optional;
 
@@ -25,9 +22,7 @@ import java.util.Optional;
 @Include(rootLevel = true, type = "specialread")
 @ReadPermission(expression = "specialValue")
 @UpdatePermission(expression = "updateOnCreate")
-public class SpecialRead {
-    public Long id;
-
+public class SpecialRead extends BaseId {
     public String value;
 
     private Child child;
@@ -39,16 +34,6 @@ public class SpecialRead {
 
     public void setChild(Child child) {
         this.child = child;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public static class SpecialValue extends OperationCheck<SpecialRead> {

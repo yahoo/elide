@@ -11,9 +11,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 @Include(rootLevel = true)
@@ -21,22 +18,10 @@ import javax.persistence.OneToOne;
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
 @Entity
-public class ResourceWithInvalidRelationship {
-    private Long id;
-
+public class ResourceWithInvalidRelationship extends BaseId {
     private String name;
 
     private NotIncludedResource notIncludedResource;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;

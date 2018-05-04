@@ -13,9 +13,6 @@ import org.hibernate.annotations.Formula;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -37,8 +34,7 @@ import java.util.Collection;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
-public class Book {
-    private long id;
+public class Book extends BaseId {
     private String title;
     private String genre;
     private String language;
@@ -47,15 +43,6 @@ public class Book {
     private Collection<Chapter> chapters = new ArrayList<>();
     private String editorName;
     private Publisher publisher;
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;

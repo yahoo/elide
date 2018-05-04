@@ -37,4 +37,20 @@ public class ExceptionThrowingBean {
     public void setBadValue(String unused) {
         // Do nothing
     }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof LineItem)) {
+            return false;
+        }
+
+        ExceptionThrowingBean other = (ExceptionThrowingBean) obj;
+
+        return id == other.id;
+    }
 }

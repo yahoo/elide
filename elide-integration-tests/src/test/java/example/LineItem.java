@@ -35,4 +35,20 @@ public class LineItem {
     public void setInvoice(Invoice invoice) {
         this.invoice = invoice;
     }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof LineItem)) {
+            return false;
+        }
+
+        LineItem other = (LineItem) obj;
+
+        return id == other.id;
+    }
 }

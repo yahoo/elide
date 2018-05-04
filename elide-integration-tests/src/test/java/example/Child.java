@@ -5,7 +5,6 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -23,13 +22,9 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
@@ -54,30 +49,15 @@ import java.util.Set;
        operation = 0,
        logStatement = "CREATE Child {0} Parent {1}",
        logExpressions = {"${child.id}", "${parent.id}"})
-public class Child {
-    @JsonIgnore
-
-    private long id;
+public class Child extends BaseId {
     private Set<Parent> parents;
-
 
     private String name;
 
     private Set<Child> friends;
     private Child noReadAccess;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     @ManyToMany(
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             mappedBy = "children",
             targetEntity = Parent.class
         )

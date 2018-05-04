@@ -9,8 +9,6 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -21,14 +19,5 @@ import javax.persistence.Table;
 // Hibernate
 @Entity
 @Table(name = "nocreate")
-public class NoCreateEntity {
-    private long id;
-
-    @Id @GeneratedValue
-    public long getId() {
-        return id;
-    }
-    public void setId(long id) {
-        this.id = id;
-    }
+public class NoCreateEntity extends BaseId {
 }

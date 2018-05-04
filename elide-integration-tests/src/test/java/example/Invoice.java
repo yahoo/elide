@@ -28,12 +28,28 @@ public class Invoice {
         this.id = id;
     }
 
-    @OneToMany(cascade = { CascadeType.ALL} , mappedBy = "invoice", targetEntity = LineItem.class)
+    @OneToMany(cascade = { CascadeType.DETACH, CascadeType.REMOVE } , mappedBy = "invoice", targetEntity = LineItem.class)
     public Set<LineItem> getItems() {
         return items;
     }
 
     public void setItems(Set<LineItem> items) {
         this.items = items;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Invoice)) {
+            return false;
+        }
+
+        Invoice other = (Invoice) obj;
+
+        return id == other.id;
     }
 }

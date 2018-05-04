@@ -10,8 +10,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -23,18 +21,9 @@ import javax.persistence.Table;
 // Hibernate
 @Entity
 @Table(name = "noread")
-public class NoReadEntity {
-    private long id;
+public class NoReadEntity extends BaseId {
     public String field;
 
     @OneToOne(fetch = FetchType.LAZY)
     public Child child;
-
-    @Id @GeneratedValue
-    public long getId() {
-        return id;
-    }
-    public void setId(long id) {
-        this.id = id;
-    }
 }

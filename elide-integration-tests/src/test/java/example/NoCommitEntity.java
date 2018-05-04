@@ -13,8 +13,6 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import java.util.Optional;
@@ -28,22 +26,11 @@ import java.util.Optional;
 // Hibernate
 @Entity
 @Table(name = "nocommit")
-public class NoCommitEntity {
+public class NoCommitEntity extends BaseId {
     static public class NoCommitCheck<T> extends CommitCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
-    }
-
-    private long id;
-
-    @Id @GeneratedValue
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }

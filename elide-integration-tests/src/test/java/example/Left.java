@@ -5,19 +5,14 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -30,9 +25,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
 @DeletePermission(expression = "negativeIntegerUser")
-public class Left {
-    @JsonIgnore
-    private long id;
+public class Left extends BaseId {
     private Set<Right> one2many;
     private Right one2one;
     private NoDeleteEntity noDeleteOne2One;
@@ -42,7 +35,6 @@ public class Left {
 
     @OneToOne(
             optional = false,
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "one2one",
             fetch = FetchType.LAZY
@@ -55,16 +47,11 @@ public class Left {
         this.one2one = one2one;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public void setOne2many(Set<Right> one2many) {
         this.one2many = one2many;
     }
 
     @OneToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "many2one"
     )
@@ -72,16 +59,8 @@ public class Left {
         return one2many;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long getId() {
-        return id;
-    }
-
-
     @UpdatePermission(expression = "deny all")
     @OneToOne(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "noUpdateOne2One",
             fetch = FetchType.LAZY
@@ -95,7 +74,6 @@ public class Left {
     }
 
     @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,
             mappedBy = "noUpdate"
     )
@@ -108,7 +86,6 @@ public class Left {
     }
 
     @OneToOne(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = NoDeleteEntity.class,
             fetch = FetchType.LAZY
     )
@@ -120,9 +97,7 @@ public class Left {
         this.noDeleteOne2One = noDeleteOne2One;
     }
 
-    @ManyToMany(
-        cascade = { CascadeType.PERSIST, CascadeType.MERGE }
-    )
+    @ManyToMany()
     public Set<Right> getNoInverseDelete() {
         return noInverseDelete;
     }

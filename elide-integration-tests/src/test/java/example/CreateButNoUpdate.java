@@ -11,9 +11,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 /**
  * A model intended to be ONLY created and read, but never updated.
@@ -23,20 +20,9 @@ import javax.persistence.Id;
 @CreatePermission(expression = "allow all")
 @ReadPermission(expression = "allow all")
 @UpdatePermission(expression = "deny all")
-public class CreateButNoUpdate {
-    public Long id;
+public class CreateButNoUpdate extends BaseId {
     public String textValue;
 
     @CreatePermission(expression = "deny all")
     public String cannotModify = "unmodified";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 }
