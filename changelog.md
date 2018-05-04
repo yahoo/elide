@@ -11,6 +11,7 @@
    did not correctly handle newly created/deleted objects.
  * Fixed broken graphql link in README.md
  * Fixed elide standalone instructions.
+ * Fixed hashcode and equals for some test models
 
 ## 4.2.2
 **Fixes**
