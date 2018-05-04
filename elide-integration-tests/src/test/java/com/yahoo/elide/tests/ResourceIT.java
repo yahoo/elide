@@ -82,8 +82,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         parent.setSpouses(Sets.newHashSet());
         child.setParents(Sets.newHashSet(parent));
 
-        tx.save(parent, null);
-        tx.save(child, null);
+        tx.createObject(parent, null);
+        tx.createObject(child, null);
 
         // Single tests
         Parent p1 = new Parent(); // id 2
@@ -108,9 +108,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
 
         p1.setChildren(childrenSet1);
 
-        tx.save(p1, null);
-        tx.save(c1, null);
-        tx.save(c2, null);
+        tx.createObject(p1, null);
+        tx.createObject(c1, null);
+        tx.createObject(c2, null);
 
         // List tests
         Parent p2 = new Parent(); // id 3
@@ -132,37 +132,37 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         p3.setSpouses(Sets.newHashSet());
         p3.setChildren(Sets.newHashSet());
 
-        tx.save(p2, null);
-        tx.save(p3, null);
-        tx.save(c3, null);
-        tx.save(c4, null);
+        tx.createObject(p2, null);
+        tx.createObject(p3, null);
+        tx.createObject(c3, null);
+        tx.createObject(c4, null);
 
         Book bookWithPercentage = new Book();
         bookWithPercentage.setTitle("titlewith%percentage");
         Book bookWithoutPercentage = new Book();
         bookWithoutPercentage.setTitle("titlewithoutpercentage");
 
-        tx.save(bookWithPercentage, null);
-        tx.save(bookWithoutPercentage, null);
+        tx.createObject(bookWithPercentage, null);
+        tx.createObject(bookWithoutPercentage, null);
 
         FunWithPermissions fun = new FunWithPermissions();
-        tx.save(fun, null);
+        tx.createObject(fun, null);
 
         User user = new User(); //ID 1
         user.setPassword("god");
-        tx.save(user, null);
+        tx.createObject(user, null);
 
         Invoice invoice = new Invoice();
         invoice.setId(1);
         LineItem item = new LineItem();
         invoice.setItems(Sets.newHashSet(item));
         item.setInvoice(invoice);
-        tx.save(invoice, null);
-        tx.save(item, null);
+        tx.createObject(invoice, null);
+        tx.createObject(item, null);
 
         ExceptionThrowingBean etb = new ExceptionThrowingBean();
         etb.setId(1L);
-        tx.save(etb, null);
+        tx.createObject(etb, null);
 
         tx.commit(null);
     }

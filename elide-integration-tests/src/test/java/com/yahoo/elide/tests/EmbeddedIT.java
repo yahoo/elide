@@ -36,7 +36,7 @@ public class EmbeddedIT extends AbstractIntegrationTestInitializer {
         Embedded embedded = new Embedded(); // id 1
         embedded.setSegmentIds(ImmutableSet.of(3L, 4L, 5L));
 
-        tx.save(embedded, null);
+        tx.createObject(embedded, null);
 
         Left left = new Left();
         Right right = new Right();
@@ -44,8 +44,8 @@ public class EmbeddedIT extends AbstractIntegrationTestInitializer {
         left.setOne2one(right);
         right.setOne2one(left);
 
-        tx.save(left, null);
-        tx.save(right, null);
+        tx.createObject(left, null);
+        tx.createObject(right, null);
 
         tx.commit(null);
     }

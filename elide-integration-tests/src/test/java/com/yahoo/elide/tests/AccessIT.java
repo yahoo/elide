@@ -32,7 +32,7 @@ public class AccessIT extends AbstractIntegrationTestInitializer {
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
         parent.setSpouses(new HashSet<>());
-        tx.save(parent, null);
+        tx.createObject(parent, null);
         tx.commit(null);
     }
 }
