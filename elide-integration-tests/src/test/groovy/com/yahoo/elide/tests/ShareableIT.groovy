@@ -24,7 +24,7 @@ class ShareableIT extends AbstractIntegrationTestInitializer {
     public void setUp() {
         DataStoreTransaction tx = dataStore.beginTransaction();
         Left left = new Left();
-        tx.save(left, null);
+        tx.createObject(left, null);
         tx.commit(null);
     }
 
