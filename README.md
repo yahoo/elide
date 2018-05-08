@@ -7,7 +7,7 @@
 
 ## What Is Elide?
 
-[Elide](http://elide.io/) provides opinionated APIs for web & mobile applications.  Elide is a Java library that lets you set up a [GraphQL](graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
+[Elide](http://elide.io/) provides opinionated APIs for web & mobile applications.  Elide is a Java library that lets you set up a [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
 a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).    
 
 ### Security Comes Standard

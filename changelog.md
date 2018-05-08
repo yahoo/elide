@@ -6,6 +6,11 @@
  * Allow user to configure to return error objects
  * Update `ElideStandalone` to allow users to programmatically manipulate the `ServletContextHandler`.
 
+**Fixes**
+ * Fixed bug in GraphQL when multiple root documents are present in the same payload.  The flush between the documents
+   did not correctly handle newly created/deleted objects.
+ * Fixed broken graphql link in README.md
+
 ## 4.2.2
 **Fixes**
  * Resolve hibernate proxy class for relationship

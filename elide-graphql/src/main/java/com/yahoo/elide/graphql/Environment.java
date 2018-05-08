@@ -57,9 +57,7 @@ public class Environment {
 
         if (isRoot()) {
             // Flush (but don't commit) between root queries
-            requestScope.getDirtyResources().forEach(
-                    resource -> requestScope.getTransaction().save(resource.getObject(), requestScope)
-            );
+            requestScope.saveOrCreateObjects();
             requestScope.getTransaction().flush(requestScope);
         }
 
