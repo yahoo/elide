@@ -4,7 +4,8 @@
   ~ See LICENSE file in project root for terms.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
@@ -82,7 +83,8 @@
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
         <checkstyle.config.location>${parent.pom.dir}/checkstyle-style.xml</checkstyle.config.location>
-        <checkstyle.suppressions.location>${parent.pom.dir}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+        <checkstyle.suppressions.location>${parent.pom.dir}/checkstyle-suppressions.xml
+        </checkstyle.suppressions.location>
 
         <dependency.locations.enabled>false</dependency.locations.enabled>
     </properties>
@@ -345,33 +347,55 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.7.201606060606</version>
+                <version>0.8.1</version>
                 <executions>
                     <execution>
-                        <id>prepare-agent</id>
+                        <id>default-prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>report</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>pre-integration-test</id>
-                        <phase>pre-integration-test</phase>
+                        <id>default-prepare-agent-integration</id>
                         <goals>
                             <goal>prepare-agent-integration</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>post-integration-test</id>
-                        <phase>post-integration-test</phase>
+                        <id>default-report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-report-integration</id>
                         <goals>
                             <goal>report-integration</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>default-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <!-- see https://www.eclemma.org/jacoco/trunk/doc/check-mojo.html -->
+                            <rules>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <excludes>
+                                        <exclude>*Test</exclude>
+                                    </excludes>
+                                    <limits>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -380,7 +404,7 @@
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>4.3.0</version>
                 <configuration>
-                    <repoToken>${env.coveralls_repo_token}</repoToken>
+                    <repoToken>${env.COVERALLS_API_TOKEN}</repoToken>
                 </configuration>
             </plugin>
             <plugin>
