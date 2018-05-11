@@ -59,7 +59,7 @@ public class AssignedIdString {
         AssignedIdString other = (AssignedIdString) obj;
 
         if (other.id == null) {
-            return (id == other.id);
+            return false;
         }
 
         return id.equals(other.id);

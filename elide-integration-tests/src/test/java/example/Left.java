@@ -97,7 +97,7 @@ public class Left extends BaseId {
         this.noDeleteOne2One = noDeleteOne2One;
     }
 
-    @ManyToMany()
+    @ManyToMany
     public Set<Right> getNoInverseDelete() {
         return noInverseDelete;
     }
