@@ -13,6 +13,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.HibernateEntityManager;
 
+import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 
 /**
@@ -61,7 +62,7 @@ public abstract class AbstractHibernateStore implements DataStore {
      */
     public static class Builder {
         private final SessionFactory sessionFactory;
-        private final HibernateEntityManager entityManager;
+        private final EntityManager entityManager;
         private boolean isScrollEnabled;
         private ScrollMode scrollMode;
 
@@ -72,6 +73,14 @@ public abstract class AbstractHibernateStore implements DataStore {
             this.entityManager = null;
         }
 
+        public Builder(final EntityManager entityManager) {
+            this.sessionFactory = null;
+            this.isScrollEnabled = true;
+            this.scrollMode = ScrollMode.FORWARD_ONLY;
+            this.entityManager = entityManager;
+        }
+
+        @Deprecated
         public Builder(final HibernateEntityManager entityManager) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
