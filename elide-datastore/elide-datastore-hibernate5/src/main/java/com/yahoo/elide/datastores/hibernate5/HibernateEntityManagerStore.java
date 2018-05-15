@@ -6,19 +6,26 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.jpa.HibernateEntityManager;
-import org.hibernate.metadata.ClassMetadata;
+import javax.persistence.EntityManager;
 
 /**
  * Hibernate5 store supporting the EntityManager.
  */
 public class HibernateEntityManagerStore extends AbstractHibernateStore {
-    protected final HibernateEntityManager entityManager;
+    protected final EntityManager entityManager;
 
+    @Deprecated
     public HibernateEntityManagerStore(HibernateEntityManager entityManager,
+                                       boolean isScrollEnabled,
+                                       ScrollMode scrollMode) {
+        super(null, isScrollEnabled, scrollMode);
+        this.entityManager = entityManager;
+    }
+
+    public HibernateEntityManagerStore(EntityManager entityManager,
                                        boolean isScrollEnabled,
                                        ScrollMode scrollMode) {
         super(null, isScrollEnabled, scrollMode);
@@ -32,7 +39,7 @@ public class HibernateEntityManagerStore extends AbstractHibernateStore {
      */
     @Override
     public Session getSession() {
-        return entityManager.getSession();
+        return entityManager.unwrap(Session.class);
     }
 
     /**
@@ -47,18 +54,5 @@ public class HibernateEntityManagerStore extends AbstractHibernateStore {
         session.beginTransaction();
         session.clear();
         return transactionSupplier.get(session, isScrollEnabled, scrollMode);
-    }
-
-    /**
-     * Populate the entity dictionary from hibernate entities.
-     *
-     * @param dictionary Entity dictionary to populate
-     */
-    @Override
-    public void populateEntityDictionary(EntityDictionary dictionary) {
-        /* bind all entities */
-        for (ClassMetadata meta : getSession().getSessionFactory().getAllClassMetadata().values()) {
-            dictionary.bindEntity(meta.getMappedClass());
-        }
     }
 }
