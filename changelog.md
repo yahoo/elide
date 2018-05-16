@@ -10,6 +10,7 @@
  * Fixed bug in GraphQL when multiple root documents are present in the same payload.  The flush between the documents
    did not correctly handle newly created/deleted objects.
  * Fixed broken graphql link in README.md
+ * Fixed elide standalone instructions
 
 ## 4.2.2
 **Fixes**
