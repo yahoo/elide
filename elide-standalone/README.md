@@ -24,7 +24,7 @@ To include `elide-standalone` into your project, add the single dependency:
 ```xml
 <dependency>
   <groupId>com.yahoo.elide</groupId>
-  <artifact>elide-standalone</artifact>
+  <artifactId>elide-standalone</artifactId>
   <version>3.2.0</version>
 </dependency>
 ```
@@ -34,7 +34,14 @@ To actually start your Elide application, add the following to your main method:
 ```java
 public class Main {
   public static void main(String[] args) {
-    ElideStandalone elide = new ElideStandalone(new YourElideSettingsImpl());
+    ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
+        @Override
+        public String getModelPackageName() {
+            return "your.model.package";
+        }
+
+    });
+
     elide.start();
   }
 }
@@ -92,6 +99,13 @@ public class Post {
     }
 }
 ```
+
+### Copy the configuration files
+
+Create a directory called ```settings``` at the root of your project.
+
+Copy [hibernate.cfg.xml](https://github.com/yahoo/elide/blob/master/elide-standalone/settings/hibernate.cfg.xml) 
+to the new settings directory.
 
 ### Build the Models Package
 
@@ -166,7 +180,13 @@ To start Elide, just run the `start()` method somewhere in your main function:
 ```java
 public class YourMain {
   public static void main(String[] args) {
-    ElideStandalone elide = new ElideStandalone(new MySettings());
+    ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
+        @Override
+        public String getModelPackageName() {
+            return "your.model.package";
+        }
+    });
+
     elide.start();
   }
 }
