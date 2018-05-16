@@ -37,6 +37,8 @@ public class Main {
     ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
         @Override
         public String getModelPackageName() {
+
+            //This needs to be changed to the package where your models live.
             return "your.model.package";
         }
 
@@ -183,6 +185,7 @@ public class YourMain {
     ElideStandalone elide = new ElideStandalone(new ElideStandaloneSettings() {
         @Override
         public String getModelPackageName() {
+            //This needs to be changed to the package where your models live.
             return "your.model.package";
         }
     });
