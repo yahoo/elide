@@ -24,6 +24,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * Model for books.
@@ -42,7 +43,7 @@ public class Book {
     private String title;
     private String genre;
     private String language;
-    private long publishDate = 0;
+    private Date publishDate = new Date(0);
     private Collection<Author> authors = new ArrayList<>();
     private Collection<Chapter> chapters = new ArrayList<>();
     private String editorName;
@@ -81,11 +82,11 @@ public class Book {
         this.language = language;
     }
 
-    public void setPublishDate(final long publishDate) {
+    public void setPublishDate(final Date publishDate) {
         this.publishDate = publishDate;
     }
 
-    public long getPublishDate() {
+    public Date getPublishDate() {
         return this.publishDate;
     }
 
