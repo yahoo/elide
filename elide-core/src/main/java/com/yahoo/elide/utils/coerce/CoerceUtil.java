@@ -58,6 +58,16 @@ public class CoerceUtil {
     }
 
     /**
+     * Register a new type converter for Elide type coercion/deserialization
+     * @param converter  The converter
+     * @param targetType The type that needs coercion
+     * @param <T> The type that needs coercion
+     */
+    public static <T> void register(Converter converter, Class<T> targetType) {
+        ConvertUtils.register(converter, targetType);
+    }
+
+    /**
      * Perform CoerceUtil setup.
      */
     private static void setup() {
@@ -66,6 +76,9 @@ public class CoerceUtil {
                 // https://github.com/yahoo/elide/issues/260
                 // enable throwing exceptions when conversion fails
                 register(true, false, 0);
+
+                register(TO_UUID_CONVERTER, UUID.class);
+                register(EPOCH_TO_DATE_CONVERTER, Date.class);
             }
 
             @Override
@@ -76,13 +89,11 @@ public class CoerceUtil {
             public Converter lookup(Class<?> sourceType, Class<?> targetType) {
                 if (targetType.isEnum()) {
                     return TO_ENUM_CONVERTER;
-                } else if (targetType == UUID.class) {
-                    return TO_UUID_CONVERTER;
-                }
-                else if (Map.class.isAssignableFrom(sourceType)) {
+                } else if (Map.class.isAssignableFrom(sourceType)) {
                     return FROM_MAP_CONVERTER;
                 } else if ((String.class.isAssignableFrom(sourceType) || Number.class.isAssignableFrom(sourceType))
-                        && ClassUtils.isAssignable(targetType, Date.class)) {
+                        && ClassUtils.isAssignable(targetType, Date.class)
+                        && super.lookup(Date.class).equals(EPOCH_TO_DATE_CONVERTER)) {
                     return EPOCH_TO_DATE_CONVERTER;
                 } else {
                     return super.lookup(sourceType, targetType);

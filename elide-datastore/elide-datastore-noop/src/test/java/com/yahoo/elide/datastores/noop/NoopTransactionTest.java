@@ -9,11 +9,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.ObjectEntityCache;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -30,8 +32,14 @@ public class NoopTransactionTest {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(NoopBean.class);
         requestScope = mock(RequestScope.class);
+        JsonApiMapper mapper = mock(JsonApiMapper.class);
+
+
         when(requestScope.getDictionary()).thenReturn(dictionary);
         when(requestScope.getObjectEntityCache()).thenReturn(new ObjectEntityCache());
+        when(requestScope.getObjectEntityCache()).thenReturn(new ObjectEntityCache());
+        when(requestScope.getMapper()).thenReturn(mapper);
+        when(mapper.getObjectMapper()).thenReturn(new ObjectMapper());
     }
 
     @Test
