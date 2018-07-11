@@ -1,11 +1,10 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2018, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.extensions;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
@@ -17,6 +16,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.parsers.DeleteVisitor;
+import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 
@@ -62,7 +62,7 @@ public class JsonApiPatch {
                     // Only update relationships
                     clearAllExceptRelationships(doc);
                     PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, doc, requestScope));
-                    visitor.visit(Elide.parse(path));
+                    visitor.visit(JsonApiParser.parse(path));
                 } catch (HttpStatusException e) {
                     cause = e;
                     throw e;
@@ -209,7 +209,7 @@ public class JsonApiPatch {
                 action.isPostProcessing = true;
             }
             PostVisitor visitor = new PostVisitor(new PatchRequestScope(path, value, requestScope));
-            return visitor.visit(Elide.parse(path));
+            return visitor.visit(JsonApiParser.parse(path));
         } catch (HttpStatusException e) {
             action.cause = e;
             throw e;
@@ -227,7 +227,7 @@ public class JsonApiPatch {
             JsonApiDocument value = requestScope.getMapper().readJsonApiPatchExtValue(patchVal);
             // Defer relationship updating until the end
             PatchVisitor visitor = new PatchVisitor(new PatchRequestScope(path, value, requestScope));
-            return visitor.visit(Elide.parse(path));
+            return visitor.visit(JsonApiParser.parse(path));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchVal);
         }
@@ -256,7 +256,7 @@ public class JsonApiPatch {
             }
             DeleteVisitor visitor = new DeleteVisitor(
                 new PatchRequestScope(path, value, requestScope));
-            return visitor.visit(Elide.parse(fullPath));
+            return visitor.visit(JsonApiParser.parse(fullPath));
         } catch (IOException e) {
             throw new InvalidEntityBodyException("Could not parse patch extension value: " + patchValue);
         }

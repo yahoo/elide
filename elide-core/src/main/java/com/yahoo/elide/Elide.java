@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -23,26 +23,18 @@ import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
-import com.yahoo.elide.generated.parsers.CoreLexer;
-import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.parsers.BaseVisitor;
 import com.yahoo.elide.parsers.DeleteVisitor;
 import com.yahoo.elide.parsers.GetVisitor;
+import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.parsers.PatchVisitor;
 import com.yahoo.elide.parsers.PostVisitor;
 import com.yahoo.elide.security.User;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -50,9 +42,7 @@ import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 /**
@@ -60,6 +50,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 public class Elide {
+
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
@@ -92,7 +83,7 @@ public class Elide {
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings, false);
             BaseVisitor visitor = new GetVisitor(requestScope);
             try {
-                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
                 return new HandlerResult(requestScope, responder);
             } catch (RuntimeException e) {
                 return new HandlerResult(requestScope, e);
@@ -115,7 +106,7 @@ public class Elide {
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
             BaseVisitor visitor = new PostVisitor(requestScope);
             try {
-                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
                 return new HandlerResult(requestScope, responder);
             } catch (RuntimeException e) {
                 return new HandlerResult(requestScope, e);
@@ -154,7 +145,7 @@ public class Elide {
                 RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 try {
-                    Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                    Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
                     return new HandlerResult(requestScope, responder);
                 } catch (RuntimeException e) {
                     return new HandlerResult(requestScope, e);
@@ -181,7 +172,7 @@ public class Elide {
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             try {
-                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(parse(path));
+                Supplier<Pair<Integer, JsonNode>> responder = visitor.visit(JsonApiParser.parse(path));
                 return new HandlerResult(requestScope, responder);
             } catch (RuntimeException e) {
                 return new HandlerResult(requestScope, e);
@@ -270,32 +261,6 @@ public class Elide {
         } finally {
             auditLogger.clear();
         }
-    }
-
-    /**
-     * Compile request to AST.
-     *
-     * @param path request
-     * @return AST parse tree
-     */
-    public static ParseTree parse(String path) {
-        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (normalizedPath.startsWith("/")) {
-            normalizedPath = normalizedPath.substring(1);
-        }
-        ANTLRInputStream is = new ANTLRInputStream(normalizedPath);
-        CoreLexer lexer = new CoreLexer(is);
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-                                    int charPositionInLine, String msg, RecognitionException e) {
-                throw new ParseCancellationException(msg, e);
-            }
-        });
-        CoreParser parser = new CoreParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new BailErrorStrategy());
-        return parser.start();
     }
 
     protected ElideResponse buildErrorResponse(HttpStatusException error, boolean isVerbose) {

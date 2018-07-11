@@ -1,6 +1,10 @@
 # Change Log
 
-## Next
+## 4.2.4
+**Fixes**
+ * Fixed issues when running and building on Windows OS
+
+## 4.2.3
 **Features**
  * Add `CustomErrorException` and `ErrorObjects` to support custom error objects
  * Allow user to configure to return error objects
