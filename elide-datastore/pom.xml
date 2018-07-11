@@ -40,7 +40,7 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
+        <mysql.data.directory>${java.io.tmpdir}/mysql-data</mysql.data.directory>
     </properties>
 
     <modules>
@@ -164,7 +164,8 @@
                 <plugin>
                     <groupId>com.jcabi</groupId>
                     <artifactId>jcabi-mysql-maven-plugin</artifactId>
-                    <version>0.9</version>
+                    <!-- Above 0.7 breaks on Windows OS: jcabi/jcabi-mysql-maven-plugin#39 -->
+                    <version>0.7</version>
                     <executions>
                         <execution>
                             <id>mysql-test</id>
@@ -176,7 +177,7 @@
                             <configuration>
                                 <port>${mysql.port}</port>
                                 <data>${mysql.data.directory}</data>
-                                <socket>/tmp/elide.sock</socket>
+                                <socket>${java.io.tmpdir}/elide.sock</socket>
                             </configuration>
                         </execution>
                     </executions>
