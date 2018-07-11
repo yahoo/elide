@@ -1,13 +1,12 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2018, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.endpoints;
 
-import com.yahoo.elide.Elide;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
-
+import com.yahoo.elide.parsers.JsonApiParser;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.testng.annotations.Test;
@@ -42,7 +41,12 @@ public class ResourceTest {
         new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo"));
     }
 
+    @Test(expectedExceptions = ParseCancellationException.class)
+    public void wrongPathSeparator() {
+        new CoreBaseVisitor().visit(parse("company\\123"));
+    }
+
     private static ParseTree parse(String path) {
-        return Elide.parse(path);
+        return JsonApiParser.parse(path);
     }
 }

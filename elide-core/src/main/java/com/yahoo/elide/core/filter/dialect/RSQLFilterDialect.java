@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -27,8 +28,6 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,11 +96,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         /*
          * Extract the last collection in the URL.
          */
-        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (normalizedPath.startsWith("/")) {
-            normalizedPath = normalizedPath.substring(1);
-        }
-
+        String normalizedPath = JsonApiParser.normalizePath(path);
         String[] pathComponents = normalizedPath.split("/");
         String lastPathComponent = pathComponents.length > 0 ? pathComponents[pathComponents.length - 1] : "";
 

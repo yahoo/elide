@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Oath Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,12 +11,11 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,11 +93,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         filterPredicates = extractPredicates(filterParams);
 
         /* Extract the first collection in the URL */
-        String normalizedPath = Paths.get(path).normalize().toString().replace(File.separatorChar, '/');
-        if (normalizedPath.startsWith("/")) {
-            normalizedPath = normalizedPath.substring(1);
-        }
-
+        String normalizedPath = JsonApiParser.normalizePath(path);
         String[] pathComponents = normalizedPath.split("/");
         String firstPathComponent = "";
         if (pathComponents.length > 0) {
