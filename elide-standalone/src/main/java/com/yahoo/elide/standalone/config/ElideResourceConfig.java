@@ -5,13 +5,6 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStore;
@@ -19,8 +12,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.Converter;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -28,14 +21,9 @@ import org.glassfish.jersey.server.ResourceConfig;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.function.Consumer;
 
 /**
@@ -67,6 +55,9 @@ public class ElideResourceConfig extends ResourceConfig {
             }
         });
 
+        //Register custom date serde for Elide.
+        CoerceUtil.register(Date.class, new ISO8601DateSerde());
+
         // Bind to injector
         register(new AbstractBinder() {
             @Override
@@ -74,46 +65,6 @@ public class ElideResourceConfig extends ResourceConfig {
                 ElideSettings elideSettings = settings.getElideSettings(injector);
 
                 Elide elide = new Elide(elideSettings);
-                ObjectMapper mapper = elide.getMapper().getObjectMapper();
-                mapper.registerModule(
-                        new SimpleModule("isoDate", Version.unknownVersion())
-                                .addSerializer(Date.class, new JsonSerializer<Date>() {
-                                    @Override
-                                    public void serialize(Date date,
-                                                          JsonGenerator jsonGenerator,
-                                                          SerializerProvider serializerProvider)
-                                            throws IOException, JsonProcessingException {
-                                        if (date == null) {
-                                            jsonGenerator.writeNull();
-                                        } else {
-                                            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-                                            // You can set timezone however you wish
-                                            df.setTimeZone(TimeZone.getDefault());
-                                            jsonGenerator.writeObject(df.format(date));
-                                        }
-                                    }
-                                })
-                );
-
-                CoerceUtil.register(new Converter() {
-
-                    @Override
-                    public <T> T convert(Class<T> aClass, Object o) {
-                        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-                        // You can set timezone however you wish
-                        df.setTimeZone(TimeZone.getDefault());
-
-                        if (String.class.isAssignableFrom(o.getClass())) {
-                            try {
-                                return (T) df.parse((String) o);
-                            } catch (ParseException e) {
-                                throw new IllegalArgumentException(e);
-                            }
-                        } else {
-                            throw new IllegalArgumentException("Conversion must supply a String arugment: " + o);
-                        }
-                    }
-                }, Date.class);
 
                 // Bind elide instance for injection into endpoint
                 bind(elide).to(Elide.class).named("elide");

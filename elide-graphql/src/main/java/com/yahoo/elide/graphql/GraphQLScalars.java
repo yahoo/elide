@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
@@ -12,7 +14,6 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -29,30 +30,19 @@ public class GraphQLScalars {
     public static GraphQLScalarType GRAPHQL_DATE_TYPE = new GraphQLScalarType(
             "Date",
             "Built-in date",
-            new Coercing<Date, Long>() {
+            new Coercing<Date, Object>() {
                 @Override
-                public Long serialize(Object o) {
-                    return o == null ? 0L : ((Date) o).getTime();
+                public Object serialize(Object o) {
+                    Serde<Object, Date> dateSerde = CoerceUtil.lookup(Date.class);
+
+                    return dateSerde.deserialize((Date) o);
                 }
 
                 @Override
                 public Date parseValue(Object o) {
-                    // Expects epoch millis:
-                    Long timeValue;
-                    if (o instanceof String) {
-                        try {
-                            timeValue = Long.parseLong((String) o);
-                        } catch (NumberFormatException e) {
-                            log.debug("Failed to convert string to epoch time for date conversion", e);
-                            throw new CoercingParseValueException(ERROR_BAD_EPOCH);
-                        }
-                    } else if (o instanceof Number) {
-                        timeValue = ((Number) o).longValue();
-                    } else {
-                        log.debug("Input value {} was not valid epoch millis type", o);
-                        throw new CoercingParseValueException(ERROR_BAD_EPOCH);
-                    }
-                    return Date.from(Instant.ofEpochMilli(timeValue));
+                    Serde<Object, Date> dateSerde = CoerceUtil.lookup(Date.class);
+
+                    return dateSerde.serialize((Object) o);
                 }
 
                 @Override

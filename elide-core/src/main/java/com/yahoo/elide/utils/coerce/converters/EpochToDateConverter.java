@@ -16,7 +16,7 @@ import java.util.Date;
 /**
  * Convert epoch(in string or long) to Date.
  */
-public class EpochToDateConverter implements Converter {
+public class EpochToDateConverter implements Converter, Serde<Object, Date> {
 
     @Override
     public <T> T convert(Class<T> cls, Object value) {
@@ -32,6 +32,16 @@ public class EpochToDateConverter implements Converter {
                 | UnsupportedOperationException | IllegalArgumentException e) {
             throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);
         }
+    }
+
+    @Override
+    public Date serialize(Object val) {
+        return convert(Date.class, val);
+    }
+
+    @Override
+    public Object deserialize(Date val) {
+        return val.getTime();
     }
 
     private static <T> T numberToDate(Class<T> cls, Number epoch) throws ReflectiveOperationException {
