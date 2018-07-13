@@ -55,9 +55,6 @@ public class ElideResourceConfig extends ResourceConfig {
             }
         });
 
-        //Register custom date serde for Elide.
-        CoerceUtil.register(Date.class, new ISO8601DateSerde());
-
         // Bind to injector
         register(new AbstractBinder() {
             @Override

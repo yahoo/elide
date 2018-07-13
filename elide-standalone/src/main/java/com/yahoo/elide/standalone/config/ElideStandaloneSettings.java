@@ -22,6 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 
 /**
@@ -59,6 +60,7 @@ public interface ElideStandaloneSettings {
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
     }
@@ -133,6 +135,14 @@ public interface ElideStandaloneSettings {
      */
     default boolean enableGraphQL() {
         return true;
+    }
+
+    /**
+     * Whether Dates should be ISO8601 strings (true) or epochs (false)
+     * @return
+     */
+    default boolean enableIS06081Dates() {
+        return false;
     }
 
     /**
