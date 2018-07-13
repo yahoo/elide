@@ -84,6 +84,16 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testDateGreaterThanFilter() throws Exception {
+        runComparisonTest("rootCollectionDateGTFilter");
+    }
+
+    @Test
+    public void testDateLessThanFilter() throws Exception {
+        runComparisonTest("rootCollectionDateLTFilter");
+    }
+
+    @Test
     public void testFailuresWithBody() throws Exception {
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "

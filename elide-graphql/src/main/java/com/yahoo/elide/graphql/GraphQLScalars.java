@@ -21,7 +21,6 @@ import java.util.Date;
  */
 @Slf4j
 public class GraphQLScalars {
-    private static final String ERROR_BAD_EPOCH = "Date must be provided as epoch millis";
     private static final String ERROR_BAD_EPOCH_TYPE = "Date must be provided as string or integral in epoch millis";
 
     // TODO: Should we make this a class that can be configured? Should determine if there are other customizeable

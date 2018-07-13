@@ -14,10 +14,9 @@ import java.util.Map;
 
 /**
  * Allows registration based on source and target type (rather than just the target type).
- * One of the two types *MUST* be assignable to a number, boolean, or string.
  */
 public class BidirectionalConvertUtilBean extends ConvertUtilsBean {
-    Map<Pair<Class<?>, Class<?>>, Converter> bidirectionalConverters = new HashMap<>();
+    protected Map<Pair<Class<?>, Class<?>>, Converter> bidirectionalConverters = new HashMap<>();
 
     public void register(Class<?> sourceType, Class<?> targetType, Converter converter) {
         Pair<Class<?>, Class<?>> key = Pair.of(sourceType, targetType);

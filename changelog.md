@@ -1,5 +1,12 @@
 # Change Log
 
+## 4.2.5
+**Features**
+ * ISO8601 and epoch dates can be toggled in Elide Settings
+
+**Fixes**
+ * Fix NPE in HibernateEntityManagerStore
+
 ## 4.2.4
 **Fixes**
  * Fixed issues when running and building on Windows OS

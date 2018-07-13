@@ -37,7 +37,6 @@ public class NoopTransactionTest {
 
         when(requestScope.getDictionary()).thenReturn(dictionary);
         when(requestScope.getObjectEntityCache()).thenReturn(new ObjectEntityCache());
-        when(requestScope.getObjectEntityCache()).thenReturn(new ObjectEntityCache());
         when(requestScope.getMapper()).thenReturn(mapper);
         when(mapper.getObjectMapper()).thenReturn(new ObjectMapper());
     }

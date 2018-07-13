@@ -31,12 +31,10 @@ public class JsonApiMapper {
     private final ObjectMapper mapper;
 
     /**
-     * Instantiates a new JSON API OBJECT_MAPPER.
-     *
-     * @param dictionary the dictionary
+     * Instantiates a new Json Api Mapper.
      */
-    public JsonApiMapper(EntityDictionary dictionary) {
-        mapper = new ObjectMapper();
+    public JsonApiMapper() {
+        this.mapper = new ObjectMapper();
 
         Serde<?, Date> serde = CoerceUtil.lookup(Date.class);
 
@@ -54,7 +52,27 @@ public class JsonApiMapper {
                 )
         );
 
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+        mapper.registerModule(JsonApiSerializer.getModule());
+    }
+
+    /**
+     * Instantiates a new Json Api Mapper.
+     *
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
+     */
+    public JsonApiMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+        mapper.registerModule(JsonApiSerializer.getModule());
+    }
+
+    /**
+     * Instantiates a new JSON API OBJECT_MAPPER.
+     *
+     * @param dictionary Not Used
+     */
+    @Deprecated
+    public JsonApiMapper(EntityDictionary dictionary) {
+        this();
     }
 
     /**
@@ -63,9 +81,9 @@ public class JsonApiMapper {
      * @param dictionary the dictionary
      * @param mapper Custom object mapper to use internally for serializing/deserializing
      */
+    @Deprecated
     public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
-        this.mapper = mapper;
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+        this(mapper);
     }
 
     /**

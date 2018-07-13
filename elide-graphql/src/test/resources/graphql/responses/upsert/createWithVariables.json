@@ -5,7 +5,7 @@
         "node": {
           "id": "4",
           "title": "My new book title from variable!",
-          "publicationDate": 456,
+          "publicationDate": "1985-12-25T00:00Z",
           "publisher": {
             "edges": [
               {

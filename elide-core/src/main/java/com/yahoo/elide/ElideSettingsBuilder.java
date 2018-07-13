@@ -180,10 +180,10 @@ public class ElideSettingsBuilder {
     }
 
     public ElideSettingsBuilder withEpochDates() {
-        serdes.put(Date.class, new EpochToDateConverter(Date.class));
-        serdes.put(java.sql.Date.class, new EpochToDateConverter(java.sql.Date.class));
-        serdes.put(java.sql.Time.class, new EpochToDateConverter(java.sql.Time.class));
-        serdes.put(java.sql.Timestamp.class, new EpochToDateConverter(java.sql.Timestamp.class));
+        serdes.put(Date.class, new EpochToDateConverter<Date>(Date.class));
+        serdes.put(java.sql.Date.class, new EpochToDateConverter<java.sql.Date>(java.sql.Date.class));
+        serdes.put(java.sql.Time.class, new EpochToDateConverter<java.sql.Time>(java.sql.Time.class));
+        serdes.put(java.sql.Timestamp.class, new EpochToDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class));
         return this;
     }
 
