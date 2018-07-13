@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
+import org.apache.commons.lang3.ClassUtils;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,27 +18,48 @@ import java.util.TimeZone;
 public class ISO8601DateSerde implements Serde<String, Date> {
 
     protected DateFormat df;
+    protected Class<? extends Date> targetType;
 
     public ISO8601DateSerde(SimpleDateFormat df) {
+        this(df, Date.class);
+    }
+
+    public ISO8601DateSerde(SimpleDateFormat df, Class<? extends Date> targetType) {
         this.df = df;
+        this.targetType = targetType;
     }
 
     public ISO8601DateSerde(String formatString, TimeZone tz) {
+        this(formatString, tz, Date.class);
+    }
+
+    public ISO8601DateSerde(String formatString, TimeZone tz, Class<? extends Date> targetType) {
         df = new SimpleDateFormat(formatString);
         df.setTimeZone(tz);
+        this.targetType = targetType;
     }
 
     public ISO8601DateSerde() {
-        df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        this ("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
     }
 
     @Override
     public Date deserialize(String val) {
+        Date date;
         try {
-            return df.parse(val);
+            date = df.parse(val);
         } catch (java.text.ParseException e) {
             throw new IllegalArgumentException("Date strings must be formated as yyyy-MM-dd'T'HH:mm'Z'");
+        }
+
+        if (ClassUtils.isAssignable(targetType, java.sql.Date.class)) {
+            return new java.sql.Date(date.getTime());
+        } else if (ClassUtils.isAssignable(targetType, java.sql.Timestamp.class)) {
+            return new java.sql.Timestamp(date.getTime());
+        } else if (ClassUtils.isAssignable(targetType, java.sql.Time.class)) {
+            return new java.sql.Time(date.getTime());
+        } else {
+            return date;
         }
     }
 

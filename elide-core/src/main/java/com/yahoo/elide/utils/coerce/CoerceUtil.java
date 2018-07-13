@@ -55,16 +55,6 @@ public class CoerceUtil {
         }
     }
 
-    /**
-     * Register a new type converter for Elide type coercion/deserialization
-     * @param converter  The converter
-     * @param targetType The type that needs coercion
-     * @param <T> The type that needs coercion
-     */
-    public static <T> void register(Converter converter, Class<T> targetType) {
-        ConvertUtils.register(converter, targetType);
-    }
-
     public static <S, T> void register(Class<T> targetType, Serde<S, T> serde) {
         SERDES.put(targetType, serde);
         ConvertUtils.register(new Converter() {
@@ -90,7 +80,6 @@ public class CoerceUtil {
                 // https://github.com/yahoo/elide/issues/260
                 // enable throwing exceptions when conversion fails
                 register(true, false, 0);
-
                 register(TO_UUID_CONVERTER, UUID.class);
             }
 

@@ -173,9 +173,9 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withISO8601Dates(String dateFormat, TimeZone tz) {
         serdes.put(Date.class, new ISO8601DateSerde(dateFormat, tz));
-        serdes.put(java.sql.Date.class, new ISO8601DateSerde(dateFormat, tz));
-        serdes.put(java.sql.Time.class, new ISO8601DateSerde(dateFormat, tz));
-        serdes.put(java.sql.Timestamp.class, new ISO8601DateSerde(dateFormat, tz));
+        serdes.put(java.sql.Date.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Date.class));
+        serdes.put(java.sql.Time.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Time.class));
+        serdes.put(java.sql.Timestamp.class, new ISO8601DateSerde(dateFormat, tz, java.sql.Timestamp.class));
         return this;
     }
 
