@@ -7,21 +7,21 @@ package com.yahoo.elide.utils.coerce.converters;
 
 /**
  * Bidirectional conversion from one type to another.
- * @param <S>
- * @param <T>
+ * @param <S> The serialized type
+ * @param <T> The deserialized type
  */
 public interface Serde<S, T> {
     /**
-     * Foo
-     * @param val
-     * @return
+     * Deserialize an instance of type S to type T.
+     * @param val The thing to deserialize
+     * @return The deserialized value
      */
-    public T serialize(S val);
+    T deserialize(S val);
 
     /**
-     * Bar
-     * @param val
-     * @return
+     * Serializes an instance of type T as type S.
+     * @param val The thing to serialize
+     * @return The serialized value
      */
-    public S deserialize(T val);
+    S serialize(T val);
 }

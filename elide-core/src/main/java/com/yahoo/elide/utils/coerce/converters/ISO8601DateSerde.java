@@ -17,13 +17,22 @@ public class ISO8601DateSerde implements Serde<String, Date> {
 
     protected DateFormat df;
 
+    public ISO8601DateSerde(SimpleDateFormat df) {
+        this.df = df;
+    }
+
+    public ISO8601DateSerde(String formatString, TimeZone tz) {
+        df = new SimpleDateFormat(formatString);
+        df.setTimeZone(tz);
+    }
+
     public ISO8601DateSerde() {
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     @Override
-    public Date serialize(String val) {
+    public Date deserialize(String val) {
         try {
             return df.parse(val);
         } catch (java.text.ParseException e) {
@@ -32,7 +41,7 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     }
 
     @Override
-    public String deserialize(Date val) {
+    public String serialize(Date val) {
         return df.format(val);
     }
 }

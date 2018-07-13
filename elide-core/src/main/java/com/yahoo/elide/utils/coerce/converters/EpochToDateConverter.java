@@ -18,6 +18,12 @@ import java.util.Date;
  */
 public class EpochToDateConverter implements Converter, Serde<Object, Date> {
 
+    Class<? extends Date> targetType;
+
+    public EpochToDateConverter(Class<? extends Date> targetType) {
+        this.targetType = targetType;
+    }
+
     @Override
     public <T> T convert(Class<T> cls, Object value) {
         try {
@@ -35,12 +41,12 @@ public class EpochToDateConverter implements Converter, Serde<Object, Date> {
     }
 
     @Override
-    public Date serialize(Object val) {
-        return convert(Date.class, val);
+    public Date deserialize(Object val) {
+        return convert(targetType, val);
     }
 
     @Override
-    public Object deserialize(Date val) {
+    public Object serialize(Date val) {
         return val.getTime();
     }
 

@@ -48,7 +48,7 @@ public class JsonApiMapper {
                                                   JsonGenerator jsonGenerator,
                                                   SerializerProvider serializerProvider)
                                     throws IOException, JsonProcessingException {
-                                jsonGenerator.writeObject(serde.deserialize(date));
+                                jsonGenerator.writeObject(serde.serialize(date));
                             }
                         }
                 )

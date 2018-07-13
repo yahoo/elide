@@ -12,6 +12,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import example.Author;
 import example.Book;
 import example.Pseudonym;
@@ -54,7 +55,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(filterDialect)
                 .withSubqueryFilterDialect(filterDialect)
+                .withEpochDates()
                 .build();
+
+        settings.getSerdes().forEach((targetType, serde) -> {
+            CoerceUtil.register(targetType, serde);
+        });
 
         InMemoryDataStore store = new InMemoryDataStore(Author.class.getPackage());
         store.populateEntityDictionary(dictionary);
