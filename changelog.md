@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.5
+**Fixes**
+ * Performance enhancement for DataSerializer and MapConverter
+
 ## 4.2.4
 **Fixes**
  * Fixed issues when running and building on Windows OS
@@ -16,7 +20,6 @@
  * Fixed broken graphql link in README.md
  * Fixed elide standalone instructions.
  * Fixed hashcode and equals for some test models
- * Performance enhancement for DataSerializer and MapConverter
 
 ## 4.2.2
 **Fixes**
