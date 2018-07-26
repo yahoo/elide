@@ -16,6 +16,7 @@
  * Fixed broken graphql link in README.md
  * Fixed elide standalone instructions.
  * Fixed hashcode and equals for some test models
+ * Performance enhancement for DataSerializer and MapConverter
 
 ## 4.2.2
 **Fixes**

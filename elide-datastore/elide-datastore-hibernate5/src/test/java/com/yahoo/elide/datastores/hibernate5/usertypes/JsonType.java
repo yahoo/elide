@@ -23,12 +23,13 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * JsonType serializes an object to json string and vice versa
+ * JsonType serializes an object to json string and vice versa.
  */
 
 public class JsonType implements UserType, ParameterizedType {
+    private final static ObjectMapper MAPPER = new ObjectMapper();
 
-    private Class objectClass;
+    private Class<?> objectClass;
 
     /**
      * {@inheritDoc}
@@ -66,16 +67,18 @@ public class JsonType implements UserType, ParameterizedType {
         return Objects.hashCode(object);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] strings, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
-        if (resultSet.getString(strings[0]) != null) {
+    public Object nullSafeGet(ResultSet resultSet, String[] names, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
+        if (resultSet.getString(names[0]) != null) {
 
             // Get the rawJson
-            String rawJson = resultSet.getString(strings[0]);
+            String rawJson = resultSet.getString(names[0]);
 
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.readValue(rawJson, this.objectClass);
+                return MAPPER.readValue(rawJson, this.objectClass);
             } catch (IOException e) {
                 throw new HibernateException("Could not retrieve an instance of the mapped class from a JDBC resultset.");
             }
@@ -83,20 +86,21 @@ public class JsonType implements UserType, ParameterizedType {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object o, int i, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
-        if (o == null) {
+    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int i, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
+        if (value == null) {
             preparedStatement.setNull(i, Types.NULL);
         } else {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                String json = mapper.writeValueAsString(o);
+                String json = MAPPER.writeValueAsString(value);
                 preparedStatement.setString(i, json);
             } catch (JsonProcessingException e) {
                 throw new HibernateException("Could not write an instance of the mapped class to a prepared statement.");
             }
         }
-
     }
 
     /**
@@ -149,7 +153,7 @@ public class JsonType implements UserType, ParameterizedType {
     }
 
     /**
-     * Setter used to set the class to serialize/deserialize
+     * Setter used to set the class to serialize/deserialize.
      * @param properties properties object
      */
     @Override
@@ -159,6 +163,5 @@ public class JsonType implements UserType, ParameterizedType {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Unable set the `class` parameter for serialization/deserialization");
         }
-
     }
 }
