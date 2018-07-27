@@ -850,7 +850,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         // TODO: Update pagination to subtract the number of new resources created?
 
         Set<PersistentResource> existingResources = filter(ReadPermission.class,
-            (Set) getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
+            getRelation(relation, Optional.ofNullable(filterExpression), sorting, pagination, true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
 
