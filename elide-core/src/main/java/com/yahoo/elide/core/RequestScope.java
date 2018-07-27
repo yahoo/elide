@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
@@ -81,7 +82,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
 
-    final private transient HashMap<Class, LinkedHashSet<Runnable>> queuedTriggers;
+    final private transient Map<Class, LinkedHashSet<Runnable>> queuedTriggers;
 
     /**
      * Create a new RequestScope with specified update status code.
@@ -122,22 +123,20 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.mutatingMultipleEntities = mutatesMultipleEntities;
-        this.queuedTriggers = new HashMap<Class, LinkedHashSet<Runnable>>() {
-            {
-                put(OnCreatePreSecurity.class, new LinkedHashSet<>());
-                put(OnUpdatePreSecurity.class, new LinkedHashSet<>());
-                put(OnDeletePreSecurity.class, new LinkedHashSet<>());
-                put(OnReadPreSecurity.class, new LinkedHashSet<>());
-                put(OnCreatePreCommit.class, new LinkedHashSet<>());
-                put(OnUpdatePreCommit.class, new LinkedHashSet<>());
-                put(OnDeletePreCommit.class, new LinkedHashSet<>());
-                put(OnReadPreCommit.class, new LinkedHashSet<>());
-                put(OnCreatePostCommit.class, new LinkedHashSet<>());
-                put(OnUpdatePostCommit.class, new LinkedHashSet<>());
-                put(OnDeletePostCommit.class, new LinkedHashSet<>());
-                put(OnReadPostCommit.class, new LinkedHashSet<>());
-            }
-        };
+        this.queuedTriggers = ImmutableMap.<Class, LinkedHashSet<Runnable>>builder()
+                .put(OnCreatePreSecurity.class, new LinkedHashSet<>())
+                .put(OnUpdatePreSecurity.class, new LinkedHashSet<>())
+                .put(OnDeletePreSecurity.class, new LinkedHashSet<>())
+                .put(OnReadPreSecurity.class, new LinkedHashSet<>())
+                .put(OnCreatePreCommit.class, new LinkedHashSet<>())
+                .put(OnUpdatePreCommit.class, new LinkedHashSet<>())
+                .put(OnDeletePreCommit.class, new LinkedHashSet<>())
+                .put(OnReadPreCommit.class, new LinkedHashSet<>())
+                .put(OnCreatePostCommit.class, new LinkedHashSet<>())
+                .put(OnUpdatePostCommit.class, new LinkedHashSet<>())
+                .put(OnDeletePostCommit.class, new LinkedHashSet<>())
+                .put(OnReadPostCommit.class, new LinkedHashSet<>())
+                .build();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
