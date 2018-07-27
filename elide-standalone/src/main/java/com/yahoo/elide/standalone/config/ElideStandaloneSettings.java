@@ -55,14 +55,18 @@ public interface ElideStandaloneSettings {
         DataStore dataStore = new InjectionAwareHibernateStore(
                 injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-        return new ElideSettingsBuilder(dataStore)
+
+        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .build();
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
 
+        if (enableIS06081Dates()) {
+            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+        }
+
+        return builder.build();
     }
 
     /**
@@ -142,7 +146,7 @@ public interface ElideStandaloneSettings {
      * @return
      */
     default boolean enableIS06081Dates() {
-        return false;
+        return true;
     }
 
     /**
