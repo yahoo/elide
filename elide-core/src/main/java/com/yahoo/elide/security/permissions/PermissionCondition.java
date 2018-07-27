@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.security.permissions;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -16,7 +17,6 @@ import com.yahoo.elide.security.PersistentResource;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -29,16 +29,14 @@ public class PermissionCondition {
     @Getter final Optional<ChangeSpec> changes;
     @Getter final Optional<String> field;
 
-    private static final HashMap<Class<? extends Annotation>, String> PERMISSION_TO_NAME =
-            new HashMap<Class<? extends Annotation>, String>() {
-                {
-                    put(ReadPermission.class, "READ");
-                    put(UpdatePermission.class, "UPDATE");
-                    put(DeletePermission.class, "DELETE");
-                    put(CreatePermission.class, "CREATE");
-                    put(SharePermission.class, "SHARE");
-                }
-            };
+    private static final ImmutableMap<Class<? extends Annotation>, String> PERMISSION_TO_NAME =
+            ImmutableMap.<Class<? extends Annotation>, String>builder()
+                    .put(ReadPermission.class, "READ")
+                    .put(UpdatePermission.class, "UPDATE")
+                    .put(DeletePermission.class, "DELETE")
+                    .put(CreatePermission.class, "CREATE")
+                    .put(SharePermission.class, "SHARE")
+                    .build();
 
     /**
      * This function attempts to create the appropriate {@link PermissionCondition} based on parameters that may or may

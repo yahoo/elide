@@ -6,6 +6,7 @@
 
 **Fixes**
  * Fix NPE in HibernateEntityManagerStore
+ * Performance enhancement for DataSerializer and MapConverter
 
 ## 4.2.4
 **Fixes**
