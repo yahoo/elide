@@ -48,6 +48,7 @@ public class EmbeddedIT extends AbstractIntegrationTestInitializer {
         tx.createObject(right, null);
 
         tx.commit(null);
+        tx.close();
     }
 
     @Test

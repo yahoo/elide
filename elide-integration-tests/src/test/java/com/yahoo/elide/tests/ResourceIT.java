@@ -73,7 +73,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
     @BeforeClass
-    public static void setup() {
+    public static void setup() throws IOException {
         DataStoreTransaction tx = dataStore.beginTransaction();
 
         Parent parent = new Parent(); // id 1
@@ -165,6 +165,7 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         tx.createObject(etb, null);
 
         tx.commit(null);
+        tx.close();
     }
 
     @Test(priority = -1)

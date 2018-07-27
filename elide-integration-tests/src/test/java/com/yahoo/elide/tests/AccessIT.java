@@ -27,12 +27,13 @@ public class AccessIT extends AbstractIntegrationTestInitializer {
     }
 
     @Test
-    public void accessParentBean() {
+    public void accessParentBean() throws IOException {
         DataStoreTransaction tx = dataStore.beginTransaction();
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
         parent.setSpouses(new HashSet<>());
         tx.createObject(parent, null);
         tx.commit(null);
+        tx.close();
     }
 }
