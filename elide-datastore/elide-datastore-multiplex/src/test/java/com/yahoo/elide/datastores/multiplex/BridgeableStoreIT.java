@@ -76,7 +76,7 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
         tx.save(hUser2, null);
 
         tx.commit(null);
-
+        tx.close();
     }
 
     @AfterClass
