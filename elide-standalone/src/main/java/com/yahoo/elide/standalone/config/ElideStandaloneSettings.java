@@ -63,7 +63,7 @@ public interface ElideStandaloneSettings {
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
 
         if (enableIS06081Dates()) {
-            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
 
         return builder.build();
