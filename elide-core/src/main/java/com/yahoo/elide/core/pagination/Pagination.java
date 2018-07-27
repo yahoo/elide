@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.pagination;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -112,17 +113,14 @@ public class Pagination {
                 throw new InvalidValueException("Limit values must be positive.");
             }
 
-            Map<PaginationKey, Integer> pageData = new HashMap<PaginationKey, Integer>() {
-                {
-                    put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset);
-                    put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
-                    if (generatePageTotals) {
-                        put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
-                    }
-                }
-            };
+            ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
+                    .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
+                    .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), first);
+            if (generatePageTotals) {
+                pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
+            }
 
-            return Optional.of(getPagination(pageData, elideSettings));
+            return Optional.of(getPagination(pageData.build(), elideSettings));
         }).orElseGet(() -> {
             if (generatePageTotals) {
                 Pagination pagination = getDefaultPagination(elideSettings);

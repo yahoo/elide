@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableStoreSupplier;
@@ -22,7 +23,6 @@ import redis.embedded.RedisServerBuilder;
 import redis.embedded.util.OS;
 
 import java.net.ServerSocket;
-import java.util.HashMap;
 
 import static com.jayway.restassured.RestAssured.given;
 
@@ -52,15 +52,13 @@ public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
         REDIS_SERVER.start();
 
         REDIS_CLIENT = new Jedis("localhost", redisPort);
-        REDIS_CLIENT.hmset(RedisActions.class.getCanonicalName(), new HashMap<String, String>() {
-            {
-                put("user1:1", "user1actionid1");
-                put("user1:2", "user1actionid2");
-                put("user2:3", "user2actionid1");
-                put("user2:4", "user2actionid2");
-                put("user2:5", "user2actionid3");
-            }
-        });
+        REDIS_CLIENT.hmset(RedisActions.class.getCanonicalName(), ImmutableMap.<String, String>builder()
+                .put("user1:1", "user1actionid1")
+                .put("user1:2", "user1actionid2")
+                .put("user2:3", "user2actionid1")
+                .put("user2:4", "user2actionid2")
+                .put("user2:5", "user2actionid3")
+                .build());
 
         // Hibernate data
         DataStoreTransaction tx = BridgeableStoreSupplier.LATEST_HIBERNATE_STORE.beginTransaction();
