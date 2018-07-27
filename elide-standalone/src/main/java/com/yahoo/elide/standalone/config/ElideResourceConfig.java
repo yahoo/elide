@@ -58,8 +58,10 @@ public class ElideResourceConfig extends ResourceConfig {
             protected void configure() {
                 ElideSettings elideSettings = settings.getElideSettings(injector);
 
+                Elide elide = new Elide(elideSettings);
+
                 // Bind elide instance for injection into endpoint
-                bind(new Elide(elideSettings)).to(Elide.class).named("elide");
+                bind(elide).to(Elide.class).named("elide");
 
                 // Bind user extraction function for endpoint
                 bind(settings.getUserExtractionFunction())

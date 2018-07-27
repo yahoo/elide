@@ -13,10 +13,18 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
+
 /**
  * Convert epoch(in string or long) to Date.
+ * @param <T> Date Type
  */
-public class EpochToDateConverter implements Converter {
+public class EpochToDateConverter<T extends Date> implements Converter, Serde<Object, T> {
+
+    private Class<T> targetType;
+
+    public EpochToDateConverter(Class<T> targetType) {
+        this.targetType = targetType;
+    }
 
     @Override
     public <T> T convert(Class<T> cls, Object value) {
@@ -32,6 +40,16 @@ public class EpochToDateConverter implements Converter {
                 | UnsupportedOperationException | IllegalArgumentException e) {
             throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);
         }
+    }
+
+    @Override
+    public T deserialize(Object val) {
+        return convert(targetType, val);
+    }
+
+    @Override
+    public Object serialize(T val) {
+        return val.getTime();
     }
 
     private static <T> T numberToDate(Class<T> cls, Number epoch) throws ReflectiveOperationException {

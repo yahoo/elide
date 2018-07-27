@@ -5,15 +5,23 @@
  */
 package com.yahoo.elide.jsonapi;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,13 +31,48 @@ public class JsonApiMapper {
     private final ObjectMapper mapper;
 
     /**
+     * Instantiates a new Json Api Mapper.
+     */
+    public JsonApiMapper() {
+        this.mapper = new ObjectMapper();
+
+        Serde<?, Date> serde = CoerceUtil.lookup(Date.class);
+
+        mapper.registerModule(
+                new SimpleModule("isoDate", Version.unknownVersion())
+                        .addSerializer(Date.class, new JsonSerializer<Date>() {
+                            @Override
+                            public void serialize(Date date,
+                                                  JsonGenerator jsonGenerator,
+                                                  SerializerProvider serializerProvider)
+                                    throws IOException, JsonProcessingException {
+                                jsonGenerator.writeObject(serde.serialize(date));
+                            }
+                        }
+                )
+        );
+
+        mapper.registerModule(JsonApiSerializer.getModule());
+    }
+
+    /**
+     * Instantiates a new Json Api Mapper.
+     *
+     * @param mapper Custom object mapper to use internally for serializing/deserializing
+     */
+    public JsonApiMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+        mapper.registerModule(JsonApiSerializer.getModule());
+    }
+
+    /**
      * Instantiates a new JSON API OBJECT_MAPPER.
      *
-     * @param dictionary the dictionary
+     * @param dictionary Not Used
      */
+    @Deprecated
     public JsonApiMapper(EntityDictionary dictionary) {
-        mapper = new ObjectMapper();
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+        this();
     }
 
     /**
@@ -38,9 +81,9 @@ public class JsonApiMapper {
      * @param dictionary the dictionary
      * @param mapper Custom object mapper to use internally for serializing/deserializing
      */
+    @Deprecated
     public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
-        this.mapper = mapper;
-        mapper.registerModule(JsonApiSerializer.getModule(dictionary));
+        this(mapper);
     }
 
     /**

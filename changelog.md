@@ -1,7 +1,11 @@
 # Change Log
 
 ## 4.2.5
+**Features**
+ * ISO8601 and epoch dates can be toggled in Elide Settings
+
 **Fixes**
+ * Fix NPE in HibernateEntityManagerStore
  * Performance enhancement for DataSerializer and MapConverter
 
 ## 4.2.4

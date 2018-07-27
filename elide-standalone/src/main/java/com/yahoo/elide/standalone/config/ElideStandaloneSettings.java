@@ -22,6 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 
 /**
@@ -54,13 +55,18 @@ public interface ElideStandaloneSettings {
         DataStore dataStore = new InjectionAwareHibernateStore(
                 injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-        return new ElideSettingsBuilder(dataStore)
+
+        ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                .build();
+                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
 
+        if (enableIS06081Dates()) {
+            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+        }
+
+        return builder.build();
     }
 
     /**
@@ -132,6 +138,14 @@ public interface ElideStandaloneSettings {
      * @return Default: True
      */
     default boolean enableGraphQL() {
+        return true;
+    }
+
+    /**
+     * Whether Dates should be ISO8601 strings (true) or epochs (false)
+     * @return
+     */
+    default boolean enableIS06081Dates() {
         return true;
     }
 

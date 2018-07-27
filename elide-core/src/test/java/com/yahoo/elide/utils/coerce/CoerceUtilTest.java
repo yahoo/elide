@@ -10,6 +10,10 @@ import static org.testng.Assert.assertNull;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
+import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
+import com.yahoo.elide.utils.coerce.converters.Serde;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import lombok.AllArgsConstructor;
@@ -19,6 +23,7 @@ import lombok.NoArgsConstructor;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +31,31 @@ import java.util.UUID;
 public class CoerceUtilTest {
 
     public enum Seasons { WINTER, SPRING }
+
+    private Map<Class, Serde> oldSerdes = new HashMap<>();
+
+    @BeforeTest
+    public void init() {
+        Class [] dateClasses = {
+                Date.class,
+                java.sql.Date.class,
+                Timestamp.class,
+                Time.class
+        };
+
+        for (Class dateClass : dateClasses) {
+            oldSerdes.put(dateClass, CoerceUtil.lookup(dateClass));
+            CoerceUtil.register(dateClass, new EpochToDateConverter(dateClass));
+        }
+    }
+
+    @AfterTest
+    public void shutdown() {
+        oldSerdes.forEach((dateClass, serde) -> {
+            CoerceUtil.register(dateClass, serde);
+
+        });
+    }
 
     @EqualsAndHashCode
     @AllArgsConstructor

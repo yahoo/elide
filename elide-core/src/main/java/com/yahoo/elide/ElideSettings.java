@@ -13,10 +13,12 @@ import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -36,4 +38,5 @@ public class ElideSettings {
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
     @Getter private final boolean returnErrorObjects;
+    @Getter private final Map<Class, Serde> serdes;
 }

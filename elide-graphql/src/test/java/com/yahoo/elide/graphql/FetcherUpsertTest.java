@@ -103,7 +103,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
         super.runComparisonTestWithVariables("upsert/createWithVariables", new HashMap<String, Object>() {
             {
                 put("title", "My new book title from variable!");
-                put("publicationDate", "456");
+                put("publicationDate", "1985-12-25T00:00Z");
                 put("publisherId", "b9aa44b2-8193-4fb3-84ed-613ef104e7c3");
                 put("publisherName", "my new publisher");
             }

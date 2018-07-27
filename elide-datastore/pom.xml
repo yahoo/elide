@@ -138,7 +138,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.1.1</version>
                     <executions>
                         <execution>
                             <phase>pre-integration-test</phase>
@@ -150,7 +150,7 @@
                                     <artifactItem>
                                         <groupId>com.jcabi</groupId>
                                         <artifactId>mysql-dist</artifactId>
-                                        <version>5.6.14</version>
+                                        <version>5.5.34</version>
                                         <classifier>${mysql.classifier}</classifier>
                                         <type>zip</type>
                                         <overWrite>false</overWrite>

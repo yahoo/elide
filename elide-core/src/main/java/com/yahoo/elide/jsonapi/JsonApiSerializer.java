@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.yahoo.elide.core.EntityDictionary;
 
 import java.io.IOException;
 import java.util.Set;
@@ -25,14 +24,14 @@ public class JsonApiSerializer<T> extends StdSerializer<T> {
 
     private final Class<T> type;
 
-    JsonApiSerializer(Class<T> type, EntityDictionary dictionary) {
+    JsonApiSerializer(Class<T> type) {
         super(type);
         this.type = type;
     }
 
-    public static Module getModule(EntityDictionary dictionary) {
+    public static Module getModule() {
         SimpleModule jsonApiModule = new SimpleModule("JsonApiModule", new Version(1, 0, 0, null, null, null));
-        jsonApiModule.addSerializer(new JsonApiSerializer<>(Set.class, dictionary));
+        jsonApiModule.addSerializer(new JsonApiSerializer<>(Set.class));
         return jsonApiModule;
     }
 

@@ -1,0 +1,11 @@
+{
+  book(filter: "publicationDate>=\"1984-01-01T00:00Z\"") {
+    edges {
+      node {
+        id
+        title
+        publicationDate
+      }
+    }
+  }
+}
