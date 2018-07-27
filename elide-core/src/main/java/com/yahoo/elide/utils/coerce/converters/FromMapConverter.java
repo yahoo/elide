@@ -12,6 +12,8 @@ import org.apache.commons.beanutils.Converter;
  * Uses Jackson to Convert from Map to target object.
  */
 public class FromMapConverter implements Converter {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     /**
      * Convert value from map to target object.
      *
@@ -22,7 +24,6 @@ public class FromMapConverter implements Converter {
      */
     @Override
     public <T> T convert(Class<T> cls, Object value) {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.convertValue(value, cls);
+        return MAPPER.convertValue(value, cls);
     }
 }

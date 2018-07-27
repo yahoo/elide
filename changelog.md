@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.5
+**Fixes**
+ * Performance enhancement for DataSerializer and MapConverter
+
 ## 4.2.4
 **Fixes**
  * Fixed issues when running and building on Windows OS

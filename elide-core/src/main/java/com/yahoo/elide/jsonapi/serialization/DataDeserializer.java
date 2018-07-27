@@ -23,21 +23,21 @@ import java.util.List;
  * Custom deserializer for top-level data.
  */
 public class DataDeserializer extends JsonDeserializer<Data<Resource>> {
+    private final static ObjectMapper MAPPER = new MappingJsonFactory().getCodec();
 
     @Override
     public Data<Resource> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
             throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        ObjectMapper mapper = new MappingJsonFactory().getCodec();
         if (node.isArray()) {
             List<Resource> resources = new ArrayList<>();
             for (JsonNode n : node) {
-                Resource r = mapper.convertValue(n, Resource.class);
+                Resource r = MAPPER.convertValue(n, Resource.class);
                 resources.add(r);
             }
             return new Data<>(resources);
         }
-        Resource resource = mapper.convertValue(node, Resource.class);
+        Resource resource = MAPPER.convertValue(node, Resource.class);
         return new Data<>(resource);
     }
 }
