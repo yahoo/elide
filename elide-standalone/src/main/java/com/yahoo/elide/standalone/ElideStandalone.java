@@ -23,6 +23,7 @@ import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDA
 @Slf4j
 public class ElideStandalone {
     private final ElideStandaloneSettings elideStandaloneSettings;
+    private Server jettyServer;
 
     /**
      * Constructor
@@ -62,18 +63,26 @@ public class ElideStandalone {
             }
         });
     }
-
     /**
      * Start the Elide service.
      *
-     * This method blocks.
+     * This method blocks until the server exits.
      */
     public void start() throws Exception {
+        start(true);
+
+    }
+    /**
+     * Start the Elide service.
+     *
+     * @param block - Whether or not to wait for the server to shutdown.
+     */
+    public void start(boolean block) throws Exception {
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
 
         log.info("Starting jetty server on port: {}", elideStandaloneSettings.getPort());
-        Server jettyServer = new Server(elideStandaloneSettings.getPort());
+        jettyServer = new Server(elideStandaloneSettings.getPort());
         jettyServer.setHandler(context);
 
         context.setAttribute(ELIDE_STANDALONE_SETTINGS_ATTR, elideStandaloneSettings);
@@ -99,12 +108,24 @@ public class ElideStandalone {
         try {
             jettyServer.start();
             log.info("Jetty started!");
-            jettyServer.join();
+            if (block) {
+                jettyServer.join();
+            }
         } catch (Exception e) {
             log.error("Unexpected exception caught: {}", e.getMessage(), e);
             throw e;
         } finally {
-            jettyServer.destroy();
+            if (block) {
+                jettyServer.destroy();
+            }
         }
+    }
+
+    /**
+     * Stop the Elide service.
+     */
+    public void stop() throws Exception {
+        jettyServer.stop();
+        jettyServer.destroy();
     }
 }
