@@ -36,8 +36,6 @@ public class JsonApiMapper {
     public JsonApiMapper() {
         this.mapper = new ObjectMapper();
 
-        Serde<?, Date> serde = CoerceUtil.lookup(Date.class);
-
         mapper.registerModule(
                 new SimpleModule("isoDate", Version.unknownVersion())
                         .addSerializer(Date.class, new JsonSerializer<Date>() {
@@ -46,6 +44,8 @@ public class JsonApiMapper {
                                                   JsonGenerator jsonGenerator,
                                                   SerializerProvider serializerProvider)
                                     throws IOException, JsonProcessingException {
+                                Serde<?, Date> serde = CoerceUtil.lookup(Date.class);
+
                                 jsonGenerator.writeObject(serde.serialize(date));
                             }
                         }
