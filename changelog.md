@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.6
+**Fixes**
+ * Fix NPE serializing Dates
+
 ## 4.2.5
 **Features**
  * ISO8601 and epoch dates can be toggled in Elide Settings
