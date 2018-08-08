@@ -39,9 +39,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
@@ -184,7 +182,7 @@ public class GraphQLEndpoint {
                             "data", null
                     );
                     // Do not commit. Throw OK response to process tx.close correctly.
-                    // (default transaction implementations throw an IOException if you leave a dangling SQL transaction)
+                    // (default implementations throw an IOException if you leave a dangling SQL transaction)
                     throw new WebApplicationException(
                             Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }
