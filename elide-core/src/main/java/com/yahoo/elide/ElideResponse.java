@@ -13,6 +13,7 @@ import lombok.Getter;
 public class ElideResponse {
     @Getter private final int responseCode;
     @Getter private final String body;
+    @Getter private final Throwable failureReason;
 
     /**
      * Constructor.
@@ -20,8 +21,9 @@ public class ElideResponse {
      * @param responseCode HTTP response code
      * @param body returned body string
      */
-    public ElideResponse(int responseCode, String body) {
+    public ElideResponse(int responseCode, String body, Throwable failureReason) {
         this.responseCode = responseCode;
         this.body = body;
+        this.failureReason = failureReason;
     }
 }

@@ -1,5 +1,10 @@
 # Change Log
 
+## 4.2.7
+**Features**
+* Provide failure reason in ElideResponse
+* Expose response building in JsonApiEndpoint to allow for customization of response behavior
+
 ## 4.2.6
 **Fixes**
  * Fix NPE serializing Dates

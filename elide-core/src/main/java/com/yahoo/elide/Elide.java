@@ -212,7 +212,7 @@ public class Elide {
             }
             tx.flush(requestScope);
 
-            ElideResponse response = buildResponse(responder.get());
+            ElideResponse response = buildResponse(responder.get(), null);
 
             requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit(requestScope);
@@ -236,7 +236,7 @@ public class Elide {
 
         } catch (JsonPatchExtensionException e) {
             log.debug("JSON patch extension exception caught", e);
-            return buildResponse(e.getResponse());
+            return buildResponse(e.getResponse(), e);
 
         } catch (HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);
@@ -276,19 +276,24 @@ public class Elide {
             ErrorObjects errors = ErrorObjects.builder().addError()
                     .withDetail(isVerbose ? error.getVerboseMessage() : error.toString()).build();
             JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
-            return buildResponse(Pair.of(error.getStatus(), responseBody));
+            return buildResponse(Pair.of(error.getStatus(), responseBody), error);
         }
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse(), error);
     }
 
+    @Deprecated
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
+        return buildResponse(response, null);
+    }
+
+    protected ElideResponse buildResponse(Pair<Integer, JsonNode> response, Throwable failureReason) {
         try {
             JsonNode responseNode = response.getRight();
             Integer responseCode = response.getLeft();
             String body = responseNode == null ? null : mapper.writeJsonApiDocument(responseNode);
-            return new ElideResponse(responseCode, body);
+            return new ElideResponse(responseCode, body, failureReason);
         } catch (JsonProcessingException e) {
-            return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
+            return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString(), e);
         }
     }
 

@@ -42,7 +42,7 @@ public class JsonApiEndpoint {
     public JsonApiEndpoint(@Named("elide") Elide elide,
                            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         this.elide = elide;
-        this.getUser = getUser == null ? v -> null : getUser;
+        this.getUser = getUser == null ? ctx -> null : getUser;
     }
 
     /**
@@ -121,7 +121,10 @@ public class JsonApiEndpoint {
         return build(elide.delete(path, jsonApiDocument, getUser.apply(securityContext)));
     }
 
-    private static Response build(ElideResponse response) {
-        return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    protected Response build(ElideResponse response) {
+        return Response
+                .status(response.getResponseCode())
+                .entity(response.getBody())
+                .build();
     }
 }
