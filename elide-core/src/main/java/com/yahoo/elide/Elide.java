@@ -51,7 +51,6 @@ import java.util.function.Supplier;
  */
 @Slf4j
 public class Elide {
-
     @Getter private final ElideSettings elideSettings;
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;

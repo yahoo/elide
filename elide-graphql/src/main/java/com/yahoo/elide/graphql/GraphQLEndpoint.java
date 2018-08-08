@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -70,7 +71,6 @@ public class GraphQLEndpoint {
     public GraphQLEndpoint(
             @Named("elide") Elide elide,
             @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
-        log.error("Started ~~");
         this.elide = elide;
         this.elideSettings = elide.getElideSettings();
         this.getUser = getUser;
@@ -179,13 +179,12 @@ public class GraphQLEndpoint {
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (query.trim().startsWith(MUTATION)) {
                 if (!result.getErrors().isEmpty()) {
-                    HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
-                        {
-                            put("errors", result.getErrors());
-                            put("data", null);
-                        }
-                    };
+                    Map<String, Object> abortedResponseObject = ImmutableMap.of(
+                            "errors", result.getErrors(),
+                            "data", null
+                    );
                     // Do not commit. Throw OK response to process tx.close correctly.
+                    // (default transaction implementations throw an IOException if you leave a dangling SQL transaction)
                     throw new WebApplicationException(
                             Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }
