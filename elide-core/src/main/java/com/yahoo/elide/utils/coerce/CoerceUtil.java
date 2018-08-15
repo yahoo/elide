@@ -18,7 +18,9 @@ import org.apache.commons.beanutils.Converter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class for coercing a value to a target class.
@@ -29,11 +31,8 @@ public class CoerceUtil {
     private static final ToUUIDConverter TO_UUID_CONVERTER = new ToUUIDConverter();
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
     private static final Map<Class<?>, Serde<?, ?>> SERDES = new HashMap<>();
-
-    //static block for setup and registering new converters
-    static {
-        setup();
-    }
+    private static final BeanUtilsBean BEAN_UTILS_BEAN_INSTANCE = setup();
+    private static final Set<ClassLoader> INITIALIZED_CLASSLOADERS = ConcurrentHashMap.newKeySet();
 
     /**
      * Convert value to target class.
@@ -44,6 +43,8 @@ public class CoerceUtil {
      * @return coerced value
      */
     public static <T> T coerce(Object value, Class<T> cls) {
+        initializeClassLoaderIfNecessary();
+
         if (value == null || cls == null || cls.isAssignableFrom(value.getClass())) {
             return (T) value;
         }
@@ -56,6 +57,8 @@ public class CoerceUtil {
     }
 
     public static <S, T> void register(Class<T> targetType, Serde<S, T> serde) {
+        initializeClassLoaderIfNecessary();
+
         SERDES.put(targetType, serde);
         ConvertUtils.register(new Converter() {
 
@@ -74,8 +77,8 @@ public class CoerceUtil {
     /**
      * Perform CoerceUtil setup.
      */
-    private static void setup() {
-        BeanUtilsBean.setInstance(new BeanUtilsBean(new BidirectionalConvertUtilBean() {
+    private static BeanUtilsBean setup() {
+        return new BeanUtilsBean(new BidirectionalConvertUtilBean() {
             {
                 // https://github.com/yahoo/elide/issues/260
                 // enable throwing exceptions when conversion fails
@@ -97,6 +100,25 @@ public class CoerceUtil {
                     return super.lookup(sourceType, targetType);
                 }
             }
-        }));
+        });
+    }
+
+    /**
+     * Initialize this classloader if necessary
+     */
+    private static void initializeClassLoaderIfNecessary() {
+        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+        if (INITIALIZED_CLASSLOADERS.contains(currentClassLoader)) {
+            return;
+        }
+        BeanUtilsBean.setInstance(BEAN_UTILS_BEAN_INSTANCE);
+        markClassLoaderAsInitialized();
+    }
+
+    /**
+     * Mark the current class loader as initialized.
+     */
+    private static void markClassLoaderAsInitialized() {
+        INITIALIZED_CLASSLOADERS.add(Thread.currentThread().getContextClassLoader());
     }
 }

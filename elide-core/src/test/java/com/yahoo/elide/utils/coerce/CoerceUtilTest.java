@@ -5,20 +5,15 @@
  */
 package com.yahoo.elide.utils.coerce;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
 import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -27,6 +22,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class CoerceUtilTest {
 
@@ -193,4 +191,29 @@ public class CoerceUtilTest {
         Time time = CoerceUtil.coerce(0, Time.class);
         assertEquals(time, new Time(0));
     }
+
+    /**
+     * NOTE: BeanUtilsBean is documented as a <em>pseudo-singleton</em>.
+     * https://commons.apache.org/proper/commons-beanutils/javadocs/v1.9.2/apidocs/org/apache/commons/beanutils/BeanUtilsBean.html
+     */
+    @Test
+    public void testMultipleClassLoaders() {
+        UUID uuid = UUID.randomUUID();
+        String uuidString = uuid.toString();
+        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+
+        UUID coercedFromPrimaryClassLoader = CoerceUtil.coerce(uuidString, UUID.class);
+        assertEquals(coercedFromPrimaryClassLoader, uuid);
+
+        try {
+            Thread.currentThread().setContextClassLoader(new SecondaryClassLoader());
+            UUID coercedFromSecondaryClassLoader =  CoerceUtil.coerce(uuidString, UUID.class);
+            assertEquals(coercedFromSecondaryClassLoader, uuid);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
+    }
+
+    // Dummy class loader for test
+    private static class SecondaryClassLoader extends ClassLoader { }
 }

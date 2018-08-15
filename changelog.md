@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.2.7
+**Fixes**
+ * Add support for multiple classloaders when using CoerceUtils.
+
 ## 4.2.6
 **Fixes**
  * Fix NPE serializing Dates
