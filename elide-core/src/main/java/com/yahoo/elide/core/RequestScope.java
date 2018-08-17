@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
@@ -20,7 +19,6 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -36,6 +34,9 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -48,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -79,10 +79,12 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
+    PublishSubject<CRUDEvent> fieldChangeTopic;
+    Observable<CRUDEvent> distinctTopic;
+    ReplaySubject<CRUDEvent> replayTopic;
+
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
-
-    final private transient Map<Class, LinkedHashSet<Runnable>> queuedTriggers;
 
     /**
      * Create a new RequestScope with specified update status code.
@@ -103,6 +105,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         MultivaluedMap<String, String> queryParams,
                         ElideSettings elideSettings,
                         boolean mutatesMultipleEntities) {
+        this.fieldChangeTopic = PublishSubject.create();
+        this.distinctTopic = fieldChangeTopic.distinct();
+        this.replayTopic = ReplaySubject.create();
+        this.distinctTopic.subscribe(replayTopic);
+
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
         this.transaction = transaction;
@@ -123,20 +130,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.mutatingMultipleEntities = mutatesMultipleEntities;
-        this.queuedTriggers = ImmutableMap.<Class, LinkedHashSet<Runnable>>builder()
-                .put(OnCreatePreSecurity.class, new LinkedHashSet<>())
-                .put(OnUpdatePreSecurity.class, new LinkedHashSet<>())
-                .put(OnDeletePreSecurity.class, new LinkedHashSet<>())
-                .put(OnReadPreSecurity.class, new LinkedHashSet<>())
-                .put(OnCreatePreCommit.class, new LinkedHashSet<>())
-                .put(OnUpdatePreCommit.class, new LinkedHashSet<>())
-                .put(OnDeletePreCommit.class, new LinkedHashSet<>())
-                .put(OnReadPreCommit.class, new LinkedHashSet<>())
-                .put(OnCreatePostCommit.class, new LinkedHashSet<>())
-                .put(OnUpdatePostCommit.class, new LinkedHashSet<>())
-                .put(OnDeletePostCommit.class, new LinkedHashSet<>())
-                .put(OnReadPostCommit.class, new LinkedHashSet<>())
-                .build();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -146,6 +139,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.queryParams = (queryParams == null || queryParams.size() == 0)
                 ? Optional.empty()
                 : Optional.of(queryParams);
+
+        registerPreSecurityObservers();
 
         if (this.queryParams.isPresent()) {
 
@@ -214,7 +209,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.pagination = Pagination.getDefaultPagination(outerRequestScope.getElideSettings());
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
-        this.queuedTriggers = outerRequestScope.queuedTriggers;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
         this.dirtyResources = outerRequestScope.dirtyResources;
         this.deletedResources = outerRequestScope.deletedResources;
@@ -224,6 +218,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.mutatingMultipleEntities = outerRequestScope.mutatingMultipleEntities;
+        this.fieldChangeTopic = outerRequestScope.fieldChangeTopic;
+        this.distinctTopic = outerRequestScope.distinctTopic;
+        this.replayTopic = outerRequestScope.replayTopic;
     }
 
     @Override
@@ -356,44 +353,51 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.)
      */
     public void runQueuedPreSecurityTriggers() {
-        runQueuedTriggers(OnCreatePreSecurity.class);
-        runQueuedTriggers(OnUpdatePreSecurity.class);
-        runQueuedTriggers(OnDeletePreSecurity.class);
+        this.replayTopic
+                .filter(CRUDEvent::isCreateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreSecurity.class));
     }
 
     /**
      * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.)
      */
     public void runQueuedPreCommitTriggers() {
-        runQueuedTriggers(OnCreatePreCommit.class);
-        runQueuedTriggers(OnUpdatePreCommit.class);
-        runQueuedTriggers(OnDeletePreCommit.class);
-        runQueuedTriggers(OnReadPreCommit.class);
+        this.replayTopic
+                .filter(CRUDEvent::isCreateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreCommit.class));
+
+        this.replayTopic
+                .filter(CRUDEvent::isUpdateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreCommit.class));
+
+         this.replayTopic
+                .filter(CRUDEvent::isDeleteEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreCommit.class));
+
+        this.replayTopic
+                .filter(CRUDEvent::isReadEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreCommit.class));
     }
 
     /**
      * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.)
      */
     public void runQueuedPostCommitTriggers() {
-        runQueuedTriggers(OnCreatePostCommit.class);
-        runQueuedTriggers(OnUpdatePostCommit.class);
-        runQueuedTriggers(OnDeletePostCommit.class);
-        runQueuedTriggers(OnReadPostCommit.class);
-    }
+        this.replayTopic
+                .filter(CRUDEvent::isCreateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePostCommit.class));
 
-    /**
-     * Run any queued triggers for a specific type.
-     *
-     * @param triggerType Class representing the trigger type (i.e. OnCreatePreSecurity.class, etc.)
-     */
-    private void runQueuedTriggers(Class<?> triggerType) {
-        if (!queuedTriggers.containsKey(triggerType)) {
-            // NOTE: This is a programming error. Should never occur.
-            throw new InternalServerErrorException("Failed to run queued trigger of type: " + triggerType);
-        }
-        LinkedHashSet<Runnable> triggers = queuedTriggers.get(triggerType);
-        triggers.forEach(Runnable::run);
-        triggers.clear();
+        this.replayTopic
+                .filter(CRUDEvent::isUpdateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePostCommit.class));
+
+        this.replayTopic
+                .filter(CRUDEvent::isDeleteEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePostCommit.class));
+
+        this.replayTopic
+                .filter(CRUDEvent::isReadEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPostCommit.class));
     }
 
     /**
@@ -402,8 +406,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void queueTriggers(PersistentResource<?> resource, CRUDAction crudAction) {
-        queueTriggers(resource, PersistentResource.CLASS_NO_FIELD, crudAction, Optional.empty());
+    protected void queueTriggers(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
+        fieldChangeTopic.onNext(
+                new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
+        );
     }
 
     /**
@@ -416,33 +422,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      */
     protected void queueTriggers(PersistentResource<?> resource,
                                  String fieldName,
-                                 CRUDAction crudAction,
+                                 CRUDEvent.CRUDAction crudAction,
                                  Optional<ChangeSpec> changeSpec) {
-        Consumer<Class> queueTrigger = (cls) -> queuedTriggers.get(cls).add(
-            () -> resource.runTriggers(cls, fieldName, changeSpec)
+        fieldChangeTopic.onNext(
+                new CRUDEvent(crudAction, resource, fieldName, changeSpec)
         );
-
-        switch (crudAction) {
-            case CREATE:
-                queueTrigger.accept(OnCreatePreSecurity.class);
-                queueTrigger.accept(OnCreatePreCommit.class);
-                queueTrigger.accept(OnCreatePostCommit.class);
-                break;
-            case UPDATE:
-                queueTrigger.accept(OnUpdatePreCommit.class);
-                queueTrigger.accept(OnUpdatePostCommit.class);
-                break;
-            case DELETE:
-                queueTrigger.accept(OnDeletePreCommit.class);
-                queueTrigger.accept(OnDeletePostCommit.class);
-                break;
-            case READ:
-                queueTrigger.accept(OnReadPreCommit.class);
-                queueTrigger.accept(OnReadPostCommit.class);
-                break;
-            default:
-                throw new InternalServerErrorException("Failed to queue trigger of non-actionable CRUD: " + crudAction);
-        }
     }
 
     public void saveOrCreateObjects() {
@@ -484,5 +468,19 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     private String getInheritanceKey(String subClass, String superClass) {
         return subClass + "!" + superClass;
+    }
+
+    private void registerPreSecurityObservers() {
+        this.distinctTopic
+                .filter(CRUDEvent::isReadEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreSecurity.class));
+
+        this.distinctTopic
+                .filter(CRUDEvent::isUpdateEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreSecurity.class));
+
+        this.distinctTopic
+                .filter(CRUDEvent::isDeleteEvent)
+                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreSecurity.class));
     }
 }

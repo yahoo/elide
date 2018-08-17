@@ -11,9 +11,6 @@ import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
@@ -34,7 +31,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
@@ -141,7 +137,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
 
-        requestScope.queueTriggers(newResource, CRUDAction.CREATE);
+        requestScope.queueTriggers(newResource, CRUDEvent.CRUDAction.CREATE);
 
         String type = newResource.getType();
         requestScope.setUUIDForObject(type, id, newResource.getObject());
@@ -701,7 +697,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @throws ForbiddenAccessException the forbidden access exception
      */
     public void deleteResource() throws ForbiddenAccessException {
-        runTriggers(OnDeletePreSecurity.class, CLASS_NO_FIELD);
         checkPermission(DeletePermission.class, this);
 
         /*
@@ -729,7 +724,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
-        requestScope.queueTriggers(this, CRUDAction.DELETE);
+        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.DELETE);
         requestScope.getDeletedResources().add(this);
     }
 
@@ -1334,11 +1329,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec spec = new ChangeSpec(this, fieldName, existingValue, newValue);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
 
-        if (!isNewlyCreated) {
-            runTriggers(OnUpdatePreSecurity.class, CLASS_NO_FIELD);
-            runTriggers(OnUpdatePreSecurity.class, fieldName, Optional.of(spec));
-        }
-
         // TODO: Need to refactor this logic. For creates this is properly converted in the executor. This logic
         // should be explicitly encapsulated here, not there.
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
@@ -1369,11 +1359,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return value value
      */
     protected Object getValueChecked(String fieldName) {
-        requestScope.queueTriggers(this, CRUDAction.READ);
-        requestScope.queueTriggers(this, fieldName, CRUDAction.READ, Optional.empty());
-        // Run the pre-security checks:
-        runTriggers(OnReadPreSecurity.class, CLASS_NO_FIELD);
-        runTriggers(OnReadPreSecurity.class, fieldName);
+        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.READ);
+        requestScope.queueTriggers(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, requestScope);
     }
@@ -1385,11 +1372,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        requestScope.queueTriggers(this, CRUDAction.READ);
-        requestScope.queueTriggers(this, fieldName, CRUDAction.READ, Optional.empty());
-        // Run the pre-security checks:
-        runTriggers(OnReadPreSecurity.class, CLASS_NO_FIELD);
-        runTriggers(OnReadPreSecurity.class, fieldName);
+        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.READ);
+        requestScope.queueTriggers(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         return getValue(getObject(), fieldName, requestScope);
     }
 
@@ -1512,35 +1496,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
         requestScope.queueTriggers(this, fieldName,
-                (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE, Optional.of(changeSpec));
-        requestScope.queueTriggers(this, (isNewlyCreated) ? CRUDAction.CREATE : CRUDAction.UPDATE);
+                (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE, Optional.of(changeSpec));
+        requestScope.queueTriggers(this, (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE);
         auditField(new ChangeSpec(this, fieldName, original, value));
-    }
-
-    <A extends Annotation> void runTriggers(Class<A> annotationClass,
-                                            String fieldName) {
-        runTriggers(annotationClass, fieldName, Optional.empty());
-    }
-
-    <A extends Annotation> void runTriggers(Class<A> annotationClass,
-                                            String fieldName,
-                                            Optional<ChangeSpec> changeSpec) {
-        // Only run a trigger once per request:
-        if (triggersRun.containsKey(annotationClass)) {
-            if (triggersRun.get(annotationClass).contains(fieldName)) {
-                return;
-            }
-        } else {
-            triggersRun.put(annotationClass, new HashSet<>());
-        }
-        triggersRun.get(annotationClass).add(fieldName);
-
-        Class<?> targetClass = obj.getClass();
-
-        Collection<LifeCycleHook> hooks = dictionary.getTriggers(targetClass, annotationClass, fieldName);
-        for (LifeCycleHook hook : hooks) {
-            hook.execute(obj, requestScope, changeSpec);
-        }
     }
 
     /**
