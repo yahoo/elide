@@ -21,6 +21,7 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.envers.Audited;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -172,14 +173,49 @@ public class ModelBuilder {
                     .type(buildConnectionObject(clazz)));
         }
 
-        GraphQLObjectType queryRoot = root.build();
-        GraphQLObjectType mutationRoot = root.name("__mutation_root").build();
-
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
         dictionary.walkEntityGraph(rootClasses, this::buildConnectionObject);
 
+        /* Construct history object */
+        GraphQLObjectType.Builder history = newObject().name("__history");
+
+        // Get the list of Audited Entities
+        Set<Class<?>> auditedEntities =  allClasses.stream().filter(this::isAuditedEntity).collect(Collectors.toSet());
+        for (Class<?> clazz : auditedEntities) {
+            String entityName = dictionary.getJsonAliasFor(clazz);
+            log.info("Audited entity name {}", entityName);
+            history.field(newFieldDefinition()
+                    .name(entityName)
+                    .dataFetcher(dataFetcher)
+                    .argument(relationshipOpArg)
+                    .argument(idArgument)
+                    .argument(filterArgument)
+                    .argument(sortArgument)
+                    .argument(pageFirstArgument)
+                    .argument(pageOffsetArgument)
+                    .argument(buildInputObjectArgument(clazz, true))
+                    .type(buildConnectionObject(clazz)));
+        }
+
+        root.field(newFieldDefinition()
+                        .name("__history")
+                        .dataFetcher(dataFetcher)
+                        .argument(newArgument()
+                                .name("revision")
+                                .type(new GraphQLList(Scalars.GraphQLLong))
+                                .build()
+                        )
+                        .argument(newArgument()
+                                .name("date")
+                                .type(new GraphQLList(Scalars.GraphQLLong))
+                                .build()
+                        )
+                        .type(history));
+
+        GraphQLObjectType queryRoot = root.build();
+        GraphQLObjectType mutationRoot = root.name("__mutation_root").build();
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(queryRoot)
@@ -191,6 +227,22 @@ public class ModelBuilder {
 
         return schema;
     }
+
+    /**
+     * Builds a GraphQL History object from an entity class.
+     *
+     * @param entityClass The class to use to construct the output object
+     * @return The GraphQL object.
+     */
+    private boolean  isAuditedEntity(Class<?> entityClass) {
+        Audited audited = dictionary.getAnnotation(entityClass, Audited.class);
+        if (audited != null) {
+            return true;
+        }
+
+        return false;
+    }
+
 
     /**
      * Builds a GraphQL connection object from an entity class.

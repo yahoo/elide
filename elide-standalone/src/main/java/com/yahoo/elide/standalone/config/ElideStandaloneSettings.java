@@ -10,6 +10,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.hibernate5.RevisionDataStoreSupplier;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
@@ -53,7 +54,7 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
         DataStore dataStore = new InjectionAwareHibernateStore(
-                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
+                                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)

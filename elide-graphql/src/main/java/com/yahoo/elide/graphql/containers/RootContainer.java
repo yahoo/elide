@@ -9,13 +9,24 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import graphql.language.Field;
+import lombok.extern.slf4j.Slf4j;
+
+import static com.yahoo.elide.graphql.containers.HistoryContainer.HISTORY_KEY;
 
 /**
  * Root container for GraphQL requests.
  */
+@Slf4j
 public class RootContainer implements GraphQLContainer {
+
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+        log.debug(String.format("Field %s arguments %s", context.field,
+                context.arguments.toString()));
+        if (isHistorySelection(context.field)) {
+            return new HistoryContainer(context);
+        }
+        
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
         boolean generateTotals = requestContainsPageInfo(context.field);
@@ -27,5 +38,9 @@ public class RootContainer implements GraphQLContainer {
         return field.getSelectionSet().getSelections().stream()
                 .anyMatch(f -> f instanceof Field
                         && ConnectionContainer.PAGE_INFO_KEYWORD.equals(((Field) f).getName()));
+    }
+
+    private boolean isHistorySelection(Field field) {
+        return field.getName().equalsIgnoreCase(HISTORY_KEY);
     }
 }

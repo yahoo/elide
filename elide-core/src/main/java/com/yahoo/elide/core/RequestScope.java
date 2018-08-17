@@ -37,6 +37,7 @@ import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -75,6 +76,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
     @Getter private final boolean mutatingMultipleEntities;
+    @Getter @Setter private Long historicalRevision = null;
+    @Getter @Setter private Long historicalDatestamp = null;
 
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
@@ -186,6 +189,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
             this.sparseFields = parseSparseFields(queryParams);
             this.sorting = Sorting.parseQueryParams(queryParams);
             this.pagination = Pagination.parseQueryParams(queryParams, this.getElideSettings());
+            this.setHistoricalDatestamp(parseHistoricalDatestamp(queryParams));
+            this.setHistoricalRevision(parseHistoricalRevisionNumber(queryParams));
         } else {
             this.sparseFields = Collections.emptyMap();
             this.sorting = Sorting.getDefaultEmptyInstance();
@@ -260,6 +265,30 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
 
         return result;
+    }
+
+    private static Long parseHistoricalDatestamp(MultivaluedMap<String, String> queryParams) {
+        Map<String, Set<String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
+            if (key.equals("__historicaldatestamp")) {
+                return Long.parseLong(kv.getValue().get(0));
+            }
+        }
+        return null;
+    }
+
+    private static Long parseHistoricalRevisionNumber(MultivaluedMap<String, String> queryParams) {
+        Map<String, Set<String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
+            String key = kv.getKey();
+            if (key.equals("__historicalversion")) {
+                return Long.parseLong(kv.getValue().get(0));
+            }
+        }
+        return null;
     }
 
     /**
