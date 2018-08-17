@@ -79,9 +79,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
 
-    PublishSubject<CRUDEvent> fieldChangeTopic;
-    Observable<CRUDEvent> distinctTopic;
-    ReplaySubject<CRUDEvent> replayTopic;
+    private PublishSubject<CRUDEvent> lifecycleEvents;
+    private Observable<CRUDEvent> distinctLifecycleEvents;
+    private ReplaySubject<CRUDEvent> queuedLifecycleEvents;
 
     /* Used to filter across heterogeneous types during the first load */
     private FilterExpression globalFilterExpression;
@@ -105,10 +105,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         MultivaluedMap<String, String> queryParams,
                         ElideSettings elideSettings,
                         boolean mutatesMultipleEntities) {
-        this.fieldChangeTopic = PublishSubject.create();
-        this.distinctTopic = fieldChangeTopic.distinct();
-        this.replayTopic = ReplaySubject.create();
-        this.distinctTopic.subscribe(replayTopic);
+        this.lifecycleEvents = PublishSubject.create();
+        this.distinctLifecycleEvents = lifecycleEvents.distinct();
+        this.queuedLifecycleEvents = ReplaySubject.create();
+        this.distinctLifecycleEvents.subscribe(queuedLifecycleEvents);
 
         this.path = path;
         this.jsonApiDocument = jsonApiDocument;
@@ -218,9 +218,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.mutatingMultipleEntities = outerRequestScope.mutatingMultipleEntities;
-        this.fieldChangeTopic = outerRequestScope.fieldChangeTopic;
-        this.distinctTopic = outerRequestScope.distinctTopic;
-        this.replayTopic = outerRequestScope.replayTopic;
+        this.lifecycleEvents = outerRequestScope.lifecycleEvents;
+        this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
+        this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
     }
 
     @Override
@@ -353,7 +353,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Run queued on triggers (i.e. @OnCreatePreSecurity, @OnUpdatePreSecurity, etc.)
      */
     public void runQueuedPreSecurityTriggers() {
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreSecurity.class));
     }
@@ -362,19 +362,19 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Run queued pre triggers (i.e. @OnCreatePreCommit, @OnUpdatePreCommit, etc.)
      */
     public void runQueuedPreCommitTriggers() {
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreCommit.class));
 
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreCommit.class));
 
-         this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreCommit.class));
 
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreCommit.class));
     }
@@ -383,48 +383,48 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * Run queued post triggers (i.e. @OnCreatePostCommit, @OnUpdatePostCommit, etc.)
      */
     public void runQueuedPostCommitTriggers() {
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePostCommit.class));
 
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePostCommit.class));
 
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePostCommit.class));
 
-        this.replayTopic
+        this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnReadPostCommit.class));
     }
 
     /**
-     * Queue a trigger for a particular resource.
+     * Publishes a lifecycle event to all listeners.
      *
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void queueTriggers(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
-        fieldChangeTopic.onNext(
+    protected void publishLifecyleEvent(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
+        lifecycleEvents.onNext(
                 new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
         );
     }
 
     /**
-     * Queue triggers for a particular resource and its field.
+     * Publishes a lifecycle event to all listeners.
      *
      * @param resource Resource on which to execute trigger
      * @param fieldName Field name for which to specify trigger
      * @param crudAction CRUD Action
      * @param changeSpec Optional ChangeSpec to pass to the lifecycle hook
      */
-    protected void queueTriggers(PersistentResource<?> resource,
-                                 String fieldName,
-                                 CRUDEvent.CRUDAction crudAction,
-                                 Optional<ChangeSpec> changeSpec) {
-        fieldChangeTopic.onNext(
+    protected void publishLifecyleEvent(PersistentResource<?> resource,
+                                        String fieldName,
+                                        CRUDEvent.CRUDAction crudAction,
+                                        Optional<ChangeSpec> changeSpec) {
+        lifecycleEvents.onNext(
                 new CRUDEvent(crudAction, resource, fieldName, changeSpec)
         );
     }
@@ -471,15 +471,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     private void registerPreSecurityObservers() {
-        this.distinctTopic
+        this.distinctLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreSecurity.class));
 
-        this.distinctTopic
+        this.distinctLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreSecurity.class));
 
-        this.distinctTopic
+        this.distinctLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
                 .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreSecurity.class));
     }

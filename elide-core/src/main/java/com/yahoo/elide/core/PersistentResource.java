@@ -137,7 +137,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
 
-        requestScope.queueTriggers(newResource, CRUDEvent.CRUDAction.CREATE);
+        requestScope.publishLifecyleEvent(newResource, CRUDEvent.CRUDAction.CREATE);
 
         String type = newResource.getType();
         requestScope.setUUIDForObject(type, id, newResource.getObject());
@@ -724,7 +724,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         transaction.delete(getObject(), requestScope);
         auditClass(Audit.Action.DELETE, new ChangeSpec(this, null, getObject(), null));
-        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.DELETE);
+        requestScope.publishLifecyleEvent(this, CRUDEvent.CRUDAction.DELETE);
         requestScope.getDeletedResources().add(this);
     }
 
@@ -1359,8 +1359,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return value value
      */
     protected Object getValueChecked(String fieldName) {
-        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.READ);
-        requestScope.queueTriggers(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
+        requestScope.publishLifecyleEvent(this, CRUDEvent.CRUDAction.READ);
+        requestScope.publishLifecyleEvent(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
         return getValue(getObject(), fieldName, requestScope);
     }
@@ -1372,8 +1372,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Value
      */
     protected Object getValueUnchecked(String fieldName) {
-        requestScope.queueTriggers(this, CRUDEvent.CRUDAction.READ);
-        requestScope.queueTriggers(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
+        requestScope.publishLifecyleEvent(this, CRUDEvent.CRUDAction.READ);
+        requestScope.publishLifecyleEvent(this, fieldName, CRUDEvent.CRUDAction.READ, Optional.empty());
         return getValue(getObject(), fieldName, requestScope);
     }
 
@@ -1495,9 +1495,10 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        requestScope.queueTriggers(this, fieldName,
+        requestScope.publishLifecyleEvent(this, fieldName,
                 (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE, Optional.of(changeSpec));
-        requestScope.queueTriggers(this, (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE);
+        requestScope.publishLifecyleEvent(this,
+                (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE);
         auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
