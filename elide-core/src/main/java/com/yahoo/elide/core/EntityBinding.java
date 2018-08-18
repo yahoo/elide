@@ -88,6 +88,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, CascadeType[]> relationshipToCascadeTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, AccessibleObject> fieldsToValues = new ConcurrentHashMap<>();
     public final MultiValuedMap<Pair<Class, String>, LifeCycleHook> fieldsToTriggers = new HashSetValuedHashMap<>();
+    public final MultiValuedMap<Class, LifeCycleHook> classToTriggers = new HashSetValuedHashMap<>();
     public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
@@ -396,8 +397,19 @@ public class EntityBinding {
         fieldsToTriggers.put(Pair.of(annotationClass, fieldOrMethodName), callback);
     }
 
+    public void bindTrigger(Class<? extends Annotation> annotationClass,
+                            LifeCycleHook callback) {
+        classToTriggers.put(annotationClass, callback);
+    }
+
+
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<A> annotationClass, String fieldName) {
         Collection<LifeCycleHook> methods = fieldsToTriggers.get(Pair.of(annotationClass, fieldName));
+        return methods == null ? Collections.emptyList() : methods;
+    }
+
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<A> annotationClass) {
+        Collection<LifeCycleHook> methods = classToTriggers.get(annotationClass);
         return methods == null ? Collections.emptyList() : methods;
     }
 

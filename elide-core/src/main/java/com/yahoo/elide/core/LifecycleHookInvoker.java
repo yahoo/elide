@@ -31,11 +31,16 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
     @Override
     public void onNext(CRUDEvent event) {
 
+        //Collect all the hooks that are keyed on a specific field.
         Collection<LifeCycleHook> hooks = dictionary.getTriggers(
                 event.getResource().getResourceClass(),
                 this.annotation,
                 event.getFieldName());
 
+        //Collect all the hooks that are keyed on specific class.
+        hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), this.annotation));
+
+        //Invoke all the hooks
         hooks.forEach((hook) -> {
             hook.execute(
                     event.getResource().getObject(),

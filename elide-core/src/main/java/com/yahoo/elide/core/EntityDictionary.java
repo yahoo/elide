@@ -803,6 +803,11 @@ public class EntityDictionary {
         return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
     }
 
+    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
+                                                                        Class<A> annotationClass) {
+        return getEntityBinding(cls).getTriggers(annotationClass);
+    }
+
     /**
      * Return a single annotation from field or accessor method.
      *
@@ -1018,12 +1023,28 @@ public class EntityDictionary {
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
      * @param callback The callback function to invoke.
+     * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
+     *                              CRUD actions on the same model.
+     */
+    public void bindTrigger(Class<?> entityClass,
+                            Class<? extends Annotation> annotationClass,
+                            LifeCycleHook callback,
+                            boolean allowMultipleInvocations) {
+        getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+    }
+
+    /**
+     * Binds a lifecycle hook to a particular entity class.
+     * @param entityClass The entity that triggers the lifecycle hook.
+     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
+     * @param callback The callback function to invoke.
      */
     public void bindTrigger(Class<?> entityClass,
                             Class<? extends Annotation> annotationClass,
                             LifeCycleHook callback) {
-        getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+        bindTrigger(entityClass, annotationClass, callback, false);
     }
+
 
     /**
      * Returns true if the relationship cascades deletes and false otherwise.
