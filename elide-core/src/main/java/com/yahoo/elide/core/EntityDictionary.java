@@ -1030,7 +1030,11 @@ public class EntityDictionary {
                             Class<? extends Annotation> annotationClass,
                             LifeCycleHook callback,
                             boolean allowMultipleInvocations) {
-        getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+        if (allowMultipleInvocations) {
+            getEntityBinding(entityClass).bindTrigger(annotationClass, callback);
+        } else {
+            getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+        }
     }
 
     /**

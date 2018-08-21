@@ -56,6 +56,9 @@ public class LifeCycleTest {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
     private EntityDictionary dictionary;
     private MockCallback callback;
+    private MockCallback onUpdateDeferredCallback;
+    private MockCallback onUpdateImmediateCallback;
+
 
     public class MockCallback<T> implements LifeCycleHook<T> {
         @Override
@@ -82,6 +85,8 @@ public class LifeCycleTest {
 
     LifeCycleTest() throws Exception {
         callback = mock(MockCallback.class);
+        onUpdateDeferredCallback = mock(MockCallback.class);
+        onUpdateImmediateCallback = mock(MockCallback.class);
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -97,6 +102,8 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, "title", callback);
         dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, "title", callback);
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, "title", callback);
+        dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
+        dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
     }
 
     @Test
@@ -187,6 +194,8 @@ public class LifeCycleTest {
          *  - update post-commit for the book.title
          */
         verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 
@@ -277,6 +286,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreSecurityTriggers();
@@ -285,6 +296,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
@@ -293,6 +306,8 @@ public class LifeCycleTest {
         verify(book, times(1)).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
@@ -304,6 +319,8 @@ public class LifeCycleTest {
         verify(book, times(1)).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
     }
 
     @Test
@@ -323,6 +340,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreSecurityTriggers();
@@ -331,6 +350,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
@@ -338,6 +359,8 @@ public class LifeCycleTest {
         verify(book, never()).preDeleteBook(scope);
         verify(book, times(1)).preUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
@@ -349,6 +372,8 @@ public class LifeCycleTest {
         verify(book, times(1)).postUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
     }
 
     @Test

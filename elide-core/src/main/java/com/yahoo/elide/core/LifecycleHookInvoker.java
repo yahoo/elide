@@ -37,8 +37,10 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
                 this.annotation,
                 event.getFieldName());
 
-        //Collect all the hooks that are keyed on specific class.
-        hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), this.annotation));
+        //Collect all the hooks that are keyed on any field.
+        if (!event.getFieldName().isEmpty()) {
+            hooks.addAll(dictionary.getTriggers(event.getResource().getResourceClass(), this.annotation));
+        }
 
         //Invoke all the hooks
         hooks.forEach((hook) -> {
