@@ -243,6 +243,7 @@ public class LifeCycleTest {
                 false);
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
+        resource.setValueChecked("genre", "boring books");
         Assert.assertNotNull(resource);
         verify(book, never()).onCreateBook(scope);
         verify(book, never()).checkPermission(scope);
@@ -251,6 +252,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCreateBook(scope);
         verify(book, never()).onDeleteBook(scope);
         verify(book, never()).onUpdateTitle(scope);
+        verify(book, never()).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).preRead(scope);
         verify(book, never()).checkPermission(scope);
 
@@ -258,18 +260,20 @@ public class LifeCycleTest {
         verify(book, times(1)).preCreateBook(scope);
         verify(book, never()).preDeleteBook(scope);
         verify(book, never()).preUpdateTitle(scope);
+        verify(book, times(2)).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).preCommitRead(scope);
         verify(book, never()).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
-        verify(book, times(2)).checkPermission(scope);
+        verify(book, times(3)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
         verify(book, times(1)).postCreateBook(scope);
         verify(book, never()).postDeleteBook(scope);
         verify(book, never()).postUpdateTitle(scope);
+        verify(book, times(2)).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).postRead(scope);
-        verify(book, times(2)).checkPermission(scope);
+        verify(book, times(3)).checkPermission(scope);
     }
 
     @Test
