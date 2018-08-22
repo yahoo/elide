@@ -26,7 +26,9 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
     }
 
     @Override
-    public void onSubscribe(Disposable disposable) { }
+    public void onSubscribe(Disposable disposable) {
+        //NOOP
+    }
 
     @Override
     public void onNext(CRUDEvent event) {
@@ -52,8 +54,12 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
     }
 
     @Override
-    public void onError(Throwable throwable) { }
+    public void onError(Throwable throwable) {
+        //NOOP
+    }
 
     @Override
-    public void onComplete() { }
+    public void onComplete() {
+        //NOOP
+    }
 }

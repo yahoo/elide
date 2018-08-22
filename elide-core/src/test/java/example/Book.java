@@ -23,7 +23,6 @@ import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
