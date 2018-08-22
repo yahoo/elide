@@ -1005,7 +1005,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Binds a lifecycle hook to a particular field or method in an entity.
+     * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
+     * single time per request per field READ, CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
      * @param fieldOrMethodName The name of the field or method
@@ -1019,7 +1020,11 @@ public class EntityDictionary {
     }
 
     /**
-     * Binds a lifecycle hook to a particular entity class.
+     * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
+     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *
+     * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
      * @param callback The callback function to invoke.
@@ -1038,7 +1043,8 @@ public class EntityDictionary {
     }
 
     /**
-     * Binds a lifecycle hook to a particular entity class.
+     * Binds a lifecycle hook to a particular entity class.   The hook will be called a single time per request
+     * per class READ, CREATE, UPDATE, or DELETE.
      * @param entityClass The entity that triggers the lifecycle hook.
      * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
      * @param callback The callback function to invoke.

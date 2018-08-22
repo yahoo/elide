@@ -96,6 +96,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<Class<? extends Annotation>, Annotation> annotations = new ConcurrentHashMap<>();
 
     public static final EntityBinding EMPTY_BINDING = new EntityBinding();
+    private static final String ALL_FIELDS = "*";
 
     /* empty binding constructor */
     private EntityBinding() {
@@ -387,7 +388,11 @@ public class EntityBinding {
                 }
             };
 
-            bindTrigger(annotationClass, value, callback);
+            if (value.equals(ALL_FIELDS)) {
+                bindTrigger(annotationClass, callback);
+            } else {
+                bindTrigger(annotationClass, value, callback);
+            }
         }
     }
 

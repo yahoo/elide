@@ -19,4 +19,12 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OnCreatePreSecurity {
+    /**
+     * Field name on which the annotated method is only triggered if that field is modified.
+     * If value is empty string, then trigger once when the object is created.
+     * If value is "*", the trigger for all field modifications.
+     *
+     * @return the field name that triggers the method
+     */
+    String value() default "";
 }
