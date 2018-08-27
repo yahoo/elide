@@ -10,6 +10,7 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -32,12 +33,13 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
     @Override
     public void onNext(CRUDEvent event) {
+        ArrayList<LifeCycleHook> hooks = new ArrayList<>();
 
         //Collect all the hooks that are keyed on a specific field.
-        Collection<LifeCycleHook> hooks = dictionary.getTriggers(
+        hooks.addAll(dictionary.getTriggers(
                 event.getResource().getResourceClass(),
                 this.annotation,
-                event.getFieldName());
+                event.getFieldName()));
 
         //Collect all the hooks that are keyed on any field.
         if (!event.getFieldName().isEmpty()) {
