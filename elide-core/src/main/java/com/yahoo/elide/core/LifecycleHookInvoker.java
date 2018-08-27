@@ -11,7 +11,6 @@ import io.reactivex.disposables.Disposable;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * RX Java Observer which invokes a lifecycle hook function.
