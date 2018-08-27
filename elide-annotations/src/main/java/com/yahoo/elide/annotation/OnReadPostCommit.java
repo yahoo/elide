@@ -25,7 +25,7 @@ public @interface OnReadPostCommit {
     /**
      * Field name on which the annotated method is only triggered if that field is read.
      * If value is empty string, then trigger once when the object is read.
-     * If value is "*", the trigger for all field reads.
+     * If value is "*", then trigger for all field reads.
      *
      * @return the field name that triggers the method
      */
