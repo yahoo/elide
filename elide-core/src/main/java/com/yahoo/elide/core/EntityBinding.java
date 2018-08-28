@@ -40,6 +40,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.persistence.AccessType;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -75,6 +76,7 @@ public class EntityBinding {
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
+    @Getter private AccessType accessType;
 
     public final EntityPermissions entityPermissions;
     public final List<String> attributes;
@@ -114,17 +116,34 @@ public class EntityBinding {
         jsonApiType = type;
         entityName = name;
 
+        accessType = AccessType.PROPERTY;
+
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
-        fieldOrMethodList.addAll(Arrays.asList(cls.getFields())
+        fieldOrMethodList.addAll(Arrays.asList(cls.getDeclaredFields())
                 .stream()
                 .filter((field) -> ! Modifier.isStatic(field.getModifiers()))
+                .filter((field) -> ! ((Field) field).isSynthetic())
                 .collect(Collectors.toList()));
 
-        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
-                .stream()
-                .filter((method) -> ! Modifier.isStatic(method.getModifiers()))
-                .collect(Collectors.toList()));
+        if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
+            accessType = AccessType.FIELD;
+
+
+            fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
+                    .stream()
+                    .filter((method) -> !Modifier.isStatic(method.getModifiers()))
+                    .filter((method) -> method.isAnnotationPresent(ComputedAttribute.class)
+                            || method.isAnnotationPresent(ComputedRelationship.class))
+                    .collect(Collectors.toList()));
+        } else {
+            fieldOrMethodList.clear();
+
+            fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
+                    .stream()
+                    .filter((method) -> !Modifier.isStatic(method.getModifiers()))
+                    .collect(Collectors.toList()));
+        }
 
         bindEntityFields(cls, type, fieldOrMethodList);
 

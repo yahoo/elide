@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +83,9 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -99,7 +102,9 @@ public class CanPaginateVisitorTest {
         @Include
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -115,7 +120,9 @@ public class CanPaginateVisitorTest {
         @Include
         @ReadPermission(expression = "False User Check")
         class Book {
-            public String title;
+            @Id
+            private long id;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -130,8 +137,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -146,9 +156,12 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression =
                     "(Filter Expression Check AND False User Check) OR (Filter Expression Check OR NOT False User Check)")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -163,8 +176,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "False User Check OR In Memory Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -179,8 +195,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "True User Check OR In Memory Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -195,8 +214,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "False User Check AND In Memory Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -211,8 +233,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "True User Check AND In Memory Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -227,8 +252,11 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "NOT In Memory Check")
-            public String title;
+            private String title;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -243,11 +271,14 @@ public class CanPaginateVisitorTest {
         @Entity
         @Include
         class Book {
+            @Id
+            private long id;
+
             @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            private String title;
 
             @ReadPermission(expression = "In Memory Check")
-            public Date publicationDate;
+            private Date publicationDate;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -263,11 +294,14 @@ public class CanPaginateVisitorTest {
         @Include
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            @Id
+            private long id;
 
             @ReadPermission(expression = "Filter Expression Check")
-            public Date publicationDate;
+            private String title;
+
+            @ReadPermission(expression = "Filter Expression Check")
+            private Date publicationDate;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
@@ -283,13 +317,16 @@ public class CanPaginateVisitorTest {
         @Include
         @ReadPermission(expression = "In Memory Check")
         class Book {
-            @ReadPermission(expression = "Filter Expression Check")
-            public String title;
+            @Id
+            private long id;
 
             @ReadPermission(expression = "Filter Expression Check")
-            public Date publicationDate;
+            private String title;
 
-            public boolean outOfPrint;
+            @ReadPermission(expression = "Filter Expression Check")
+            private Date publicationDate;
+
+            private boolean outOfPrint;
         }
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);

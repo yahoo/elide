@@ -86,7 +86,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         @Entity
         @Include
         class Foo {
-            public int bar;
+            @Id
+            private int bar;
         }
 
         Initializer<Foo> initializer = mock(Initializer.class);
