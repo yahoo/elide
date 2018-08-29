@@ -215,7 +215,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(FieldAnnotations.class, "id"), Long.class,
             "getType returns the type of the ID field of the given class");
 
-        Assert.assertEquals(getType(FieldAnnotations.class, "publicField"), null,
+        Assert.assertEquals(getType(FieldAnnotations.class, "publicField"), long.class,
             "getType returns the type of attribute when Column annotation is on a field");
 
         Assert.assertEquals(getType(FieldAnnotations.class, "privateField"), Boolean.class,

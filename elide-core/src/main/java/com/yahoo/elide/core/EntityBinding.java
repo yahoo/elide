@@ -116,8 +116,6 @@ public class EntityBinding {
         jsonApiType = type;
         entityName = name;
 
-        accessType = AccessType.PROPERTY;
-
         // Map id's, attributes, and relationships
         List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
         fieldOrMethodList.addAll(Arrays.asList(cls.getDeclaredFields())
@@ -130,6 +128,7 @@ public class EntityBinding {
             accessType = AccessType.FIELD;
 
 
+            /* Add all public methods that are computed */
             fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
                     .stream()
                     .filter((method) -> !Modifier.isStatic(method.getModifiers()))
@@ -137,8 +136,18 @@ public class EntityBinding {
                             || method.isAnnotationPresent(ComputedRelationship.class))
                     .collect(Collectors.toList()));
         } else {
+            /* Preserve the behavior of Elide 4.2.6 and earlier */
+            accessType = AccessType.PROPERTY;
+
             fieldOrMethodList.clear();
 
+            /* Add all public fields */
+            fieldOrMethodList.addAll(Arrays.asList(cls.getFields())
+                .stream()
+                .filter((field) -> ! Modifier.isStatic(field.getModifiers()))
+                .collect(Collectors.toList()));
+
+            /* Add all public methods */
             fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
                     .stream()
                     .filter((method) -> !Modifier.isStatic(method.getModifiers()))
