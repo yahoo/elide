@@ -35,24 +35,42 @@ import javax.persistence.Table;
 public class FunWithPermissions extends BaseId {
     private String field1;
     private String field2;
+    private String field3;
+    private String field4;
+    private Set<Child> relation1;
+    private Set<Child> relation2;
+    private Child relation3;
 
     @ReadPermission(expression = "negativeIntegerUser")
-    public String field3;
+    public String getField3() {
+        return field3;
+    }
+
+    public void setField3(String field3) {
+        this.field3 = field3;
+    }
 
     @UpdatePermission(expression = "negativeIntegerUser")
-    public String field4;
+    public String getField4() {
+        return field4;
+    }
 
-    private Set<Child> relation1;
+    public void setField4(String field4) {
+        this.field4 = field4;
+    }
+
+    public void setRelation2(Set<Child> relation2) {
+        this.relation2 = relation2;
+    }
 
     @ReadPermission(expression = "negativeIntegerUser")
     @OneToMany(
             targetEntity = Child.class,
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    public Set<Child> relation2;
-
-
-    private Child relation3;
+    public Set<Child> getRelation2() {
+        return relation2;
+    }
 
     @ReadPermission(expression = "negativeIntegerUser")
     @UpdatePermission(expression = "negativeIntegerUser")
@@ -98,19 +116,49 @@ public class FunWithPermissions extends BaseId {
         this.relation1 = relation;
     }
 
-    /* Verifies a chain of checks where all can succeed */
-    @ReadPermission(expression = "allow all OR negativeIntegerUser")
-    public String field5;
+    private String field5;
 
-    /* Verifies a chain of checks where the first can fail or all succeed */
+    @ReadPermission(expression = "allow all OR negativeIntegerUser")
+    public String getField5() {
+        return field5;
+    }
+
+    public void setField5(String field5) {
+        this.field5 = field5;
+    }
+
+    private String field6;
+
     @ReadPermission(expression = "negativeIntegerUser AND allow all")
-    public String field6;
+    public String getField6() {
+        return field6;
+    }
+
+    public void setField6(String field6) {
+        this.field6 = field6;
+    }
+
+    private String field7;
 
     /* Verifies a chain of checks where the last can fail. */
     @ReadPermission(expression = "allow all AND deny all")
-    public String field7;
+    public String getField7() {
+        return field7;
+    }
+
+    public void setField7(String field7) {
+        this.field7 = field7;
+    }
+
+    private String field8;
 
     /* Verifies a chain of checks where all can fail or the last can succeed. */
     @ReadPermission(expression = "deny all OR negativeIntegerUser")
-    public String field8;
+    public String getField8() {
+        return field8;
+    }
+
+    public void setField8(String field8) {
+        this.field8 = field8;
+    }
 }
