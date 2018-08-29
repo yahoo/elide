@@ -21,8 +21,24 @@ import javax.persistence.Entity;
 @ReadPermission(expression = "allow all")
 @UpdatePermission(expression = "deny all")
 public class CreateButNoUpdate extends BaseId {
-    public String textValue;
+    private String textValue;
+
+    private String cannotModify = "unmodified";
 
     @CreatePermission(expression = "deny all")
-    public String cannotModify = "unmodified";
+    public String getCannotModify() {
+        return cannotModify;
+    }
+
+    public void setCannotModify(String cannotModify) {
+        this.cannotModify = cannotModify;
+    }
+
+    public void setTextValue(String textValue) {
+        this.textValue = textValue;
+    }
+
+    public String getTextValue() {
+        return textValue;
+    }
 }

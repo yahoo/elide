@@ -145,6 +145,9 @@ public class EntityBinding {
                     .collect(Collectors.toList()));
         }
 
+        //Elide needs to manipulate private fields that are exposed.
+        fieldOrMethodList.forEach(field -> field.setAccessible(true));
+
         bindEntityFields(cls, type, fieldOrMethodList);
 
         attributes = dequeToList(attributesDeque);

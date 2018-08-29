@@ -310,7 +310,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetRelationships() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setRelation1(Sets.newHashSet());
-        fun.relation2 = Sets.newHashSet();
+        fun.setRelation2(Sets.newHashSet());
         fun.setRelation3(null);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
@@ -346,10 +346,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testGetAttributes() {
         FunWithPermissions fun = new FunWithPermissions();
-        fun.field3 = "Foobar";
+        fun.setField3("Foobar");
         fun.setField1("blah");
         fun.setField2(null);
-        fun.field4 = "bar";
+        fun.setField4("bar");
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
@@ -420,7 +420,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testGetValue() throws Exception {
         FunWithPermissions fun = new FunWithPermissions();
-        fun.field3 = "testValue";
+        fun.setField3("testValue");
         String result;
         result = (String) getValue(fun, "field3",  getRequestScope());
         Assert.assertEquals(result, "testValue", "getValue should set the appropriate value in the resource");
@@ -471,7 +471,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         this.obj = fun;
         setValue("field3", "testValue");
-        Assert.assertEquals(fun.field3, "testValue", "setValue should set the appropriate value in the resource");
+        Assert.assertEquals(fun.getField3(), "testValue", "setValue should set the appropriate value in the resource");
 
         setValue("field1", "testValue2");
         Assert.assertEquals(fun.getField1(), "testValue2", "setValue should set the appropriate value in the resource");
@@ -689,7 +689,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testGetAttributeSuccess() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField2("blah");
-        fun.field3 = null;
+        fun.setField3(null);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
@@ -733,7 +733,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(2);
         Child child3 = newChild(3);
-        fun.relation2 = Sets.newHashSet(child1, child2, child3);
+        fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
@@ -748,7 +748,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(-2);
         Child child3 = newChild(3);
-        fun.relation2 = Sets.newHashSet(child1, child2, child3);
+        fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
@@ -871,7 +871,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(2);
         Child child3 = newChild(3);
-        fun.relation2 = Sets.newHashSet(child1, child2, child3);
+        fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
         User goodUser = new User(1);
 
@@ -893,7 +893,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(2);
         Child child3 = newChild(3);
-        fun.relation2 = Sets.newHashSet(child1, child2, child3);
+        fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
         User goodUser = new User(1);
 
@@ -1052,7 +1052,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         NoUpdateEntity noUpdate = new NoUpdateEntity();
         noUpdate.setId(1);
         Child child = newChild(2);
-        noUpdate.children = Sets.newHashSet();
+        noUpdate.setChildren(Sets.newHashSet());
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         User goodUser = new User(1);
