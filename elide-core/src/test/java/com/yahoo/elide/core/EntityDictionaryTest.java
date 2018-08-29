@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -24,9 +26,11 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,6 +101,89 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
     }
+
+    @Test
+    public void testJPAFieldLevelAccess() {
+        @Entity
+        @Include
+        class FieldLevelTest {
+            @Id
+            private long id;
+
+            private int bar;
+
+            @Exclude
+            private int excluded;
+
+            @Transient
+            @ComputedAttribute
+            private int computedField;
+
+            @Transient
+            @ComputedAttribute
+            public int getComputedProperty() {
+                return 1;
+            }
+
+            public void setComputedProperty() {
+                //NOOP
+            }
+        }
+        this.bindEntity(FieldLevelTest.class);
+
+        Assert.assertEquals(getAccessType(FieldLevelTest.class), AccessType.FIELD);
+
+        List<String> fields = this.getAllFields(FieldLevelTest.class);
+        Assert.assertEquals(fields.size(), 3);
+        Assert.assertTrue(fields.contains("bar"));
+        Assert.assertTrue(fields.contains("computedField"));
+        Assert.assertTrue(fields.contains("computedProperty"));
+    }
+
+    @Test
+    public void testJPAPropertyLevelAccess() {
+        @Entity
+        @Include
+        class PropertyLevelTest {
+            private long id;
+
+            private int excluded;
+            public int bar;
+
+
+            @Exclude
+            public int getExcluded() {
+                return excluded;
+            }
+
+            public void setExcluded(int unused) {
+                //noop
+            }
+
+            @Transient
+            @ComputedAttribute
+            private int computedField;
+
+            @Transient
+            @ComputedAttribute
+            public int getComputedProperty() {
+                return 1;
+            }
+
+            public void setComputedProperty() {
+                //NOOP
+            }
+        }
+        this.bindEntity(PropertyLevelTest.class);
+
+        Assert.assertEquals(getAccessType(PropertyLevelTest.class), AccessType.PROPERTY);
+
+        List<String> fields = this.getAllFields(PropertyLevelTest.class);
+        Assert.assertEquals(fields.size(), 2);
+        Assert.assertTrue(fields.contains("bar"));
+        Assert.assertTrue(fields.contains("computedProperty"));
+    }
+
 
     @Test
     public void testGetParameterizedType() {

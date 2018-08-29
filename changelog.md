@@ -3,6 +3,11 @@
 ## 4.2.7
 **Fixes**
  * Add support for multiple classloaders when using CoerceUtils.
+ * Issue#691
+ * Issue#644
+
+**Features**
+ * Both JPA Field (new) and Property (4.2.6 and earlier) Access are now supported.
 
 ## 4.2.6
 **Fixes**
