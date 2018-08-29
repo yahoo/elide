@@ -135,6 +135,10 @@ public class EntityBinding {
                     .filter((method) -> method.isAnnotationPresent(ComputedAttribute.class)
                             || method.isAnnotationPresent(ComputedRelationship.class))
                     .collect(Collectors.toList()));
+
+            //Elide needs to manipulate private fields that are exposed.
+            fieldOrMethodList.forEach(field -> field.setAccessible(true));
+
         } else {
             /* Preserve the behavior of Elide 4.2.6 and earlier */
             accessType = AccessType.PROPERTY;
@@ -153,9 +157,6 @@ public class EntityBinding {
                     .filter((method) -> !Modifier.isStatic(method.getModifiers()))
                     .collect(Collectors.toList()));
         }
-
-        //Elide needs to manipulate private fields that are exposed.
-        fieldOrMethodList.forEach(field -> field.setAccessible(true));
 
         bindEntityFields(cls, type, fieldOrMethodList);
 
