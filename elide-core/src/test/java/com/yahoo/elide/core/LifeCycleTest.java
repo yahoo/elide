@@ -23,7 +23,6 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
