@@ -355,7 +355,8 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     public void runQueuedPreSecurityTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreSecurity.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePreSecurity.class, false))
+                .throwOnError();
     }
 
     /**
@@ -364,19 +365,23 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     public void runQueuedPreCommitTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePreCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePreCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePreCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePreCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPreCommit.class, false))
+                .throwOnError();
     }
 
     /**
@@ -385,19 +390,23 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     public void runQueuedPostCommitTriggers() {
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isCreateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnCreatePostCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnCreatePostCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePostCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePostCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePostCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePostCommit.class, false))
+                .throwOnError();
 
         this.queuedLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPostCommit.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPostCommit.class, false))
+                .throwOnError();
     }
 
     /**
@@ -406,9 +415,9 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param resource Resource on which to execute trigger
      * @param crudAction CRUD action
      */
-    protected void publishLifecyleEvent(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
+    protected void publishLifecycleEvent(PersistentResource<?> resource, CRUDEvent.CRUDAction crudAction) {
         lifecycleEvents.onNext(
-                new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
+                    new CRUDEvent(crudAction, resource, PersistentResource.CLASS_NO_FIELD, Optional.empty())
         );
     }
 
@@ -420,12 +429,12 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param crudAction CRUD Action
      * @param changeSpec Optional ChangeSpec to pass to the lifecycle hook
      */
-    protected void publishLifecyleEvent(PersistentResource<?> resource,
-                                        String fieldName,
-                                        CRUDEvent.CRUDAction crudAction,
-                                        Optional<ChangeSpec> changeSpec) {
+    protected void publishLifecycleEvent(PersistentResource<?> resource,
+                                         String fieldName,
+                                         CRUDEvent.CRUDAction crudAction,
+                                         Optional<ChangeSpec> changeSpec) {
         lifecycleEvents.onNext(
-                new CRUDEvent(crudAction, resource, fieldName, changeSpec)
+                    new CRUDEvent(crudAction, resource, fieldName, changeSpec)
         );
     }
 
@@ -471,16 +480,17 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     private void registerPreSecurityObservers() {
+
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isReadEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnReadPreSecurity.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnReadPreSecurity.class, true));
 
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isUpdateEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnUpdatePreSecurity.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnUpdatePreSecurity.class, true));
 
         this.distinctLifecycleEvents
                 .filter(CRUDEvent::isDeleteEvent)
-                .subscribe(new LifecycleHookInvoker(dictionary, OnDeletePreSecurity.class));
+                .subscribeWith(new LifecycleHookInvoker(dictionary, OnDeletePreSecurity.class, true));
     }
 }

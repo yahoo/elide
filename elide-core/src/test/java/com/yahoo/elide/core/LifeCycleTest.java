@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -22,6 +23,7 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
@@ -32,9 +34,11 @@ import example.TestCheckMappings;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.persistence.Entity;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -457,6 +461,59 @@ public class LifeCycleTest {
         verify(book, never()).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
     }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testPreSecurityLifecycleHookException() {
+        @Entity
+        @Include
+        class Book {
+            public String title;
+
+            @OnUpdatePreSecurity(value = "title")
+            public void blowUp(RequestScope scope) {
+                throw new IllegalStateException();
+            }
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        dictionary.bindEntity(Book.class);
+
+        Book book = new Book();
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, "1", scope);
+
+        resource.updateAttribute("title", "New value");
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testPreCommitLifeCycleHookException() {
+        @Entity
+        @Include
+        class Book {
+            public String title;
+
+            @OnUpdatePreCommit(value = "title")
+            public void blowUp(RequestScope scope) {
+                throw new IllegalStateException();
+            }
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        dictionary.bindEntity(Book.class);
+
+        Book book = new Book();
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, "1", scope);
+
+        resource.updateAttribute("title", "New value");
+
+        scope.runQueuedPreCommitTriggers();
+    }
+
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
         return new Elide(getElideSettings(dataStore, dictionary, auditLogger));
