@@ -9,6 +9,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
 import com.yahoo.elide.annotation.OnCreatePreSecurity;
@@ -32,9 +33,11 @@ import example.TestCheckMappings;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.persistence.Entity;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,6 +59,9 @@ public class LifeCycleTest {
     private static final AuditLogger MOCK_AUDIT_LOGGER = mock(AuditLogger.class);
     private EntityDictionary dictionary;
     private MockCallback callback;
+    private MockCallback onUpdateDeferredCallback;
+    private MockCallback onUpdateImmediateCallback;
+
 
     public class MockCallback<T> implements LifeCycleHook<T> {
         @Override
@@ -82,6 +88,8 @@ public class LifeCycleTest {
 
     LifeCycleTest() throws Exception {
         callback = mock(MockCallback.class);
+        onUpdateDeferredCallback = mock(MockCallback.class);
+        onUpdateImmediateCallback = mock(MockCallback.class);
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -97,6 +105,8 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, "title", callback);
         dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, "title", callback);
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, "title", callback);
+        dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
+        dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
     }
 
     @Test
@@ -187,6 +197,8 @@ public class LifeCycleTest {
          *  - update post-commit for the book.title
          */
         verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 
@@ -234,6 +246,7 @@ public class LifeCycleTest {
                 false);
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
+        resource.setValueChecked("genre", "boring books");
         Assert.assertNotNull(resource);
         verify(book, never()).onCreateBook(scope);
         verify(book, never()).checkPermission(scope);
@@ -242,6 +255,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCreateBook(scope);
         verify(book, never()).onDeleteBook(scope);
         verify(book, never()).onUpdateTitle(scope);
+        verify(book, never()).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).preRead(scope);
         verify(book, never()).checkPermission(scope);
 
@@ -249,18 +263,20 @@ public class LifeCycleTest {
         verify(book, times(1)).preCreateBook(scope);
         verify(book, never()).preDeleteBook(scope);
         verify(book, never()).preUpdateTitle(scope);
+        verify(book, times(2)).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).preCommitRead(scope);
         verify(book, never()).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
-        verify(book, times(2)).checkPermission(scope);
+        verify(book, times(3)).checkPermission(scope);
 
         scope.runQueuedPostCommitTriggers();
         verify(book, times(1)).postCreateBook(scope);
         verify(book, never()).postDeleteBook(scope);
         verify(book, never()).postUpdateTitle(scope);
+        verify(book, times(2)).onCreateBookPreCommit(eq(scope), any());
         verify(book, times(1)).postRead(scope);
-        verify(book, times(2)).checkPermission(scope);
+        verify(book, times(3)).checkPermission(scope);
     }
 
     @Test
@@ -277,6 +293,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreSecurityTriggers();
@@ -285,6 +303,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateTitle(scope);
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
@@ -293,6 +313,8 @@ public class LifeCycleTest {
         verify(book, times(1)).preUpdateTitle(scope);
         verify(book, times(1)).preCommitRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
@@ -304,6 +326,8 @@ public class LifeCycleTest {
         verify(book, times(1)).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
     }
 
     @Test
@@ -323,6 +347,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreSecurityTriggers();
@@ -331,6 +357,8 @@ public class LifeCycleTest {
         verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).preRead(scope);
         verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.runQueuedPreCommitTriggers();
@@ -338,6 +366,8 @@ public class LifeCycleTest {
         verify(book, never()).preDeleteBook(scope);
         verify(book, times(1)).preUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(1)).checkPermission(scope);
 
         scope.getPermissionExecutor().executeCommitChecks();
@@ -349,6 +379,8 @@ public class LifeCycleTest {
         verify(book, times(1)).postUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
         verify(book, times(1)).postRead(scope);
         verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
     }
 
     @Test
@@ -428,6 +460,59 @@ public class LifeCycleTest {
         verify(book, never()).postUpdateTitle(scope);
         verify(book, times(1)).postRead(scope);
     }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testPreSecurityLifecycleHookException() {
+        @Entity
+        @Include
+        class Book {
+            public String title;
+
+            @OnUpdatePreSecurity(value = "title")
+            public void blowUp(RequestScope scope) {
+                throw new IllegalStateException();
+            }
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        dictionary.bindEntity(Book.class);
+
+        Book book = new Book();
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, "1", scope);
+
+        resource.updateAttribute("title", "New value");
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testPreCommitLifeCycleHookException() {
+        @Entity
+        @Include
+        class Book {
+            public String title;
+
+            @OnUpdatePreCommit(value = "title")
+            public void blowUp(RequestScope scope) {
+                throw new IllegalStateException();
+            }
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        dictionary.bindEntity(Book.class);
+
+        Book book = new Book();
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, "1", scope);
+
+        resource.updateAttribute("title", "New value");
+
+        scope.runQueuedPreCommitTriggers();
+    }
+
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
         return new Elide(getElideSettings(dataStore, dictionary, auditLogger));

@@ -145,6 +145,11 @@ public class Book {
         // book entity created
     }
 
+    @OnCreatePreCommit("*")
+    public void onCreateBookPreCommit(RequestScope requestScope, ChangeSpec spec) {
+        // book entity created
+    }
+
     public void checkPermission(RequestScope requestScope) {
         // performs create permission check
     }
@@ -211,6 +216,6 @@ public class Book {
 
     @OnUpdatePreCommit
     public void alwaysOnUpdate() {
-        // should be called on _any_ update
+        // should be called on _any_ class update
     }
 }

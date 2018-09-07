@@ -1,6 +1,9 @@
 # Change Log
 
 ## 4.2.7
+**Features**
+ * Add support for asterisk life cycle hooks (hooks that invoke for all fields in a model).
+
 **Fixes**
  * Add support for multiple classloaders when using CoerceUtils.
 
