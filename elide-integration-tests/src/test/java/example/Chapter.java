@@ -39,11 +39,11 @@ public class Chapter {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof BaseId)) {
+        if (obj == null || !(obj instanceof Chapter)) {
             return false;
         }
 
-        return ((BaseId) obj).naturalKey.equals(naturalKey);
+        return ((Chapter) obj).naturalKey.equals(naturalKey);
     }
 
     @Getter @Setter private String title;

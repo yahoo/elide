@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
@@ -14,6 +15,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -39,46 +41,38 @@ public class Author {
         FREELANCE
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter @Setter
     private Long id;
-    private String name;
-    private Collection<Book> books = new ArrayList<>();
-    private AuthorType type;
 
+    @Exclude
+    private String naturalKey = UUID.randomUUID().toString();
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Author)) {
+            return false;
+        }
+
+        return ((Author) obj).naturalKey.equals(naturalKey);
+    }
+
+    @Getter @Setter
+    private String name;
+
+    @ManyToMany(mappedBy = "authors")
+    @Getter @Setter
+    private Collection<Book> books = new ArrayList<>();
+
+    @Getter @Setter
+    private AuthorType type;
 
     @Getter @Setter
     private Address homeAddress;
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public AuthorType getType() {
-        return type;
-    }
-
-    public void setType(AuthorType type) {
-        this.type = type;
-    }
-
-    @ManyToMany(mappedBy = "authors")
-    public Collection<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(Collection<Book> books) {
-        this.books = books;
-    }
 }

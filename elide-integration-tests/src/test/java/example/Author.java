@@ -6,15 +6,22 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Model for authors.
@@ -28,24 +35,35 @@ import java.util.Collection;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
-public class Author extends BaseId {
+public class Author {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
+    @Setter
+    private Long id;
+
+    @Exclude
+    private String naturalKey = UUID.randomUUID().toString();
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Author)) {
+            return false;
+        }
+
+        return ((Author) obj).naturalKey.equals(naturalKey);
+    }
+
+    @Getter @Setter
     private String name;
-    private Collection<Book> books = new ArrayList<>();
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     @ManyToMany(mappedBy = "authors")
-    public Collection<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(Collection<Book> books) {
-        this.books = books;
-    }
+    @Getter @Setter
+    private Collection<Book> books = new ArrayList<>();
 }
