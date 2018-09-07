@@ -119,25 +119,22 @@ public class EntityBinding {
         entityName = name;
 
         // Map id's, attributes, and relationships
-        List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
-
-        fieldOrMethodList.addAll(
-                getInstanceMembers(cls.getDeclaredFields(), (field) -> ! ((Field) field).isSynthetic()));
+        List<AccessibleObject> fieldOrMethodList = new ArrayList<>(
+                getInstanceMembers(cls.getDeclaredFields(), (field) -> !((Field) field).isSynthetic())
+        );
 
         if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
             accessType = AccessType.FIELD;
 
-
             /* Add all public methods that are computed */
-            fieldOrMethodList.addAll(getInstanceMembers(cls.getMethods())
-                    .stream()
-                    .filter((method) -> method.isAnnotationPresent(ComputedAttribute.class)
-                            || method.isAnnotationPresent(ComputedRelationship.class))
-                    .collect(Collectors.toList()));
+            fieldOrMethodList.addAll(
+                    getInstanceMembers(cls.getMethods(),
+                            (method) -> method.isAnnotationPresent(ComputedAttribute.class)
+                                    || method.isAnnotationPresent(ComputedRelationship.class))
+            );
 
             //Elide needs to manipulate private fields that are exposed.
             fieldOrMethodList.forEach(field -> field.setAccessible(true));
-
         } else {
             /* Preserve the behavior of Elide 4.2.6 and earlier */
             accessType = AccessType.PROPERTY;

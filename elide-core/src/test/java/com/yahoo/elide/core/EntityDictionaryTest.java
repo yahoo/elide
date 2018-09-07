@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -26,11 +28,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Transient;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,7 +36,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.mock;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 
 public class EntityDictionaryTest extends EntityDictionary {
 
@@ -289,7 +290,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getIdType(StringId.class), String.class,
                 "getIdType returns the type of the ID field of the given class");
 
-        Assert.assertEquals(getIdType(NoId.class), null,
+        Assert.assertNull(getIdType(NoId.class),
                 "getIdType returns null if ID field is missing");
 
         Assert.assertEquals(getIdType(Friend.class), long.class,
@@ -308,8 +309,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(FieldAnnotations.class, "privateField"), Boolean.class,
             "getType returns the type of attribute when Column annotation is on a getter");
 
-        Assert.assertEquals(getType(FieldAnnotations.class, "missingField"), null,
-            "getId returns null if attribute is missing");
+        Assert.assertNull(getType(FieldAnnotations.class, "missingField"),
+                "getId returns null if attribute is missing"
+        );
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "parent"), FieldAnnotations.class,
+                "getType return the type of a private field relationship");
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "children"), Set.class,
+                "getType return the type of a private field relationship");
 
         Assert.assertEquals(getType(Parent.class, "children"), Set.class,
             "getType returns the type of relationship fields");
