@@ -7,14 +7,19 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 @Include(rootLevel = true, type = "stringId")
 @Entity
 public class FieldAnnotations {
 
+    @Id
     private Long id;
 
     @Column
@@ -22,7 +27,12 @@ public class FieldAnnotations {
 
     private Boolean privateField;
 
-    @Id
+    @OneToMany(mappedBy = "parent")
+    private Set<FieldAnnotations> children;
+
+    @ManyToOne
+    private FieldAnnotations parent;
+
     public Long getId() {
         return id;
     }

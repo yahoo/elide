@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -363,6 +364,15 @@ public class EntityDictionary {
      */
     public String getIdFieldName(Class<?> entityClass) {
         return getEntityBinding(entityClass).getIdFieldName();
+    }
+
+    /**
+     * Returns whether the entire entity uses Field or Property level access.
+     * @param entityClass Entity Class
+     * @return The JPA Access Type
+     */
+    public AccessType getAccessType(Class<?> entityClass) {
+        return getEntityBinding(entityClass).getAccessType();
     }
 
     /**

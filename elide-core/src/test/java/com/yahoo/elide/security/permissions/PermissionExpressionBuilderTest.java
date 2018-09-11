@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 public class PermissionExpressionBuilderTest {
 
@@ -86,8 +87,10 @@ public class PermissionExpressionBuilderTest {
         @Include
         @UpdatePermission(expression = "user has no access")
         class Model {
+            @Id
+            private long id;
             @UpdatePermission(expression = "user has all access OR user has no access")
-            public int foo;
+            private int foo;
         }
 
         dictionary.bindEntity(Model.class);
@@ -102,8 +105,8 @@ public class PermissionExpressionBuilderTest {
                 changes);
 
         Assert.assertEquals(expression.toString(),
-                "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null} WITH CHANGES ChangeSpec { "
-                        + "resource=PersistentResource{type=model, id=null}, field=foo, original=1, modified=2} "
+                "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=0} WITH CHANGES ChangeSpec { "
+                        + "resource=PersistentResource{type=model, id=0}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)) OR ((user has no access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");
@@ -111,8 +114,8 @@ public class PermissionExpressionBuilderTest {
         expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
         Assert.assertEquals(expression.toString(),
-                "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null} WITH CHANGES ChangeSpec { "
-                        + "resource=PersistentResource{type=model, id=null}, field=foo, original=1, modified=2} "
+                "UPDATE PERMISSION WAS INVOKED ON PersistentResource{type=model, id=0} WITH CHANGES ChangeSpec { "
+                        + "resource=PersistentResource{type=model, id=0}, field=foo, original=1, modified=2} "
                         + "FOR EXPRESSION [FIELD(((user has all access "
                         + "\u001B[32mPASSED\u001B[m)) OR ((user has no access "
                         + "\u001B[34mWAS UNEVALUATED\u001B[m)))]");

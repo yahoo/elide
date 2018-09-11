@@ -5,6 +5,7 @@
  */
 package example;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
@@ -12,10 +13,38 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import java.util.UUID;
 
 @Entity
 @Include(rootLevel = true, type = "chapter")
 @SharePermission
-public class Chapter extends BaseId {
+/**
+ * This class tests using JPA Field based access.
+ */
+public class Chapter {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Exclude
+    private String naturalKey = UUID.randomUUID().toString();
+
+    @Override
+    public int hashCode() {
+        return naturalKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Chapter)) {
+            return false;
+        }
+
+        return ((Chapter) obj).naturalKey.equals(naturalKey);
+    }
+
     @Getter @Setter private String title;
 }

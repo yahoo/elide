@@ -40,9 +40,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.persistence.AccessType;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -53,6 +55,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,6 +78,7 @@ public class EntityBinding {
     @Getter private String idFieldName;
     @Getter private Class<?> idType;
     @Getter @Setter private Initializer initializer;
+    @Getter private AccessType accessType;
 
     public final EntityPermissions entityPermissions;
     public final List<String> attributes;
@@ -117,16 +121,34 @@ public class EntityBinding {
         entityName = name;
 
         // Map id's, attributes, and relationships
-        List<AccessibleObject> fieldOrMethodList = new ArrayList<>();
-        fieldOrMethodList.addAll(Arrays.asList(cls.getFields())
-                .stream()
-                .filter((field) -> ! Modifier.isStatic(field.getModifiers()))
-                .collect(Collectors.toList()));
+        List<AccessibleObject> fieldOrMethodList = new ArrayList<>(
+                getInstanceMembers(cls.getDeclaredFields(), (field) -> !((Field) field).isSynthetic())
+        );
 
-        fieldOrMethodList.addAll(Arrays.asList(cls.getMethods())
-                .stream()
-                .filter((method) -> ! Modifier.isStatic(method.getModifiers()))
-                .collect(Collectors.toList()));
+        if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
+            accessType = AccessType.FIELD;
+
+            /* Add all public methods that are computed */
+            fieldOrMethodList.addAll(
+                    getInstanceMembers(cls.getMethods(),
+                            (method) -> method.isAnnotationPresent(ComputedAttribute.class)
+                                    || method.isAnnotationPresent(ComputedRelationship.class))
+            );
+
+            //Elide needs to manipulate private fields that are exposed.
+            fieldOrMethodList.forEach(field -> field.setAccessible(true));
+        } else {
+            /* Preserve the behavior of Elide 4.2.6 and earlier */
+            accessType = AccessType.PROPERTY;
+
+            fieldOrMethodList.clear();
+
+            /* Add all public fields */
+            fieldOrMethodList.addAll(getInstanceMembers(cls.getFields()));
+
+            /* Add all public methods */
+            fieldOrMethodList.addAll(getInstanceMembers(cls.getMethods()));
+        }
 
         bindEntityFields(cls, type, fieldOrMethodList);
 
@@ -134,6 +156,30 @@ public class EntityBinding {
         relationships = dequeToList(relationshipsDeque);
         inheritedTypes = getInheritedTypes(cls);
         entityPermissions = new EntityPermissions(dictionary, cls, fieldOrMethodList);
+    }
+
+    /**
+     * Filters a list of class Members to instance methods & fields
+     * @param objects
+     * @param <T>
+     * @return A list of the filtered members
+     */
+    private <T extends Member> List<T> getInstanceMembers(T[] objects) {
+        return getInstanceMembers(objects, o -> true);
+    }
+
+    /**
+     * Filters a list of class Members to instance methods & fields
+     * @param objects The list of Members to filter
+     * @param <T> Concrete Member Type
+     * @param filteredBy An additional filter predicate to apply
+     * @return A list of the filtered members
+     */
+    private <T extends Member> List<T> getInstanceMembers(T[] objects, Predicate<T> filteredBy) {
+        return Arrays.stream(objects)
+                .filter(o -> !Modifier.isStatic(o.getModifiers()))
+                .filter(filteredBy)
+                .collect(Collectors.toList());
     }
 
     /**

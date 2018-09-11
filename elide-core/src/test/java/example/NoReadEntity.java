@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -18,18 +19,13 @@ import javax.persistence.Table;
 // Hibernate
 @Entity
 @Table(name = "noread")
+@Data
 public class NoReadEntity {
+    @Id
     private long id;
-    public String field;
+
+    private String field;
 
     @OneToOne
-    public Child child;
-
-    @Id
-    public long getId() {
-        return id;
-    }
-    public void setId(long id) {
-        this.id = id;
-    }
+    private Child child;
 }

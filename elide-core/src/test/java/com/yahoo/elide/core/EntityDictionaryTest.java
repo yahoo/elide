@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.core;
 
+import static org.mockito.Mockito.mock;
+
+import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -24,9 +28,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,7 +36,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.mock;
+import javax.persistence.AccessType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 
 public class EntityDictionaryTest extends EntityDictionary {
 
@@ -86,7 +91,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         @Entity
         @Include
         class Foo {
-            public int bar;
+            @Id
+            private long id;
+
+            private int bar;
         }
 
         Initializer<Foo> initializer = mock(Initializer.class);
@@ -94,6 +102,89 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
     }
+
+    @Test
+    public void testJPAFieldLevelAccess() {
+        @Entity
+        @Include
+        class FieldLevelTest {
+            @Id
+            private long id;
+
+            private int bar;
+
+            @Exclude
+            private int excluded;
+
+            @Transient
+            @ComputedAttribute
+            private int computedField;
+
+            @Transient
+            @ComputedAttribute
+            public int getComputedProperty() {
+                return 1;
+            }
+
+            public void setComputedProperty() {
+                //NOOP
+            }
+        }
+        this.bindEntity(FieldLevelTest.class);
+
+        Assert.assertEquals(getAccessType(FieldLevelTest.class), AccessType.FIELD);
+
+        List<String> fields = this.getAllFields(FieldLevelTest.class);
+        Assert.assertEquals(fields.size(), 3);
+        Assert.assertTrue(fields.contains("bar"));
+        Assert.assertTrue(fields.contains("computedField"));
+        Assert.assertTrue(fields.contains("computedProperty"));
+    }
+
+    @Test
+    public void testJPAPropertyLevelAccess() {
+        @Entity
+        @Include
+        class PropertyLevelTest {
+            private long id;
+
+            private int excluded;
+            public int bar;
+
+
+            @Exclude
+            public int getExcluded() {
+                return excluded;
+            }
+
+            public void setExcluded(int unused) {
+                //noop
+            }
+
+            @Transient
+            @ComputedAttribute
+            private int computedField;
+
+            @Transient
+            @ComputedAttribute
+            public int getComputedProperty() {
+                return 1;
+            }
+
+            public void setComputedProperty() {
+                //NOOP
+            }
+        }
+        this.bindEntity(PropertyLevelTest.class);
+
+        Assert.assertEquals(getAccessType(PropertyLevelTest.class), AccessType.PROPERTY);
+
+        List<String> fields = this.getAllFields(PropertyLevelTest.class);
+        Assert.assertEquals(fields.size(), 2);
+        Assert.assertTrue(fields.contains("bar"));
+        Assert.assertTrue(fields.contains("computedProperty"));
+    }
+
 
     @Test
     public void testGetParameterizedType() {
@@ -199,7 +290,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getIdType(StringId.class), String.class,
                 "getIdType returns the type of the ID field of the given class");
 
-        Assert.assertEquals(getIdType(NoId.class), null,
+        Assert.assertNull(getIdType(NoId.class),
                 "getIdType returns null if ID field is missing");
 
         Assert.assertEquals(getIdType(Friend.class), long.class,
@@ -218,8 +309,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(FieldAnnotations.class, "privateField"), Boolean.class,
             "getType returns the type of attribute when Column annotation is on a getter");
 
-        Assert.assertEquals(getType(FieldAnnotations.class, "missingField"), null,
-            "getId returns null if attribute is missing");
+        Assert.assertNull(getType(FieldAnnotations.class, "missingField"),
+                "getId returns null if attribute is missing"
+        );
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "parent"), FieldAnnotations.class,
+                "getType return the type of a private field relationship");
+
+        Assert.assertEquals(getType(FieldAnnotations.class, "children"), Set.class,
+                "getType return the type of a private field relationship");
 
         Assert.assertEquals(getType(Parent.class, "children"), Set.class,
             "getType returns the type of relationship fields");

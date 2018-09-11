@@ -23,9 +23,16 @@ import java.util.Optional;
 @ReadPermission(expression = "specialValue")
 @UpdatePermission(expression = "updateOnCreate")
 public class SpecialRead extends BaseId {
-    public String value;
-
+    private String value;
     private Child child;
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     public Child getChild() {

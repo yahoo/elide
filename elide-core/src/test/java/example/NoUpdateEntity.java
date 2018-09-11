@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
+import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,18 +20,11 @@ import java.util.Set;
 // Hibernate
 @Entity
 @Table(name = "noupdate")
+@Data
 public class NoUpdateEntity {
+    @Id
     private long id;
 
     @OneToMany()
-    public Set<Child> children;
-
-    @Id
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
+    private Set<Child> children;
 }
