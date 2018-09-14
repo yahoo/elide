@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
+
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -159,10 +161,12 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        if (isMappedInterface(entityClass)) {
-            return EntityBinding.EMPTY_BINDING;
-        }
-        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EntityBinding.EMPTY_BINDING);
+        return entityBindings.computeIfAbsent(entityClass, cls -> {
+            if (isMappedInterface(cls)) {
+                return EMPTY_BINDING;
+            }
+            return entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING);
+        });
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
