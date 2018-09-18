@@ -19,21 +19,10 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
-import cz.jirutka.rsql.parser.ast.AndNode;
-import cz.jirutka.rsql.parser.ast.ComparisonNode;
-import cz.jirutka.rsql.parser.ast.ComparisonOperator;
-import cz.jirutka.rsql.parser.ast.Node;
-import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLOperators;
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import cz.jirutka.rsql.parser.ast.*;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,10 +48,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
+    private final CaseSensitivityStrategy caseSensitivityStrategy;
 
     public RSQLFilterDialect(EntityDictionary dictionary) {
+        this(dictionary, new CaseSensitivityStrategy.FIQLCompliant());
+    }
+
+    public RSQLFilterDialect(EntityDictionary dictionary, CaseSensitivityStrategy caseSensitivityStrategy) {
         parser = new RSQLParser(getDefaultOperatorsWithIsnull());
-        this. dictionary = dictionary;
+        this.dictionary = dictionary;
+        this.caseSensitivityStrategy = caseSensitivityStrategy;
     }
 
     //add rsql isnull op to the default ops
@@ -290,22 +285,25 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             boolean endsWith = argument.endsWith("*");
             if (startsWith && endsWith && argument.length() > 2) {
                 String value = argument.substring(1, argument.length() - 1);
-                return new FilterPredicate(path, Operator.INFIX_CASE_INSENSITIVE, Collections.singletonList(value));
+                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.INFIX),
+                        Collections.singletonList(value));
             }
             if (startsWith && argument.length() > 1) {
                 String value = argument.substring(1, argument.length());
-                return new FilterPredicate(path, Operator.POSTFIX_CASE_INSENSITIVE, Collections.singletonList(value));
+                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.POSTFIX),
+                        Collections.singletonList(value));
             }
             if (endsWith && argument.length() > 1) {
                 String value = argument.substring(0, argument.length() - 1);
-                return new FilterPredicate(path, Operator.PREFIX_CASE_INSENSITIVE, Collections.singletonList(value));
+                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.PREFIX),
+                        Collections.singletonList(value));
             }
 
             Boolean isStringLike = path.lastElement()
                     .map(e -> e.getFieldType().isAssignableFrom(String.class))
                     .orElse(false);
             if (isStringLike) {
-                return new FilterPredicate(path, Operator.IN_INSENSITIVE, values);
+                return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.IN), values);
             }
 
             return new FilterPredicate(path, Operator.IN, values);
@@ -313,7 +311,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
         /**
          * Returns Predicate for '=isnull=' case depending on its arguments.
-         *
+         * <p>
          * NOTE: Filter Expression builder specially for '=isnull=' case.
          *
          * @return Returns Predicate for '=isnull=' case depending on its arguments.
