@@ -22,8 +22,8 @@ import java.util.Map;
  * Tests RSQLFilterDialect
  */
 public class RSQLFilterDialectTest {
+    private RSQLFilterDialect dialect;
 
-    RSQLFilterDialect dialect;
     @BeforeTest
     public void init() {
         EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
