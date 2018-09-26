@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2018, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Tests RSQLFilterDialect
  */
-public class RSQLFilterDialectTest {
+public class RSQLFilterDialectWithColumnCollationStrategyTest {
     private RSQLFilterDialect dialect;
 
     @BeforeTest
@@ -30,7 +30,7 @@ public class RSQLFilterDialectTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = new RSQLFilterDialect(dictionary, new CaseSensitivityStrategy.UseColumnCollation());
     }
 
     @Test
@@ -46,8 +46,8 @@ public class RSQLFilterDialectTest {
 
         Assert.assertEquals(expressionMap.size(), 1);
         Assert.assertEquals(expressionMap.get("book").toString(),
-                "((book.title INFIX_CASE_INSENSITIVE [foo] AND NOT (book.title PREFIX_CASE_INSENSITIVE [bar])) "
-                        + "AND (book.genre IN_INSENSITIVE [sci-fi, action] OR book.publishDate GT [123]))"
+                "((book.title INFIX [foo] AND NOT (book.title PREFIX [bar])) "
+                        + "AND (book.genre IN [sci-fi, action] OR book.publishDate GT [123]))"
         );
     }
 
@@ -63,7 +63,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "(book.title INFIX_CASE_INSENSITIVE [foo] AND book.authors.name IN_INSENSITIVE [Hemingway])"
+                "(book.title INFIX [foo] AND book.authors.name IN [Hemingway])"
         );
     }
 
@@ -79,7 +79,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "book.title IN_INSENSITIVE [Hemingway]"
+                "book.title IN [Hemingway]"
         );
     }
 
@@ -95,7 +95,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "NOT (book.title IN_INSENSITIVE [Hemingway])"
+                "NOT (book.title IN [Hemingway])"
         );
     }
 
@@ -111,7 +111,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "book.title IN_INSENSITIVE [Hemingway]"
+                "book.title IN [Hemingway]"
         );
     }
 
@@ -127,7 +127,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "NOT (book.title IN_INSENSITIVE [Hemingway])"
+                "NOT (book.title IN [Hemingway])"
         );
     }
 
@@ -163,7 +163,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "((book.title INFIX_CASE_INSENSITIVE [Hemingway] OR book.title POSTFIX_CASE_INSENSITIVE [Hemingway]) OR book.title PREFIX_CASE_INSENSITIVE [Hemingway])"
+                "((book.title INFIX [Hemingway] OR book.title POSTFIX [Hemingway]) OR book.title PREFIX [Hemingway])"
         );
     }
 
@@ -179,7 +179,7 @@ public class RSQLFilterDialectTest {
         FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
 
         Assert.assertEquals(expression.toString(),
-                "(book.title IN_INSENSITIVE [foo] AND (book.title IN_INSENSITIVE [bar] AND book.title IN_INSENSITIVE [baz]))"
+                "(book.title IN [foo] AND (book.title IN [bar] AND book.title IN [baz]))"
         );
     }
 
