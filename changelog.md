@@ -3,6 +3,7 @@
 ## 4.2.8
 **Fixes**
  * Issue#696
+ * Issue#707
 
 ## 4.2.7
 **Features**
