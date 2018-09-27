@@ -1,0 +1,10 @@
+{
+  "data":{
+    "type":"fieldLevelChild",
+    "id":"1",
+    "attributes":{
+      "childField": "someOtherValue",
+      "parentField": "aNewParentValue"
+    }
+  }
+}
