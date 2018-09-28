@@ -6,7 +6,6 @@
 package com.yahoo.elide.fieldLevelTest;
 
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.AssignedIdLongIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
@@ -17,10 +16,6 @@ public class FieldLevelParentClassIdIT extends AbstractIntegrationTestInitialize
     private final JsonParser jsonParser = new JsonParser();
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
-    public FieldLevelParentClassIdIT() {
-        super(AssignedIdLongIntegrationTestApplicationResourceConfig.class);
-    }
 
     @Test(priority = 0)
     public void testResponseCodeOnUpdate() {
