@@ -42,4 +42,20 @@ public class FieldLevelParentClassIdIT extends AbstractIntegrationTestInitialize
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
     }
+
+    @Test(priority = 10)
+    public void testRelationships() {
+        String request = jsonParser.getJson("/FieldLevelIT/createFieldLevelRelatedEntity.req.json");
+        String expected = jsonParser.getJson("/FieldLevelIT/createFieldLevelRelatedEntity.resp.json");
+
+        String actual = given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(request)
+                .post("/fieldLevelRelated")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract().body().asString();
+        assertEqualDocuments(actual, expected);
+    }
 }

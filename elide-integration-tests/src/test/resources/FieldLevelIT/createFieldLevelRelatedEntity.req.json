@@ -1,0 +1,17 @@
+{
+  "data":{
+    "type":"fieldRelated",
+    "id":"1",
+    "attributes":{
+      "name": "a related object"
+    },
+    "relationships": {
+      "related_child": {
+        "data": {
+          "type": "fieldLevelChild",
+          "id": 1
+        }
+      }
+    }
+  }
+}
