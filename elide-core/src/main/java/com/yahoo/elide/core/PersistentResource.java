@@ -1484,9 +1484,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             throw handleInvocationTargetException(e);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
             try {
-                Field field = targetClass.getField(fieldName);
+                Field field = (Field) dictionary.getAccessibleObject(obj, fieldName);
+                if (field == null) {
+                    throw new InvalidAttributeException(fieldName, type);
+                }
                 field.set(obj, coerce(value, fieldName, field.getType()));
-            } catch (NoSuchFieldException | IllegalAccessException noField) {
+            } catch (IllegalAccessException noField) {
                 throw new InvalidAttributeException(fieldName, type, noField);
             }
         }

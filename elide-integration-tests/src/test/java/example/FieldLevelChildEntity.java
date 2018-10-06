@@ -12,7 +12,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "child_field_level")
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "fieldLevelChild")
 public class FieldLevelChildEntity extends FieldLevelParentSuperclass {
     private String childField;
 }

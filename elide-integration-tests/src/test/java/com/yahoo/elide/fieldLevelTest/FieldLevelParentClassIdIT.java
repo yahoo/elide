@@ -33,16 +33,13 @@ public class FieldLevelParentClassIdIT extends AbstractIntegrationTestInitialize
         assertEqualDocuments(actual, expected);
 
         request = jsonParser.getJson("/FieldLevelIT/updateFieldLevelChildEntity.req.json");
-        expected = jsonParser.getJson("/FieldLevelIT/updateFieldLevelChildEntity.resp.json");
 
-        actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
-                .patch("/fieldLevelChild/1")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-        assertEqualDocuments(actual, expected);
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(request)
+            .patch("/fieldLevelChild/1")
+            .then()
+            .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 }
