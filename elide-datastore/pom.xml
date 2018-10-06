@@ -195,6 +195,8 @@
                         <suiteXmlFiles>
                             <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
+                            <suiteXmlFile>${project.basedir}/../testng-fieldleveltest.xml</suiteXmlFile>
+                            <suiteXmlFile>${project.basedir}/../testng-assignedIdLong.xml</suiteXmlFile>
                         </suiteXmlFiles>
                     </configuration>
                     <executions>

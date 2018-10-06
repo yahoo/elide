@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.9
+**Fixes**
+ * Fixed IT tests that were not running.
+ * Fixed setting private attributes that are inherited.
 
 ## 4.2.8
 **Fixes**
