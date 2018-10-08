@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Audit Test Suite">
+    <test name="com.yahoo.elide.tests.FieldLevelTests">
+        <packages>
+            <package name="com.yahoo.elide.fieldLevelTest"/>
+        </packages>
+    </test>
+</suite>
