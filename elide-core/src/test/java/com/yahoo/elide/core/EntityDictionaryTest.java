@@ -11,7 +11,9 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.MappedInterface;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
@@ -102,6 +104,57 @@ public class EntityDictionaryTest extends EntityDictionary {
         Initializer<Foo> initializer = mock(Initializer.class);
         this.bindInitializer(initializer, Foo.class);
 
+        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+    }
+
+    @Test
+    public void testBindingTriggerPriorToBindingEntityClass1() {
+        @Entity
+        @Include
+        class Foo {
+            @Id
+            private long id;
+
+            private int bar;
+        }
+
+        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+
+        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, "bar", trigger);
+        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+    }
+
+    @Test
+    public void testBindingTriggerPriorToBindingEntityClass2() {
+        @Entity
+        @Include
+        class Foo {
+            @Id
+            private long id;
+
+            private int bar;
+        }
+
+        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+
+        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, trigger, true);
+        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+    }
+
+    @Test
+    public void testBindingTriggerPriorToBindingEntityClass3() {
+        @Entity
+        @Include
+        class Foo {
+            @Id
+            private long id;
+
+            private int bar;
+        }
+
+        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+
+        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, trigger);
         Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
     }
 
