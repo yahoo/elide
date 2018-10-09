@@ -9,6 +9,10 @@
  * Fixed setting private attributes that are inherited.
  * Upgrade Jackson databind library to address security alerts
 
+## 4.2.9
+**Fixes**
+ * Issue#703
+
 ## 4.2.8
 **Fixes**
  * Issue#696
