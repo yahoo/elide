@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -40,13 +37,17 @@ import com.yahoo.elide.parsers.expression.CanPaginateVisitor;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.GeneratedValue;
-import javax.ws.rs.WebApplicationException;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -71,6 +72,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.persistence.GeneratedValue;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * Resource wrapper around Entity bean.

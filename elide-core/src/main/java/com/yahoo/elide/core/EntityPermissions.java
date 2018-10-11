@@ -13,7 +13,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.checks.Check;
-import lombok.extern.slf4j.Slf4j;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -22,6 +22,8 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;

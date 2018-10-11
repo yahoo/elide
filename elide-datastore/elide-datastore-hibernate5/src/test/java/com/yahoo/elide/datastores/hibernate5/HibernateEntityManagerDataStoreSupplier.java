@@ -11,6 +11,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
+
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
@@ -27,6 +28,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;

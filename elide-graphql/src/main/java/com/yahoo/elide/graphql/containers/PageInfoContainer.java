@@ -9,12 +9,14 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+
 import lombok.Getter;
 
-import javax.ws.rs.BadRequestException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.BadRequestException;
 
 /**
  * Container for nodes.

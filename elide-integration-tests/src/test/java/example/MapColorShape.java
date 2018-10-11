@@ -8,13 +8,14 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Bean with Map of Enums.

@@ -5,17 +5,18 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import static org.testng.Assert.assertEquals;
+
 import org.apache.commons.beanutils.Converter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.testng.Assert.assertEquals;
 
 public class FromMapConverterTest {
 

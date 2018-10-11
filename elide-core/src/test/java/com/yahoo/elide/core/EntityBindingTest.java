@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.core;
 
+import static org.testng.Assert.assertEquals;
+
 import org.mockito.Mock;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.persistence.Id;
 import java.lang.reflect.AccessibleObject;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
+import javax.persistence.Id;
 
 public class EntityBindingTest {
     private EntityBinding entityBinding;

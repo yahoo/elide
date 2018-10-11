@@ -19,18 +19,20 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
-import lombok.AllArgsConstructor;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.persistence.Entity;
+import lombok.AllArgsConstructor;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import javax.persistence.Entity;
 
 /**
  * Test the expression language.

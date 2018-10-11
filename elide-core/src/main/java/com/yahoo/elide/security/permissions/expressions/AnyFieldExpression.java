@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.security.permissions.ExpressionResult;
-import com.yahoo.elide.security.permissions.PermissionCondition;
-
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+
+import com.yahoo.elide.security.permissions.ExpressionResult;
+import com.yahoo.elide.security.permissions.PermissionCondition;
 
 /**
  * This check determines if an entity is accessible to the current user.

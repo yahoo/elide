@@ -13,10 +13,11 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import java.util.List;
 
 @Entity
 @Audit(action = Audit.Action.CREATE,

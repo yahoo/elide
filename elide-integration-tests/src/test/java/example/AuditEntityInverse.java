@@ -13,9 +13,10 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
-import java.util.List;
 
 @Entity
 @Include(rootLevel = true)

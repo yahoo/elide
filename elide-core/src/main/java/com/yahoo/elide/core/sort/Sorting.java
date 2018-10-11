@@ -8,15 +8,16 @@ package com.yahoo.elide.core.sort;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import lombok.ToString;
 
-import javax.ws.rs.core.MultivaluedMap;
+import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.

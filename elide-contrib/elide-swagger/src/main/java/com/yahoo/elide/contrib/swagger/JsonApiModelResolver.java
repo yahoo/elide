@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -13,6 +12,9 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.contrib.swagger.model.Resource;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
+
+import com.fasterxml.jackson.databind.type.SimpleType;
+
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.jackson.ModelResolver;

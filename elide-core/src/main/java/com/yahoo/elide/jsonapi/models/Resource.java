@@ -5,18 +5,20 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.core.exceptions.UnknownEntityException;
+import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import com.yahoo.elide.jsonapi.serialization.KeySerializer;
-import lombok.ToString;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.Objects;

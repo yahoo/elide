@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.tests
 
+import com.yahoo.elide.core.HttpStatus
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -12,8 +15,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.ValidatableResponse
-import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
 import org.testng.Assert
 import org.testng.annotations.Test
 

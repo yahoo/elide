@@ -7,6 +7,7 @@ package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.security.permissions.expressions.Expression;
+
 import lombok.Getter;
 
 import java.util.Optional;

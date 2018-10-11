@@ -6,7 +6,6 @@
 package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
@@ -15,11 +14,13 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionC
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Supplier;
 

@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.jsonapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

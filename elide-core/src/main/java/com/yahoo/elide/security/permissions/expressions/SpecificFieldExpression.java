@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.PermissionCondition;
+
 import lombok.Getter;
 
 import java.util.Optional;
-
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 /**
  * Expression for joining specific fields.

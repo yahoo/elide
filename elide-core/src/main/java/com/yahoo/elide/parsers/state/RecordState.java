@@ -11,11 +11,11 @@ import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.jsonapi.models.SingleElementSet;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionContext;
+import com.yahoo.elide.jsonapi.models.SingleElementSet;
 
 import com.google.common.base.Preconditions;
 

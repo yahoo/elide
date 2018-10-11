@@ -12,10 +12,10 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 
+import java.util.Optional;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import java.util.Optional;
 
 /**
  * No Update test bean.

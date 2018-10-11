@@ -5,20 +5,22 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPageInfo;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import javax.ws.rs.BadRequestException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.graphql.containers.RootContainer.requestContainsPageInfo;
+import javax.ws.rs.BadRequestException;
 
 /**
  * Container for nodes.

@@ -18,9 +18,8 @@ import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Id;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,6 +39,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import javax.persistence.Id;
 
 /**
  * InMemoryDataStore transaction handler.

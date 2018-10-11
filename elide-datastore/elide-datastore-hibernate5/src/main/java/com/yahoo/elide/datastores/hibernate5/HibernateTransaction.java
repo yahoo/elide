@@ -25,7 +25,7 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
 import com.yahoo.elide.security.User;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.FlushMode;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
@@ -33,13 +33,16 @@ import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
-import javax.persistence.PersistenceException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
+
+import javax.persistence.PersistenceException;
 
 /**
  * Hibernate Transaction implementation.

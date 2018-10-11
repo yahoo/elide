@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-import com.yahoo.elide.security.permissions.ExpressionResult;
-import org.fusesource.jansi.Ansi;
-
 import static org.fusesource.jansi.Ansi.ansi;
+
+import com.yahoo.elide.security.permissions.ExpressionResult;
+
+import org.fusesource.jansi.Ansi;
 
 /**
  * Interface describing an expression.

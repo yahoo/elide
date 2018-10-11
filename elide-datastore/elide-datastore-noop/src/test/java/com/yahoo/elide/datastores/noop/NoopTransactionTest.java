@@ -9,13 +9,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.ObjectEntityCache;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

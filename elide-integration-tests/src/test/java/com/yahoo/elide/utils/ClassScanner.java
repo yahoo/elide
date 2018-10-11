@@ -5,9 +5,10 @@
  */
 package com.yahoo.elide.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.server.internal.scanning.AnnotationAcceptingListener;
 import org.glassfish.jersey.server.internal.scanning.PackageNamesScanner;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;

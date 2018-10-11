@@ -5,20 +5,23 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
-import com.beust.jcommander.internal.Lists;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.Collections;
-import java.util.Map;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+
+import com.beust.jcommander.internal.Lists;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import java.util.Collections;
+import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests MultipleFilterDialect

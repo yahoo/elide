@@ -5,8 +5,11 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.TestAuditLogger;
@@ -20,9 +23,14 @@ import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.yahoo.elide.security.User;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Sets;
+
 import example.Child;
 import example.Parent;
 import example.TestCheckMappings;
+
 import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -33,11 +41,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * JSON API testing.

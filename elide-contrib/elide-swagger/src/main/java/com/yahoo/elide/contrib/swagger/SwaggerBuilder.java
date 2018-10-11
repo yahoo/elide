@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.contrib.swagger.model.Data;
 import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
+
+import com.google.common.collect.Sets;
+
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Info;
 import io.swagger.models.Model;

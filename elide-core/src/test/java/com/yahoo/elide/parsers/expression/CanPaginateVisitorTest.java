@@ -6,7 +6,9 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.EntityDictionary;
@@ -18,20 +20,21 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
+
+import com.google.common.collect.Sets;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 public class CanPaginateVisitorTest {
 

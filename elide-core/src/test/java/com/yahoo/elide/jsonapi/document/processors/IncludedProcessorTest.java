@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
@@ -16,17 +17,18 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
+
+import com.google.common.collect.Sets;
+
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
 import example.TestCheckMappings;
+
 import org.mockito.Answers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +37,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 
 public class IncludedProcessorTest {

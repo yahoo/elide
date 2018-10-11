@@ -5,6 +5,11 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
+import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
+import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
+import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
+import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
@@ -14,14 +19,10 @@ import com.yahoo.elide.security.checks.InlineCheck;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
-
-import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
-import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
-import static com.yahoo.elide.security.permissions.ExpressionResult.UNEVALUATED;
 
 /**
  * An expression in the security evaluation AST that wraps an actual check.

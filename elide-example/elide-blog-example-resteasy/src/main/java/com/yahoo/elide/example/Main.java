@@ -5,11 +5,12 @@
  */
 package com.yahoo.elide.example;
 
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Example backend using Elide library.

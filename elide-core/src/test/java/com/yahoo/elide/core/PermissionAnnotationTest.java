@@ -16,10 +16,11 @@ import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
-
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+
 import example.FunWithPermissions;
 import example.TestCheckMappings;
+
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 

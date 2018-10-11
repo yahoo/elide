@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.datastores.hibernate5.usertypes.JsonType;
+
 import org.hibernate.annotations.TypeDef;
 
 @TypeDef(typeClass = JsonType.class, name = "json")

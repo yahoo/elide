@@ -6,7 +6,8 @@
 
 package com.yahoo.elide.graphql;
 
-import com.google.common.collect.Sets;
+import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
@@ -19,15 +20,15 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
+
+import com.google.common.collect.Sets;
+
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +42,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.

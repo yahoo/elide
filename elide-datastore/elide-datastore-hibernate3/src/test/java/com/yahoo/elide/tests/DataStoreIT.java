@@ -7,8 +7,6 @@ package com.yahoo.elide.tests;
 
 import static org.testng.Assert.assertEquals;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -18,15 +16,18 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.utils.JsonParser;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
+import example.Filtered;
 import example.TestCheckMappings;
+
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import example.Filtered;
 
 import java.io.IOException;
 import java.util.Arrays;

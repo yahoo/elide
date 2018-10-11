@@ -6,9 +6,10 @@
 
 package com.yahoo.elide.graphql;
 
-import graphql.ExecutionResult;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import graphql.ExecutionResult;
 
 /**
  * Test the Fetch operation.

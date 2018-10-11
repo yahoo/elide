@@ -11,17 +11,20 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.standalone.Util;
-import lombok.extern.slf4j.Slf4j;
+
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import javax.inject.Inject;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import javax.inject.Inject;
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Context;
 
 /**
  * Elide application resource configuration file.

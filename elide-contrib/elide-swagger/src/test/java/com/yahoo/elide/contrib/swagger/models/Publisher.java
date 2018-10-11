@@ -7,10 +7,11 @@ package com.yahoo.elide.contrib.swagger.models;
 
 import com.yahoo.elide.annotation.Include;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import java.util.Map;
 import java.util.Set;
+
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 
 @Entity
 @Include(rootLevel = true)

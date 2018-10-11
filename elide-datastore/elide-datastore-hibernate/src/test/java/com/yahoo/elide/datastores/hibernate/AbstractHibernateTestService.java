@@ -5,19 +5,21 @@
  */
 package com.yahoo.elide.datastores.hibernate;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
+
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import lombok.NoArgsConstructor;
+
 import org.testng.annotations.BeforeTest;
+
+import lombok.NoArgsConstructor;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.function.Supplier;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 @NoArgsConstructor
 public abstract class AbstractHibernateTestService {

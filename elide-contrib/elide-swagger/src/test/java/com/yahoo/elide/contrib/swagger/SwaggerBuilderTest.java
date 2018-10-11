@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.model.Resource;
 import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
@@ -14,6 +13,13 @@ import com.yahoo.elide.contrib.swagger.property.Data;
 import com.yahoo.elide.contrib.swagger.property.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
+
+import com.google.common.collect.Maps;
+
+import org.testng.Assert;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -29,9 +35,6 @@ import io.swagger.models.properties.ObjectProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
-import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;

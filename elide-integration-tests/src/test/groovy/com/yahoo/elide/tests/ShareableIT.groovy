@@ -4,16 +4,19 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
-import com.fasterxml.jackson.databind.ObjectMapper
+import static com.jayway.restassured.RestAssured.given
+
 import com.yahoo.elide.core.DataStoreTransaction
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import example.Left
+
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
-
-import static com.jayway.restassured.RestAssured.given
 /**
  * @Shareable annotation integration tests
  */

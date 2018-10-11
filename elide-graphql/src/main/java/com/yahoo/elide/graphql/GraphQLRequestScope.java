@@ -9,11 +9,13 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.User;
+
 import lombok.Getter;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * Persistent state across GraphQL requests. This object is stored in the environment context.

@@ -11,6 +11,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
+
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
@@ -19,6 +20,7 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
 import java.util.function.Supplier;
+
 import javax.persistence.Entity;
 
 /**

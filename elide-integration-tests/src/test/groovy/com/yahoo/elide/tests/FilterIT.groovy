@@ -4,11 +4,13 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
+import com.yahoo.elide.core.HttpStatus
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.restassured.RestAssured
-import com.yahoo.elide.core.HttpStatus
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
 import org.testng.Assert
 import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeClass

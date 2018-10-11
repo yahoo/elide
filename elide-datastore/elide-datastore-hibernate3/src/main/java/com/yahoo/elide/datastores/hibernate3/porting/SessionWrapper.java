@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.hibernate3.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -17,19 +18,15 @@ import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
 
-import org.testng.annotations.Test;
-
-import java.util.HashMap;
-import java.util.Optional;
-
 import com.google.common.collect.ImmutableSet;
 
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
-
-import static org.testng.Assert.assertEquals;
 
 /**
  * InMemoryDataStore tests.

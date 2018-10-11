@@ -5,20 +5,23 @@
  */
 package com.yahoo.elide.standalone;
 
+import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
+
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import javax.ws.rs.core.SecurityContext;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Map;
 
-import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
+import javax.ws.rs.core.SecurityContext;
 
 @Slf4j
 public class ElideStandalone {

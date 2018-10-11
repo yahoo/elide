@@ -9,8 +9,10 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
+
 import example.Author;
 import example.Book;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

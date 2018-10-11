@@ -7,13 +7,16 @@ package com.yahoo.elide.standalone.datastore;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.hibernate5.HibernateSessionFactoryStore;
-import lombok.extern.slf4j.Slf4j;
+
 import org.glassfish.hk2.api.ServiceLocator;
 import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
 
-import javax.persistence.metamodel.EntityType;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Set;
+
+import javax.persistence.metamodel.EntityType;
 
 /**
  * Hibernate store that is aware of the injector. Namely, when objects are created, the injector will run

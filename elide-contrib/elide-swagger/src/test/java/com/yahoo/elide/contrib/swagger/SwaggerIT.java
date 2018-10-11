@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
+import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
-import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

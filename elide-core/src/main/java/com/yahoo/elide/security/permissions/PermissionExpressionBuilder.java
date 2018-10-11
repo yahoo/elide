@@ -5,6 +5,11 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
+
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
@@ -22,6 +27,7 @@ import com.yahoo.elide.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 import com.yahoo.elide.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.security.permissions.expressions.SpecificFieldExpression;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -29,11 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.security.permissions.expressions.Expression.Results.FAILURE;
 
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.

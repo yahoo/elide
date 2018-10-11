@@ -5,17 +5,19 @@
  */
 package com.yahoo.elide.tests;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 import com.yahoo.elide.utils.JsonParser;
+
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.Response;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 
 public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";

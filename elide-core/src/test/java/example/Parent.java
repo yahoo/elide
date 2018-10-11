@@ -14,7 +14,11 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
+
 import lombok.ToString;
+
+import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -24,8 +28,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
-import java.util.Set;
 
 @CreatePermission(expression = "parentInitCheck OR allow all")
 @ReadPermission(expression = "parentInitCheckOp OR allow all")

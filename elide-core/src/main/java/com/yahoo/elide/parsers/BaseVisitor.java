@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.parsers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
@@ -23,6 +22,9 @@ import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionSubCollectionCo
 import com.yahoo.elide.generated.parsers.CoreParser.TermContext;
 import com.yahoo.elide.parsers.state.StartState;
 import com.yahoo.elide.parsers.state.StateContext;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;

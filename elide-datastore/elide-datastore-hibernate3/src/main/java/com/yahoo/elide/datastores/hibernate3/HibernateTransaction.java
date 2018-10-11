@@ -25,13 +25,15 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper;
 import com.yahoo.elide.security.User;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.AbstractPersistentCollection;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
