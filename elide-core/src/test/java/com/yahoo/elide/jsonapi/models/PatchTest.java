@@ -8,6 +8,7 @@ package com.yahoo.elide.jsonapi.models;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.collections.Lists;

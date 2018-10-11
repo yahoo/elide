@@ -6,6 +6,7 @@
 package com.yahoo.elide.audit;
 
 import com.yahoo.elide.core.RequestScope;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

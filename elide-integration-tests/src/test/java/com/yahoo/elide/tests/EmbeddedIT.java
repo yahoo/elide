@@ -15,12 +15,12 @@ import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.ImmutableSet;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import example.Embedded;
 import example.Left;
 import example.Right;
+
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 

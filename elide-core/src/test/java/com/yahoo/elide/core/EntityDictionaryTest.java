@@ -16,6 +16,7 @@ import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
 import com.yahoo.elide.security.checks.prefab.Role;
+
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
@@ -24,6 +25,7 @@ import example.Parent;
 import example.Right;
 import example.StringId;
 import example.User;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

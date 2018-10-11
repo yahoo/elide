@@ -7,16 +7,19 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+
 import example.Author;
 import example.Book;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collections;
 import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0)

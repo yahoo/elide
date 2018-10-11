@@ -9,6 +9,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

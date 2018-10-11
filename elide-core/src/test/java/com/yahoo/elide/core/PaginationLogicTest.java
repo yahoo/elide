@@ -10,12 +10,14 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.pagination.Pagination;
+
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Optional;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Tests parsing the page params for json-api pagination.

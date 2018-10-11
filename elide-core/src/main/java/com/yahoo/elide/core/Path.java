@@ -5,8 +5,10 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.ImmutableList;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+
+import com.google.common.collect.ImmutableList;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -5,17 +5,22 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.google.common.collect.ImmutableMap;
+import static com.jayway.restassured.RestAssured.given;
+
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableStoreSupplier;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+
+import com.google.common.collect.ImmutableMap;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
 import redis.clients.jedis.Jedis;
 import redis.embedded.RedisExecProvider;
 import redis.embedded.RedisServer;
@@ -23,8 +28,6 @@ import redis.embedded.RedisServerBuilder;
 import redis.embedded.util.OS;
 
 import java.net.ServerSocket;
-
-import static com.jayway.restassured.RestAssured.given;
 
 public class BridgeableStoreIT extends AbstractIntegrationTestInitializer {
     public static RedisServer REDIS_SERVER;

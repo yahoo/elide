@@ -5,15 +5,20 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -22,9 +27,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 
 public class CoerceUtilTest {
 

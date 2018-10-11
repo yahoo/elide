@@ -7,8 +7,10 @@ package com.yahoo.elide.datastores.hibernate3;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-import lombok.NonNull;
+
 import org.hibernate.ScrollableResults;
+
+import lombok.NonNull;
 
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;

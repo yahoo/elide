@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
@@ -15,11 +13,16 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;

@@ -6,6 +6,7 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.audit.TestAuditLogger;
+
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**

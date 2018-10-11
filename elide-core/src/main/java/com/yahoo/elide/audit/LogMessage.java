@@ -10,17 +10,19 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.ResourceLineage;
 import com.yahoo.elide.security.ChangeSpec;
+
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.util.SimpleContext;
+
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.el.ELException;
 import javax.el.ExpressionFactory;
 import javax.el.PropertyNotFoundException;
 import javax.el.ValueExpression;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * An audit log message that can be logged to a logger.

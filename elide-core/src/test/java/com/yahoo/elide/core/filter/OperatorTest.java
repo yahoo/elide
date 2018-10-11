@@ -5,12 +5,16 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.checks.Check;
+
 import example.Author;
+
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -20,8 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import static org.mockito.Mockito.when;
 
 public class OperatorTest {
     public class TestEntityDictionary extends EntityDictionary {

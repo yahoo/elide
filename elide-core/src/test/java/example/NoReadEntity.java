@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
+
 import lombok.Data;
 
 import javax.persistence.Entity;

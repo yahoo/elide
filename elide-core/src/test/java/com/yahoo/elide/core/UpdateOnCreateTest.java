@@ -5,23 +5,25 @@
  */
 package com.yahoo.elide.core;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
+
 import example.Author;
 import example.Book;
 import example.UpdateAndCreate;
+
 import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.Serializable;
 import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 

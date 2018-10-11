@@ -7,6 +7,7 @@
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.security.ChangeSpec;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

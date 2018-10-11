@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.tests
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import static com.jayway.restassured.RestAssured.given
+
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
+
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import org.testng.Assert
 import org.testng.annotations.Test
-
-import static com.jayway.restassured.RestAssured.given
 
 /**
  * Test rehydration of Map of Enums.

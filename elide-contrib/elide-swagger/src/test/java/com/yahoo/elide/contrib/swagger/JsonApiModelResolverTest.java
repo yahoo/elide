@@ -5,18 +5,21 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.model.Resource;
 import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
 import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
-import io.swagger.converter.ModelConverters;
-import io.swagger.models.Model;
-import io.swagger.models.properties.ObjectProperty;
+
+import com.google.common.collect.Maps;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+
+import io.swagger.converter.ModelConverters;
+import io.swagger.models.Model;
+import io.swagger.models.properties.ObjectProperty;
 
 import java.util.Map;
 

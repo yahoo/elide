@@ -6,12 +6,12 @@
 package com.yahoo.elide.jsonapi.models;
 
 
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
-import com.yahoo.elide.core.PersistentResource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yahoo.elide.core.RequestScope;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

@@ -6,7 +6,12 @@
 package com.yahoo.elide.contrib.swagger.resources;
 
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
+
 import io.swagger.models.Swagger;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -15,9 +20,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * A convenience endpoint to expose a swagger document.

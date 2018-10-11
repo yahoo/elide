@@ -5,6 +5,12 @@
  */
 package com.yahoo.elide.jsonapi;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Patch;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.Serde;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
@@ -14,11 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.jsonapi.models.Patch;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import java.io.IOException;
 import java.util.Date;

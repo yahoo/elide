@@ -7,8 +7,9 @@ package com.yahoo.elide.core.filter.dialect;
 
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Parses filters which are bound to a particular entity type.  Whenever a collection of entities

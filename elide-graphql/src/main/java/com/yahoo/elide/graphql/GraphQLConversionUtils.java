@@ -6,7 +6,14 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.schema.GraphQLEnumType.newEnum;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
+import static graphql.schema.GraphQLObjectType.newObject;
+
 import com.yahoo.elide.core.EntityDictionary;
+
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -24,12 +31,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import static graphql.schema.GraphQLEnumType.newEnum;
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
-import static graphql.schema.GraphQLInputObjectType.newInputObject;
-import static graphql.schema.GraphQLObjectType.newObject;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.

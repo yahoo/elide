@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -13,10 +15,12 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Publisher;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -25,8 +29,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-
-import static org.mockito.Mockito.mock;
 
 public class RootCollectionPageTotalsQueryBuilderTest {
     private EntityDictionary dictionary;

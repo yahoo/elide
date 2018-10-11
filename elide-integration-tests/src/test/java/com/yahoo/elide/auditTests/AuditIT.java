@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.auditTests;
 
+import static com.jayway.restassured.RestAssured.given;
+
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
+
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import static com.jayway.restassured.RestAssured.given;
 
 /**
  * Integration tests for audit functionality.

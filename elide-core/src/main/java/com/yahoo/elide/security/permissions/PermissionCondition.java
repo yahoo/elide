@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.security.permissions;
 
-import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -14,6 +13,9 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PersistentResource;
+
+import com.google.common.collect.ImmutableMap;
+
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;

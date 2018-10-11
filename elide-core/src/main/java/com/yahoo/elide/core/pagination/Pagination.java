@@ -5,19 +5,21 @@
  */
 package com.yahoo.elide.core.pagination;
 
-import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+
+import com.google.common.collect.ImmutableMap;
+
 import lombok.Getter;
 import lombok.ToString;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Encapsulates the pagination strategy.

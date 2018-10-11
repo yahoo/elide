@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.security.permissions;
 
-import org.fusesource.jansi.Ansi;
-
 import static org.fusesource.jansi.Ansi.ansi;
+
+import org.fusesource.jansi.Ansi;
 
 /**
  * Expression results.

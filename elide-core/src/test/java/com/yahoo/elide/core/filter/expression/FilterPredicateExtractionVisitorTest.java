@@ -5,12 +5,15 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
+
+import com.google.common.collect.Sets;
+
 import example.Author;
 import example.Book;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

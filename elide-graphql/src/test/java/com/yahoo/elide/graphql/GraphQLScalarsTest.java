@@ -5,20 +5,22 @@
  */
 package com.yahoo.elide.graphql;
 
+import static org.testng.Assert.assertEquals;
+
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
-import graphql.language.IntValue;
-import graphql.language.StringValue;
+
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import graphql.language.IntValue;
+import graphql.language.StringValue;
+
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.TimeZone;
-
-import static org.testng.Assert.assertEquals;
 
 public class GraphQLScalarsTest {
 

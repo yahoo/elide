@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.assignedIdLongTests;
 
+import static com.jayway.restassured.RestAssured.given;
+
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.initialization.AssignedIdLongIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
+
 import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
-
-import static com.jayway.restassured.RestAssured.given;
 
 public class AssignedIdLongIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();

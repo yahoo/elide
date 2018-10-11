@@ -6,10 +6,18 @@
 
 package com.yahoo.elide.graphql;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.EntityDictionary;
+
 import example.Author;
 import example.Book;
 import example.Publisher;
+
+import org.testng.Assert;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
@@ -18,15 +26,10 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
-import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.mock;
 
 public class ModelBuilderTest {
     private EntityDictionary dictionary;

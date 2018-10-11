@@ -6,6 +6,7 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang3.ClassUtils;
 

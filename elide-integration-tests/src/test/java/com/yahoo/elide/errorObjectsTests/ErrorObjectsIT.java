@@ -5,18 +5,20 @@
  */
 package com.yahoo.elide.errorObjectsTests;
 
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
+
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MediaType;
-
 import java.io.IOException;
+
+import javax.ws.rs.core.MediaType;
 
 public class ErrorObjectsIT extends AbstractIntegrationTestInitializer {
     private final ObjectMapper objectMapper = new ObjectMapper();

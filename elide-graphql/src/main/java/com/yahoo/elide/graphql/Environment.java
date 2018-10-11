@@ -10,9 +10,10 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import com.yahoo.elide.graphql.containers.RootContainer;
+
+import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
-import graphql.language.Field;
 
 import java.util.Arrays;
 import java.util.List;

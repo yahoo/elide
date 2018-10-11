@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.resources;
 
-import javax.ws.rs.core.SecurityContext;
 import java.util.function.Function;
+
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * Placeholder for injection frameworks.

@@ -8,12 +8,13 @@ package com.yahoo.elide.standalone.models;
 
 import com.yahoo.elide.annotation.Include;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.Date;
 
 @Entity
 @Include(rootLevel = true)

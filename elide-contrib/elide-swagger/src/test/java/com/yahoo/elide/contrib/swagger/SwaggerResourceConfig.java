@@ -5,17 +5,20 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
-import com.google.common.collect.Maps;
 import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
 import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
-import io.swagger.models.Info;
-import io.swagger.models.Swagger;
+
+import com.google.common.collect.Maps;
+
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 
 import java.util.HashMap;
 import java.util.Map;

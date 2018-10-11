@@ -4,11 +4,12 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.tests
+import static com.jayway.restassured.RestAssured.given
+
 import com.yahoo.elide.core.HttpStatus
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
-import org.testng.annotations.Test
 
-import static com.jayway.restassured.RestAssured.given
+import org.testng.annotations.Test
 /**
  * Tests for UserType
  */

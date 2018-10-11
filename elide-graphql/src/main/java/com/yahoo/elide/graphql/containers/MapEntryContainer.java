@@ -8,8 +8,9 @@ package com.yahoo.elide.graphql.containers;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
-import javax.ws.rs.BadRequestException;
 import java.util.Map;
+
+import javax.ws.rs.BadRequestException;
 
 /**
  * Return values for a Map (i.e. entry set).

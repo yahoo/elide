@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql.containers;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
+
 import graphql.language.Field;
 
 /**

@@ -14,16 +14,18 @@ import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.standalone.datastore.InjectionAwareHibernateStore;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import javax.ws.rs.core.SecurityContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * Interface for configuring an ElideStandalone application.

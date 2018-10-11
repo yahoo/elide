@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.parsers.state;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -23,11 +22,15 @@ import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Base class for state information.

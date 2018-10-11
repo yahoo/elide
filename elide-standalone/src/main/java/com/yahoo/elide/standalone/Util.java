@@ -17,9 +17,10 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
-import javax.persistence.Entity;
 import java.io.File;
 import java.util.HashSet;
+
+import javax.persistence.Entity;
 
 public class Util {
     /**

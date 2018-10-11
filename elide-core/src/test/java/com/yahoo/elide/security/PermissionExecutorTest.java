@@ -18,13 +18,16 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
+
 import example.TestCheckMappings;
+
 import org.testng.annotations.Test;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PermissionExecutorTest {
 

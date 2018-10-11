@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
@@ -15,6 +13,9 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import java.util.List;
 import java.util.function.Function;

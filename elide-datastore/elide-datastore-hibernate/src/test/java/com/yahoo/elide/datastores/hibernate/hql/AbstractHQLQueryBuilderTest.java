@@ -5,6 +5,13 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -16,11 +23,13 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
-import example.Publisher;
 import example.Left;
+import example.Publisher;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -30,13 +39,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 

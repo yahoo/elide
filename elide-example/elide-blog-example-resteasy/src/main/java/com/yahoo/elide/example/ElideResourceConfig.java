@@ -10,12 +10,14 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.datastores.hibernate5.AbstractHibernateStore;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.ws.rs.core.Application;
 
 /**
  * Example application for resource config.

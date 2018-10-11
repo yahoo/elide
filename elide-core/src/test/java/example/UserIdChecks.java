@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.checks.UserCheck;
 
 /**
  * Useful for testing permissions based on different users.

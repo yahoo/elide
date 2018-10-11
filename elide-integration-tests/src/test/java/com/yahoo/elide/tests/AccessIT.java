@@ -8,9 +8,9 @@ package com.yahoo.elide.tests;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 
-import org.testng.annotations.Test;
-
 import example.Parent;
+
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.HashSet;

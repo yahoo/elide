@@ -5,18 +5,20 @@
  */
 package com.yahoo.elide.jsonapi.document.processors;
 
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import javax.ws.rs.core.MultivaluedMap;
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * A Document Processor that add requested relations to the include block of the JsonApiDocument.

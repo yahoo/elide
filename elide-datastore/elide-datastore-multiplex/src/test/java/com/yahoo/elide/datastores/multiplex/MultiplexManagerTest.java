@@ -11,7 +11,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -19,9 +18,13 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
-import lombok.extern.slf4j.Slf4j;
+
+import com.google.common.collect.Lists;
+
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;

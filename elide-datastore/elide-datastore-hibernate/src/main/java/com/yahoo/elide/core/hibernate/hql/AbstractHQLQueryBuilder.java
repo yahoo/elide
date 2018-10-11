@@ -15,6 +15,7 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

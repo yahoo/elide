@@ -5,10 +5,13 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -19,7 +22,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.Set;
 
 @Include(rootLevel = true, type = "left") // optional here because class has this name
 @Entity

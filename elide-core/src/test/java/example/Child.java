@@ -5,7 +5,6 @@
  */
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
@@ -16,6 +15,11 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Optional;
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,8 +28,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import java.util.Optional;
-import java.util.Set;
 
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")

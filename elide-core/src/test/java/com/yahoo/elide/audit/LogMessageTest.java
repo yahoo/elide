@@ -5,13 +5,16 @@
  */
 package com.yahoo.elide.audit;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+
+import com.google.common.collect.Sets;
+
 import example.Child;
 import example.Parent;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

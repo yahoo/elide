@@ -5,12 +5,15 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import com.yahoo.elide.core.EntityDictionary;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yahoo.elide.core.EntityDictionary;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;

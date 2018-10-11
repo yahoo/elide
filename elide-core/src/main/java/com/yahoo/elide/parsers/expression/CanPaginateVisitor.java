@@ -15,6 +15,7 @@ import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;

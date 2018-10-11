@@ -5,13 +5,14 @@
  */
 package example;
 
-import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.core.PersistentResourceTest;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutorTest;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
+
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Optional;
 

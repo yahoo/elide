@@ -7,6 +7,7 @@ package com.yahoo.elide.audit;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
+
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import java.io.IOException;
