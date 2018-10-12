@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.utils.coerce;
 
+import com.google.common.collect.MapMaker;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
@@ -16,13 +17,11 @@ import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 
-import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class for coercing a value to a target class.
@@ -34,7 +33,8 @@ public class CoerceUtil {
     private static final FromMapConverter FROM_MAP_CONVERTER = new FromMapConverter();
     private static final Map<Class<?>, Serde<?, ?>> SERDES = new HashMap<>();
     private static final BeanUtilsBean BEAN_UTILS_BEAN_INSTANCE = setup();
-    private static final Set<WeakReference<ClassLoader>> INITIALIZED_CLASSLOADERS = ConcurrentHashMap.newKeySet();
+    private static final Set<ClassLoader> INITIALIZED_CLASSLOADERS =
+            Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
 
     /**
      * Convert value to target class.
@@ -109,40 +109,19 @@ public class CoerceUtil {
      * Initialize this classloader if necessary
      */
     private static void initializeCurrentClassLoaderIfNecessary() {
-        if (isCurrentClassLoaderInitialized()) {
+        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+        if (INITIALIZED_CLASSLOADERS.contains(currentClassLoader)) {
             return;
         }
         BeanUtilsBean.setInstance(BEAN_UTILS_BEAN_INSTANCE);
-        markCurrentClassLoaderAsInitialized();
+        markClassLoaderAsInitialized(currentClassLoader);
     }
 
     /**
      * Mark the current class loader as initialized.
+     * @param currentClassLoader current ClassLoader
      */
-    private static void markCurrentClassLoaderAsInitialized() {
-        INITIALIZED_CLASSLOADERS.add(new WeakReference<>(Thread.currentThread().getContextClassLoader()));
-    }
-
-    /**
-     * Method to check if classloader has been loaded or not.
-     *
-     * <strong>NOTE:</strong> The number of class loaders is expected to be <em>small enough</em>, that this
-     * scan per request is negligible.
-     *
-     * @return True if classloader is loaded, false otherwise.
-     */
-    private static boolean isCurrentClassLoaderInitialized() {
-        ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-        Iterator<WeakReference<ClassLoader>> it = INITIALIZED_CLASSLOADERS.iterator();
-        while (it.hasNext()) {
-            ClassLoader loaded = it.next().get();
-            // Class loader no longer exists, stop tracking
-            if (loaded == null) {
-                it.remove();
-            } else if (loaded == currentClassLoader) {
-                return true;
-            }
-        }
-        return false;
+    private static void markClassLoaderAsInitialized(ClassLoader currentClassLoader) {
+        INITIALIZED_CLASSLOADERS.add(currentClassLoader);
     }
 }
