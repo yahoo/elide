@@ -14,7 +14,7 @@
  * Add support for asterisk life cycle hooks (hooks that invoke for all fields in a model).
 
 **Fixes**
- * Add support for multiple classloaders when using CoerceUtils.
+ * Add support for multiple classloaders when using CoerceUtils ([Issue #689](https://github.com/yahoo/elide/issues/689))
  * Issue#691
  * Issue#644
 
