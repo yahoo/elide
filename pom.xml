@@ -14,6 +14,8 @@
     <description>Parent pom for Elide project</description>
     <url>https://github.com/yahoo/elide</url>
 
+
+
     <modules>
         <module>elide-annotations</module>
         <module>elide-core</module>
@@ -78,6 +80,7 @@
         <version.logback>1.1.7</version.logback>
         <version.jetty>9.3.14.v20161028</version.jetty>
         <version.restassured>2.9.0</version.restassured>
+        <version.jackson>2.9.7</version.jackson>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -191,6 +194,16 @@
                 <artifactId>groovy-all</artifactId>
                 <version>2.4.7</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${version.jackson}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${version.jackson}</version>
             </dependency>
             <dependency>
                 <groupId>com.jayway.restassured</groupId>
