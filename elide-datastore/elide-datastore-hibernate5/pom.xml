@@ -110,7 +110,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hibernate5</artifactId>
-            <version>2.9.4</version>
+            <version>2.9.7</version>
         </dependency>
 
         <!-- Integration test -->
