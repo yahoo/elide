@@ -22,6 +22,11 @@
 **Features**
  * Both JPA Field (new) and Property (4.2.6 and earlier) Access are now supported.
 
+## 4.2.7
+**Features**
+* Provide failure reason in ElideResponse
+* Expose response building in JsonApiEndpoint to allow for customization of response behavior
+
 ## 4.2.6
 **Fixes**
  * Fix NPE serializing Dates
