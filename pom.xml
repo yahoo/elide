@@ -78,7 +78,7 @@
 
         <!-- dependency versions -->
         <version.logback>1.1.7</version.logback>
-        <version.jetty>9.3.14.v20161028</version.jetty>
+        <version.jetty>9.4.12.v20180830</version.jetty>
         <version.restassured>2.9.0</version.restassured>
         <version.jackson>2.9.7</version.jackson>
 
