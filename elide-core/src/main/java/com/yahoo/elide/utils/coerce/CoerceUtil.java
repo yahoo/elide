@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.utils.coerce;
 
-import com.google.common.collect.MapMaker;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import com.yahoo.elide.utils.coerce.converters.ToUUIDConverter;
+
+import com.google.common.collect.MapMaker;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
