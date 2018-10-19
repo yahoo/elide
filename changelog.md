@@ -2,16 +2,13 @@
 ## 4.2.10
 **Fixes**
  * Upgrade Jetty Server library to address security alerts
+ * Issue#703
 
 ## 4.2.9
 **Fixes**
  * Fixed IT tests that were not running.
  * Fixed setting private attributes that are inherited.
  * Upgrade Jackson databind library to address security alerts
-
-## 4.2.9
-**Fixes**
- * Issue#703
 
 ## 4.2.8
 **Fixes**
