@@ -15,7 +15,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "related_field_level")
-@Include(rootLevel = true)
+@Include(rootLevel = true, type = "fieldRelated")
 public class FieldLevelRelatedEntity extends FieldLevelParentSuperclass {
     private String name;
     @OneToOne(fetch = FetchType.LAZY)
