@@ -111,51 +111,51 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testBindingTriggerPriorToBindingEntityClass1() {
         @Entity
         @Include
-        class Foo {
+        class Foo2 {
             @Id
             private long id;
 
             private int bar;
         }
 
-        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+        LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
-        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, "bar", trigger);
-        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+        this.bindTrigger(Foo2.class, OnUpdatePreSecurity.class, "bar", trigger);
+        Assert.assertEquals(this.getAllFields(Foo2.class).size(), 1);
     }
 
     @Test
     public void testBindingTriggerPriorToBindingEntityClass2() {
         @Entity
         @Include
-        class Foo {
+        class Foo3 {
             @Id
             private long id;
 
             private int bar;
         }
 
-        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+        LifeCycleHook<Foo3> trigger = mock(LifeCycleHook.class);
 
-        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, trigger, true);
-        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+        this.bindTrigger(Foo3.class, OnUpdatePreSecurity.class, trigger, true);
+        Assert.assertEquals(this.getAllFields(Foo3.class).size(), 1);
     }
 
     @Test
     public void testBindingTriggerPriorToBindingEntityClass3() {
         @Entity
         @Include
-        class Foo {
+        class Foo4 {
             @Id
             private long id;
 
             private int bar;
         }
 
-        LifeCycleHook<Foo> trigger = mock(LifeCycleHook.class);
+        LifeCycleHook<Foo4> trigger = mock(LifeCycleHook.class);
 
-        this.bindTrigger(Foo.class, OnUpdatePreSecurity.class, trigger);
-        Assert.assertEquals(this.getAllFields(Foo.class).size(), 1);
+        this.bindTrigger(Foo4.class, OnUpdatePreSecurity.class, trigger);
+        Assert.assertEquals(this.getAllFields(Foo4.class).size(), 1);
     }
 
     @Test
