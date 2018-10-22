@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.parsers;
 
-
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.generated.parsers.CoreParser.QueryContext;
 

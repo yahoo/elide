@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.annotation;
 
-
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
