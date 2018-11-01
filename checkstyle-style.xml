@@ -22,6 +22,16 @@
       <property name="allowClassImports" value="false"/>
       <property name="allowStaticMemberImports" value="false"/>
     </module>
+    <module name="CustomImportOrder">
+      <metadata name="net.sf.eclipsecs.core.comment" value="Not enough groups to handle unusual Elide import order.  Used special formatting for thirdPartyPackageRegExp to leave java and javax to the end."/>
+      <property name="severity" value="error"/>
+      <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###STANDARD_JAVA_PACKAGE###THIRD_PARTY_PACKAGE"/>
+      <property name="specialImportsRegExp" value="^(com\.yahoo)\."/>
+      <property name="standardPackageRegExp" value="^(com|example|org)\."/>
+      <property name="thirdPartyPackageRegExp" value="^([^j]|j[^a]|ja[^v]|java[^x.]).*"/>
+      <property name="sortImportsInGroupAlphabetically" value="true"/>
+      <property name="separateLineBetweenGroups" value="false"/>
+    </module>
     <module name="FileContentsHolder"/>
     <module name="ConstantName">
       <metadata name="net.sf.eclipsecs.core.comment" value="Constants (static finals) must be uppercase letters/digits/underscore."/>

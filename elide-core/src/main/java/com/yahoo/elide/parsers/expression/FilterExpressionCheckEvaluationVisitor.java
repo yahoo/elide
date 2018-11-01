@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.parsers.expression;
 
-
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
-
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;

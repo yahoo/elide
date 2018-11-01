@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.security.permissions.expressions;
 
-
 import static com.yahoo.elide.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
