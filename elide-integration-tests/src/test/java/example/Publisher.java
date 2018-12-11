@@ -13,8 +13,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 /**
  * Publisher for book/author example.
@@ -43,7 +43,7 @@ public class Publisher extends BaseId {
         this.books = books;
     }
 
-    @OneToOne
+    @ManyToOne
     @FilterExpressionPath("editor")
     @ReadPermission(expression = "Field path editor check")
     public Editor getEditor() {
