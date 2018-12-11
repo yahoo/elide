@@ -79,6 +79,15 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
         }
     }
 
+    /**
+     * Converts FieldExpressionPath value to corresponding list of Predicates
+     *
+     * @param type         entity
+     * @param requestScope request scope
+     * @param method       associated check method name containing FieldExpressionPath
+     * @param defaultPath  path to use if no FieldExpressionPath defined
+     * @return Predicates
+     */
     protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
         EntityDictionary dictionary = coreScope(requestScope).getDictionary();
         try {
