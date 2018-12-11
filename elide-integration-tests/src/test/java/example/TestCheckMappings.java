@@ -39,5 +39,6 @@ public class TestCheckMappings {
                     .put("checkLE", FilterExpressionCheckObj.CheckLE.class)
                     .put("checkRestrictUser", FilterExpressionCheckObj.CheckRestrictUser.class)
                     .put("specialValue", SpecialRead.SpecialValue.class)
+                    .put("Field path editor check", Editor.FieldPathFilterExpression.class)
                     .build());
 }

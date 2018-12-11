@@ -26,18 +26,12 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
-import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 import javax.persistence.Entity;
@@ -47,6 +41,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * Model for books.
@@ -69,14 +64,6 @@ public class Book {
             // trigger method for testing
             book.checkPermission(requestScope);
             return true;
-        }
-    }
-
-    public static class FieldPathFilterExpression extends FilterExpressionCheck {
-        @Override
-        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
-            Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
-            return new FilterPredicate(path, Operator.NOTNULL, Collections.emptyList());
         }
     }
 
