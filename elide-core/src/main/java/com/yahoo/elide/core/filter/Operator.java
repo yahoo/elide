@@ -308,6 +308,9 @@ public enum Operator {
             if ("this".equals(field)) {
                 continue;
             }
+            if (val == null) {
+                continue;
+            }
             val = PersistentResource.getValue(val, field, requestScope);
         }
         return val;

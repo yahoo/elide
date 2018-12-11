@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.security;
 
+import com.yahoo.elide.annotation.FilterExpressionPath;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
@@ -51,8 +54,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class entityClass =
-                ((com.yahoo.elide.core.RequestScope) requestScope).getDictionary().lookupEntityClass(object.getClass());
+        Class entityClass = coreScope(requestScope).getDictionary().lookupEntityClass(object.getClass());
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -68,12 +70,37 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
     public boolean applyPredicateToObject(T object, FilterPredicate filterPredicate, RequestScope requestScope) {
         try {
             String fieldPath = filterPredicate.getFieldPath();
-            com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
+            com.yahoo.elide.core.RequestScope scope = coreScope(requestScope);
             Predicate fn = filterPredicate.getOperator().contextualize(fieldPath, filterPredicate.getValues(), scope);
             return fn.test(object);
         } catch (Exception e) {
             log.error("Failed to apply predicate {}", filterPredicate, e);
             return false;
         }
+    }
+
+    protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
+        EntityDictionary dictionary = coreScope(requestScope).getDictionary();
+        try {
+            FilterExpressionPath fep = getFilterExpressionPath(type, method, dictionary);
+            return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static FilterExpressionPath getFilterExpressionPath(
+            Class<?> type,
+            String method,
+            EntityDictionary dictionary) throws NoSuchMethodException {
+        FilterExpressionPath path = dictionary.lookupEntityClass(type)
+                .getMethod(method)
+                .getAnnotation(FilterExpressionPath.class);
+        log.error("{}", path);
+        return path;
+    }
+
+    static com.yahoo.elide.core.RequestScope coreScope(RequestScope requestScope) {
+        return (com.yahoo.elide.core.RequestScope) requestScope;
     }
 }
