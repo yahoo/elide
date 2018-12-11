@@ -6,8 +6,10 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.OnCreatePostCommit;
 import com.yahoo.elide.annotation.OnCreatePreCommit;
@@ -21,14 +23,21 @@ import com.yahoo.elide.annotation.OnReadPreSecurity;
 import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import javax.persistence.Entity;
@@ -60,6 +69,14 @@ public class Book {
             // trigger method for testing
             book.checkPermission(requestScope);
             return true;
+        }
+    }
+
+    public static class FieldPathFilterExpression extends FilterExpressionCheck {
+        @Override
+        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+            Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
+            return new FilterPredicate(path, Operator.NOTNULL, Collections.emptyList());
         }
     }
 
@@ -128,6 +145,15 @@ public class Book {
 
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
+    }
+
+    @Transient
+    @ComputedRelationship
+    @OneToOne
+    @FilterExpressionPath("publisher.editor")
+    @ReadPermission(expression = "Field path editor check")
+    public Editor getEditor() {
+        return getPublisher().getEditor();
     }
 
     @OnUpdatePreSecurity("title")
