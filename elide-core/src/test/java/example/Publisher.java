@@ -16,8 +16,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 /**
  * Model for publisher.
@@ -56,7 +56,7 @@ public class Publisher {
         this.books = books;
     }
 
-    @OneToOne
+    @ManyToOne
     @FilterExpressionPath("editor")
     @ReadPermission(expression = "Field path editor check")
     public Editor getEditor() {
