@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.11
+**Features**
+ * Add annotation FilterExpressPath to provide paths for FilterExpressionChecks
+
 ## 4.2.10
 **Fixes**
  * Upgrade Jetty Server library to address security alerts
