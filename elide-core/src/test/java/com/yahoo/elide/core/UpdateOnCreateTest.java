@@ -16,6 +16,8 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import example.Author;
 import example.Book;
+import example.Editor;
+import example.Publisher;
 import example.UpdateAndCreate;
 
 import org.mockito.Answers;
@@ -36,6 +38,8 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     public void init() {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(UpdateAndCreate.class);
 
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
@@ -44,6 +48,10 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         updateAndCreateExistingObject.setId(2L);
         Book book = new Book();
         Author author = new Author();
+        Publisher publisher = new Publisher();
+        Editor editor = new Editor();
+
+        publisher.setEditor(editor);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
 
@@ -72,6 +80,11 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 eq(Optional.empty()),
                 any(RequestScope.class)
         )).thenReturn(author);
+        when(tx.loadObject(eq(Publisher.class),
+                eq((Serializable) CoerceUtil.coerce(1, Long.class)),
+                eq(Optional.empty()),
+                any(RequestScope.class)
+        )).thenReturn(publisher);
     }
 
     //----------------------------------------- ** Entity Creation ** -------------------------------------------------
