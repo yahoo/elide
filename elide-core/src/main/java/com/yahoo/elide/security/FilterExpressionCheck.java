@@ -96,7 +96,6 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
         FilterExpressionPath path = dictionary.lookupEntityClass(type)
                 .getMethod(method)
                 .getAnnotation(FilterExpressionPath.class);
-        log.error("{}", path);
         return path;
     }
 

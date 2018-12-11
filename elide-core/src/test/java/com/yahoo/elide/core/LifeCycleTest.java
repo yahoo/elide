@@ -40,6 +40,8 @@ import com.yahoo.elide.security.checks.Check;
 
 import example.Author;
 import example.Book;
+import example.Editor;
+import example.Publisher;
 import example.TestCheckMappings;
 
 import org.testng.Assert;
@@ -95,6 +97,8 @@ public class LifeCycleTest {
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Editor.class);
         dictionary.bindTrigger(Book.class, OnCreatePostCommit.class, callback);
         dictionary.bindTrigger(Book.class, OnCreatePreCommit.class, callback);
         dictionary.bindTrigger(Book.class, OnCreatePreSecurity.class, callback);
