@@ -309,7 +309,7 @@ public enum Operator {
                 continue;
             }
             if (val == null) {
-                continue;
+                break;
             }
             val = PersistentResource.getValue(val, field, requestScope);
         }
