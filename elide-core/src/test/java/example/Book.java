@@ -58,15 +58,6 @@ import javax.persistence.Transient;
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
 public class Book {
-    static public class BookOperationCheck extends OperationCheck<Book> {
-        @Override
-        public boolean ok(Book book, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            // trigger method for testing
-            book.checkPermission(requestScope);
-            return true;
-        }
-    }
-
     private long id;
     private String title;
     private String genre;
@@ -230,5 +221,14 @@ public class Book {
     @OnUpdatePreCommit
     public void alwaysOnUpdate() {
         // should be called on _any_ class update
+    }
+
+    static public class BookOperationCheck extends OperationCheck<Book> {
+        @Override
+        public boolean ok(Book book, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            // trigger method for testing
+            book.checkPermission(requestScope);
+            return true;
+        }
     }
 }

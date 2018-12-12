@@ -108,7 +108,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
         return path;
     }
 
-    static com.yahoo.elide.core.RequestScope coreScope(RequestScope requestScope) {
+    protected static com.yahoo.elide.core.RequestScope coreScope(RequestScope requestScope) {
         return (com.yahoo.elide.core.RequestScope) requestScope;
     }
 }

@@ -43,14 +43,6 @@ import javax.persistence.Transient;
         logStatement = "{0}",
         logExpressions = {"${editor.name}"})
 public class Editor {
-    public static class FieldPathFilterExpression extends FilterExpressionCheck {
-        @Override
-        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
-            Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
-            return new FilterPredicate(path, Operator.NOTNULL, Collections.emptyList());
-        }
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter @Setter
@@ -83,5 +75,13 @@ public class Editor {
     @ReadPermission(expression = "Field path editor check")
     public Editor getEditor() {
         return this;
+    }
+
+    public static class FieldPathFilterExpression extends FilterExpressionCheck {
+        @Override
+        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+            Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
+            return new FilterPredicate(path, Operator.NOTNULL, Collections.emptyList());
+        }
     }
 }
