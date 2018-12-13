@@ -137,11 +137,24 @@ public class EntityBinding {
         if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
             accessType = AccessType.FIELD;
 
-            /* Add all public methods that are computed */
+            /* Add all public methods that are computed OR life cycle hooks */
             fieldOrMethodList.addAll(
                     getInstanceMembers(cls.getMethods(),
                             (method) -> method.isAnnotationPresent(ComputedAttribute.class)
-                                    || method.isAnnotationPresent(ComputedRelationship.class))
+                                    || method.isAnnotationPresent(ComputedRelationship.class)
+                                    || method.isAnnotationPresent(OnReadPreSecurity.class)
+                                    || method.isAnnotationPresent(OnReadPreCommit.class)
+                                    || method.isAnnotationPresent(OnReadPostCommit.class)
+                                    || method.isAnnotationPresent(OnUpdatePreSecurity.class)
+                                    || method.isAnnotationPresent(OnUpdatePreCommit.class)
+                                    || method.isAnnotationPresent(OnUpdatePostCommit.class)
+                                    || method.isAnnotationPresent(OnCreatePreSecurity.class)
+                                    || method.isAnnotationPresent(OnCreatePreCommit.class)
+                                    || method.isAnnotationPresent(OnCreatePostCommit.class)
+                                    || method.isAnnotationPresent(OnDeletePreSecurity.class)
+                                    || method.isAnnotationPresent(OnDeletePreCommit.class)
+                                    || method.isAnnotationPresent(OnDeletePostCommit.class)
+                    )
             );
 
             //Elide needs to manipulate private fields that are exposed.
