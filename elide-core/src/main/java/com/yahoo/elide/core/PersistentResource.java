@@ -1406,7 +1406,17 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
+
+                ChangeSpec changeSpec = new ChangeSpec(this, collectionName, original, collection);
+                boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
+                CRUDEvent.CRUDAction action = isNewlyCreated
+                        ? CRUDEvent.CRUDAction.CREATE
+                        : CRUDEvent.CRUDAction.UPDATE;
+
+                requestScope.publishLifecycleEvent(this, collectionName, action, Optional.of(changeSpec));
+                requestScope.publishLifecycleEvent(this, action);
                 auditField(new ChangeSpec(this, collectionName, original, collection));
+
                 return true;
             }
         }
@@ -1464,6 +1474,15 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         collection.remove(toDelete.getObject());
+
+        ChangeSpec changeSpec = new ChangeSpec(this, collectionName, original, collection);
+        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
+        CRUDEvent.CRUDAction action = isNewlyCreated
+                ? CRUDEvent.CRUDAction.CREATE
+                : CRUDEvent.CRUDAction.UPDATE;
+
+        requestScope.publishLifecycleEvent(this, collectionName, action, Optional.of(changeSpec));
+        requestScope.publishLifecycleEvent(this, action);
         auditField(new ChangeSpec(this, collectionName, original, collection));
     }
 
@@ -1504,10 +1523,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        requestScope.publishLifecycleEvent(this, fieldName,
-                (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE, Optional.of(changeSpec));
-        requestScope.publishLifecycleEvent(this,
-                (isNewlyCreated) ? CRUDEvent.CRUDAction.CREATE : CRUDEvent.CRUDAction.UPDATE);
+        CRUDEvent.CRUDAction action = isNewlyCreated
+                ? CRUDEvent.CRUDAction.CREATE
+                : CRUDEvent.CRUDAction.UPDATE;
+
+        requestScope.publishLifecycleEvent(this, fieldName, action, Optional.of(changeSpec));
+        requestScope.publishLifecycleEvent(this, action);
         auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
