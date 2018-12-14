@@ -7,9 +7,14 @@ package example;
 
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
+import lombok.Getter;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -29,6 +34,9 @@ public class Publisher {
     private String name;
     private Set<Book> books = new HashSet<>();
     private Editor editor;
+
+    @Getter
+    private boolean updateHookInvoked = false;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -65,5 +73,10 @@ public class Publisher {
 
     public void setEditor(Editor editor) {
         this.editor = editor;
+    }
+
+    @OnUpdatePreCommit("books")
+    public void updatePreCommitTrigger(RequestScope scope, ChangeSpec changes) {
+        updateHookInvoked = true;
     }
 }
