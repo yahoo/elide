@@ -34,6 +34,7 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
@@ -48,7 +49,9 @@ import example.TestCheckMappings;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 
@@ -522,6 +525,10 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
     }
 
+    /**
+     * Tests that Entities that use field level access (as opposed to properties)
+     * can register read hooks on the entity class.
+     */
     @Test
     public void testReadHookOnEntityFields() {
         @Entity
@@ -578,6 +585,10 @@ public class LifeCycleTest {
         Assert.assertTrue(book.readPostCommitInvoked);
     }
 
+    /**
+     * Tests that Entities that use field level access (as opposed to properties)
+     * can register update hooks on the entity class.
+     */
     @Test
     public void testUpdateHookOnEntityFields() {
         @Entity
@@ -634,6 +645,10 @@ public class LifeCycleTest {
         Assert.assertTrue(book.updatePostCommitInvoked);
     }
 
+    /**
+     * Tests that Entities that use field level access (as opposed to properties)
+     * can register create hooks on the entity class.
+     */
     @Test
     public void testCreateHookOnEntityFields() {
         @Entity
@@ -691,6 +706,10 @@ public class LifeCycleTest {
         Assert.assertTrue(book.createPreCommitInvoked);
     }
 
+    /**
+     * Tests that Entities that use field level access (as opposed to properties)
+     * can register delete hooks on the entity class.
+     */
     @Test
     public void testDeleteHookOnEntityFields() {
         @Entity
@@ -746,6 +765,87 @@ public class LifeCycleTest {
         Assert.assertTrue(book.deletePreSecurityInvoked);
         Assert.assertTrue(book.deletePreCommitInvoked);
         Assert.assertTrue(book.deletePostCommitInvoked);
+    }
+
+    /**
+     * Tests that Update lifecycle hooks are triggered when a relationship collection has elements added.
+     */
+    @Test
+    public void testAddToCollectionTrigger() {
+        InMemoryDataStore store = new InMemoryDataStore(Book.class.getPackage());
+        HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
+        checkMappings.put("Book operation check", Book.BookOperationCheck.class);
+        checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
+        store.populateEntityDictionary(new EntityDictionary(checkMappings));
+        DataStoreTransaction tx = store.beginTransaction();
+
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+
+        PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
+        publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource)));
+
+        scope.runQueuedPreCommitTriggers();
+        tx.save(publisherResource.getObject(), scope);
+        tx.save(book1Resource.getObject(), scope);
+        tx.commit(scope);
+
+        Publisher publisher = (Publisher) publisherResource.getObject();
+
+        /* Only the creat hooks should be triggered */
+        Assert.assertFalse(publisher.isUpdateHookInvoked());
+
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
+        publisherResource.addRelation("books", book2Resource);
+
+        scope.runQueuedPreCommitTriggers();
+
+        publisher = (Publisher) publisherResource.getObject();
+        Assert.assertTrue(publisher.isUpdateHookInvoked());
+    }
+
+    /**
+     * Tests that Update lifecycle hooks are triggered when a relationship collection has elements removed.
+     */
+    @Test
+    public void testRemoveFromCollectionTrigger() {
+        InMemoryDataStore store = new InMemoryDataStore(Book.class.getPackage());
+        HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
+        checkMappings.put("Book operation check", Book.BookOperationCheck.class);
+        checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
+        store.populateEntityDictionary(new EntityDictionary(checkMappings));
+        DataStoreTransaction tx = store.beginTransaction();
+
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+
+        PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource, book2Resource)));
+
+        scope.runQueuedPreCommitTriggers();
+        tx.save(publisherResource.getObject(), scope);
+        tx.save(book1Resource.getObject(), scope);
+        tx.commit(scope);
+
+        Publisher publisher = (Publisher) publisherResource.getObject();
+
+        /* Only the creat hooks should be triggered */
+        Assert.assertFalse(publisher.isUpdateHookInvoked());
+
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+
+        book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
+        publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book2Resource)));
+
+        scope.runQueuedPreCommitTriggers();
+
+        publisher = (Publisher) publisherResource.getObject();
+        Assert.assertTrue(publisher.isUpdateHookInvoked());
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {
