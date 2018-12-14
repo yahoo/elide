@@ -1,4 +1,9 @@
 # Change Log
+## 4.2.12
+**Fixes**
+ * Issue#730
+ * Issue#729
+
 ## 4.2.11
 **Features**
  * Add annotation FilterExpressPath to provide paths for FilterExpressionChecks
