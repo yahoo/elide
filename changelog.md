@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.13
+**Fixes**
+ * Upgrade jackson databind to 2.9.8
+
 ## 4.2.12
 **Fixes**
  * Issue#730
