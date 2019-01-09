@@ -20,6 +20,6 @@ public class IsNullPredicate extends FilterPredicate {
     }
 
     public IsNullPredicate(PathElement pathElement) {
-        super(pathElement, Operator.ISNULL, Collections.emptyList());
+        this(new Path(Collections.singletonList(pathElement)));
     }
 }

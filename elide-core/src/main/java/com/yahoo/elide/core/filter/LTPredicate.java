@@ -20,6 +20,6 @@ public class LTPredicate extends FilterPredicate {
     }
 
     public LTPredicate(PathElement pathElement, Object value) {
-        super(pathElement, Operator.LT, Collections.singletonList(value));
+        this(new Path(Collections.singletonList(pathElement)), value);
     }
 }

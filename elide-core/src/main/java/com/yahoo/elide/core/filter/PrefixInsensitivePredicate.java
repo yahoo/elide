@@ -9,6 +9,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class PrefixInsensitivePredicate extends FilterPredicate {
     }
 
     public PrefixInsensitivePredicate(PathElement pathElement, List<Object> values) {
-        super(pathElement, Operator.PREFIX_CASE_INSENSITIVE, values);
+        this(new Path(Collections.singletonList(pathElement)), values);
     }
 
     @SafeVarargs

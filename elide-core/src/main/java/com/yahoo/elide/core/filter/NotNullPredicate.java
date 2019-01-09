@@ -20,6 +20,6 @@ public class NotNullPredicate extends FilterPredicate {
     }
 
     public NotNullPredicate(PathElement pathElement) {
-        super(pathElement, Operator.NOTNULL, Collections.emptyList());
+        this(new Path(Collections.singletonList(pathElement)));
     }
 }
