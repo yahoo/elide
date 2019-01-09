@@ -30,6 +30,7 @@ import com.google.common.base.Throwables;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
@@ -41,6 +42,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -274,7 +276,7 @@ public class EntityBinding {
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(fieldOrMethod);
+        Class<?> fieldType = getFieldType(cls, fieldOrMethod);
 
         //Add id field to type map for the entity
         fieldsToTypes.put(fieldName, fieldType);
@@ -313,7 +315,7 @@ public class EntityBinding {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(fieldOrMethod);
+        Class<?> fieldType = getFieldType(entityClass, fieldOrMethod);
 
         if (fieldName == null || "id".equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
@@ -433,11 +435,15 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    private static Class<?> getFieldType(AccessibleObject fieldOrMethod) {
+    private static Class<?> getFieldType(Class<?> parentClass, AccessibleObject fieldOrMethod) {
+        Type returnType;
         if (fieldOrMethod instanceof Field) {
-            return ((Field) fieldOrMethod).getType();
+            returnType = ((Field) fieldOrMethod).getGenericType();
+        } else {
+            returnType = ((Method) fieldOrMethod).getGenericReturnType();
         }
-        return ((Method) fieldOrMethod).getReturnType();
+
+        return TypeUtils.getRawType(returnType, parentClass);
     }
 
     private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {
