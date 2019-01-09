@@ -9,6 +9,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.IsNullPredicate;
+import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -320,7 +323,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 return new FilterPredicate(path, caseSensitivityStrategy.mapOperator(Operator.IN), values);
             }
 
-            return new FilterPredicate(path, Operator.IN, values);
+            return new InPredicate(path, values);
         }
 
         /**
@@ -333,14 +336,11 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         private FilterExpression buildIsNullOperator(Path path, List<String> arguments) {
             String arg = arguments.get(0);
             try {
-                Operator elideOP;
                 boolean wantsNull = CoerceUtil.coerce(arg, boolean.class);
                 if (wantsNull) {
-                    elideOP = Operator.ISNULL;
-                } else {
-                    elideOP = Operator.NOTNULL;
+                    return new IsNullPredicate(path);
                 }
-                return new FilterPredicate(path, elideOP, Collections.emptyList());
+                return new NotNullPredicate(path);
             } catch (InvalidValueException ignored) {
                 throw new RSQLParseException(String.format("Invalid value for operator =isnull= '%s'", arg));
             }

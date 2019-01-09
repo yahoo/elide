@@ -10,9 +10,19 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.filter.FalsePredicate;
+import com.yahoo.elide.core.filter.GEPredicate;
+import com.yahoo.elide.core.filter.GTPredicate;
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.InfixPredicate;
+import com.yahoo.elide.core.filter.IsNullPredicate;
+import com.yahoo.elide.core.filter.LEPredicate;
+import com.yahoo.elide.core.filter.LTPredicate;
+import com.yahoo.elide.core.filter.NotInPredicate;
+import com.yahoo.elide.core.filter.NotNullPredicate;
+import com.yahoo.elide.core.filter.PostfixPredicate;
+import com.yahoo.elide.core.filter.PrefixPredicate;
+import com.yahoo.elide.core.filter.TruePredicate;
 
 import example.Author;
 
@@ -20,7 +30,6 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +53,7 @@ public class InMemoryFilterVisitorTest {
 
     public class TestEntityDictionary extends EntityDictionary {
 
-        public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
+        public TestEntityDictionary(Map checks) {
             super(checks);
         }
         @Override
@@ -73,59 +82,59 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         // Test exact match
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1L));
+        expression = new InPredicate(authorIdElement, 1L);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Collections.singletonList(1L));
+        expression = new NotInPredicate(authorIdElement, 1L);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // Test contains works
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Arrays.asList(1, 2));
+        expression = new InPredicate(authorIdElement, 1, 2);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Arrays.asList(1, 2));
+        expression = new NotInPredicate(authorIdElement, 1, 2);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // Test type
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList("1"));
+        expression = new InPredicate(authorIdElement, "1");
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Collections.singletonList("1"));
+        expression = new NotInPredicate(authorIdElement, "1");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // Test not in
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(3L));
+        expression = new InPredicate(authorIdElement, 3L);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Collections.singletonList(3L));
+        expression = new NotInPredicate(authorIdElement, 3L);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // Test empty
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Collections.emptyList());
+        expression = new InPredicate(authorIdElement, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Collections.emptyList());
+        expression = new NotInPredicate(authorIdElement, Collections.emptyList());
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // Test TRUE/FALSE
-        expression = new FilterPredicate(authorIdElement, Operator.TRUE, Collections.emptyList());
+        expression = new TruePredicate(authorIdElement);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.FALSE, Collections.emptyList());
+        expression = new FalsePredicate(authorIdElement);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // Test null
         author.setId(null);
-        expression = new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1));
+        expression = new InPredicate(authorIdElement, 1);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.NOT, Collections.singletonList(1));
+        expression = new NotInPredicate(authorIdElement, 1);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
     }
@@ -137,19 +146,19 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         // When name is not null
-        expression = new FilterPredicate(authorNameElement, Operator.ISNULL, Collections.emptyList());
+        expression = new IsNullPredicate(authorNameElement);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.NOTNULL, Collections.emptyList());
+        expression = new NotNullPredicate(authorNameElement);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // When name is null
         author.setName(null);
-        expression = new FilterPredicate(authorNameElement, Operator.ISNULL, Collections.emptyList());
+        expression = new IsNullPredicate(authorNameElement);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.NOTNULL, Collections.emptyList());
+        expression = new NotNullPredicate(authorNameElement);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -161,47 +170,47 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         // When prefix, infix, postfix are correctly matched
-        expression = new FilterPredicate(authorNameElement, Operator.PREFIX, Collections.singletonList("Author"));
+        expression = new PrefixPredicate(authorNameElement, "Author");
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.INFIX, Collections.singletonList("For"));
+        expression = new InfixPredicate(authorNameElement, "For");
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.POSTFIX, Collections.singletonList("Test"));
+        expression = new PostfixPredicate(authorNameElement, "Test");
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         // When prefix, infix, postfix are correctly matched if case-insensitive
-        expression = new FilterPredicate(authorNameElement, Operator.PREFIX, Collections.singletonList("author"));
+        expression = new PrefixPredicate(authorNameElement, "author");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.INFIX, Collections.singletonList("for"));
+        expression = new InfixPredicate(authorNameElement, "for");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.POSTFIX, Collections.singletonList("test"));
+        expression = new PostfixPredicate(authorNameElement, "test");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // When prefix, infix, postfix are not matched
-        expression = new FilterPredicate(authorNameElement, Operator.PREFIX, Collections.singletonList("error"));
+        expression = new PrefixPredicate(authorNameElement, "error");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.INFIX, Collections.singletonList("error"));
+        expression = new InfixPredicate(authorNameElement, "error");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.POSTFIX, Collections.singletonList("error"));
+        expression = new PostfixPredicate(authorNameElement, "error");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // When values is null
         author.setName(null);
-        expression = new FilterPredicate(authorNameElement, Operator.PREFIX, Collections.singletonList("Author"));
+        expression = new PrefixPredicate(authorNameElement, "Author");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.INFIX, Collections.singletonList("For"));
+        expression = new InfixPredicate(authorNameElement, "For");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorNameElement, Operator.POSTFIX, Collections.singletonList("Test"));
+        expression = new PostfixPredicate(authorNameElement, "Test");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -211,43 +220,43 @@ public class InMemoryFilterVisitorTest {
         author = new Author();
         author.setId(10L);
 
-        expression = new FilterPredicate(authorIdElement, Operator.LT, listEleven);
+        expression = new LTPredicate(authorIdElement, listEleven);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.LE, listTen);
+        expression = new LEPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GT, listNine);
+        expression = new GTPredicate(authorIdElement, listNine);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GE, listTen);
+        expression = new GEPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.LT, listTen);
+        expression = new LTPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.LE, listNine);
+        expression = new LEPredicate(authorIdElement, listNine);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GT, listTen);
+        expression = new GTPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GE, listEleven);
+        expression = new GEPredicate(authorIdElement, listEleven);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         // when val is null
         author.setId(null);
-        expression = new FilterPredicate(authorIdElement, Operator.LT, listTen);
+        expression = new LTPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.LE, listTen);
+        expression = new LEPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GT, listTen);
+        expression = new GTPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new FilterPredicate(authorIdElement, Operator.GE, listTen);
+        expression = new GEPredicate(authorIdElement, listTen);
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -258,28 +267,28 @@ public class InMemoryFilterVisitorTest {
         author.setId(10L);
         PathElement pathElement = new PathElement(Author.class, Long.class, "id");
 
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LT, listEleven));
+        expression = new NotFilterExpression(new LTPredicate(pathElement, listEleven));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LE, listTen));
+        expression = new NotFilterExpression(new LEPredicate(pathElement, listTen));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GT, listNine));
+        expression = new NotFilterExpression(new GTPredicate(pathElement, listNine));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GE, listTen));
+        expression = new NotFilterExpression(new GEPredicate(pathElement, listTen));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LT, listTen));
+        expression = new NotFilterExpression(new LTPredicate(pathElement, listTen));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.LE, listNine));
+        expression = new NotFilterExpression(new LEPredicate(pathElement, listNine));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GT, listTen));
+        expression = new NotFilterExpression(new GTPredicate(pathElement, listTen));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
-        expression = new NotFilterExpression(new FilterPredicate(pathElement, Operator.GE, listEleven));
+        expression = new NotFilterExpression(new GEPredicate(pathElement, listEleven));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
     }
@@ -291,26 +300,26 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         expression = new AndFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("AuthorForTest")));
+                new InPredicate(authorIdElement, 1L),
+                new InPredicate(authorNameElement, "AuthorForTest"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new AndFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(0L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("AuthorForTest")));
+                new InPredicate(authorIdElement, 0L),
+                new InPredicate(authorNameElement, "AuthorForTest"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         expression = new AndFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("Fail")));
+                new InPredicate(authorIdElement, 1L),
+                new InPredicate(authorNameElement, "Fail"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
         expression = new AndFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(0L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("Fail")));
+                new InPredicate(authorIdElement, 0L),
+                new InPredicate(authorNameElement, "Fail"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }
@@ -322,26 +331,26 @@ public class InMemoryFilterVisitorTest {
         author.setName("AuthorForTest");
 
         expression = new OrFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("AuthorForTest")));
+                new InPredicate(authorIdElement, 1L),
+                new InPredicate(authorNameElement, "AuthorForTest"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(0L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("AuthorForTest")));
+                new InPredicate(authorIdElement, 0L),
+                new InPredicate(authorNameElement, "AuthorForTest"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(1L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("Fail")));
+                new InPredicate(authorIdElement, 1L),
+                new InPredicate(authorNameElement, "Fail"));
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
 
         expression = new OrFilterExpression(
-                new FilterPredicate(authorIdElement, Operator.IN, Collections.singletonList(0L)),
-                new FilterPredicate(authorNameElement, Operator.IN, Collections.singletonList("Fail")));
+                new InPredicate(authorIdElement, 0L),
+                new InPredicate(authorNameElement, "Fail"));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
     }

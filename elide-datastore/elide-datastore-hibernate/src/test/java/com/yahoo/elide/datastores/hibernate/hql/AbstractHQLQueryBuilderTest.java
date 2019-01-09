@@ -16,7 +16,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.InfixPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.Query;
@@ -74,13 +75,13 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
                 new Path.PathElement(Chapter.class, String.class, TITLE)
         );
 
-        FilterPredicate titlePredicate = new FilterPredicate(
+        FilterPredicate titlePredicate = new InPredicate(
                 new Path(chapterTitlePath),
-                Operator.IN, Arrays.asList(ABC, DEF));
+                ABC, DEF);
 
-        FilterPredicate titlePredicateDuplicate = new FilterPredicate(
+        FilterPredicate titlePredicateDuplicate = new InPredicate(
                 new Path(chapterTitlePath),
-                Operator.IN, Arrays.asList(ABC, DEF));
+                ABC, DEF);
 
         List<Path.PathElement>  publisherNamePath = Arrays.asList(
                 new Path.PathElement(Author.class, Book.class, BOOKS),
@@ -88,9 +89,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
                 new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
-        FilterPredicate publisherNamePredicate = new FilterPredicate(
+        FilterPredicate publisherNamePredicate = new InPredicate(
                 new Path(publisherNamePath),
-                Operator.IN, Arrays.asList("Pub1"));
+                "Pub1");
 
         OrFilterExpression orExpression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
         AndFilterExpression andExpression = new AndFilterExpression(orExpression, titlePredicateDuplicate);
@@ -158,13 +159,13 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         Path.PathElement idPath = new Path.PathElement(Book.class, Chapter.class, "id");
 
         Query query = mock(Query.class);
-        FilterPredicate predicate = new FilterPredicate(idPath, Operator.IN, Arrays.asList(ABC, DEF));
+        FilterPredicate predicate = new InPredicate(idPath, ABC, DEF);
         supplyFilterQueryParameters(query, Arrays.asList(predicate));
 
         verify(query, times(2)).setParameter(anyString(), any());
 
         query = mock(Query.class);
-        predicate = new FilterPredicate(idPath, Operator.INFIX, Arrays.asList(ABC));
+        predicate = new InfixPredicate(idPath, ABC);
         supplyFilterQueryParameters(query, Arrays.asList(predicate));
 
         verify(query, times(1)).setParameter(anyString(), any());

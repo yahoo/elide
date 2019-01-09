@@ -8,7 +8,7 @@ package com.yahoo.elide.core.filter.expression;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 
 import example.Author;
 import example.Book;
@@ -18,7 +18,6 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,12 +35,12 @@ public class ExpressionScopingVisitorTest {
                 new PathElement(Book.class, Author.class, "authors"),
                 new PathElement(Author.class, String.class, NAME)
         ));
-        FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
+        FilterPredicate p1 = new InPredicate(p1Path, "foo", "bar");
 
-        FilterPredicate p2 = new FilterPredicate(new PathElement(Book.class, String.class, NAME), Operator.IN, Collections.singletonList("blah"));
-        FilterPredicate p3 = new FilterPredicate(new PathElement(Book.class, String.class, GENRE), Operator.IN, Collections.singletonList(SCIFI));
+        FilterPredicate p2 = new InPredicate(new PathElement(Book.class, String.class, NAME), "blah");
+        FilterPredicate p3 = new InPredicate(new PathElement(Book.class, String.class, GENRE), SCIFI);
         //P4 is a duplicate of P3
-        FilterPredicate p4 = new FilterPredicate(new PathElement(Book.class, String.class, GENRE), Operator.IN, Collections.singletonList(SCIFI));
+        FilterPredicate p4 = new InPredicate(new PathElement(Book.class, String.class, GENRE), SCIFI);
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and1 = new AndFilterExpression(or, p1);

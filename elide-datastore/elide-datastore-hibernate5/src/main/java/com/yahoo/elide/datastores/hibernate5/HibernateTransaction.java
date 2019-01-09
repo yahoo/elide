@@ -10,8 +10,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.filter.FalsePredicate;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
@@ -38,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 
@@ -133,9 +133,9 @@ public class HibernateTransaction implements DataStoreTransaction {
             FilterPredicate idExpression;
             Path.PathElement idPath = new Path.PathElement(entityClass, idType, idField);
             if (id != null) {
-                idExpression = new FilterPredicate(idPath, Operator.IN, Collections.singletonList(id));
+                idExpression = new InPredicate(idPath, id);
             } else {
-                idExpression = new FilterPredicate(idPath, Operator.FALSE, Collections.emptyList());
+                idExpression = new FalsePredicate(idPath);
             }
 
             FilterExpression joinedExpression = filterExpression

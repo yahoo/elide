@@ -13,8 +13,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
@@ -22,7 +21,6 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -143,8 +141,7 @@ public class Child extends BaseId {
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
         public FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope) {
-            return new FilterPredicate(new Path.PathElement(Child.class, Long.class, "id"), Operator.NOTNULL,
-                    Collections.emptyList());
+            return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
         }
     }
 

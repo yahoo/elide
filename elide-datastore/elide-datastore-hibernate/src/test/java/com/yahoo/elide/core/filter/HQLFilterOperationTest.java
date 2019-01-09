@@ -39,18 +39,17 @@ public class HQLFilterOperationTest {
                 new Path.PathElement(Book.class, Author.class, "authors"),
                 new Path.PathElement(Author.class, String.class, "name")
         );
-        FilterPredicate p1 = new FilterPredicate(new Path(p1Path),
-                Operator.IN, Arrays.asList("foo", "bar"));
+        FilterPredicate p1 = new InPredicate(new Path(p1Path), "foo", "bar");
 
         List<Path.PathElement> p2Path = Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "name")
         );
-        FilterPredicate p2 = new FilterPredicate(new Path(p2Path), Operator.IN, Arrays.asList("blah"));
+        FilterPredicate p2 = new InPredicate(new Path(p2Path), "blah");
 
         List<Path.PathElement> p3Path = Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "genre")
         );
-        FilterPredicate p3 = new FilterPredicate(new Path(p3Path), Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p3 = new InPredicate(new Path(p3Path), "scifi");
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and = new AndFilterExpression(or, p1);

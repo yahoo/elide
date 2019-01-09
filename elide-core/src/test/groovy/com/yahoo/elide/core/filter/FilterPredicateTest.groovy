@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.filter
 
+import static org.mockito.Mockito.mock
+import static org.mockito.Mockito.when
+
 import com.yahoo.elide.core.EntityDictionary
 import com.yahoo.elide.core.RelationshipType
 import com.yahoo.elide.core.exceptions.InvalidPredicateException
@@ -22,9 +25,6 @@ import org.testng.annotations.Test
 
 import javax.ws.rs.core.MultivaluedHashMap
 import javax.ws.rs.core.MultivaluedMap
-
-import static org.mockito.Mockito.mock
-import static org.mockito.Mockito.when
 /**
  * Predicate test class.
  */
