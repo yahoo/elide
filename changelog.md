@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.14
+**Features**
+ * Add FilterPredicate sub-classes for each operation type
+ 
 ## 4.2.13
 **Fixes**
  * Upgrade jackson databind to 2.9.8
