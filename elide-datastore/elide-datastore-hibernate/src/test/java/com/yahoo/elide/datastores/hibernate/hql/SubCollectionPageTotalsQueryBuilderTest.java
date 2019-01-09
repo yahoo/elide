@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
@@ -123,9 +123,9 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 new Path.PathElement(Publisher.class, String.class, "name")
         );
 
-        FilterPredicate publisherNamePredicate = new FilterPredicate(
+        FilterPredicate publisherNamePredicate = new InPredicate(
                 new Path(publisherNamePath),
-                Operator.IN, Arrays.asList("Pub1"));
+                "Pub1");
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());

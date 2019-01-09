@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.hibernate.hql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.sort.Sorting;
@@ -123,9 +123,9 @@ public class SubCollectionFetchQueryBuilderTest {
                 new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
-        FilterPredicate publisherNamePredicate = new FilterPredicate(
+        FilterPredicate publisherNamePredicate = new InPredicate(
                 new Path(publisherNamePath),
-                Operator.IN, Arrays.asList(PUB1));
+                PUB1);
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());
@@ -165,9 +165,9 @@ public class SubCollectionFetchQueryBuilderTest {
                 new Path.PathElement(Publisher.class, String.class, NAME)
         );
 
-        FilterPredicate publisherNamePredicate = new FilterPredicate(
+        FilterPredicate publisherNamePredicate = new InPredicate(
                 new Path(publisherNamePath),
-                Operator.IN, Arrays.asList(PUB1));
+                PUB1);
 
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());

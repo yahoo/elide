@@ -14,13 +14,12 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.security.FilterExpressionCheck;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -81,7 +80,7 @@ public class Editor {
         @Override
         public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
             Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
-            return new FilterPredicate(path, Operator.NOTNULL, Collections.emptyList());
+            return new NotNullPredicate(path);
         }
     }
 }

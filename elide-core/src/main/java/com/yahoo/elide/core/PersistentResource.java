@@ -21,8 +21,7 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
@@ -887,13 +886,12 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .collect(Collectors.toList());
 
         /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-        FilterExpression idFilter = new FilterPredicate(
+        FilterExpression idFilter = new InPredicate(
                 new Path.PathElement(
                         entityType,
                         idType,
                         idField),
-                Operator.IN,
-                new ArrayList<>(coercedIds));
+                coercedIds);
 
         return idFilter;
     }

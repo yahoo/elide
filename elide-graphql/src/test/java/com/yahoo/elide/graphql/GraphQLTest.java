@@ -7,8 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.security.checks.Check;
-
 import example.Address;
 import example.Author;
 import example.Book;
@@ -28,7 +26,7 @@ public class GraphQLTest {
 
     @BeforeClass
     public void init() {
-        Map<String, Class<? extends Check>> checks = new HashMap<>();
+        Map checks = new HashMap<>();
         checks.put("allow all", com.yahoo.elide.security.checks.prefab.Role.ALL.class);
 
         dictionary = new EntityDictionary(checks);

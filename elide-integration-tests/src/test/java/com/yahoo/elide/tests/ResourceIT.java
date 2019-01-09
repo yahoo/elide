@@ -24,7 +24,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InfixPredicate;
+import com.yahoo.elide.core.filter.PostfixPredicate;
+import com.yahoo.elide.core.filter.PrefixPredicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -54,7 +56,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1920,9 +1921,9 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         Path.PathElement pathToTitle = new Path.PathElement(Book.class, String.class, "title");
 
         return new Object[][]{
-                {new FilterPredicate(pathToTitle, Operator.INFIX, Arrays.asList("with%perce")), 1},
-                {new FilterPredicate(pathToTitle, Operator.PREFIX, Arrays.asList("titlewith%perce")), 1},
-                {new FilterPredicate(pathToTitle, Operator.POSTFIX, Arrays.asList("with%percentage")), 1}
+                {new InfixPredicate(pathToTitle, "with%perce"), 1},
+                {new PrefixPredicate(pathToTitle, "titlewith%perce"), 1},
+                {new PostfixPredicate(pathToTitle, "with%percentage"), 1}
         };
     }
 

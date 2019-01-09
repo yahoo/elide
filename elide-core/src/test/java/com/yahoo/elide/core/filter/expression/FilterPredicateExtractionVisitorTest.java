@@ -7,7 +7,7 @@ package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 
 import com.google.common.collect.Sets;
 
@@ -32,23 +32,23 @@ public class FilterPredicateExtractionVisitorTest {
                 new Path.PathElement(Book.class, Author.class, "authors"),
                 new Path.PathElement(Author.class, String.class, "name")
         ));
-        FilterPredicate p1 = new FilterPredicate(p1Path, Operator.IN, Arrays.asList("foo", "bar"));
+        FilterPredicate p1 = new InPredicate(p1Path, "foo", "bar");
 
         Path p2Path = new Path(Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "name")
         ));
-        FilterPredicate p2 = new FilterPredicate(p2Path, Operator.IN, Arrays.asList("blah"));
+        FilterPredicate p2 = new InPredicate(p2Path, "blah");
 
         Path p3Path = new Path(Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "genre")
         ));
-        FilterPredicate p3 = new FilterPredicate(p3Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p3 = new InPredicate(p3Path, "scifi");
 
         //P4 is a duplicate of P3
         Path p4Path = new Path(Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "genre")
         ));
-        FilterPredicate p4 = new FilterPredicate(p4Path, Operator.IN, Arrays.asList("scifi"));
+        FilterPredicate p4 = new InPredicate(p4Path, "scifi");
 
         OrFilterExpression or = new OrFilterExpression(p2, p3);
         AndFilterExpression and1 = new AndFilterExpression(or, p1);

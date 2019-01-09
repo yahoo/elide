@@ -9,7 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.ExpressionScopingVisitor;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -22,7 +22,6 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -72,8 +71,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String idField = dictionary.getIdFieldName(parentType);
 
         //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
-        FilterPredicate idExpression = new FilterPredicate(
-                new PathElement(parentType, idType, idField), Operator.IN, Collections.singletonList(idVal));
+        FilterPredicate idExpression = new InPredicate(new PathElement(parentType, idType, idField), idVal);
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         String joinClause = "";

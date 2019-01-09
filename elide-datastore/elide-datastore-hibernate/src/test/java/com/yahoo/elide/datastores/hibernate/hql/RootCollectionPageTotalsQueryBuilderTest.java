@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -90,9 +90,9 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 new Path.PathElement(Chapter.class, String.class, TITLE)
         );
 
-        FilterPredicate titlePredicate = new FilterPredicate(
+        FilterPredicate titlePredicate = new InPredicate(
                 new Path(chapterTitlePath),
-                Operator.IN, Arrays.asList("ABC", "DEF"));
+                "ABC", "DEF");
 
         List<Path.PathElement>  publisherNamePath = Arrays.asList(
                 new Path.PathElement(Author.class, Book.class, BOOKS),
@@ -100,8 +100,8 @@ public class RootCollectionPageTotalsQueryBuilderTest {
                 new Path.PathElement(Publisher.class, String.class, "name")
         );
 
-        FilterPredicate publisherNamePredicate = new FilterPredicate(
-                new Path(publisherNamePath), Operator.IN, Arrays.asList("Pub1"));
+        FilterPredicate publisherNamePredicate = new InPredicate(
+                new Path(publisherNamePath), "Pub1");
 
         OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
 

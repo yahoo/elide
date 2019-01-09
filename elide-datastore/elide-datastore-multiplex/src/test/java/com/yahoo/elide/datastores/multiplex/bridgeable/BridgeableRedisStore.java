@@ -12,6 +12,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -34,7 +35,6 @@ import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -152,10 +152,9 @@ public class BridgeableRedisStore implements DataStore {
                             Optional.empty(),
                             scope);
                 } else if ("redisActions".equals(relationName)) {
-                    FilterExpression updatedExpression = new FilterPredicate(
+                    FilterExpression updatedExpression = new InPredicate(
                             new Path.PathElement(entityClass, String.class, "user_id"),
-                            Operator.IN,
-                            Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
+                            String.valueOf(((HibernateUser) parent).getId())
                     );
 
                     return muxTx.loadObject(entityClass,
@@ -173,10 +172,9 @@ public class BridgeableRedisStore implements DataStore {
             if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
-                FilterExpression filterExpression = new FilterPredicate(
+                FilterExpression filterExpression = new InPredicate(
                         new Path.PathElement(entityClass, String.class, "user_id"),
-                        Operator.IN,
-                        Collections.singletonList(String.valueOf(((HibernateUser) parent).getId()))
+                        String.valueOf(((HibernateUser) parent).getId())
                 );
                 return muxTx.loadObjects(entityClass,
                         Optional.of(filterExpression),
