@@ -9,6 +9,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class PrefixPredicate extends FilterPredicate {
     }
 
     public PrefixPredicate(PathElement pathElement, List<Object> values) {
-        super(pathElement, Operator.PREFIX, values);
+        this(new Path(Collections.singletonList(pathElement)), values);
     }
 
     @SafeVarargs

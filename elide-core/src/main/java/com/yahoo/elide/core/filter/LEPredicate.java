@@ -20,6 +20,6 @@ public class LEPredicate extends FilterPredicate {
     }
 
     public LEPredicate(PathElement pathElement, Object value) {
-        super(pathElement, Operator.LE, Collections.singletonList(value));
+        this(new Path(Collections.singletonList(pathElement)), value);
     }
 }

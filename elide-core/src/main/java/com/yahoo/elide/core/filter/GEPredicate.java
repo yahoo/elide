@@ -20,6 +20,6 @@ public class GEPredicate extends FilterPredicate {
     }
 
     public GEPredicate(PathElement pathElement, Object value) {
-        super(pathElement, Operator.GE, Collections.singletonList(value));
+        this(new Path(Collections.singletonList(pathElement)), value);
     }
 }

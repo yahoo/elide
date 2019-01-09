@@ -20,6 +20,6 @@ public class GTPredicate extends FilterPredicate {
     }
 
     public GTPredicate(PathElement pathElement, Object value) {
-        super(pathElement, Operator.GT, Collections.singletonList(value));
+        this(new Path(Collections.singletonList(pathElement)), value);
     }
 }

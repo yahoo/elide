@@ -13,14 +13,19 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FalsePredicate;
 import com.yahoo.elide.core.filter.GEPredicate;
 import com.yahoo.elide.core.filter.GTPredicate;
+import com.yahoo.elide.core.filter.InInsensitivePredicate;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.InfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.InfixPredicate;
 import com.yahoo.elide.core.filter.IsNullPredicate;
 import com.yahoo.elide.core.filter.LEPredicate;
 import com.yahoo.elide.core.filter.LTPredicate;
+import com.yahoo.elide.core.filter.NotInInsensitivePredicate;
 import com.yahoo.elide.core.filter.NotInPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
+import com.yahoo.elide.core.filter.PostfixInsensitivePredicate;
 import com.yahoo.elide.core.filter.PostfixPredicate;
+import com.yahoo.elide.core.filter.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.PrefixPredicate;
 import com.yahoo.elide.core.filter.TruePredicate;
 
@@ -33,6 +38,7 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -86,6 +92,14 @@ public class InMemoryFilterVisitorTest {
         fn = expression.accept(visitor);
         Assert.assertTrue(fn.test(author));
         expression = new NotInPredicate(authorIdElement, 1L);
+        fn = expression.accept(visitor);
+        Assert.assertFalse(fn.test(author));
+
+        // Test exact match insensitive
+        expression = new InInsensitivePredicate(authorNameElement, author.getName().toUpperCase(Locale.ENGLISH));
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
+        expression = new NotInInsensitivePredicate(authorNameElement, author.getName().toUpperCase(Locale.ENGLISH));
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
 
@@ -190,6 +204,18 @@ public class InMemoryFilterVisitorTest {
         expression = new PostfixPredicate(authorNameElement, "test");
         fn = expression.accept(visitor);
         Assert.assertFalse(fn.test(author));
+
+        // When prefix, infix, postfix are correctly matched if case-insensitive
+        expression = new PrefixInsensitivePredicate(authorNameElement, "author");
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
+        expression = new InfixInsensitivePredicate(authorNameElement, "for");
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
+        expression = new PostfixInsensitivePredicate(authorNameElement, "test");
+        fn = expression.accept(visitor);
+        Assert.assertTrue(fn.test(author));
+
 
         // When prefix, infix, postfix are not matched
         expression = new PrefixPredicate(authorNameElement, "error");

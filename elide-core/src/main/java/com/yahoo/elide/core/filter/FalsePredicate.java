@@ -20,6 +20,6 @@ public class FalsePredicate extends FilterPredicate {
     }
 
     public FalsePredicate(PathElement pathElement) {
-        super(pathElement, Operator.FALSE, Collections.emptyList());
+        this(new Path(Collections.singletonList(pathElement)));
     }
 }
