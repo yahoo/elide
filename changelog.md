@@ -14,6 +14,7 @@
 
 **Fixes**
  * Upgrade jackson databind to 2.9.8
+ * Issue#733
 
 ## 4.2.12
 **Fixes**
