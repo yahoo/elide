@@ -34,8 +34,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +42,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -610,7 +609,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier) {
-        return getParameterizedType(entityClass, identifier, 0);
+        return getType(entityClass, identifier);
     }
 
     /**
@@ -622,6 +621,10 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier, int paramIndex) {
+        if (paramIndex == 0) {
+            return getType(entityClass, identifier);
+        }
+
         ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
@@ -631,19 +634,7 @@ public class EntityDictionary {
             return null;
         }
 
-        Type type;
-
-        if (fieldOrMethod instanceof Method) {
-            type = ((Method) fieldOrMethod).getGenericReturnType();
-        } else {
-            type = ((Field) fieldOrMethod).getGenericType();
-        }
-
-        if (type instanceof ParameterizedType) {
-            return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[paramIndex];
-        }
-
-        return getType(entityClass, identifier);
+        return EntityBinding.getFieldType(entityClass, fieldOrMethod, Optional.of(paramIndex));
     }
 
     /**
@@ -1127,7 +1118,7 @@ public class EntityDictionary {
     /**
      * Returns whether or not a class is already bound.
      * @param cls
-     * @return
+     * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
         return bindJsonApiToEntity.contains(cls);

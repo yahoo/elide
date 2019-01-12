@@ -25,6 +25,7 @@
         <module>elide-example</module>
         <module>elide-contrib</module>
         <module>elide-standalone</module>
+        <module>elide-example-models</module>
     </modules>
 
     <issueManagement>

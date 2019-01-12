@@ -14,6 +14,8 @@ import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.models.generics.Employee;
+import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
@@ -37,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.AccessType;
@@ -67,6 +68,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(StringId.class);
         this.bindEntity(Friend.class);
         this.bindEntity(FieldAnnotations.class);
+        this.bindEntity(Manager.class);
+        this.bindEntity(Employee.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -354,7 +357,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testGetType() throws Exception {
-
         Assert.assertEquals(getType(FieldAnnotations.class, "id"), Long.class,
             "getType returns the type of the ID field of the given class");
 
@@ -371,14 +373,20 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(FieldAnnotations.class, "parent"), FieldAnnotations.class,
                 "getType return the type of a private field relationship");
 
-        Assert.assertEquals(getType(FieldAnnotations.class, "children"), Set.class,
+        Assert.assertEquals(getType(FieldAnnotations.class, "children"), FieldAnnotations.class,
                 "getType return the type of a private field relationship");
 
-        Assert.assertEquals(getType(Parent.class, "children"), Set.class,
+        Assert.assertEquals(getType(Parent.class, "children"), Child.class,
             "getType returns the type of relationship fields");
 
         Assert.assertEquals(getType(Friend.class, "name"), String.class,
                 "getType returns the type of attribute when defined in a super class");
+
+        Assert.assertEquals(getType(Manager.class, "boss"), Manager.class,
+            "getType returns the correct generic type of a to-one relationship");
+
+        Assert.assertEquals(getType(Manager.class, "reports"), Employee.class,
+            "getType returns the correct generic type of a to-many relationship");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

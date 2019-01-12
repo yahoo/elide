@@ -42,6 +42,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
@@ -182,7 +184,7 @@ public class EntityBinding {
     }
 
     /**
-     * Filters a list of class Members to instance methods & fields
+     * Filters a list of class Members to instance methods & fields.
      *
      * @param objects
      * @param <T>
@@ -193,7 +195,7 @@ public class EntityBinding {
     }
 
     /**
-     * Filters a list of class Members to instance methods & fields
+     * Filters a list of class Members to instance methods & fields.
      *
      * @param objects    The list of Members to filter
      * @param <T>        Concrete Member Type
@@ -208,7 +210,7 @@ public class EntityBinding {
     }
 
     /**
-     * Get all fields of the entity class, including fields of superclasses (excluding Object)
+     * Get all fields of the entity class, including fields of superclasses (excluding Object).
      * @return All fields of the EntityBindings entity class and all superclasses (excluding Object)
      */
     public List<AccessibleObject> getAllFields() {
@@ -430,20 +432,40 @@ public class EntityBinding {
     }
 
     /**
-     * Returns type of field whether public member or method.
+     * Returns type of field whether member or method.
      *
+     * @param parentClass The class which owns the given field or method
      * @param fieldOrMethod field or method
      * @return field type
      */
-    private static Class<?> getFieldType(Class<?> parentClass, AccessibleObject fieldOrMethod) {
-        Type returnType;
+    static Class<?> getFieldType(Class<?> parentClass,
+                                         AccessibleObject fieldOrMethod) {
+        return getFieldType(parentClass, fieldOrMethod, Optional.of(0));
+    }
+
+    /**
+     * Returns type of field whether member or method.
+     *
+     * @param parentClass The class which owns the given field or method
+     * @param fieldOrMethod field or method
+     * @param index Optional parameter index for parameterized types that take one or more parameters.
+     * @return field type
+     */
+    static Class<?> getFieldType(Class<?> parentClass,
+                                         AccessibleObject fieldOrMethod,
+                                         Optional<Integer> index) {
+        Type type;
         if (fieldOrMethod instanceof Field) {
-            returnType = ((Field) fieldOrMethod).getGenericType();
+            type = ((Field) fieldOrMethod).getGenericType();
         } else {
-            returnType = ((Method) fieldOrMethod).getGenericReturnType();
+            type = ((Method) fieldOrMethod).getGenericReturnType();
         }
 
-        return TypeUtils.getRawType(returnType, parentClass);
+        if (type instanceof ParameterizedType) {
+            type = ((ParameterizedType) type).getActualTypeArguments()[index.orElse(0).intValue()];
+        }
+
+        return TypeUtils.getRawType(type, parentClass);
     }
 
     private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {
