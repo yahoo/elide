@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.AccessType;
@@ -255,6 +256,15 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         type = getParameterizedType(fun, "relation3");
         Assert.assertEquals(type, Child.class, "A Child object should return Child.class");
+
+        Assert.assertEquals(getParameterizedType(FieldAnnotations.class, "children"), FieldAnnotations.class,
+                "getParameterizedType return the type of a private field relationship");
+
+        Assert.assertEquals(getParameterizedType(Parent.class, "children"), Child.class,
+            "getParameterizedType returns the type of relationship fields");
+
+        Assert.assertEquals(getParameterizedType(Manager.class, "reports"), Employee.class,
+            "getParameterizedType returns the correct generic type of a to-many relationship");
     }
 
     @Test
@@ -373,10 +383,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(FieldAnnotations.class, "parent"), FieldAnnotations.class,
                 "getType return the type of a private field relationship");
 
-        Assert.assertEquals(getType(FieldAnnotations.class, "children"), FieldAnnotations.class,
+        Assert.assertEquals(getType(FieldAnnotations.class, "children"), Set.class,
                 "getType return the type of a private field relationship");
 
-        Assert.assertEquals(getType(Parent.class, "children"), Child.class,
+        Assert.assertEquals(getType(Parent.class, "children"), Set.class,
             "getType returns the type of relationship fields");
 
         Assert.assertEquals(getType(Friend.class, "name"), String.class,
@@ -385,7 +395,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(Manager.class, "boss"), Manager.class,
             "getType returns the correct generic type of a to-one relationship");
 
-        Assert.assertEquals(getType(Manager.class, "reports"), Employee.class,
+        Assert.assertEquals(getType(Manager.class, "reports"), Set.class,
             "getType returns the correct generic type of a to-many relationship");
     }
 

@@ -440,7 +440,7 @@ public class EntityBinding {
      */
     static Class<?> getFieldType(Class<?> parentClass,
                                          AccessibleObject fieldOrMethod) {
-        return getFieldType(parentClass, fieldOrMethod, Optional.of(0));
+        return getFieldType(parentClass, fieldOrMethod, Optional.empty());
     }
 
     /**
@@ -448,7 +448,9 @@ public class EntityBinding {
      *
      * @param parentClass The class which owns the given field or method
      * @param fieldOrMethod field or method
-     * @param index Optional parameter index for parameterized types that take one or more parameters.
+     * @param index Optional parameter index for parameterized types that take one or more parameters.  If
+     *              an index is provided, the type returned is the parameter type.  Otherwise it is the
+     *              parameterized type.
      * @return field type
      */
     static Class<?> getFieldType(Class<?> parentClass,
@@ -461,8 +463,8 @@ public class EntityBinding {
             type = ((Method) fieldOrMethod).getGenericReturnType();
         }
 
-        if (type instanceof ParameterizedType) {
-            type = ((ParameterizedType) type).getActualTypeArguments()[index.orElse(0).intValue()];
+        if (type instanceof ParameterizedType && index.isPresent()) {
+            type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
         }
 
         return TypeUtils.getRawType(type, parentClass);

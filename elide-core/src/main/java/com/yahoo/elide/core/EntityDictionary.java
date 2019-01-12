@@ -609,7 +609,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier) {
-        return getType(entityClass, identifier);
+        return getParameterizedType(entityClass, identifier, 0);
     }
 
     /**
@@ -621,10 +621,6 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Class<?> getParameterizedType(Class<?> entityClass, String identifier, int paramIndex) {
-        if (paramIndex == 0) {
-            return getType(entityClass, identifier);
-        }
-
         ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(entityClass).fieldsToValues;
         if (fieldOrMethods == null) {
             return null;
