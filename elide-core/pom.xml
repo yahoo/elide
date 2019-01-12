@@ -180,12 +180,6 @@
             <artifactId>groovy-all</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-example-models</artifactId>
-            <version>4.2.13-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
