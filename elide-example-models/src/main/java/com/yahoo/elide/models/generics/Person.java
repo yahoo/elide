@@ -23,8 +23,8 @@ import javax.persistence.OneToOne;
 public class Person<T, S> extends BaseId {
 
     @OneToOne
-    T boss;
+    private T boss;
 
     @OneToMany
-    Set<S> reports;
+    private Set<S> reports;
 }

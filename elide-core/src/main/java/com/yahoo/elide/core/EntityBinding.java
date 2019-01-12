@@ -438,7 +438,7 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    static Class<?> getFieldType(Class<?> parentClass,
+    public static Class<?> getFieldType(Class<?> parentClass,
                                          AccessibleObject fieldOrMethod) {
         return getFieldType(parentClass, fieldOrMethod, Optional.empty());
     }
@@ -453,7 +453,7 @@ public class EntityBinding {
      *              parameterized type.
      * @return field type
      */
-    static Class<?> getFieldType(Class<?> parentClass,
+    public static Class<?> getFieldType(Class<?> parentClass,
                                          AccessibleObject fieldOrMethod,
                                          Optional<Integer> index) {
         Type type;
