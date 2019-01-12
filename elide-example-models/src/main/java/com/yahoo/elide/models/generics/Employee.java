@@ -11,6 +11,9 @@ import com.yahoo.elide.models.BaseId;
 
 import javax.persistence.Entity;
 
+/**
+ * Helper class to test parameterized subclass/superclass hierarchies.
+ */
 @Include(rootLevel = true)
 @Entity
 public class Employee extends BaseId {

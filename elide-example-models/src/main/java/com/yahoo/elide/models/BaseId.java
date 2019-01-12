@@ -14,6 +14,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+/**
+ * Base class for Entities that provides a hashcode and equals that will be the same
+ * before and after an object is persisted to the DB.
+ */
 @MappedSuperclass
 public abstract class BaseId {
     @Id

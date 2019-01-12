@@ -10,6 +10,9 @@ import com.yahoo.elide.annotation.Include;
 
 import javax.persistence.Entity;
 
+/**
+ * Tests a parameterized superclass.
+ */
 @Include(rootLevel = true)
 @Entity
 public class Manager extends Person<Manager, Employee> {
