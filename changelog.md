@@ -1,4 +1,9 @@
 # Change Log
+
+## 4.2.14
+**Features**
+ * Added [Codahale InstrumentedFilter](https://metrics.dropwizard.io/3.1.0/manual/servlet/) & corresponding metrics, threads, admin servlets as a setting option for Elide Standalone.
+
 ## 4.2.13
 **Features**
  * Add FilterPredicate sub-classes for each operation type
