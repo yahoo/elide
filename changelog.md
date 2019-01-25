@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.14
+**Features**
+ * replaced jcabi-mysql-maven-plugin with H2 for testing
+
 ## 4.2.13
 **Features**
  * Add FilterPredicate sub-classes for each operation type
