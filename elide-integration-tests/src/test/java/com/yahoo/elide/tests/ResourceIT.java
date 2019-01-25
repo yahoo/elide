@@ -1333,8 +1333,8 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
         Assert.assertEquals(errors.size(), 1);
 
         String error = errors.get(0).asText();
-        String expected = "TransactionException: Duplicate entry 'duplicate' for key 'name'";
-        Assert.assertTrue(error.equals(expected), "Error does not equal with '" + expected + "'");
+        String expected = "TransactionException: Unique index or primary key violation:";
+        Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "' but found " + error);
     }
 
     @Test(priority = 29)

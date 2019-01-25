@@ -13,10 +13,9 @@
     <session-factory>
         <!-- local connection properties -->
         <!-- this is what we normally use -->
-        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <!-- dialect for Mysql -->
-        <property name="dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
-
+        <property name="hibernate.connection.driver_class">org.h2.Driver</property>
+        <!-- dialect for H2 -->
+        <property name="dialect">org.hibernate.dialect.H2Dialect</property>
         <property name="hibernate.jdbc.batch_size">50</property>
         <property name="hibernate.jdbc.fetch_size">50</property>
 

@@ -88,6 +88,11 @@
             <artifactId>logback-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -110,18 +115,6 @@
                             </configuration>
                         </execution>
                         <execution>
-                            <id>reserve-network-port-pre-integration-test</id>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>reserve-network-port</goal>
-                            </goals>
-                            <configuration>
-                                <portNames>
-                                    <portName>mysql.port</portName>
-                                </portNames>
-                            </configuration>
-                        </execution>
-                        <execution>
                             <id>reserve-network-port-process-test-classes</id>
                             <phase>process-test-classes</phase>
                             <goals>
@@ -137,58 +130,10 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.1</version>
-                    <executions>
-                        <execution>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>unpack</goal>
-                            </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>com.jcabi</groupId>
-                                        <artifactId>mysql-dist</artifactId>
-                                        <version>5.5.34</version>
-                                        <classifier>${mysql.classifier}</classifier>
-                                        <type>zip</type>
-                                        <overWrite>false</overWrite>
-                                        <outputDirectory>${project.build.directory}/mysql-dist</outputDirectory>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>com.jcabi</groupId>
-                    <artifactId>jcabi-mysql-maven-plugin</artifactId>
-                    <!-- Above 0.7 breaks on Windows OS: jcabi/jcabi-mysql-maven-plugin#39 -->
-                    <version>0.7</version>
-                    <executions>
-                        <execution>
-                            <id>mysql-test</id>
-                            <goals>
-                                <goal>classify</goal>
-                                <goal>start</goal>
-                                <goal>stop</goal>
-                            </goals>
-                            <configuration>
-                                <port>${mysql.port}</port>
-                                <data>${mysql.data.directory}</data>
-                                <socket>${java.io.tmpdir}/elide.sock</socket>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>2.19.1</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <mysql.port>${mysql.port}</mysql.port>
                             <restassured.port>${restassured.port}</restassured.port>
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                         </systemPropertyVariables>
