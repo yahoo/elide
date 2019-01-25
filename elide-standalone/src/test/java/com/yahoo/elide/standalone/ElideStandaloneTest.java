@@ -89,4 +89,13 @@ public class ElideStandaloneTest {
                 .statusCode(200)
                 .body("meters", hasKey("com.codahale.metrics.servlet.InstrumentedFilter.responseCodes.ok"));
     }
+
+    @Test
+    public void testHealthCheckServlet() throws Exception {
+            given()
+                .when()
+                .get("/stats/healthcheck")
+                .then()
+                .statusCode(501); //Returns 'Not Implemented' if there are no Health Checks Registered
+    }
 }
