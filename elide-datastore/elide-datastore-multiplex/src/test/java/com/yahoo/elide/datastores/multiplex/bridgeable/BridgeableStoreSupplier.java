@@ -31,7 +31,7 @@ public class BridgeableStoreSupplier implements Supplier<DataStore> {
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL, "jdbc:h2:~/root;IGNORECASE=TRUE")
+                        .applySetting(Environment.URL, "jdbc:h2:mem:root;IGNORECASE=TRUE")
                         .applySetting(Environment.USER, "root")
                         .applySetting(Environment.PASS, "root")
                         .applySetting(Environment.DIALECT, "org.hibernate.dialect.H2Dialect")

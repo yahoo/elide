@@ -37,7 +37,7 @@ import javax.persistence.Persistence;
  * Supplier of Hibernate 5 Data Store.
  */
 public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataStore> {
-    private static final String JDBC = "jdbc:h2:~/root;IGNORECASE=TRUE";
+    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
 
     @Override

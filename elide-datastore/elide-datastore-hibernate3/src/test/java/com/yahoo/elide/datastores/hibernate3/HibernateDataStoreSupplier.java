@@ -46,7 +46,7 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
         SessionFactory sessionFactory = configuration.configure("hibernate.cfg.xml")
                 .setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
                 .setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect")
-                .setProperty(Environment.URL, "jdbc:h2:~/root;IGNORECASE=TRUE")
+                .setProperty(Environment.URL, "jdbc:h2:mem:root;IGNORECASE=TRUE")
                 .setProperty(Environment.USER, "root")
                 .setProperty(Environment.PASS, "root")
                 .buildSessionFactory();
