@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
@@ -50,7 +51,6 @@ import example.TestCheckMappings;
 import example.User;
 
 import org.apache.http.HttpStatus;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -1329,12 +1329,12 @@ public class ResourceIT extends AbstractIntegrationTestInitializer {
             .asString());
 
         JsonNode errors = result.get("errors");
-        Assert.assertNotNull(errors);
-        Assert.assertEquals(errors.size(), 1);
+        assertNotNull(errors);
+        assertEquals(errors.size(), 1);
 
         String error = errors.get(0).asText();
         String expected = "TransactionException: Unique index or primary key violation:";
-        Assert.assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "' but found " + error);
+        assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "' but found " + error);
     }
 
     @Test(priority = 29)
