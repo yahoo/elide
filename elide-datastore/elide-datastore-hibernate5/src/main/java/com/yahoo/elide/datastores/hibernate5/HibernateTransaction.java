@@ -154,6 +154,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                     .withPossibleFilterExpression(Optional.of(joinedExpression))
                     .build();
 
+            if (scope.getNewPersistentResources().size() != 0) {
+                flush(scope);
+            }
             return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
