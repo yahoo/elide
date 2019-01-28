@@ -64,7 +64,11 @@ public class HibernateTransaction implements DataStoreTransaction {
      */
     protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
         this.session = session;
-        session.setHibernateFlushMode(FlushMode.COMMIT);
+        // Elide must not flush until all beans are ready
+        FlushMode flushMode = session.getHibernateFlushMode();
+        if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
+            session.setHibernateFlushMode(FlushMode.COMMIT);
+        }
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
