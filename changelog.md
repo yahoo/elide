@@ -1,4 +1,8 @@
 # Change Log
+## 4.2.14
+**Features**
+ * Upgrade Failsafe to 2.22.1 in order to run Hibernate 5 tests.  Fixed test failure.
+
 ## 4.2.13
 **Features**
  * Add FilterPredicate sub-classes for each operation type
