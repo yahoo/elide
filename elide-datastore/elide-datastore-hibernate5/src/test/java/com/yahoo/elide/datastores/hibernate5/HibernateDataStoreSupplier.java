@@ -20,6 +20,7 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
+import org.testng.Assert;
 
 import java.util.EnumSet;
 import java.util.function.Supplier;
@@ -58,14 +59,31 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
 
         MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
-        EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
-        // create example tables from beans
-        SchemaExport schemaExport = new SchemaExport();
-        schemaExport.drop(type, metadataImplementor);
-        schemaExport.execute(type, SchemaExport.Action.CREATE, metadataImplementor);
+        Thread t = new Thread() {
 
-        if (!schemaExport.getExceptions().isEmpty()) {
-            throw new IllegalStateException(schemaExport.getExceptions().toString());
+            @Override
+            public void run() {
+
+                EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
+                // create example tables from beans
+                SchemaExport schemaExport = new SchemaExport();
+                schemaExport.drop(type, metadataImplementor);
+                schemaExport.execute(type, SchemaExport.Action.CREATE, metadataImplementor);
+
+                if (!schemaExport.getExceptions().isEmpty()) {
+                    throw new IllegalStateException(schemaExport.getExceptions().toString());
+                }
+
+            }
+        };
+        t.start();
+        try {
+            t.join(20_000);
+        } catch (InterruptedException e) {
+        }
+        if (t.isAlive()) {
+            t.interrupt();
+            Assert.fail("Database export timed out");
         }
 
         return new AbstractHibernateStore.Builder(metadataImplementor.buildSessionFactory())

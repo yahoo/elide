@@ -106,13 +106,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Class<T> entityClass) {
-        T entity = DataStoreTransaction.super.createNewObject(entityClass);
-        deferredTasks.add(() -> session.persist(entity));
-        return entity;
-    }
-
-    @Override
     public void createObject(Object entity, RequestScope scope) {
         deferredTasks.add(() -> session.persist(entity));
     }
@@ -154,9 +147,6 @@ public class HibernateTransaction implements DataStoreTransaction {
                     .withPossibleFilterExpression(Optional.of(joinedExpression))
                     .build();
 
-            if (scope.getNewPersistentResources().size() != 0) {
-                flush(scope);
-            }
             return query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
