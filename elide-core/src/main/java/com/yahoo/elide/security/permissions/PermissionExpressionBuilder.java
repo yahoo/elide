@@ -77,13 +77,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                changeSpec,
-                cache
-        );
+        final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, changeSpec);
 
         final Function<Function<Check, Expression>, Expression> buildExpressionFn =
                 (checkFn) -> buildSpecificFieldExpression(
@@ -113,13 +107,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                changeSpec,
-                cache
-        );
+        final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, changeSpec);
 
         final Function<Function<Check, Expression>, Expression> expressionFunction =
                 (checkFn) -> buildAnyFieldExpression(
@@ -150,14 +138,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             return SUCCESSFUL_EXPRESSION;
         }
 
-        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
-                check,
-                resource,
-                resource.getRequestScope(),
-                null,
-                cache
-        );
-
+        final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, null);
         return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resource, field), leafBuilderFn);
     }
 
@@ -317,5 +298,16 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         FilterExpression expression = new PermissionToFilterExpressionVisitor(entityDictionary, scope, type)
                 .visit(permissions);
         return expression.accept(new FilterExpressionNormalizationVisitor());
+    }
+
+    private Function<Check, Expression> leafBuilder(PersistentResource resource, ChangeSpec changeSpec) {
+        final Function<Check, Expression> leafBuilderFn = (check) -> new CheckExpression(
+                check,
+                resource,
+                resource.getRequestScope(),
+                changeSpec,
+                cache
+        );
+        return leafBuilderFn;
     }
 }
