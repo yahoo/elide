@@ -93,7 +93,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.19</version>
                     <configuration>
                         <systemPropertyVariables>
                             <restassured.port>${restassured.port}</restassured.port>
