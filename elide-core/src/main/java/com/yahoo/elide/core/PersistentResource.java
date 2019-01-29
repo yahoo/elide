@@ -1405,7 +1405,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
 
-                triggerUpdate(collectionName, collection, original);
+                triggerUpdate(collectionName, original, collection);
                 return true;
             }
         }
@@ -1464,7 +1464,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         collection.remove(toDelete.getObject());
 
-        triggerUpdate(collectionName, collection, original);
+        triggerUpdate(collectionName, original, collection);
     }
 
     /**
@@ -1500,7 +1500,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        triggerUpdate(fieldName, value, original);
+        triggerUpdate(fieldName, original, value);
     }
 
     /**
@@ -1764,7 +1764,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
      */
-    private void triggerUpdate(String fieldName, Object value, final Object original) {
+    private void triggerUpdate(String fieldName, Object original, Object value) {
         ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
         boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
         CRUDEvent.CRUDAction action = isNewlyCreated
