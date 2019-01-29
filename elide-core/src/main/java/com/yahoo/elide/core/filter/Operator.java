@@ -7,6 +7,7 @@ package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
@@ -26,98 +27,98 @@ public enum Operator {
     IN("in", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.in(field, values, requestScope);
+            return in(field, values, requestScope);
         }
     },
 
     IN_INSENSITIVE("ini", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.in(field, values, requestScope, FOLD_CASE);
+            return in(field, values, requestScope, FOLD_CASE);
         }
     },
 
     NOT("not", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return (T entity) -> !Operator.in(field, values, requestScope).test(entity);
+            return (T entity) -> !in(field, values, requestScope).test(entity);
         }
     },
 
     NOT_INSENSITIVE("noti", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return (T entity) -> !Operator.in(field, values, requestScope, FOLD_CASE).test(entity);
+            return (T entity) -> !in(field, values, requestScope, FOLD_CASE).test(entity);
         }
     },
 
     PREFIX_CASE_INSENSITIVE("prefixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.prefix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
+            return prefix(field, values, requestScope, s -> s.toLowerCase(Locale.ENGLISH));
         }
     },
 
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.prefix(field, values, requestScope, Function.identity());
+            return prefix(field, values, requestScope, Function.identity());
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.postfix(field, values, requestScope, Function.identity());
+            return postfix(field, values, requestScope, Function.identity());
         }
     },
 
     POSTFIX_CASE_INSENSITIVE("postfixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.postfix(field, values, requestScope, FOLD_CASE);
+            return postfix(field, values, requestScope, FOLD_CASE);
         }
     },
 
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.infix(field, values, requestScope, Function.identity());
+            return infix(field, values, requestScope, Function.identity());
         }
     },
 
     INFIX_CASE_INSENSITIVE("infixi", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.infix(field, values, requestScope, FOLD_CASE);
+            return infix(field, values, requestScope, FOLD_CASE);
         }
     },
 
     ISNULL("isnull", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.isNull(field, requestScope);
+            return isNull(field, requestScope);
         }
     },
 
     NOTNULL("notnull", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return (val) -> !Operator.isNull(field, requestScope).test(val);
+            return (val) -> !isNull(field, requestScope).test(val);
         }
     },
 
     LT("lt", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.lt(field, values, requestScope);
+            return lt(field, values, requestScope);
         }
     },
 
     LE("le", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.le(field, values, requestScope);
+            return le(field, values, requestScope);
         }
     },
 
@@ -125,28 +126,28 @@ public enum Operator {
         @Override
         public <T> Predicate<T> contextualize(
                 String field, List<Object> values, RequestScope requestScope) {
-            return Operator.gt(field, values, requestScope);
+            return gt(field, values, requestScope);
         }
     },
 
     GE("ge", true) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.ge(field, values, requestScope);
+            return ge(field, values, requestScope);
         }
     },
 
     TRUE("true", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.isTrue();
+            return isTrue();
         }
     },
 
     FALSE("false", false) {
         @Override
         public <T> Predicate<T> contextualize(String field, List<Object> values, RequestScope requestScope) {
-            return Operator.isFalse();
+            return isFalse();
         }
     },
     ;
@@ -154,6 +155,21 @@ public enum Operator {
     public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
     @Getter private final boolean parameterized;
+    private Operator negated;
+
+    // initialize negated values
+    static {
+        GE.negated = LT;
+        GT.negated = LE;
+        LE.negated = GT;
+        LT.negated = GE;
+        IN.negated = NOT;
+        NOT.negated = IN;
+        TRUE.negated = FALSE;
+        FALSE.negated = TRUE;
+        ISNULL.negated = NOTNULL;
+        NOTNULL.negated = ISNULL;
+    }
 
     /**
      * Returns Operator from query parameter operator notation.
@@ -336,5 +352,12 @@ public enum Operator {
         Comparable fieldComp = CoerceUtil.coerce(fieldValue, Comparable.class);
 
         return fieldComp.compareTo(testComp);
+    }
+
+    public Operator negate() {
+        if (negated == null) {
+            throw new InvalidOperatorNegationException();
+        }
+        return negated;
     }
 }

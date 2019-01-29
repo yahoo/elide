@@ -10,7 +10,6 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 
@@ -166,41 +165,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     }
 
     public FilterPredicate negate() {
-        Operator newOp;
-        switch (operator) {
-            case GE:
-                newOp = Operator.LT;
-                break;
-            case GT:
-                newOp = Operator.LE;
-                break;
-            case LE:
-                newOp = Operator.GT;
-                break;
-            case LT:
-                newOp = Operator.GE;
-                break;
-            case IN:
-                newOp = Operator.NOT;
-                break;
-            case NOT:
-                newOp = Operator.IN;
-                break;
-            case TRUE:
-                newOp = Operator.FALSE;
-                break;
-            case FALSE:
-                newOp = Operator.TRUE;
-                break;
-            case ISNULL:
-                newOp = Operator.NOTNULL;
-                break;
-            case NOTNULL:
-                newOp = Operator.ISNULL;
-                break;
-            default:
-                throw new InvalidOperatorNegationException();
-        }
+        Operator newOp = operator.negate();
         return new FilterPredicate(this.path, newOp, this.values);
     }
 
