@@ -32,7 +32,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
-import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,6 +64,11 @@ public class HibernateTransaction implements DataStoreTransaction {
      */
     protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
         this.session = session;
+        // Elide must not flush until all beans are ready
+        FlushMode flushMode = session.getHibernateFlushMode();
+        if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
+            session.setHibernateFlushMode(FlushMode.COMMIT);
+        }
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
         this.scrollMode = scrollMode;
@@ -269,7 +273,7 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public void close() throws IOException {
-        if (session.isOpen() && session.getTransaction().getStatus() == TransactionStatus.ACTIVE) {
+        if (session.isOpen() && session.getTransaction().getStatus().canRollback()) {
             session.getTransaction().rollback();
             throw new IOException("Transaction not closed");
         }
