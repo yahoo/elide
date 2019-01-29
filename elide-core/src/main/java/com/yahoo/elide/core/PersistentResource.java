@@ -1405,16 +1405,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             if (!collection.contains(toAdd.getObject())) {
                 collection.add(toAdd.getObject());
 
-                ChangeSpec changeSpec = new ChangeSpec(this, collectionName, original, collection);
-                boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-                CRUDEvent.CRUDAction action = isNewlyCreated
-                        ? CRUDEvent.CRUDAction.CREATE
-                        : CRUDEvent.CRUDAction.UPDATE;
-
-                requestScope.publishLifecycleEvent(this, collectionName, action, Optional.of(changeSpec));
-                requestScope.publishLifecycleEvent(this, action);
-                auditField(new ChangeSpec(this, collectionName, original, collection));
-
+                triggerUpdate(collectionName, collection, original);
                 return true;
             }
         }
@@ -1473,15 +1464,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         collection.remove(toDelete.getObject());
 
-        ChangeSpec changeSpec = new ChangeSpec(this, collectionName, original, collection);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        CRUDEvent.CRUDAction action = isNewlyCreated
-                ? CRUDEvent.CRUDAction.CREATE
-                : CRUDEvent.CRUDAction.UPDATE;
-
-        requestScope.publishLifecycleEvent(this, collectionName, action, Optional.of(changeSpec));
-        requestScope.publishLifecycleEvent(this, action);
-        auditField(new ChangeSpec(this, collectionName, original, collection));
+        triggerUpdate(collectionName, collection, original);
     }
 
     /**
@@ -1517,17 +1500,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
 
-        // Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
-
-        ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
-        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
-        CRUDEvent.CRUDAction action = isNewlyCreated
-                ? CRUDEvent.CRUDAction.CREATE
-                : CRUDEvent.CRUDAction.UPDATE;
-
-        requestScope.publishLifecycleEvent(this, fieldName, action, Optional.of(changeSpec));
-        requestScope.publishLifecycleEvent(this, action);
-        auditField(new ChangeSpec(this, fieldName, original, value));
+        triggerUpdate(fieldName, value, original);
     }
 
     /**
@@ -1786,6 +1759,21 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             }
         }
         return filteredSet;
+    }
+
+    /**
+     * Queue the @*Update triggers iff this is not a newly created object (otherwise we run @*Create)
+     */
+    private void triggerUpdate(String fieldName, Object value, final Object original) {
+        ChangeSpec changeSpec = new ChangeSpec(this, fieldName, original, value);
+        boolean isNewlyCreated = requestScope.getNewPersistentResources().contains(this);
+        CRUDEvent.CRUDAction action = isNewlyCreated
+                ? CRUDEvent.CRUDAction.CREATE
+                : CRUDEvent.CRUDAction.UPDATE;
+
+        requestScope.publishLifecycleEvent(this, fieldName, action, Optional.of(changeSpec));
+        requestScope.publishLifecycleEvent(this, action);
+        auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
     private static <A extends Annotation> ExpressionResult checkPermission(
