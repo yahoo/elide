@@ -37,10 +37,7 @@ import javax.persistence.Persistence;
  * Supplier of Hibernate 5 Data Store.
  */
 public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataStore> {
-    private static final String JDBC_PREFIX = "jdbc:mysql://localhost:";
-    private static final String JDBC_SUFFIX = "/root?serverTimezone=UTC";
-    private static final String MYSQL_PORT_PROPERTY = "mysql.port";
-    private static final String MYSQL_PORT = "3306";
+    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
 
     @Override
@@ -59,12 +56,11 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
             throw new IllegalStateException(e);
         }
 
-        options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
-        options.put("javax.persistence.jdbc.url", JDBC_PREFIX
-                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
-                                + JDBC_SUFFIX);
+        options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+        options.put("javax.persistence.jdbc.url", JDBC);
         options.put("javax.persistence.jdbc.user", ROOT);
         options.put("javax.persistence.jdbc.password", ROOT);
+        options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
@@ -75,11 +71,10 @@ public class HibernateEntityManagerDataStoreSupplier implements Supplier<DataSto
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL, JDBC_PREFIX
-                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
-                                + JDBC_SUFFIX)
+                        .applySetting(Environment.URL, JDBC)
                         .applySetting(Environment.USER, ROOT)
                         .applySetting(Environment.PASS, ROOT)
+                        .applySetting(Environment.DIALECT, "org.hibernate.dialect.H2Dialect")
                         .build());
 
         try {

@@ -14,6 +14,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -46,7 +49,6 @@ import example.Editor;
 import example.Publisher;
 import example.TestCheckMappings;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -259,7 +261,7 @@ public class LifeCycleTest {
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
         resource.setValueChecked("genre", "boring books");
-        Assert.assertNotNull(resource);
+        assertNotNull(resource);
         verify(book, never()).onCreateBook(scope);
         verify(book, never()).checkPermission(scope);
 
@@ -580,9 +582,9 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
 
-        Assert.assertTrue(book.readPreSecurityInvoked);
-        Assert.assertTrue(book.readPreCommitInvoked);
-        Assert.assertTrue(book.readPostCommitInvoked);
+        assertTrue(book.readPreSecurityInvoked);
+        assertTrue(book.readPreCommitInvoked);
+        assertTrue(book.readPostCommitInvoked);
     }
 
     /**
@@ -640,9 +642,9 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
 
-        Assert.assertTrue(book.updatePreSecurityInvoked);
-        Assert.assertTrue(book.updatePreCommitInvoked);
-        Assert.assertTrue(book.updatePostCommitInvoked);
+        assertTrue(book.updatePreSecurityInvoked);
+        assertTrue(book.updatePreCommitInvoked);
+        assertTrue(book.updatePostCommitInvoked);
     }
 
     /**
@@ -701,9 +703,9 @@ public class LifeCycleTest {
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPostCommitTriggers();
 
-        Assert.assertTrue(book.createPreCommitInvoked);
-        Assert.assertTrue(book.createPostCommitInvoked);
-        Assert.assertTrue(book.createPreCommitInvoked);
+        assertTrue(book.createPreCommitInvoked);
+        assertTrue(book.createPostCommitInvoked);
+        assertTrue(book.createPreCommitInvoked);
     }
 
     /**
@@ -762,9 +764,9 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
         scope.runQueuedPostCommitTriggers();
 
-        Assert.assertTrue(book.deletePreSecurityInvoked);
-        Assert.assertTrue(book.deletePreCommitInvoked);
-        Assert.assertTrue(book.deletePostCommitInvoked);
+        assertTrue(book.deletePreSecurityInvoked);
+        assertTrue(book.deletePreCommitInvoked);
+        assertTrue(book.deletePostCommitInvoked);
     }
 
     /**
@@ -793,7 +795,7 @@ public class LifeCycleTest {
         Publisher publisher = (Publisher) publisherResource.getObject();
 
         /* Only the creat hooks should be triggered */
-        Assert.assertFalse(publisher.isUpdateHookInvoked());
+        assertFalse(publisher.isUpdateHookInvoked());
 
         scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
@@ -804,7 +806,7 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
 
         publisher = (Publisher) publisherResource.getObject();
-        Assert.assertTrue(publisher.isUpdateHookInvoked());
+        assertTrue(publisher.isUpdateHookInvoked());
     }
 
     /**
@@ -834,7 +836,7 @@ public class LifeCycleTest {
         Publisher publisher = (Publisher) publisherResource.getObject();
 
         /* Only the creat hooks should be triggered */
-        Assert.assertFalse(publisher.isUpdateHookInvoked());
+        assertFalse(publisher.isUpdateHookInvoked());
 
         scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
@@ -845,7 +847,7 @@ public class LifeCycleTest {
         scope.runQueuedPreCommitTriggers();
 
         publisher = (Publisher) publisherResource.getObject();
-        Assert.assertTrue(publisher.isUpdateHookInvoked());
+        assertTrue(publisher.isUpdateHookInvoked());
     }
 
     private Elide getElide(DataStore dataStore, EntityDictionary dictionary, AuditLogger auditLogger) {

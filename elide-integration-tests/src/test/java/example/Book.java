@@ -120,8 +120,8 @@ public class Book extends BaseId {
         this.authors = authors;
     }
 
-    // Case sensitive collation for MySQL:
-    @Column(columnDefinition = "varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL")
+    // Case sensitive collation for H2
+    @Column(columnDefinition = "VARCHAR_CASESENSITIVE(255) DEFAULT NULL")
     public String getEditorName() {
         return editorName;
     }
