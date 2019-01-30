@@ -152,6 +152,15 @@ public interface ElideStandaloneSettings {
     }
 
     /**
+     * Whether or not Codahale metrics, healthchecks, thread, ping, and admin servlet
+     * should be enabled.
+     * @return
+     */
+    default boolean enableServiceMonitoring() {
+        return true;
+    }
+
+    /**
      * JAX-RS filters to register with the web service.
      *
      * @return Default: Empty

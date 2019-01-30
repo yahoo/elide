@@ -1,6 +1,10 @@
 # Change Log
+
 ## 4.2.14
 **Features**
+ * Added [Codahale InstrumentedFilter](https://metrics.dropwizard.io/3.1.0/manual/servlet/) & corresponding metrics, threads, admin servlets as a setting option for Elide Standalone.
+
+**Fixes**
  * replaced jcabi-mysql-maven-plugin with H2 for testing
  * Upgrade Failsafe to 2.22.1 in order to run Hibernate 5 tests.  Fixed test failure.
 

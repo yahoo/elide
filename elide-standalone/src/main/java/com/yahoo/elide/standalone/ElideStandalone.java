@@ -7,20 +7,27 @@ package com.yahoo.elide.standalone;
 
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
 
+import com.codahale.metrics.servlet.InstrumentedFilter;
+import com.codahale.metrics.servlets.AdminServlet;
+import com.codahale.metrics.servlets.HealthCheckServlet;
+import com.codahale.metrics.servlets.MetricsServlet;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.EnumSet;
 import java.util.Map;
 
+import javax.servlet.DispatcherType;
 import javax.ws.rs.core.SecurityContext;
 
 @Slf4j
@@ -104,6 +111,20 @@ public class ElideStandalone {
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
+        if (elideStandaloneSettings.enableServiceMonitoring()) {
+            FilterHolder instrumentedFilterHolder = new FilterHolder(InstrumentedFilter.class);
+            instrumentedFilterHolder.setName("instrumentedFilter");
+            instrumentedFilterHolder.setAsyncSupported(true);
+            context.addFilter(instrumentedFilterHolder,
+                    "/*",
+                    EnumSet.of(DispatcherType.REQUEST));
+
+            context.setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, ElideResourceConfig.getHealthCheckRegistry());
+            context.setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, ElideResourceConfig.getMetricRegistry());
+            context.setAttribute(MetricsServlet.METRICS_REGISTRY, ElideResourceConfig.getMetricRegistry());
+            context.addServlet(AdminServlet.class, "/stats/*");
         }
 
         elideStandaloneSettings.updateServletContextHandler(context);

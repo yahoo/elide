@@ -6,6 +6,7 @@
 package com.yahoo.elide.standalone;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasKey;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -20,6 +21,7 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
 
 /**
  * Tests ElideStandalone starts and works
@@ -76,5 +78,24 @@ public class ElideStandaloneTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
+    }
+
+    @Test
+    public void testMetricsServlet() throws Exception {
+        given()
+                .when()
+                .get("/stats/metrics")
+                .then()
+                .statusCode(200)
+                .body("meters", hasKey("com.codahale.metrics.servlet.InstrumentedFilter.responseCodes.ok"));
+    }
+
+    @Test
+    public void testHealthCheckServlet() throws Exception {
+            given()
+                .when()
+                .get("/stats/healthcheck")
+                .then()
+                .statusCode(501); //Returns 'Not Implemented' if there are no Health Checks Registered
     }
 }

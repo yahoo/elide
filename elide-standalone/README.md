@@ -257,6 +257,35 @@ Likewise, you can inject the hk2 `ServiceLocator` if you wish to use injection t
 
 Filters are JAX-RS or Jersey filter classes. These classes can be used for authentication, logging, or any other type of request filtering you may be required to perform.
 
+Some commonly used servlets & filters are packaged as individual settings.  
+
+#### Codahale / Dropwizard InstrumentedFilter Servlet
+
+Codahale/dropwizard has a servlet and a small set of [administrative filters](https://metrics.dropwizard.io/3.1.0/manual/servlet/) for
+exposing Codahale metrics, thread dumps, and system health checks.
+
+These are enabled by default but can be explicitly disabled by overriding `ElideStandaloneSettings`:
+
+```
+    /**
+     * Whether or not Codahale metrics, healthchecks, thread, ping, and admin servlet
+     * should be enabled.
+     * @return
+     */
+    @Override
+    boolean enableServiceMonitoring() {
+        return false;
+    }
+```
+
+The admin endpoint is exposed at `/stats`.
+
+New metrics can be exposed through the servlet path `/stats/metrics` by adding them to the static registry found here:
+```ElideResourceConfig.getMetricRegistry()```
+
+New health checks can be exposed through the servlet path `/stats/healthcheck` by adding them to the static registry found here:
+```ElideResourceConfig.getHealthCheckRegistry()```
+
 ### <a name="additional-config"></a>Additional Configuration
 
 You can add additional configuration by specifying the `applicationConfigurator` method. The class (i.e. the `Consumer`) is fully injectable and will take in the root Jersey `ResourceConfig` for your application.

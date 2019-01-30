@@ -50,6 +50,7 @@
         <jetty.version>9.4.12.v20180830</jetty.version>
         <jersey.version>2.26</jersey.version>
         <logback.version>1.2.3</logback.version>
+        <metrics.version>4.0.5</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -124,6 +125,25 @@
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- Monitoring -->
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-servlets</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-servlet</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
 
         <!-- Various Utility Libraries -->
