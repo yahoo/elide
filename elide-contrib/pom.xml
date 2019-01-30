@@ -77,18 +77,6 @@
                             </configuration>
                         </execution>
                         <execution>
-                            <id>reserve-network-port-pre-integration-test</id>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>reserve-network-port</goal>
-                            </goals>
-                            <configuration>
-                                <portNames>
-                                    <portName>mysql.port</portName>
-                                </portNames>
-                            </configuration>
-                        </execution>
-                        <execution>
                             <id>reserve-network-port-process-test-classes</id>
                             <phase>process-test-classes</phase>
                             <goals>
@@ -107,7 +95,6 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <configuration>
                         <systemPropertyVariables>
-                            <mysql.port>${mysql.port}</mysql.port>
                             <restassured.port>${restassured.port}</restassured.port>
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
                         </systemPropertyVariables>

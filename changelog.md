@@ -1,6 +1,7 @@
 # Change Log
 ## 4.2.14
 **Features**
+ * replaced jcabi-mysql-maven-plugin with H2 for testing
  * Upgrade Failsafe to 2.22.1 in order to run Hibernate 5 tests.  Fixed test failure.
 
 ## 4.2.13
