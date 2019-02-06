@@ -45,6 +45,7 @@
 
     <modules>
         <module>elide-swagger</module>
+        <module>elide-test-helpers</module>
     </modules>
 
     <dependencyManagement>
