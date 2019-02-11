@@ -234,7 +234,7 @@ public class EntityDictionary {
 
         if (checkCls == null) {
             try {
-                checkCls = (Class<? extends Check>) Class.forName(checkIdentifier);
+                checkCls = Class.forName(checkIdentifier).asSubclass(Check.class);
                 try {
                     checkNames.putIfAbsent(checkIdentifier, checkCls);
                 } catch (IllegalArgumentException e) {
