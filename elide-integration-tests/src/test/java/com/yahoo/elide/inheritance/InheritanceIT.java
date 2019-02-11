@@ -1,9 +1,10 @@
-package com.yahoo.elide.inheritance;
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import lombok.extern.slf4j.Slf4j;
-import org.testng.annotations.Test;
+package com.yahoo.elide.inheritance;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
@@ -16,6 +17,12 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import org.testng.annotations.Test;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InheritanceIT extends AbstractIntegrationTestInitializer {
