@@ -542,29 +542,29 @@ public class LifeCycleTest {
 
             @Exclude
             @Transient
-            private boolean readPreSecurityInvoked = false;
+            private int readPreSecurityInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean readPreCommitInvoked = false;
+            private int readPreCommitInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean readPostCommitInvoked = false;
+            private int readPostCommitInvoked = 0;
 
             @OnReadPreSecurity("title")
             public void readPreSecurity(RequestScope scope) {
-                readPreSecurityInvoked = true;
+                readPreSecurityInvoked++;
             }
 
             @OnReadPreCommit("title")
             public void readPreCommit(RequestScope scope) {
-                readPreCommitInvoked = true;
+                readPreCommitInvoked++;
             }
 
-            @OnReadPreCommit("title")
+            @OnReadPostCommit("title")
             public void readPostCommit(RequestScope scope) {
-                readPostCommitInvoked = true;
+                readPostCommitInvoked++;
             }
         }
 
@@ -579,12 +579,15 @@ public class LifeCycleTest {
 
         resource.getAttribute("title");
 
+        assertEquals(book.readPreSecurityInvoked, 1);
+        assertEquals(book.readPreCommitInvoked, 0);
         scope.runQueuedPreCommitTriggers();
+        assertEquals(book.readPreCommitInvoked, 1);
+        assertEquals(book.readPostCommitInvoked, 0);
         scope.runQueuedPostCommitTriggers();
-
-        assertTrue(book.readPreSecurityInvoked);
-        assertTrue(book.readPreCommitInvoked);
-        assertTrue(book.readPostCommitInvoked);
+        assertEquals(book.readPreSecurityInvoked, 1);
+        assertEquals(book.readPreCommitInvoked, 1);
+        assertEquals(book.readPostCommitInvoked, 1);
     }
 
     /**
@@ -602,29 +605,29 @@ public class LifeCycleTest {
 
             @Exclude
             @Transient
-            private boolean updatePreSecurityInvoked = false;
+            private int updatePreSecurityInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean updatePreCommitInvoked = false;
+            private int updatePreCommitInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean updatePostCommitInvoked = false;
+            private int updatePostCommitInvoked = 0;
 
             @OnUpdatePreSecurity("title")
             public void updatePreSecurity(RequestScope scope) {
-                updatePreSecurityInvoked = true;
+                updatePreSecurityInvoked++;
             }
 
             @OnUpdatePreCommit("title")
             public void updatePreCommit(RequestScope scope) {
-                updatePreCommitInvoked = true;
+                updatePreCommitInvoked++;
             }
 
-            @OnUpdatePreCommit("title")
+            @OnUpdatePostCommit("title")
             public void updatePostCommit(RequestScope scope) {
-                updatePostCommitInvoked = true;
+                updatePostCommitInvoked++;
             }
         }
 
@@ -639,12 +642,15 @@ public class LifeCycleTest {
 
         resource.updateAttribute("title", "foo");
 
+        assertEquals(book.updatePreSecurityInvoked, 1);
+        assertEquals(book.updatePreCommitInvoked, 0);
         scope.runQueuedPreCommitTriggers();
+        assertEquals(book.updatePreCommitInvoked, 1);
+        assertEquals(book.updatePostCommitInvoked, 0);
         scope.runQueuedPostCommitTriggers();
-
-        assertTrue(book.updatePreSecurityInvoked);
-        assertTrue(book.updatePreCommitInvoked);
-        assertTrue(book.updatePostCommitInvoked);
+        assertEquals(book.updatePreSecurityInvoked, 1);
+        assertEquals(book.updatePreCommitInvoked, 1);
+        assertEquals(book.updatePostCommitInvoked, 1);
     }
 
     /**
@@ -662,29 +668,29 @@ public class LifeCycleTest {
 
             @Exclude
             @Transient
-            private boolean createPreCommitInvoked = false;
+            private int createPreCommitInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean createPostCommitInvoked = false;
+            private int createPostCommitInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean createPreSecurityInvoked = false;
+            private int createPreSecurityInvoked = 0;
 
-            @OnCreatePreCommit("title")
+            @OnCreatePreSecurity
             public void createPreSecurity(RequestScope scope) {
-                createPreSecurityInvoked = true;
+                createPreSecurityInvoked++;
             }
 
             @OnCreatePreCommit("title")
             public void createPreCommit(RequestScope scope) {
-                createPreCommitInvoked = true;
+                createPreCommitInvoked++;
             }
 
-            @OnCreatePreCommit("title")
+            @OnCreatePostCommit("title")
             public void createPostCommit(RequestScope scope) {
-                createPostCommitInvoked = true;
+                createPostCommitInvoked++;
             }
         }
 
@@ -699,13 +705,17 @@ public class LifeCycleTest {
         PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 
-        scope.runQueuedPreCommitTriggers();
+        assertEquals(book.createPreSecurityInvoked, 0);
         scope.runQueuedPreSecurityTriggers();
+        assertEquals(book.createPreSecurityInvoked, 1);
+        assertEquals(book.createPreCommitInvoked, 0);
+        scope.runQueuedPreCommitTriggers();
+        assertEquals(book.createPreCommitInvoked, 1);
+        assertEquals(book.createPostCommitInvoked, 0);
         scope.runQueuedPostCommitTriggers();
-
-        assertTrue(book.createPreCommitInvoked);
-        assertTrue(book.createPostCommitInvoked);
-        assertTrue(book.createPreCommitInvoked);
+        assertEquals(book.createPreSecurityInvoked, 1);
+        assertEquals(book.createPreCommitInvoked, 1);
+        assertEquals(book.createPostCommitInvoked, 1);
     }
 
     /**
@@ -723,29 +733,29 @@ public class LifeCycleTest {
 
             @Exclude
             @Transient
-            private boolean deletePreSecurityInvoked = false;
+            private int deletePreSecurityInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean deletePreCommitInvoked = false;
+            private int deletePreCommitInvoked = 0;
 
             @Exclude
             @Transient
-            private boolean deletePostCommitInvoked = false;
+            private int deletePostCommitInvoked = 0;
 
             @OnDeletePreSecurity
             public void deletePreSecurity(RequestScope scope) {
-                deletePreSecurityInvoked = true;
+                deletePreSecurityInvoked++;
             }
 
             @OnDeletePreCommit
             public void deletePreCommit(RequestScope scope) {
-                deletePreCommitInvoked = true;
+                deletePreCommitInvoked++;
             }
 
-            @OnDeletePreCommit
+            @OnDeletePostCommit
             public void deletePostCommit(RequestScope scope) {
-                deletePostCommitInvoked = true;
+                deletePostCommitInvoked++;
             }
         }
 
@@ -761,12 +771,15 @@ public class LifeCycleTest {
 
         resource.deleteResource();
 
+        assertEquals(book.deletePreSecurityInvoked, 1);
+        assertEquals(book.deletePreCommitInvoked, 0);
         scope.runQueuedPreCommitTriggers();
+        assertEquals(book.deletePreCommitInvoked, 1);
+        assertEquals(book.deletePostCommitInvoked, 0);
         scope.runQueuedPostCommitTriggers();
-
-        assertTrue(book.deletePreSecurityInvoked);
-        assertTrue(book.deletePreCommitInvoked);
-        assertTrue(book.deletePostCommitInvoked);
+        assertEquals(book.deletePreSecurityInvoked, 1);
+        assertEquals(book.deletePreCommitInvoked, 1);
+        assertEquals(book.deletePostCommitInvoked, 1);
     }
 
     /**
