@@ -263,7 +263,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getParameterizedType(Parent.class, "children"), Child.class,
             "getParameterizedType returns the type of relationship fields");
 
-        Assert.assertEquals(getParameterizedType(Manager.class, "reports"), Employee.class,
+        Assert.assertEquals(getParameterizedType(Manager.class, "minions"), Employee.class,
             "getParameterizedType returns the correct generic type of a to-many relationship");
     }
 
@@ -392,10 +392,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         Assert.assertEquals(getType(Friend.class, "name"), String.class,
                 "getType returns the type of attribute when defined in a super class");
 
-        Assert.assertEquals(getType(Manager.class, "boss"), Manager.class,
+        Assert.assertEquals(getType(Employee.class, "boss"), Manager.class,
             "getType returns the correct generic type of a to-one relationship");
 
-        Assert.assertEquals(getType(Manager.class, "reports"), Set.class,
+        Assert.assertEquals(getType(Manager.class, "minions"), Set.class,
             "getType returns the correct generic type of a to-many relationship");
     }
 

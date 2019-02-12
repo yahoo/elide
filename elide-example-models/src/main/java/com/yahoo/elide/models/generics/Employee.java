@@ -7,7 +7,6 @@
 package com.yahoo.elide.models.generics;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.models.BaseId;
 
 import javax.persistence.Entity;
 
@@ -16,5 +15,5 @@ import javax.persistence.Entity;
  */
 @Include(rootLevel = true)
 @Entity
-public class Employee extends BaseId {
+public class Employee extends Peon<Manager> {
 }

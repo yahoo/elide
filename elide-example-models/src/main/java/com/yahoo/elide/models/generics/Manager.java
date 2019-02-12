@@ -15,5 +15,5 @@ import javax.persistence.Entity;
  */
 @Include(rootLevel = true)
 @Entity
-public class Manager extends Person<Manager, Employee> {
+public class Manager extends Overlord<Employee> {
 }

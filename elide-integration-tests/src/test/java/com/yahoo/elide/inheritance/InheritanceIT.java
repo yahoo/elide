@@ -15,8 +15,8 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.contains;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
@@ -26,50 +26,55 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InheritanceIT extends AbstractIntegrationTestInitializer {
+
+    static {
+        System.out.println(InheritanceIT.class.getResource("/" + "com/yahoo/elide/models/generics/Person.class"));
+    }
+
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @Test
     public void testEmployeeHierarchy() {
 
-        //Create Employee (ID 1)
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                    data(
-                        resource(
-                            type("employee"),
-                                id(null)
-                        )
-                    )
-                )
-                .post("/employee")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("1"));
-
-        //Create MiddleManager (ID 1)
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                    data(
-                        resource(
-                            type("manager"),
-                            id(null),
-                            attributes(),
-                            relationships(
-                                relation("reports",
-                                    linkage(type("employee"),  id("1"))
+                        data(
+                                resource(
+                                        type("manager"),
+                                        id(null)
                                 )
-                            )
                         )
-                    )
                 )
                 .post("/manager")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("data.id", equalTo("1"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("employee"),
+                                        id(null),
+                                        attributes(),
+                                        relationships(
+                                                relation("boss",
+                                                        linkage(type("manager"), id("1"))
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .post("/manager/1/minions")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("1"),
+                        "data.relationships.boss.data.id", equalTo("1")
+                );
 
         given()
                 .contentType("application/vnd.api+json")
@@ -78,8 +83,9 @@ public class InheritanceIT extends AbstractIntegrationTestInitializer {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data.id", equalTo("1"),
-                    "data.relationships.reports.data.id", contains("1"),
-                        "data.relationships.reports.data.type", contains("employee")
+                    "data.relationships.minions.data.id", contains("1"),
+                        "data.relationships.minions.data.type", contains("employee")
                 );
     }
 }
+

@@ -8,23 +8,17 @@ package com.yahoo.elide.models.generics;
 
 import com.yahoo.elide.models.BaseId;
 
-import java.util.Set;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 
 /**
  * Parameterized base class for testing.
- * @param <T> Boss type
- * @param <S> Underling type
+ * @param <T> Boss Type
  */
 @MappedSuperclass
-public class Person<T, S> extends BaseId {
+public class Peon<T> extends BaseId {
 
     @OneToOne
     private T boss;
-
-    @OneToMany
-    private Set<S> reports;
 }
