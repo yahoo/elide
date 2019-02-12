@@ -27,10 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InheritanceIT extends AbstractIntegrationTestInitializer {
 
-    static {
-        System.out.println(InheritanceIT.class.getResource("/" + "com/yahoo/elide/models/generics/Person.class"));
-    }
-
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @Test
