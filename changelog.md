@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.3.0
+**Features**
+ * Use SecurityContext as default User object
+
 ## 4.2.14
 **Features**
  * Added [Codahale InstrumentedFilter](https://metrics.dropwizard.io/3.1.0/manual/servlet/) & corresponding metrics, threads, admin servlets as a setting option for Elide Standalone.

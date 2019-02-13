@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -68,6 +68,7 @@ public class GraphQLEndpoint {
     private static final String OPERATION_NAME = "operationName";
     private static final String VARIABLES = "variables";
     private static final String MUTATION = "mutation";
+    private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
     @Inject
     public GraphQLEndpoint(
@@ -76,7 +77,7 @@ public class GraphQLEndpoint {
         log.error("Started ~~");
         this.elide = elide;
         this.elideSettings = elide.getElideSettings();
-        this.getUser = getUser;
+        this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
