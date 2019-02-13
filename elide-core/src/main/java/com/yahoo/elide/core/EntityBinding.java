@@ -30,6 +30,7 @@ import com.google.common.base.Throwables;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Getter;
@@ -41,12 +42,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
@@ -180,7 +184,7 @@ public class EntityBinding {
     }
 
     /**
-     * Filters a list of class Members to instance methods & fields
+     * Filters a list of class Members to instance methods & fields.
      *
      * @param objects
      * @param <T>
@@ -191,7 +195,7 @@ public class EntityBinding {
     }
 
     /**
-     * Filters a list of class Members to instance methods & fields
+     * Filters a list of class Members to instance methods & fields.
      *
      * @param objects    The list of Members to filter
      * @param <T>        Concrete Member Type
@@ -206,7 +210,7 @@ public class EntityBinding {
     }
 
     /**
-     * Get all fields of the entity class, including fields of superclasses (excluding Object)
+     * Get all fields of the entity class, including fields of superclasses (excluding Object).
      * @return All fields of the EntityBindings entity class and all superclasses (excluding Object)
      */
     public List<AccessibleObject> getAllFields() {
@@ -274,7 +278,7 @@ public class EntityBinding {
      */
     private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(fieldOrMethod);
+        Class<?> fieldType = getFieldType(cls, fieldOrMethod);
 
         //Add id field to type map for the entity
         fieldsToTypes.put(fieldName, fieldType);
@@ -313,7 +317,7 @@ public class EntityBinding {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(fieldOrMethod);
+        Class<?> fieldType = getFieldType(entityClass, fieldOrMethod);
 
         if (fieldName == null || "id".equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
@@ -428,16 +432,42 @@ public class EntityBinding {
     }
 
     /**
-     * Returns type of field whether public member or method.
+     * Returns type of field whether member or method.
      *
+     * @param parentClass The class which owns the given field or method
      * @param fieldOrMethod field or method
      * @return field type
      */
-    private static Class<?> getFieldType(AccessibleObject fieldOrMethod) {
+    public static Class<?> getFieldType(Class<?> parentClass,
+                                         AccessibleObject fieldOrMethod) {
+        return getFieldType(parentClass, fieldOrMethod, Optional.empty());
+    }
+
+    /**
+     * Returns type of field whether member or method.
+     *
+     * @param parentClass The class which owns the given field or method
+     * @param fieldOrMethod field or method
+     * @param index Optional parameter index for parameterized types that take one or more parameters.  If
+     *              an index is provided, the type returned is the parameter type.  Otherwise it is the
+     *              parameterized type.
+     * @return field type
+     */
+    public static Class<?> getFieldType(Class<?> parentClass,
+                                         AccessibleObject fieldOrMethod,
+                                         Optional<Integer> index) {
+        Type type;
         if (fieldOrMethod instanceof Field) {
-            return ((Field) fieldOrMethod).getType();
+            type = ((Field) fieldOrMethod).getGenericType();
+        } else {
+            type = ((Method) fieldOrMethod).getGenericReturnType();
         }
-        return ((Method) fieldOrMethod).getReturnType();
+
+        if (type instanceof ParameterizedType && index.isPresent()) {
+            type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
+        }
+
+        return TypeUtils.getRawType(type, parentClass);
     }
 
     private void bindTriggerIfPresent(Class<? extends Annotation> annotationClass, AccessibleObject fieldOrMethod) {

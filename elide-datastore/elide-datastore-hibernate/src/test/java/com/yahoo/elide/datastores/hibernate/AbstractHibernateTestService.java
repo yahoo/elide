@@ -32,10 +32,11 @@ public abstract class AbstractHibernateTestService {
         if (dataStore == null) {
             try {
                 final String dataStoreSupplierName = System.getProperty("dataStoreSupplier");
+                @SuppressWarnings("unchecked")
                 Supplier<DataStore> dataStoreSupplier =
-                        (Supplier<DataStore>) Class.forName(dataStoreSupplierName).newInstance();
+                        Class.forName(dataStoreSupplierName).asSubclass(Supplier.class).newInstance();
                 dataStore = dataStoreSupplier.get();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException e) {
                 throw new IllegalStateException(e);
             }
         }

@@ -80,7 +80,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
     }
 
     /**
-     * Converts FieldExpressionPath value to corresponding list of Predicates
+     * Converts FieldExpressionPath value to corresponding list of Predicates.
      *
      * @param type         entity
      * @param requestScope request scope

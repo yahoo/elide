@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.utils.ClassScanner;
 
 import example.Filtered;
@@ -50,6 +51,8 @@ public class HibernateDataStoreSupplier implements Supplier<DataStore> {
 
         try {
             ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new RuntimeException(e);

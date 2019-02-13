@@ -1,4 +1,11 @@
 # Change Log
+## 4.2.15
+**Fixes**
+ * Issue#733
+
+**Features**
+ * New elide-example-models package
+ * New elide-test-helpers package
 
 ## 4.2.14
 **Features**
