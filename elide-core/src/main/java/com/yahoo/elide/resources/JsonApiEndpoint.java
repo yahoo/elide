@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -38,11 +38,13 @@ public class JsonApiEndpoint {
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 
+    private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
+
     @Inject
     public JsonApiEndpoint(@Named("elide") Elide elide,
                            @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
         this.elide = elide;
-        this.getUser = getUser == null ? v -> null : getUser;
+        this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;
     }
 
     /**
