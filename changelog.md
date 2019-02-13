@@ -1,14 +1,11 @@
 # Change Log
-## 4.2.15
+## 4.3.00
 **Fixes**
  * Issue#733
 
 **Features**
  * New elide-example-models package
  * New elide-test-helpers package
-
-## 4.3.0
-**Features**
  * Use SecurityContext as default User object
 
 ## 4.2.14
