@@ -16,7 +16,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>4.2.15-SNAPSHOT</version>
+        <version>4.3.0-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.2.15-SNAPSHOT</version>
+            <version>4.3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>javax.persistence</groupId>
