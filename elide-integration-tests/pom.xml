@@ -25,7 +25,7 @@
     </licenses>
 
     <properties>
-        <elide.version>4.2.15-SNAPSHOT</elide.version>
+        <elide.version>4.3.0-SNAPSHOT</elide.version>
     </properties>
 
     <dependencies>
