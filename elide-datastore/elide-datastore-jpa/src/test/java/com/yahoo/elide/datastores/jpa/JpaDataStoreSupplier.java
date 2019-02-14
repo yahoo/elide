@@ -8,8 +8,9 @@ package com.yahoo.elide.datastores.jpa;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.utils.ClassScanner;
+
 import example.Parent;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.MappingException;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -20,24 +21,24 @@ import org.hibernate.jpa.HibernateEntityManager;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
 /**
  * Supplier of Hibernate 5 Data Store.
  */
 @Slf4j
 public class JpaDataStoreSupplier implements Supplier<DataStore> {
-    private static final String JDBC_PREFIX = "jdbc:mysql://localhost:";
-    private static final String JDBC_SUFFIX = "/root?serverTimezone=UTC";
-    private static final String MYSQL_PORT_PROPERTY = "mysql.port";
-    private static final String MYSQL_PORT = "3306";
+    private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
 
     @Override
@@ -51,12 +52,11 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
             throw new IllegalStateException(e);
         }
 
-        options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
-        options.put("javax.persistence.jdbc.url", JDBC_PREFIX
-                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
-                                + JDBC_SUFFIX);
+        options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+        options.put("javax.persistence.jdbc.url", JDBC);
         options.put("javax.persistence.jdbc.user", ROOT);
         options.put("javax.persistence.jdbc.password", ROOT);
+        options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
@@ -67,11 +67,10 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
                 new StandardServiceRegistryBuilder()
                         .configure("hibernate.cfg.xml")
                         .applySetting(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread")
-                        .applySetting(Environment.URL, JDBC_PREFIX
-                                + System.getProperty(MYSQL_PORT_PROPERTY, MYSQL_PORT)
-                                + JDBC_SUFFIX)
+                        .applySetting(Environment.URL, JDBC)
                         .applySetting(Environment.USER, ROOT)
                         .applySetting(Environment.PASS, ROOT)
+                        .applySetting(Environment.DIALECT, "org.hibernate.dialect.H2Dialect")
                         .build());
 
         try {

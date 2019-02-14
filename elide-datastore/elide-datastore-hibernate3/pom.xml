@@ -40,7 +40,6 @@
 
     <properties>
         <dataStoreSupplier>com.yahoo.elide.datastores.hibernate3.HibernateDataStoreSupplier</dataStoreSupplier>
-        <hibernate3.version>3.6.10.Final</hibernate3.version>
     </properties>
 
     <dependencies>

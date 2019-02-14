@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+
 import org.testng.annotations.Test;
 
 import lombok.extern.slf4j.Slf4j;

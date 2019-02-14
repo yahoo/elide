@@ -14,18 +14,21 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.hibernate.hql.*;
+import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
+import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
+import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import com.yahoo.elide.security.User;
+
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
-import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -33,6 +36,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.function.Predicate;
+
+import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
+import javax.persistence.NoResultException;
 
 /**
  * Base JPA transaction implementation class.

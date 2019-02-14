@@ -22,8 +22,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "noread")
 public class NoReadEntity extends BaseId {
-    public String field;
+    private String field;
 
     @OneToOne(fetch = FetchType.LAZY)
-    public Child child;
+    private Child child;
 }
