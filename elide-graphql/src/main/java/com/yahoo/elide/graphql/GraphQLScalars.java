@@ -42,7 +42,7 @@ public class GraphQLScalars {
                 public Date parseValue(Object o) {
                     Serde<Object, Date> dateSerde = CoerceUtil.lookup(Date.class);
 
-                    return dateSerde.deserialize((Object) o);
+                    return dateSerde.deserialize(o);
                 }
 
                 @Override
