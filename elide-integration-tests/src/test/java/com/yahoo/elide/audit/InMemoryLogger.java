@@ -8,15 +8,16 @@ package com.yahoo.elide.audit;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import com.google.common.collect.Sets;
 
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * Audit logger that stores messages in memory.
  */
 public class InMemoryLogger extends AuditLogger {
-    public final ConcurrentHashSet<String> logMessages = new ConcurrentHashSet<>();
+    public final Set<String> logMessages = Sets.newConcurrentHashSet();
 
     @Override
     public void commit(RequestScope requestScope) throws IOException {

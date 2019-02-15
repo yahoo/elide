@@ -65,8 +65,6 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
     @Override
     public void save(Object object, RequestScope scope) {
-        EntityDictionary dictionary = scope.getDictionary();
-
         deferredTasks.add(() -> {
             if (!em.contains(object)) {
                 em.merge(object);
@@ -89,10 +87,12 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         } catch (Exception e) {
             try {
                 rollback();
+            } catch (RuntimeException e2) {
+                e.addSuppressed(e2);
             } finally {
                 log.error("Caught entity manager exception during flush", e);
-                throw new TransactionException(e);
             }
+            throw new TransactionException(e);
         }
     }
 
@@ -209,7 +209,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
         if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
+            Collection<?> filteredVal = (Collection<?>) val;
             if (IS_PERSISTENT_COLLECTION.test(filteredVal)) {
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 

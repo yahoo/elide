@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.jpa.usertypes;
 
+import com.yahoo.elide.core.exceptions.InvalidValueException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,11 +30,11 @@ public class JsonConverter<T> implements AttributeConverter<T, String> {
     }
 
     @Override
-    public String convertToDatabaseColumn(Object value) {
+    public String convertToDatabaseColumn(T value) {
         try {
             return MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Unable to serialize", e);
+            throw new InvalidValueException("Unable to serialize", e);
         }
     }
 
@@ -41,7 +43,7 @@ public class JsonConverter<T> implements AttributeConverter<T, String> {
         try {
             return MAPPER.readValue(rawJson, objectClass);
         } catch (IOException e) {
-            throw new RuntimeException("Unable to deserialize", e);
+            throw new InvalidValueException("Unable to deserialize", e);
         }
     }
 }

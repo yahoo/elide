@@ -30,7 +30,7 @@ public class JpaDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
             try {
-                Class mappedClass = type.getJavaType();
+                Class<?> mappedClass = type.getJavaType();
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);

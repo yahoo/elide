@@ -17,11 +17,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.AvailableSettings;
-import org.hibernate.jpa.HibernateEntityManager;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
-
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -30,13 +27,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 /**
  * Supplier of Hibernate 5 Data Store.
  */
-@Slf4j
 public class JpaDataStoreSupplier implements Supplier<DataStore> {
     private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
@@ -44,7 +41,7 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
     @Override
     public DataStore get() {
         Map<String, Object> options = new HashMap<>();
-        ArrayList<Class> bindClasses = new ArrayList<>();
+        ArrayList<Class<?>> bindClasses = new ArrayList<>();
 
         try {
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
@@ -60,7 +57,7 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
-        HibernateEntityManager em = (HibernateEntityManager) emf.createEntityManager();
+        EntityManager em = emf.createEntityManager();
 
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(

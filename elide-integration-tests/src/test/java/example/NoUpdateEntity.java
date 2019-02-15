@@ -23,6 +23,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "noupdate")
 public class NoUpdateEntity extends BaseId {
-    @OneToMany()
-    private Set<Child> children;
+    @OneToMany
+    protected Set<Child> children;
 }
