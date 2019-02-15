@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.Elide.HandlerResult;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;

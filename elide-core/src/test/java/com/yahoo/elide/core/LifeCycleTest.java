@@ -8,6 +8,7 @@ package com.yahoo.elide.core;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -73,6 +74,7 @@ public class LifeCycleTest {
     private MockCallback callback;
     private MockCallback onUpdateDeferredCallback;
     private MockCallback onUpdateImmediateCallback;
+    private MockCallback onUpdatePostCommitCallback;
 
 
     public class MockCallback<T> implements LifeCycleHook<T> {
@@ -102,6 +104,7 @@ public class LifeCycleTest {
         callback = mock(MockCallback.class);
         onUpdateDeferredCallback = mock(MockCallback.class);
         onUpdateImmediateCallback = mock(MockCallback.class);
+        onUpdatePostCommitCallback = mock(MockCallback.class);
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -121,6 +124,7 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, "title", callback);
         dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
+        dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
     }
 
     @Test
@@ -353,6 +357,17 @@ public class LifeCycleTest {
                 false);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, never()).onUpdateGenre(any(RequestScope.class), isNull());
+        verify(book, never()).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(book, never()).checkPermission(scope);
+
         //Verify changeSpec is passed to hooks
         resource.setValueChecked("genre", "new genre");
 
@@ -395,6 +410,80 @@ public class LifeCycleTest {
         verify(book, times(1)).alwaysOnUpdate();
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+    }
+
+    @Test
+    public void testMultipleUpdateWithChangeSpec() {
+        Book book = mock(Book.class);
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null,
+                getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
+
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, never()).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, never()).onUpdateGenre(any(RequestScope.class), isNull());
+        verify(book, never()).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(book, never()).checkPermission(scope);
+
+        // Verify changeSpec is passed to hooks
+        resource.setValueChecked("genre", "new genre");
+        resource.setValueChecked("title", "new title");
+
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, never()).onUpdateGenre(any(RequestScope.class), isNull());
+        verify(book, times(1)).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(book, times(2)).checkPermission(scope);
+
+        scope.runQueuedPreSecurityTriggers();
+        verify(book, never()).onCreateBook(scope);
+        verify(book, never()).onDeleteBook(scope);
+        verify(book, times(1)).onUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).preRead(scope);
+        verify(book, never()).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(book, times(2)).checkPermission(scope);
+
+        scope.runQueuedPreCommitTriggers();
+        verify(book, never()).preCreateBook(scope);
+        verify(book, never()).preDeleteBook(scope);
+        verify(book, times(1)).preUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(book, times(2)).checkPermission(scope);
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(book, times(2)).checkPermission(scope);
+
+        scope.runQueuedPostCommitTriggers();
+        verify(book, never()).postCreateBook(scope);
+        verify(book, never()).postDeleteBook(scope);
+        verify(book, times(1)).postUpdateGenre(any(RequestScope.class), any(ChangeSpec.class));
+        verify(book, times(1)).postRead(scope);
+        verify(book, times(1)).alwaysOnUpdate();
+        verify(onUpdateDeferredCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
     }
 
     @Test

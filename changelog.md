@@ -1,5 +1,9 @@
 # Change Log
-## 4.3.00
+## 4.3.1
+**Fixes**
+ * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
+
+## 4.3.0
 **Fixes**
  * Issue#733
 
