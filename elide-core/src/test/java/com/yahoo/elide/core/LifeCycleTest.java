@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -44,6 +45,8 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
+import com.google.common.collect.Sets;
+
 import example.Author;
 import example.Book;
 import example.Editor;
@@ -75,6 +78,7 @@ public class LifeCycleTest {
     private MockCallback onUpdateDeferredCallback;
     private MockCallback onUpdateImmediateCallback;
     private MockCallback onUpdatePostCommitCallback;
+    private MockCallback onUpdatePostCommitAuthor;
 
 
     public class MockCallback<T> implements LifeCycleHook<T> {
@@ -105,6 +109,7 @@ public class LifeCycleTest {
         onUpdateDeferredCallback = mock(MockCallback.class);
         onUpdateImmediateCallback = mock(MockCallback.class);
         onUpdatePostCommitCallback = mock(MockCallback.class);
+        onUpdatePostCommitAuthor = mock(MockCallback.class);
         dictionary = new TestEntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -125,6 +130,7 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePreCommit.class, onUpdateDeferredCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
+        dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
     }
 
     @Test
@@ -217,6 +223,8 @@ public class LifeCycleTest {
         verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(tx).accessUser(any());
         verify(tx).preCommit();
 
@@ -346,10 +354,16 @@ public class LifeCycleTest {
         verify(book, times(1)).alwaysOnUpdate();
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+
+        // verify no empty callbacks
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), any());
     }
 
     @Test
     public void testUpdateWithChangeSpec() {
+        clearInvocations(onUpdatePostCommitAuthor);
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
@@ -410,6 +424,14 @@ public class LifeCycleTest {
         verify(book, times(1)).alwaysOnUpdate();
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(isA(Author.class), isA(RequestScope.class), any());
+
+        // verify no empty callbacks
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
     }
 
     @Test
@@ -457,7 +479,6 @@ public class LifeCycleTest {
         verify(book, never()).alwaysOnUpdate();
         verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
         verify(book, times(2)).checkPermission(scope);
 
@@ -483,7 +504,60 @@ public class LifeCycleTest {
         verify(onUpdateDeferredCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdatePostCommitCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
+
+        // verify no empty callbacks
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), any());
+    }
+
+    @Test
+    public void testUpdateRelationshipWithChangeSpec() {
+        Book book = new Book();
+        Author author = new Author();
+        book.setAuthors(Sets.newHashSet(author));
+        author.setBooks(Sets.newHashSet(book));
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(author), eq("books"), any(), any(), any(), any())).then((i) -> author.getBooks());
+        when(tx.getRelation(any(), eq(book), eq("authors"), any(), any(), any(), any())).then((i) -> book.getAuthors());
+
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
+                false);
+        PersistentResource<Author> resourceBook = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
+        PersistentResource<Author> resourceAuthor = new PersistentResource(author, null, scope.getUUIDFor(book), scope);
+
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(eq(book), isA(RequestScope.class), any());
+
+        //Verify changeSpec is passed to hooks
+        resourceAuthor.removeRelation("books", resourceBook);
+
+        scope.runQueuedPreSecurityTriggers();
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(eq(book), isA(RequestScope.class), any());
+
+        scope.runQueuedPreCommitTriggers();
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(eq(book), isA(RequestScope.class), any());
+
+        scope.getPermissionExecutor().executeCommitChecks();
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(eq(book), isA(RequestScope.class), any());
+
+        scope.runQueuedPostCommitTriggers();
+        verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, times(1)).execute(eq(author), isA(RequestScope.class), any());
+
+        // verify no empty callbacks
+        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitAuthor, never()).execute(eq(author), isA(RequestScope.class), eq(Optional.empty()));
     }
 
     @Test
