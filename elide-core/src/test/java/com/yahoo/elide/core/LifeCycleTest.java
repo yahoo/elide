@@ -53,6 +53,7 @@ import example.Editor;
 import example.Publisher;
 import example.TestCheckMappings;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -131,6 +132,11 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Book.class, OnUpdatePreSecurity.class, onUpdateImmediateCallback, true);
         dictionary.bindTrigger(Book.class, OnUpdatePostCommit.class, onUpdatePostCommitCallback, true);
         dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
+    }
+
+    @BeforeMethod
+    public void clearMocks() {
+        clearInvocations(onUpdatePostCommitAuthor, onUpdateImmediateCallback, onUpdatePostCommitCallback, onUpdatePostCommitAuthor);
     }
 
     @Test
@@ -363,7 +369,6 @@ public class LifeCycleTest {
 
     @Test
     public void testUpdateWithChangeSpec() {
-        clearInvocations(onUpdatePostCommitAuthor);
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
