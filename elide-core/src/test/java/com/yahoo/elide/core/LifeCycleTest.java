@@ -360,11 +360,10 @@ public class LifeCycleTest {
         verify(book, times(1)).alwaysOnUpdate();
         verify(onUpdateDeferredCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
+        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), any());
 
         // verify no empty callbacks
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), any());
+        verifyNoEmptyCallbacks();
     }
 
     @Test
@@ -433,10 +432,7 @@ public class LifeCycleTest {
         verify(onUpdatePostCommitAuthor, never()).execute(isA(Author.class), isA(RequestScope.class), any());
 
         // verify no empty callbacks
-        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
+        verifyNoEmptyCallbacks();
     }
 
     @Test
@@ -509,12 +505,9 @@ public class LifeCycleTest {
         verify(onUpdateDeferredCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdateImmediateCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdatePostCommitCallback, times(2)).execute(eq(book), isA(RequestScope.class), any());
-
-        // verify no empty callbacks
-        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
         verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), any());
+
+        verifyNoEmptyCallbacks();
     }
 
     @Test
@@ -558,11 +551,7 @@ public class LifeCycleTest {
         verify(onUpdatePostCommitCallback, times(1)).execute(eq(book), isA(RequestScope.class), any());
         verify(onUpdatePostCommitAuthor, times(1)).execute(eq(author), isA(RequestScope.class), any());
 
-        // verify no empty callbacks
-        verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
-        verify(onUpdatePostCommitAuthor, never()).execute(eq(author), isA(RequestScope.class), eq(Optional.empty()));
+        verifyNoEmptyCallbacks();
     }
 
     @Test
@@ -1040,5 +1029,12 @@ public class LifeCycleTest {
                 .withEntityDictionary(dictionary)
                 .withAuditLogger(auditLogger)
                 .build();
+    }
+
+    private void verifyNoEmptyCallbacks() {
+        verify(onUpdateDeferredCallback, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdateImmediateCallback, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitCallback, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
+        verify(onUpdatePostCommitAuthor, never()).execute(any(), isA(RequestScope.class), eq(Optional.empty()));
     }
 }
