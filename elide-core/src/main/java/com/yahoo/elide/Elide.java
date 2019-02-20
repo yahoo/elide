@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.Elide.HandlerResult;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -229,7 +228,7 @@ public class Elide {
 
         } catch (JsonPatchExtensionException e) {
             log.debug("JSON patch extension exception caught", e);
-            return buildResponse(e.getResponse());
+            return buildErrorResponse(e, isVerbose);
 
         } catch (HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);

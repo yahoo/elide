@@ -23,4 +23,14 @@ public class JsonPatchExtensionException extends HttpStatusException {
     public Pair<Integer, JsonNode> getResponse() {
         return response;
     }
+
+    @Override
+    final public Pair<Integer, JsonNode> getErrorResponse() {
+        return response;
+    }
+
+    @Override
+    final public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+        return response;
+    }
 }
