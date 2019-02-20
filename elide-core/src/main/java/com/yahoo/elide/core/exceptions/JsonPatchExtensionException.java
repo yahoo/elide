@@ -20,17 +20,21 @@ public class JsonPatchExtensionException extends HttpStatusException {
         response = Pair.of(status, errorNode);
     }
 
+    /**
+     * @deprecated use {@link #getErrorResponse()}
+     */
+    @Deprecated
     public Pair<Integer, JsonNode> getResponse() {
         return response;
     }
 
     @Override
-    final public Pair<Integer, JsonNode> getErrorResponse() {
+    public Pair<Integer, JsonNode> getErrorResponse() {
         return response;
     }
 
     @Override
-    final public Pair<Integer, JsonNode> getVerboseErrorResponse() {
+    public Pair<Integer, JsonNode> getVerboseErrorResponse() {
         return response;
     }
 }
