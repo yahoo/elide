@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.initialization;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
@@ -12,11 +14,13 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.models.triggers.services.BillingService;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 
 import example.TestCheckMappings;
 
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.Arrays;
@@ -26,9 +30,13 @@ import java.util.Arrays;
  */
 public class StandardTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
+    private final ServiceLocator injector;
 
-    public StandardTestBinder(final AuditLogger auditLogger) {
+    public static final BillingService BILLING_SERVICE = mock(BillingService.class);
+
+    public StandardTestBinder(final AuditLogger auditLogger, final ServiceLocator injector) {
         this.auditLogger = auditLogger;
+        this.injector = injector;
     }
 
     @Override
@@ -37,7 +45,7 @@ public class StandardTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
@@ -73,5 +81,7 @@ public class StandardTestBinder extends AbstractBinder {
             public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
             }
         }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+
+        bind(BILLING_SERVICE).to(BillingService.class);
     }
 }

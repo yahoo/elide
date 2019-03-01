@@ -7,7 +7,10 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.audit.InMemoryLogger;
 
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
+
+import javax.inject.Inject;
 
 /**
  * Resource config for Audit IT tests.
@@ -15,7 +18,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class AuditIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
 
-    public AuditIntegrationTestApplicationResourceConfig() {
-        register(new StandardTestBinder(LOGGER));
+    @Inject
+    public AuditIntegrationTestApplicationResourceConfig(ServiceLocator injector) {
+        register(new StandardTestBinder(LOGGER, injector));
     }
 }

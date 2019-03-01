@@ -205,9 +205,10 @@ public class Elide {
             }
             tx.flush(requestScope);
 
+            requestScope.runQueuedPreCommitTriggers();
+
             ElideResponse response = buildResponse(responder.get());
 
-            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit(requestScope);
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
