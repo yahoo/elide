@@ -17,6 +17,7 @@ import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import example.TestCheckMappings;
 
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.Arrays;
@@ -26,9 +27,11 @@ import java.util.Arrays;
  */
 public class StandardTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
+    private final ServiceLocator injector;
 
-    public StandardTestBinder(final AuditLogger auditLogger) {
+    public StandardTestBinder(final AuditLogger auditLogger, final ServiceLocator injector) {
         this.auditLogger = auditLogger;
+        this.injector = injector;
     }
 
     @Override
@@ -37,7 +40,7 @@ public class StandardTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 

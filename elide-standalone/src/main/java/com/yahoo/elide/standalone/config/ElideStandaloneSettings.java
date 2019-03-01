@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.hibernate5.HibernateSessionFactoryStore;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
-import com.yahoo.elide.standalone.datastore.InjectionAwareHibernateStore;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
