@@ -34,7 +34,6 @@ public class Invoice extends BaseId {
     private BillingService billingService;
 
     private boolean complete = false;
-
     private long total = 0;
 
     @OnCreatePreCommit("complete")

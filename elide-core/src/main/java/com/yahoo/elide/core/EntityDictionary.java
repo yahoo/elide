@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -69,7 +70,7 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
-    protected final Initializer injector;
+    protected final Injector injector;
 
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
@@ -95,7 +96,7 @@ public class EntityDictionary {
      * @param injector a function typically associated with a dependency injection framework that will
      *                 initialize Elide models.
      */
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Initializer injector) {
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
         checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
 
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
@@ -713,7 +714,7 @@ public class EntityDictionary {
             if (initializer != null) {
                 initializer.initialize(entity);
             } else if (injector != null) {
-                injector.initialize(entity);
+                injector.inject(entity);
             }
         }
     }
