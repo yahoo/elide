@@ -23,6 +23,7 @@ import javax.persistence.metamodel.EntityType;
  * to populate any @Inject fields.
  */
 @Slf4j
+@Deprecated
 public class InjectionAwareHibernateStore extends HibernateSessionFactoryStore {
 
     private final ServiceLocator injector;
@@ -57,6 +58,9 @@ public class InjectionAwareHibernateStore extends HibernateSessionFactoryStore {
 
                     // Bind if successful
                     dictionary.bindEntity(mappedClass);
+
+                    // Make injectable
+                    dictionary.bindInitializer(injector::inject, mappedClass);
                 } catch (IllegalArgumentException e)  {
                     // Ignore this entity
                     // Turns out that hibernate may include non-entity types in this list when using things

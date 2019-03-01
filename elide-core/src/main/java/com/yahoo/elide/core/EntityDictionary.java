@@ -69,6 +69,8 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+    protected final Initializer injector;
+
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -80,6 +82,20 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
+        this(checks, null);
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
+     * In addition all of the checks * in {@link com.yahoo.elide.security.checks.prefab} are mapped
+     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     * @param injector a function typically associated with a dependency injection framework that will
+     *                 initialize Elide models.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Initializer injector) {
         checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
 
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
@@ -87,6 +103,8 @@ public class EntityDictionary {
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
         addPrefabCheck("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
+
+        this.injector = injector;
     }
 
     private void addPrefabCheck(String alias, Class<? extends Check> checkClass) {
@@ -694,6 +712,8 @@ public class EntityDictionary {
             Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
             if (initializer != null) {
                 initializer.initialize(entity);
+            } else if (injector != null) {
+                injector.initialize(entity);
             }
         }
     }

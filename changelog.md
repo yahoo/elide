@@ -1,5 +1,12 @@
 # Change Log
-## 4.3.00
+## 4.3.1
+**Fixes**
+ * Issue#758
+
+**Features**
+ * New method in EntityDictionary to bind a dependency injection injector function.
+
+## 4.3.0
 **Fixes**
  * Issue#733
 
