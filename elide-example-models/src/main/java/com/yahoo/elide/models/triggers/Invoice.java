@@ -17,7 +17,6 @@ import com.yahoo.elide.security.RequestScope;
 
 import lombok.Data;
 
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -25,8 +24,8 @@ import javax.persistence.Transient;
 /**
  * Invoice for a group of purchased items.
  */
-@Entity
-@Include(rootLevel = true)
+@Entity(name = "customerInvoice")
+@Include(rootLevel = true, type = "customerInvoice")
 @Data
 public class Invoice extends BaseId {
     @Transient
@@ -38,16 +37,11 @@ public class Invoice extends BaseId {
 
     private long total = 0;
 
-
     @OnCreatePreCommit("complete")
     @OnUpdatePreCommit("complete")
-    public void onComplete(RequestScope scope, Optional<ChangeSpec> changes) {
-        if (!changes.isPresent()) {
-            return;
-        }
-
-        boolean after = (Boolean) changes.get().getModified();
-        boolean before = (Boolean) changes.get().getOriginal();
+    public void onComplete(RequestScope scope, ChangeSpec changes) {
+        boolean after = (Boolean) changes.getModified();
+        boolean before = (Boolean) changes.getOriginal();
 
         if (after == before) {
             return;

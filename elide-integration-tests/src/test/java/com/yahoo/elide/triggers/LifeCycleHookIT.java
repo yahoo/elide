@@ -6,35 +6,41 @@
 
 package com.yahoo.elide.triggers;
 
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-
-import lombok.extern.slf4j.Slf4j;
-/*
-import com.yahoo.elide.core.HttpStatus;
-import org.testng.annotations.Test;
-
 import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-
-import static org.hamcrest.Matchers.contains;
+import static com.yahoo.elide.initialization.StandardTestBinder.BILLING_SERVICE;
 import static org.hamcrest.Matchers.equalTo;
-*/
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+
+import org.mockito.ArgumentMatchers;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LifeCycleHookIT extends AbstractIntegrationTestInitializer {
-    /*
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
+    @BeforeTest
+    public void resetMocks() {
+        reset(BILLING_SERVICE);
+    }
+
     @Test
-    public void testEmployeeHierarchy() {
+    public void testBillingServiceInvocation() {
+
+        doReturn(100L).when(BILLING_SERVICE).purchase(ArgumentMatchers.any());
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -42,50 +48,22 @@ public class LifeCycleHookIT extends AbstractIntegrationTestInitializer {
                 .body(
                         data(
                                 resource(
-                                        type("manager"),
-                                        id(null)
-                                )
-                        )
-                )
-                .post("/manager")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("1"));
-
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        data(
-                                resource(
-                                        type("employee"),
-                                        id(null),
-                                        attributes(),
-                                        relationships(
-                                                relation("boss",
-                                                        linkage(type("manager"), id("1"))
-                                                )
+                                        type("customerInvoice"),
+                                        id("123"),
+                                        attributes(
+                                                attr("complete", true),
+                                                attr("total", 1000)
                                         )
                                 )
                         )
                 )
-                .post("/manager/1/minions")
+                .log().all()
+                .post("/customerInvoice")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("1"),
-                        "data.relationships.boss.data.id", equalTo("1")
-                );
-
-        given()
-                .contentType("application/vnd.api+json")
-                .when()
-                .get("/manager/1")
-                .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK)
-                .body("data.id", equalTo("1"),
-                    "data.relationships.minions.data.id", contains("1"),
-                        "data.relationships.minions.data.type", contains("employee")
-                );
+                .body("data.id", equalTo("1"))
+                .body("data.attributes.total", equalTo(1100))
+                .body("data.attributes.complete", equalTo(true));
     }
-    */
 }

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.initialization;
 
+import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
@@ -12,6 +14,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.models.triggers.services.BillingService;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 
 import example.TestCheckMappings;
@@ -28,6 +31,8 @@ import java.util.Arrays;
 public class StandardTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
     private final ServiceLocator injector;
+
+    public static final BillingService BILLING_SERVICE = mock(BillingService.class);
 
     public StandardTestBinder(final AuditLogger auditLogger, final ServiceLocator injector) {
         this.auditLogger = auditLogger;
@@ -76,5 +81,7 @@ public class StandardTestBinder extends AbstractBinder {
             public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
             }
         }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
+
+        bind(BILLING_SERVICE).to(BillingService.class);
     }
 }
