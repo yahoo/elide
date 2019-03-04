@@ -1162,7 +1162,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             //         that newly created object within the context of the request. Thus, if any such action was
             //         required, the user would be forced to provide a UUID anyway.
             String id = dictionary.getId(getObject());
-            if (uuid.isPresent() && "0".equals(id)) {
+            if (uuid.isPresent() && ("0".equals(id) || "null".equals(id))) {
                 hashCode = Objects.hashCode(uuid);
             } else {
                 hashCode = Objects.hashCode(id);
