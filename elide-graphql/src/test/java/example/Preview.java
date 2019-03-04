@@ -6,16 +6,14 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
+
+import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import java.util.UUID;
 
 @Include(rootLevel = true) // optional here because class has this name
-// Hibernate
 @Entity
 public class Preview {
     @Id

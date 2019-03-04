@@ -189,7 +189,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .map(checkId::equals)
                 .orElseGet(() -> {
                     String id = getId();
-                    return !"0".equals(id) && checkId.equals(id);
+                    return !"0".equals(id) && !"null".equals(id) && checkId.equals(id);
                 });
     }
 
