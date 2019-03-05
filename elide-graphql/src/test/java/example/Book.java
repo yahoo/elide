@@ -33,6 +33,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -59,6 +60,7 @@ public class Book {
     private Date lastPurchasedDate = null;
     private Author.AuthorType authorTypeAtTimeOfPublication;
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
+    private Set<Preview> previews = new HashSet<>();
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -108,6 +110,15 @@ public class Book {
 
     public void setAuthors(Collection<Author> authors) {
         this.authors = authors;
+    }
+
+    @OneToMany(mappedBy = "book")
+    public Collection<Preview> getPreviews() {
+        return previews;
+    }
+
+    public void setPreviews(Set<Preview> previews) {
+        this.previews = previews;
     }
 
     @OneToOne
