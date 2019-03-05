@@ -135,22 +135,22 @@ public class Book {
     }
 
     @OnUpdatePreSecurity("title")
-    public void onUpdateTitle(RequestScope requestScope) {
+    public void onUpdatePreSecurityTitle(RequestScope requestScope) {
        // title attribute updated
     }
 
     @OnUpdatePreSecurity("genre")
-    public void onUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+    public void onUpdatePreSecurityGenre(RequestScope requestScope, ChangeSpec spec) {
        // genre attribute updated
     }
 
     @OnCreatePreSecurity
-    public void onCreateBook(RequestScope requestScope) {
+    public void onCreatePreSecurity(RequestScope requestScope) {
         // book entity created
     }
 
     @OnCreatePreCommit("*")
-    public void onCreateBookPreCommit(RequestScope requestScope, ChangeSpec spec) {
+    public void onCreatePreCommit(RequestScope requestScope, ChangeSpec spec) {
         // book entity created
     }
 
@@ -159,67 +159,67 @@ public class Book {
     }
 
     @OnDeletePreSecurity
-    public void onDeleteBook(RequestScope requestScope) {
+    public void onDeletePreSecurity(RequestScope requestScope) {
        // book entity deleted
     }
 
     @OnUpdatePreCommit("title")
-    public void preUpdateTitle(RequestScope requestScope) {
+    public void onUpdatePreCommitTitle(RequestScope requestScope) {
         // title attribute updated
     }
 
     @OnUpdatePreCommit("genre")
-    public void preUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+    public void onUpdatePreCommitGenre(RequestScope requestScope, ChangeSpec spec) {
         // genre attribute updated
     }
 
     @OnCreatePreCommit
-    public void preCreateBook(RequestScope requestScope) {
+    public void onCreatePreCommit(RequestScope requestScope) {
         // book entity created
     }
 
     @OnDeletePreCommit
-    public void preDeleteBook(RequestScope requestScope) {
+    public void onDeletePreCommit(RequestScope requestScope) {
         // book entity deleted
     }
 
     @OnUpdatePostCommit("title")
-    public void postUpdateTitle(RequestScope requestScope) {
+    public void onUpdatePostCommitTitle(RequestScope requestScope) {
         // title attribute updated
     }
 
     @OnUpdatePostCommit("genre")
-    public void postUpdateGenre(RequestScope requestScope, ChangeSpec spec) {
+    public void onUpdatePostCommitGenre(RequestScope requestScope, ChangeSpec spec) {
         // genre attribute updated
     }
 
     @OnCreatePostCommit
-    public void postCreateBook(RequestScope requestScope) {
+    public void onCreatePostCommit(RequestScope requestScope) {
         // book entity created
     }
 
     @OnDeletePostCommit
-    public void postDeleteBook(RequestScope requestScope) {
+    public void onDeletePostCommit(RequestScope requestScope) {
         // book entity deleted
     }
 
     @OnReadPreSecurity
-    public void preRead(RequestScope requestScope) {
+    public void onReadPreSecurity(RequestScope requestScope) {
         // book being read pre security
     }
 
     @OnReadPreCommit("title")
-    public void preCommitRead(RequestScope requestScope) {
+    public void onReadPreCommitTitle(RequestScope requestScope) {
         // book being read pre commit
     }
 
     @OnReadPostCommit
-    public void postRead(RequestScope requestScope) {
+    public void onReadPostCommit(RequestScope requestScope) {
         // book being read post commit
     }
 
     @OnUpdatePreCommit
-    public void alwaysOnUpdate() {
+    public void onUpdatePreCommit() {
         // should be called on _any_ class update
     }
 
