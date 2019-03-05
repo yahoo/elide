@@ -32,6 +32,12 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testCreateNestedSingleUnshareable() throws Exception {
+        runComparisonTest("createNestedSingleUnshareable");
+    }
+
+
+    @Test
     public void testCreateNestedCollection() throws Exception {
         runComparisonTest("createNestedCollection");
     }
