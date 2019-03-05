@@ -1,4 +1,8 @@
 # Change Log
+## 4.3.3
+**Features**
+ * Let custom Elide wrapper process JsonPatchExtensionException
+
 ## 4.3.2
 **Fixes**
  * Issue#754
