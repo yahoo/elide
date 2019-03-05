@@ -10,10 +10,10 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.hibernate5.HibernateSessionFactoryStore;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
-import com.yahoo.elide.standalone.datastore.InjectionAwareHibernateStore;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -26,6 +26,8 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 
 import javax.ws.rs.core.SecurityContext;
+
+import static org.hibernate.ScrollMode.FORWARD_ONLY;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -54,9 +56,11 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        DataStore dataStore = new InjectionAwareHibernateStore(
-                injector, Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()));
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
+        DataStore dataStore = new HibernateSessionFactoryStore(
+                Util.getSessionFactory(getHibernate5ConfigPath(), getModelPackageName()),
+                true, FORWARD_ONLY);
+
+        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(), injector::inject);
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withUseFilterExpressions(true)

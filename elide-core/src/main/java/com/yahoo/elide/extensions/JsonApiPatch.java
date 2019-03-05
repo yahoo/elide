@@ -288,7 +288,18 @@ public class JsonApiPatch {
         for (PatchAction action : actions) {
             failed = processAction(errorList, failed, action);
         }
-        throw new JsonPatchExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
+
+        JsonPatchExtensionException failure =
+                new JsonPatchExtensionException(HttpStatus.SC_BAD_REQUEST, errorContainer);
+
+        // attach error causes to exception
+        for (PatchAction action : actions) {
+            if (action.cause != null) {
+                failure.addSuppressed(action.cause);
+            }
+        }
+
+        throw failure;
     }
 
     private ObjectNode getErrorContainer() {

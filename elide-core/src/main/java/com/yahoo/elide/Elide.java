@@ -204,9 +204,10 @@ public class Elide {
             }
             tx.flush(requestScope);
 
+            requestScope.runQueuedPreCommitTriggers();
+
             ElideResponse response = buildResponse(responder.get());
 
-            requestScope.runQueuedPreCommitTriggers();
             auditLogger.commit(requestScope);
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
@@ -228,7 +229,7 @@ public class Elide {
 
         } catch (JsonPatchExtensionException e) {
             log.debug("JSON patch extension exception caught", e);
-            return buildResponse(e.getResponse());
+            return buildErrorResponse(e, isVerbose);
 
         } catch (HttpStatusException e) {
             log.debug("Caught HTTP status exception", e);
