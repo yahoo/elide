@@ -1,5 +1,8 @@
 # Change Log
 ## 4.3.3
+**Fixes**
+ * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
+
 **Features**
  * Let custom Elide wrapper process JsonPatchExtensionException
 

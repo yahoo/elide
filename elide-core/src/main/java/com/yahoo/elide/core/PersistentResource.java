@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -86,7 +85,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final String type;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
-    private final HashMap<Class, HashSet<String>> triggersRun = new HashMap<>();
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;

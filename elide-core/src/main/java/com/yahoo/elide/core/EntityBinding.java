@@ -493,8 +493,10 @@ public class EntityBinding {
                         method.invoke(entity, scope, changes.get());
                     } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
                         method.invoke(entity, scope);
-                    } else {
+                    } else if (paramCount == 0) {
                         method.invoke(entity);
+                    } else {
+                        throw new IllegalArgumentException();
                     }
                 } catch (ReflectiveOperationException e) {
                     Throwables.propagateIfPossible(e.getCause());

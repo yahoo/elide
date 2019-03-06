@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
-import com.yahoo.elide.security.checks.Check;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -39,7 +38,6 @@ import java.util.Map;
  */
 @Slf4j
 public class EntityPermissions implements CheckInstantiator {
-    private EntityDictionary dictionary;
     private static final List<Class<? extends Annotation>> PERMISSION_ANNOTATIONS = Arrays.asList(
             ReadPermission.class,
             CreatePermission.class,
@@ -76,7 +74,6 @@ public class EntityPermissions implements CheckInstantiator {
     public EntityPermissions(EntityDictionary dictionary,
                              Class<?> cls,
                              Collection<AccessibleObject> fieldOrMethodList)  {
-        this.dictionary = dictionary;
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
             fieldOrMethodList.stream()
@@ -120,20 +117,6 @@ public class EntityPermissions implements CheckInstantiator {
             log.warn("Unknown permission: {}, {}", annotationClass.getName(), e);
             throw new IllegalArgumentException("Unknown permission '" + annotationClass.getName() + "'", e);
         }
-    }
-
-    private String listToExpression(Class<? extends Check>[] allChecks, String conjunction) {
-        String expression;
-        expression = Arrays.asList(allChecks)
-                           .stream()
-                           .map(this::instantiateCheck)
-                           .map(check -> dictionary.getCheckIdentifier(check.getClass()))
-                           .reduce("",
-                                   (current, next) -> current.isEmpty()
-                                           ? next
-                                           : current + conjunction + next
-                           );
-        return expression;
     }
 
     public static ParseTree parseExpression(String expression) {
