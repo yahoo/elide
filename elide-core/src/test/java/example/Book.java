@@ -150,7 +150,7 @@ public class Book {
     }
 
     @OnCreatePreCommit("*")
-    public void onCreatePreCommit(RequestScope requestScope, ChangeSpec spec) {
+    public void onCreatePreCommitStar(RequestScope requestScope, ChangeSpec spec) {
         // book entity created
     }
 

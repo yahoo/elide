@@ -287,7 +287,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCreatePreSecurity(scope);
         verify(book, never()).onDeletePreSecurity(scope);
         verify(book, never()).onUpdatePreSecurityTitle(scope);
-        verify(book, never()).onCreatePreCommit(eq(scope), any());
+        verify(book, never()).onCreatePreCommitStar(eq(scope), any());
         verify(book, times(1)).onReadPreSecurity(scope);
         verify(book, never()).checkPermission(scope);
 
@@ -295,7 +295,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCreatePreCommit(scope);
         verify(book, never()).onDeletePreCommit(scope);
         verify(book, never()).onUpdatePreCommitTitle(scope);
-        verify(book, times(2)).onCreatePreCommit(eq(scope), any());
+        verify(book, times(2)).onCreatePreCommitStar(eq(scope), any());
         verify(book, times(1)).onReadPreCommitTitle(scope);
         verify(book, never()).checkPermission(scope);
 
@@ -306,7 +306,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onCreatePostCommit(scope);
         verify(book, never()).onDeletePostCommit(scope);
         verify(book, never()).onUpdatePostCommitTitle(scope);
-        verify(book, times(2)).onCreatePreCommit(eq(scope), any());
+        verify(book, times(2)).onCreatePreCommitStar(eq(scope), any());
         verify(book, times(1)).onReadPostCommit(scope);
         verify(book, times(3)).checkPermission(scope);
     }
