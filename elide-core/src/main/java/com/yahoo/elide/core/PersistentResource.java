@@ -70,6 +70,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.WebApplicationException;
@@ -1020,8 +1021,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             val = transaction.getRelation(transaction, obj, relationName,
                     Optional.empty(), sorting, Optional.empty(), requestScope);
 
-            if (val instanceof Collection) {
-                val = filterInMemory((Collection) val, computedFilters);
+            if (val instanceof Iterable) {
+                val = filterInMemory((Iterable) val, computedFilters);
             }
         } else {
             val = transaction.getRelation(transaction, obj, relationName,
@@ -1033,8 +1034,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
-        if (val instanceof Collection) {
-            Collection filteredVal = (Collection) val;
+        if (val instanceof Iterable) {
+            Iterable filteredVal = (Iterable) val;
             resources = new PersistentResourceSet(this, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet(
@@ -1054,7 +1055,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param filterExpression the filter expression
      * @return the filtered collection
      */
-    protected <T> Collection<T> filterInMemory(Collection<T> collection, Optional<FilterExpression> filterExpression) {
+    protected <T> Iterable<T> filterInMemory(Iterable<T> collection, Optional<FilterExpression> filterExpression) {
 
         if (! filterExpression.isPresent()) {
             return collection;
@@ -1065,7 +1066,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Predicate<T> inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
         // NOTE: We can safely _skip_ tests on NEWLY created objects.
         // We assume a user can READ their object they are allowed to create.
-        return collection.stream()
+        return StreamSupport.stream(collection.spliterator(), false)
                 .filter(e -> requestScope.isNewResource(e) || inMemoryFilterFn.test(e))
                 .collect(Collectors.toList());
     }

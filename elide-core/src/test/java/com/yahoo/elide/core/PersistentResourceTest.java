@@ -1762,6 +1762,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertTrue(child.getParents().contains(parent), "The non-owning relationship should also be updated");
 
         reset(tx);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(parent.getChildren());
+
         parentResource.clearRelation("children");
 
         goodScope.saveOrCreateObjects();
@@ -1979,11 +1981,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         // Ensure that change specs coming from collections work properly
-        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> collectionCheck
-                .apply("testColl")
-                .apply(spec, (original, modified) -> original == null && modified.equals(Arrays.asList("a", "b", "c")))));
 
-        //when(tx.getRelation(any(), eq(model.obj), "otherKids", any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1));
+        ChangeSpecModel csModel = new ChangeSpecModel((spec) -> collectionCheck
+                .apply("testColl")
+                .apply(spec, (original, modified) -> original == null && modified.equals(Arrays.asList("a", "b", "c"))));
+
+        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(csModel, tx);
+
+        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any(), any(), any())).thenReturn(new HashSet<>());
 
         /* Attributes */
         // Set new data from null
@@ -2003,20 +2008,28 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         // Learn about the other kids
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> (original == null || original.isEmpty()) && modified.size() == 1 && modified.contains(new ChangeSpecChild(1)));
 
-        Assert.assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(1)))));
+        ChangeSpecChild child1 = new ChangeSpecChild(1);
+        Assert.assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(child1))));
 
         // Add individual
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.equals(Collections.singletonList(new ChangeSpecChild(1))) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(2)));
-        model.addRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(2)));
+
+        ChangeSpecChild child2 = new ChangeSpecChild(2);
+        model.addRelation("otherKids", bootstrapPersistentResource(child2));
+
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() == 2 && original.contains(new ChangeSpecChild(1)) && original.contains(new ChangeSpecChild(2)) && modified.size() == 3 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(2)) && modified.contains(new ChangeSpecChild(3)));
-        model.addRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(3)));
+
+        ChangeSpecChild child3 = new ChangeSpecChild(3);
+        model.addRelation("otherKids", bootstrapPersistentResource(child3));
 
         // Remove one
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() == 3 && original.contains(new ChangeSpecChild(1)) && original.contains(new ChangeSpecChild(2)) && original.contains(new ChangeSpecChild(3)) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(3)));
-        model.removeRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(2)));
+        model.removeRelation("otherKids", bootstrapPersistentResource(child2));
 
+        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1, child3));
         // Clear the rest
-        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() <= 2 && modified.size() < original.size());
+        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified)
+                -> original.size() <= 2 && modified.size() < original.size());
         model.clearRelation("otherKids");
     }
 
@@ -2044,23 +2057,40 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testRelationChangeSpecType() {
-        BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
-            if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
-                return false;
-            }
-            if (!"child".equals(spec.getFieldName())) {
-                return false;
-            }
-            return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
-        };
-        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> relCheck.apply(spec, (original, modified) -> (original == null) && new ChangeSpecChild(1).equals(modified))));
-        Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(1)))));
+        try {
+            BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
+                if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
+                    return false;
+                }
+                if (!"child".equals(spec.getFieldName())) {
+                    return false;
+                }
+                return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
+            };
+            DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
-        Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(2)))));
+            PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec)
+                    -> relCheck.apply(spec, (original, modified)
+                    -> (original == null) && new ChangeSpecChild(1).equals(modified))), tx);
 
-        model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
-        Assert.assertTrue(model.updateRelation("child", null));
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(null);
+
+            ChangeSpecChild child1 = new ChangeSpecChild(1);
+            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child1, tx))));
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child1);
+
+            model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
+
+            ChangeSpecChild child2 = new ChangeSpecChild(2);
+            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child2, tx))));
+
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child2);
+
+            model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
+            Assert.assertTrue(model.updateRelation("child", null));
+        } catch (ForbiddenAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

@@ -20,6 +20,7 @@ import com.yahoo.elide.security.User;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,7 +100,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         if (result instanceof Iterable) {
             Iterable<Object> records = (Iterable<Object>) result;
-            return filterSortAndPaginateLoadedData(records, entity.getClass(), filterExpression,
+
+            Class<?> relationClass = scope.getDictionary().getParameterizedType(entity, relationName);
+            return filterSortAndPaginateLoadedData(records, relationClass, filterExpression,
                     sorting, pagination, scope);
         }
 
@@ -224,7 +227,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         EntityDictionary dictionary = scope.getDictionary();
 
-        Map<Path, Sorting.SortOrder> sortRules = sorting.get().getValidSortingRules(entityClass, dictionary);
+        Map<Path, Sorting.SortOrder> sortRules = sorting
+                .map((s) -> s.getValidSortingRules(entityClass, dictionary))
+                .orElse(new HashMap<>());
 
         // No sorting required for this type & no pagination.
         if (sortRules.isEmpty() && ! pagination.isPresent()) {

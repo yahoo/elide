@@ -7,8 +7,9 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
-import com.yahoo.elide.core.datastore.inmemory.HashMapStoreTransaction;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
@@ -67,19 +68,21 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
             CoerceUtil.register(targetType, serde);
         });
 
-        HashMapDataStore store = new HashMapDataStore(Author.class.getPackage());
+        InMemoryDataStore store = new InMemoryDataStore(
+                new HashMapDataStore(Author.class.getPackage())
+        );
         store.populateEntityDictionary(dictionary);
 
         ModelBuilder builder = new ModelBuilder(dictionary, new PersistentResourceFetcher(settings));
         api = new GraphQL(builder.build());
 
-        HashMapStoreTransaction tx = (HashMapStoreTransaction) store.beginTransaction();
+        DataStoreTransaction tx = store.beginTransaction();
         initTestData(tx);
 
         requestScope = new GraphQLRequestScope(tx, null, settings);
     }
 
-    private void initTestData(HashMapStoreTransaction tx) {
+    private void initTestData(DataStoreTransaction tx) {
         Publisher publisher1 = new Publisher();
         publisher1.setId(1L);
         publisher1.setName("The Guy");
