@@ -11,6 +11,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -68,7 +69,7 @@ public class Elide {
     public Elide(ElideSettings elideSettings) {
         this.elideSettings = elideSettings;
         this.auditLogger = elideSettings.getAuditLogger();
-        this.dataStore = elideSettings.getDataStore();
+        this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
 

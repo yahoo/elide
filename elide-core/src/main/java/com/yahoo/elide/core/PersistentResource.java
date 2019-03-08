@@ -24,7 +24,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterVisitor;
+import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -1060,7 +1060,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             return collection;
         }
 
-        InMemoryFilterVisitor inMemoryFilterVisitor = new InMemoryFilterVisitor(requestScope);
+        InMemoryFilterExecutor inMemoryFilterVisitor = new InMemoryFilterExecutor(requestScope);
         @SuppressWarnings("unchecked")
         Predicate<T> inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
         // NOTE: We can safely _skip_ tests on NEWLY created objects.

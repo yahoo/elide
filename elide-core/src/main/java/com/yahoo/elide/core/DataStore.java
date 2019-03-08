@@ -32,4 +32,16 @@ public interface DataStore {
     default DataStoreTransaction beginReadTransaction() {
         return beginTransaction();
     }
+
+    default boolean supportsFiltering() {
+        return true;
+    }
+
+    default boolean supportsSorting() {
+        return true;
+    }
+
+    default boolean supportsPagination() {
+        return true;
+    }
 }

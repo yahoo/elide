@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.hasKey;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
@@ -38,7 +38,7 @@ public class ElideStandaloneTest {
             @Override
             public ElideSettings getElideSettings(ServiceLocator injector) {
                 EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-                InMemoryDataStore dataStore = new InMemoryDataStore(Post.class.getPackage());
+                HashMapDataStore dataStore = new HashMapDataStore(Post.class.getPackage());
                 dataStore.populateEntityDictionary(dictionary);
 
                 ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)

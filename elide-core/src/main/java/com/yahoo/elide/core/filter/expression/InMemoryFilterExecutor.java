@@ -13,10 +13,10 @@ import java.util.function.Predicate;
 /**
  * Visitor for in memory filterExpressions.
  */
-public class InMemoryFilterVisitor implements FilterExpressionVisitor<Predicate> {
+public class InMemoryFilterExecutor implements FilterExpressionVisitor<Predicate> {
     private final RequestScope requestScope;
 
-    public InMemoryFilterVisitor(RequestScope requestScope) {
+    public InMemoryFilterExecutor(RequestScope requestScope) {
         this.requestScope = requestScope;
     }
 

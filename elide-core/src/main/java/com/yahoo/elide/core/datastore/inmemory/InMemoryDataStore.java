@@ -1,75 +1,47 @@
 /*
- * Copyright 2017, Yahoo Inc.
+ * Copyright 2015, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
-import lombok.Getter;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.persistence.Entity;
-
 /**
- * Simple in-memory only database.
+ * Data Store that wraps another store and provides in-memory filtering, soring, and pagination
+ * when the underlying store cannot perform the equivalent function.
  */
 public class InMemoryDataStore implements DataStore {
-    private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
-    @Getter private EntityDictionary dictionary;
-    @Getter private final Package beanPackage;
-    @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
-    public InMemoryDataStore(Package beanPackage) {
-        this.beanPackage = beanPackage;
+    private DataStore wrappedStore;
+
+    public InMemoryDataStore(DataStore wrappedStore) {
+        this.wrappedStore = wrappedStore;
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
-                .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        reflections.getTypesAnnotatedWith(Entity.class).stream()
-                .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
-                        .startsWith(beanPackage.getName()))
-                .forEach((cls) -> {
-                    dictionary.bindEntity(cls);
-                    dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
-                });
-        this.dictionary = dictionary;
+        wrappedStore.populateEntityDictionary(dictionary);
     }
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new InMemoryTransaction(dataStore, dictionary, typeIds);
+        return new InMemoryStoreTransaction(
+                wrappedStore.beginTransaction(),
+                !wrappedStore.supportsFiltering(),
+                !wrappedStore.supportsSorting(),
+                !wrappedStore.supportsPagination());
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Data store contents ");
-        for (Class<?> cls : dataStore.keySet()) {
-            sb.append("\n Table ").append(cls).append(" contents \n");
-            Map<String, Object> data = dataStore.get(cls);
-            for (Map.Entry<String, Object> e : data.entrySet()) {
-                sb.append(" Id: ").append(e.getKey()).append(" Value: ").append(e.getValue());
-            }
-        }
-        return sb.toString();
+    public DataStoreTransaction beginReadTransaction() {
+        return new InMemoryStoreTransaction(
+                wrappedStore.beginReadTransaction(),
+                !wrappedStore.supportsFiltering(),
+                !wrappedStore.supportsSorting(),
+                !wrappedStore.supportsPagination());
     }
 }

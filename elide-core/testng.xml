@@ -57,9 +57,9 @@
             <class name="com.yahoo.elide.core.filter.OperatorTest" />
         </classes>
     </test> <!-- Test -->
-    <test name="com.yahoo.elide.core.filter.expression.InMemoryFilterVisitorTest">
+    <test name="com.yahoo.elide.core.filter.expression.InMemoryFilterExecutorTest">
         <classes>
-            <class name="com.yahoo.elide.core.filter.expression.InMemoryFilterVisitorTest" />
+            <class name="com.yahoo.elide.core.filter.expression.InMemoryFilterExecutorTest" />
         </classes>
     </test> <!-- Test -->
 </suite> <!-- Suite -->

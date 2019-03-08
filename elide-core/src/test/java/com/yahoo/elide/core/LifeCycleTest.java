@@ -39,6 +39,7 @@ import com.yahoo.elide.annotation.OnUpdatePostCommit;
 import com.yahoo.elide.annotation.OnUpdatePreCommit;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
@@ -57,6 +58,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -178,11 +180,12 @@ public class LifeCycleTest {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Book book = mock(Book.class);
+        when(book.getId()).thenReturn(1L);
 
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(store.beginReadTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
+        when(tx.loadObjects(eq(Book.class), any(), any(), any(), isA(RequestScope.class))).thenReturn(Collections.singletonList(book));
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
@@ -211,7 +214,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
+        when(tx.loadObjects(eq(Book.class), any(), any(), any(), isA(RequestScope.class))).thenReturn(Collections.singletonList(book));
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
@@ -250,7 +253,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), eq(1L), any(), any())).thenReturn(book);
+        when(tx.loadObjects(eq(Book.class), any(), any(), any(), isA(RequestScope.class))).thenReturn(Collections.singletonList(book));
 
         elide.delete("/book/1", "", null);
         /*
@@ -943,14 +946,15 @@ public class LifeCycleTest {
      */
     @Test
     public void testAddToCollectionTrigger() {
-        InMemoryDataStore store = new InMemoryDataStore(Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
+        InMemoryDataStore store = new InMemoryDataStore(wrapped);
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("Book operation check", Book.BookOperationCheck.class);
         checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -966,7 +970,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
         PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
@@ -983,14 +987,15 @@ public class LifeCycleTest {
      */
     @Test
     public void testRemoveFromCollectionTrigger() {
-        InMemoryDataStore store = new InMemoryDataStore(Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
+        InMemoryDataStore store = new InMemoryDataStore(wrapped);
         HashMap<String, Class<? extends Check>> checkMappings = new HashMap<>();
         checkMappings.put("Book operation check", Book.BookOperationCheck.class);
         checkMappings.put("Field path editor check", Editor.FieldPathFilterExpression.class);
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -1007,7 +1012,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, store.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
 
         book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -12,6 +14,7 @@ import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
@@ -109,11 +112,31 @@ public interface DataStoreTransaction extends Closeable {
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    Object loadObject(Class<?> entityClass,
+    default Object loadObject(Class<?> entityClass,
                       Serializable id,
                       Optional<FilterExpression> filterExpression,
-                      RequestScope scope);
-
+                      RequestScope scope) {
+        EntityDictionary dictionary = scope.getDictionary();
+        Class idType = dictionary.getIdType(entityClass);
+        String idField = dictionary.getIdFieldName(entityClass);
+        FilterExpression idFilter = new InPredicate(
+                new Path.PathElement(entityClass, idType, idField),
+                id
+        );
+        FilterExpression joinedFilterExpression = filterExpression
+                .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
+                .orElse(idFilter);
+        Iterable<Object> results = loadObjects(entityClass,
+                Optional.of(joinedFilterExpression),
+                Optional.empty(),
+                Optional.empty(),
+                scope);
+        Iterator<Object> it = results == null ? null : results.iterator();
+        if (it != null && it.hasNext()) {
+            return it.next();
+        }
+        return null;
+    }
 
     /**
      * Loads a collection of objects.
