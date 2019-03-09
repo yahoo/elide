@@ -72,19 +72,4 @@ public class HashMapDataStore implements DataStore {
         }
         return sb.toString();
     }
-
-    @Override
-    public boolean supportsFiltering() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsSorting() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsPagination() {
-        return false;
-    }
 }

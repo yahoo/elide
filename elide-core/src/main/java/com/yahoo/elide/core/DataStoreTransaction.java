@@ -263,4 +263,16 @@ public interface DataStoreTransaction extends Closeable {
                               Object attributeValue,
                               RequestScope scope) {
     }
+
+    default boolean supportsFiltering(Class<?> entityClass) {
+        return true;
+    }
+
+    default boolean supportsSorting(Class<?> entityClass) {
+        return true;
+    }
+
+    default boolean supportsPagination(Class<?> entityClass) {
+        return true;
+    }
 }

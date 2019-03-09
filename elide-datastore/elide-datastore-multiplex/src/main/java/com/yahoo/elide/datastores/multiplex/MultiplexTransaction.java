@@ -219,6 +219,21 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         transaction.setAttribute(entity, attributeName, attributeValue, scope);
     }
 
+    @Override
+    public boolean supportsFiltering(Class<?> entityClass) {
+        return getTransaction(entityClass).supportsFiltering(entityClass);
+    }
+
+    @Override
+    public boolean supportsSorting(Class<?> entityClass) {
+        return getTransaction(entityClass).supportsSorting(entityClass);
+    }
+
+    @Override
+    public boolean supportsPagination(Class<?> entityClass) {
+        return getTransaction(entityClass).supportsPagination(entityClass);
+    }
+
     private Serializable extractId(FilterExpression filterExpression,
                                    String idFieldName,
                                    Class<?> relationClass) {

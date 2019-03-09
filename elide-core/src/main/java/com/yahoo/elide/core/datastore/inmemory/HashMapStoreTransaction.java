@@ -211,4 +211,19 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             throw new IllegalStateException("Trying to comparing non-comparable types!");
         };
     }
+
+    @Override
+    public boolean supportsFiltering(Class<?> entityClass) {
+        return false;
+    }
+
+    @Override
+    public boolean supportsSorting(Class<?> entityClass) {
+        return false;
+    }
+
+    @Override
+    public boolean supportsPagination(Class<?> entityClass) {
+        return false;
+    }
 }

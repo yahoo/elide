@@ -29,19 +29,11 @@ public class InMemoryDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new InMemoryStoreTransaction(
-                wrappedStore.beginTransaction(),
-                !wrappedStore.supportsFiltering(),
-                !wrappedStore.supportsSorting(),
-                !wrappedStore.supportsPagination());
+        return new InMemoryStoreTransaction(wrappedStore.beginTransaction());
     }
 
     @Override
     public DataStoreTransaction beginReadTransaction() {
-        return new InMemoryStoreTransaction(
-                wrappedStore.beginReadTransaction(),
-                !wrappedStore.supportsFiltering(),
-                !wrappedStore.supportsSorting(),
-                !wrappedStore.supportsPagination());
+        return new InMemoryStoreTransaction(wrappedStore.beginReadTransaction());
     }
 }
