@@ -24,7 +24,6 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.models.Data;
@@ -67,10 +66,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import javax.persistence.GeneratedValue;
 import javax.ws.rs.WebApplicationException;
@@ -1012,22 +1009,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             computedFilters = permissionFilter;
         }
 
-
-        /* If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
-         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
-         */
-        Object val;
-        if (requestScope.isMutatingMultipleEntities()) {
-            val = transaction.getRelation(transaction, obj, relationName,
-                    Optional.empty(), sorting, Optional.empty(), requestScope);
-
-            if (val instanceof Iterable) {
-                val = filterInMemory((Iterable) val, computedFilters);
-            }
-        } else {
-            val = transaction.getRelation(transaction, obj, relationName,
+        Object val = transaction.getRelation(transaction, obj, relationName,
                     computedFilters, sorting, computedPagination, requestScope);
-        }
 
         if (val == null) {
             return Collections.emptySet();
@@ -1045,30 +1028,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         return resources;
-    }
-
-    /**
-     * Filters a relationship collection in memory for scenarios where the data store transaction cannot do it.
-     *
-     * @param <T> the type parameter
-     * @param collection the collection to filter
-     * @param filterExpression the filter expression
-     * @return the filtered collection
-     */
-    protected <T> Iterable<T> filterInMemory(Iterable<T> collection, Optional<FilterExpression> filterExpression) {
-
-        if (! filterExpression.isPresent()) {
-            return collection;
-        }
-
-        InMemoryFilterExecutor inMemoryFilterVisitor = new InMemoryFilterExecutor(requestScope);
-        @SuppressWarnings("unchecked")
-        Predicate<T> inMemoryFilterFn = filterExpression.get().accept(inMemoryFilterVisitor);
-        // NOTE: We can safely _skip_ tests on NEWLY created objects.
-        // We assume a user can READ their object they are allowed to create.
-        return StreamSupport.stream(collection.spliterator(), false)
-                .filter(e -> requestScope.isNewResource(e) || inMemoryFilterFn.test(e))
-                .collect(Collectors.toList());
     }
 
     /**
