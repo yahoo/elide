@@ -15,6 +15,10 @@ import org.testng.Assert
 import org.testng.annotations.AfterTest
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
+
+import static org.hamcrest.Matchers.contains
+import static org.hamcrest.Matchers.hasSize;
+
 /**
  * Tests for Filters
  */
@@ -113,6 +117,17 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                             "id": "12345678-1234-1234-1234-1234567890ae",
                             "attributes": {
                                 "name": "Default publisher"
+                            }
+                        }
+                      },
+                      {
+                        "op": "add",
+                        "path": "/book/12345678-1234-1234-1234-1234567890ac/publisher/12345678-1234-1234-1234-1234567890ae/editor",
+                        "value": {
+                            "type": "editor",
+                            "id": "12345678-1234-1234-1234-1234567890ba",
+                            "attributes": {
+                                "name": "My Editor"
                             }
                         }
                       }
@@ -1591,6 +1606,22 @@ class FilterIT extends AbstractIntegrationTestInitializer {
             String name = book.get("attributes").get("title").asText()
             Assert.assertTrue(name == "The Old Man and the Sea")
         }
+    }
+
+    /**
+     * Tests a computed relationship filter.
+     */
+    @Test
+    void testFilterBookByEditor() {
+        /* Test default */
+        RestAssured
+            .given()
+                .get("/book?filter[book]=editor.name=='My*'")
+            .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data.attributes.title", contains("The Old Man and the Sea"))
+                .body("data", hasSize(1));
     }
 
     @Test
