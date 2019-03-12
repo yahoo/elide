@@ -210,12 +210,17 @@ public enum Operator {
     private static <T> Predicate<T> in(String field, List<Object> values,
                                        RequestScope requestScope, Function<String, String> transform) {
         return (T entity) -> {
-            Class type = requestScope.getDictionary().getType(entity, field);
-            if (!type.isAssignableFrom(String.class)) {
+            Object fieldValue = getFieldValue(entity, field, requestScope);
+
+            if (fieldValue == null) {
+                return false;
+            }
+
+            if (!fieldValue.getClass().isAssignableFrom(String.class)) {
                 throw new IllegalStateException("Cannot case insensitive compare non-string values");
             }
 
-            String val = transform.apply((String) getFieldValue(entity, field, requestScope));
+            String val = transform.apply((String) fieldValue);
             return val != null && values.stream()
                     .map(v -> transform.apply(CoerceUtil.coerce(v, String.class)))
                     .anyMatch(val::equals);

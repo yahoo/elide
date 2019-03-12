@@ -127,13 +127,14 @@ class FilterIT extends AbstractIntegrationTestInitializer {
                             "type": "editor",
                             "id": "12345678-1234-1234-1234-1234567890ba",
                             "attributes": {
-                                "name": "My Editor"
+                                "firstName": "John",
+                                "lastName": "Doe"
                             }
                         }
                       }
                     ]
                     ''')
-                .patch("/").then().statusCode(HttpStatus.SC_OK)
+                .patch("/").then().log().all().statusCode(HttpStatus.SC_OK)
 
         RestAssured
                 .given()
@@ -1613,15 +1614,46 @@ class FilterIT extends AbstractIntegrationTestInitializer {
      */
     @Test
     void testFilterBookByEditor() {
-        /* Test default */
         RestAssured
             .given()
-                .get("/book?filter[book]=editor.name=='My*'")
+                .get("/book?filter[book]=editor.firstName=='John'")
             .then()
                 .log().all()
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body("data.attributes.title", contains("The Old Man and the Sea"))
                 .body("data", hasSize(1));
+
+        RestAssured
+            .given()
+                .get("/book?filter[book]=editor.firstName=='Foobar'")
+            .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data", hasSize(0));
+    }
+
+    /**
+     * Tests a computed attribute filter.
+     */
+    @Test
+    void testFilterEditorByFullName() {
+        RestAssured
+            .given()
+                .get("/editor?filter[editor]=fullName=='John Doe'")
+            .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data.attributes.firstName", contains("John"))
+                .body("data.attributes.lastName", contains("Doe"))
+                .body("data", hasSize(1));
+
+        RestAssured
+            .given()
+                .get("/editor?filter[editor]=fullName=='Foobar'")
+            .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body("data", hasSize(0));
     }
 
     @Test

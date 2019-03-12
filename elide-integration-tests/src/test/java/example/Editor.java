@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
@@ -64,8 +65,17 @@ public class Editor {
         return ((Editor) obj).naturalKey.equals(naturalKey);
     }
 
+
     @Getter @Setter
-    private String name;
+    private String firstName;
+
+    @Getter @Setter
+    private String lastName;
+
+    @ComputedAttribute
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 
     @Transient
     @ComputedRelationship

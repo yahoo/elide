@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -208,10 +207,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         Predicate predicate = filterExpression.get().accept(new InMemoryFilterExecutor(scope));
 
-        Stream objectStream = StreamSupport.stream(loadedRecords.spliterator(), false)
-                            .filter(predicate::test);
-
-        return objectStream::iterator;
+        return StreamSupport.stream(loadedRecords.spliterator(), false)
+                            .filter(predicate::test)
+                            .collect(Collectors.toList());
     }
 
     protected Iterable<Object> filterSortAndPaginateLoadedData(Iterable<Object> loadedRecords,
