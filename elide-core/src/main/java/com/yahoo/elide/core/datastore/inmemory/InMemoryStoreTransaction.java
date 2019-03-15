@@ -195,24 +195,25 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                                Optional<Pagination> pagination,
                                RequestScope scope) {
 
-        boolean elideRequiresInMemoryFiltering = shouldFilterInMemory(entityClass, scope);
-
-        boolean expressionRequiresInMemoryFiltering = false;
-
+        boolean transactionNeedsInMemoryFiltering = scope.isMutatingMultipleEntities();
+        boolean storeNeedsInMemoryFiltering = ! tx.supportsFiltering(entityClass);
+        boolean expressionNeedsInMemoryFiltering = false;
 
         Optional<FilterExpression> filterPushDown = Optional.empty();
-        if (filterExpression.isPresent() && ! elideRequiresInMemoryFiltering) {
+        if (filterExpression.isPresent() && ! transactionNeedsInMemoryFiltering) {
 
             filterPushDown =
                     Optional.ofNullable(FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
                     filterExpression.get()));
 
-            expressionRequiresInMemoryFiltering =
+            expressionNeedsInMemoryFiltering =
                     InMemoryExecutionVerifier.executeInMemory(scope.getDictionary(), filterExpression.get());
         }
 
         boolean filteredInMemory = filterExpression.isPresent()
-                && (elideRequiresInMemoryFiltering || expressionRequiresInMemoryFiltering);
+                && (transactionNeedsInMemoryFiltering
+                || storeNeedsInMemoryFiltering
+                || expressionNeedsInMemoryFiltering);
 
 
         Object result = fetcher.fetch(filterPushDown, sorting, pagination, scope);
@@ -341,21 +342,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
             throw new IllegalStateException("Trying to comparing non-comparable types!");
         };
-    }
-
-
-    /**
-     * We must filter in memory if we are:
-     *  - mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
-     *    It must be done in memory by Elide as some newly created entities have not yet been persisted.
-     *  - If the store cannot filter
-     * @param entityClass
-     * @param scope
-     * @return
-     */
-    private boolean shouldFilterInMemory(Class<?> entityClass,
-                                         RequestScope scope) {
-        return (scope.isMutatingMultipleEntities() || ! tx.supportsFiltering(entityClass));
     }
 
     /**
