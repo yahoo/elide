@@ -164,7 +164,9 @@ public enum Operator {
         LE.negated = GT;
         LT.negated = GE;
         IN.negated = NOT;
+        IN_INSENSITIVE.negated = NOT_INSENSITIVE;
         NOT.negated = IN;
+        NOT_INSENSITIVE.negated = IN_INSENSITIVE;
         TRUE.negated = FALSE;
         FALSE.negated = TRUE;
         ISNULL.negated = NOTNULL;

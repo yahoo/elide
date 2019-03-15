@@ -12,6 +12,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -35,6 +36,18 @@ import java.util.stream.StreamSupport;
  * when the underlying transaction cannot perform the equivalent function.
  */
 public class InMemoryStoreTransaction implements DataStoreTransaction {
+
+    /**
+     * Fetches data from the store.
+     */
+    @FunctionalInterface
+    private interface DataFetcher {
+        Object fetch(Optional<FilterExpression> filterExpression,
+                     Optional<Sorting> sorting,
+                     Optional<Pagination> pagination,
+                     RequestScope scope);
+    }
+
     private DataStoreTransaction tx;
 
     public InMemoryStoreTransaction(DataStoreTransaction tx) {
@@ -78,41 +91,17 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         Class<?> relationClass = scope.getDictionary().getParameterizedType(entity, relationName);
 
-        Optional<FilterExpression> filterPushDown = shouldFilterInMemory(relationClass, scope, filterExpression)
-                ? Optional.empty()
-                : filterExpression;
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public Object fetch(Optional<FilterExpression> filterExpression,
+                                Optional<Sorting> sorting,
+                                Optional<Pagination> pagination,
+                                RequestScope scope) {
 
-        boolean filteredInMemory = filterExpression.isPresent() && !filterPushDown.isPresent();
-
-        Optional<Sorting> sortPushDown = shouldSortInMemory(relationClass, filteredInMemory)
-                ? Optional.empty()
-                : sorting;
-
-        boolean sortedInMemory = sorting.isPresent() && !sortPushDown.isPresent();
-
-        Optional<Pagination> paginationPushDown = shouldPaginateInMemory(relationClass,
-                filteredInMemory, sortedInMemory)
-                ? Optional.empty()
-                : pagination;
-
-        Object result = tx.getRelation(
-                relationTx,
-                entity,
-                relationName,
-                filterPushDown,
-                sortPushDown,
-                paginationPushDown,
-                scope
-        );
-
-        if (result instanceof Iterable) {
-            Iterable<Object> records = (Iterable<Object>) result;
-
-            return filterSortAndPaginateLoadedData(records, relationClass, filterExpression,
-                    sorting, pagination, scope);
-        }
-
-        return result;
+                return tx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
+            }
+        };
+        return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, scope);
     }
 
     @Override
@@ -167,30 +156,17 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                                         Optional<Pagination> pagination,
                                         RequestScope scope) {
 
-        Optional<FilterExpression> filterPushDown = shouldFilterInMemory(entityClass, scope, filterExpression)
-                ? Optional.empty()
-                : filterExpression;
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public Iterable<Object> fetch(Optional<FilterExpression> filterExpression,
+                                          Optional<Sorting> sorting,
+                                          Optional<Pagination> pagination,
+                                          RequestScope scope) {
+                return tx.loadObjects(entityClass, filterExpression, sorting, pagination, scope);
+            }
+        };
 
-        boolean filteredInMemory = filterExpression.isPresent() && !filterPushDown.isPresent();
-
-        Optional<Sorting> sortPushDown = shouldSortInMemory(entityClass, filteredInMemory)
-                ? Optional.empty()
-                : sorting;
-
-        boolean sortedInMemory = sorting.isPresent() && !sortPushDown.isPresent();
-
-        Optional<Pagination> paginationPushDown = shouldPaginateInMemory(entityClass,
-                filteredInMemory,
-                sortedInMemory)
-                ? Optional.empty()
-                : pagination;
-
-
-        Iterable<Object> loadedRecords = tx.loadObjects(entityClass, filterPushDown,
-                sortPushDown, paginationPushDown, scope);
-
-        return filterSortAndPaginateLoadedData(loadedRecords, entityClass,
-                filterExpression, sorting, pagination, scope);
+        return (Iterable<Object>) fetchData(fetcher, entityClass, filterExpression, sorting, pagination, scope);
     }
 
     @Override
@@ -212,17 +188,43 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                             .collect(Collectors.toList());
     }
 
-    protected Iterable<Object> filterSortAndPaginateLoadedData(Iterable<Object> loadedRecords,
-                                                               Class<?> entityClass,
-                                                               Optional<FilterExpression> filterExpression,
-                                                               Optional<Sorting> sorting,
-                                                               Optional<Pagination> pagination,
-                                                               RequestScope scope) {
+    protected Object fetchData(DataFetcher fetcher,
+                               Class<?> entityClass,
+                               Optional<FilterExpression> filterExpression,
+                               Optional<Sorting> sorting,
+                               Optional<Pagination> pagination,
+                               RequestScope scope) {
 
-        boolean filteredInMemory = false;
-        if (shouldFilterInMemory(entityClass, scope, filterExpression)) {
+        boolean elideRequiresInMemoryFiltering = shouldFilterInMemory(entityClass, scope);
+
+        boolean expressionRequiresInMemoryFiltering = false;
+
+
+        Optional<FilterExpression> filterPushDown = Optional.empty();
+        if (filterExpression.isPresent() && ! elideRequiresInMemoryFiltering) {
+
+            filterPushDown =
+                    Optional.ofNullable(FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
+                    filterExpression.get()));
+
+            expressionRequiresInMemoryFiltering =
+                    InMemoryExecutionVerifier.executeInMemory(scope.getDictionary(), filterExpression.get());
+        }
+
+        boolean filteredInMemory = filterExpression.isPresent()
+                && (elideRequiresInMemoryFiltering || expressionRequiresInMemoryFiltering);
+
+
+        Object result = fetcher.fetch(filterPushDown, sorting, pagination, scope);
+
+        if (! (result instanceof Iterable)) {
+            return result;
+        }
+
+        Iterable<Object> loadedRecords = (Iterable<Object>) result;
+
+        if (filteredInMemory) {
             loadedRecords = filterLoadedData(loadedRecords, filterExpression, scope);
-            filteredInMemory = true;
         }
 
         Optional<Sorting> memorySort = shouldSortInMemory(entityClass, filteredInMemory)
@@ -242,6 +244,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                     memoryPagination,
                     scope);
     }
+
 
     protected Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
                                                          Class<?> entityClass,
@@ -346,21 +349,13 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      *  - mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
      *    It must be done in memory by Elide as some newly created entities have not yet been persisted.
      *  - If the store cannot filter
-     *  - If the filter expression includes computed attributes or relationships
      * @param entityClass
      * @param scope
-     * @param expression
      * @return
      */
     private boolean shouldFilterInMemory(Class<?> entityClass,
-                                         RequestScope scope,
-                                         Optional<FilterExpression> expression) {
-
-        return (scope.isMutatingMultipleEntities()
-                || ! tx.supportsFiltering(entityClass)
-                || (expression.isPresent()
-                && InMemoryExecutionVerifier.executeInMemory(scope.getDictionary(), expression.get()))
-        );
+                                         RequestScope scope) {
+        return (scope.isMutatingMultipleEntities() || ! tx.supportsFiltering(entityClass));
     }
 
     /**
