@@ -202,12 +202,15 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         Optional<FilterExpression> filterPushDown = Optional.empty();
         if (filterExpression.isPresent() && ! transactionNeedsInMemoryFiltering) {
 
-            storeNeedsInMemoryFiltering =
-                    tx.supportsFiltering(entityClass, filterExpression.get()) != FeatureSupport.FULL;
+            FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
 
-            filterPushDown =
-                    Optional.ofNullable(FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
-                    filterExpression.get()));
+            storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
+
+            filterPushDown = filterSupport == FeatureSupport.NONE
+                    ? Optional.empty()
+                    : Optional.ofNullable(
+                            FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
+                                    filterExpression.get()));
 
             expressionNeedsInMemoryFiltering =
                     InMemoryExecutionVerifier.executeInMemory(scope.getDictionary(), filterExpression.get());
