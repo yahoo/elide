@@ -24,6 +24,15 @@ import java.util.Set;
 public interface DataStoreTransaction extends Closeable {
 
     /**
+     * The extent to which the transaction supports a particular feature.
+     */
+    public enum FeatureSupport {
+        FULL,
+        PARTIAL,
+        NONE
+    }
+
+    /**
      * Wrap the opaque user.
      *
      * @param opaqueUser the opaque user
@@ -264,14 +273,30 @@ public interface DataStoreTransaction extends Closeable {
                               RequestScope scope) {
     }
 
-    default boolean supportsFiltering(Class<?> entityClass) {
-        return true;
+    /**
+     * Whether or not the transaction can filter the provided class with the provided expression.
+     * @param entityClass The class to filter
+     * @param expression The filter expression
+     * @return FULL, PARTIAL, or NONE
+     */
+    default FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        return FeatureSupport.FULL;
     }
 
+    /**
+     * Whether or not the transaction can sort the provided class.
+     * @param entityClass
+     * @return true if sorting is possible
+     */
     default boolean supportsSorting(Class<?> entityClass) {
         return true;
     }
 
+    /**
+     * Whether or not the transaction can paginate the provided class.
+     * @param entityClass
+     * @return true if pagination is possible
+     */
     default boolean supportsPagination(Class<?> entityClass) {
         return true;
     }

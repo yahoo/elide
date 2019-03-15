@@ -220,8 +220,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsFiltering(Class<?> entityClass) {
-        return getTransaction(entityClass).supportsFiltering(entityClass);
+    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        return getTransaction(entityClass).supportsFiltering(entityClass, expression);
     }
 
     @Override

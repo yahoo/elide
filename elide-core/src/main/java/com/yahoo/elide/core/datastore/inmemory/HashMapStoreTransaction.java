@@ -213,8 +213,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsFiltering(Class<?> entityClass) {
-        return false;
+    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        return FeatureSupport.NONE;
     }
 
     @Override

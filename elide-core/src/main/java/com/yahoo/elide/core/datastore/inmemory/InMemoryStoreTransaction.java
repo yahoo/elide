@@ -196,11 +196,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                                RequestScope scope) {
 
         boolean transactionNeedsInMemoryFiltering = scope.isMutatingMultipleEntities();
-        boolean storeNeedsInMemoryFiltering = ! tx.supportsFiltering(entityClass);
+        boolean storeNeedsInMemoryFiltering = false;
         boolean expressionNeedsInMemoryFiltering = false;
 
         Optional<FilterExpression> filterPushDown = Optional.empty();
         if (filterExpression.isPresent() && ! transactionNeedsInMemoryFiltering) {
+
+            storeNeedsInMemoryFiltering =
+                    tx.supportsFiltering(entityClass, filterExpression.get()) != FeatureSupport.FULL;
 
             filterPushDown =
                     Optional.ofNullable(FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
