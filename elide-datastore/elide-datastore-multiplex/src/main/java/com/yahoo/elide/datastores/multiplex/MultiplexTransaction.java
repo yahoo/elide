@@ -225,8 +225,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass) {
-        return getTransaction(entityClass).supportsSorting(entityClass);
+    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+        return getTransaction(entityClass).supportsSorting(entityClass, sorting);
     }
 
     @Override

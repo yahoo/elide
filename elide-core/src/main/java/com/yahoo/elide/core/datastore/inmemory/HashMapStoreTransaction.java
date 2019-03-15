@@ -218,7 +218,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass) {
+    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
         return false;
     }
 

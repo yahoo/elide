@@ -231,7 +231,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             loadedRecords = filterLoadedData(loadedRecords, filterExpression, scope);
         }
 
-        Optional<Sorting> memorySort = shouldSortInMemory(entityClass, filteredInMemory)
+        Optional<Sorting> memorySort = shouldSortInMemory(entityClass, sorting, filteredInMemory)
                 ? sorting
                 : Optional.empty();
 
@@ -356,8 +356,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * @return
      */
     private boolean shouldSortInMemory(Class<?> entityClass,
+                                       Optional<Sorting> sorting,
                                        boolean filteredInMemory) {
-        return (! tx.supportsSorting(entityClass) || filteredInMemory);
+        return (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory));
     }
 
     /**

@@ -288,7 +288,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityClass
      * @return true if sorting is possible
      */
-    default boolean supportsSorting(Class<?> entityClass) {
+    default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
         return true;
     }
 
