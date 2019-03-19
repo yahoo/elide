@@ -23,12 +23,16 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class InMemoryStoreTransactionTest {
 
@@ -36,6 +40,10 @@ public class InMemoryStoreTransactionTest {
     private RequestScope scope = mock(RequestScope.class);
     private InMemoryStoreTransaction inMemoryStoreTransaction = new InMemoryStoreTransaction(wrappedTransaction);
     private EntityDictionary dictionary;
+    private Set<Object> books = new HashSet<>();
+    private Book book1;
+    private Book book2;
+    private Book book3;
 
     @BeforeTest
     public void init() {
@@ -44,6 +52,48 @@ public class InMemoryStoreTransactionTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(Publisher.class);
+
+        Editor editor1 = new Editor();
+        editor1.setFirstName("Jon");
+        editor1.setLastName("Doe");
+
+        Editor editor2 = new Editor();
+        editor2.setFirstName("Jane");
+        editor2.setLastName("Doe");
+
+        Publisher publisher1 = new Publisher();
+        publisher1.setEditor(editor1);
+
+        Publisher publisher2 = new Publisher();
+        publisher2.setEditor(editor2);
+
+        book1 = new Book(1,
+                "Book 1",
+                "Literary Fiction",
+                "English",
+                System.currentTimeMillis(),
+                null,
+                publisher1);
+
+        book2 = new Book(2,
+                "Book 2",
+                "Science Fiction",
+                "English",
+                System.currentTimeMillis(),
+                null,
+                publisher1);
+
+        book3 = new Book(3,
+                "Book 3",
+                "Literary Fiction",
+                "English",
+                System.currentTimeMillis(),
+                null,
+                publisher2);
+
+        books.add(book1);
+        books.add(book2);
+        books.add(book3);
         when(scope.getDictionary()).thenReturn(dictionary);
     }
 
@@ -59,8 +109,11 @@ public class InMemoryStoreTransactionTest {
 
         Optional filterExpressionOp = Optional.of(expression);
         Optional empty = Optional.empty();
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
 
-        inMemoryStoreTransaction.loadObjects(
+        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
                 filterExpressionOp,
                 empty,
@@ -73,6 +126,11 @@ public class InMemoryStoreTransactionTest {
                 eq(empty),
                 eq(empty),
                 eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book2));
+        Assert.assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -81,11 +139,12 @@ public class InMemoryStoreTransactionTest {
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
         when(scope.isMutatingMultipleEntities()).thenReturn(true);
+        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
 
         Optional filterExpressionOp = Optional.of(expression);
         Optional empty = Optional.empty();
 
-        inMemoryStoreTransaction.loadObjects(
+        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
                 filterExpressionOp,
                 empty,
@@ -98,6 +157,10 @@ public class InMemoryStoreTransactionTest {
                 eq(empty),
                 eq(empty),
                 eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -107,11 +170,12 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
 
         Optional filterExpressionOp = Optional.of(expression);
         Optional empty = Optional.empty();
 
-        inMemoryStoreTransaction.loadObjects(
+        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
                 filterExpressionOp,
                 empty,
@@ -124,6 +188,10 @@ public class InMemoryStoreTransactionTest {
                 eq(empty),
                 eq(empty),
                 eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -133,11 +201,12 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
+        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
 
         Optional filterExpressionOp = Optional.of(expression);
         Optional empty = Optional.empty();
 
-        inMemoryStoreTransaction.loadObjects(
+        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
                 filterExpressionOp,
                 empty,
@@ -150,5 +219,9 @@ public class InMemoryStoreTransactionTest {
                 eq(empty),
                 eq(empty),
                 eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book3));
     }
 }
