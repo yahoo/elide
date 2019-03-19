@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -20,6 +21,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.sort.Sorting;
 import example.Author;
 import example.Book;
 import example.Editor;
@@ -32,8 +34,11 @@ import org.testng.annotations.Test;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class InMemoryStoreTransactionTest {
 
@@ -219,5 +224,72 @@ public class InMemoryStoreTransactionTest {
 
         Assert.assertEquals(loaded.size(), 1);
         Assert.assertTrue(loaded.contains(book3));
+    }
+
+    @Test
+    public void testSortingPushDown() {
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("title", Sorting.SortOrder.asc);
+
+        Sorting sorting = new Sorting(sortOrder);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class),
+                any())).thenReturn(true);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.of(sorting)), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.empty(),
+                Optional.of(sorting),
+                Optional.empty(),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.of(sorting)),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+    }
+
+    @Test
+    public void testDataStoreRequiresInMemorySorting() {
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("title", Sorting.SortOrder.asc);
+
+        Sorting sorting = new Sorting(sortOrder);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class),
+                any())).thenReturn(false);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.empty(),
+                Optional.of(sorting),
+                Optional.empty(),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+
+        List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
+        Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
     }
 }

@@ -221,8 +221,26 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                 || storeNeedsInMemoryFiltering
                 || expressionNeedsInMemoryFiltering);
 
+        Optional<Sorting> memorySort = shouldSortInMemory(entityClass, sorting, filteredInMemory)
+                ? sorting
+                : Optional.empty();
 
-        Object result = fetcher.fetch(filterPushDown, sorting, pagination, scope);
+        Optional<Sorting> dataStoreSort = memorySort.isPresent()
+                ? Optional.empty()
+                : sorting;
+
+        Optional<Pagination> memoryPagination = shouldPaginateInMemory(entityClass,
+                filteredInMemory,
+                memorySort.isPresent())
+                ? pagination
+                : Optional.empty();
+
+        Optional<Pagination> dataStorePagination = memoryPagination.isPresent()
+                ? Optional.empty()
+                : pagination;
+
+
+        Object result = fetcher.fetch(filterPushDown, dataStoreSort, dataStorePagination, scope);
 
         if (! (result instanceof Iterable)) {
             return result;
@@ -234,15 +252,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             loadedRecords = filterLoadedData(loadedRecords, filterExpression, scope);
         }
 
-        Optional<Sorting> memorySort = shouldSortInMemory(entityClass, sorting, filteredInMemory)
-                ? sorting
-                : Optional.empty();
-
-        Optional<Pagination> memoryPagination = shouldPaginateInMemory(entityClass,
-                filteredInMemory,
-                memorySort.isPresent())
-                ? pagination
-                : Optional.empty();
 
         return sortAndPaginateLoadedData(
                     loadedRecords,
