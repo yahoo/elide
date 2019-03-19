@@ -18,6 +18,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import example.Author;
 import example.Book;
@@ -107,24 +108,23 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        Optional filterExpressionOp = Optional.of(expression);
-        Optional empty = Optional.empty();
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression)),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
 
-        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
-                filterExpressionOp,
-                empty,
-                empty,
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.empty(),
                 scope);
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 eq(Book.class),
-                eq(filterExpressionOp),
-                eq(empty),
-                eq(empty),
+                eq(Optional.of(expression)),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
                 eq(scope));
 
         Assert.assertEquals(loaded.size(), 3);
@@ -139,23 +139,21 @@ public class InMemoryStoreTransactionTest {
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
         when(scope.isMutatingMultipleEntities()).thenReturn(true);
-        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
 
-        Optional filterExpressionOp = Optional.of(expression);
-        Optional empty = Optional.empty();
-
-        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
-                filterExpressionOp,
-                empty,
-                empty,
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.empty(),
                 scope);
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 eq(Book.class),
-                eq(empty),
-                eq(empty),
-                eq(empty),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
                 eq(scope));
 
         Assert.assertEquals(loaded.size(), 2);
@@ -170,23 +168,21 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
-        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
 
-        Optional filterExpressionOp = Optional.of(expression);
-        Optional empty = Optional.empty();
-
-        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
-                filterExpressionOp,
-                empty,
-                empty,
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.empty(),
                 scope);
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 eq(Book.class),
-                eq(empty),
-                eq(empty),
-                eq(empty),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
                 eq(scope));
 
         Assert.assertEquals(loaded.size(), 2);
@@ -196,32 +192,32 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testDataStoreRequiresPartialInMemoryFilter() {
-        FilterExpression expression =
+        FilterExpression expression1 =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+        FilterExpression expression2 =
+                new InPredicate(new Path(Book.class, dictionary, "editor.firstName"), "Jane");
+        FilterExpression expression = new AndFilterExpression(expression1, expression2);
 
         when(wrappedTransaction.supportsFiltering(eq(Book.class),
                 any())).thenReturn(DataStoreTransaction.FeatureSupport.PARTIAL);
-        when(wrappedTransaction.loadObjects(eq(Book.class), any(), any(), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression1)),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
 
-        Optional filterExpressionOp = Optional.of(expression);
-        Optional empty = Optional.empty();
-
-        Collection<Book> loaded = (Collection<Book>) inMemoryStoreTransaction.loadObjects(
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
                 Book.class,
-                filterExpressionOp,
-                empty,
-                empty,
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.empty(),
                 scope);
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 eq(Book.class),
-                eq(filterExpressionOp),
-                eq(empty),
-                eq(empty),
+                eq(Optional.of(expression1)),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
-        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertEquals(loaded.size(), 1);
         Assert.assertTrue(loaded.contains(book3));
     }
 }
