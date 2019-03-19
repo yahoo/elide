@@ -292,4 +292,42 @@ public class InMemoryStoreTransactionTest {
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
         Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
     }
+
+    @Test
+    public void testFilteringRequiresInMemorySorting() {
+        FilterExpression expression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("title", Sorting.SortOrder.asc);
+
+        Sorting sorting = new Sorting(sortOrder);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.supportsSorting(eq(Book.class),
+                any())).thenReturn(true);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.of(expression),
+                Optional.of(sorting),
+                Optional.empty(),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+
+        List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
+        Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 3"));
+    }
 }
