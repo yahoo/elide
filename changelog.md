@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.0
+**Features**
+ * Issue#763 Support for filtering & sorting on computed attributes
+
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
