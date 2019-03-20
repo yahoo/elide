@@ -14,6 +14,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -21,6 +23,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import example.Author;
 import example.Book;
@@ -50,6 +53,7 @@ public class InMemoryStoreTransactionTest {
     private Book book1;
     private Book book2;
     private Book book3;
+    private ElideSettings elideSettings;
 
     @BeforeTest
     public void init() {
@@ -58,6 +62,8 @@ public class InMemoryStoreTransactionTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(Publisher.class);
+
+        elideSettings = new ElideSettingsBuilder(null).build();
 
         Editor editor1 = new Editor();
         editor1.setFirstName("Jon");
@@ -329,5 +335,135 @@ public class InMemoryStoreTransactionTest {
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
         Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 3"));
+    }
+
+    @Test
+    public void testPaginationPushDown() {
+        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.of(pagination)), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(pagination),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.of(pagination)),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+    }
+
+    @Test
+    public void testDataStoreRequiresInMemoryPagination() {
+        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(false);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(pagination),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book2));
+        Assert.assertTrue(loaded.contains(book3));
+    }
+
+    @Test
+    public void testFilteringRequiresInMemoryPagination() {
+        FilterExpression expression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.of(pagination),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book3));
+    }
+
+    @Test
+    public void testSortingRequiresInMemoryPagination() {
+        Pagination pagination = Pagination.getDefaultPagination(elideSettings);
+
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("title", Sorting.SortOrder.asc);
+
+        Sorting sorting = new Sorting(sortOrder);
+
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.supportsSorting(eq(Book.class),
+                any())).thenReturn(false);
+        when(wrappedTransaction.supportsPagination(eq(Book.class))).thenReturn(true);
+
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+                eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
+                Book.class,
+                Optional.empty(),
+                Optional.of(sorting),
+                Optional.of(pagination),
+                scope);
+
+        verify(wrappedTransaction, times(1)).loadObjects(
+                eq(Book.class),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 3);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book2));
+        Assert.assertTrue(loaded.contains(book3));
     }
 }
