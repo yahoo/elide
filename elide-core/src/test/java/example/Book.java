@@ -68,7 +68,9 @@ public class Book {
     private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
 
-    public Book() {}
+    public Book() {
+
+    }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
