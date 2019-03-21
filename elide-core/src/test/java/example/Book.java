@@ -30,6 +30,7 @@ import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +60,7 @@ import javax.persistence.Transient;
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
 @AllArgsConstructor
+@NoArgsConstructor
 public class Book {
     private long id;
     private String title;
@@ -67,10 +69,6 @@ public class Book {
     private long publishDate = 0;
     private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
-
-    public Book() {
-
-    }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {

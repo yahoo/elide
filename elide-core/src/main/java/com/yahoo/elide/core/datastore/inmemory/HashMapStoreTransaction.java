@@ -7,7 +7,6 @@ package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,38 +176,6 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     @Override
     public void close() throws IOException {
         operations.clear();
-    }
-
-    /**
-     * Get the comparator for sorting.
-     *
-     * @param path Path to field for sorting
-     * @param order Order to sort
-     * @param requestScope Request scope
-     * @return Comparator for sorting
-     */
-    private Comparator<Object> getComparator(Path path, Sorting.SortOrder order, RequestScope requestScope) {
-        return (left, right) -> {
-            Object leftCompare = left;
-            Object rightCompare = right;
-
-            // Drill down into path to find value for comparison
-            for (Path.PathElement pathElement : path.getPathElements()) {
-                leftCompare = PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope);
-                rightCompare = PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope);
-            }
-
-            // Make sure value is comparable and perform comparison
-            if (leftCompare instanceof Comparable) {
-                int result = ((Comparable<Object>) leftCompare).compareTo(rightCompare);
-                if (order == Sorting.SortOrder.asc) {
-                    return result;
-                }
-                return -result;
-            }
-
-            throw new IllegalStateException("Trying to comparing non-comparable types!");
-        };
     }
 
     @Override

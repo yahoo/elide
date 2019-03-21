@@ -59,7 +59,7 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
      * @param expression
      * @return Returns true if the filter expression must be evaluated in memory.
      */
-    public static boolean executeInMemory(EntityDictionary dictionary, FilterExpression expression) {
+    public static boolean shouldExecuteInMemory(EntityDictionary dictionary, FilterExpression expression) {
         InMemoryExecutionVerifier verifier = new InMemoryExecutionVerifier(dictionary);
 
         return expression.accept(verifier);

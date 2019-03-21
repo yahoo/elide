@@ -18,6 +18,7 @@ import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.security.User;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -37,6 +38,8 @@ import java.util.stream.StreamSupport;
  */
 public class InMemoryStoreTransaction implements DataStoreTransaction {
 
+    private DataStoreTransaction tx;
+
     /**
      * Fetches data from the store.
      */
@@ -48,7 +51,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                      RequestScope scope);
     }
 
-    private DataStoreTransaction tx;
 
     public InMemoryStoreTransaction(DataStoreTransaction tx) {
         this.tx = tx;
@@ -195,52 +197,26 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                                Optional<Pagination> pagination,
                                RequestScope scope) {
 
-        boolean transactionNeedsInMemoryFiltering = scope.isMutatingMultipleEntities();
-        boolean storeNeedsInMemoryFiltering = false;
-        boolean expressionNeedsInMemoryFiltering = false;
+        Pair<Optional<FilterExpression>, Optional<FilterExpression>> expressionSplit = splitFilterExpression(
+                entityClass, filterExpression, scope);
 
-        Optional<FilterExpression> filterPushDown = Optional.empty();
-        if (filterExpression.isPresent() && ! transactionNeedsInMemoryFiltering) {
+        Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
+        Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
 
-            FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
+        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(entityClass,
+                sorting, inMemoryFilter.isPresent());
 
-            storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
+        Optional<Sorting> dataStoreSort = sortSplit.getLeft();
+        Optional<Sorting> inMemorySort = sortSplit.getRight();
 
-            filterPushDown = filterSupport == FeatureSupport.NONE
-                    ? Optional.empty()
-                    : Optional.ofNullable(
-                            FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
-                                    filterExpression.get()));
-
-            expressionNeedsInMemoryFiltering =
-                    InMemoryExecutionVerifier.executeInMemory(scope.getDictionary(), filterExpression.get());
-        }
-
-        boolean filteredInMemory = filterExpression.isPresent()
-                && (transactionNeedsInMemoryFiltering
-                || storeNeedsInMemoryFiltering
-                || expressionNeedsInMemoryFiltering);
-
-        Optional<Sorting> memorySort = shouldSortInMemory(entityClass, sorting, filteredInMemory)
-                ? sorting
-                : Optional.empty();
-
-        Optional<Sorting> dataStoreSort = memorySort.isPresent()
-                ? Optional.empty()
-                : sorting;
-
-        Optional<Pagination> memoryPagination = shouldPaginateInMemory(entityClass,
-                filteredInMemory,
-                memorySort.isPresent())
-                ? pagination
-                : Optional.empty();
-
-        Optional<Pagination> dataStorePagination = memoryPagination.isPresent()
-                ? Optional.empty()
-                : pagination;
+        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(entityClass,
+                pagination, inMemoryFilter.isPresent(), inMemorySort.isPresent());
 
 
-        Object result = fetcher.fetch(filterPushDown, dataStoreSort, dataStorePagination, scope);
+        Optional<Pagination> dataStorePagination = paginationSplit.getLeft();
+        Optional<Pagination> inMemoryPagination = paginationSplit.getRight();
+
+        Object result = fetcher.fetch(dataStoreFilter, dataStoreSort, dataStorePagination, scope);
 
         if (! (result instanceof Iterable)) {
             return result;
@@ -248,7 +224,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         Iterable<Object> loadedRecords = (Iterable<Object>) result;
 
-        if (filteredInMemory) {
+        if (inMemoryFilter.isPresent()) {
             loadedRecords = filterLoadedData(loadedRecords, filterExpression, scope);
         }
 
@@ -256,8 +232,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         return sortAndPaginateLoadedData(
                     loadedRecords,
                     entityClass,
-                    memorySort,
-                    memoryPagination,
+                    inMemorySort,
+                    inMemoryPagination,
                     scope);
     }
 
@@ -389,5 +365,95 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         return (! tx.supportsPagination(entityClass)
                 || filteredInMemory
                 || sortedInMemory);
+    }
+
+    /**
+     * Splits a filter expression into two components:
+     *  - a component that should be pushed down to the data store
+     *  - a component that should be executed in memory
+     * @param entityClass The class to filter
+     * @param filterExpression The filter expression
+     * @param scope The request context
+     * @return A pair of filter expressions (data store expression, in memory expression)
+     */
+    private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
+            Class<?> entityClass,
+            Optional<FilterExpression> filterExpression,
+            RequestScope scope
+    ) {
+
+        Optional<FilterExpression> inStoreFilterExpression = filterExpression;
+        Optional<FilterExpression> inMemoryFilterExpression = Optional.empty();
+
+        boolean transactionNeedsInMemoryFiltering = scope.isMutatingMultipleEntities();
+
+        if (filterExpression.isPresent()) {
+            FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
+
+            boolean storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
+
+            if (transactionNeedsInMemoryFiltering || filterSupport == FeatureSupport.NONE) {
+                inStoreFilterExpression = Optional.empty();
+            } else {
+                inStoreFilterExpression = Optional.ofNullable(
+                        FilterPredicatePushdownExtractor.extractPushDownPredicate(scope.getDictionary(),
+                                filterExpression.get()));
+            }
+
+            boolean expressionNeedsInMemoryFiltering = InMemoryExecutionVerifier.shouldExecuteInMemory(
+                    scope.getDictionary(), filterExpression.get());
+
+            if (transactionNeedsInMemoryFiltering || storeNeedsInMemoryFiltering || expressionNeedsInMemoryFiltering) {
+                inMemoryFilterExpression = filterExpression;
+            }
+        }
+
+        return Pair.of(inStoreFilterExpression, inMemoryFilterExpression);
+    }
+
+    /**
+     * Splits a sorting object into two components:
+     *  - a component that should be pushed down to the data store
+     *  - a component that should be executed in memory
+     * @param entityClass The class to filter
+     * @param sorting The sorting object
+     * @param filteredInMemory Whether or not filtering was performed in memory
+     * @return A pair of sorting objects (data store sort, in memory sort)
+     */
+    private Pair<Optional<Sorting>, Optional<Sorting>> splitSorting(
+            Class<?> entityClass,
+            Optional<Sorting> sorting,
+            boolean filteredInMemory
+    ) {
+        if (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory)) {
+            return Pair.of(Optional.empty(), sorting);
+        } else {
+            return Pair.of(sorting, Optional.empty());
+        }
+    }
+
+    /**
+     * Splits a pagination object into two components:
+     *  - a component that should be pushed down to the data store
+     *  - a component that should be executed in memory
+     * @param entityClass The class to filter
+     * @param pagination The pagination object
+     * @param filteredInMemory Whether or not filtering was performed in memory
+     * @param sortedInMemory Whether or not sorting was performed in memory
+     * @return A pair of pagination objects (data store pagination, in memory pagination)
+     */
+    private Pair<Optional<Pagination>, Optional<Pagination>> splitPagination(
+            Class<?> entityClass,
+            Optional<Pagination> pagination,
+            boolean filteredInMemory,
+            boolean sortedInMemory
+    ) {
+        if (!tx.supportsPagination(entityClass)
+                || filteredInMemory
+                || sortedInMemory) {
+            return Pair.of(Optional.empty(), pagination);
+        } else {
+            return Pair.of(pagination, Optional.empty());
+        }
     }
 }

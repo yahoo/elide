@@ -37,7 +37,7 @@ public class InMemoryExecutionVerifierTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        Assert.assertFalse(InMemoryExecutionVerifier.executeInMemory(dictionary, expression));
+        Assert.assertFalse(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, expression));
     }
 
     @Test
@@ -50,7 +50,7 @@ public class InMemoryExecutionVerifierTest {
 
         FilterExpression finalExpression = new NotFilterExpression(new AndFilterExpression(dataStoreExpression, inMemoryExpression));
 
-        Assert.assertTrue(InMemoryExecutionVerifier.executeInMemory(dictionary, finalExpression));
+        Assert.assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
     }
 
     @Test
@@ -63,6 +63,6 @@ public class InMemoryExecutionVerifierTest {
 
         FilterExpression finalExpression = new NotFilterExpression(new OrFilterExpression(dataStoreExpression, inMemoryExpression));
 
-        Assert.assertTrue(InMemoryExecutionVerifier.executeInMemory(dictionary, finalExpression));
+        Assert.assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
     }
 }
