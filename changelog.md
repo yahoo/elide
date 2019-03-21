@@ -2,6 +2,7 @@
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
+ * Issue#766 Outdated MySQL driver in elide-standalone and examples
 
 **Features**
  * Let custom Elide wrapper process JsonPatchExtensionException
