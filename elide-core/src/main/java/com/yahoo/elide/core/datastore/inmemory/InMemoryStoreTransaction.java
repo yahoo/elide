@@ -21,6 +21,7 @@ import com.yahoo.elide.security.User;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -151,6 +152,19 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     @Override
     public void createObject(Object entity, RequestScope scope) {
         tx.createObject(entity, scope);
+    }
+
+    @Override
+    public Object loadObject(Class<?> entityClass,
+                      Serializable id,
+                      Optional<FilterExpression> filterExpression,
+                      RequestScope scope) {
+        if (filterExpression.isPresent()
+                && tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
+            return tx.loadObject(entityClass, id, filterExpression, scope);
+        } else {
+            return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
+        }
     }
 
     @Override
