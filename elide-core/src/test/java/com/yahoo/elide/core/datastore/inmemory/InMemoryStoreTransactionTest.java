@@ -26,6 +26,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
 import example.Editor;
@@ -35,6 +36,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +56,7 @@ public class InMemoryStoreTransactionTest {
     private Book book1;
     private Book book2;
     private Book book3;
+    private Author author;
     private ElideSettings elideSettings;
 
     @BeforeTest
@@ -65,6 +68,8 @@ public class InMemoryStoreTransactionTest {
         dictionary.bindEntity(Publisher.class);
 
         elideSettings = new ElideSettingsBuilder(null).build();
+
+        author = new Author();
 
         Editor editor1 = new Editor();
         editor1.setFirstName("Jon");
@@ -85,7 +90,7 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                null,
+                Sets.newHashSet(author),
                 publisher1);
 
         book2 = new Book(2,
@@ -93,7 +98,7 @@ public class InMemoryStoreTransactionTest {
                 "Science Fiction",
                 "English",
                 System.currentTimeMillis(),
-                null,
+                Sets.newHashSet(author),
                 publisher1);
 
         book3 = new Book(3,
@@ -101,12 +106,15 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                null,
+                Sets.newHashSet(author),
                 publisher2);
 
         books.add(book1);
         books.add(book2);
         books.add(book3);
+
+        author.setBooks(new ArrayList(books));
+
         when(scope.getDictionary()).thenReturn(dictionary);
     }
 
@@ -146,12 +154,48 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
-    public void testTransactionRequiresInMemoryFilter() {
+    public void testTransactionRequiresInMemoryFilterDuringGetRelation() {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
         when(scope.isMutatingMultipleEntities()).thenReturn(true);
-        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.empty()),
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author), eq("books"),
+                eq(Optional.empty()), eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.getRelation(
+                inMemoryStoreTransaction,
+                author,
+                "books",
+                Optional.of(expression),
+                Optional.empty(),
+                Optional.empty(),
+                scope);
+
+        verify(wrappedTransaction, times(1)).getRelation(
+                eq(inMemoryStoreTransaction),
+                eq(author),
+                eq("books"),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(Optional.empty()),
+                eq(scope));
+
+        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book3));
+    }
+
+    @Test
+    public void testTransactionRequiresInMemoryFilterDuringLoad() {
+        FilterExpression expression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        when(scope.isMutatingMultipleEntities()).thenReturn(true);
+        when(wrappedTransaction.supportsFiltering(eq(Book.class),
+                any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        when(wrappedTransaction.loadObjects(eq(Book.class), eq(Optional.of(expression)),
                 eq(Optional.empty()), eq(Optional.empty()), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
@@ -163,13 +207,14 @@ public class InMemoryStoreTransactionTest {
 
         verify(wrappedTransaction, times(1)).loadObjects(
                 eq(Book.class),
-                eq(Optional.empty()),
+                eq(Optional.of(expression)),
                 eq(Optional.empty()),
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
+        Assert.assertEquals(loaded.size(), 3);
         Assert.assertTrue(loaded.contains(book1));
+        Assert.assertTrue(loaded.contains(book2));
         Assert.assertTrue(loaded.contains(book3));
     }
 

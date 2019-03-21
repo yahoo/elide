@@ -103,7 +103,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                 return tx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
             }
         };
-        return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, scope);
+
+        boolean filterInMemory = scope.isMutatingMultipleEntities();
+        return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, filterInMemory, scope);
     }
 
     @Override
@@ -168,7 +170,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             }
         };
 
-        return (Iterable<Object>) fetchData(fetcher, entityClass, filterExpression, sorting, pagination, scope);
+        return (Iterable<Object>) fetchData(fetcher, entityClass,
+                filterExpression, sorting, pagination, false, scope);
     }
 
     @Override
@@ -176,7 +179,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         tx.close();
     }
 
-    protected Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
+    private Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
                                                 Optional<FilterExpression> filterExpression,
                                                 RequestScope scope) {
         if (! filterExpression.isPresent()) {
@@ -190,15 +193,16 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                             .collect(Collectors.toList());
     }
 
-    protected Object fetchData(DataFetcher fetcher,
+    private Object fetchData(DataFetcher fetcher,
                                Class<?> entityClass,
                                Optional<FilterExpression> filterExpression,
                                Optional<Sorting> sorting,
                                Optional<Pagination> pagination,
+                               boolean filterInMemory,
                                RequestScope scope) {
 
         Pair<Optional<FilterExpression>, Optional<FilterExpression>> expressionSplit = splitFilterExpression(
-                entityClass, filterExpression, scope);
+                entityClass, filterExpression, filterInMemory, scope);
 
         Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
         Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
@@ -238,7 +242,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
 
-    protected Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
+    private Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
                                                          Class<?> entityClass,
                                                          Optional<Sorting> sorting,
                                                          Optional<Pagination> pagination,
@@ -273,7 +277,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         return results;
     }
 
-    protected List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
+    private List<Object> paginateInMemory(List<Object> records, Pagination pagination) {
         int offset = pagination.getOffset();
         int limit = pagination.getLimit();
         if (offset < 0 || offset >= records.size()) {
@@ -291,7 +295,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         return records.subList(offset, endIdx);
     }
 
-    protected List<Object> sortInMemory(List<Object> records,
+    private List<Object> sortInMemory(List<Object> records,
                                         Map<Path, Sorting.SortOrder> sortRules,
                                         RequestScope scope) {
         //Build a comparator that handles multiple comparison rules.
@@ -336,56 +340,26 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     /**
-     * We must sort in memory if:
-     *  - We are filtering in memory
-     *  - The store cannot sort
-     * @param entityClass
-     * @param filteredInMemory true if we filtered in memory
-     * @return
-     */
-    private boolean shouldSortInMemory(Class<?> entityClass,
-                                       Optional<Sorting> sorting,
-                                       boolean filteredInMemory) {
-        return (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory));
-    }
-
-    /**
-     * We must paginate in memory if:
-     *  - We are sorting in memory
-     *  - We are filtering in memory
-     *  - The store cannot paginate
-     * @param entityClass
-     * @param filteredInMemory true if we filtered in memory
-     * @param sortedInMemory true if we sorted in memory
-     * @return
-     */
-    private boolean shouldPaginateInMemory(Class<?> entityClass,
-                                           boolean filteredInMemory,
-                                           boolean sortedInMemory) {
-        return (! tx.supportsPagination(entityClass)
-                || filteredInMemory
-                || sortedInMemory);
-    }
-
-    /**
      * Splits a filter expression into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
      * @param entityClass The class to filter
      * @param filterExpression The filter expression
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @param scope The request context
      * @return A pair of filter expressions (data store expression, in memory expression)
      */
     private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
             Class<?> entityClass,
             Optional<FilterExpression> filterExpression,
+            boolean filterInMemory,
             RequestScope scope
     ) {
 
         Optional<FilterExpression> inStoreFilterExpression = filterExpression;
         Optional<FilterExpression> inMemoryFilterExpression = Optional.empty();
 
-        boolean transactionNeedsInMemoryFiltering = scope.isMutatingMultipleEntities();
+        boolean transactionNeedsInMemoryFiltering = filterInMemory;
 
         if (filterExpression.isPresent()) {
             FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
