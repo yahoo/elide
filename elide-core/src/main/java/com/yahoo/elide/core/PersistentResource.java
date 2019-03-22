@@ -823,9 +823,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         } else {
             if (!ids.isEmpty()) {
                 // Fetch our set of new resources that we know about since we can't find them in the datastore
-                String typeAlias = dictionary.getJsonAliasFor(entityType);
                 newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> typeAlias.equals(resource.getType())
+                        .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
                                 && ids.contains(resource.getUUID().orElse("")))
                         .collect(Collectors.toSet());
 
