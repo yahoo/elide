@@ -82,6 +82,7 @@
         <version.jetty>9.4.12.v20180830</version.jetty>
         <version.restassured>2.9.0</version.restassured>
         <version.jackson>2.9.8</version.jackson>
+        <version.mysql>8.0.15</version.mysql>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -145,6 +146,11 @@
                 <artifactId>jetty-servlet</artifactId>
                 <version>${version.jetty}</version>
             </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${version.mysql}</version>
+            </dependency>
 
             <!-- Test dependencies -->
             <dependency>
@@ -182,12 +188,6 @@
                         <groupId>junit</groupId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>6.0.5</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
