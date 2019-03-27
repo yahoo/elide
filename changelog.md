@@ -1,4 +1,8 @@
 # Change Log
+## 4.3.4
+**Fixes**
+ * Throw proper exception on invalid PersistentResource where id=null
+
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test

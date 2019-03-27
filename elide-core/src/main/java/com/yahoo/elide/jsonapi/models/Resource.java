@@ -147,6 +147,9 @@ public class Resource {
         if (cls == null) {
             throw new UnknownEntityException(type);
         }
+        if (id == null) {
+            throw new InvalidObjectIdentifierException(id, type);
+        }
         return PersistentResource.loadRecord(cls, id, requestScope);
     }
 }
