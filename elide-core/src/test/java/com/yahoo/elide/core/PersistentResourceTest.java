@@ -636,7 +636,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "2", goodScope);
 
-        Relationship ids = new Relationship(null, new Data<>(new ResourceIdentifier("right", null).castToResource()));
+        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null)));
 
         leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
     }

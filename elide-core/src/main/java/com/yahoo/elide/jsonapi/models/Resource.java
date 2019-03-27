@@ -42,6 +42,9 @@ public class Resource {
     public Resource(String type, String id) {
         this.type = type;
         this.id = id;
+        if (id == null) {
+            throw new InvalidObjectIdentifierException(id, type);
+        }
     }
 
     public Resource(@JsonProperty("type") String type,
