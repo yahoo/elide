@@ -59,7 +59,7 @@ public class Resource {
     }
 
     public String getId() {
-        return (id == null) ? null : id;
+        return id;
     }
 
     public void setRelationships(Map<String, Relationship> relationships) {
@@ -141,7 +141,7 @@ public class Resource {
         return false;
     }
 
-    public PersistentResource toPersistentResource(RequestScope requestScope)
+    public PersistentResource<?> toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         Class<?> cls = requestScope.getDictionary().getEntityClass(type);
         if (cls == null) {
