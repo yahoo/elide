@@ -21,7 +21,7 @@ import javax.persistence.PersistenceException;
  */
 public class HibernateSessionFactoryStore extends AbstractHibernateStore {
 
-    protected HibernateSessionFactoryStore(SessionFactory aSessionFactory,
+    public HibernateSessionFactoryStore(SessionFactory aSessionFactory,
                                            boolean isScrollEnabled,
                                            ScrollMode scrollMode) {
         super(aSessionFactory, isScrollEnabled, scrollMode);

@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -124,10 +123,6 @@ public class InMemoryTransaction implements DataStoreTransaction {
         String id = String.valueOf(nextId.getAndIncrement());
         setId(entity, id);
         operations.add(new Operation(id, entity, entity.getClass(), false));
-    }
-
-    private AtomicLong newRandomId(Class<?> ignored) {
-        return new AtomicLong(ThreadLocalRandom.current().nextLong());
     }
 
     public void setId(Object value, String id) {

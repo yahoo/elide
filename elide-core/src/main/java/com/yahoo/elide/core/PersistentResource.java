@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -86,7 +85,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     private final String type;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
-    private final HashMap<Class, HashSet<String>> triggersRun = new HashMap<>();
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
@@ -189,7 +187,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 .map(checkId::equals)
                 .orElseGet(() -> {
                     String id = getId();
-                    return !"0".equals(id) && checkId.equals(id);
+                    return !"0".equals(id) && !"null".equals(id) && checkId.equals(id);
                 });
     }
 
@@ -1162,7 +1160,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             //         that newly created object within the context of the request. Thus, if any such action was
             //         required, the user would be forced to provide a UUID anyway.
             String id = dictionary.getId(getObject());
-            if (uuid.isPresent() && "0".equals(id)) {
+            if (uuid.isPresent() && ("0".equals(id) || "null".equals(id))) {
                 hashCode = Objects.hashCode(uuid);
             } else {
                 hashCode = Objects.hashCode(id);

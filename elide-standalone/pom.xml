@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-standalone</artifactId>
-    <version>4.3.1-SNAPSHOT</version>
+    <version>4.3.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.3.1-SNAPSHOT</version>
+        <version>4.3.4-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -63,19 +63,19 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>4.3.1-SNAPSHOT</version>
+            <version>4.3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.3.1-SNAPSHOT</version>
+            <version>4.3.4-SNAPSHOT</version>
         </dependency>
 
         <!-- MySQL Driver -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>6.0.6</version>
+            <version>${version.mysql}</version>
             <scope>compile</scope>
         </dependency>
 

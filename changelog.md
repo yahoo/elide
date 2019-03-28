@@ -1,5 +1,25 @@
 # Change Log
-## 4.3.00
+## 4.3.3
+**Fixes**
+ * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
+ * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658 
+ * Issue#766 Outdated MySQL driver in elide-standalone and examples
+
+**Features**
+ * Let custom Elide wrapper process JsonPatchExtensionException
+
+## 4.3.2
+**Fixes**
+ * Issue#754
+
+## 4.3.1
+**Fixes**
+ * Issue#758
+
+**Features**
+ * New method in EntityDictionary to bind a dependency injection injector function.
+
+## 4.3.0
 **Fixes**
  * Issue#733
 
