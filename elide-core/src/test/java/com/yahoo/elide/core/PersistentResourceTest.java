@@ -610,8 +610,42 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
         verify(tx, times(1)).save(right, goodScope);
+        verify(tx, times(1)).getRelation(tx, left, "one2one", Optional.empty(), Optional.empty(), Optional.empty(),
+                goodScope);
         Assert.assertEquals(updated, true, "The one-2-one relationship should be added.");
         Assert.assertEquals(left.getOne2one().getId(), 3, "The correct object was set in the one-2-one relationship");
+    }
+
+    /**
+     * Avoid NPE when PATCH or POST defines relationship with null id
+     * <pre>
+     * <code>
+     * "relationships": {
+     *   "left": {
+     *     "data": {
+     *       "type": "right",
+     *       "id": null
+     *     }
+     *   }
+     * }
+     * </code>
+     * </pre>
+     */
+    @Test(expectedExceptions = InvalidObjectIdentifierException.class,
+            expectedExceptionsMessageRegExp = "Unknown identifier 'null' for right")
+    public void testSuccessfulOneToOneRelationshipAddNull() throws Exception {
+        User goodUser = new User(1);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        Left left = new Left();
+        left.setId(2);
+
+        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
+
+        PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "2", goodScope);
+
+        Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null)));
+
+        leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
     }
 
     @Test
