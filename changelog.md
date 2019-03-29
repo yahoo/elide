@@ -2,6 +2,7 @@
 ## 4.3.4
 **Fixes**
  * Throw proper exception on invalid PersistentResource where id=null
+ * Issue#744 Elide returns wrong date parsing format in 400 error for non-default DateFormats
 
 ## 4.3.3
 **Fixes**

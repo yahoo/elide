@@ -7,7 +7,6 @@ package com.yahoo.elide.utils.coerce.converters;
 
 import org.apache.commons.lang3.ClassUtils;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -17,7 +16,7 @@ import java.util.TimeZone;
  */
 public class ISO8601DateSerde implements Serde<String, Date> {
 
-    protected DateFormat df;
+    protected SimpleDateFormat df;
     protected Class<? extends Date> targetType;
 
     public ISO8601DateSerde(SimpleDateFormat df) {
@@ -49,7 +48,7 @@ public class ISO8601DateSerde implements Serde<String, Date> {
         try {
             date = df.parse(val);
         } catch (java.text.ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as yyyy-MM-dd'T'HH:mm'Z'");
+            throw new IllegalArgumentException("Date strings must be formated as " + df.toPattern());
         }
 
         if (ClassUtils.isAssignable(targetType, java.sql.Date.class)) {
