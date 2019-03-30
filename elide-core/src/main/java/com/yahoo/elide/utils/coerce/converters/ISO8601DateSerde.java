@@ -25,8 +25,7 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     }
 
     public ISO8601DateSerde(SimpleDateFormat df, Class<? extends Date> targetType) {
-        this.df = FastDateFormat.getInstance(df.toPattern(), df.getTimeZone());
-        this.targetType = targetType;
+        this(df.toPattern(), df.getTimeZone(), targetType);
     }
 
     public ISO8601DateSerde(String formatString, TimeZone tz) {
