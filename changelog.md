@@ -1,5 +1,8 @@
 # Change Log
 ## 4.3.4
+**Fixes**
+ * Throw proper exception on invalid PersistentResource where id=null
+
 **Features**
  * Added [JPA Data Store](https://github.com/yahoo/elide/pull/747)
 
