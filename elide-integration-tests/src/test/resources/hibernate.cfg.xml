@@ -9,7 +9,7 @@
     "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
-    <!-- MySQL session factory -->
+    <!-- H2 session factory -->
     <session-factory>
         <!-- local connection properties -->
         <!-- this is what we normally use -->
@@ -29,5 +29,8 @@
         <property name="hibernate.bytecode.use_reflection_optimizer">false</property>
 
         <property name="hibernate.current_session_context_class">thread</property>
+
+        <property name="hibernate.c3p0.unreturnedConnectionTimeout">60</property>
+        <property name="hibernate.c3p0.debugUnreturnedConnectionStackTraces">true</property>
     </session-factory>
 </hibernate-configuration>

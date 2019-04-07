@@ -7,14 +7,14 @@
  * Throw proper exception on invalid PersistentResource where id=null
  * Issue#744 Elide returns wrong date parsing format in 400 error for non-default DateFormats
 
+**Features**
+ * Added [JPA Data Store](https://github.com/yahoo/elide/pull/747)
+
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
  * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658 
  * Issue#766 Outdated MySQL driver in elide-standalone and examples
-
-**Features**
- * Let custom Elide wrapper process JsonPatchExtensionException
 
 ## 4.3.2
 **Fixes**

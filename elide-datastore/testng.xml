@@ -8,6 +8,8 @@
 <suite name="Test Suite">
     <test name="com.yahoo.elide.tests">
         <packages>
+            <package name="com.yahoo.elide.triggers"/>
+            <package name="com.yahoo.elide.inheritance"/>
             <package name="com.yahoo.elide.tests"/>
         </packages>
     </test>

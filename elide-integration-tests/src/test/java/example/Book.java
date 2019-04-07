@@ -151,4 +151,8 @@ public class Book extends BaseId {
 
         return null;
     }
+    @Override
+    public String toString() {
+        return "Book: " + id;
+    }
 }

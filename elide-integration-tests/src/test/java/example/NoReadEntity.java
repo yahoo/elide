@@ -8,6 +8,7 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
@@ -22,8 +23,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "noread")
 public class NoReadEntity extends BaseId {
-    public String field;
+    @Column
+    protected String field;
 
     @OneToOne(fetch = FetchType.LAZY)
-    public Child child;
+    protected Child child;
 }

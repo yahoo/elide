@@ -15,7 +15,7 @@ import org.testng.annotations.Test
  */
 class UserTypeIT extends AbstractIntegrationTestInitializer {
 
-    @Test
+    @Test(priority = 1)
     public void testUserTypePost() {
 
         String person = """
@@ -36,7 +36,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
                 }
             }
         }
-        """;
+        """
 
         given()
             .contentType("application/vnd.api+json")
@@ -44,18 +44,18 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             .body(person)
             .post("/person")
             .then()
-            .statusCode(HttpStatus.SC_CREATED);
+            .statusCode(HttpStatus.SC_CREATED)
 
         String resp = given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
             .get("/person/1")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
-        assertEqualDocuments(resp, person);
+            .statusCode(HttpStatus.SC_OK).extract().body().asString()
+        assertEqualDocuments(resp, person)
     }
 
-    @Test
+    @Test(priority = 2)
     public void testUserTypePatch() {
 
         String originalPerson = """
@@ -76,7 +76,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
                 }
             }
         }
-        """;
+        """
 
         String updatedPerson = """
         {
@@ -96,7 +96,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
                 }
             }
         }
-        """;
+        """
 
         given()
             .contentType("application/vnd.api+json")
@@ -104,7 +104,7 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             .body(originalPerson)
             .post("/person")
             .then()
-            .statusCode(HttpStatus.SC_CREATED);
+            .statusCode(HttpStatus.SC_CREATED)
 
         given()
             .contentType("application/vnd.api+json")
@@ -112,18 +112,18 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             .body(updatedPerson)
             .patch("/person/2")
             .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT);
+            .statusCode(HttpStatus.SC_NO_CONTENT)
 
         String resp = given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
             .get("/person/2")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
-        assertEqualDocuments(resp, updatedPerson);
+            .statusCode(HttpStatus.SC_OK).extract().body().asString()
+        assertEqualDocuments(resp, updatedPerson)
      }
 
-    @Test
+    @Test(priority = 3)
     public void testUserTypeMissingUserTypeField() {
 
         given()
@@ -142,14 +142,14 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             """)
             .post("/person")
             .then()
-            .statusCode(HttpStatus.SC_CREATED);
+            .statusCode(HttpStatus.SC_CREATED)
 
         String resp = given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
             .get("/person/3")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
+            .statusCode(HttpStatus.SC_OK).extract().body().asString()
         assertEqualDocuments(resp, """
             {
                 "data": {
@@ -161,10 +161,10 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
                     }
                 }
             }
-            """);
+            """)
     }
 
-    @Test
+    @Test(priority = 4)
     public void testUserTypeMissingUserTypeProperties() {
 
         given()
@@ -189,14 +189,14 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
             """)
             .post("/person")
             .then()
-            .statusCode(HttpStatus.SC_CREATED);
+            .statusCode(HttpStatus.SC_CREATED)
 
         String resp = given()
             .contentType("application/vnd.api+json")
             .accept("application/vnd.api+json")
             .get("/person/4")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
+            .statusCode(HttpStatus.SC_OK).extract().body().asString()
 
         assertEqualDocuments(resp, """
             {
@@ -216,6 +216,6 @@ class UserTypeIT extends AbstractIntegrationTestInitializer {
                     }
                 }
             }
-        """);
+        """)
     }
 }
