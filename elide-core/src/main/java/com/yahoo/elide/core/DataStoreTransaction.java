@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -12,6 +14,7 @@ import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
@@ -19,6 +22,15 @@ import java.util.Set;
  * Wraps the Database Transaction type.
  */
 public interface DataStoreTransaction extends Closeable {
+
+    /**
+     * The extent to which the transaction supports a particular feature.
+     */
+    public enum FeatureSupport {
+        FULL,
+        PARTIAL,
+        NONE
+    }
 
     /**
      * Wrap the opaque user.
@@ -109,11 +121,31 @@ public interface DataStoreTransaction extends Closeable {
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    Object loadObject(Class<?> entityClass,
+    default Object loadObject(Class<?> entityClass,
                       Serializable id,
                       Optional<FilterExpression> filterExpression,
-                      RequestScope scope);
-
+                      RequestScope scope) {
+        EntityDictionary dictionary = scope.getDictionary();
+        Class idType = dictionary.getIdType(entityClass);
+        String idField = dictionary.getIdFieldName(entityClass);
+        FilterExpression idFilter = new InPredicate(
+                new Path.PathElement(entityClass, idType, idField),
+                id
+        );
+        FilterExpression joinedFilterExpression = filterExpression
+                .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
+                .orElse(idFilter);
+        Iterable<Object> results = loadObjects(entityClass,
+                Optional.of(joinedFilterExpression),
+                Optional.empty(),
+                Optional.empty(),
+                scope);
+        Iterator<Object> it = results == null ? null : results.iterator();
+        if (it != null && it.hasNext()) {
+            return it.next();
+        }
+        return null;
+    }
 
     /**
      * Loads a collection of objects.
@@ -239,5 +271,33 @@ public interface DataStoreTransaction extends Closeable {
                               String attributeName,
                               Object attributeValue,
                               RequestScope scope) {
+    }
+
+    /**
+     * Whether or not the transaction can filter the provided class with the provided expression.
+     * @param entityClass The class to filter
+     * @param expression The filter expression
+     * @return FULL, PARTIAL, or NONE
+     */
+    default FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        return FeatureSupport.FULL;
+    }
+
+    /**
+     * Whether or not the transaction can sort the provided class.
+     * @param entityClass
+     * @return true if sorting is possible
+     */
+    default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+        return true;
+    }
+
+    /**
+     * Whether or not the transaction can paginate the provided class.
+     * @param entityClass
+     * @return true if pagination is possible
+     */
+    default boolean supportsPagination(Class<?> entityClass) {
+        return true;
     }
 }
