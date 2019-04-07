@@ -29,9 +29,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * InMemoryDataStore tests.
+ * HashMapDataStore tests.
  */
-public class InMemoryDataStoreTest {
+public class HashMapDataStoreTest {
     private InMemoryDataStore inMemoryDataStore;
 
     @BeforeMethod

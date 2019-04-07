@@ -145,7 +145,11 @@ public class Book extends BaseId {
     @FilterExpressionPath("publisher.editor")
     @ReadPermission(expression = "Field path editor check")
     public Editor getEditor() {
-        return getPublisher().getEditor();
+        if (publisher != null) {
+            return getPublisher().getEditor();
+        }
+
+        return null;
     }
     @Override
     public String toString() {

@@ -102,9 +102,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     private final RequestScope badUserScope;
 
     public PersistentResourceTest() {
-        goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
+        goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(1), null, elideSettings, false);
-        badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
+        badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(-1), null, elideSettings, false);
     }
 
@@ -131,6 +131,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
         dictionary.bindEntity(UnshareableWithEntityUnshare.class);
+
+        reset(goodUserScope.getTransaction());
     }
 
     @Test
@@ -140,7 +142,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -159,7 +161,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setRelation1(Sets.newHashSet(child1));
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -178,7 +180,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setRelation3(child);
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -196,7 +198,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setRelation3(child1);
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any(), any(), any())).thenReturn(child1);
+
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         funResource.clearRelation("relation3");
@@ -212,7 +216,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -232,7 +236,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         child.setParents(Sets.newHashSet(parent));
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -250,12 +254,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = new Parent();
         Child child1 = newChild(1);
         Child child2 = newChild(2);
-        parent.setChildren(Sets.newHashSet(child1, child2));
+        Set<Child> children = Sets.newHashSet(child1, child2);
+        parent.setChildren(children);
         child1.setParents(Sets.newHashSet(parent));
         child2.setParents(Sets.newHashSet(parent));
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -275,12 +281,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(2);
         Child child3 = newChild(3);
-        parent.setChildren(Sets.newHashSet(child1, child2));
+        Set<Child> children = Sets.newHashSet(child1, child2);
+        parent.setChildren(children);
         child1.setParents(Sets.newHashSet(parent));
         child2.setParents(Sets.newHashSet(parent));
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(children);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
@@ -301,7 +309,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testSetAttributeHookInUpdateAttribute() {
         Parent parent = newParent(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -339,7 +347,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testNoCreate() {
         Assert.assertNotNull(dictionary);
         NoCreateEntity noCreate = new NoCreateEntity();
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
@@ -586,7 +594,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testSuccessfulOneToOneRelationshipAdd() throws Exception {
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Left left = new Left();
         Right right = new Right();
         left.setId(2);
@@ -659,7 +667,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
      */
     public void testSuccessfulManyToManyRelationshipUpdate() throws Exception {
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
         Parent parent = new Parent();
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -680,6 +689,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         allChildren.add(child5);
         parent.setChildren(allChildren);
         parent.setSpouses(Sets.newHashSet());
+
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(allChildren);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -772,9 +783,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(2);
         Child child3 = newChild(3);
-        fun.setRelation2(Sets.newHashSet(child1, child2, child3));
+        Set<Child> children = Sets.newHashSet(child1, child2, child3);
+        fun.setRelation2(children);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
+
+        when(goodUserScope.getTransaction().getRelation(any(), eq(fun), eq("relation2"), any(), any(), any(), any())).thenReturn(children);
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
@@ -787,9 +801,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1);
         Child child2 = newChild(-2);
         Child child3 = newChild(3);
+
+        Set<Child> children = Sets.newHashSet(child1, child2, child3);
         fun.setRelation2(Sets.newHashSet(child1, child2, child3));
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
+
+        when(goodUserScope.getTransaction().getRelation(any(), eq(fun), eq("relation2"), any(), any(), any(), any())).thenReturn(children);
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
@@ -828,10 +846,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child1 = newChild(1, "paul john");
         Child child2 = newChild(2, "john buzzard");
         Child child3 = newChild(3, "chris smith");
-        parent.setChildren(Sets.newHashSet(child1, child2, child3));
+        Set<Child> children = Sets.newHashSet(child1, child2, child3);
+        parent.setChildren(children);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.getRelation(eq(tx), any(), any(), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1, child2, child3));
+        when(goodUserScope.getTransaction().getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(children);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodUserScope);
 
@@ -971,7 +989,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = newParent(1);
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
@@ -991,7 +1009,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         item.setInvoice(invoice);
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
         PersistentResource<Invoice> invoiceResource = new PersistentResource<>(invoice, null, "1", goodScope);
@@ -1011,12 +1029,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(100);
         parent.setChildren(Sets.newHashSet(child));
         parent.setSpouses(Sets.newHashSet());
+
+        Set<Parent> parents = Sets.newHashSet(parent);
         child.setParents(Sets.newHashSet(parent));
 
         Assert.assertFalse(parent.getChildren().isEmpty());
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(child), eq("parents"), any(), any(), any(), any())).thenReturn(parents);
+
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
@@ -1035,7 +1057,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         NoDeleteEntity nodelete = new NoDeleteEntity();
         nodelete.setId(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1056,7 +1078,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
@@ -1079,7 +1101,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User badUser = new User(-1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", badScope);
@@ -1093,7 +1115,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(2);
         noUpdate.setChildren(Sets.newHashSet());
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1110,7 +1132,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
@@ -1126,7 +1148,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent3 = newParent(3, child);
         child.setParents(Sets.newHashSet(parent1, parent2, parent3));
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
@@ -1151,7 +1173,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -1176,14 +1198,22 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent = new Parent();
 
         fun.setRelation3(child);
-        fun.setRelation1(Sets.newHashSet(child));
 
-        parent.setChildren(Sets.newHashSet(child));
+        Set<Child> children1 = Sets.newHashSet(child);
+        fun.setRelation1(children1);
+
+        Set<Child> children2 = Sets.newHashSet(child);
+        parent.setChildren(children2);
         parent.setFirstName("Leeroy");
 
         child.setReadNoAccess(secret);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any(), any(), any())).thenReturn(child);
+        when(tx.getRelation(any(), eq(fun), eq("relation1"), any(), any(), any(), any())).thenReturn(children1);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(children2);
+        when(tx.getRelation(any(), eq(child), eq("readNoAccess"), any(), any(), any(), any())).thenReturn(secret);
+
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -1236,7 +1266,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child unownedChild = newChild(2);
         fun.setRelation3(ownedChild);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -1261,7 +1291,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Parent unownedParent = newParent(4, null);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
@@ -1285,9 +1315,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Parent parent1 = newParent(1, child);
         Parent parent2 = newParent(2, child);
         Parent parent3 = newParent(3, child);
-        child.setParents(Sets.newHashSet(parent1, parent2, parent3));
+        Set<Parent> parents = Sets.newHashSet(parent1, parent2, parent3);
+        child.setParents(parents);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(child), eq("parents"), any(), any(), any(), any())).thenReturn(parents);
+
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -1313,7 +1346,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        when(tx.getRelation(any(), eq(fun), eq("relation3"), any(), any(), any(), any())).thenReturn(child);
+
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
@@ -1329,7 +1365,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test()
     public void testClearRelationFilteredByReadAccess() {
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Parent parent = new Parent();
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
@@ -1352,6 +1388,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         allChildren.add(child5);
         parent.setChildren(allChildren);
         parent.setSpouses(Sets.newHashSet());
+
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(allChildren);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
 
@@ -1389,7 +1427,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setNoUpdateOne2One(right);
         right.setNoUpdateOne2One(left);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
@@ -1407,7 +1445,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setNoUpdateOne2One(right);
         right.setNoUpdateOne2One(left);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
@@ -1424,12 +1462,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         right1.setId(1);
         Right right2 = new Right();
         right2.setId(2);
-        left.setNoInverseUpdate(Sets.newHashSet(right1, right2));
+
+        Set<Right> noInverseUpdate = Sets.newHashSet(right1, right2);
+        left.setNoInverseUpdate(noInverseUpdate);
         right1.setNoUpdate(Sets.newHashSet(left));
         right2.setNoUpdate(Sets.newHashSet(left));
 
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        when(tx.getRelation(any(), eq(left), eq("noInverseUpdate"), any(), any(), any(), any())).thenReturn(noInverseUpdate);
+
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
@@ -1446,7 +1488,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         noDelete.setId(1);
         left.setNoDeleteOne2One(noDelete);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        when(tx.getRelation(any(), eq(left), eq("noDeleteOne2One"), any(), any(), any(), any())).thenReturn(noDelete);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
@@ -1461,7 +1505,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
@@ -1472,7 +1516,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testUpdateAttributeSuccess() {
         Parent parent = newParent(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1489,7 +1533,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testUpdateAttributeInvalidAttribute() {
         Parent parent = newParent(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1503,7 +1547,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setId(1);
 
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User badUser = new User(-1);
 
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings, false);
@@ -1519,7 +1563,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setId(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User badUser = new User(-1);
 
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings, false);
@@ -1538,7 +1582,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child4 = newChild(4);
         Child child5 = newChild(5);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.loadObjects(eq(Child.class), any(), any(), any(), any(RequestScope.class)))
@@ -1564,7 +1608,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testLoadRecordSuccess() {
         Child child1 = newChild(1);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.loadObject(eq(Child.class), eq(1L), any(), any())).thenReturn(child1);
@@ -1577,7 +1621,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test(expectedExceptions = InvalidObjectIdentifierException.class)
     public void testLoadRecordInvalidId() {
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.loadObject(eq(Child.class), eq("1"), any(), any())).thenReturn(null);
@@ -1590,7 +1634,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testLoadRecordForbidden() {
         NoReadEntity noRead = new NoReadEntity();
         noRead.setId(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.loadObject(eq(NoReadEntity.class), eq(1L), any(), any())).thenReturn(noRead);
@@ -1602,7 +1646,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test()
     public void testCreateObjectSuccess() {
         Parent parent = newParent(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.createNewObject(Parent.class)).thenReturn(parent);
@@ -1621,7 +1665,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testCreateObjectForbidden() {
         NoCreateEntity noCreate = new NoCreateEntity();
         noCreate.setId(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
@@ -1638,12 +1682,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Right right = new Right();
         right.setId(2);
 
+        Set<Right> rights = Sets.newHashSet(right);
         left.setFieldLevelDelete(Sets.newHashSet(right));
         right.setAllowDeleteAtFieldLevel(Sets.newHashSet(left));
 
         //Bad User triggers the delete permission failure
         User badUser = new User(-1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(left), eq("fieldLevelDelete"), any(), any(), any(), any())).thenReturn(rights);
+
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope.getUUIDFor(left), badScope);
 
@@ -1658,14 +1705,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setId(1);
         Right right = new Right();
 
-        left.setNoInverseUpdate(Sets.newHashSet(right));
+        Set<Right> rights = Sets.newHashSet(right);
+        left.setNoInverseUpdate(rights);
         right.setNoUpdate(Sets.newHashSet(left));
 
         List<Resource> empty = new ArrayList<>();
         Relationship ids = new Relationship(null, new Data<>(empty));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(left), eq("noInverseUpdate"), any(), any(), any(), any())).thenReturn(rights);
+
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope.getUUIDFor(left), goodScope);
 
@@ -1725,7 +1775,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Child child = newChild(2);
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(parent.getChildren());
+
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, goodScope.getUUIDFor(parent), goodScope);
@@ -1745,6 +1797,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertTrue(child.getParents().contains(parent), "The non-owning relationship should also be updated");
 
         reset(tx);
+        when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(parent.getChildren());
+
         parentResource.clearRelation("children");
 
         goodScope.saveOrCreateObjects();
@@ -1782,7 +1836,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship ids = new Relationship(null, new Data<>(idList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1803,7 +1857,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship unShareales = new Relationship(null, new Data<>(unShareableList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(eq(UnshareableWithEntityUnshare.class), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1824,7 +1878,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship shareables = new Relationship(null, new Data<>(shareableList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(eq(ShareableWithPackageShare.class), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1852,7 +1906,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship ids = new Relationship(null, new Data<>(idList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare1);
         when(tx.loadObject(eq(NoShareEntity.class), eq(2L), any(), any())).thenReturn(noShare2);
 
@@ -1881,8 +1935,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship ids = new Relationship(null, new Data<>(idList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare1);
+        when(tx.getRelation(any(), eq(userModel), eq("noShares"), any(), any(), any(), any())).thenReturn(noshares);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
@@ -1909,7 +1964,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship ids = new Relationship(null, new Data<>(idList));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+
+        when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any(), any(), any())).thenReturn(noShare);
         when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
@@ -1935,7 +1992,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Relationship ids = new Relationship(null, new Data<>(empty));
 
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any(), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
@@ -1955,10 +2013,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     }
                     return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
                 };
+
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
         // Ensure that change specs coming from collections work properly
-        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> collectionCheck
+
+        ChangeSpecModel csModel = new ChangeSpecModel((spec) -> collectionCheck
                 .apply("testColl")
-                .apply(spec, (original, modified) -> original == null && modified.equals(Arrays.asList("a", "b", "c")))));
+                .apply(spec, (original, modified) -> original == null && modified.equals(Arrays.asList("a", "b", "c"))));
+
+        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(csModel, tx);
+
+        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any(), any(), any())).thenReturn(new HashSet<>());
 
         /* Attributes */
         // Set new data from null
@@ -1977,20 +2042,29 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         /* ToMany relationships */
         // Learn about the other kids
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> (original == null || original.isEmpty()) && modified.size() == 1 && modified.contains(new ChangeSpecChild(1)));
-        Assert.assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(1)))));
+
+        ChangeSpecChild child1 = new ChangeSpecChild(1);
+        Assert.assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(child1))));
 
         // Add individual
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.equals(Collections.singletonList(new ChangeSpecChild(1))) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(2)));
-        model.addRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(2)));
+
+        ChangeSpecChild child2 = new ChangeSpecChild(2);
+        model.addRelation("otherKids", bootstrapPersistentResource(child2));
+
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() == 2 && original.contains(new ChangeSpecChild(1)) && original.contains(new ChangeSpecChild(2)) && modified.size() == 3 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(2)) && modified.contains(new ChangeSpecChild(3)));
-        model.addRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(3)));
+
+        ChangeSpecChild child3 = new ChangeSpecChild(3);
+        model.addRelation("otherKids", bootstrapPersistentResource(child3));
 
         // Remove one
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() == 3 && original.contains(new ChangeSpecChild(1)) && original.contains(new ChangeSpecChild(2)) && original.contains(new ChangeSpecChild(3)) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(3)));
-        model.removeRelation("otherKids", bootstrapPersistentResource(new ChangeSpecChild(2)));
+        model.removeRelation("otherKids", bootstrapPersistentResource(child2));
 
+        when(tx.getRelation(any(), eq(model.obj), eq("otherKids"), any(), any(), any(), any())).thenReturn(Sets.newHashSet(child1, child3));
         // Clear the rest
-        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.size() <= 2 && modified.size() < original.size());
+        model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified)
+                -> original.size() <= 2 && modified.size() < original.size());
         model.clearRelation("otherKids");
     }
 
@@ -2018,23 +2092,40 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testRelationChangeSpecType() {
-        BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
-            if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
-                return false;
-            }
-            if (!"child".equals(spec.getFieldName())) {
-                return false;
-            }
-            return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
-        };
-        PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> relCheck.apply(spec, (original, modified) -> (original == null) && new ChangeSpecChild(1).equals(modified))));
-        Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(1)))));
+        try {
+            BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
+                if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
+                    return false;
+                }
+                if (!"child".equals(spec.getFieldName())) {
+                    return false;
+                }
+                return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
+            };
+            DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
-        Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(new ChangeSpecChild(2)))));
+            PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec)
+                    -> relCheck.apply(spec, (original, modified)
+                    -> (original == null) && new ChangeSpecChild(1).equals(modified))), tx);
 
-        model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
-        Assert.assertTrue(model.updateRelation("child", null));
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(null);
+
+            ChangeSpecChild child1 = new ChangeSpecChild(1);
+            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child1, tx))));
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child1);
+
+            model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
+
+            ChangeSpecChild child2 = new ChangeSpecChild(2);
+            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child2, tx))));
+
+            when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child2);
+
+            model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
+            Assert.assertTrue(model.updateRelation("child", null));
+        } catch (ForbiddenAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -2064,8 +2155,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
+        return bootstrapPersistentResource(obj, mock(DataStoreTransaction.class));
+    }
+
+    private <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new User(1);
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
         RequestScope requestScope = new RequestScope(null, null, tx, goodUser, null, elideSettings, false);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }

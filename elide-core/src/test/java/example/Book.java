@@ -29,6 +29,8 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +59,8 @@ import javax.persistence.Transient;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
+@AllArgsConstructor
+@NoArgsConstructor
 public class Book {
     private long id;
     private String title;

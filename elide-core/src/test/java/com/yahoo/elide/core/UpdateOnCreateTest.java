@@ -20,7 +20,6 @@ import example.Editor;
 import example.Publisher;
 import example.UpdateAndCreate;
 
-import org.mockito.Answers;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -53,7 +52,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
 
         publisher.setEditor(editor);
 
-        DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         User userOne = new User(1);
         userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings, false);
