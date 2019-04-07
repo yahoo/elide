@@ -6,6 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Audit;
+import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
@@ -50,6 +51,12 @@ public class Editor {
     @Exclude
     private String naturalKey = UUID.randomUUID().toString();
 
+    @Getter @Setter
+    private String firstName;
+
+    @Getter @Setter
+    private String lastName;
+
     @Override
     public int hashCode() {
         return naturalKey.hashCode();
@@ -64,8 +71,10 @@ public class Editor {
         return ((Editor) obj).naturalKey.equals(naturalKey);
     }
 
-    @Getter @Setter
-    private String name;
+    @ComputedAttribute
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 
     @Transient
     @ComputedRelationship

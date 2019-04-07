@@ -9,7 +9,7 @@ import com.yahoo.elide.Elide
 import com.yahoo.elide.ElideSettingsBuilder
 import com.yahoo.elide.audit.AuditLogger
 import com.yahoo.elide.core.EntityDictionary
-import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction
 
 import com.fasterxml.jackson.databind.JsonNode
@@ -78,7 +78,7 @@ class GraphQLEndointTest {
 
     @BeforeMethod
     void setupTest() throws Exception {
-        InMemoryDataStore inMemoryStore = new InMemoryDataStore(Book.class.getPackage())
+        HashMapDataStore inMemoryStore = new HashMapDataStore(Book.class.getPackage())
         Map<String, Class> checkMappings = new HashMap<>()
         checkMappings[UserChecks.IS_USER_1] = UserChecks.IsUserId.One.class
         checkMappings[UserChecks.IS_USER_2] = UserChecks.IsUserId.Two.class

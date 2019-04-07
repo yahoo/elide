@@ -988,6 +988,17 @@ public class EntityDictionary {
         return getAccessibleObject(target.getClass(), fieldName);
     }
 
+    public boolean isComputed(Class<?> entityClass, String fieldName) {
+        AccessibleObject fieldOrMethod = getAccessibleObject(entityClass, fieldName);
+
+        if (fieldOrMethod == null) {
+            return false;
+        }
+
+        return (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
+                || fieldOrMethod.isAnnotationPresent(ComputedRelationship.class));
+    }
+
     /**
      * Retrieve the accessible object for a field.
      *

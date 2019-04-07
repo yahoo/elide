@@ -43,11 +43,11 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Tests InMemoryFilterVisitor
+ * Tests InMemoryFilterExecutor.
  */
-public class InMemoryFilterVisitorTest {
+public class InMemoryFilterExecutorTest {
     private Author author;
-    private final InMemoryFilterVisitor visitor;
+    private final InMemoryFilterExecutor visitor;
     private FilterExpression expression;
     private Predicate fn;
 
@@ -73,12 +73,12 @@ public class InMemoryFilterVisitorTest {
 
     }
 
-    InMemoryFilterVisitorTest() {
+    InMemoryFilterExecutorTest() {
         EntityDictionary dictionary = new TestEntityDictionary(new HashMap<>());
         dictionary.bindEntity(Author.class);
         RequestScope requestScope = Mockito.mock(RequestScope.class);
         when(requestScope.getDictionary()).thenReturn(dictionary);
-        visitor = new InMemoryFilterVisitor(requestScope);
+        visitor = new InMemoryFilterExecutor(requestScope);
     }
 
     @Test

@@ -5,12 +5,14 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+
 /**
  * Simple non-persistent in-memory database.
- * @deprecated Use {@link com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore}
+ * @deprecated Use {@link HashMapDataStore}
  */
 @Deprecated
-public class InMemoryDataStore extends com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore {
+public class InMemoryDataStore extends HashMapDataStore {
     public InMemoryDataStore(Package beanPackage) {
         super(beanPackage);
     }

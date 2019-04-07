@@ -1,5 +1,8 @@
 # Change Log
-## 4.3.4
+## 4.4.0
+**Features**
+ * Issue#763 Support for filtering & sorting on computed attributes
+
 **Fixes**
  * Throw proper exception on invalid PersistentResource where id=null
 
