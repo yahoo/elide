@@ -6,8 +6,8 @@
 package com.yahoo.elide.utils.coerce.converters;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -17,7 +17,7 @@ import java.util.TimeZone;
  */
 public class ISO8601DateSerde implements Serde<String, Date> {
 
-    protected DateFormat df;
+    protected FastDateFormat df;
     protected Class<? extends Date> targetType;
 
     public ISO8601DateSerde(SimpleDateFormat df) {
@@ -25,8 +25,7 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     }
 
     public ISO8601DateSerde(SimpleDateFormat df, Class<? extends Date> targetType) {
-        this.df = df;
-        this.targetType = targetType;
+        this(df.toPattern(), df.getTimeZone(), targetType);
     }
 
     public ISO8601DateSerde(String formatString, TimeZone tz) {
@@ -34,8 +33,7 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     }
 
     public ISO8601DateSerde(String formatString, TimeZone tz, Class<? extends Date> targetType) {
-        df = new SimpleDateFormat(formatString);
-        df.setTimeZone(tz);
+        this.df = FastDateFormat.getInstance(formatString, tz);
         this.targetType = targetType;
     }
 
@@ -46,10 +44,11 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     @Override
     public Date deserialize(String val) {
         Date date;
+
         try {
             date = df.parse(val);
         } catch (java.text.ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as yyyy-MM-dd'T'HH:mm'Z'");
+            throw new IllegalArgumentException("Date strings must be formated as " + df.getPattern());
         }
 
         if (ClassUtils.isAssignable(targetType, java.sql.Date.class)) {

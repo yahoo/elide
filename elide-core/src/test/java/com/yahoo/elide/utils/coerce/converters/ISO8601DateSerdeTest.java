@@ -71,4 +71,14 @@ public class ISO8601DateSerdeTest {
         ISO8601DateSerde serde = new ISO8601DateSerde();
         serde.deserialize("1");
     }
+
+    @Test
+    public void testInvalidDateDeserializationMessage() {
+        ISO8601DateSerde serde = new ISO8601DateSerde("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"));
+        try {
+            serde.deserialize("2019-01-01T00:00Z");
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals(e.getMessage(), "Date strings must be formated as yyyy-MM-dd'T'HH:mm:ss'Z'");
+        }
+    }
 }
