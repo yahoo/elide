@@ -48,6 +48,7 @@ import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Invoice;
+import example.Job;
 import example.Left;
 import example.LineItem;
 import example.MapColorShape;
@@ -1658,6 +1659,27 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Assert.assertEquals(created.getObject(), parent,
                 "The create function should return the requested parent object"
+        );
+    }
+
+    @Test()
+    public void testCreateMappedIdObjectSuccess() {
+        final Job job = new Job();
+        job.setId(123);
+        job.setTitle("day job");
+        job.setParent(newParent(1));
+
+        final DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(Job.class)).thenReturn(job);
+
+        final RequestScope goodScope = new RequestScope(null, null, tx, new User(1), null, elideSettings, false);
+        System.out.println("HELLO WORLD1");
+        final PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
+        System.out.println("HELLO WORLD2");
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+
+        Assert.assertEquals("day job", created.getObject().getTitle(),
+                "The create function should return the requested job object"
         );
     }
 
