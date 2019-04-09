@@ -28,4 +28,3 @@
   after_success:
     - echo "(${TRAVIS_TAG}) (${TRAVIS_PULL_REQUEST})"
     - test "${TRAVIS_TAG}" != "" && mvn -B deploy --settings travis/settings.xml
-    - test "${TRAVIS_PULL_REQUEST}" == "false" && mvn -B versioneye:update

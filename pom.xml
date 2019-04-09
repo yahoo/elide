@@ -439,18 +439,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.versioneye</groupId>
-                <artifactId>versioneye-maven-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <apiKey>${env.versioneye_api_key}</apiKey>
-                    <parentGroupId>com.yahoo.elide</parentGroupId>
-                    <parentArtifactId>elide-parent-pom</parentArtifactId>
-                    <mergeAfterCreate>true</mergeAfterCreate>
-                    <skipScopes>test</skipScopes>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>1.4.1</version>
