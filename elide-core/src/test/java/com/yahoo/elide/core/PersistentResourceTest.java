@@ -1673,7 +1673,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(Job.class)).thenReturn(job);
 
         final RequestScope goodScope = new RequestScope(null, null, tx, new User(1), null, elideSettings, false);
-        final PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
+        PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         Assert.assertEquals(created.getObject().getTitle(), "day job",
@@ -1682,18 +1682,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertEquals(created.getObject().getId(), null,
                 "The create function should not override the ID"
         );
-    }
-    @Test()
-    public void testCreateMappedIdObjectIgnoredSpecifiedId() {
-        final Job job = new Job();
-        job.setTitle("day job");
-        job.setParent(newParent(1));
 
-        final DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(Job.class)).thenReturn(job);
-
-        final RequestScope goodScope = new RequestScope(null, null, tx, new User(1), null, elideSettings, false);
-        final PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.of("1234"));
+        created = PersistentResource.createObject(null, Job.class, goodScope, Optional.of("1234"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         Assert.assertEquals(created.getObject().getTitle(), "day job",

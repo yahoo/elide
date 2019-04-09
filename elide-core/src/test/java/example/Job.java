@@ -18,7 +18,7 @@ import javax.persistence.Table;
 
 /**
  * Model to represent a Parent's Job.
- * 
+ *
  * Used to test/demonstrate the use of {@literal @MapsId} annotation.
  */
 @Entity
@@ -29,7 +29,7 @@ public class Job {
     @Id
     @Getter
     private Long id;
-    
+
     @Getter @Setter
     private String title;
 
