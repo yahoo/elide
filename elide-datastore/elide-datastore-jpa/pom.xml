@@ -4,7 +4,8 @@
   ~ See LICENSE file in project root for terms.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-datastore-jpa</artifactId>
     <packaging>jar</packaging>
@@ -14,7 +15,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>4.4.0</version>
+        <version>4.3.4-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -35,7 +36,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>4.4.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
@@ -51,7 +52,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate</artifactId>
-            <version>4.4.0</version>
+            <version>4.3.4-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -74,7 +75,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>4.4.0</version>
+            <version>4.3.4-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
