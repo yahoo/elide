@@ -159,8 +159,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                       Serializable id,
                       Optional<FilterExpression> filterExpression,
                       RequestScope scope) {
-        if (filterExpression.isPresent()
-                && tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
+
+        if (! filterExpression.isPresent()
+                || tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
             return tx.loadObject(entityClass, id, filterExpression, scope);
         } else {
             return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
