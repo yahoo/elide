@@ -2,13 +2,12 @@
 ## 4.4.0
 **Features**
  * Issue#763 Support for filtering & sorting on computed attributes
+ * Added [JPA Data Store](https://github.com/yahoo/elide/pull/747)
 
 **Fixes**
  * Throw proper exception on invalid PersistentResource where id=null
  * Issue#744 Elide returns wrong date parsing format in 400 error for non-default DateFormats
-
-**Features**
- * Added [JPA Data Store](https://github.com/yahoo/elide/pull/747)
+ * Enable RSQL filter dialect by default (in addition to the default filter dialect).
 
 ## 4.3.3
 **Fixes**
