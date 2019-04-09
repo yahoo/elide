@@ -1893,8 +1893,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
         //then persist the provided id
-        //if (!(persistentResource.isIdGenerated() || persistentResource.isIdMapped())) {
-        if (!persistentResource.isIdGenerated()) {
+       if (!(persistentResource.isIdGenerated() || persistentResource.isIdMapped())) {
             if (id != null && !id.isEmpty()) {
                 persistentResource.setId(id);
             } else {

@@ -11,23 +11,30 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- * Model for ghostwriters.
+ * Model to represent a Parent's Job.
+ * 
+ * Used to test/demonstrate the use of {@literal @MapsId} annotation.
  */
 @Entity
 @Table(name = "job")
 @Include(rootLevel = true, type = "job")
-public class Job extends BaseId {
+public class Job {
+
+    @Id
+    @Getter
+    private Long id;
+    
+    @Getter @Setter
+    private String title;
 
     @OneToOne
     @MapsId
     @Getter @Setter
     private Parent parent;
-
-    @Getter @Setter
-    private String title;
 }
