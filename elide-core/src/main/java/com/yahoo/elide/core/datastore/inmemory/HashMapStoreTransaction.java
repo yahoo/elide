@@ -17,6 +17,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -170,6 +171,20 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
         synchronized (dataStore) {
             Map<String, Object> data = dataStore.get(entityClass);
             return data.values();
+        }
+    }
+
+    @Override
+    public Object loadObject(Class<?> entityClass, Serializable id,
+                             Optional<FilterExpression> filterExpression,
+                             RequestScope scope) {
+
+        synchronized (dataStore) {
+            Map<String, Object> data = dataStore.get(entityClass);
+            if (data == null) {
+                return null;
+            }
+            return data.get(id.toString());
         }
     }
 
