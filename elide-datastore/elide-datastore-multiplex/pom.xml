@@ -152,6 +152,7 @@
                     <excludes>
                         <exclude>com.yahoo.elide.tests.*</exclude>
                     </excludes>
+                    <failIfNoTests>true</failIfNoTests>
                 </configuration>
             </plugin>
             <plugin>

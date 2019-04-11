@@ -1,7 +1,7 @@
 # Change Log
-
 ## 4.4.1
 **Fixes**
+ * Flush once for patch extension
  * ConstraintViolationExceptions are propagated on flush (JPA Transaction)
 
 ## 4.4.0
@@ -19,7 +19,7 @@
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
- * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658 
+ * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658
  * Issue#766 Outdated MySQL driver in elide-standalone and examples
 
 ## 4.3.2
