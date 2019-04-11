@@ -1,4 +1,9 @@
 # Change Log
+
+## 4.4.1
+**Fixes**
+ * ConstraintViolationExceptions are propagated on flush (JPA Transaction)
+
 ## 4.4.0
 **Features**
  * Issue#763 Support for filtering & sorting on computed attributes
