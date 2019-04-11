@@ -67,7 +67,7 @@ public class EntityBindingTest {
     @Test
     public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
         final EntityBinding eb = new EntityBinding(entityDictionary, BadMapsIdClass.class, "test", "testBinding");
-        assertFalse(entityBinding.isIdGenerated());
+        assertFalse(eb.isIdGenerated());
     }
 
     private class ParentClass {
