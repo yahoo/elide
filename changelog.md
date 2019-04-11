@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.1
+**Fixes**
+ * Flush once for patch extension
+
 ## 4.4.0
 **Features**
  * Issue#763 Support for filtering & sorting on computed attributes
@@ -8,12 +12,11 @@
  * Throw proper exception on invalid PersistentResource where id=null
  * Issue#744 Elide returns wrong date parsing format in 400 error for non-default DateFormats
  * Enable RSQL filter dialect by default (in addition to the default filter dialect).
- * Flush once for patch extension
 
 ## 4.3.3
 **Fixes**
  * Issue#744 Better error handling for mismatched method in Lifecycle and additional test
- * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658 
+ * Upgraded puppycrawl.tools (checkstyle) dependency to address CVE-2019-9658
  * Issue#766 Outdated MySQL driver in elide-standalone and examples
 
 ## 4.3.2
