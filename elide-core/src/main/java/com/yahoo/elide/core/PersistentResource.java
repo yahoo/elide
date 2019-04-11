@@ -69,8 +69,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.MapsId;
 import javax.ws.rs.WebApplicationException;
 
 /**
@@ -753,38 +751,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Boolean
      */
     public boolean isIdGenerated() {
-        return getIdAnnotations().stream().anyMatch(a -> a.annotationType().equals(GeneratedValue.class));
+        return dictionary.getEntityBinding(
+            getObject().getClass()
+        ).isIdGenerated();
     }
 
-    /**
-     * Indicates if the ID is mapped to another entity or not.
-     *
-     * @return Boolean
-     */
-    public boolean isIdMapped() {
-        final Class<?> cls = getObject().getClass();
-        for (final AccessibleObject obj : dictionary.getEntityBinding(cls).getAllFields()) {
-            if (
-                dictionary.getAttributeOrRelationAnnotation(
-                    cls,
-                    MapsId.class,
-                    EntityBinding.getFieldName(obj)
-                ) != null
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns annotations applied to the ID field.
-     *
-     * @return Collection of Annotations
-     */
-    private Collection<Annotation> getIdAnnotations() {
-        return dictionary.getIdAnnotations(getObject());
-    }
 
     /**
      * Gets UUID.
@@ -1893,7 +1864,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
         //then persist the provided id
-       if (!(persistentResource.isIdGenerated() || persistentResource.isIdMapped())) {
+       if (!persistentResource.isIdGenerated()) {
             if (id != null && !id.isEmpty()) {
                 persistentResource.setId(id);
             } else {
