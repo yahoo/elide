@@ -69,7 +69,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.persistence.GeneratedValue;
 import javax.ws.rs.WebApplicationException;
 
 /**
@@ -752,17 +751,11 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return Boolean
      */
     public boolean isIdGenerated() {
-        return getIdAnnotations().stream().anyMatch(a -> a.annotationType().equals(GeneratedValue.class));
+        return dictionary.getEntityBinding(
+            getObject().getClass()
+        ).isIdGenerated();
     }
 
-    /**
-     * Returns annotations applied to the ID field.
-     *
-     * @return Collection of Annotations
-     */
-    private Collection<Annotation> getIdAnnotations() {
-        return dictionary.getIdAnnotations(getObject());
-    }
 
     /**
      * Gets UUID.
@@ -1869,8 +1862,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private static void assignId(PersistentResource persistentResource, String id) {
 
-        //If id field is not a `@GeneratedValue` persist the provided id
-        if (!persistentResource.isIdGenerated()) {
+        //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
+        //then persist the provided id
+       if (!persistentResource.isIdGenerated()) {
             if (id != null && !id.isEmpty()) {
                 persistentResource.setId(id);
             } else {

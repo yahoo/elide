@@ -48,6 +48,7 @@ import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
 import example.Invoice;
+import example.Job;
 import example.Left;
 import example.LineItem;
 import example.MapColorShape;
@@ -113,6 +114,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
+        dictionary.bindEntity(Job.class);
         dictionary.bindEntity(Left.class);
         dictionary.bindEntity(Right.class);
         dictionary.bindEntity(NoReadEntity.class);
@@ -1658,6 +1660,37 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Assert.assertEquals(created.getObject(), parent,
                 "The create function should return the requested parent object"
+        );
+    }
+
+    @Test()
+    public void testCreateMappedIdObjectSuccess() {
+        final Job job = new Job();
+        job.setTitle("day job");
+        job.setParent(newParent(1));
+
+        final DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        when(tx.createNewObject(Job.class)).thenReturn(job);
+
+        final RequestScope goodScope = new RequestScope(null, null, tx, new User(1), null, elideSettings, false);
+        PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+
+        Assert.assertEquals(created.getObject().getTitle(), "day job",
+                "The create function should return the requested job object"
+        );
+        Assert.assertEquals(created.getObject().getId(), null,
+                "The create function should not override the ID"
+        );
+
+        created = PersistentResource.createObject(null, Job.class, goodScope, Optional.of("1234"));
+        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+
+        Assert.assertEquals(created.getObject().getTitle(), "day job",
+                "The create function should return the requested job object"
+        );
+        Assert.assertEquals(created.getObject().getId(), null,
+                "The create function should not override the ID"
         );
     }
 
