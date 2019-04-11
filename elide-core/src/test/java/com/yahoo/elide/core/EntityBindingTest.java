@@ -14,7 +14,12 @@ import org.testng.annotations.Test;
 import java.lang.reflect.AccessibleObject;
 import java.util.List;
 
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.MapsId;
+import javax.persistence.OneToOne;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class EntityBindingTest {
     private EntityBinding entityBinding;
@@ -42,6 +47,29 @@ public class EntityBindingTest {
         assertEquals(idField, ParentClass.class.getDeclaredField("parentField"));
     }
 
+    @Test
+    public void testIdGeneratedFalseWhenNoAnnotations() throws Exception {
+        assertFalse(entityBinding.isIdGenerated());
+    }
+
+    @Test
+    public void testIdGeneratedTrueWhenGenerateValue() throws Exception {
+        final EntityBinding eb = new EntityBinding(entityDictionary, GeneratedValueClass.class, "test", "testBinding");
+        assertTrue(eb.isIdGenerated());
+    }
+
+    @Test
+    public void testIdGeneratedTrueWhenMapsId() throws Exception {
+        final EntityBinding eb = new EntityBinding(entityDictionary, MapsIdClass.class, "test", "testBinding");
+        assertTrue(eb.isIdGenerated());
+    }
+
+    @Test
+    public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
+        final EntityBinding eb = new EntityBinding(entityDictionary, BadMapsIdClass.class, "test", "testBinding");
+        assertFalse(entityBinding.isIdGenerated());
+    }
+
     private class ParentClass {
         @Id
         String parentField;
@@ -51,5 +79,22 @@ public class EntityBindingTest {
 
     private class ChildClass extends ParentClass {
         String childField;
+    }
+    
+    private class GeneratedValueClass {
+        @Id
+        @GeneratedValue
+        String id;
+    }
+
+    private class MapsIdClass extends ParentClass{
+        @OneToOne
+        @MapsId
+        ParentClass parent;
+    }
+
+    private class BadMapsIdClass extends ParentClass {
+        @MapsId
+        ParentClass parent;
     }
 }
