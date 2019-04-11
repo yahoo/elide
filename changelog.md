@@ -2,6 +2,7 @@
 ## 4.4.1
 **Fixes**
  * Flush once for patch extension
+ * ConstraintViolationExceptions are propagated on flush (JPA Transaction)
 
 ## 4.4.0
 **Features**
