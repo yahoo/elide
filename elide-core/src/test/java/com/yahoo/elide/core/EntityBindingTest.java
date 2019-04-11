@@ -90,11 +90,11 @@ public class EntityBindingTest {
     private class MapsIdClass extends ParentClass {
         @OneToOne
         @MapsId
-        private ParentClass parent;
+        public ParentClass parent;
     }
 
     private class BadMapsIdClass extends ParentClass {
         @MapsId
-        private ParentClass parent;
+        public ParentClass parent;
     }
 }
