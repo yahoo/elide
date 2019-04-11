@@ -6,6 +6,8 @@
 package com.yahoo.elide.core;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import org.mockito.Mock;
 import org.testng.annotations.BeforeTest;
@@ -18,8 +20,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 public class EntityBindingTest {
     private EntityBinding entityBinding;
@@ -80,21 +80,21 @@ public class EntityBindingTest {
     private class ChildClass extends ParentClass {
         String childField;
     }
-    
+
     private class GeneratedValueClass {
         @Id
         @GeneratedValue
         String id;
     }
 
-    private class MapsIdClass extends ParentClass{
+    private class MapsIdClass extends ParentClass {
         @OneToOne
         @MapsId
-        ParentClass parent;
+        private ParentClass parent;
     }
 
     private class BadMapsIdClass extends ParentClass {
         @MapsId
-        ParentClass parent;
+        private ParentClass parent;
     }
 }
