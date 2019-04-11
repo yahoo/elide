@@ -143,7 +143,10 @@ public interface DataStoreTransaction extends Closeable {
 
         Iterator<T> it = results == null ? null : results.iterator();
         if (it != null && it.hasNext()) {
-            return it.next();
+            Object obj = it.next();
+            if (!it.hasNext()) {
+              return obj;
+            }
         }
         return null;
     }

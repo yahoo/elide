@@ -1,4 +1,5 @@
 # Change Log
+<<<<<<< HEAD
 
 ## 5.0.9
 **Fixes**
@@ -963,6 +964,11 @@ Because Elide 5 is a major release, we took time to reorganize the module & pack
  * Enable support for JPA @MapsId annotation on relationships so that client doesn't have
    to provide a dummy ID to make entity creation work.
  * Cache all calls to getEntityBinding
+=======
+## 4.4.1
+**Fixes**
+  * Default DataStore loadOject should return only a unique result
+>>>>>>> 815cbecf4... loadObject should return unique result
 
 ## 4.4.0
 **Features**
