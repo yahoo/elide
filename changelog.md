@@ -8,6 +8,7 @@
  * Throw proper exception on invalid PersistentResource where id=null
  * Issue#744 Elide returns wrong date parsing format in 400 error for non-default DateFormats
  * Enable RSQL filter dialect by default (in addition to the default filter dialect).
+ * Flush once for patch extension
 
 ## 4.3.3
 **Fixes**

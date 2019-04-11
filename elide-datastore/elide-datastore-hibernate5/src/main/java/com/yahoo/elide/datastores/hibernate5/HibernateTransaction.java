@@ -90,7 +90,8 @@ public class HibernateTransaction implements DataStoreTransaction {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
             FlushMode flushMode = session.getHibernateFlushMode();
-            if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
+            // flush once for patch extension
+            if (requestScope != null && !requestScope.isMutatingMultipleEntities() && flushMode != FlushMode.MANUAL) {
                 session.flush();
             }
         } catch (PersistenceException e) {
