@@ -95,9 +95,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             }
             if (e instanceof ConstraintViolationException) {
                 throw e;
-            } else {
-                throw new TransactionException(e);
             }
+            throw new TransactionException(e);
         }
     }
 
