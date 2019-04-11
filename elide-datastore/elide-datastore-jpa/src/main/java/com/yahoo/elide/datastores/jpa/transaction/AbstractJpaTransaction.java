@@ -40,6 +40,7 @@ import java.util.function.Predicate;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;
+import javax.validation.ConstraintViolationException;
 
 /**
  * Base JPA transaction implementation class.
@@ -92,7 +93,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             } finally {
                 log.error("Caught entity manager exception during flush", e);
             }
-            throw new TransactionException(e);
+            if (e instanceof ConstraintViolationException) {
+                throw e;
+            } else {
+                throw new TransactionException(e);
+            }
         }
     }
 
