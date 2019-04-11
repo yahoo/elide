@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.1
+**Fixes**
+  * Default DataStore loadOject should return only a unique result
+
 ## 4.4.0
 **Features**
  * Issue#763 Support for filtering & sorting on computed attributes
