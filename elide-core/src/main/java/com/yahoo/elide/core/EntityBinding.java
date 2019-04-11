@@ -60,9 +60,11 @@ import java.util.stream.Stream;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
@@ -82,6 +84,8 @@ public class EntityBinding {
     public final Class<?> entityClass;
     public final String jsonApiType;
     public final String entityName;
+    @Getter
+    public boolean idGenerated;
     @Getter
     private AccessibleObject idField;
     @Getter
@@ -127,6 +131,7 @@ public class EntityBinding {
         entityClass = null;
         inheritedTypes = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
+        idGenerated = false;
     }
 
     public EntityBinding(EntityDictionary dictionary, Class<?> cls, String type, String name) {
@@ -293,6 +298,9 @@ public class EntityBinding {
         if (idField != null && !fieldOrMethod.equals(idField)) {
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + fieldName);
         }
+        if (fieldOrMethod.isAnnotationPresent(GeneratedValue.class)) {
+            idGenerated = true;
+        }
     }
 
     /**
@@ -344,6 +352,10 @@ public class EntityBinding {
         boolean toOne = fieldOrMethod.isAnnotationPresent(ToOne.class);
         boolean toMany = fieldOrMethod.isAnnotationPresent(ToMany.class);
         boolean computedRelationship = fieldOrMethod.isAnnotationPresent(ComputedRelationship.class);
+
+        if (fieldOrMethod.isAnnotationPresent(MapsId.class)) {
+            idGenerated = true;
+        }
 
         RelationshipType type;
         String mappedBy = "";
