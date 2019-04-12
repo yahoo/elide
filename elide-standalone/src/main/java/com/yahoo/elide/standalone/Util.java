@@ -46,9 +46,6 @@ public class Util {
             options.put("javax.persistence.jdbc.password", "elide123");
         }
 
-        // Bind all of the JPA entities
-        //options.put(AvailableSettings.LOADED_CLASSES, getAllEntities(modelPackageName));
-
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
                 getAllEntities(modelPackageName), options);
 
