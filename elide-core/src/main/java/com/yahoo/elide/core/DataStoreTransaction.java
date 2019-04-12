@@ -186,14 +186,7 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        RequestScope requestScope;
-        try {
-            requestScope = scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-
-        return PersistentResource.getValue(entity, relationName, requestScope);
+        return PersistentResource.getValue(entity, relationName, scope);
     }
 
 
@@ -244,15 +237,7 @@ public interface DataStoreTransaction extends Closeable {
     default Object getAttribute(Object entity,
                                 String attributeName,
                                 RequestScope scope) {
-        RequestScope requestScope;
-        try {
-            requestScope = scope;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Fail trying to cast requestscope");
-        }
-
-        Object val = PersistentResource.getValue(entity, attributeName, requestScope);
-        return val;
+        return PersistentResource.getValue(entity, attributeName, scope);
 
     }
 
