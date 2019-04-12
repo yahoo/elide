@@ -25,7 +25,7 @@ To include `elide-standalone` into your project, add the single dependency:
 <dependency>
   <groupId>com.yahoo.elide</groupId>
   <artifactId>elide-standalone</artifactId>
-  <version>3.2.0</version>
+  <version>4.4.1</version>
 </dependency>
 ```
 
@@ -62,8 +62,6 @@ Below we'll walk through a complete example of setting up an Elide service witho
 ### Setup a Database (MySQL)
 
 In our example, we will suggest your create a MySQL database called `elide` that is accessible to the user `elide` with password `elide123`.
-
-> **NOTE:** For the _quickest_ setup possible, enable `demoMode=true` in your `elide-settings.properties` to use the in-memory datastore instead of MySQL and Hibernate. This datastore does not currently support all Elide functionality (i.e. sorting, pagination, filtering), but it does support other basic functionality so you can see Elide in action.
 
 ### Create the Model
 
@@ -102,13 +100,6 @@ public class Post {
 }
 ```
 
-### Copy the configuration files
-
-Create a directory called ```settings``` at the root of your project.
-
-Copy [hibernate.cfg.xml](https://github.com/yahoo/elide/blob/master/elide-standalone/settings/hibernate.cfg.xml) 
-to the new settings directory.
-
 ### Build the Models Package
 
 An example `pom.xml` for building the model:
@@ -129,7 +120,7 @@ An example `pom.xml` for building the model:
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-standalone</artifactId>
-            <version>3.1.2</version>
+            <version>4.4.1</version>
         </dependency>
     </dependencies>
 
@@ -201,7 +192,7 @@ While you can provide a user extraction function and checks alone, more advanced
 
 ### Run Your Service
 
-Using the provided `hibernate.cfg.xml`, you can now run your service.
+You can now run your service.
 
 ```
 $ java -jar YOUR_APP.jar

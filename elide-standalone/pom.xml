@@ -62,13 +62,27 @@
         <!-- Elide dependency -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-hibernate5</artifactId>
+            <artifactId>elide-datastore-jpa</artifactId>
             <version>4.4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
             <version>4.4.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- JPA -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <!-- Hibernate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate5.version}</version>
         </dependency>
 
         <!-- MySQL Driver -->
