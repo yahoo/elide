@@ -10,9 +10,12 @@ import static org.hamcrest.Matchers.hasKey;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.jpa.JpaDataStore;
+import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
 
@@ -21,6 +24,9 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import javax.persistence.EntityManager;
+import java.util.Properties;
 
 
 /**
@@ -38,7 +44,25 @@ public class ElideStandaloneTest {
             @Override
             public ElideSettings getElideSettings(ServiceLocator injector) {
                 EntityDictionary dictionary = new EntityDictionary(getCheckMappings());
-                HashMapDataStore dataStore = new HashMapDataStore(Post.class.getPackage());
+
+                Properties options = new Properties();
+
+                options.put("hibernate.show_sql", "true");
+                options.put("hibernate.hbm2ddl.auto", "create");
+                options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+                options.put("hibernate.current_session_context_class", "thread");
+                options.put("hibernate.jdbc.use_scrollable_resultset", "true");
+
+                options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+                options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE;");
+                options.put("javax.persistence.jdbc.user", "sa");
+                options.put("javax.persistence.jdbc.password", "");
+
+                EntityManager entityManager = Util.getEntityManager(Post.class.getPackage().getName(), options);
+                DataStore dataStore = new JpaDataStore(
+                        () -> { return entityManager; },
+                        (em -> { return new NonJtaTransaction(em); }));
+
                 dataStore.populateEntityDictionary(dictionary);
 
                 ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
