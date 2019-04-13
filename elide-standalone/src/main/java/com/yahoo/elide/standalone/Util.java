@@ -5,17 +5,11 @@
  */
 package com.yahoo.elide.standalone;
 
-import org.hibernate.jpa.AvailableSettings;
+import com.google.common.reflect.ClassPath;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -63,13 +57,16 @@ public class Util {
      * @return All entities found in package.
      */
     public static List<String> getAllEntities(String packageName) {
-        return new ArrayList<>(new Reflections(new ConfigurationBuilder()
-                .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                .setUrls(ClasspathHelper.forClassLoader(ClassLoader.getSystemClassLoader()))
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName))))
-                .getTypesAnnotatedWith(Entity.class))
-                .stream()
-                .map(Class::getName)
-                .collect(Collectors.toList());
+
+        try {
+            return ClassPath.from(Util.class.getClassLoader())
+                    .getTopLevelClassesRecursive(packageName)
+                    .stream()
+                    .filter((classInfo) -> classInfo.load().isAnnotationPresent(Entity.class))
+                    .map(ClassPath.ClassInfo::getName)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
