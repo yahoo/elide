@@ -752,9 +752,10 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        if (entityBindings.containsKey(lookupEntityClass(cls))) {
+        if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
             return;
         }
+        entityBindings.remove(lookupEntityClass(cls));
 
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;
