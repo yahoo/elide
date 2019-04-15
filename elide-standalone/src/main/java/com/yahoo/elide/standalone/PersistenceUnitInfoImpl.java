@@ -44,6 +44,7 @@ public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
     private Properties properties;
     private String persistenceXMLSchemaVersion;
     private ClassLoader classLoader;
+    private ClassLoader newTempClassLoader;
 
     @Override
     public boolean excludeUnlistedClasses() {
@@ -54,5 +55,4 @@ public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
         //NOOP
     }
 
-    private ClassLoader newTempClassLoader;
 }
