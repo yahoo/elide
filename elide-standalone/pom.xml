@@ -62,13 +62,33 @@
         <!-- Elide dependency -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-hibernate5</artifactId>
+            <artifactId>elide-datastore-jpa</artifactId>
             <version>4.4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
             <version>4.4.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- JPA -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>27.1-jre</version>
+        </dependency>
+
+        <!-- Hibernate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate5.version}</version>
         </dependency>
 
         <!-- MySQL Driver -->
@@ -153,12 +173,6 @@
             <version>1.16.18</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.11</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!-- Test -->
         <dependency>
@@ -167,6 +181,15 @@
             <scope>test</scope>
             <version>6.10</version>
         </dependency>
+
+        <!-- H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.197</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>

@@ -5,41 +5,49 @@
  */
 package com.yahoo.elide.standalone;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
+import com.google.common.reflect.ClassPath;
+import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
+import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
-import java.io.File;
-import java.util.HashSet;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.spi.PersistenceUnitInfo;
 
 public class Util {
-    /**
-     * Retrieve a hibernate session factory.
-     *
-     * @param hibernate5ConfigPath File path to hibernate config (i.e. hibernate-cfg.xml)
-     * @param modelPackageName Name of package containing all models to be loaded by hibernate
-     * @return Hibernate session factory.
-     */
-    public static SessionFactory getSessionFactory(String hibernate5ConfigPath, String modelPackageName) {
-        StandardServiceRegistry standardRegistry = new StandardServiceRegistryBuilder()
-                .configure(new File(hibernate5ConfigPath))
+
+    public static EntityManager getEntityManager(String modelPackageName, Properties options) {
+
+        // Configure default options for example service
+        if (options.isEmpty()) {
+            options.put("hibernate.show_sql", "true");
+            options.put("hibernate.hbm2ddl.auto", "create");
+            options.put("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+            options.put("hibernate.current_session_context_class", "thread");
+            options.put("hibernate.jdbc.use_scrollable_resultset", "true");
+
+            //TODO - Maybe configure Hikari or C3PO as a best practice
+
+            options.put("javax.persistence.jdbc.driver", "com.mysql.jdbc.Driver");
+            options.put("javax.persistence.jdbc.url", "jdbc:mysql://localhost/elide?serverTimezone=UTC");
+            options.put("javax.persistence.jdbc.user", "elide");
+            options.put("javax.persistence.jdbc.password", "elide123");
+        }
+
+        PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
+                getAllEntities(modelPackageName), options);
+
+        EntityManagerFactory emf =  new EntityManagerFactoryBuilderImpl(
+                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
                 .build();
-        MetadataSources sources = new MetadataSources(standardRegistry);
 
-        getAllEntities(modelPackageName).forEach(sources::addAnnotatedClass);
-
-        Metadata metaData =  sources.getMetadataBuilder().build();
-        return metaData.getSessionFactoryBuilder().build();
+        return emf.createEntityManager();
     }
 
     /**
@@ -48,11 +56,17 @@ public class Util {
      * @param packageName Package name
      * @return All entities found in package.
      */
-    public static HashSet<Class> getAllEntities(String packageName) {
-        return new HashSet<>(new Reflections(new ConfigurationBuilder()
-                .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                .setUrls(ClasspathHelper.forClassLoader(ClassLoader.getSystemClassLoader()))
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName))))
-                .getTypesAnnotatedWith(Entity.class));
+    public static List<String> getAllEntities(String packageName) {
+
+        try {
+            return ClassPath.from(Util.class.getClassLoader())
+                    .getTopLevelClassesRecursive(packageName)
+                    .stream()
+                    .filter((classInfo) -> classInfo.load().isAnnotationPresent(Entity.class))
+                    .map(ClassPath.ClassInfo::getName)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
