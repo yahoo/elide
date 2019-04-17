@@ -230,7 +230,7 @@ $ curl http://localhost:8080/api/v1/post
 
 ## <a name="usage"></a>Usage
 
-Using Elide standalone out of box is intended to require minimal effort. For persistence (i.e. `demoMode=false`) you will minimally need a Hibernate5-compatible database (i.e. MySQL), a `Settings` class, and your JPA-annotated data models.
+Using Elide standalone out of box is intended to require minimal effort. For persistence, you will minimally need a JPA compatible database (i.e. MySQL), a `Settings` class, and your JPA-annotated data models.
 
 ### <a name="settings-class"></a>Settings Class
 
