@@ -1,5 +1,10 @@
 # Change Log
 ## 4.4.1
+**Features**
+ * Switch ElideStandAlone to use JPA DataStore by default
+ * Enable support for JPA @MapsId annotation on relationships so that client doesn't have
+   to provide a dummy ID to make entity creation work.
+
 **Fixes**
  * Flush once for patch extension
  * ConstraintViolationExceptions are propagated on flush (JPA Transaction)
