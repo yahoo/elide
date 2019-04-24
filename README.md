@@ -187,6 +187,10 @@ public class YourMain {
 }
 ```
 
+For example API calls, look at:
+1. [*JSON-API*](http://elide.io/pages/guide/10-jsonapi.html)
+2. [*GraphQL*](http://elide.io/pages/guide/11-graphql.html)
+
 ## Security
 
 Security is documented in depth [here](http://elide.io/pages/guide/03-security.html).
