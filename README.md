@@ -96,7 +96,7 @@ public class Book {
 }
 ```
 
-Add Elide annotations to both expose your models through the web sevice and define security policies for access: 
+Add Elide annotations to both expose your models through the web service and define security policies for access: 
 
 
 ```java
@@ -119,7 +119,7 @@ public class Book {
 }
 ```
 
-Add Lifecycle hooks to your models to embed custom business logic that execute inline with CRUD operations through the webservice:
+Add Lifecycle hooks to your models to embed custom business logic that execute inline with CRUD operations through the web service:
 
 ```java
 @Entity
