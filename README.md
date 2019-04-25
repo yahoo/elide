@@ -4,7 +4,7 @@
 
 ![Elide Logo](elide-logo.svg)
 
-[![Gitter](https://badges.gitter.im/yahoo/elide.svg)](https://gitter.im/yahoo/elide?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
+[![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
 [![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
@@ -200,9 +200,7 @@ Please refer to [the contributing.md file](CONTRIBUTING.md) for information abou
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
-Discussion is on [slack](https://elide.slack.com) or through filing issues.
-
-To request an invite to Elide slack, click [here](https://publicslack.com/slacks/elide/invites/new).
+Discussion is on [spectrum](https://spectrum.chat/elide) or through filing issues.
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license. 
