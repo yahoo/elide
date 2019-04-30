@@ -247,7 +247,7 @@ public class PermissionToFilterExpressionVisitorTest {
     //
     public RequestScope newRequestScope() {
         User john = new User("John");
-        return requestScope = new RequestScope(null, null, null, john, null, elideSettings, false);
+        return requestScope = new RequestScope(null, null, null, john, null, elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

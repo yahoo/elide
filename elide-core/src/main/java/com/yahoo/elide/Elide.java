@@ -89,7 +89,7 @@ public class Elide {
     public ElideResponse get(String path, MultivaluedMap<String, String> queryParams, Object opaqueUser) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -107,7 +107,7 @@ public class Elide {
     public ElideResponse post(String path, String jsonApiDocument, Object opaqueUser) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -141,7 +141,7 @@ public class Elide {
         } else {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
-                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+                RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
@@ -163,7 +163,7 @@ public class Elide {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
-            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings, false);
+            RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });

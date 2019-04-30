@@ -66,7 +66,7 @@ public class RequestScopeTest {
         RequestScope requestScope = new RequestScope("/", null, null, null, null,
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
-                        .build(), false);
+                        .build());
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type

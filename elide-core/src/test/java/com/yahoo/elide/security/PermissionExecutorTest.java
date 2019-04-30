@@ -382,14 +382,14 @@ public class PermissionExecutorTest {
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary), false);
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
     public PersistentResource newResource(Class cls) {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary), false);
+        RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         try {
             Object obj = cls.newInstance();
             return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);

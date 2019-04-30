@@ -105,7 +105,12 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             }
         };
 
-        boolean filterInMemory = scope.isMutatingMultipleEntities();
+
+        /*
+         * If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
+         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
+         */
+        boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
         return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, filterInMemory, scope);
     }
 

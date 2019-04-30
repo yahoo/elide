@@ -278,8 +278,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
         resource.setValueChecked("genre", "boring books");
@@ -320,8 +319,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         resource.setValueChecked("title", "new title");
         verify(book, never()).onCreatePreSecurity(scope);
@@ -375,8 +373,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         verify(book, never()).onCreatePreSecurity(scope);
@@ -445,9 +442,7 @@ public class LifeCycleTest {
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null,
-                getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         verify(book, never()).onCreatePreSecurity(scope);
@@ -524,8 +519,7 @@ public class LifeCycleTest {
         when(tx.getRelation(any(), eq(author), eq("books"), any(), any(), any(), any())).then((i) -> author.getBooks());
         when(tx.getRelation(any(), eq(book), eq("authors"), any(), any(), any(), any())).then((i) -> book.getAuthors());
 
-        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx , new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource<Author> resourceBook = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         PersistentResource<Author> resourceAuthor = new PersistentResource(author, null, scope.getUUIDFor(book), scope);
 
@@ -562,8 +556,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         verify(book, never()).onCreatePreSecurity(scope);
         verify(book, never()).onDeletePreSecurity(scope);
@@ -604,8 +597,7 @@ public class LifeCycleTest {
     public void testOnRead() {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
 
         resource.getValueChecked("title");
@@ -653,8 +645,7 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.updateAttribute("title", "New value");
@@ -678,8 +669,7 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.updateAttribute("title", "New value");
@@ -733,8 +723,7 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.getAttribute("title");
@@ -796,8 +785,7 @@ public class LifeCycleTest {
         dictionary.bindEntity(Book.class);
 
         Book book = new Book();
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.updateAttribute("title", "foo");
@@ -860,8 +848,7 @@ public class LifeCycleTest {
 
         Book book = new Book();
         when(tx.createNewObject(Book.class)).thenReturn(book);
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 
@@ -925,8 +912,7 @@ public class LifeCycleTest {
 
         Book book = new Book();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER),
-                false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
         resource.deleteResource();
@@ -955,8 +941,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
-
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource)));
@@ -971,7 +956,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
 
         PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
@@ -996,7 +981,7 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
 
         PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
         PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
@@ -1013,7 +998,7 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER), false);
+        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
 
         book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);

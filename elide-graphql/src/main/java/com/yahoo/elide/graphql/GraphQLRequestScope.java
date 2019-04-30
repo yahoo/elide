@@ -30,6 +30,6 @@ public class GraphQLRequestScope extends RequestScope {
         // we should have a GraphQLRequestScope and a JSONAPIRequestScope.
         // TODO: What should mutate multiple entity value be? There is a problem with this setting in practice.
         // Namely, we don't filter or paginate in the data store.
-        super("/", null, transaction, user, new MultivaluedHashMap<>(), elideSettings, false);
+        super("/", null, transaction, user, new MultivaluedHashMap<>(), elideSettings);
     }
 }

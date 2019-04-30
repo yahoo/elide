@@ -1674,8 +1674,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
                 // then they will be filtered out and only the id is returned. Similarly, all future requests to this
                 // object will behave as expected.
-                boolean isMutation = resource.getRequestScope().isMutatingMultipleEntities();
-                if (!isMutation || !resource.getRequestScope().getNewResources().contains(resource)) {
+                if (!resource.getRequestScope().getNewResources().contains(resource)) {
                     resource.checkFieldAwarePermissions(permission);
                 }
                 filteredSet.add(resource);
