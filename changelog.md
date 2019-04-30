@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.2
+**Fixes**
+ * Fix error in lookupEntityClass and add test
+
 ## 4.4.1
 **Features**
  * Switch ElideStandAlone to use JPA DataStore by default
