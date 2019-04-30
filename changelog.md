@@ -2,6 +2,7 @@
 ## 4.4.2
 **Fixes**
  * Fix error in lookupEntityClass and add test
+ * Restore Flush mechanism for Hibernate but allow for customization.
 
 ## 4.4.1
 **Features**
