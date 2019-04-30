@@ -428,4 +428,36 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testBadInterface() {
         getEntityBinding(BadInterface.class);
     }
+
+    @Test
+    public void testChildBinding() {
+        @Entity
+        @Include
+        class SuperclassBinding {
+            @Id
+            private long id;
+        }
+
+        class SubclassBinding extends SuperclassBinding {
+        }
+
+        class SubsubclassBinding extends SubclassBinding {
+        }
+
+        this.bindEntity(SuperclassBinding.class);
+
+        Assert.assertEquals(getEntityBinding(SubclassBinding.class).entityClass, SuperclassBinding.class);
+        // repeat
+        Assert.assertEquals(getEntityBinding(SubclassBinding.class).entityClass, SuperclassBinding.class);
+
+        Assert.assertEquals(lookupEntityClass(SuperclassBinding.class), SuperclassBinding.class);
+        Assert.assertEquals(lookupEntityClass(SubclassBinding.class), SuperclassBinding.class);
+        Assert.assertEquals(lookupEntityClass(SubsubclassBinding.class), SuperclassBinding.class);
+    }
+
+    @Test
+    public void testBadLookupEntityClass() {
+        Assert.assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(null));
+        Assert.assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(Object.class));
+    }
 }
