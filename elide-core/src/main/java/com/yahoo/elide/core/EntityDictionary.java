@@ -975,7 +975,11 @@ public class EntityDictionary {
      */
     public Class<?> lookupEntityClass(Class<?> objClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
-            if (entityBindings.containsKey(cls) || cls.isAnnotationPresent(Entity.class)) {
+            EntityBinding binding = entityBindings.getOrDefault(cls, EMPTY_BINDING);
+            if (binding != EMPTY_BINDING) {
+                return binding.entityClass;
+            }
+            if (cls.isAnnotationPresent(Entity.class)) {
                 return cls;
             }
         }
