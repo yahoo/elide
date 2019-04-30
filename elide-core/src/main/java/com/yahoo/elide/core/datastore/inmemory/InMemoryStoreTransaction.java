@@ -343,11 +343,10 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
             // Make sure value is comparable and perform comparison
             if (leftCompare instanceof Comparable) {
-                int result = ((Comparable<Object>) leftCompare).compareTo(rightCompare);
                 if (order == Sorting.SortOrder.asc) {
-                    return result;
+                    return ((Comparable<Object>) leftCompare).compareTo(rightCompare);
                 }
-                return -result;
+                return ((Comparable<Object>) rightCompare).compareTo(leftCompare);
             }
 
             throw new IllegalStateException("Trying to comparing non-comparable types!");

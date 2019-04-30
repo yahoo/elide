@@ -53,7 +53,6 @@ public class HibernateTransaction implements DataStoreTransaction {
     private final SessionWrapper sessionWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final boolean isScrollEnabled;
-    private final ScrollMode scrollMode;
 
     /**
      * Constructor.
@@ -71,7 +70,6 @@ public class HibernateTransaction implements DataStoreTransaction {
         }
         this.sessionWrapper = new SessionWrapper(session);
         this.isScrollEnabled = isScrollEnabled;
-        this.scrollMode = scrollMode;
     }
 
     @Override
@@ -89,14 +87,17 @@ public class HibernateTransaction implements DataStoreTransaction {
         try {
             deferredTasks.forEach(Runnable::run);
             deferredTasks.clear();
-            FlushMode flushMode = session.getHibernateFlushMode();
-            // flush once for patch extension
-            if (requestScope != null && !requestScope.isMutatingMultipleEntities() && flushMode != FlushMode.MANUAL) {
-                session.flush();
-            }
+            hibernateFlush(requestScope);
         } catch (PersistenceException e) {
             log.error("Caught hibernate exception during flush", e);
             throw new TransactionException(e);
+        }
+    }
+
+    protected void hibernateFlush(RequestScope requestScope) {
+        FlushMode flushMode = session.getHibernateFlushMode();
+        if (flushMode != FlushMode.MANUAL) {
+            session.flush();
         }
     }
 
