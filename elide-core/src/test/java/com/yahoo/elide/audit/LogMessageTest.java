@@ -48,7 +48,7 @@ public class LogMessageTest {
                 new ElideSettingsBuilder(null)
                         .withAuditLogger(new TestAuditLogger())
                         .withEntityDictionary(dictionary)
-                        .build(), false);
+                        .build());
 
         final PersistentResource<Parent> parentRecord = new PersistentResource<>(parent, null, requestScope.getUUIDFor(parent), requestScope);
         childRecord = new PersistentResource<>(child, parentRecord, requestScope.getUUIDFor(child), requestScope);

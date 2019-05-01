@@ -31,8 +31,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
                                 .withAuditLogger(MOCK_AUDIT_LOGGER)
                                 .withDefaultMaxPageSize(10)
                                 .withDefaultPageSize(10)
-                                .build(),
-                        false
+                                .build()
                 )
         );
 

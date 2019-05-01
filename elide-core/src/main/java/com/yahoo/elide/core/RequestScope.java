@@ -76,7 +76,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ElideSettings elideSettings;
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
-    @Getter private final boolean mutatingMultipleEntities;
 
     @Getter private final MultipleFilterDialect filterDialect;
     private final Map<String, FilterExpression> expressionsByType;
@@ -97,16 +96,13 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param user the user making this request
      * @param queryParams the query parameters
      * @param elideSettings Elide settings object
-     * @param mutatesMultipleEntities Whether or not this request involves bulk edits to entities
-     *                                (patch extension or graphQL).
      */
     public RequestScope(String path,
                         JsonApiDocument jsonApiDocument,
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
-                        ElideSettings elideSettings,
-                        boolean mutatesMultipleEntities) {
+                        ElideSettings elideSettings) {
         this.lifecycleEvents = PublishSubject.create();
         this.distinctLifecycleEvents = lifecycleEvents.distinct();
         this.queuedLifecycleEvents = ReplaySubject.create();
@@ -131,7 +127,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.newPersistentResources = new LinkedHashSet<>();
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
-        this.mutatingMultipleEntities = mutatesMultipleEntities;
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -219,7 +214,6 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.elideSettings = outerRequestScope.elideSettings;
         this.useFilterExpressions = outerRequestScope.useFilterExpressions;
         this.updateStatusCode = outerRequestScope.updateStatusCode;
-        this.mutatingMultipleEntities = outerRequestScope.mutatingMultipleEntities;
         this.lifecycleEvents = outerRequestScope.lifecycleEvents;
         this.distinctLifecycleEvents = outerRequestScope.distinctLifecycleEvents;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;

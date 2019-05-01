@@ -56,9 +56,9 @@ public class PermissionAnnotationTest {
                 .withEntityDictionary(dictionary)
                 .build();
 
-        RequestScope goodScope = new RequestScope(null, null, null, goodUser, null, elideSettings, false);
+        RequestScope goodScope = new RequestScope(null, null, null, goodUser, null, elideSettings);
         funRecord = new PersistentResource<>(fun, null, goodScope.getUUIDFor(fun), goodScope);
-        RequestScope badScope = new RequestScope(null, null, null, badUser, null, elideSettings, false);
+        RequestScope badScope = new RequestScope(null, null, null, badUser, null, elideSettings);
         badRecord = new PersistentResource<>(fun, null, badScope.getUUIDFor(fun), badScope);
     }
 

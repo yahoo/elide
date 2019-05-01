@@ -55,13 +55,13 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
         User userOne = new User(1);
-        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings, false);
+        userOneScope = new RequestScope(null, null, tx, userOne, null, elideSettings);
         User userTwo = new User(2);
-        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings, false);
+        userTwoScope = new RequestScope(null, null, tx, userTwo, null, elideSettings);
         User userThree = new User(3);
-        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings, false);
+        userThreeScope = new RequestScope(null, null, tx, userThree, null, elideSettings);
         User userFour = new User(4);
-        userFourScope = new RequestScope(null, null, tx, userFour, null, elideSettings, false);
+        userFourScope = new RequestScope(null, null, tx, userFour, null, elideSettings);
 
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         when(tx.loadObject(eq(UpdateAndCreate.class),
