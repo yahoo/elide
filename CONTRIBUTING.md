@@ -1,5 +1,7 @@
 # How to Contribute
 
+*Read this in other languages: [中文](translations/zh/CONTRIBUTING.md).*
+
 When submitting a pull request (PR), please use the following guidelines:
 
 - Make sure your code respects existing formatting conventions. In general, follow

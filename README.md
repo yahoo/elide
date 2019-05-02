@@ -11,7 +11,7 @@
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 
-*Read this in other languages: [中文](./README-zh.md).*
+*Read this in other languages: [中文](translations/zh/README-zh.md).*
 
 ## Table of Contents
 
@@ -126,7 +126,7 @@ Add Lifecycle hooks to your models to embed custom business logic that execute i
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("Noone"
+@DeletePermission("Noone")
 @UpdatePermission("Noone")
 public class Book {
 
