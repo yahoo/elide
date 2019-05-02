@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.3
+**Features**
+ * When fetching a collection, if there are no filters, sorting, or client specified pagination, the ORM backed data stores will return the proxy object rather than construct a HQL query.  This allows the ORM the opportunity to generate SQL to avoid the N+1 problem.
+
 ## 4.4.2
 **Fixes**
  * Fix error in lookupEntityClass and add test

@@ -445,6 +445,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);
+
+        /*
+         * For default pagination, we let the store do its work, but we also let the store ignore pagination
+         * by also performing in memory.  This allows the ORM the opportunity to manage its own SQL query generation
+         * to avoid N+1.
+         */
+        } else if (pagination.isPresent() && pagination.get().isDefaultInstance()) {
+            return Pair.of(pagination, pagination);
         } else {
             return Pair.of(pagination, Optional.empty());
         }
