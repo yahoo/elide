@@ -207,10 +207,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                  * If there is no filtering or sorting required in the data store, and the pagination is default,
                  * return the proxy and let Hibernate manage the SQL generation.
                  */
-                if (! filterExpression.isPresent() && ! sorting.isPresent()) {
-                    if (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance())) {
-                        return val;
-                    }
+                if (! filterExpression.isPresent() && ! sorting.isPresent()
+                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    return val;
                 }
 
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
