@@ -154,7 +154,7 @@ public class Book {
 }
 ```
 
-您甚至可以将一些表达式转化成访问权限设置，直接控制数据库存储：
+您可以将一些表达式转化成访问权限设置，直接控制数据库存储访问：
 
 ```java
     public static class IsAdminUser extends UserCheck {
