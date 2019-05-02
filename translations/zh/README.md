@@ -24,7 +24,7 @@
 ## 简介
 
 Elide是一个互联网和移动端应用数据API搭建平台，只需要一个简单的[JPA注释模型](http://blog.csdn.net/superdog007/article/details/22651577)
-就能帮您轻松搭建[GraphQL](https://graphql.org/)和[JSON](http://jsonapi.org.cn/) API web 服务的。 
+就能帮您轻松搭建[GraphQL](https://graphql.org/)和[JSON](http://jsonapi.org.cn/) API web 服务。 
 
 Elide 功能强大，包括：
 
