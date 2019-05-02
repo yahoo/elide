@@ -5,13 +5,13 @@
 ![Elide Logo](elide-logo.svg)
 
 [![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
-[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide) 
+[![Build Status](https://travis-ci.org/yahoo/elide.svg?branch=master)](https://travis-ci.org/yahoo/elide)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 
-*Read this in other languages: [中文](translations/zh/README-zh.md).*
+*Read this in other languages: [中文](translations/zh/README.md).*
 
 ## Table of Contents
 
@@ -25,8 +25,8 @@
 
 ## Background
 
-[Elide](http://elide.io/) is a Java library that lets you set up a [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from 
-a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).    
+[Elide](http://elide.io/) is a Java library that lets you set up a [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from
+a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
 
 Elide supports a number of features:
 
@@ -34,7 +34,7 @@ Elide supports a number of features:
 Control access to fields and entities through a declarative, intuitive permission syntax.
 
 ### Mobile Friendly APIs
-JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned. 
+JSON-API & GraphQL lets developers fetch entire object graphs in a single round trip. Only requested elements of the data model are returned.
 Our opinionated approach for mutations addresses common application scenarios:
 * Create a new object and add it to an existing collection in the same operation.
 * Create a set of related, composite objects (a subgraph) and connect it to an existing, persisted graph.
@@ -53,7 +53,7 @@ Elide is agnostic to your particular persistence strategy. Use an ORM or provide
 ### Schema Introspection
 Explore, understand, and compose queries against your Elide API through generated Swagger documentation or GraphQL schema.
 
-### Customize 
+### Customize
 Customize the behavior of data model operations with computed attributes, data validation annotations, and request lifecycle hooks.
 
 ## Documentation
@@ -96,7 +96,7 @@ public class Book {
 }
 ```
 
-Add Elide annotations to both expose your models through the web service and define security policies for access: 
+Add Elide annotations to both expose your models through the web service and define security policies for access:
 
 
 ```java
@@ -170,7 +170,7 @@ public class YourMain {
             //This needs to be changed to the package where your models live.
             return "your.model.package";
         }
-    
+
         @Override
         public Map<String, Class<? extends Check>> getCheckMappings() {
             //Maps expression clauses to your security check functions & predicates
@@ -196,12 +196,12 @@ For example API calls, look at:
 Security is documented in depth [here](http://elide.io/pages/guide/03-security.html).
 
 ## Contribute
-Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests. 
+Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
 Discussion is on [spectrum](https://spectrum.chat/elide) or through filing issues.
 
 ## License
-This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license. 
+This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.
 Please refer to [LICENSE](LICENSE.txt) for the full terms.
