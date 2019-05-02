@@ -11,15 +11,15 @@
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/alerts)
 
-## Table of Contents
+## 目录
 
-- [Background](#background)
-- [Documentation](#documentation)
-- [Install](#install)
-- [Usage](#usage)
-- [Security](#security)
-- [Contribute](#contribute)
-- [License](#license)
+- [简介](#简介)
+- [文档](#文档)
+- [安装使用](#安装使用)
+- [用法介绍](#用法介绍)
+- [数据安全](#secur数据安全ity)
+- [开发](#开发)
+- [开源许可](#开源许可)
 
 ## 简介
 
