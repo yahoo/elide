@@ -196,6 +196,16 @@ public class HibernateTransaction implements DataStoreTransaction {
         if (val instanceof Collection) {
             Collection filteredVal = (Collection) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
+
+                /*
+                 * If there is no filtering or sorting required in the data store, and the pagination is default,
+                 * return the proxy and let Hibernate manage the SQL generation.
+                 */
+                if (! filterExpression.isPresent() && ! sorting.isPresent()
+                    && (! pagination.isPresent() || (pagination.isPresent() && pagination.get().isDefaultInstance()))) {
+                    return val;
+                }
+
                 Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
 
                 RelationshipImpl relationship = new RelationshipImpl(
