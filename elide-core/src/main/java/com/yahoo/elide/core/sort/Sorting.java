@@ -31,7 +31,7 @@ public class Sorting {
     public enum SortOrder { asc, desc }
 
     private final Map<String, SortOrder> sortRules = new LinkedHashMap<>();
-    private static final Sorting DEFAULT_EMPTY_INSTANCE = new Sorting(null);
+    private static final Sorting DEFAULT_EMPTY_INSTANCE = null;
     private static final String JSONAPI_ID_KEYWORD = "id";
 
     /**
