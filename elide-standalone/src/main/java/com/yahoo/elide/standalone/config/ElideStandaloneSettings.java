@@ -28,6 +28,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.SecurityContext;
 
 /**
@@ -57,9 +58,9 @@ public interface ElideStandaloneSettings {
      * @return Configured ElideSettings object.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
-        EntityManager entityManager = Util.getEntityManager(getModelPackageName(), new Properties());
+        EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(), new Properties());
         DataStore dataStore = new JpaDataStore(
-                () -> { return entityManager; },
+                () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
 
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(), injector::inject);
