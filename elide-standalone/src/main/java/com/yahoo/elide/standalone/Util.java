@@ -22,7 +22,7 @@ import javax.persistence.spi.PersistenceUnitInfo;
 
 public class Util {
 
-    public static EntityManager getEntityManager(String modelPackageName, Properties options) {
+    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, Properties options) {
 
         // Configure default options for example service
         if (options.isEmpty()) {
@@ -43,11 +43,9 @@ public class Util {
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
                 getAllEntities(modelPackageName), options);
 
-        EntityManagerFactory emf =  new EntityManagerFactoryBuilderImpl(
+        return new EntityManagerFactoryBuilderImpl(
                 new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
                 .build();
-
-        return emf.createEntityManager();
     }
 
     /**
