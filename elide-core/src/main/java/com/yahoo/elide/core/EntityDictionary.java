@@ -74,6 +74,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
+    private final static String ID_IDENTIFIER = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -603,12 +604,19 @@ public class EntityDictionary {
 
     /**
      * Get a type for a field on an entity.
+     * <p>
+     * If the field is "id" and the ID name of the identity is not "id", this method returns the type of the field that
+     * is annotated by {@link @Id}.
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
+        if (!ID_IDENTIFIER.equals(getEntityBinding(entityClass).getIdFieldName())) {
+            return getIdType(entityClass);
+        }
+
         ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }

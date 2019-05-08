@@ -24,6 +24,7 @@ import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
+import example.IdFieldAnnotations;
 import example.Left;
 import example.Parent;
 import example.Right;
@@ -69,6 +70,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(StringId.class);
         this.bindEntity(Friend.class);
         this.bindEntity(FieldAnnotations.class);
+        this.bindEntity(IdFieldAnnotations.class);
         this.bindEntity(Manager.class);
         this.bindEntity(Employee.class);
 
@@ -363,6 +365,9 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(getIdType(Friend.class), long.class,
                 "getIdType returns the type of the ID field when defined in a super class");
+
+        Assert.assertEquals(getType(IdFieldAnnotations.class, "id"), Long.class,
+                "getType returns the type of the ID field of the given class");
     }
 
     @Test
