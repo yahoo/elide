@@ -606,7 +606,7 @@ public class EntityDictionary {
      * Get a type for a field on an entity.
      * <p>
      * If the field is "id" and the ID name of the identity is not "id", this method returns the type of the field that
-     * is annotated by {@link @Id}.
+     * is annotated by JPA {@code @Id}
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
