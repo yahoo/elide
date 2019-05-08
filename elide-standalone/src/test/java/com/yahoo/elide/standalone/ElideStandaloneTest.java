@@ -24,7 +24,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.Properties;
 
 
@@ -57,9 +57,9 @@ public class ElideStandaloneTest {
                 options.put("javax.persistence.jdbc.user", "sa");
                 options.put("javax.persistence.jdbc.password", "");
 
-                EntityManager entityManager = Util.getEntityManager(Post.class.getPackage().getName(), options);
+                EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(Post.class.getPackage().getName(), options);
                 DataStore dataStore = new JpaDataStore(
-                        () -> { return entityManager; },
+                        () -> { return entityManagerFactory.createEntityManager(); },
                         (em -> { return new NonJtaTransaction(em); }));
 
                 dataStore.populateEntityDictionary(dictionary);
