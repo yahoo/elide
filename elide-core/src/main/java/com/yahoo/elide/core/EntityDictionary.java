@@ -678,7 +678,7 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        if (gettingIdType(entityClass, identifier)) {
+        if (isIdType(entityClass, identifier)) {
             return getIdType(entityClass);
         }
 
@@ -686,8 +686,20 @@ public class EntityDictionary {
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }
 
-    private boolean gettingIdType(Class<?> entityClass, String identifier) {
+    /**
+     * Returns whether or not a type-checked field is an ID of the bean.
+     *
+     * @param entityClass Entity class
+     * @param identifier  Field to lookup type
+     *
+     * @return {@code true} if the field is an ID field
+     */
+    public boolean isIdType(Class<?> entityClass, String identifier) {
         String idFieldName = getEntityBinding(entityClass).getIdFieldName();
+
+        if (idFieldName == null) {
+            return false;
+        }
 
         if (REGULAR_ID_NAME.equals(idFieldName)) {
             // bean ID is "id"
@@ -700,7 +712,7 @@ public class EntityDictionary {
             return idFieldName.equals(identifier);
         } else {
             // bean has no such field called "id"
-            return REGULAR_ID_NAME.equals(identifier);
+            return REGULAR_ID_NAME.equals(identifier) || idFieldName.equals(identifier);
         }
     }
 
