@@ -24,7 +24,7 @@ import com.yahoo.elide.security.checks.prefab.Role;
 import example.Child;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
-import example.IdFieldAnnotations;
+import example.Job;
 import example.Left;
 import example.Parent;
 import example.Right;
@@ -70,9 +70,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         this.bindEntity(StringId.class);
         this.bindEntity(Friend.class);
         this.bindEntity(FieldAnnotations.class);
-        this.bindEntity(IdFieldAnnotations.class);
         this.bindEntity(Manager.class);
         this.bindEntity(Employee.class);
+        this.bindEntity(Job.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -353,7 +353,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testGetIdType() throws Exception {
-
         Assert.assertEquals(getIdType(Parent.class), long.class,
                 "getIdType returns the type of the ID field of the given class");
 
@@ -365,9 +364,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(getIdType(Friend.class), long.class,
                 "getIdType returns the type of the ID field when defined in a super class");
-
-        Assert.assertEquals(getType(IdFieldAnnotations.class, "id"), Long.class,
-                "getType returns the type of the ID field of the given class");
     }
 
     @Test
@@ -402,6 +398,18 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         Assert.assertEquals(getType(Manager.class, "minions"), Set.class,
             "getType returns the correct generic type of a to-many relationship");
+
+        // ID is "id"
+        Assert.assertEquals(getType(Parent.class, "id"), long.class,
+                "getType returns the type of surrogate key");
+
+        // ID is not "id" and bean has a non-ID field called "id"
+        Assert.assertEquals(getType(Job.class, "id"), Long.class,
+                "getType returns the type of surrogate key");
+
+        // ID is not "id" and bean has no such field called "id"
+        Assert.assertEquals(getType(StringId.class, "id"), String.class,
+                "getType returns the type of surrogate key");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

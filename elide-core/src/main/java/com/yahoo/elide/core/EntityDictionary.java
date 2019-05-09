@@ -74,7 +74,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
-    private final static String ID_IDENTIFIER = "id";
+    private final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -605,20 +605,103 @@ public class EntityDictionary {
     /**
      * Get a type for a field on an entity.
      * <p>
-     * If the field is "id" and the ID name of the identity is not "id", this method returns the type of the field that
-     * is annotated by JPA {@code @Id}
+     * If this method is called on a bean such as the following
+     * <pre>
+     * {@code
+     * public class Address {
+     *
+     *     {@literal @}Id
+     *     private Long id
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * Then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * But if the ID field is not "id" and there is no such non-ID field called "id", i.e.
+     * <pre>
+     * {@code
+     * public class Address {
+     *
+     *     {@literal @}Id
+     *     private Long surrogateKey
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * Then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "surrogateKey") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * If, however, the ID field is not "id" and there is a non-ID field called "id", i.e.
+     * <pre>
+     * {@code
+     * public class Address {
+     *
+     *     {@literal @}Id
+     *     private Long surrogateKey
+     *
+     *     private String id;
+     *
+     *     private String street;
+     * }
+     * }
+     * </pre>
+     * Then
+     * <pre>
+     * {@code
+     * getType(Address.class, "surrogateKey") = Long.class
+     * getType(Address.class, "id") = String.class
+     * getType(Address.class, "street") = String.class
+     * }
+     * </pre>
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        if (!ID_IDENTIFIER.equals(getEntityBinding(entityClass).getIdFieldName())) {
+        if (gettingIdType(entityClass, identifier)) {
             return getIdType(entityClass);
         }
 
         ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
+    }
+
+    private boolean gettingIdType(Class<?> entityClass, String identifier) {
+        String idFieldName = getEntityBinding(entityClass).getIdFieldName();
+
+        if (REGULAR_ID_NAME.equals(idFieldName)) {
+            // bean ID is "id"
+            return REGULAR_ID_NAME.equals(identifier);
+        }
+
+        // bean ID is not "id" ...
+        if (getEntityBinding(entityClass).fieldsToTypes.containsKey(REGULAR_ID_NAME)) {
+            // bean has a non-ID field called "id"
+            return idFieldName.equals(identifier);
+        } else {
+            // bean has no such field called "id"
+            return REGULAR_ID_NAME.equals(identifier);
+        }
     }
 
     /**

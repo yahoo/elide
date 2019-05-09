@@ -28,7 +28,7 @@ public class Job {
 
     @Id
     @Getter
-    private Long id;
+    private Long jobId;
 
     @Getter @Setter
     private String title;
@@ -37,4 +37,7 @@ public class Job {
     @MapsId
     @Getter @Setter
     private Parent parent;
+
+    @Getter @Setter
+    private String id;
 }
