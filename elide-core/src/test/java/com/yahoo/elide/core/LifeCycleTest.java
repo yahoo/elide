@@ -632,8 +632,6 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
-            @Id
-            public Long id;
             public String title;
 
             @OnUpdatePreSecurity(value = "title")
@@ -658,8 +656,6 @@ public class LifeCycleTest {
         @Entity
         @Include
         class Book {
-            @Id
-            public Long id;
             public String title;
 
             @OnUpdatePreCommit(value = "title")
