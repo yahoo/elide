@@ -37,7 +37,4 @@ public class Job {
     @MapsId
     @Getter @Setter
     private Parent parent;
-
-    @Getter @Setter
-    private String id;
 }

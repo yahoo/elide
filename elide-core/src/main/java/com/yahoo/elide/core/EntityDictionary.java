@@ -619,7 +619,7 @@ public class EntityDictionary {
      * }
      * }
      * </pre>
-     * Then
+     * then
      * <pre>
      * {@code
      * getType(Address.class, "id") = Long.class
@@ -641,7 +641,7 @@ public class EntityDictionary {
      * }
      * }
      * </pre>
-     * Then
+     * then
      * <pre>
      * {@code
      * getType(Address.class, "id") = Long.class
@@ -650,28 +650,8 @@ public class EntityDictionary {
      * getType(Address.class, "street2") = String.class
      * }
      * </pre>
-     * If, however, the ID field is not "id" and there is a non-ID field called "id", i.e.
-     * <pre>
-     * {@code
-     * public class Address {
-     *
-     *     {@literal @}Id
-     *     private Long surrogateKey
-     *
-     *     private String id;
-     *
-     *     private String street;
-     * }
-     * }
-     * </pre>
-     * Then
-     * <pre>
-     * {@code
-     * getType(Address.class, "surrogateKey") = Long.class
-     * getType(Address.class, "id") = String.class
-     * getType(Address.class, "street") = String.class
-     * }
-     * </pre>
+     * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
+     * callling this method has undefined behavior
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
@@ -708,14 +688,8 @@ public class EntityDictionary {
             return REGULAR_ID_NAME.equals(identifier);
         }
 
-        // bean ID is not "id" ...
-        if (getEntityBinding(entityClass).fieldsToTypes.containsKey(REGULAR_ID_NAME)) {
-            // bean has a non-ID field called "id"
-            return idFieldName.equals(identifier);
-        } else {
-            // bean has no such field called "id"
-            return REGULAR_ID_NAME.equals(identifier) || idFieldName.equals(identifier);
-        }
+        // bean ID is not "id"
+        return REGULAR_ID_NAME.equals(identifier) || idFieldName.equals(identifier);
     }
 
     /**
