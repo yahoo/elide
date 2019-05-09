@@ -658,38 +658,12 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
-        if (isIdType(entityClass, identifier)) {
-            return getIdType(entityClass);
+        if (identifier.equals(REGULAR_ID_NAME)) {
+            return getEntityBinding(entityClass).getIdType();
         }
 
         ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
-    }
-
-    /**
-     * Returns whether or not a type-checked field is an ID of the bean.
-     * <p>
-     * The ID field of the bean is annotated by JAP {@code {@literal @}Id} annotation.
-     *
-     * @param entityClass Entity class
-     * @param identifier  Field to lookup type
-     *
-     * @return {@code true} if the field is an ID field
-     */
-    public boolean isIdType(Class<?> entityClass, String identifier) {
-        String idFieldName = getEntityBinding(entityClass).getIdFieldName();
-
-        if (idFieldName == null) {
-            return false;
-        }
-
-        if (REGULAR_ID_NAME.equals(idFieldName)) {
-            // bean ID is "id"
-            return REGULAR_ID_NAME.equals(identifier);
-        }
-
-        // bean ID is not "id"
-        return REGULAR_ID_NAME.equals(identifier) || idFieldName.equals(identifier);
     }
 
     /**

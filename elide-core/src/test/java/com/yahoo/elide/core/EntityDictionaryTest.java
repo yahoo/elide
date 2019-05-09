@@ -414,21 +414,6 @@ public class EntityDictionaryTest extends EntityDictionary {
                 "getType returns the type of surrogate key");
     }
 
-    @Test
-    public void testIsIdType() {
-        Assert.assertTrue(isIdType(Parent.class, "id"), "isIdType identifies ID and non-ID fields");
-
-        Assert.assertTrue(isIdType(Job.class, "jobId"), "isIdType identifies ID and non-ID fields");
-        Assert.assertTrue(isIdType(Job.class, "id"), "isIdType identifies ID and non-ID fields");
-
-        Assert.assertFalse(isIdType(Job.class, "title"), "isIdType identifies ID and non-ID fields");
-        Assert.assertFalse(isIdType(Job.class, "parent"), "isIdType identifies ID and non-ID fields");
-
-        Assert.assertTrue(isIdType(StringId.class, "surrogateKey"), "isIdType identifies ID and non-ID fields");
-        Assert.assertTrue(isIdType(StringId.class, "id"), "isIdType identifies ID and non-ID fields");
-
-    }
-
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testGetTypUnknownEntityException() {
         getType(Object.class, "id");
