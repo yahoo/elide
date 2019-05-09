@@ -74,6 +74,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
+    private final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -603,12 +604,64 @@ public class EntityDictionary {
 
     /**
      * Get a type for a field on an entity.
+     * <p>
+     * If this method is called on a bean such as the following
+     * <pre>
+     * {@code
+     * public class Address {
+     *
+     *     {@literal @}Id
+     *     private Long id
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * But if the ID field is not "id" and there is no such non-ID field called "id", i.e.
+     * <pre>
+     * {@code
+     * public class Address {
+     *
+     *     {@literal @}Id
+     *     private Long surrogateKey
+     *
+     *     private String street1;
+     *
+     *     private String street2;
+     * }
+     * }
+     * </pre>
+     * then
+     * <pre>
+     * {@code
+     * getType(Address.class, "id") = Long.class
+     * getType(Address.class, "surrogateKey") = Long.class
+     * getType(Address.class, "street1") = String.class
+     * getType(Address.class, "street2") = String.class
+     * }
+     * </pre>
+     * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
+     * callling this method has undefined behavior
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
+        if (identifier.equals(REGULAR_ID_NAME)) {
+            return getEntityBinding(entityClass).getIdType();
+        }
+
         ConcurrentHashMap<String, Class<?>> fieldTypes = getEntityBinding(entityClass).fieldsToTypes;
         return fieldTypes == null ? null : fieldTypes.get(identifier);
     }

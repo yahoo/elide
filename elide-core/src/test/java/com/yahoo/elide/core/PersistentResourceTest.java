@@ -1679,7 +1679,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertEquals(created.getObject().getTitle(), "day job",
                 "The create function should return the requested job object"
         );
-        Assert.assertEquals(created.getObject().getId(), null,
+        Assert.assertEquals(created.getObject().getJobId(), null,
                 "The create function should not override the ID"
         );
 
@@ -1689,7 +1689,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Assert.assertEquals(created.getObject().getTitle(), "day job",
                 "The create function should return the requested job object"
         );
-        Assert.assertEquals(created.getObject().getId(), null,
+        Assert.assertEquals(created.getObject().getJobId(), null,
                 "The create function should not override the ID"
         );
     }
