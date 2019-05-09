@@ -688,6 +688,8 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a type-checked field is an ID of the bean.
+     * <p>
+     * The ID field of the bean is annotated by JAP {@code {@literal @}Id} annotation.
      *
      * @param entityClass Entity class
      * @param identifier  Field to lookup type
