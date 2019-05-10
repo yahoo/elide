@@ -59,6 +59,7 @@ public class ModelBuilderTest {
     private static final String PUBLISH_DATE = "publishDate";
     private static final String GENRE = "genre";
     private static final String LANGUAGE = "language";
+    private static final String WEIGHT_LBS = "weightLbs";
 
     // TODO: We need more tests. I've updated the models to contain all of the situations below, but we should _esnure_
     // the generated result is exactly correct:
@@ -148,6 +149,7 @@ public class ModelBuilderTest {
         Assert.assertTrue(bookType.getFieldDefinition(GENRE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition(LANGUAGE).getType().equals(Scalars.GraphQLString));
         Assert.assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getType().equals(Scalars.GraphQLLong));
+        Assert.assertTrue(bookType.getFieldDefinition(WEIGHT_LBS).getType().equals(Scalars.GraphQLBigDecimal));
 
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
         Assert.assertTrue(addressType.getFieldDefinition("street1").getType().equals(Scalars.GraphQLString));
