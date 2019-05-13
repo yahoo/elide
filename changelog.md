@@ -1,4 +1,8 @@
 # Change Log
+## 4.4.5
+**Features**
+* Issue#812 Add support for BigDecimal field in GraphQL. 
+
 ## 4.4.4
 **Fixes**
  * When requesting an ID field whose name is not 'id', an error happens: `No such association id for type xxx`. When the requested field name equals 'id', Elide has been fixed to look for the field with the annotation @Id rather than looking by field name.
