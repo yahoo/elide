@@ -279,9 +279,16 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     .map(Path.PathElement::getFieldType)
                     .orElseThrow(() -> new IllegalStateException("Path must not be empty"));
 
+            if (Number.class.isAssignableFrom(relationshipType)) {
+                //Support number types
+                for (int i = 0; i < arguments.size(); i++) {
+                    arguments.set(i, arguments.get(i).replace("*", ""));
+                }
+            }
+
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
-                    .map((argument) -> (Object) CoerceUtil.coerce(argument.replace("*", ""), relationshipType))
+                    .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
                     .collect(Collectors.toList());
 
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
