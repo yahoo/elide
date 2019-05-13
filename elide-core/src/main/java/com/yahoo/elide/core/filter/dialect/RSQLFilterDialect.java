@@ -281,7 +281,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
-                    .map((argument) -> (Object) CoerceUtil.coerce(argument, relationshipType))
+                    .map((argument) -> (Object) CoerceUtil.coerce(argument.replace("*", ""), relationshipType))
                     .collect(Collectors.toList());
 
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
