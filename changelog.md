@@ -2,6 +2,11 @@
 
 ## 4.4.4
 **Fixes**
+ * Support RSQL INFIX, POSTFIX, and PREFIX filters on number types: remove '*' before coercing.
+
+
+## 4.4.4
+**Fixes**
  * When requesting an ID field whose name is not 'id', an error happens: `No such association id for type xxx`. When the requested field name equals 'id', Elide has been fixed to look for the field with the annotation @Id rather than looking by field name.
 
 **Features**
