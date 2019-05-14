@@ -1,6 +1,6 @@
 # Change Log
 
-## 4.4.5
+## 4.4.4
 **Fixes**
  * Support RSQL INFIX, POSTFIX, and PREFIX filters on number types: remove '*' before coercing.
 

@@ -15,6 +15,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import cz.jirutka.rsql.parser.ast.ComparisonNode;
+import cz.jirutka.rsql.parser.ast.ComparisonOperator;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -247,6 +250,22 @@ public class RSQLFilterDialectTest {
 
         Assert.assertEquals(expression.toString(),
                 "book.title NOTNULL []"
+        );
+    }
+
+    @Test
+    public void testVisit() {
+        ComparisonNode comparisonNode = new ComparisonNode(
+                new ComparisonOperator("==", false),
+                "id",
+                Collections.singletonList("*20*")
+        );
+
+        RSQLFilterDialect.RSQL2FilterExpressionVisitor visitor = dialect.new RSQL2FilterExpressionVisitor(true);
+
+        Assert.assertEquals(
+                visitor.visit(comparisonNode, Author.class).toString(),
+                "author.id INFIX_CASE_INSENSITIVE [20]"
         );
     }
 }
