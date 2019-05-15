@@ -6,6 +6,7 @@
 
 **Features**
 * Issue#812 Add support for BigDecimal field in GraphQL. 
+* Elide standalone now includes a Hikari connection pool & Hibernate batch fetching by default
 
 ## 4.4.3
 **Features**
