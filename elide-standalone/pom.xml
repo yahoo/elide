@@ -91,6 +91,12 @@
             <version>${hibernate5.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-hikaricp</artifactId>
+            <version>${hibernate5.version}</version>
+        </dependency>
+
         <!-- MySQL Driver -->
         <dependency>
             <groupId>mysql</groupId>
