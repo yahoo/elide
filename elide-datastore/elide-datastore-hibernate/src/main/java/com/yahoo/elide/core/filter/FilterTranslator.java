@@ -50,8 +50,8 @@ import java.util.stream.Collectors;
 public class FilterTranslator implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
     private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
-    public static final String PARAM_JOIN = ", ";
-    public static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
+    private static final String PARAM_JOIN = ", ";
+    private static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
             String.format("lower(%s)", p.getPlaceholder());
     /**
      * Converts a JPQL column alias and list of arguments into a JPQL filter predicate fragment.
@@ -61,8 +61,8 @@ public class FilterTranslator implements FilterOperation<String> {
         String generate(String columnAlias, List<FilterParameter> parameters);
     }
 
-    public static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    public static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+    private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
+    private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
     static {
         predicateOverrides = new HashMap<>();

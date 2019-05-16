@@ -8,6 +8,8 @@ package com.yahoo.elide.datastores.jpa;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.annotations.JPQLFilterFragment;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
 import javax.persistence.EntityManager;
@@ -37,6 +39,24 @@ public class JpaDataStore implements DataStore {
 
                 // Bind if successful
                 dictionary.bindEntity(mappedClass);
+
+                // Register any custom JPQL Filter Fragment Generators.
+                dictionary.getAttributes(mappedClass)
+                        .stream()
+                        .forEach((attribute) -> {
+                            JPQLFilterFragment annotation = dictionary.getAttributeOrRelationAnnotation(mappedClass,
+                                    JPQLFilterFragment.class, attribute);
+
+                            if (annotation != null) {
+                                try {
+                                    FilterTranslator.registerJPQLGenerator(annotation.operator(),
+                                            mappedClass, attribute, annotation.generator().newInstance());
+                                } catch (InstantiationException | IllegalAccessException e) {
+                                    throw new IllegalStateException(e);
+                                }
+                            }
+                        });
+
             } catch (IllegalArgumentException e) {
                 // Ignore this entity.
                 // Turns out that JPA may include non-entity types in this list when using things like envers.

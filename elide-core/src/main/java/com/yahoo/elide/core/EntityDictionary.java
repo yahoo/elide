@@ -162,12 +162,10 @@ public class EntityDictionary {
     }
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
-        return entityBindings.computeIfAbsent(entityClass, cls -> {
-            if (isMappedInterface(cls)) {
-                return EMPTY_BINDING;
-            }
-            return entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING);
-        });
+        if (isMappedInterface(entityClass)) {
+            return EntityBinding.EMPTY_BINDING;
+        }
+        return entityBindings.getOrDefault(lookupEntityClass(entityClass), EMPTY_BINDING);
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
@@ -806,7 +804,6 @@ public class EntityDictionary {
         if (entityBindings.getOrDefault(lookupEntityClass(cls), EMPTY_BINDING) != EMPTY_BINDING) {
             return;
         }
-        entityBindings.remove(lookupEntityClass(cls));
 
         Annotation annotation = getFirstAnnotation(cls, Arrays.asList(Include.class, Exclude.class));
         Include include = annotation instanceof Include ? (Include) annotation : null;

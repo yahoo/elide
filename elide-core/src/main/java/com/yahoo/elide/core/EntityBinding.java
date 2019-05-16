@@ -126,12 +126,12 @@ public class EntityBinding {
     private EntityBinding() {
         jsonApiType = null;
         entityName = null;
+        attributes = new ArrayList<>();
+        relationships = new ArrayList<>();
+        inheritedTypes = new ArrayList<>();
         idField = null;
         idType = null;
-        attributes = null;
-        relationships = null;
         entityClass = null;
-        inheritedTypes = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
         idGenerated = false;
     }
