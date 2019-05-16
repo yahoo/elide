@@ -27,6 +27,7 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -75,6 +76,8 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLString;
         } else if (Date.class.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
+        } else if (clazz.equals(BigDecimal.class)) {
+            return Scalars.GraphQLBigDecimal;
         }
 
         return null;

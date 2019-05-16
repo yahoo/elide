@@ -22,6 +22,7 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.security.RequestScope;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -61,6 +62,7 @@ public class Book {
     private Author.AuthorType authorTypeAtTimeOfPublication;
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
     private Set<Preview> previews = new HashSet<>();
+    private BigDecimal weightLbs;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
@@ -101,6 +103,14 @@ public class Book {
 
     public long getPublishDate() {
         return this.publishDate;
+    }
+
+    public void setWeightLbs(BigDecimal weight) {
+        this.weightLbs = weight;
+    }
+
+    public BigDecimal getWeightLbs() {
+        return this.weightLbs;
     }
 
     @ManyToMany
