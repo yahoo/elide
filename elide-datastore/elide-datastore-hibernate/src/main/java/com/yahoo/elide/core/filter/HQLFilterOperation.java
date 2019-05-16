@@ -1,10 +1,30 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.filter.Operator.FALSE;
+import static com.yahoo.elide.core.filter.Operator.GE;
+import static com.yahoo.elide.core.filter.Operator.GT;
+import static com.yahoo.elide.core.filter.Operator.IN;
+import static com.yahoo.elide.core.filter.Operator.INFIX;
+import static com.yahoo.elide.core.filter.Operator.INFIX_CASE_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.IN_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.ISNULL;
+import static com.yahoo.elide.core.filter.Operator.LE;
+import static com.yahoo.elide.core.filter.Operator.LT;
+import static com.yahoo.elide.core.filter.Operator.NOT;
+import static com.yahoo.elide.core.filter.Operator.NOTNULL;
+import static com.yahoo.elide.core.filter.Operator.NOT_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.POSTFIX;
+import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.PREFIX;
+import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
+import static com.yahoo.elide.core.filter.Operator.TRUE;
+
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
@@ -16,8 +36,11 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.tuple.Triple;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,6 +53,184 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public static final String PARAM_JOIN = ", ";
     public static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
             String.format("lower(%s)", p.getPlaceholder());
+    /**
+     * Converts a JPQL column alias and list of arguments into a JPQL filter predicate.
+     */
+    @FunctionalInterface
+    public interface JPQLPredicateGenerator {
+        String generate(String columnAlias, List<FilterParameter> parameters);
+    }
+
+    public static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
+    public static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+
+    static {
+        predicateOverrides = new HashMap<>();
+
+        operatorGenerators = new HashMap<>();
+
+        operatorGenerators.put(IN, (columnAlias, params) -> {
+            Preconditions.checkState(! params.isEmpty());
+            return String.format("%s IN (%s)", columnAlias, params.stream()
+                        .map(FilterParameter::getPlaceholder)
+                        .collect(Collectors.joining(PARAM_JOIN)));
+        });
+
+        operatorGenerators.put(IN_INSENSITIVE, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("lower(%s) IN (%s)", columnAlias, params.stream()
+                    .map(LOWERED_PARAMETER)
+                    .collect(Collectors.joining(PARAM_JOIN)));
+        });
+
+        operatorGenerators.put(NOT, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("%s NOT IN (%s)", columnAlias, params.stream()
+                    .map(FilterParameter::getPlaceholder)
+                    .collect(Collectors.joining(PARAM_JOIN)));
+
+        });
+
+        operatorGenerators.put(NOT_INSENSITIVE, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("lower(%s) NOT IN (%s)", columnAlias, params.stream()
+                    .map(LOWERED_PARAMETER)
+                    .collect(Collectors.joining(PARAM_JOIN)));
+        });
+
+        operatorGenerators.put(PREFIX, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("%s LIKE CONCAT(%s, '%%')", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(PREFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(POSTFIX, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("%s LIKE CONCAT('%%', %s)", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(POSTFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(INFIX, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("%s LIKE CONCAT('%%', %s, '%%')", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(INFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
+            Preconditions.checkState(params.size() == 1);
+            String paramPlaceholder = params.get(0).getPlaceholder();
+            assertValidValues(columnAlias, paramPlaceholder);
+            return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", columnAlias, paramPlaceholder);
+        });
+
+        operatorGenerators.put(LT, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("%s < %s", columnAlias, params.size() == 1
+                    ? params.get(0).getPlaceholder()
+                    : leastClause(params));
+        });
+
+        operatorGenerators.put(LE, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("%s <= %s", columnAlias, params.size() == 1
+                    ? params.get(0).getPlaceholder()
+                    : leastClause(params));
+        });
+
+        operatorGenerators.put(GT, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("%s > %s", columnAlias, params.size() == 1
+                    ? params.get(0).getPlaceholder()
+                    : greatestClause(params));
+
+        });
+
+        operatorGenerators.put(GE, (columnAlias, params) -> {
+            Preconditions.checkState(!params.isEmpty());
+            return String.format("%s >= %s", columnAlias, params.size() == 1
+                    ? params.get(0).getPlaceholder()
+                    : greatestClause(params));
+        });
+
+        operatorGenerators.put(ISNULL, (columnAlias, params) -> {
+            return String.format("%s IS NULL", columnAlias);
+        });
+
+        operatorGenerators.put(NOTNULL, (columnAlias, params) -> {
+            return String.format("%s IS NOT NULL", columnAlias);
+        });
+
+        operatorGenerators.put(TRUE, (columnAlias, params) -> {
+            return "(1 = 1)";
+        });
+
+        operatorGenerators.put(FALSE, (columnAlias, params) -> {
+            return "(1 = 0)";
+        });
+    }
+
+    /**
+     * Overrides the default JPQL generator for a given operator.
+     * @param op The filter predicate operator
+     * @param generator The generator to resgister
+     */
+    public static void registerJPQLGenerator(Operator op,
+                                             JPQLPredicateGenerator generator) {
+        operatorGenerators.put(op, generator);
+    }
+
+    /**
+     * Overrides the default JPQL generator for a given operator.
+     * @param op The filter predicate operator
+     * @param entityClass The entity class referenced in the predicate
+     * @param fieldName The field name of the entity class referenced in the predicate.
+     * @param generator The generator to resgister
+     */
+    public static void registerJPQLGenerator(Operator op,
+                                             Class<?> entityClass,
+                                             String fieldName,
+                                             JPQLPredicateGenerator generator) {
+        predicateOverrides.put(Triple.of(op, entityClass, fieldName), generator);
+    }
+
+    /**
+     * Returns the registered JPQL generator for the given operator, class, and field.
+     * @param op The filter predicate operator
+     * @param entityClass The entity class referenced in the predicate
+     * @param fieldName The field name of the entity class referenced in the predicate.
+     * @return Returns null if no generator is registered.
+     */
+    public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
+                                           Class<?> entityClass,
+                                           String fieldName) {
+        return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
+    }
+
+    /**
+     * Returns the registered JPQL generator for the given operator.
+     * @param op The filter predicate operator
+     * @return Returns null if no generator is registered.
+     */
+    public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op) {
+        return operatorGenerators.get(op);
+    }
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
@@ -50,100 +251,40 @@ public class HQLFilterOperation implements FilterOperation<String> {
             fieldPath = filterPredicate.getAlias() + "." + filterPredicate.getField();
         }
 
+        Path.PathElement last = filterPredicate.getPath().lastElement().get();
+
         //HQL doesn't support 'this', but it does support aliases.
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
         List<FilterParameter> params = filterPredicate.getParameters();
-        String firstParam = params.size() > 0 ? params.get(0).getPlaceholder() : null;
-        switch (filterPredicate.getOperator()) {
-            case IN:
-                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("%s IN (%s)", fieldPath, params.stream()
-                        .map(FilterParameter::getPlaceholder)
-                        .collect(Collectors.joining(PARAM_JOIN)));
 
-            case IN_INSENSITIVE:
-                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("lower(%s) IN (%s)", fieldPath, params.stream()
-                        .map(LOWERED_PARAMETER)
-                        .collect(Collectors.joining(PARAM_JOIN)));
+        Operator op = filterPredicate.getOperator();
+        JPQLPredicateGenerator generator = lookupJPQLGenerator(op, last.getType(), last.getFieldName());
 
-            case NOT:
-                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("%s NOT IN (%s)", fieldPath, params.stream()
-                        .map(FilterParameter::getPlaceholder)
-                        .collect(Collectors.joining(PARAM_JOIN)));
-
-            case NOT_INSENSITIVE:
-                Preconditions.checkState(!filterPredicate.getValues().isEmpty());
-                return String.format("lower(%s) NOT IN (%s)", fieldPath, params.stream()
-                        .map(LOWERED_PARAMETER)
-                        .collect(Collectors.joining(PARAM_JOIN)));
-
-            case PREFIX:
-                return String.format("%s LIKE CONCAT(%s, '%%')", fieldPath, firstParam);
-
-            case PREFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstParam);
-                return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", fieldPath, firstParam);
-
-            case POSTFIX:
-                return String.format("%s LIKE CONCAT('%%', %s)", fieldPath, firstParam);
-
-            case POSTFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstParam);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", fieldPath, firstParam);
-
-            case INFIX:
-                return String.format("%s LIKE CONCAT('%%', %s, '%%')", fieldPath, firstParam);
-
-            case INFIX_CASE_INSENSITIVE:
-                assertValidValues(fieldPath, firstParam);
-                return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", fieldPath, firstParam);
-
-            case LT:
-                return String.format("%s < %s", fieldPath, params.size() == 1 ? firstParam : leastClause(params));
-
-            case LE:
-                return String.format("%s <= %s", fieldPath, params.size() == 1 ? firstParam : leastClause(params));
-
-            case GT:
-                return String.format("%s > %s", fieldPath, params.size() == 1 ? firstParam : greatestClause(params));
-
-            case GE:
-                return String.format("%s >= %s", fieldPath, params.size() == 1 ? firstParam : greatestClause(params));
-
-            // Not parametric checks
-            case ISNULL:
-                return String.format("%s IS NULL", fieldPath);
-
-            case NOTNULL:
-                return String.format("%s IS NOT NULL", fieldPath);
-
-            case TRUE:
-                return "(1 = 1)";
-
-            case FALSE:
-                return "(1 = 0)";
-
-            default:
-                throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+        if (generator == null) {
+            generator = lookupJPQLGenerator(op);
         }
+
+        if (generator == null) {
+            throw new InvalidPredicateException("Operator not implemented: " + filterPredicate.getOperator());
+        }
+
+        return generator.generate(fieldPath, params);
     }
 
-    private String greatestClause(List<FilterParameter> params) {
+    private static String greatestClause(List<FilterParameter> params) {
         return String.format("greatest(%s)", params.stream()
                 .map(FilterParameter::getPlaceholder)
                 .collect(Collectors.joining(PARAM_JOIN)));
     }
 
-    private String leastClause(List<FilterParameter> params) {
+    private static String leastClause(List<FilterParameter> params) {
         return String.format("least(%s)", params.stream()
                 .map(FilterParameter::getPlaceholder)
                 .collect(Collectors.joining(PARAM_JOIN)));
     }
 
-    private void assertValidValues(String fieldPath, String alias) {
+    private static void assertValidValues(String fieldPath, String alias) {
         if (Strings.isNullOrEmpty(fieldPath)) {
             throw new InvalidValueException(FILTER_PATH_NOT_NULL);
         }
@@ -155,7 +296,6 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
         HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
         return "WHERE " + filterExpression.accept(visitor);
-
     }
 
     /**
