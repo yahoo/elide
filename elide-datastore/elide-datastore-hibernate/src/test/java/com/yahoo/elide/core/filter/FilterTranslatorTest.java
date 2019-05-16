@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Tests Building a HQL Filter.
  */
-public class HQLFilterOperationTest {
+public class FilterTranslatorTest {
 
     class Book {
         String name;
@@ -55,7 +55,7 @@ public class HQLFilterOperationTest {
         AndFilterExpression and = new AndFilterExpression(or, p1);
         NotFilterExpression not = new NotFilterExpression(and);
 
-        HQLFilterOperation filterOp = new HQLFilterOperation();
+        FilterTranslator filterOp = new FilterTranslator();
         String query = filterOp.apply(not, false);
 
         String p1Params = p1.getParameters().stream()
@@ -71,25 +71,72 @@ public class HQLFilterOperationTest {
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnPrefix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        HQLFilterOperation filterOp = new HQLFilterOperation();
+        FilterTranslator filterOp = new FilterTranslator();
         filterOp.apply(pred);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnInfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        HQLFilterOperation filterOp = new HQLFilterOperation();
+        FilterTranslator filterOp = new FilterTranslator();
         filterOp.apply(pred);
     }
 
     @Test(expectedExceptions = InvalidValueException.class)
     public void testEmptyFieldOnPostfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, Author.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        HQLFilterOperation filterOp = new HQLFilterOperation();
+        FilterTranslator filterOp = new FilterTranslator();
         filterOp.apply(pred);
+    }
+
+    @Test
+    public void testCustomPredicate() throws Exception {
+
+        FilterTranslator.JPQLPredicateGenerator generator = new FilterTranslator.JPQLPredicateGenerator() {
+            @Override
+            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+                return "FOO";
+            }
+        };
+
+        try {
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, Author.class, "name", generator);
+
+            FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
+                    Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+
+            String actual = new FilterTranslator().apply(pred);
+            Assert.assertEquals(actual, "FOO");
+        } finally {
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, Author.class, "name", null);
+        }
+    }
+
+    @Test
+    public void testCustomOperator() throws Exception {
+
+        FilterTranslator.JPQLPredicateGenerator generator = new FilterTranslator.JPQLPredicateGenerator() {
+            @Override
+            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+                return "FOO";
+            }
+        };
+
+        FilterTranslator.JPQLPredicateGenerator old = FilterTranslator.lookupJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE);
+        try {
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, generator);
+
+            FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
+                    Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
+
+            String actual = new FilterTranslator().apply(pred);
+            Assert.assertEquals(actual, "FOO");
+        } finally {
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, old);
+        }
     }
 }

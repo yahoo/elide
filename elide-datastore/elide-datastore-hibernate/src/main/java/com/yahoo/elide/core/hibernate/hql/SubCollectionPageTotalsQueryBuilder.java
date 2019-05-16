@@ -8,7 +8,7 @@ package com.yahoo.elide.core.hibernate.hql;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.ExpressionScopingVisitor;
@@ -105,7 +105,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             joinClause = getJoinClauseFromFilters(joinedExpression);
 
             //Build the WHERE clause
-            filterClause = new HQLFilterOperation().apply(joinedExpression, USE_ALIAS);
+            filterClause = new FilterTranslator().apply(joinedExpression, USE_ALIAS);
         } else {
 
             //If there is no filter, we still need to explicitly JOIN book and authors.
@@ -116,7 +116,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                     + relationshipAlias
                     + SPACE;
 
-            filterClause = new HQLFilterOperation().apply(idExpression, USE_ALIAS);
+            filterClause = new FilterTranslator().apply(idExpression, USE_ALIAS);
             predicates.add(idExpression);
         }
 

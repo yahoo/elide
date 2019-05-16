@@ -45,16 +45,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * FilterOperation that creates Hibernate query language fragments.
+ * Translates a filter predicate into a JPQL fragment.
  */
-public class HQLFilterOperation implements FilterOperation<String> {
+public class FilterTranslator implements FilterOperation<String> {
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
     private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
     public static final String PARAM_JOIN = ", ";
     public static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
             String.format("lower(%s)", p.getPlaceholder());
     /**
-     * Converts a JPQL column alias and list of arguments into a JPQL filter predicate.
+     * Converts a JPQL column alias and list of arguments into a JPQL filter predicate fragment.
      */
     @FunctionalInterface
     public interface JPQLPredicateGenerator {
@@ -232,6 +232,11 @@ public class HQLFilterOperation implements FilterOperation<String> {
         return operatorGenerators.get(op);
     }
 
+    /**
+     * Translates the filterPredicate to JPQL.
+     * @param filterPredicate The predicate to translate
+     * @return A JPQL query
+     */
     @Override
     public String apply(FilterPredicate filterPredicate) {
         return apply(filterPredicate, false);

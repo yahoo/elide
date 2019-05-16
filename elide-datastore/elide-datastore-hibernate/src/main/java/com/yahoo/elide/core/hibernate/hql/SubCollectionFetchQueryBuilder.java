@@ -7,7 +7,7 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
@@ -50,7 +50,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         Query query = filterExpression.map(fe -> {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = fe.accept(extractor);
-            String filterClause = new HQLFilterOperation().apply(fe, USE_ALIAS);
+            String filterClause = new FilterTranslator().apply(fe, USE_ALIAS);
 
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())
                     + extractToOneMergeJoins(relationship.getChildType(), childAlias);
