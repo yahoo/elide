@@ -26,7 +26,6 @@ import static com.yahoo.elide.core.filter.Operator.TRUE;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -35,24 +34,18 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Translates a filter predicate into a JPQL fragment.
  */
 public class FilterTranslator implements FilterOperation<String> {
-    private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
-    private static final String FILTER_ALIAS_NOT_NULL = "Filtering alias cannot be empty.";
-    private static final String PARAM_JOIN = ", ";
-    private static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
-            String.format("lower(%s)", p.getPlaceholder());
+    private static final String COMMA = ", ";
 
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
     private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
@@ -70,76 +63,65 @@ public class FilterTranslator implements FilterOperation<String> {
 
         operatorGenerators = new HashMap<>();
 
-        operatorGenerators.put(IN, (columnAlias, params) -> {
-            Preconditions.checkState(! params.isEmpty());
-            return String.format("%s IN (%s)", columnAlias, params.stream()
-                        .map(FilterParameter::getPlaceholder)
-                        .collect(Collectors.joining(PARAM_JOIN)));
-        });
+        operatorGenerators.put(IN, new CaseAwareJPQLGenerator(
+                "%s IN (%s)",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.MANY)
+        );
 
-        operatorGenerators.put(IN_INSENSITIVE, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("lower(%s) IN (%s)", columnAlias, params.stream()
-                    .map(LOWERED_PARAMETER)
-                    .collect(Collectors.joining(PARAM_JOIN)));
-        });
+        operatorGenerators.put(IN_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s IN (%s)",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.MANY)
+        );
 
-        operatorGenerators.put(NOT, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("%s NOT IN (%s)", columnAlias, params.stream()
-                    .map(FilterParameter::getPlaceholder)
-                    .collect(Collectors.joining(PARAM_JOIN)));
+        operatorGenerators.put(NOT, new CaseAwareJPQLGenerator(
+                "%s NOT IN (%s)",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.MANY)
+        );
 
-        });
+        operatorGenerators.put(NOT_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s NOT IN (%s)",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.MANY)
+        );
 
-        operatorGenerators.put(NOT_INSENSITIVE, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("lower(%s) NOT IN (%s)", columnAlias, params.stream()
-                    .map(LOWERED_PARAMETER)
-                    .collect(Collectors.joining(PARAM_JOIN)));
-        });
+        operatorGenerators.put(PREFIX, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT(%s, '%%')",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
-        operatorGenerators.put(PREFIX, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("%s LIKE CONCAT(%s, '%%')", columnAlias, paramPlaceholder);
-        });
+        operatorGenerators.put(PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT(%s, '%%')",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
-        operatorGenerators.put(PREFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("lower(%s) LIKE CONCAT(lower(%s), '%%')", columnAlias, paramPlaceholder);
-        });
+        operatorGenerators.put(POSTFIX, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', %s)",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
-        operatorGenerators.put(POSTFIX, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("%s LIKE CONCAT('%%', %s)", columnAlias, paramPlaceholder);
-        });
+        operatorGenerators.put(POSTFIX_CASE_INSENSITIVE,  new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', %s)",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
-        operatorGenerators.put(POSTFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("lower(%s) LIKE CONCAT('%%', lower(%s))", columnAlias, paramPlaceholder);
-        });
+        operatorGenerators.put(INFIX, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', %s, '%%')",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
-        operatorGenerators.put(INFIX, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("%s LIKE CONCAT('%%', %s, '%%')", columnAlias, paramPlaceholder);
-        });
-
-        operatorGenerators.put(INFIX_CASE_INSENSITIVE, (columnAlias, params) -> {
-            Preconditions.checkState(params.size() == 1);
-            String paramPlaceholder = params.get(0).getPlaceholder();
-            assertValidValues(columnAlias, paramPlaceholder);
-            return String.format("lower(%s) LIKE CONCAT('%%', lower(%s), '%%')", columnAlias, paramPlaceholder);
-        });
+        operatorGenerators.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', %s, '%%')",
+                CaseAwareJPQLGenerator.Case.LOWER,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE)
+        );
 
         operatorGenerators.put(LT, (columnAlias, params) -> {
             Preconditions.checkState(!params.isEmpty());
@@ -281,22 +263,13 @@ public class FilterTranslator implements FilterOperation<String> {
     private static String greatestClause(List<FilterParameter> params) {
         return String.format("greatest(%s)", params.stream()
                 .map(FilterParameter::getPlaceholder)
-                .collect(Collectors.joining(PARAM_JOIN)));
+                .collect(Collectors.joining(COMMA)));
     }
 
     private static String leastClause(List<FilterParameter> params) {
         return String.format("least(%s)", params.stream()
                 .map(FilterParameter::getPlaceholder)
-                .collect(Collectors.joining(PARAM_JOIN)));
-    }
-
-    private static void assertValidValues(String fieldPath, String alias) {
-        if (Strings.isNullOrEmpty(fieldPath)) {
-            throw new InvalidValueException(FILTER_PATH_NOT_NULL);
-        }
-        if (Strings.isNullOrEmpty(alias)) {
-            throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
-        }
+                .collect(Collectors.joining(COMMA)));
     }
 
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
