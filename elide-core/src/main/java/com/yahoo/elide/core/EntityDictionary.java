@@ -163,7 +163,7 @@ public class EntityDictionary {
 
     protected EntityBinding getEntityBinding(Class<?> entityClass) {
         if (isMappedInterface(entityClass)) {
-            return EntityBinding.EMPTY_BINDING;
+            return EMPTY_BINDING;
         }
         return entityBindings.getOrDefault(lookupEntityClass(entityClass), EMPTY_BINDING);
     }
