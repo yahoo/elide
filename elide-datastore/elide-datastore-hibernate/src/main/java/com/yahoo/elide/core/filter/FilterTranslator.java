@@ -53,6 +53,10 @@ public class FilterTranslator implements FilterOperation<String> {
     private static final String PARAM_JOIN = ", ";
     private static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
             String.format("lower(%s)", p.getPlaceholder());
+
+    private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
+    private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+
     /**
      * Converts a JPQL column alias and list of arguments into a JPQL filter predicate fragment.
      */
@@ -60,9 +64,6 @@ public class FilterTranslator implements FilterOperation<String> {
     public interface JPQLPredicateGenerator {
         String generate(String columnAlias, List<FilterParameter> parameters);
     }
-
-    private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
     static {
         predicateOverrides = new HashMap<>();

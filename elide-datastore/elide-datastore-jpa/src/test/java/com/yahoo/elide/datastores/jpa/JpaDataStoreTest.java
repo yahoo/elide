@@ -45,10 +45,10 @@ public class JpaDataStoreTest {
         @Entity
         class Test {
             @Id
-            long id;
+            private long id;
 
             @JPQLFilterFragment(operator = Operator.IN, generator = TestGenerator.class)
-            String name;
+            private String name;
         }
 
         EntityType mockType = mock(EntityType.class);
