@@ -13,21 +13,21 @@ public enum DimensionSize {
     /**
      * Size for a small dimension table.
      * <p>
-     * TODO: row range
+     * TODO: define size range
      */
     SMALL,
 
     /**
      * Size for a medium sized dimension table.
      * <p>
-     * TODO: row range
+     * TODO: define size range
      */
     MEDIUM,
 
     /**
      * Size for a large dimension table.
      * <p>
-     * TODO: row range
+     * TODO: define size range
      */
     LARGE
     ;
