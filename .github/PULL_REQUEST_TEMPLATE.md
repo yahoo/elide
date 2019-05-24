@@ -14,3 +14,7 @@ Resolves #<issue number> (if appropriate)
 <!--- see how your change affects other areas of the code, etc. -->
 
 ## Screenshots (if appropriate):
+
+
+## License
+I confirm that this contribution is made under an Apache 2.0 license and that I have the authority necessary to make this contribution on behalf of its copyright owner.
