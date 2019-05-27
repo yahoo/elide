@@ -14,21 +14,22 @@ import java.lang.annotation.Target;
 /**
  * Indicates whether a dimension has small, medium, or large cardinality.
  * <p>
- * See {@link DimensionSize}.
+ * See {@link DimensionSize}. By default, the size is set to {@link DimensionSize#LARGE}.
  * <p>
  * Example: {@literal @}Cardinality(size = {@link DimensionSize#MEDIUM})
  */
 @Documented
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cardinality {
 
     /**
      * Returns the size category of a dimension.
      * <p>
-     * The size category must be from one of the values of type {@link DimensionSize}.
+     * The size category must be from one of the values of type {@link DimensionSize}. {@link DimensionSize#LARGE} will
+     * be the default if size is not specified.
      *
      * @return dimension size
      */
-    DimensionSize size();
+    DimensionSize size() default DimensionSize.LARGE;
 }
