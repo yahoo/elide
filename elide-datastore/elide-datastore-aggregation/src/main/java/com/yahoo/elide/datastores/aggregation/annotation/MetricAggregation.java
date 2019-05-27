@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -35,12 +35,12 @@ public @interface MetricAggregation {
      *
      * @return default aggregation
      */
-    Class<?> defaultAggregation();
+    Class<? extends Aggregation> defaultAggregation();
 
     /**
      * The complete list of supported aggregations.
      *
      * @return a comprehensive list of provided aggregations
      */
-    Class<?>[] aggregations();
+    Class<? extends Aggregation>[] aggregations();
 }
