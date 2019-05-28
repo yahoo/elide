@@ -28,9 +28,10 @@ import java.util.Objects;
  * {@link SplitFilterExpressionVisitor} splits the {@link FilterExpression} into a {@code WHERE} expression and a
  * {@code Having} expression.
  * <p>
+ * {@link SplitFilterExpressionVisitor} is leveraged by the AggregationStore to construct the JPQL query.
  * {@link FilterExpression} for AggregationDataStore must be split into those that apply to metric aggregations
  * ({@code HAVING} clauses) and those that apply to dimensions ({@code WHERE} clauses), although only a single
- * {@link FilterExpression} is passed to the datastore in each query. The split should group {@code HAVING} clauses and
+ * {@link FilterExpression} is passed to the datastore in each query. The split groups {@code HAVING} clauses and
  * {@code WHERE} clauses separately. For example:
  * <pre>
  * +-------------------+-----------------------------+------------------------+
@@ -55,6 +56,7 @@ import java.util.Objects;
  * FilterExpression havingClauseFilter = filterPair.getRight();
  * }
  * </pre>
+ * {@link SplitFilterExpressionVisitor} is thread-safe and can be accessed by multiple threads at the same time.
  */
 @Slf4j
 public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Pair<FilterExpression, FilterExpression>> {
@@ -64,6 +66,13 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Pai
     @Getter(value = AccessLevel.PRIVATE)
     private final FilterExpressionNormalizationVisitor normalizationVisitor;
 
+    /**
+     * Constructor.
+     *
+     * @param entityDictionary  Object that offers annotation information about an entity field
+     * @param normalizationVisitor  A helper {@link FilterExpressionVisitor} that is leveraged to transform
+     * expressions like {@code NOT (A AND B)} into {@code NOT A OR NOT B}
+     */
     public SplitFilterExpressionVisitor(
             final EntityDictionary entityDictionary,
             final FilterExpressionNormalizationVisitor normalizationVisitor
