@@ -65,6 +65,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
+    @Getter private final Map<String, Map<String, Object>> requestedSubgraph;
     @Getter private final Pagination pagination;
     @Getter private final Sorting sorting;
     @Getter private final PermissionExecutor permissionExecutor;
