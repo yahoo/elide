@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -54,12 +55,27 @@ public interface BridgeableTransaction {
      * @param scope  Request scope
      * @return Loaded object from bridgeable store.
      */
-    Object bridgeableLoadObject(MultiplexTransaction muxTx,
+    default Object bridgeableLoadObject(MultiplexTransaction muxTx,
                                 Object parent,
                                 String relationName,
                                 Serializable lookupId,
                                 Optional<FilterExpression> filterExpression,
-                                RequestScope scope);
+                                RequestScope scope) {
+        EntityDictionary entityDictionary = scope.getDictionary();
+
+        if (lookupId == null) {
+            // according to contract, lookupId can be null
+            // in this case, we compute the lookupId
+            Object parentInstance = muxTx.loadObject(
+                    entityDictionary.getEntityClass(parent.getClass().getName()),
+                    entityDictionary.getId(parent),
+                    filterExpression, scope
+            );
+            lookupId = entityDictionary.getId(entityDictionary.getField(parentInstance, relationName));
+        }
+
+        return muxTx.loadObject(scope.getDictionary().getEntityClass(relationName), lookupId, filterExpression, scope);
+    }
 
     /**
      * Load a collection of objects from a bridgeable store.
@@ -73,11 +89,18 @@ public interface BridgeableTransaction {
      * @param scope  Request scope
      * @return Loaded iterable of objects from bridgeable store.
      */
-    Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx,
+    default Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx,
                                  Object parent,
                                  String relationName,
                                  Optional<FilterExpression> filterExpression,
                                  Optional<Sorting> sorting,
                                  Optional<Pagination> pagination,
-                                 RequestScope scope);
+                                 RequestScope scope) {
+        return muxTx.loadObjects(
+                scope.getDictionary().getEntityClass(relationName),
+                filterExpression, sorting,
+                pagination,
+                scope
+        );
+    }
 }

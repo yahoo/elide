@@ -25,6 +25,8 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
+import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
+import com.yahoo.elide.datastores.multiplex.MultiplexTransaction;
 import com.yahoo.elide.security.User;
 
 import org.hibernate.FlushMode;
@@ -45,9 +47,11 @@ import javax.persistence.PersistenceException;
 
 /**
  * Hibernate Transaction implementation.
+ * <p>
+ * {@link HibernateTransaction} supports cross-datastore transactions.
  */
 @Slf4j
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction implements DataStoreTransaction, BridgeableTransaction {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;
@@ -240,6 +244,31 @@ public class HibernateTransaction implements DataStoreTransaction {
             }
         }
         return val;
+    }
+
+    @Override
+    public Object bridgeableLoadObject(
+            final MultiplexTransaction muxTx,
+            final Object parent,
+            final String relationName,
+            final Serializable lookupId,
+            final Optional<FilterExpression> filterExpression,
+            final RequestScope scope
+    ) {
+        return null;
+    }
+
+    @Override
+    public Iterable<Object> bridgeableLoadObjects(
+            final MultiplexTransaction muxTx,
+            final Object parent,
+            final String relationName,
+            final Optional<FilterExpression> filterExpression,
+            final Optional<Sorting> sorting,
+            final Optional<Pagination> pagination,
+            final RequestScope scope
+    ) {
+        return null;
     }
 
     /**

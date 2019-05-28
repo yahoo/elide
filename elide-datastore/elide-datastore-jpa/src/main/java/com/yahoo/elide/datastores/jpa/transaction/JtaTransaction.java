@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +21,7 @@ import javax.transaction.UserTransaction;
  * JTA transaction implementation.
  */
 @Slf4j
-public class JtaTransaction extends AbstractJpaTransaction {
+public class JtaTransaction extends AbstractJpaTransaction implements BridgeableTransaction {
     private final UserTransaction transaction;
 
     public JtaTransaction(EntityManager entityManager) {

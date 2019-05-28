@@ -25,6 +25,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper;
+import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
 import com.yahoo.elide.security.User;
 
 import org.hibernate.FlushMode;
@@ -47,7 +48,7 @@ import java.util.Optional;
  * Hibernate Transaction implementation.
  */
 @Slf4j
-public class HibernateTransaction implements DataStoreTransaction {
+public class HibernateTransaction implements DataStoreTransaction, BridgeableTransaction {
 
     private final Session session;
     private final SessionWrapper sessionWrapper;

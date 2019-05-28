@@ -27,6 +27,8 @@ import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import com.yahoo.elide.security.User;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -50,6 +52,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private static final Predicate<Collection<?>> IS_PERSISTENT_COLLECTION =
             new PersistentCollectionChecker();
 
+    @Getter(value = AccessLevel.PROTECTED)
     protected final EntityManager em;
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
@@ -57,6 +60,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     protected AbstractJpaTransaction(EntityManager em) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
+
     }
 
     @Override

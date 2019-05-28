@@ -991,6 +991,14 @@ public class EntityDictionary {
         }
     }
 
+    public AccessibleObject getField(Object value, String fieldName) {
+        if (value == null) {
+            return null;
+        }
+
+        return getEntityBinding(value.getClass()).fieldsToValues.get(fieldName);
+    }
+
     /**
      * Returns type of id field.
      *
