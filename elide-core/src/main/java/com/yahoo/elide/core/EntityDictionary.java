@@ -1021,6 +1021,20 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns all annotations applied to an entity field.
+     *
+     * @param entityName  The entity name
+     * @param field  The entity field name
+     *
+     * @return a Collection of Annotations
+     *
+     * @throws NoSuchFieldException if the {@code field} is not defined in the entity
+     */
+    public Collection<Annotation> getFieldAnnotations(String entityName, String field) throws NoSuchFieldException {
+        return Arrays.asList(getEntityClass(entityName).getDeclaredField(field).getDeclaredAnnotations());
+    }
+
+    /**
      * Follow for this class or super-class for Entity annotation.
      *
      * @param objClass provided class
