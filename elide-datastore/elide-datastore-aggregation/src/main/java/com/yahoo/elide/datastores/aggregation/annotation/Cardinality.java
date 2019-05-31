@@ -14,9 +14,8 @@ import java.lang.annotation.Target;
 /**
  * Indicates whether a dimension has small, medium, or large cardinality.
  * <p>
- * See {@link DimensionSize}. By default, the size is set to {@link DimensionSize#LARGE}.
- * <p>
- * Example: {@literal @}Cardinality(size = {@link DimensionSize#MEDIUM})
+ * Example: {@literal @}Cardinality(size = {@link DimensionSize#MEDIUM}). If {@code size} is not specified,
+ * {@link DimensionSize#LARGE} is used by default. See {@link DimensionSize}.
  */
 @Documented
 @Target({ElementType.TYPE, ElementType.FIELD})
