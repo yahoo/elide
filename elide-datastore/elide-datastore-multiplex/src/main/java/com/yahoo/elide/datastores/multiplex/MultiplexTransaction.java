@@ -15,9 +15,11 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -55,41 +57,22 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected abstract DataStoreTransaction beginTransaction(DataStore dataStore);
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        User user = new User(opaqueUser);
-        for (DataStore dataStore : multiplexManager.dataStores) {
-            DataStoreTransaction transaction = transactions.get(dataStore);
-            user = transaction.accessUser(user.getOpaqueUser());
-        }
-        return user;
-    }
-
-    @Override
     public void createObject(Object entity, RequestScope scope) {
         getTransaction(entity).createObject(entity, scope);
     }
 
-
     @Override
-    public Object loadObject(Class<?> entityClass,
+    public Object loadObject(EntityProjection projection,
                              Serializable id,
-                             Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
-        return getTransaction(entityClass).loadObject(entityClass, id, filterExpression, scope);
+        return getTransaction(projection.getType()).loadObject(projection, id, scope);
     }
 
     @Override
     public Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            EntityProjection projection,
             RequestScope scope) {
-        return getTransaction(entityClass).loadObjects(entityClass,
-                filterExpression,
-                sorting,
-                pagination,
-                scope);
+        return getTransaction(projection.getType()).loadObjects(projection, scope);
     }
 
     @Override
@@ -153,36 +136,44 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     @Override
     public Object getRelation(DataStoreTransaction relationTx,
                               Object entity,
-                              String relationName,
-                              Optional<FilterExpression> filter,
-                              Optional<Sorting> sorting,
-                              Optional<Pagination> pagination,
+                              Relationship relation,
                               RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName);
+
+        FilterExpression filter = relation.getProjection().getFilterExpression();
+        Sorting sorting = relation.getProjection().getSorting();
+        Pagination pagination = relation.getProjection().getPagination();
+
+        relationTx = getRelationTransaction(entity, relation.getName());
         DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
 
         EntityDictionary dictionary = scope.getDictionary();
-        Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+        Class<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
         String idFieldName = dictionary.getIdFieldName(relationClass);
 
         // If different transactions, check if bridgeable and try to bridge
         if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
             BridgeableTransaction bridgeableTx = (BridgeableTransaction) relationTx;
-            RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relationName);
-            Serializable id = filter.map(fe -> extractId(fe, idFieldName, relationClass)).orElse(null);
+            RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relation.getName());
+            Serializable id = (filter != null) ? extractId(filter, idFieldName, relationClass) : null;
 
             if (relationType.isToMany()) {
                 return id == null ? bridgeableTx.bridgeableLoadObjects(
-                                this, entity, relationName, filter, sorting, pagination, scope)
-                        : bridgeableTx.bridgeableLoadObject(this, entity, relationName, id, filter, scope);
+                                this, entity, relation.getName(),
+                        Optional.ofNullable(filter),
+                        Optional.ofNullable(relation.getProjection().getSorting()),
+                        Optional.ofNullable(relation.getProjection().getPagination()),
+                        scope)
+                        : bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(),
+                        id, Optional.ofNullable(filter), scope);
             }
 
-            return bridgeableTx.bridgeableLoadObject(this, entity, relationName, id, filter, scope);
+            return bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(), id,
+                    Optional.ofNullable(filter), scope);
 
         }
 
         // Otherwise, rely on existing underlying transaction to call correctly into relationTx
-        return entityTransaction.getRelation(relationTx, entity, relationName, filter, sorting, pagination, scope);
+        return entityTransaction.getRelation(relationTx, entity, relation, scope);
     }
 
     @Override
@@ -206,16 +197,15 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getAttribute(Object entity,
-                               String attributeName, RequestScope scope) {
+    public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
-        return transaction.getAttribute(entity, attributeName, scope);
+        return transaction.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
+    public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
-        transaction.setAttribute(entity, attributeName, attributeValue, scope);
+        transaction.setAttribute(entity, attribute, scope);
     }
 
     @Override
@@ -229,8 +219,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return getTransaction(entityClass).supportsPagination(entityClass);
+    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+        return getTransaction(entityClass).supportsPagination(entityClass, expression);
     }
 
     private Serializable extractId(FilterExpression filterExpression,

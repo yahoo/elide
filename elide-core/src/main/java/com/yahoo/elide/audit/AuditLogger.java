@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.core.RequestScope;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +25,7 @@ public abstract class AuditLogger {
         messages.get().add(message);
     }
 
-    public abstract void commit(RequestScope requestScope) throws IOException;
+    public abstract void commit() throws IOException;
 
     public void clear() {
         List<LogMessage> remainingMessages = messages.get();

@@ -9,6 +9,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -37,8 +38,11 @@ public class ResourceIdentifier {
 
     public PersistentResource toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
-        Class<?> cls = requestScope.getDictionary().getEntityClass(type);
-        return PersistentResource.loadRecord(cls, id, requestScope);
+
+        Class<?> cls = requestScope.getDictionary().getEntityClass(type, requestScope.getApiVersion());
+        return PersistentResource.loadRecord(EntityProjection.builder()
+                .type(cls)
+                .build(), id, requestScope);
     }
 
     public Resource castToResource() {

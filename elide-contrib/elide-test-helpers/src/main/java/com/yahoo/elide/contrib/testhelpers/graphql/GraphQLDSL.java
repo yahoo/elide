@@ -416,6 +416,10 @@ public final class GraphQLDSL {
         return new Field(null, name, arguments, relayWrap(Arrays.asList(selectionSet)));
     }
 
+    public static Selection field(String alias, String name, Arguments arguments, SelectionSet... selectionSet) {
+        return new Field(alias, name, arguments, relayWrap(Arrays.asList(selectionSet)));
+    }
+
     /**
      * Creates an attribute(scalar field) selection.
      *

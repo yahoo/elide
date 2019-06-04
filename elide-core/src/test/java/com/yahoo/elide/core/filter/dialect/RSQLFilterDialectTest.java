@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -53,7 +54,7 @@ public class RSQLFilterDialectTest {
                 "title==*foo*;title!=bar*;(genre=in=(sci-fi,action),publishDate>123)"
         );
 
-        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(1, expressionMap.size());
         assertEquals(
@@ -72,7 +73,7 @@ public class RSQLFilterDialectTest {
                 "title==*foo*;authors.name==Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals(
                 "(book.title INFIX_CASE_INSENSITIVE [foo] AND book.authors.name IN_INSENSITIVE [Hemingway])",
@@ -89,7 +90,7 @@ public class RSQLFilterDialectTest {
                 "title==Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title IN_INSENSITIVE [Hemingway]", expression.toString());
     }
@@ -103,7 +104,7 @@ public class RSQLFilterDialectTest {
                 "title!=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("NOT (book.title IN_INSENSITIVE [Hemingway])", expression.toString());
     }
@@ -117,7 +118,7 @@ public class RSQLFilterDialectTest {
                 "title=in=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title IN_INSENSITIVE [Hemingway]", expression.toString());
     }
@@ -131,7 +132,7 @@ public class RSQLFilterDialectTest {
                 "title=out=Hemingway"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("NOT (book.title IN_INSENSITIVE [Hemingway])", expression.toString());
     }
@@ -147,7 +148,7 @@ public class RSQLFilterDialectTest {
 
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals(
                 "((((book.publishDate GT [5] OR book.publishDate GE [5]) "
@@ -167,7 +168,7 @@ public class RSQLFilterDialectTest {
                 "title==*Hemingway*,title==*Hemingway,title==Hemingway*"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals(
                 "((book.title INFIX_CASE_INSENSITIVE [Hemingway] "
@@ -186,7 +187,7 @@ public class RSQLFilterDialectTest {
                 "title==foo;(title==bar;title==baz)"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals(
                 "(book.title IN_INSENSITIVE [foo] AND (book.title IN_INSENSITIVE [bar] "
@@ -204,7 +205,7 @@ public class RSQLFilterDialectTest {
                 "title=isnull=true"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title ISNULL []", expression.toString());
     }
@@ -218,7 +219,7 @@ public class RSQLFilterDialectTest {
                 "title=isnull=1"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title ISNULL []", expression.toString());
     }
@@ -232,7 +233,7 @@ public class RSQLFilterDialectTest {
                 "title=isnull=false"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title NOTNULL []", expression.toString());
     }
@@ -246,7 +247,7 @@ public class RSQLFilterDialectTest {
                 "title=isnull=0"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title NOTNULL []", expression.toString());
     }
@@ -276,7 +277,7 @@ public class RSQLFilterDialectTest {
                 "id==1"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/job", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/job", queryParams, NO_VERSION);
 
         assertEquals("job.jobId IN [1]", expression.toString());
     }
@@ -290,7 +291,7 @@ public class RSQLFilterDialectTest {
                 "id==*identifier*"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/stringForId", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/stringForId", queryParams, NO_VERSION);
 
         assertEquals("stringId.surrogateKey INFIX_CASE_INSENSITIVE [identifier]", expression.toString());
     }
@@ -304,7 +305,7 @@ public class RSQLFilterDialectTest {
                 "id==*1*"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/primitiveTypeId", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/primitiveTypeId", queryParams, NO_VERSION);
 
         assertEquals(expression.toString(),
                 "primitiveId.primitiveId INFIX_CASE_INSENSITIVE [1]"
@@ -322,7 +323,7 @@ public class RSQLFilterDialectTest {
                 "title=isempty=true"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title ISEMPTY []", expression.toString());
     }
@@ -336,7 +337,7 @@ public class RSQLFilterDialectTest {
                 "authors=isempty=1"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.authors ISEMPTY []", expression.toString());
     }
@@ -350,7 +351,7 @@ public class RSQLFilterDialectTest {
                 "authors=isempty=false"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.authors NOTEMPTY []", expression.toString());
     }
@@ -364,7 +365,7 @@ public class RSQLFilterDialectTest {
                 "title=isempty=0"
         );
 
-        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams);
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
 
         assertEquals("book.title NOTEMPTY []", expression.toString());
     }
@@ -379,7 +380,7 @@ public class RSQLFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
     }
 
     @Test

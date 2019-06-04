@@ -8,7 +8,7 @@ package com.yahoo.elide.security.checks.prefab;
 
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -27,7 +27,7 @@ public class Collections {
      *
      * @param <T> type collection to be validated
      */
-    public static class AppendOnly<T> extends CommitCheck<T> {
+    public static class AppendOnly<T> extends OperationCheck<T> {
 
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
@@ -47,7 +47,7 @@ public class Collections {
      *
      * @param <T> type parameter
      */
-    public static class RemoveOnly<T> extends CommitCheck<T> {
+    public static class RemoveOnly<T> extends OperationCheck<T> {
 
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {

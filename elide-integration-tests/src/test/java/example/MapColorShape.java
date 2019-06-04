@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,7 +22,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "color_shape")
 @Include(rootLevel = true)
-@SharePermission
 public class MapColorShape extends BaseId {
     private Map<Color, Shape> colorShapeMap = new LinkedHashMap<>();
 

@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.List;
@@ -24,7 +23,6 @@ import javax.persistence.ManyToMany;
 @CreatePermission(expression = "allow all")
 @UpdatePermission(expression = "allow all")
 @DeletePermission(expression = "allow all")
-@SharePermission
 public class AuditEntityInverse extends BaseId {
     private List<AuditEntity> entities;
 

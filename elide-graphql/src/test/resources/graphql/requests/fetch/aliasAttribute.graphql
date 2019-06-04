@@ -1,0 +1,9 @@
+{
+  book(ids: ["1"]) {
+    edges {
+      node {
+        id_alias: id
+      }
+    }
+  }
+}

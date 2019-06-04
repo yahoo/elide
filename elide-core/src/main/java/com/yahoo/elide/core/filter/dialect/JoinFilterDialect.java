@@ -24,10 +24,12 @@ public interface JoinFilterDialect {
      *
      * @param path the URL path
      * @param filterParams the subset of query parameters that start with 'filter'
+     * @param apiVersion the version of the API requested.
      * @return The root of an expression abstract syntax tree parsed from both the path and the query parameters.
      * @throws ParseException if the expression cannot be parsed.
      */
     public FilterExpression parseGlobalExpression(
             String path,
-            MultivaluedMap<String, String> filterParams) throws ParseException;
+            MultivaluedMap<String, String> filterParams,
+            String apiVersion) throws ParseException;
 }

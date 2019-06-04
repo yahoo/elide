@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.datastores.hibernate3.HibernateStore;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -24,9 +23,6 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                DefaultOpaqueUserFunction noUserFn = v -> null;
-                bind(noUserFn).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
-
                 SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
                 Elide elide = new Elide(new ElideSettingsBuilder(new HibernateStore.Builder(sessionFactory).build())
                         .withAuditLogger(new Slf4jLogger())

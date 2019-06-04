@@ -7,20 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.RequestScope;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -50,7 +36,6 @@ import javax.persistence.Table;
  * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
-@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
@@ -180,70 +165,5 @@ public class Book {
 
     public void setPublicationFormats(Set<PublicationFormat> publicationFormats) {
         this.publicationFormats = publicationFormats;
-    }
-
-    @OnUpdatePreSecurity("title")
-    public void onUpdateTitle(RequestScope requestScope) {
-        // title attribute updated
-    }
-
-    @OnCreatePreSecurity
-    public void onCreateBook(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnDeletePreSecurity
-    public void onDeleteBook(RequestScope requestScope) {
-        // book entity deleted
-    }
-
-    @OnUpdatePreCommit("title")
-    public void preUpdateTitle(RequestScope requestScope) {
-        // title attribute updated
-    }
-
-    @OnCreatePreCommit
-    public void preCreateBook(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnDeletePreCommit
-    public void preDeleteBook(RequestScope requestScope) {
-        // book entity deleted
-    }
-
-    @OnUpdatePostCommit("title")
-    public void postUpdateTitle(RequestScope requestScope) {
-        // title attribute updated
-    }
-
-    @OnCreatePostCommit
-    public void postCreateBook(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnDeletePostCommit
-    public void postDeleteBook(RequestScope requestScope) {
-        // book entity deleted
-    }
-
-    @OnReadPreSecurity
-    public void preRead(RequestScope requestScope) {
-        // book being read pre security
-    }
-
-    @OnReadPreCommit("title")
-    public void preCommitRead(RequestScope requestScope) {
-        // book being read pre commit
-    }
-
-    @OnReadPostCommit
-    public void postRead(RequestScope requestScope) {
-        // book being read post commit
-    }
-
-    @OnUpdatePreCommit
-    public void alwaysOnUpdate() {
-        // should be called on _any_ update
     }
 }

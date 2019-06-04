@@ -8,23 +8,21 @@ package com.yahoo.elide.jsonapi.document.processors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
+import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.TestUser;
 
 import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;
 import example.Parent;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
@@ -37,7 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-
 
 public class IncludedProcessorTest {
     private static final String INCLUDE = "include";
@@ -55,29 +52,22 @@ public class IncludedProcessorTest {
 
     private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
 
+    private DataStoreTransaction mockTransaction = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+    private TestRequestScope testScope;
+    private EntityDictionary dictionary;
+
     @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
 
-        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
 
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(dictionary)
-                .build();
+        reset(mockTransaction);
 
-        RequestScope goodUserScope = new RequestScope(null,
-                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), null,
-                elideSettings);
-
-        RequestScope badUserScope = new RequestScope(null,
-                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(-1), null,
-                elideSettings);
+        testScope = new TestRequestScope(mockTransaction, new TestUser("1"), dictionary);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -102,16 +92,17 @@ public class IncludedProcessorTest {
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
-        //Create Persistent Resources
-        parentRecord1 = new PersistentResource<>(parent1, null, goodUserScope.getUUIDFor(parent1), goodUserScope);
-        parentRecord2 = new PersistentResource<>(parent2, null, goodUserScope.getUUIDFor(parent2), goodUserScope);
-        parentRecord3 = new PersistentResource<>(parent3, null, goodUserScope.getUUIDFor(parent3), goodUserScope);
-        childRecord1  = new PersistentResource<>(child1, null, goodUserScope.getUUIDFor(child1), goodUserScope);
-        childRecord2  = new PersistentResource<>(child2, null, goodUserScope.getUUIDFor(child2), goodUserScope);
-        childRecord3  = new PersistentResource<>(child3, null, goodUserScope.getUUIDFor(child3), goodUserScope);
-        childRecord4  = new PersistentResource<>(child4, null, goodUserScope.getUUIDFor(child4), goodUserScope);
+        //Create Persistent Resource
+        parentRecord1 = new PersistentResource<>(parent1, null, String.valueOf(parent1.getId()), testScope);
+        parentRecord2 = new PersistentResource<>(parent2, null, String.valueOf(parent2.getId()), testScope);
+        parentRecord3 = new PersistentResource<>(parent3, null, String.valueOf(parent3.getId()), testScope);
+        childRecord1  = new PersistentResource<>(child1, null, String.valueOf(child1.getId()), testScope);
+        childRecord2  = new PersistentResource<>(child2, null, String.valueOf(child2.getId()), testScope);
+        childRecord3  = new PersistentResource<>(child3, null, String.valueOf(child3.getId()), testScope);
+        childRecord4  = new PersistentResource<>(child4, null, String.valueOf(child4.getId()), testScope);
 
-        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, goodUserScope.getUUIDFor(funWithPermissions), badUserScope);
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null,
+                String.valueOf(funWithPermissions.getId()), testScope);
     }
 
     @Test
@@ -120,6 +111,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded = Collections.singletonList(childRecord1.toResource());
@@ -139,6 +131,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parents, Optional.of(queryParams));
 
         List<Resource> expectedIncluded = Arrays.asList(childRecord1.toResource(), childRecord2.toResource());
@@ -150,10 +143,12 @@ public class IncludedProcessorTest {
 
     @Test
     public void testExecuteSingleNestedRelation() throws Exception {
+
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded =
@@ -170,6 +165,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Arrays.asList("children", "spouses"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         List<Resource> expectedIncluded =
@@ -186,6 +182,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("children.friends"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parentRecord3, Optional.of(queryParams));
 
         Set<Resource> expectedIncluded =
@@ -207,6 +204,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put(INCLUDE, Collections.singletonList("relation1"));
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, funWithPermissionsRecord, Optional.of(queryParams));
 
         assertNull(jsonApiDocument.getIncluded(),
@@ -229,6 +227,7 @@ public class IncludedProcessorTest {
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("unused", Collections.emptyList());
+        testScope.setQueryParams(queryParams);
         includedProcessor.execute(jsonApiDocument, parentRecord1, Optional.of(queryParams));
 
         assertNull(jsonApiDocument.getIncluded(),
