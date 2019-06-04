@@ -17,6 +17,7 @@ import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.IterableUtils;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -33,10 +33,11 @@ import java.util.Set;
  */
 public class HashMapDataStoreTest {
     private InMemoryDataStore inMemoryDataStore;
+    private EntityDictionary entityDictionary;
 
     @BeforeEach
     public void setup() {
-        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+        entityDictionary = new EntityDictionary(new HashMap<>());
         inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
         inMemoryDataStore.populateEntityDictionary(entityDictionary);
     }
@@ -56,13 +57,19 @@ public class HashMapDataStoreTest {
         object.id = "0";
         object.name = "Test";
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
             t.createObject(object, null);
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
             t.commit(null);
         }
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) IterableUtils.first(beans);
@@ -97,8 +104,9 @@ public class HashMapDataStoreTest {
         // and a meaningful ID is assigned
         Set<String> names = new HashSet<>();
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            for (Object objBean : t.loadObjects(FirstBean.class,
-                                                Optional.empty(), Optional.empty(), Optional.empty(), null)) {
+            for (Object objBean : t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null)) {
                 FirstBean bean = (FirstBean) objBean;
                 names.add(bean.name);
                 assertFalse(bean.id == null);

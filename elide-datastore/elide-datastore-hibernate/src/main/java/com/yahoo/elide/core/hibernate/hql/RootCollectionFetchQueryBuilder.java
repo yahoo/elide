@@ -45,7 +45,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             Collection<FilterPredicate> predicates = filterExpression.get().accept(extractor);
 
             //Build the WHERE clause
-            String filterClause = new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
+            String filterClause = WHERE + new FilterTranslator().apply(filterExpression.get(), USE_ALIAS);
 
             //Build the JOIN clause
             String joinClause =  getJoinClauseFromFilters(filterExpression.get())

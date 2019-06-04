@@ -24,9 +24,12 @@ import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.models.generics.Employee;
 import com.yahoo.elide.models.generics.Manager;
+import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
@@ -61,11 +64,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 public class EntityDictionaryTest extends EntityDictionary {
@@ -106,22 +110,50 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals("Prefab.Common.UpdateOnCreate", getCheckIdentifier(UpdateOnCreate.class));
     }
 
-    @SecurityCheck("User is Admin")
-    public class Foo extends UserCheck {
-
-        @Override
-        public boolean ok(com.yahoo.elide.security.User user) {
-            return false;
-        }
-    }
-
     @Test
     public void testCheckScan() {
+
+        @SecurityCheck("User is Admin")
+        class Bar extends UserCheck {
+
+            @Override
+            public boolean ok(com.yahoo.elide.security.User user) {
+                return false;
+            }
+        }
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
         testDictionary.scanForSecurityChecks();
 
-        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Foo.class));
+        assertEquals("User is Admin", testDictionary.getCheckIdentifier(Bar.class));
+    }
+
+
+    @Test
+    public void testCheckInjection() {
+
+        @SecurityCheck("Filter Expression Injection Test")
+        class Foo extends FilterExpressionCheck {
+
+            @Inject
+            Long testLong;
+
+            @Override
+            public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+                assertEquals(testLong, 123L);
+                return null;
+            }
+        }
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
+            @Override
+            public void inject(Object entity) {
+                ((Foo) entity).testLong = 123L;
+            }
+        });
+        testDictionary.scanForSecurityChecks();
+
+        assertEquals("Filter Expression Injection Test", testDictionary.getCheckIdentifier(Foo.class));
     }
 
     @Test
@@ -528,7 +560,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
@@ -565,11 +597,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupEntityClass(SuperclassBinding.class));
@@ -606,15 +637,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
-        bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
-        assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
     @Test
@@ -635,15 +664,14 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertEquals(SubsubclassBinding.class, getEntityBinding(SubsubclassBinding.class).entityClass);
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(SubsubclassBinding.class, lookupIncludeClass(SubsubclassBinding.class));
     }
 
@@ -663,17 +691,16 @@ public class EntityDictionaryTest extends EntityDictionary {
         }
 
         bindEntity(SuperclassBinding.class);
-        bindEntity(SubclassBinding.class);
         bindEntity(SubsubclassBinding.class);
 
-        assertEquals(SubclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
+        assertEquals(SuperclassBinding.class, getEntityBinding(SubclassBinding.class).entityClass);
         assertEquals(SuperclassBinding.class, getEntityBinding(SuperclassBinding.class).entityClass);
         assertThrows(IllegalArgumentException.class, () -> {
             getEntityBinding(SubsubclassBinding.class);
         });
 
         assertEquals(SuperclassBinding.class, lookupIncludeClass(SuperclassBinding.class));
-        assertEquals(SubclassBinding.class, lookupIncludeClass(SubclassBinding.class));
+        assertEquals(SuperclassBinding.class, lookupIncludeClass(SubclassBinding.class));
         assertEquals(null, lookupIncludeClass(SubsubclassBinding.class));
     }
 
@@ -830,5 +857,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertThrows(IllegalArgumentException.class, () -> this.getCheck("UnknownClassName"));
 
         assertThrows(IllegalArgumentException.class, () -> this.getCheck(String.class.getName()));
+    }
+
+    @Test
+    public void testAttributeOrRelationAnnotationExists() {
+        assertTrue(attributeOrRelationAnnotationExists(Job.class, "jobId", Id.class));
+        assertFalse(attributeOrRelationAnnotationExists(Job.class, "title", OneToOne.class));
+    }
+
+    @Test
+    public void testIsValidField() {
+        assertTrue(isValidField(Job.class, "title"));
+        assertFalse(isValidField(Job.class, "foo"));
     }
 }

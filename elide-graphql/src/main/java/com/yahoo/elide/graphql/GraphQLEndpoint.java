@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Function;
@@ -60,7 +59,6 @@ public class GraphQLEndpoint {
     public Response post(
             @Context SecurityContext securityContext,
             String graphQLDocument) {
-
         ElideResponse response = runner.run(graphQLDocument, getUser.apply(securityContext));
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

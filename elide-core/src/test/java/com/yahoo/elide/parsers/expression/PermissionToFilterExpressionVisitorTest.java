@@ -19,6 +19,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.EntityPermissions;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -94,7 +95,7 @@ public class PermissionToFilterExpressionVisitorTest {
         checks.put(LT_FILTER, Permissions.LessThanFilterExpression.class);
         checks.put(GE_FILTER, Permissions.GreaterThanOrEqualFilterExpression.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
         elideSettings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build();

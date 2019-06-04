@@ -80,7 +80,7 @@ public abstract class IntegrationTest {
         }
     }
 
-    private DataStoreTestHarness createHarness() {
+    protected DataStoreTestHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 

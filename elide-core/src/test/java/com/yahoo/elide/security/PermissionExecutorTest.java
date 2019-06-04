@@ -17,11 +17,11 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 import com.yahoo.elide.security.checks.UserCheck;
-
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import example.TestCheckMappings;
 
@@ -456,8 +456,8 @@ public class PermissionExecutorTest {
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 
-    public <T> PersistentResource<T> newResource(Class<T> cls) {
-        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+    public PersistentResource newResource(Class cls) {
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, null, null, null, getElideSettings(dictionary));
         try {

@@ -62,6 +62,7 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected =
                 "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  ";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -81,6 +82,7 @@ public class RootCollectionFetchQueryBuilderTest {
         String expected = "SELECT example_Book FROM example.Book AS example_Book  "
                 + "LEFT JOIN FETCH example_Book.publisher   order by example_Book.title asc";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -145,6 +147,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
@@ -189,10 +192,16 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
+<<<<<<< HEAD
                 "SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher"
                 + "  WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
+=======
+                "SELECT example_Book FROM example.Book AS example_Book "
+                + "WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
+>>>>>>> 91591898... Create AggregationDataStore module (#845)
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

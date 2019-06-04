@@ -15,6 +15,8 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -64,7 +66,7 @@ public class QueryRunner {
     public QueryRunner(Elide elide) {
         this.elide = elide;
 
-        PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
+        PersistentResourceFetcher fetcher = new PersistentResourceFetcher();
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
 
         this.api = new GraphQL(builder.build());
@@ -142,8 +144,6 @@ public class QueryRunner {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             final User user = tx.accessUser(principal);
-            GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, user, elide.getElideSettings());
-            isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             if (!jsonDocument.has(QUERY)) {
                 return ElideResponse.builder()
@@ -151,8 +151,20 @@ public class QueryRunner {
                         .body("A `query` key is required.")
                         .build();
             }
-
             String query = jsonDocument.get(QUERY).asText();
+
+            // get variables from request for constructing entityProjections
+            Map<String, Object> variables = new HashMap<>();
+            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
+                variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
+            }
+
+            GraphQLProjectionInfo projectionInfo =
+                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables).make(query);
+            GraphQLRequestScope requestScope =
+                    new GraphQLRequestScope(tx, user, elide.getElideSettings(), projectionInfo);
+
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
@@ -166,10 +178,7 @@ public class QueryRunner {
                 executionInput.operationName(jsonDocument.get(OPERATION_NAME).asText());
             }
 
-            if (jsonDocument.has(VARIABLES) && !jsonDocument.get(VARIABLES).isNull()) {
-                Map<String, Object> variables = mapper.convertValue(jsonDocument.get(VARIABLES), Map.class);
-                executionInput.variables(variables);
-            }
+            executionInput.variables(variables);
 
             ExecutionResult result = api.execute(executionInput);
 

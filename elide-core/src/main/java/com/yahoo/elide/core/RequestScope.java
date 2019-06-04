@@ -29,6 +29,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
@@ -38,6 +39,7 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -59,7 +61,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
-    @Getter private final EntityDictionary dictionary;
+    @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
@@ -75,8 +77,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final ElideSettings elideSettings;
     @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
-
     @Getter private final MultipleFilterDialect filterDialect;
+
+    //TODO - this ought to be read only and set in the constructor.
+    @Getter @Setter private EntityProjection entityProjection;
+
     private final Map<String, FilterExpression> expressionsByType;
 
     private PublishSubject<CRUDEvent> lifecycleEvents;
@@ -232,7 +237,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
-    private static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+    public static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
@@ -264,6 +269,15 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     }
 
     /**
+     * Get filter expression for a specific collection type.
+     * @param entityClass The class to lookup
+     * @return The filter expression for the given type
+     */
+    public Optional<FilterExpression> getFilterExpressionByType(Class<?> entityClass) {
+        return Optional.ofNullable(expressionsByType.get(dictionary.getJsonAliasFor(entityClass)));
+    }
+
+    /**
      * Get the global/cross-type filter expression.
      * @param loadClass Entity class
      * @return The global filter expression evaluated at the first load
@@ -281,14 +295,14 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
 
     /**
      * Get the filter expression for a particular relationship
-     * @param parent The object which has the relationship
+     * @param parentType The parent type which has the relationship
      * @param relationName The relationship name
      * @return A type specific filter expression for the given relationship
      */
-    public Optional<FilterExpression> getExpressionForRelation(PersistentResource parent, String relationName) {
-        final Class<?> entityClass = dictionary.getParameterizedType(parent.getObject(), relationName);
+    public Optional<FilterExpression> getExpressionForRelation(Class<?> parentType, String relationName) {
+        final Class<?> entityClass = dictionary.getParameterizedType(parentType, relationName);
         if (entityClass == null) {
-            throw new InvalidAttributeException(relationName, parent.getType());
+            throw new InvalidAttributeException(relationName, dictionary.getJsonAliasFor(parentType));
         }
         if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
             throw new InvalidOperationException(
