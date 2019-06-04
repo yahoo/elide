@@ -242,7 +242,6 @@ public class ModelBuilder {
                 .name("_node__" + entityName);
 
         String id = dictionary.getIdFieldName(entityClass);
-
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
         builder.field(newFieldDefinition()
                 .name(id)
@@ -255,9 +254,10 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.debug("Building query attribute {} {} for entity {}",
+            log.debug("Building query attribute {} {} with arguments {} for entity {}",
                     attribute,
                     attributeClass.getName(),
+                    dictionary.getAttributeArguments(attributeClass, attribute).toString(),
                     entityClass.getName());
 
             GraphQLType attributeType =
@@ -269,6 +269,7 @@ public class ModelBuilder {
 
             builder.field(newFieldDefinition()
                     .name(attribute)
+                    .argument(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
                     .dataFetcher(dataFetcher)
                     .type((GraphQLOutputType) attributeType)
             );
@@ -357,9 +358,11 @@ public class ModelBuilder {
         builder.name(entityName + ARGUMENT_INPUT);
 
         String id = dictionary.getIdFieldName(clazz);
-        builder.field(newInputObjectField()
-                .name(id)
-                .type(Scalars.GraphQLID));
+        if (id != null) {
+            builder.field(newInputObjectField()
+                    .name(id)
+                    .type(Scalars.GraphQLID));
+        }
 
         for (String attribute : dictionary.getAttributes(clazz)) {
             Class<?> attributeClass = dictionary.getType(clazz, attribute);

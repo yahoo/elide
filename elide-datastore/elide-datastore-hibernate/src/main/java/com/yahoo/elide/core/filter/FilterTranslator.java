@@ -39,6 +39,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,11 @@ public class FilterTranslator implements FilterOperation<String> {
 
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
     private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = FilterPredicate::getFieldPath;
+
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_WITH_ALIAS =
+            (predicate) -> FilterPredicate.getPathAlias(predicate.getPath()) + "." + predicate.getField();
 
     static {
         predicateOverrides = new HashMap<>();
@@ -193,8 +199,8 @@ public class FilterTranslator implements FilterOperation<String> {
      * @return Returns null if no generator is registered.
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
-                                           Class<?> entityClass,
-                                           String fieldName) {
+                                                             Class<?> entityClass,
+                                                             String fieldName) {
         return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
     }
 
@@ -214,22 +220,17 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     @Override
     public String apply(FilterPredicate filterPredicate) {
-        return apply(filterPredicate, false);
+        return apply(filterPredicate, GENERATE_HQL_COLUMN_NO_ALIAS);
     }
 
     /**
      * Transforms a filter predicate into a JPQL query fragment.
      * @param filterPredicate The predicate to transform.
-     * @param prefixWithAlias Whether or not to append the entity type to the predicate.
-     *                       This is useful for table aliases referenced in JPQL for some kinds of joins.
+     * @param columnGenerator Function which supplies a HQL fragment which represents the column in the predicate.
      * @return The hql query fragment.
      */
-    protected String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
-        String fieldPath = filterPredicate.getFieldPath();
-
-        if (prefixWithAlias) {
-            fieldPath = filterPredicate.getAlias() + "." + filterPredicate.getField();
-        }
+    protected String apply(FilterPredicate filterPredicate, Function<FilterPredicate, String> columnGenerator) {
+        String fieldPath = columnGenerator.apply(filterPredicate);
 
         Path.PathElement last = filterPredicate.getPath().lastElement().get();
 
@@ -264,24 +265,46 @@ public class FilterTranslator implements FilterOperation<String> {
                 .collect(Collectors.joining(COMMA)));
     }
 
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param prefixWithAlias If true, use the default alias provider to append the predicates with an alias.
+     *                        Otherwise, don't append aliases.
+     * @return A JPQL filter fragment.
+     */
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        JPQLQueryVisitor visitor = new JPQLQueryVisitor(prefixWithAlias);
-        return "WHERE " + filterExpression.accept(visitor);
+        Function<FilterPredicate, String> columnGenerator = GENERATE_HQL_COLUMN_NO_ALIAS;
+        if (prefixWithAlias) {
+            columnGenerator = GENERATE_HQL_COLUMN_WITH_ALIAS;
+        }
+
+        return apply(filterExpression, columnGenerator);
+    }
+
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param columnGenerator Generates a HQL fragment that represents a column in the predicate
+     * @return A JPQL filter fragment.
+     */
+    public String apply(FilterExpression filterExpression, Function<FilterPredicate, String> columnGenerator) {
+        JPQLQueryVisitor visitor = new JPQLQueryVisitor(columnGenerator);
+        return filterExpression.accept(visitor);
     }
 
     /**
      * Filter expression visitor which builds an JPQL query.
      */
     public class JPQLQueryVisitor implements FilterExpressionVisitor<String> {
-        private boolean prefixWithAlias;
+        private Function<FilterPredicate, String> columnGenerator;
 
-        public JPQLQueryVisitor(boolean prefixWithAlias) {
-            this.prefixWithAlias = prefixWithAlias;
+        public JPQLQueryVisitor(Function<FilterPredicate, String> columnGenerator) {
+            this.columnGenerator = columnGenerator;
         }
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            return apply(filterPredicate, prefixWithAlias);
+            return apply(filterPredicate, columnGenerator);
         }
 
         @Override

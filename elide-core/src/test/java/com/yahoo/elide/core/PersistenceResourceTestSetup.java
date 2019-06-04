@@ -29,7 +29,6 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Publisher;
 import example.Right;
-import example.TestCheckMappings;
 import example.UpdateAndCreate;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
@@ -44,7 +43,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected final ElideSettings elideSettings;
 
     protected static EntityDictionary initDictionary() {
-        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
+
         dictionary.bindEntity(UpdateAndCreate.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);

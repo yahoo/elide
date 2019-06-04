@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Generates a simple wrapper around the sort fields from the JSON-API GET Query.
  */
 @ToString
+@EqualsAndHashCode
 public class Sorting {
 
     /**

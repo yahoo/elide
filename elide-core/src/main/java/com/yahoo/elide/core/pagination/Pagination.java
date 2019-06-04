@@ -86,6 +86,21 @@ public class Pagination {
     }
 
     /**
+     * Set limit.
+     *
+     * @param perPage page size.
+     */
+    public void setLimit(Integer perPage) {
+        this.limit = perPage;
+        pageData.put(PaginationKey.limit, perPage);
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+        pageData.put(PaginationKey.offset, offset);
+    }
+
+    /**
      * TODO - Refactor Pagination.
      * IMPORTANT - This method should only be used for testing until Pagination is refactored.  The
      * member field values of this class change depending on evaluation later from the Pagination annotation.
@@ -99,8 +114,8 @@ public class Pagination {
     public static Pagination fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
 
         ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
-                    .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
-                    .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
+                .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
+                .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
 
         if (generatePageTotals) {
             pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);
