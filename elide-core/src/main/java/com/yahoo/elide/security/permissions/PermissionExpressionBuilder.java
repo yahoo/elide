@@ -13,6 +13,7 @@ import static com.yahoo.elide.security.permissions.expressions.Expression.Result
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
@@ -20,7 +21,6 @@ import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PersistentResource;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.security.permissions.expressions.CheckExpression;

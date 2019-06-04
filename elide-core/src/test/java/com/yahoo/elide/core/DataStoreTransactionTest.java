@@ -14,20 +14,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Optional;
 
 public class DataStoreTransactionTest implements DataStoreTransaction {
     private static final String NAME = "name";
+    private static final Attribute NAME_ATTRIBUTE = Attribute.builder().name(NAME).type(String.class).build();
     private static final String ENTITY = "entity";
     private RequestScope scope;
 
@@ -40,12 +40,6 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
         when(scope.getDictionary()).thenReturn(dictionary);
         when(dictionary.getIdType(String.class)).thenReturn((Class) Long.class);
         when(dictionary.getValue(ENTITY, NAME, scope)).thenReturn(3L);
-    }
-
-    @Test
-    public void testAccessUser() {
-        User actualUser = accessUser(2L);
-        assertEquals(2L, actualUser.getOpaqueUser());
     }
 
     @Test
@@ -68,7 +62,7 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Test
     public void testSupportsPagination() {
-        boolean actual = supportsPagination(null);
+        boolean actual = supportsPagination(null, null);
         assertTrue(actual);
     }
 
@@ -80,14 +74,14 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Test
     public void testGetAttribute() {
-        Object actual = getAttribute(ENTITY, NAME, scope);
+        Object actual = getAttribute(ENTITY, NAME_ATTRIBUTE, scope);
         assertEquals(3L, actual);
         verify(scope, times(1)).getDictionary();
     }
 
     @Test
     public void testSetAttribute() {
-        setAttribute(ENTITY, NAME, null, scope);
+        setAttribute(ENTITY, NAME_ATTRIBUTE, scope);
         verify(scope, never()).getDictionary();
     }
 
@@ -105,24 +99,29 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Test
     public void testGetRelation() {
-        Object actual = getRelation(this, ENTITY, NAME, Optional.empty(), Optional.empty(), Optional.empty(), scope);
+        Object actual = getRelation(this, ENTITY, Relationship.builder()
+                .name(NAME)
+                .projection(EntityProjection.builder()
+                        .type(String.class)
+                        .build())
+                .build(), scope);
         assertEquals(3L, actual);
-        verify(scope, times(1)).getDictionary();
     }
 
     @Test
     public void testLoadObject() {
-        String string = (String) loadObject(String.class, 2L, Optional.empty(), scope);
+        String string = (String) loadObject(EntityProjection.builder().type(String.class).build(), 2L, scope);
         assertEquals(ENTITY, string);
-        verify(scope, times(1)).getDictionary();
     }
 
     /** Implemented to support the interface only. No need to test these. **/
+    @Override
+    public Object loadObject(EntityProjection entityProjection, Serializable id, RequestScope scope) {
+        return ENTITY;
+    }
 
     @Override
-    @Deprecated
-    public Iterable<Object> loadObjects(Class<?> entityClass, Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting, Optional<Pagination> pagination, RequestScope scope) {
+    public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         return Arrays.asList(ENTITY);
     }
 

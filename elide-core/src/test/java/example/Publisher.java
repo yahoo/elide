@@ -5,14 +5,17 @@
  */
 package example;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,12 +33,14 @@ import javax.persistence.OneToMany;
 @Entity
 @Include
 public class Publisher {
+
     private long id;
     private String name;
     private Set<Book> books = new HashSet<>();
     private Editor editor;
 
-    @Getter
+    @Exclude
+    @Getter @Setter
     private boolean updateHookInvoked = false;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,6 +61,7 @@ public class Publisher {
     }
 
     @OneToMany(mappedBy = "publisher")
+    @LifeCycleHookBinding(operation = UPDATE, phase = PRECOMMIT, hook = PublisherUpdateHook.class)
     public Set<Book> getBooks() {
         return books;
     }
@@ -73,10 +79,5 @@ public class Publisher {
 
     public void setEditor(Editor editor) {
         this.editor = editor;
-    }
-
-    @OnUpdatePreCommit("books")
-    public void updatePreCommitTrigger(RequestScope scope, ChangeSpec changes) {
-        updateHookInvoked = true;
     }
 }

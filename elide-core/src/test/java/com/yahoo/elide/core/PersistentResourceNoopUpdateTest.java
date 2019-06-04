@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import example.Child;
 import example.FunWithPermissions;
@@ -23,9 +25,11 @@ import java.util.Set;
 
 public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSetup {
     private final RequestScope goodUserScope;
+    private final User goodUser;
     PersistentResourceNoopUpdateTest() {
-        goodUserScope = new RequestScope(null, null, null, mock(DataStoreTransaction.class),
-                new User(1), null, elideSettings);
+        goodUser = new TestUser("1");
+        goodUserScope = new RequestScope(null, null, NO_VERSION, null,
+                mock(DataStoreTransaction.class), goodUser, null, elideSettings);
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
@@ -35,11 +39,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -53,11 +55,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.addRelation("relation3", childResource);
@@ -73,11 +73,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         children.add(child);
         fun.setRelation1(children);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
@@ -90,11 +88,9 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
         funResource.addRelation("relation1", childResource);

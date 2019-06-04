@@ -17,6 +17,12 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 
@@ -25,6 +31,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -36,7 +43,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -380,153 +386,9 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         ).toResponse();
 
         compareJsonObject(
-                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2))),
+                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2)), NO_VERSION),
                 expectedResponse
         );
-    }
-
-    @Test
-    public void runMultipleRequestsSameTransaction() throws IOException {
-        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-
-        String graphQLRequest = document(
-                selections(
-                        field(
-                                "book",
-                                argument(
-                                        argument(
-                                                "ids",
-                                                Arrays.asList("1")
-                                        )
-                                ),
-                                selections(
-                                        field("id"),
-                                        field("title"),
-                                        field(
-                                                "authors",
-                                                selections(
-                                                        field("id"),
-                                                        field("name")
-                                                )
-                                        )
-                                )
-                        ),
-                        field(
-                                "author",
-                                selections(
-                                        field("id"),
-                                        field("name")
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expectedResponse = document(
-                selections(
-                        field(
-                                "book",
-                                selections(
-                                        field("id", "1"),
-                                        field("title", "1984"),
-                                        field(
-                                                "authors",
-                                                selections(
-                                                        field("id", "1"),
-                                                        field("name", "George Orwell")
-                                                )
-                                        )
-                                )
-                        ),
-                        field(
-                                "author",
-                                selections(
-                                        field("id", "1"),
-                                        field("name", "George Orwell")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
-    }
-
-    @Test
-    public void runMultipleRequestsSameTransactionMutation() throws IOException {
-        // This test demonstrates that multiple roots can be manipulated within a _single_ transaction
-        // and results are consistent across a mutation.
-        Author author = new Author();
-        author.setId(2L);
-        author.setName("Stephen King");
-
-        String graphQLRequest = document(
-                mutation(
-                        selections(
-                                field(
-                                        "book",
-                                        argument(
-                                                argument(
-                                                        "ids",
-                                                        Collections.singletonList("1")
-                                                )
-                                        ),
-                                        selections(
-                                                field("id"),
-                                                field("title"),
-                                                field(
-                                                        "authors",
-                                                        arguments(
-                                                                argument("op", "UPSERT"),
-                                                                argument("data", author)
-                                                        ),
-                                                        selections(
-                                                                field("id"),
-                                                                field("name")
-                                                        )
-                                                )
-                                        )
-                                ),
-                                field(
-                                        "author",
-                                        selections(
-                                                field("id"),
-                                                field("name")
-                                        )
-                                )
-                        )
-                )
-        ).toQuery();
-
-        String expectedResponse = document(
-                selections(
-                        field(
-                                "book",
-                                selections(
-                                        field("id", "1"),
-                                        field("title", "1984"),
-                                        field(
-                                                "authors",
-                                                selections(
-                                                        field("id", "2"),
-                                                        field("name", "Stephen King")
-                                                )
-                                        )
-                                )
-                        ),
-                        field(
-                                "author",
-                                selections(
-                                        field("id", "1"),
-                                        field("name", "George Orwell")
-                                ),
-                                selections(
-                                        field("id", "2"),
-                                        field("name", "Stephen King")
-                                )
-                        )
-                )
-        ).toResponse();
-
-        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
     @Test
@@ -625,6 +487,186 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+<<<<<<< HEAD
+=======
+    @Test
+    public void testTypeIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__type(name: \"Book\") {"
+                + "   name"
+                + "   fields {"
+                + "     name"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data.__type.fields.name", containsInAnyOrder("id", "awards", "chapterCount",
+                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters",
+                    "editor", "publisher"));
+    }
+
+    @Test
+    public void testVersionedTypeIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__type(name: \"Book\") {"
+                + "   name"
+                + "   fields {"
+                + "     name"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "1.0")
+                .body(query)
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.__type.fields.name", containsInAnyOrder("id", "name", "publishDate"));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common underlying database table.
+    public void fetchCollectionVersioned() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("name", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
+    }
+
+    @Test
+    public void testInvalidApiVersion() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", "2.0")
+                .body(query)
+                .post("/graphQL")
+                .then()
+                .body(equalTo(expected))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testMissingVersionedModel() throws IOException {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "parent",
+                                selections(
+                                        field("id")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Bad Request Body&#39;Unknown entity {parent}.&#39;\"}]}";
+
+        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
+    }
+
+
+    private void runQueryWithExpectedResult(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String expected
+    ) throws IOException {
+        compareJsonObject(runQuery(graphQLQuery, variables), expected);
+    }
+
+    private void runQueryWithExpectedResult(
+            String graphQLQuery,
+            Map<String, Object> variables,
+            String expected,
+            String apiVersion
+    ) throws IOException {
+        compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
+    }
+
+    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
+        runQueryWithExpectedResult(graphQLQuery, null, expected);
+    }
+
+    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
+        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
+        JsonNode expectedNode = mapper.readTree(expected);
+        assertEquals(expectedNode, responseNode);
+    }
+
+    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
+        return runQuery(toJsonQuery(query, variables), NO_VERSION);
+    }
+
+    private ValidatableResponse runQuery(String query, Map<String, Object> variables, String apiVersion)
+            throws IOException {
+        return runQuery(toJsonQuery(query, variables), apiVersion);
+    }
+
+    private ValidatableResponse runQuery(String query, String apiVersion) {
+        return given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("ApiVersion", apiVersion)
+                .body(query)
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     private String toJsonArray(JsonNode... nodes) throws IOException {

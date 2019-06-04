@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.audit;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.security.ChangeSpec;
 
 import com.google.common.collect.Sets;
@@ -20,7 +19,7 @@ public class InMemoryLogger extends AuditLogger {
     public final Set<String> logMessages = Sets.newConcurrentHashSet();
 
     @Override
-    public void commit(RequestScope requestScope) throws IOException {
+    public void commit() throws IOException {
         for (LogMessage message : MESSAGES.get()) {
             if (message.getChangeSpec().isPresent()) {
                 logMessages.add(changeSpecToString(message.getChangeSpec().get()));

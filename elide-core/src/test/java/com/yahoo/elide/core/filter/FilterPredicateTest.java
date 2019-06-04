@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,8 +50,8 @@ public class FilterPredicateTest {
         when(entityDictionary.getJsonAliasFor(Book.class)).thenReturn("book");
         when(entityDictionary.getJsonAliasFor(Author.class)).thenReturn("author");
 
-        doReturn(Book.class).when(entityDictionary).getEntityClass("book");
-        doReturn(Author.class).when(entityDictionary).getEntityClass("author");
+        doReturn(Book.class).when(entityDictionary).getEntityClass("book", NO_VERSION);
+        doReturn(Author.class).when(entityDictionary).getEntityClass("author", NO_VERSION);
         doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "title");
         doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "genre");
         doReturn(Integer.class).when(entityDictionary).getIdType(Book.class);
@@ -67,7 +68,7 @@ public class FilterPredicateTest {
 
         Map<String, FilterExpression> expressionMap;
         try {
-            expressionMap = strategy.parseTypedExpression("/book", queryParams);
+            expressionMap = strategy.parseTypedExpression("/book", queryParams, NO_VERSION);
         } catch (ParseException e) {
             throw new BadRequestException(e.getMessage());
         }

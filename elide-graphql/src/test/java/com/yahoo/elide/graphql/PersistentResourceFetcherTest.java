@@ -5,28 +5,29 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
+import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import example.Author;
 import example.Book;
 import example.Price;
 import example.Pseudonym;
 import example.Publisher;
-
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -91,7 +91,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         inMemoryDataStore.populateEntityDictionary(dictionary);
         NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
         ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
-                new PersistentResourceFetcher(settings, nonEntityDictionary));
+                new PersistentResourceFetcher(settings, nonEntityDictionary), NO_VERSION);
 
         api = new GraphQL(builder.build());
 
@@ -190,7 +190,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
+        GraphQLProjectionInfo projectionInfo =
+                new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -215,7 +217,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         boolean isMutation = graphQLRequest.startsWith("mutation");
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -233,15 +236,24 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryFails(String graphQLRequest) {
-        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
-
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         //debug for errors
         LOG.debug("Errors = [" + errorsToString(result.getErrors()) + "]");
 
         assertNotEquals(result.getErrors().size(), 0);
+    }
+
+    protected void assertParsingFails(String graphQLRequest) {
+        assertThrows(Exception.class, () -> new GraphQLEntityProjectionMaker(settings).make(graphQLRequest));
+    }
+
+    protected ExecutionResult runGraphQLRequest(String graphQLRequest, Map<String, Object> variables) {
+        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
+        GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(tx, null, NO_VERSION, settings, projectionInfo);
+
+        return api.execute(graphQLRequest, requestScope, variables);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {

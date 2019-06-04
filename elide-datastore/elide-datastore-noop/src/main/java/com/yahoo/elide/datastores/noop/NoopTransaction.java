@@ -8,16 +8,13 @@ package com.yahoo.elide.datastores.noop;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 
+import com.yahoo.elide.request.EntityProjection;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Noop transaction. Specifically, this transaction does not perform any actions (i.e. no operation).
@@ -74,24 +71,22 @@ public class NoopTransaction implements DataStoreTransaction {
 
     /**
      * No-op transaction, do nothing.
-     * @param entityClass the type of class to load
+     * @param projection the projection to query
      * @param id - the ID of the object to load.
-     * @param filterExpression - security filters that can be evaluated in the data store.
      * @param scope - the current request scope. It is optional for the data store to attempt evaluation.
      * @return a new persistent resource with a new instance of {@code entityClass}
      */
     @Override
-    public Object loadObject(Class<?> entityClass,
+    public Object loadObject(EntityProjection projection,
                              Serializable id,
-                             Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
         // Loads are supported but empty object (with specified id) is returned.
         // NOTE: This is primarily useful for enabling objects of solely computed properties to be fetched.
         Object entity;
         try {
-            entity = entityClass.newInstance();
+            entity = projection.getType().newInstance();
         } catch (IllegalAccessException | InstantiationException e) {
-            log.error("Could not load object {} through NoopStore", entityClass, e);
+            log.error("Could not load object {} through NoopStore", projection.getType(), e);
             throw new RuntimeException(e);
         }
 
@@ -105,22 +100,15 @@ public class NoopTransaction implements DataStoreTransaction {
 
     /**
      * No-op transaction, do nothing.
-     * @param entityClass - the class to load
-     * @param filterExpression - filters that can be evaluated in the data store.
-     * It is optional for the data store to attempt evaluation.
-     * @param sorting - sorting which can be pushed down to the data store.
-     * @param pagination - pagination which can be pushed down to the data store.
+     * @param projection - the projection to load
      * @param scope - contains request level metadata.
      * @return a {@link Collections#singletonList} with a new persistent resource with id 1
      */
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
+    public Iterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
         // Default behavior: load object 1 and return as an array
-        return Collections.singletonList(this.loadObject(entityClass, 1L, filterExpression, scope));
+        return Collections.singletonList(this.loadObject(projection, 1L, scope));
     }
 
     /**

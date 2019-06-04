@@ -9,21 +9,23 @@ package com.yahoo.elide.core;
 import static com.yahoo.elide.core.EntityBinding.EMPTY_BINDING;
 
 import com.yahoo.elide.Injector;
+import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.MappedInterface;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
-import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -32,10 +34,12 @@ import com.yahoo.elide.utils.coerce.converters.Serde;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
-
+import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -61,10 +65,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
 import javax.ws.rs.WebApplicationException;
 
@@ -77,11 +82,19 @@ import javax.ws.rs.WebApplicationException;
 @SuppressWarnings("static-method")
 public class EntityDictionary {
 
-    protected final ConcurrentHashMap<String, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
+    public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
+    public static final String NO_VERSION = "";
+
+    protected final ConcurrentHashMap<Pair<String, String>, Class<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Class<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Class<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Class<?>, List<Class<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+
+    @Getter
+    protected final Set<String> apiVersions;
+
+    @Getter
     protected final Injector injector;
 
     protected final Function<Class, Serde> serdeLookup ;
@@ -98,7 +111,25 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(checks, null);
+        this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
+        initializeChecks();
+
+        //Default injector only injects Elide internals.
+        this.injector = new Injector() {
+            @Override
+            public void inject(Object entity) {
+                if (entity instanceof FilterExpressionCheck) {
+                    try {
+                        Field field = FilterExpressionCheck.class.getDeclaredField("dictionary");
+                        field.setAccessible(true);
+                        field.set(entity, EntityDictionary.this);
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            }
+        };
     }
 
     /**
@@ -119,16 +150,19 @@ public class EntityDictionary {
                             Injector injector,
                             Function<Class, Serde> serdeLookup) {
         this.serdeLookup = serdeLookup;
-        checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.apiVersions = new HashSet<>();
+        initializeChecks();
+        this.injector = injector;
+    }
 
+    private void initializeChecks() {
         addPrefabCheck("Prefab.Role.All", Role.ALL.class);
         addPrefabCheck("Prefab.Role.None", Role.NONE.class);
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
-        addPrefabCheck("Prefab.Common.UpdateOnCreate", Common.UpdateOnCreate.class);
-
-        this.injector = injector;
     }
+
 
     private void addPrefabCheck(String alias, Class<? extends Check> checkClass) {
         if (checkNames.containsKey(alias) || checkNames.inverse().containsKey(checkClass)) {
@@ -225,8 +259,19 @@ public class EntityDictionary {
      * @param entityName entity name
      * @return binding class
      */
-    public Class<?> getEntityClass(String entityName) {
-        return bindJsonApiToEntity.get(entityName);
+    public Class<?> getEntityClass(String entityName, String version) {
+        Class<?> lookup = bindJsonApiToEntity.getOrDefault(Pair.of(entityName, version), null);
+
+        if (lookup == null) {
+            //Elide standard models transcend API versions.
+            return entityBindings.values().stream()
+                    .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
+                    .filter(binding -> binding.entityName.equals(entityName))
+                    .map(EntityBinding::getEntityClass)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return lookup;
     }
 
     /**
@@ -286,8 +331,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-            String field,
-            Class<? extends Annotation> annotationClass) {
+                                            String field,
+                                            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
@@ -310,98 +355,31 @@ public class EntityDictionary {
     }
 
     /**
-     * Get inherited entity names for a particular entity.
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all inherited entity type names
-     */
-    public List<String> getSubclassingEntityNames(String entityName) {
-        return getSubclassingEntityNames(getEntityClass(entityName));
-    }
-
-    /**
-     * Get inherited entity names for a particular entity.
-     *
-     * @param entityClass Entity class
-     * @return  List of all inherited entity type names
-     */
-    public List<String> getSubclassingEntityNames(Class entityClass) {
-        List<Class<?>> entities = getSubclassingEntities(entityClass);
-        return entities.stream().map(this::getJsonAliasFor).collect(Collectors.toList());
-    }
-
-    /**
-     * Get a list of inherited entities from a particular entity.
-     * Namely, the list of entities inheriting from the provided class.
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all inherited entity types
-     */
-    public List<Class<?>> getSubclassingEntities(String entityName) {
-        return getSubclassingEntities(getEntityClass(entityName));
-    }
-
-    /**
-     * Get a list of inherited entities from a particular entity.
-     * Namely, the list of entities inheriting from the provided class.
-     *
-     * @param entityClass Entity class
-     * @return  List of all inherited entity types
-     */
-    public List<Class<?>> getSubclassingEntities(Class entityClass) {
-        return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
-                .keySet().stream()
-                .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
-                .collect(Collectors.toList()));
-    }
-
-    /**
-     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all super class entity json names
-     */
-    public List<String> getSuperClassEntityNames(String entityName) {
-        return getSuperClassEntityNames(getEntityClass(entityName));
-    }
-
-    /**
-     * Fetch all entity names that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityClass Entity class
-     * @return  List of all super class entity json names
-     */
-    public List<String> getSuperClassEntityNames(Class entityClass) {
-        return getSuperClassEntities(entityClass).stream()
-                .map(this::getJsonAliasFor)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Fetch all entity classes that the provided entity inherits from (i.e. all superclass entities down to,
-     * but excluding Object).
-     *
-     * @param entityName Json alias name for entity
-     * @return  List of all super class entity classes
-     */
-    public List<Class<?>> getSuperClassEntities(String entityName) {
-        return getSuperClassEntities(getEntityClass(entityName));
-    }
-
-    /**
      * Fetch all entity classes that provided entity inherits from (i.e. all superclass entities down to,
      * but excluding Object).
      *
      * @param entityClass Entity class
      * @return  List of all super class entity classes
      */
-    public List<Class<?>> getSuperClassEntities(Class entityClass) {
+    public List<Class<?>> getSuperClassEntities(Class<?> entityClass) {
         return getEntityBinding(entityClass).inheritedTypes.stream()
                 .filter(entityBindings::containsKey)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Get a list of inherited entities from a particular entity.
+     * Namely, the list of entities inheriting from the provided class.
+     *
+     * @param entityClass Entity class
+     * @return  List of all inherited entity types
+     */
+     public List<Class<?>> getSubclassingEntities(Class entityClass) {
+         return subclassingEntities.computeIfAbsent(entityClass, unused -> entityBindings
+                            .keySet().stream()
+                            .filter(c -> c != entityClass && entityClass.isAssignableFrom(c))
+                            .collect(Collectors.toList()));
+     }
 
     /**
      * Returns the friendly named mapped to this given check.
@@ -437,12 +415,36 @@ public class EntityDictionary {
     }
 
     /**
+     * Get all bound classes.
+     *
+     * @return the bound classes
+     */
+    public Set<Class<?>> getBoundClasses() {
+        return entityBindings.keySet();
+    }
+
+    /**
+     * Get all bound classes for a particular API version.
+     *
+     * @return the bound classes
+     */
+    public Set<Class<?>> getBoundClassesByVersion(String apiVersion) {
+        return entityBindings.values().stream()
+                .filter(binding ->
+                        binding.getApiVersion().equals(apiVersion)
+                                || binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX)
+                )
+                .map(EntityBinding::getEntityClass)
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * Get all bindings.
      *
      * @return the bindings
      */
-    public Set<Class<?>> getBindings() {
-        return entityBindings.keySet();
+    public Set<EntityBinding> getBindings() {
+        return new HashSet<>(entityBindings.values());
     }
 
     /**
@@ -460,7 +462,7 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Class<?> entityClass) {
-        return getEntityBinding(entityClass).attributes;
+        return getEntityBinding(entityClass).apiAttributes;
     }
 
     /**
@@ -489,7 +491,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Class<?> entityClass) {
-        return getEntityBinding(entityClass).relationships;
+        return getEntityBinding(entityClass).apiRelationships;
     }
 
     /**
@@ -510,7 +512,7 @@ public class EntityDictionary {
      */
     public List<String> getElideBoundRelationships(Class<?> entityClass) {
         return getRelationships(entityClass).stream()
-                .filter(relationName -> getBindings().contains(getParameterizedType(entityClass, relationName)))
+                .filter(relationName -> getBoundClasses().contains(getParameterizedType(entityClass, relationName)))
                 .collect(Collectors.toList());
     }
 
@@ -807,26 +809,12 @@ public class EntityDictionary {
      */
     public <T> void initializeEntity(T entity) {
         if (entity != null) {
-            @SuppressWarnings("unchecked")
-            Initializer<T> initializer = getEntityBinding(entity.getClass()).getInitializer();
-            if (initializer != null) {
-                initializer.initialize(entity);
-            } else if (injector != null) {
+            EntityBinding binding = getEntityBinding(entity.getClass());
+
+            if (binding.isInjected()) {
                 injector.inject(entity);
             }
         }
-    }
-
-    /**
-     * Bind a particular initializer to a class.
-     *
-     * @param <T>         the type parameter
-     * @param initializer Initializer to use for class
-     * @param cls         Class to bind initialization
-     */
-    public <T> void bindInitializer(Initializer<T> initializer, Class<T> cls) {
-        bindIfUnbound(cls);
-        getEntityBinding(cls).setInitializer(initializer);
     }
 
     /**
@@ -835,9 +823,10 @@ public class EntityDictionary {
      * @param entityClass the entity type to check for the shareable permissions
      * @return true if entityClass is shareable.  False otherwise.
      */
-    public boolean isShareable(Class<?> entityClass) {
-        return getAnnotation(entityClass, SharePermission.class) != null
-                && getAnnotation(entityClass, SharePermission.class).sharable();
+    public boolean isTransferable(Class<?> entityClass) {
+        NonTransferable nonTransferable = getAnnotation(entityClass, NonTransferable.class);
+
+        return (nonTransferable == null || !nonTransferable.enabled());
     }
 
     /**
@@ -846,6 +835,16 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
+        bindEntity(cls, new HashSet<>());
+    }
+
+    /**
+     * Add given Entity bean to dictionary.
+     *
+     * @param cls Entity bean class
+     * @param hiddenAnnotations Annotations for hiding a field in API
+     */
+    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
         Class<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
@@ -875,8 +874,35 @@ public class EntityDictionary {
             type = include.type();
         }
 
-        bindJsonApiToEntity.put(type, declaredClass);
-        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass, type, name));
+        String version = getModelVersion(cls);
+        bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
+        apiVersions.add(version);
+        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
+                type, name, version, hiddenAnnotations));
+        if (include.rootLevel()) {
+            bindEntityRoots.add(declaredClass);
+        }
+    }
+
+    /**
+     * Add an EntityBinding instance to dictionary.
+     *
+     * @param entityBinding EntityBinding instance
+     */
+    public void bindEntity(EntityBinding entityBinding) {
+        Class<?> declaredClass = entityBinding.entityClass;
+
+        if (isClassBound(declaredClass)) {
+            //Ignore duplicate bindings.
+            return;
+        }
+
+        Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
+
+        String version = getModelVersion(declaredClass);
+        bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
+        entityBindings.put(declaredClass, entityBinding);
+        apiVersions.add(version);
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -919,14 +945,16 @@ public class EntityDictionary {
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
-                                                                        Class<A> annotationClass,
+                                                                        LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase,
                                                                         String fieldName) {
-        return getEntityBinding(cls).getTriggers(annotationClass, fieldName);
+        return getEntityBinding(cls).getTriggers(op, phase, fieldName);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Class<?> cls,
-                                                                        Class<A> annotationClass) {
-        return getEntityBinding(cls).getTriggers(annotationClass);
+                                                                        LifeCycleHookBinding.Operation op,
+                                                                        LifeCycleHookBinding.TransactionPhase phase) {
+        return getEntityBinding(cls).getTriggers(op, phase);
     }
 
     /**
@@ -981,10 +1009,24 @@ public class EntityDictionary {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
                 annotation = cls.getDeclaredAnnotation(annotationClass);
                 if (annotation != null) {
-                    break;
+                    return annotation;
                 }
             }
         }
+
+        return getFirstPackageAnnotation(entityClass, annotationClassList);
+    }
+
+    /**
+     * Return first matching annotation from a package or parent package.
+     *
+     * @param entityClass         Entity class type
+     * @param annotationClassList List of sought annotations
+     * @return annotation found
+     */
+    public static Annotation getFirstPackageAnnotation(Class<?> entityClass,
+                                                       List<Class<? extends Annotation>> annotationClassList) {
+        Annotation annotation = null;
         // no class annotation, try packages
         for (Package pkg = entityClass.getPackage(); annotation == null && pkg != null; pkg = getParentPackage(pkg)) {
             for (Class<? extends Annotation> annotationClass : annotationClassList) {
@@ -1081,7 +1123,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Follow for this class or super-class for Entity annotation.
+     * Follow for this class or super-class for JPA {@link Entity} annotation.
      *
      * @param objClass provided class
      * @return class with Entity annotation
@@ -1103,6 +1145,12 @@ public class EntityDictionary {
     public Class<?> lookupIncludeClass(Class<?> objClass) {
         Annotation first = getFirstAnnotation(objClass, Arrays.asList(Exclude.class, Include.class));
         if (first instanceof Include) {
+            Class<?> declaringClass = lookupAnnotationDeclarationClass(objClass, Include.class);
+            if (declaringClass != null) {
+                return declaringClass;
+            }
+
+            //If we didn't find Include declared on a class, it must be declared at the package level.
             return objClass;
         }
         return null;
@@ -1122,6 +1170,7 @@ public class EntityDictionary {
         }
         return null;
     }
+
 
     /**
      * Return bound entity or null.
@@ -1166,6 +1215,20 @@ public class EntityDictionary {
         return (entityBindings.getOrDefault(objClass, EMPTY_BINDING) != EMPTY_BINDING);
     }
 
+    /**
+     * Check whether a class is a JPA entity.
+     *
+     * @param objClass class
+     * @return True if it is a JPA entity
+     */
+    public final boolean isJPAEntity(Class<?> objClass) {
+        try {
+            lookupEntityClass(objClass);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 
     /**
      * Retrieve the accessible object for a field from a target object.
@@ -1218,11 +1281,11 @@ public class EntityDictionary {
     }
 
     public boolean isRelation(Class<?> entityClass, String relationName) {
-        return getEntityBinding(entityClass).relationships.contains(relationName);
+        return getEntityBinding(entityClass).apiRelationships.contains(relationName);
     }
 
     public boolean isAttribute(Class<?> entityClass, String attributeName) {
-        return getEntityBinding(entityClass).attributes.contains(attributeName);
+        return getEntityBinding(entityClass).apiAttributes.contains(attributeName);
     }
 
     /**
@@ -1234,7 +1297,22 @@ public class EntityDictionary {
         // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
         // /spring/boot/autoconfigure/ElideAutoConfiguration.java
 
-        for (Class<?> cls : ClassScanner.getAnnotatedClasses(SecurityCheck.class)) {
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(SecurityCheck.class);
+
+        addSecurityChecks(classes);
+    }
+
+    /**
+     * Add security checks and bind them to the dictionary.
+     * @param classes Security check classes.
+     */
+    public void addSecurityChecks(Set<Class<?>> classes) {
+
+        if (classes == null && classes.size() == 0) {
+            return;
+        }
+
+        for (Class<?> cls : classes) {
             if (Check.class.isAssignableFrom(cls)) {
                 SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
                 log.debug("Register Elide Check [{}] with expression [{}]",
@@ -1250,17 +1328,19 @@ public class EntityDictionary {
      * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
      * single time per request per field READ, CREATE, or UPDATE.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param fieldOrMethodName The name of the field or method
-     * @param callback The callback function to invoke.
+     * @param fieldOrMethodName The name of the field or method.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
      */
     public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
                             String fieldOrMethodName,
-                            LifeCycleHook callback) {
-
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook) {
         bindIfUnbound(entityClass);
-        getEntityBinding(entityClass).bindTrigger(annotationClass, fieldOrMethodName, callback);
+
+        getEntityBinding(entityClass).bindTrigger(operation, phase, fieldOrMethodName, hook);
     }
 
     /**
@@ -1270,36 +1350,25 @@ public class EntityDictionary {
      *
      * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
      * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param callback The callback function to invoke.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
      * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
-     *                              CRUD actions on the same model.
+     *                                 CRUD actions on the same model.
      */
     public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
-                            LifeCycleHook callback,
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook,
                             boolean allowMultipleInvocations) {
         bindIfUnbound(entityClass);
+
         if (allowMultipleInvocations) {
-            getEntityBinding(entityClass).bindTrigger(annotationClass, callback);
+            getEntityBinding(entityClass).bindTrigger(operation, phase, hook);
         } else {
-            getEntityBinding(entityClass).bindTrigger(annotationClass, PersistentResource.CLASS_NO_FIELD, callback);
+            getEntityBinding(entityClass).bindTrigger(operation, phase, PersistentResource.CLASS_NO_FIELD, hook);
         }
     }
-
-    /**
-     * Binds a lifecycle hook to a particular entity class.   The hook will be called a single time per request
-     * per class READ, CREATE, UPDATE, or DELETE.
-     * @param entityClass The entity that triggers the lifecycle hook.
-     * @param annotationClass (OnReadPostCommit, OnUpdatePreSecurity, etc)
-     * @param callback The callback function to invoke.
-     */
-    public void bindTrigger(Class<?> entityClass,
-                            Class<? extends Annotation> annotationClass,
-                            LifeCycleHook callback) {
-        bindTrigger(entityClass, annotationClass, callback, false);
-    }
-
 
     /**
      * Returns true if the relationship cascades deletes and false otherwise.
@@ -1354,11 +1423,13 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
-        return bindJsonApiToEntity.contains(cls);
+        return entityBindings.values().stream()
+                .filter(binding -> binding.entityClass.equals(cls))
+                .findFirst().orElse(null) != null;
     }
 
     /**
@@ -1389,7 +1460,17 @@ public class EntityDictionary {
     }
 
     /**
+     * Sets the ID field of a target object.
+     * @param target the object which owns the ID to set.
+     * @param id the value to set
+     */
+    public void setId(Object target, String id) {
+        setValue(target, getIdFieldName(lookupBoundClass(target.getClass())), id);
+    }
+
+    /**
      * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     * @param target The object which owns the field to set
      * @param fieldName the field name to set or invoke equivalent set method
      * @param value the value to set
      */
@@ -1505,6 +1586,36 @@ public class EntityDictionary {
         return result;
     }
 
+    /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
+    }
+
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
         for (Map.Entry<?, ?> entry : values.entrySet()) {
             Object key = entry.getKey();
@@ -1522,8 +1633,76 @@ public class EntityDictionary {
      * @param entityClass the class to bind.
      */
     private void bindIfUnbound(Class<?> entityClass) {
+        /* This is safe to call with non-proxy objects. Not safe to call with ORM proxy objects. */
+
         if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
         }
+    }
+
+    /**
+     * Add a collection of argument to the attributes
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param arguments Set of Argument type containing name and type of each argument.
+     */
+    public void addArgumentsToAttribute(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
+        getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Add a single argument to the attribute
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param argument A single argument
+     */
+    public void addArgumentToAttribute(Class<?> cls, String attributeName, ArgumentType argument) {
+        this.addArgumentsToAttribute(cls, attributeName, Sets.newHashSet(argument));
+    }
+
+    /**
+     * Returns the Collection of all attributes of an argument.
+     * @param cls The entity
+     * @param attributeName Name of the argument for ehich arguments are to be retrieved.
+     * @return A Set of ArgumentType for the given attribute.
+     */
+    public Set<ArgumentType> getAttributeArguments(Class<?> cls, String attributeName) {
+        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+    }
+
+    /**
+     * Get column name using JPA.
+     *
+     * @param cls The entity class.
+     * @param fieldName The entity attribute.
+     * @return The jpa column name.
+     */
+    public String getAnnotatedColumnName(Class<?> cls, String fieldName) {
+        Column[] column = getAttributeOrRelationAnnotations(cls, Column.class, fieldName);
+
+        // this would only be valid for dimension columns
+        JoinColumn[] joinColumn = getAttributeOrRelationAnnotations(cls, JoinColumn.class, fieldName);
+
+        if (column == null || column.length == 0) {
+            if (joinColumn == null || joinColumn.length == 0) {
+                return fieldName;
+            } else {
+                return joinColumn[0].name();
+            }
+        } else {
+            return column[0].name();
+        }
+    }
+
+    /**
+     * Returns the api version bound to a particular model class.
+     * @param modelClass The model class to lookup.
+     * @return The api version associated with the model or empty string if there is no association.
+     */
+    public static String getModelVersion(Class<?> modelClass) {
+        ApiVersion apiVersionAnnotation =
+                (ApiVersion) getFirstPackageAnnotation(modelClass, Arrays.asList(ApiVersion.class));
+
+        return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 }
