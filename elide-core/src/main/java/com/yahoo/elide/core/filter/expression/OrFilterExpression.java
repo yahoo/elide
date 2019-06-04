@@ -18,6 +18,28 @@ public class OrFilterExpression implements FilterExpression {
     @Getter private FilterExpression left;
     @Getter private FilterExpression right;
 
+    /**
+     * Returns a new {@link OrFilterExpression} instance with the specified null-able left and right operands.
+     * <p>
+     * If both left and right are not {@link null}, this method produces the same instance as
+     * {@link #OrFilterExpression(FilterExpression, FilterExpression)} does. If only one of them is {@link null}, the
+     * other non-null is returned with no modification. If both left and right are {@link null}, this method returns
+     * {@code null}.
+     *
+     * @param left  The provided left {@link FilterExpression}
+     * @param right  The provided right {@link FilterExpression}
+     *
+     * @return a new {@link OrFilterExpression} instance or {@code null}
+     */
+    public static FilterExpression or(FilterExpression left, FilterExpression right) {
+        if (left != null && right != null) {
+            return new OrFilterExpression(left, right);
+        } else if (left == null) {
+            return right;
+        }
+        return left;
+    }
+
     public OrFilterExpression(FilterExpression left, FilterExpression right) {
         this.left = left;
         this.right = right;
