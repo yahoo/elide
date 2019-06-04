@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elide-spring-boot-autoconfigure</artifactId>
+    <version>5.0.0-pr9-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Autoconfigure</name>
     <description>Elide Spring Boot Autoconfigure</description>
@@ -8,7 +9,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>4.6.9-SNAPSHOT</version>
+        <version>5.0.0-pr9-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -50,35 +51,56 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-aggregation</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-dynamic-config-helpers</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
@@ -128,6 +150,13 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>${spring.boot.version}</version>
+            <optional>true</optional>
+        </dependency>
+
 
         <!-- Test Dependencies -->
 
@@ -141,7 +170,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -149,6 +178,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

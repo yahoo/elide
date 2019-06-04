@@ -14,9 +14,6 @@ import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -25,11 +22,12 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -56,9 +54,11 @@ public class CollectionTerminalState extends BaseState {
     private final Optional<String> relationName;
     private final Class<?> entityClass;
     private PersistentResource newObject;
+    private final EntityProjection parentProjection;
 
     public CollectionTerminalState(Class<?> entityClass, Optional<PersistentResource> parent,
-                                   Optional<String> relationName) {
+                                   Optional<String> relationName, EntityProjection projection) {
+        this.parentProjection = projection;
         this.parent = parent;
         this.relationName = relationName;
         this.entityClass = entityClass;
@@ -78,16 +78,20 @@ public class CollectionTerminalState extends BaseState {
         DocumentProcessor includedProcessor = new IncludedProcessor();
         includedProcessor.execute(jsonApiDocument, collection, queryParams);
 
+        Pagination pagination = parentProjection.getPagination();
+        if (parent.isPresent()) {
+            pagination = parentProjection.getRelationship(relationName.get()).get().getProjection().getPagination();
+        }
+
         // Add pagination meta data
-        Pagination pagination = requestScope.getPagination();
-        if (!pagination.isEmpty()) {
+        if (!pagination.isDefaultInstance()) {
 
             Map<String, Number> pageMetaData = new HashMap<>();
             pageMetaData.put("number", (pagination.getOffset() / pagination.getLimit()) + 1);
             pageMetaData.put("limit", pagination.getLimit());
 
             // Get total records if it has been requested and add to the page meta data
-            if (pagination.isGenerateTotals()) {
+            if (pagination.returnPageTotals()) {
                 Long totalRecords = pagination.getPageTotals();
                 pageMetaData.put("totalPages", totalRecords / pagination.getLimit()
                         + ((totalRecords % pagination.getLimit()) > 0 ? 1 : 0));
@@ -126,27 +130,13 @@ public class CollectionTerminalState extends BaseState {
         // TODO: In case of join filters, apply pagination after getting records
         // instead of passing it to the datastore
 
-        Optional<Pagination> pagination = Optional.ofNullable(requestScope.getPagination());
-        Optional<Sorting> sorting = Optional.ofNullable(requestScope.getSorting());
-
         if (parent.isPresent()) {
-            Optional<FilterExpression> filterExpression =
-                    requestScope.getExpressionForRelation(parent.get(), relationName.get());
-
             collection = parent.get().getRelationCheckedFiltered(
-                    relationName.get(),
-                    filterExpression,
-                    sorting,
-                    pagination);
+                    parentProjection.getRelationship(relationName.get()).orElseThrow(IllegalStateException::new));
         } else {
-            Optional<FilterExpression> filterExpression = requestScope.getLoadFilterExpression(entityClass);
-
             collection = PersistentResource.loadRecords(
-                entityClass,
+                parentProjection,
                 new ArrayList<>(), //Empty list of IDs
-                filterExpression,
-                sorting,
-                pagination,
                 requestScope);
         }
 
@@ -177,7 +167,9 @@ public class CollectionTerminalState extends BaseState {
         }
 
         String id = resource.getId();
-        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType());
+
+        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(),
+                requestScope.getApiVersion());
 
         if (newObjectClass == null) {
             throw new UnknownEntityException("Entity " + resource.getType() + " not found");
@@ -187,8 +179,8 @@ public class CollectionTerminalState extends BaseState {
                     + " to type: " + entityClass);
         }
 
-        PersistentResource pResource = PersistentResource.createObject(
-                parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
+        PersistentResource pResource = PersistentResource.createObject(parent.orElse(null), newObjectClass,
+                requestScope, Optional.ofNullable(id));
 
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {

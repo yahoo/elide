@@ -8,6 +8,7 @@ package com.yahoo.elide.extensions;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;
 
@@ -23,6 +24,7 @@ public class PatchRequestScope extends RequestScope {
      *
      * @param baseUrlEndPoint base URL with prefix endpoint
      * @param path the URL path
+     * @param apiVersion client requested API version
      * @param transaction current database transaction
      * @param user        request user
      * @param elideSettings Elide settings object
@@ -30,12 +32,14 @@ public class PatchRequestScope extends RequestScope {
     public PatchRequestScope(
             String baseUrlEndPoint,
             String path,
+            String apiVersion,
             DataStoreTransaction transaction,
             User user,
             ElideSettings elideSettings) {
         super(
                 baseUrlEndPoint,
                 path,
+                apiVersion,
                 (JsonApiDocument) null,
                 transaction,
                 user,
@@ -52,6 +56,7 @@ public class PatchRequestScope extends RequestScope {
      * @param scope           outer request scope
      */
     public PatchRequestScope(String path, JsonApiDocument jsonApiDocument, PatchRequestScope scope) {
-        super(path, jsonApiDocument, scope);
+        super(path, scope.getApiVersion(), jsonApiDocument, scope);
+        this.setEntityProjection(new EntityProjectionMaker(dictionary, this).parsePath(path));
     }
 }

@@ -7,6 +7,7 @@ package example;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,6 +28,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
 @DeletePermission(expression = "negativeIntegerUser")
+@NonTransferable
 public class Left {
     @JsonIgnore
     private long id;

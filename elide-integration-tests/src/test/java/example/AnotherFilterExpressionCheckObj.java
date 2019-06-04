@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -27,7 +26,6 @@ import javax.persistence.Table;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
 @Include(rootLevel = true)

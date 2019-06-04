@@ -14,9 +14,11 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.sort.SortingImpl;
 
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -98,13 +100,14 @@ public class SubCollectionFetchQueryBuilderTest {
         sorting.put(TITLE, Sorting.SortOrder.asc);
 
         TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher example_Book_publisher  "
+                + "JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -184,7 +187,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
-                .withPossibleSorting(Optional.of(new Sorting(sorting)))
+                .withPossibleSorting(Optional.of(new SortingImpl(sorting, Book.class, dictionary)))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
@@ -194,6 +197,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -217,11 +221,11 @@ public class SubCollectionFetchQueryBuilderTest {
         SubCollectionFetchQueryBuilder builder = new SubCollectionFetchQueryBuilder(
                 relationship, dictionary, new TestSessionWrapper());
 
+        Pagination pagination = new PaginationImpl(Book.class, 0, 10, 10, 10, false, false);
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .withPossibleFilterExpression(Optional.empty())
                 .withPossibleSorting(Optional.empty())
-                .withPossiblePagination(
-                        Optional.of(Pagination.fromOffsetAndLimit(1, 1, false)))
+                .withPossiblePagination(Optional.of(pagination))
                 .build();
 
         String expected = "SELECT example_Book FROM example.Publisher example_Publisher__fetch "

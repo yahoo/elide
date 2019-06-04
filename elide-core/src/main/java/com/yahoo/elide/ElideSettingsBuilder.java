@@ -16,16 +16,15 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,12 +46,9 @@ public class ElideSettingsBuilder {
     private List<SubqueryFilterDialect> subqueryFilterDialects;
     private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
-    private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
-    private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
-    private boolean useFilterExpressions;
+    private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
+    private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
-    private boolean returnErrorObjects;
-    private boolean encodeErrorResponses;
     private boolean enableJsonLinks;
 
     /**
@@ -97,11 +93,8 @@ public class ElideSettingsBuilder {
                 jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
-                useFilterExpressions,
                 updateStatusCode,
-                returnErrorObjects,
-                serdes,
-                encodeErrorResponses,
+                serdes, 
                 enableJsonLinks);
     }
 
@@ -117,33 +110,6 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withJsonApiMapper(JsonApiMapper jsonApiMapper) {
         this.jsonApiMapper = jsonApiMapper;
-        return this;
-    }
-
-    public ElideSettingsBuilder withPermissionExecutor(
-            Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
-        this.permissionExecutorFunction = permissionExecutorFunction;
-        return this;
-    }
-
-    public ElideSettingsBuilder withPermissionExecutor(Class<? extends PermissionExecutor> permissionExecutorClass) {
-        permissionExecutorFunction = (requestScope) -> {
-            try {
-                try {
-                    // Try to find a constructor with request scope
-                    Constructor<? extends PermissionExecutor> ctor =
-                            permissionExecutorClass.getDeclaredConstructor(RequestScope.class);
-                    return ctor.newInstance(requestScope);
-                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
-                        | InstantiationException e) {
-                    // If that fails, try blank constructor
-                    return permissionExecutorClass.newInstance();
-                }
-            } catch (IllegalAccessException | InstantiationException e) {
-                // Everything failed. Throw hands up, not sure how to proceed.
-                throw new RuntimeException(e);
-            }
-        };
         return this;
     }
 
@@ -177,8 +143,8 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withUseFilterExpressions(boolean useFilterExpressions) {
-        this.useFilterExpressions = useFilterExpressions;
+    public ElideSettingsBuilder withVerboseErrors() {
+        permissionExecutorFunction = VerbosePermissionExecutor::new;
         return this;
     }
 
@@ -195,16 +161,6 @@ public class ElideSettingsBuilder {
         serdes.put(java.sql.Date.class, new EpochToDateConverter<java.sql.Date>(java.sql.Date.class));
         serdes.put(java.sql.Time.class, new EpochToDateConverter<java.sql.Time>(java.sql.Time.class));
         serdes.put(java.sql.Timestamp.class, new EpochToDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class));
-        return this;
-    }
-
-    public ElideSettingsBuilder withReturnErrorObjects(boolean returnErrorObjects) {
-        this.returnErrorObjects = returnErrorObjects;
-        return this;
-    }
-
-    public ElideSettingsBuilder withEncodeErrorResponses(boolean encodeErrorResponses) {
-        this.encodeErrorResponses = encodeErrorResponses;
         return this;
     }
 

@@ -113,34 +113,6 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return new FilterPredicate(new Path(pathElements), operator, values);
     }
 
-    /**
-     * Returns an alias that uniquely identifies the last collection of entities in the path.
-     * @return An alias for the path.
-     */
-    public String getAlias() {
-        List<PathElement> elements = path.getPathElements();
-
-        PathElement last = elements.get(elements.size() - 1);
-
-        if (elements.size() == 1) {
-            return getTypeAlias(last.getType());
-        }
-
-        PathElement previous = elements.get(elements.size() - 2);
-
-        return getTypeAlias(previous.getType()) + UNDERSCORE + previous.getFieldName();
-    }
-
-    /**
-     * Build an HQL friendly alias for a class.
-     *
-     * @param type The type to alias
-     * @return type name alias that will likely not conflict with other types or with reserved keywords.
-     */
-    public static String getTypeAlias(Class<?> type) {
-        return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
-    }
-
     public Class getEntityType() {
         List<PathElement> elements = path.getPathElements();
         PathElement first = elements.get(0);
@@ -176,8 +148,8 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
         for (PathElement element : elements) {
             formattedPath.append(PERIOD).append(element.getFieldName());
-
         }
+
         return formattedPath.append(' ').append(operator).append(' ').append(values).toString();
     }
 

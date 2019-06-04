@@ -101,7 +101,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
+    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams,
+                                                  String apiVersion)
             throws ParseException {
         if (filterParams.size() != 1) {
             throw new ParseException(SINGLE_PARAMETER_ONLY);
@@ -133,7 +134,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
          * This works today by virtue that global filter expressions are only used for root collections
          * and NOT nested associations.
          */
-        Class entityType = dictionary.getEntityClass(lastPathComponent);
+        Class entityType = dictionary.getEntityClass(lastPathComponent, apiVersion);
         if (entityType == null) {
             throw new ParseException("No such collection: " + lastPathComponent);
         }
@@ -142,7 +143,8 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+                                                              String apiVersion)
             throws ParseException {
 
         Map<String, FilterExpression> expressionByType = new HashMap<>();
@@ -159,7 +161,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                     throw new ParseException("Exactly one RSQL expression must be defined for type : " + typeName);
                 }
 
-                Class entityType = dictionary.getEntityClass(typeName);
+                Class entityType = dictionary.getEntityClass(typeName, apiVersion);
                 if (entityType == null) {
                     throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
                 }
@@ -174,7 +176,6 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         }
         return expressionByType;
     }
-
 
     /**
      * Parses a RSQL string into an Elide FilterExpression.

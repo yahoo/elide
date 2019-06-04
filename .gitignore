@@ -15,3 +15,5 @@ dependency-reduced-pom.xml
 .project
 */.project
 */*/.project
+*.factorypath
+*.vscode

@@ -10,7 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
+import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
 
@@ -27,7 +27,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "nocommit")
 public class NoCommitEntity extends BaseId {
-    static public class NoCommitCheck<T> extends CommitCheck<T> {
+    static public class NoCommitCheck<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;

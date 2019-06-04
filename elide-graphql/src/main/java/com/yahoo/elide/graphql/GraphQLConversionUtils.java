@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
@@ -19,6 +20,7 @@ import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -34,14 +36,15 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
  */
 @Slf4j
 public class GraphQLConversionUtils {
-    protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
@@ -55,10 +58,12 @@ public class GraphQLConversionUtils {
     private final Map<Class, GraphQLInputObjectType> inputConversions = new HashMap<>();
     private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
+    private final GraphQLNameUtils nameUtils;
 
     public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
+        this.nameUtils = new GraphQLNameUtils(dictionary);
         registerCustomScalars();
     }
 
@@ -117,10 +122,10 @@ public class GraphQLConversionUtils {
 
         Enum [] values = (Enum []) enumClazz.getEnumConstants();
 
-        GraphQLEnumType.Builder builder = newEnum().name(toValidNameName(enumClazz.getName()));
+        GraphQLEnumType.Builder builder = newEnum().name(nameUtils.toOutputTypeName(enumClazz));
 
         for (Enum value : values) {
-            builder.value(toValidNameName(value.name()), value);
+            builder.value(value.toString(), value);
         }
 
         GraphQLEnumType enumResult = builder.build();
@@ -139,7 +144,7 @@ public class GraphQLConversionUtils {
      * @return The created type.
      */
     public GraphQLList classToQueryMap(Class<?> keyClazz, Class<?> valueClazz, DataFetcher fetcher) {
-        String mapName = toValidNameName(keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = nameUtils.toMapEntryOutputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -176,7 +181,7 @@ public class GraphQLConversionUtils {
      */
     public GraphQLList classToInputMap(Class<?> keyClazz,
                                        Class<?> valueClazz) {
-        String mapName = toValidNameName("_input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+        String mapName = nameUtils.toMapEntryInputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -291,19 +296,6 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Helper function converts a string into a valid name.
-     *
-     * @param input Input string
-     * @return Sanitized form of input string
-     */
-    protected String toValidNameName(String input) {
-        return input
-                .replace(".", "_") // Replaces package qualifier on class names
-                .replace("$", "__1") // Replaces inner-class qualifier
-                .replace("[", "___2"); // Replaces primitive list qualifier ([B == array of bytes)
-    }
-
-    /**
      * Helper function which converts an attribute of an entity to a GraphQL Input Type.
      * @param parentClass The parent entity class (Can either be an elide entity or not).
      * @param attributeClass The attribute class.
@@ -372,7 +364,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType.Builder objectBuilder = newObject();
-        objectBuilder.name(toValidNameName(clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideOutputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
@@ -418,7 +410,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName("_input__" + clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideInputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);
@@ -443,6 +435,42 @@ public class GraphQLConversionUtils {
 
         return object;
     }
+
+    /**
+     * Build an Argument list object for the given attribute.
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type.
+     * @return Newly created GraphQLArgument Collection for the given attribute.
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Class<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher) {
+        return attributeArgumentToQueryObject(entityClass, attribute, fetcher, entityDictionary);
+    }
+
+    /**
+     * Build an Argument list object for the given attribute
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
+     * @param dictionary The dictionary that contains the runtime type information for the parent class.
+     * @return Newly created GraphQLArgument Collection for the given attribute
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Class<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher,
+                                                                EntityDictionary dictionary) {
+        return dictionary.getAttributeArguments(entityClass, attribute)
+                .stream()
+                .map(argumentType -> newArgument()
+                        .name(argumentType.getName())
+                        .type(fetchScalarOrObjectInput(argumentType.getType()))
+                        .build())
+                .collect(Collectors.toList());
+
+    }
+
 
     private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
                                                         DataFetcher fetcher) {

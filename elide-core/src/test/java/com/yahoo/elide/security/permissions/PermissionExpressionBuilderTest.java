@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.security.permissions;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.ElideSettings;
@@ -15,6 +16,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
@@ -40,7 +42,7 @@ public class PermissionExpressionBuilderTest {
         checks.put("user has all access", Role.ALL.class);
         checks.put("user has no access", Role.NONE.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
 
         ExpressionResultCache cache = new ExpressionResultCache();
         builder = new PermissionExpressionBuilder(cache, dictionary);
@@ -127,7 +129,7 @@ public class PermissionExpressionBuilderTest {
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, null, null, null, null, elideSettings);
+        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }

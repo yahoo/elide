@@ -120,8 +120,9 @@ Add Lifecycle hooks to your models to embed custom business logic that execute i
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("Noone")
-@UpdatePermission("Noone")
+@DeletePermission("None")
+@UpdatePermission("None")
+@LifeCycleHookBinding(operation = UPDATE, hook = BookCreationHook.class, phase = PRECOMMIT)
 public class Book {
 
     @Id
@@ -132,9 +133,13 @@ public class Book {
 
     @ManyToMany(mappedBy = "books")
     private Set<Author> authors;
+}
 
-    @OnCreatePreCommit
-    public void onCreate(RequestScope scope) {
+public class BookCreationHook implements LifeCycleHook<Book> {
+
+    @Override
+    public void execute(LifeCycleHookBinding.Operation operation, Book book,
+                        RequestScope requestScope, Optional<ChangeSpec> changes) {
        //Do something
     }
 }
