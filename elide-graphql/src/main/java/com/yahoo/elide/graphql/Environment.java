@@ -42,7 +42,7 @@ public class Environment {
     public Environment(DataFetchingEnvironment environment) {
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = (GraphQLRequestScope) environment.getContext();
+        requestScope = environment.getContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));

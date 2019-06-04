@@ -23,6 +23,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.exceptions.UnableToAddSerdeException;
 import com.yahoo.elide.extensions.JsonApiPatch;
 import com.yahoo.elide.extensions.PatchRequestScope;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.parsers.BaseVisitor;
@@ -161,6 +162,8 @@ public class Elide {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, queryParams, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -179,6 +182,8 @@ public class Elide {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new PostVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });
@@ -213,6 +218,8 @@ public class Elide {
             handler = (tx, user) -> {
                 JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
                 RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                        requestScope).parsePath(path));
                 BaseVisitor visitor = new PatchVisitor(requestScope);
                 return visit(path, requestScope, visitor);
             };
@@ -235,6 +242,8 @@ public class Elide {
                     ? new JsonApiDocument()
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(path, jsonApiDoc, tx, user, null, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
             return visit(path, requestScope, visitor);
         });

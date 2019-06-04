@@ -13,8 +13,13 @@ import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.QueryEngineFactory;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngineFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -96,11 +101,19 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory) throws ClassNotFoundException {
+    public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
+                                    QueryEngineFactory queryEngineFactory,
+                                    ElideConfigProperties settings) throws ClassNotFoundException {
+        MetaDataStore metaDataStore = new MetaDataStore();
 
-        return new JpaDataStore(
+        AggregationDataStore aggregationDataStore = new AggregationDataStore(queryEngineFactory, metaDataStore);
+
+        JpaDataStore jpaDataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                     (em -> { return new NonJtaTransaction(em); }));
+
+        // meta data store needs to be put at first to populate meta data models
+        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
 
     /**
@@ -121,5 +134,16 @@ public class ElideAutoConfiguration {
         Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
 
         return swagger;
+    }
+
+    /**
+     * Configure the QueryEngineFactory that the Aggregation Data Store uses.
+     * @param entityManagerFactory Needed by the SQLQueryEngine
+     * @return a SQLQueryEngineFactory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public QueryEngineFactory buildQueryEngineFactory(EntityManagerFactory entityManagerFactory) {
+        return new SQLQueryEngineFactory(entityManagerFactory);
     }
 }

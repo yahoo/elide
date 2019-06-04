@@ -99,8 +99,8 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         String actual = getJoinClauseFromFilters(andExpression);
         String expected = " LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
+                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters   "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher  ";
         assertEquals(expected, actual);
     }
 

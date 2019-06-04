@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
@@ -19,6 +20,7 @@ import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -34,7 +36,9 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
@@ -442,6 +446,42 @@ public class GraphQLConversionUtils {
 
         return object;
     }
+
+    /**
+     * Build an Argument list object for the given attribute.
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type.
+     * @return Newly created GraphQLArgument Collection for the given attribute.
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Class<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher) {
+        return attributeArgumentToQueryObject(entityClass, attribute, fetcher, entityDictionary);
+    }
+
+    /**
+     * Build an Argument list object for the given attribute
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
+     * @param dictionary The dictionary that contains the runtime type information for the parent class.
+     * @return Newly created GraphQLArgument Collection for the given attribute
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Class<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher,
+                                                                EntityDictionary dictionary) {
+        return dictionary.getAttributeArguments(entityClass, attribute)
+                .stream()
+                .map(argumentType -> newArgument()
+                        .name(argumentType.getName())
+                        .type(fetchScalarOrObjectInput(argumentType.getType()))
+                        .build())
+                .collect(Collectors.toList());
+
+    }
+
 
     private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
                                                         DataFetcher fetcher) {

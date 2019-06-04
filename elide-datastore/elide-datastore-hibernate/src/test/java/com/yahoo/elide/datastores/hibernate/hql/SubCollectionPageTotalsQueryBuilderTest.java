@@ -73,12 +73,13 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "JOIN example_Author.books example_Author_books "
                 + "WHERE example_Author.id IN (:id_XXX)";
 
         assertEquals(expected, actual);
@@ -139,15 +140,16 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher   "
-                + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "LEFT JOIN example_Author.books example_Author_books "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_publisher.name IN (:books_publisher_name_XXX) "
                 + "AND example_Author.id IN (:id_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

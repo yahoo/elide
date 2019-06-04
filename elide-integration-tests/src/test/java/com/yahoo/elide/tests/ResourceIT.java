@@ -48,6 +48,7 @@ import com.yahoo.elide.core.filter.PrefixPredicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
@@ -75,7 +76,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -915,7 +915,7 @@ public class ResourceIT extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1?include=children.BadRelation")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -2676,7 +2676,12 @@ public class ResourceIT extends IntegrationTest {
         when(scope.getDictionary()).thenReturn(dictionary);
         Pagination pagination = mock(Pagination.class);
         when(pagination.isGenerateTotals()).thenReturn(true);
-        tx.loadObjects(Book.class, Optional.of(filterPredicate), Optional.empty(), Optional.of(pagination), scope);
+        tx.loadObjects(EntityProjection.builder()
+                .type(Book.class)
+
+                .filterExpression(filterPredicate)
+                .pagination(pagination)
+                .build(), scope);
         tx.commit(scope);
         tx.close();
         verify(pagination).setPageTotals(noOfRecords);

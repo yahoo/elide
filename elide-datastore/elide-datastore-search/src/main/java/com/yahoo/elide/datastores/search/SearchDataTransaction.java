@@ -23,6 +23,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.EntityProjection;
 
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
@@ -69,26 +70,25 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
+    public Iterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope requestScope) {
-        if (!filterExpression.isPresent()) {
-            return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+        if (projection.getFilterExpression() == null) {
+            return super.loadObjects(projection, requestScope);
         }
 
-        boolean canSearch = (canSearch(entityClass, filterExpression.get()) != NONE);
+        boolean canSearch = (canSearch(projection.getType(), projection.getFilterExpression()) != NONE);
 
-        if (mustSort(sorting, entityClass)) {
-            canSearch = canSearch && canSort(sorting.get(), entityClass);
+        if (mustSort(Optional.ofNullable(projection.getSorting()), projection.getType())) {
+            canSearch = canSearch && canSort(projection.getSorting(), projection.getType());
         }
 
         if (canSearch) {
-            return search(entityClass, filterExpression.get(), sorting, pagination);
+            return search(projection.getType(), projection.getFilterExpression(),
+                    Optional.ofNullable(projection.getSorting()),
+                    Optional.ofNullable(projection.getPagination()));
         }
 
-        return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+        return super.loadObjects(projection, requestScope);
     }
 
     /**

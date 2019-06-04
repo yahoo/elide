@@ -55,6 +55,18 @@ public class FetcherRemoveTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testBadArgument() {
+        String graphQLRequest = "mutation { "
+                + "author(unknown: \"1\") { "
+                + "books(op:REMOVE) { "
+                + "edges { node { id } } "
+                + "} "
+                + "} "
+                + "}";
+        assertParsingFails(graphQLRequest);
+    }
+
+    @Test
     public void testRootCollection() throws Exception {
         // Part 1: Delete the objects
         runComparisonTest("rootCollectionPt1");

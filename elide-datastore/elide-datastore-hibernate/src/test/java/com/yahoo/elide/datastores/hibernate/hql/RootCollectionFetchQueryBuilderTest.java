@@ -54,8 +54,9 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  ";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -72,8 +73,9 @@ public class RootCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book   order by example_Book.title asc";
+        String expected = "SELECT example_Book FROM example.Book AS example_Book order by example_Book.title asc";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         assertEquals(expected, actual);
     }
@@ -111,14 +113,15 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         String expected =
-                "SELECT example_Author FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
-                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
+                "SELECT example_Author FROM example.Author AS example_Author "
+                + "LEFT JOIN example_Author.books example_Author_books "
+                + "LEFT JOIN example_Author_books.chapters example_Author_books_chapters "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR example_Author_books_publisher.name IN (:books_publisher_name_XXX))";
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
         actual = actual.replaceFirst(":books_publisher_name_\\w\\w\\w\\w+", ":books_publisher_name_XXX");
@@ -145,10 +148,11 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book  "
-                + "WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
+                "SELECT example_Book FROM example.Book AS example_Book "
+                + "WHERE example_Book.id IN (:id_XXX) order by example_Book.title asc";
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

@@ -57,6 +57,7 @@ public abstract class AbstractApiResourceInitializer {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
                 Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // embedded jetty server
         server = new Server(RestAssured.port);
@@ -69,12 +70,6 @@ public abstract class AbstractApiResourceInitializer {
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
         servletHolder.setInitParameter("javax.ws.rs.Application", resourceConfig);
-
-        ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
-        graphqlServlet.setInitOrder(2);
-        graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
-                com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
-        graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();

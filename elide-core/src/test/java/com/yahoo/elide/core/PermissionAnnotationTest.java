@@ -21,7 +21,6 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.executors.ActivePermissionExecutor;
 
 import example.FunWithPermissions;
-import example.TestCheckMappings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +34,7 @@ public class PermissionAnnotationTest {
     private static PersistentResource<FunWithPermissions> funRecord;
     private static PersistentResource<FunWithPermissions> badRecord;
 
-    private static EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+    private static EntityDictionary dictionary = TestDictionary.getTestDictionary();
 
     public PermissionAnnotationTest() { }
 
