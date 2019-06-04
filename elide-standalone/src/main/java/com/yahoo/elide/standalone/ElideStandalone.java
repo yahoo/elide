@@ -111,7 +111,7 @@ public class ElideStandalone {
 
         if (elideStandaloneSettings.enableGraphQL()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getGraphQLApiPathSepc());
+                    elideStandaloneSettings.getGraphQLApiPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
@@ -135,7 +135,7 @@ public class ElideStandalone {
 
         if (!elideStandaloneSettings.enableSwagger().isEmpty()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getSwaggerPathSepc());
+                    elideStandaloneSettings.getSwaggerPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.contrib.swagger.resources");

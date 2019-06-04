@@ -77,7 +77,7 @@ public interface ElideStandaloneSettings {
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(getAuditLogger());
 
-        if (enableIS06081Dates()) {
+        if (enableISO8601Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
 
@@ -134,8 +134,8 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /graphql/api/v1
      */
-    default String getGraphQLApiPathSepc() {
-        return "/graphql/api/v1";
+    default String getGraphQLApiPathSpec() {
+        return "/graphql/api/v1/*";
     }
 
 
@@ -144,7 +144,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /swagger/*
      */
-    default String getSwaggerPathSepc() {
+    default String getSwaggerPathSpec() {
         return "/swagger/*";
     }
 
@@ -170,7 +170,7 @@ public interface ElideStandaloneSettings {
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
-    default boolean enableIS06081Dates() {
+    default boolean enableISO8601Dates() {
         return true;
     }
 

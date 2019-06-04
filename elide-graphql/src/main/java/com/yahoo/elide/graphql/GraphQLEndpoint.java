@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Function;

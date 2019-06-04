@@ -10,9 +10,8 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -23,7 +22,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -170,36 +168,28 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public Object loadObject(Class<?> entityClass,
+    public Object loadObject(EntityProjection projection,
                              Serializable id,
-                             Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entityClass);
-        return hold(transaction, transaction.loadObject(entityClass, id, filterExpression, scope));
+        DataStoreTransaction transaction = getTransaction(projection.getType());
+        return hold(transaction, transaction.loadObject(projection, id, scope));
     }
 
     @Override
     public Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            EntityProjection projection,
             RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entityClass);
-        return hold(transaction, transaction.loadObjects(entityClass, filterExpression, sorting, pagination, scope));
+        DataStoreTransaction transaction = getTransaction(projection.getType());
+        return hold(transaction, transaction.loadObjects(projection, scope));
     }
 
     @Override
     public Object getRelation(DataStoreTransaction relationTx,
                               Object entity,
-                              String relationName,
-                              Optional<FilterExpression> filter,
-                              Optional<Sorting> sorting,
-                              Optional<Pagination> pagination,
+                              Relationship relationship,
                               RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(entity.getClass());
-        Object relation = super.getRelation(relationTx, entity, relationName,
-                filter, sorting, pagination, scope);
+        Object relation = super.getRelation(relationTx, entity, relationship, scope);
 
         if (relation instanceof Iterable) {
             return hold(transaction, (Iterable<?>) relation);
