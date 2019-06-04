@@ -1,0 +1,32 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "title": "Libro Uno",
+          "authors": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          },
+          "authors_alias": {
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "name": "Mark Twain"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

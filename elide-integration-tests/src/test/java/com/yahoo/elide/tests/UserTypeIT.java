@@ -19,6 +19,7 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
@@ -50,6 +51,7 @@ class UserTypeIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testUserTypePost() throws Exception {
         Resource resource = resource(
                 type("person"),
@@ -85,6 +87,7 @@ class UserTypeIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testUserTypePatch() throws Exception {
         Resource original = resource(
                 type("person"),
@@ -139,6 +142,7 @@ class UserTypeIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testUserTypeMissingUserTypeField() throws Exception {
         Resource resource = resource(
                 type("person"),
@@ -177,6 +181,7 @@ class UserTypeIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testUserTypeMissingUserTypeProperties() throws Exception {
 
         Map<String, Object> partialZip = new HashMap<>();

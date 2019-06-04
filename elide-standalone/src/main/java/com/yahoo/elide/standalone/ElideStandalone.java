@@ -7,7 +7,6 @@ package com.yahoo.elide.standalone;
 
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
 
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -29,7 +28,6 @@ import java.util.EnumSet;
 import java.util.Map;
 
 import javax.servlet.DispatcherType;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Elide Standalone.
@@ -54,26 +52,10 @@ public class ElideStandalone {
      * @param checkMappings Check mappings to use for service.
      */
     public ElideStandalone(Map<String, Class<? extends Check>> checkMappings) {
-        this(checkMappings, SecurityContext::getUserPrincipal);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param checkMappings Check mappings to use for service.
-     * @param userExtractionFn User extraction function to use for service.
-     */
-    public ElideStandalone(Map<String, Class<? extends Check>> checkMappings,
-                           DefaultOpaqueUserFunction userExtractionFn) {
         this(new ElideStandaloneSettings() {
             @Override
             public Map<String, Class<? extends Check>> getCheckMappings() {
                 return checkMappings;
-            }
-
-            @Override
-            public DefaultOpaqueUserFunction getUserExtractionFunction() {
-                return userExtractionFn;
             }
         });
     }
@@ -111,7 +93,7 @@ public class ElideStandalone {
 
         if (elideStandaloneSettings.enableGraphQL()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getGraphQLApiPathSepc());
+                    elideStandaloneSettings.getGraphQLApiPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
@@ -135,13 +117,12 @@ public class ElideStandalone {
 
         if (!elideStandaloneSettings.enableSwagger().isEmpty()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
-                    elideStandaloneSettings.getSwaggerPathSepc());
+                    elideStandaloneSettings.getSwaggerPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
                     "com.yahoo.elide.contrib.swagger.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
-
 
         elideStandaloneSettings.updateServletContextHandler(context);
 

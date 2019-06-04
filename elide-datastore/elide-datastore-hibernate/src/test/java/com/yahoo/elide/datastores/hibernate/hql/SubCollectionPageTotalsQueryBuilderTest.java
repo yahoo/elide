@@ -16,9 +16,9 @@ import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 
+import com.yahoo.elide.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -73,12 +73,13 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "JOIN example_Author.books example_Author_books "
                 + "WHERE example_Author.id IN (:id_XXX)";
 
         assertEquals(expected, actual);
@@ -98,7 +99,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
     @Test
     public void testSubCollectionPageTotalsWithPagination() {
         AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
-        Pagination pagination = mock(Pagination.class);
+        PaginationImpl pagination = mock(PaginationImpl.class);
 
         SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
                 dictionary, new TestSessionWrapper());
@@ -139,15 +140,16 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher   "
-                + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "LEFT JOIN example_Author.books example_Author_books "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_publisher.name IN (:books_publisher_name_XXX) "
                 + "AND example_Author.id IN (:id_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

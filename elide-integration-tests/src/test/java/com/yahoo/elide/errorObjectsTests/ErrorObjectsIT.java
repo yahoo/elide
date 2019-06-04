@@ -13,9 +13,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,10 +27,6 @@ import javax.ws.rs.core.MediaType;
 
 public class ErrorObjectsIT extends IntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public ErrorObjectsIT() {
-        super(ErrorObjectsIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
 
     @Test
     public void testJsonAPIErrorObjects() throws IOException {

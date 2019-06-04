@@ -1,0 +1,18 @@
+query testBook($ids : [String] = ["1"]) {
+  book(ids: $ids) {
+    edges {
+      node {
+        id
+        title
+        authors {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

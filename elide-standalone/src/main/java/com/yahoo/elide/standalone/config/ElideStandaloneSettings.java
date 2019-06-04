@@ -10,30 +10,28 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.swagger.resources.DocEndpoint;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
+import com.yahoo.elide.async.service.AsyncQueryDAO;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import io.swagger.models.Swagger;
-
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManagerFactory;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Interface for configuring an ElideStandalone application.
@@ -63,7 +61,7 @@ public interface ElideStandaloneSettings {
      */
     default ElideSettings getElideSettings(ServiceLocator injector) {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
-                getDatabaseProperties());
+                enableAsync(), getDatabaseProperties());
         DataStore dataStore = new JpaDataStore(
                 () -> { return entityManagerFactory.createEntityManager(); },
                 (em -> { return new NonJtaTransaction(em); }));
@@ -84,26 +82,16 @@ public interface ElideStandaloneSettings {
         dictionary.scanForSecurityChecks();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
-                .withUseFilterExpressions(true)
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(getAuditLogger());
 
-        if (enableIS06081Dates()) {
+        if (enableISO8601Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
 
         return builder.build();
-    }
-
-    /**
-     * The function used to extract a user from the SecurityContext.
-     *
-     * @return Function for user extraction.
-     */
-    default DefaultOpaqueUserFunction getUserExtractionFunction() {
-        return SecurityContext::getUserPrincipal;
     }
 
     /* Non-required application/server settings */
@@ -147,17 +135,16 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /graphql/api/v1
      */
-    default String getGraphQLApiPathSepc() {
-        return "/graphql/api/v1";
+    default String getGraphQLApiPathSpec() {
+        return "/graphql/api/v1/*";
     }
-
 
     /**
      * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
      *
      * @return Default: /swagger/*
      */
-    default String getSwaggerPathSepc() {
+    default String getSwaggerPathSpec() {
         return "/swagger/*";
     }
 
@@ -178,12 +165,66 @@ public interface ElideStandaloneSettings {
     default boolean enableGraphQL() {
         return true;
     }
+    
+    /**
+     * Enable the support for Async querying feature. If false, the async feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAsync() {
+        return false;
+    }
+
+    /**
+     * Enable the support for cleaning up Async query history. If false, the async cleanup feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableAsyncCleanup() {
+        return false;
+    }
+
+    /**
+     * Thread Size for Async queries to run in parallel.
+     *
+     * @return Default: 5
+     */
+    default Integer getAsyncThreadSize() {
+        return 5;
+    }
+
+    /**
+     * Maximum Query Run time for Async Queries to mark as TIMEDOUT.
+     *
+     * @return Default: 60
+     */
+    default Integer getAsyncMaxRunTimeMinutes() {
+        return 60;
+    }
+
+    /**
+     * Number of days history to retain for async query executions and results.
+     *
+     * @return Default: 7
+     */
+    default Integer getAsyncQueryCleanupDays() {
+        return 7;
+    }
+
+    /**
+     * Implementation of AsyncQueryDAO to use.
+     *
+     * @return AsyncQueryDAO type object.
+     */
+    default AsyncQueryDAO getAsyncQueryDAO() {
+        return null;
+    }
 
     /**
      * Whether Dates should be ISO8601 strings (true) or epochs (false).
      * @return
      */
-    default boolean enableIS06081Dates() {
+    default boolean enableISO8601Dates() {
         return true;
     }
 
@@ -196,15 +237,13 @@ public interface ElideStandaloneSettings {
         return true;
     }
 
-
     /**
-     * Enable swagger documentation by returning non empty map object.
-     * @return Map object that maps document name to swagger object.
+     * Enable swagger documentation by returning non empty list.
+     * @return list of swagger registration objects.
      */
-    default Map<String, Swagger> enableSwagger() {
-        return new HashMap<>();
+    default List<DocEndpoint.SwaggerRegistration> enableSwagger() {
+        return new ArrayList<>();
     }
-
 
     /**
      * JAX-RS filters to register with the web service.
@@ -226,7 +265,6 @@ public interface ElideStandaloneSettings {
         // Do nothing by default
         return (x) -> { };
     }
-
 
     /**
      * Gets properties to configure the database

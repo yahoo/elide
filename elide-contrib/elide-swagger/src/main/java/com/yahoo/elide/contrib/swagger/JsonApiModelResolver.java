@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Swagger ModelResolvers map POJO classes to Swagger com.yahoo.elide.contrib.swagger.models.
+ * Swagger ModelResolvers map POJO classes to Swagger example.models.
  * This resolver maps the POJO to a JSON-API Resource.
  */
 public class JsonApiModelResolver extends ModelResolver {

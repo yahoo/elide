@@ -5,16 +5,16 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.models.generics.Manager;
-import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
-
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
-
+import example.models.generics.Manager;
+import example.models.triggers.Invoice;
+import example.models.versioned.BookV2;
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
@@ -57,6 +57,8 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }

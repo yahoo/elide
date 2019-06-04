@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.ErrorObjects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,9 +17,6 @@ import org.owasp.encoder.Encode;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -54,56 +52,35 @@ public abstract class HttpStatusException extends RuntimeException {
 
     /**
      * Get a response detailing the error that occurred.
+     * Encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getErrorResponse() {
-        return getErrorResponse(false);
-    }
-
-    /**
-     * Get a response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
-     * @param encodeResponse true if the message should be encoded for html
-     * @return Pair containing status code and a JsonNode containing error details
-     */
-    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-        String message = encodeResponse ? Encode.forHtml(toString()) : toString();
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(message)
-        );
-        return buildResponse(errors);
+        return buildResponse(getMessage());
     }
 
     /**
      * Get a verbose response detailing the error that occurred.
+     * Encode the error message to be safe for HTML.
      * @return Pair containing status code and a JsonNode containing error details
      */
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        return getVerboseErrorResponse(false);
+        return buildResponse(getVerboseMessage());
     }
 
-    /**
-     * Get a verbose response detailing the error that occurred.
-     * Optionally, encode the error message to be safe for HTML.
-     * @param encodeResponse true if the message should be encoded for html
-     * @return Pair containing status code and a JsonNode containing error details
-     */
-    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-        String message = encodeResponse ? Encode.forHtml(getVerboseMessage()) : getVerboseMessage();
-        Map<String, List<String>> errors = Collections.singletonMap(
-                "errors", Collections.singletonList(message)
-        );
-        return buildResponse(errors);
-    }
+    private Pair<Integer, JsonNode> buildResponse(String message) {
+        String errorDetail = message;
+        errorDetail = Encode.forHtml(errorDetail);
 
-    private Pair<Integer, JsonNode> buildResponse(Map<String, List<String>> errors) {
+        ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
         JsonNode responseBody = OBJECT_MAPPER.convertValue(errors, JsonNode.class);
+
         return Pair.of(getStatus(), responseBody);
     }
 
     public String getVerboseMessage() {
         return verboseMessageSupplier.map(Supplier::get)
-                .orElse(toString());
+                .orElse(getMessage());
     }
 
     public int getStatus() {

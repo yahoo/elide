@@ -16,52 +16,32 @@ public class UserIdChecks {
     public static class UserOneCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(1);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserOne";
         }
     }
 
     public static class UserTwoCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(2);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserTwo";
         }
     }
 
     public static class UserThreeCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(3);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserThree";
         }
     }
 
     public static class UserFourCheck extends UserCheck {
         @Override
         public boolean ok(User user) {
-            Integer id = (Integer) user.getOpaqueUser();
+            Integer id = Integer.parseInt(user.getPrincipal().getName());
             return id.equals(4);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "UserFour";
         }
     }
 }

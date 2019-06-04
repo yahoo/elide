@@ -10,7 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import javax.persistence.Id;
 
 /**
- * Simple bean intended to not be persisted
+ * Simple bean intended to not be persisted.
  */
 @Include(type = "theNoopBean")
 public class NoopBean {

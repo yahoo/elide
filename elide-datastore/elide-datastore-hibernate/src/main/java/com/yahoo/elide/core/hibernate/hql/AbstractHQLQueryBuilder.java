@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RelationshipType;
@@ -13,8 +16,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,7 +42,6 @@ public abstract class AbstractHQLQueryBuilder {
     protected Optional<Pagination> pagination;
     protected Optional<FilterExpression> filterExpression;
     protected static final String SPACE = " ";
-    protected static final String UNDERSCORE = "_";
     protected static final String PERIOD = ".";
     protected static final String COMMA = ",";
     protected static final String FROM = " FROM ";
@@ -49,6 +51,7 @@ public abstract class AbstractHQLQueryBuilder {
     protected static final String SELECT = "SELECT ";
     protected static final String AS = " AS ";
     protected static final String DISTINCT = "DISTINCT ";
+    protected static final String WHERE = " WHERE ";
 
     protected static final boolean USE_ALIAS = true;
     protected static final boolean NO_ALIAS = false;
@@ -167,14 +170,16 @@ public abstract class AbstractHQLQueryBuilder {
         for (Path.PathElement pathElement : path.getPathElements()) {
             String fieldName = pathElement.getFieldName();
             Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
-            String typeAlias = FilterPredicate.getTypeAlias(typeClass);
+            String typeAlias = getTypeAlias(typeClass);
 
-            //Nothing left to join.
+            // Nothing left to join.
             if (! dictionary.isRelation(pathElement.getType(), fieldName)) {
                 return joinClause.toString();
             }
 
-            String alias = typeAlias + UNDERSCORE + fieldName;
+            String alias = previousAlias == null
+                    ? appendAlias(typeAlias, fieldName)
+                    : appendAlias(previousAlias, fieldName);
 
             String joinKey;
 
@@ -278,28 +283,16 @@ public abstract class AbstractHQLQueryBuilder {
     protected String getSortClause(final Optional<Sorting> sorting, Class<?> sortClass, boolean prefixWithAlias) {
         String sortingRules = "";
         if (sorting.isPresent() && !sorting.get().isDefaultInstance()) {
-            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getValidSortingRules(
-                    sortClass, dictionary
-            );
+            final Map<Path, Sorting.SortOrder> validSortingRules = sorting.get().getSortingPaths();
             if (!validSortingRules.isEmpty()) {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
-                validSortingRules.entrySet().stream().forEachOrdered(entry -> {
-                        Path path = entry.getKey();
+                validSortingRules.forEach((path, order) -> {
+                    String prefix = (prefixWithAlias) ? getTypeAlias(sortClass) + PERIOD : "";
 
-                        String orderElement;
-                        if (alreadyJoinedAliases.contains(path.getAlias())) {
-                            orderElement = path.lastElement()
-                                .map(element -> path.getAlias() + PERIOD + element.getFieldName())
-                                .orElse("");
-                        } else {
-                            String prefix = (prefixWithAlias) ? Path.getTypeAlias(sortClass) + PERIOD : "";
-                            orderElement = prefix + path.getFieldPath();
-                        }
-                        orderElement += SPACE + (entry.getValue().equals(Sorting.SortOrder.desc) ? "desc" : "asc");
-                        ordering.add(orderElement);
-                    }
-                );
+                    ordering.add(prefix + path.getFieldPath() + SPACE
+                            + (order.equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
+                });
                 sortingRules = " order by " + StringUtils.join(ordering, COMMA);
             }
         }

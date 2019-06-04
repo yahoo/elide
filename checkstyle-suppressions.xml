@@ -10,8 +10,10 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 <suppressions>
   <!-- Suppress generated sources -->
-  <suppress files="[/\\]src[/\\]test[/\\]" checks="(JavadocType|LineLength|MethodLength)"/>
+  <suppress files="[/\\]src[/\\]test[/\\]" checks="(JavadocType|LineLength|MethodLength|MethodCount)"/>
   <suppress files="[/\\]src[/\\]main[/\\]webapp[/\\]WEB-INF[/\\]api-docs[/\\]" checks=".*"/>
   <suppress files="[/\\]target[/\\]" checks=".*"/>
   <suppress files="\.csv" checks=".*"/>
+  <suppress files="\.json" checks="LineLength"/>
+  <suppress files="\.hbs" checks="LineLength"/>
 </suppressions>

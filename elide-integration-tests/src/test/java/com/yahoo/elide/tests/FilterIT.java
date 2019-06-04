@@ -283,6 +283,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterNotInSingle() throws JsonProcessingException {
         int nonLiteraryFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -311,6 +312,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterNotInMultiple() throws JsonProcessingException {
         int nonFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -422,6 +424,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterPrefixWithSpecialChars() throws JsonProcessingException {
         int titleStartsWithTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -449,6 +452,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testRootFilterInfix() throws JsonProcessingException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -853,6 +857,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testNonRootFilterInfix() throws JsonProcessingException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : asimovBooks.get("data")) {
@@ -1149,6 +1154,7 @@ public class FilterIT extends IntegrationTest {
      * Verifies that issue 508 is closed.
      */
     @Test
+    @Tag("skipInMemory")
     void testIssue508() throws JsonProcessingException {
         JsonNode result = getAsNode("book?filter=(authors.name=='Thomas Harris',publisher.name=='Default Publisher')&page[totals]");
 
@@ -1179,21 +1185,22 @@ public class FilterIT extends IntegrationTest {
         JsonNode result = getAsNode(
                 "book?filter[book.author12.name]=Null Ned", HttpStatus.SC_BAD_REQUEST);
 
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Unknown field in filter: author12\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Unknown field in filter: author12\n"
                         + "Invalid query parameter: filter[book.author12.name]");
 
         /* Test RSQL Global */
         result = getAsNode("book?filter=author12.name=='Null Ned'", HttpStatus.SC_BAD_REQUEST);
 
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Invalid filter format: filter\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Invalid filter format: filter\n"
                         + "No such association author12 for type book\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
     }
 
     @Test
+    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthors() throws JsonProcessingException {
         /* Test Default */
         JsonNode result = getAsNode("book?filter[book.authors.name]=Null Ned");
@@ -1217,6 +1224,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     void testGetBooksFilteredByAuthorsId() throws JsonProcessingException {
         String nullNedIdStr = String.valueOf(nullNedId);
         /* Test Default */
@@ -1400,16 +1408,16 @@ public class FilterIT extends IntegrationTest {
         JsonNode result = getAsNode(
                 "/author?filter[idontexist.books.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Unknown entity in filter: idontexist\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Unknown entity in filter: idontexist\n"
                         + "Invalid query parameter: filter[idontexist.books.title][in]");
 
         /* Test RSQL Global */
         result = getAsNode(
                 "/author?filter=idontexist.books.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Invalid filter format: filter\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1421,16 +1429,16 @@ public class FilterIT extends IntegrationTest {
         JsonNode result = getAsNode(
                 "/author?filter[author.idontexist.title][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Unknown field in filter: idontexist\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.idontexist.title][in]");
 
         /* Test RSQL Global */
         result = getAsNode(
                 "/author?filter=idontexist.title=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Invalid filter format: filter\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Invalid filter format: filter\n"
                         + "No such association idontexist for type author\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1442,16 +1450,16 @@ public class FilterIT extends IntegrationTest {
         JsonNode result = getAsNode(
                 "/author?filter[author.books.idontexist][in]=Viva la Roma!,Mamma mia I wantz some pizza!",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Unknown field in filter: idontexist\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Unknown field in filter: idontexist\n"
                         + "Invalid query parameter: filter[author.books.idontexist][in]");
 
         /* Test RSQL Global */
         result = getAsNode(
                 "/author?filter=books.idontexist=in=('Viva la Roma!','Mamma mia I wantz some pizza!')",
                 HttpStatus.SC_BAD_REQUEST);
-        assertEquals(result.get("errors").get(0).asText(),
-                "BadRequestException: Invalid filter format: filter\n"
+        assertEquals(result.get("errors").get(0).get("detail").asText(),
+                "Invalid filter format: filter\n"
                         + "No such association idontexist for type book\n"
                         + "Invalid filter format: filter\n"
                         + "Invalid query parameter: filter");
@@ -1671,21 +1679,21 @@ public class FilterIT extends IntegrationTest {
         // Typed Expression
         result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][notempty]", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "BadRequestException: Invalid predicate: book.authors.name NOTEMPTY []\n"
+                "Invalid predicate: book.authors.name NOTEMPTY []\n"
                         + "Invalid query parameter: filter[book.authors.name][notempty]\n"
                         + "Invalid toMany join. toMany association has to be the target collection.book.authors.name NOTEMPTY []\n"
                         + "Invalid query parameter: filter[book.authors.name][notempty]",
-                result.get("errors").get(0).asText()
+                result.get("errors").get(0).get("detail").asText()
         );
 
         //RSQL
         result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=isempty=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "BadRequestException: Invalid filter format: filter[book]\n"
+                "Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
                         + "Invalid association authors.name. toMany association has to be the target collection.",
-                result.get("errors").get(0).asText()
+                result.get("errors").get(0).get("detail").asText()
         );
     }
 
