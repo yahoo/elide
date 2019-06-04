@@ -7,14 +7,12 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidCollectionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
+import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Optional;
 
@@ -26,11 +24,11 @@ public class StartState extends BaseState {
     public void handle(StateContext state, RootCollectionLoadEntitiesContext ctx) {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(entityName);
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
-        state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty()));
+
+        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+
+        state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
+                state.getRequestScope().getEntityProjection()));
     }
 
     @Override
@@ -42,23 +40,21 @@ public class StartState extends BaseState {
     @Override
     public void handle(StateContext state, RootCollectionSubCollectionContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
-        state.setState(new RecordState(record));
+
+        state.setState(new RecordState(record, state.getRequestScope().getEntityProjection()));
     }
 
     @Override
     public void handle(StateContext state, RootCollectionRelationshipContext ctx) {
         PersistentResource record = entityRecord(state, ctx.entity());
 
+        EntityProjection projection = state.getRequestScope().getEntityProjection();
         String relationName = ctx.relationship().term().getText();
-        try {
-            Optional<FilterExpression> filterExpression =
-                    state.getRequestScope().getExpressionForRelation(record, relationName);
-            record.getRelationCheckedFiltered(relationName, filterExpression, Optional.empty(), Optional.empty());
-        } catch (InvalidAttributeException e) {
-            throw new InvalidCollectionException(relationName);
-        }
 
-        state.setState(new RelationshipTerminalState(record, relationName));
+        record.getRelationCheckedFiltered(projection.getRelationship(relationName)
+                    .orElseThrow(IllegalStateException::new));
+
+        state.setState(new RelationshipTerminalState(record, relationName, projection));
     }
 
     @Override
@@ -67,14 +63,9 @@ public class StartState extends BaseState {
     }
 
     private PersistentResource<?> entityRecord(StateContext state, EntityContext entity) {
-        String entityName = entity.term().getText();
         String id = entity.id().getText();
-        EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(entityName);
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
 
-        return PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
+        return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
+                id, state.getRequestScope());
     }
 }

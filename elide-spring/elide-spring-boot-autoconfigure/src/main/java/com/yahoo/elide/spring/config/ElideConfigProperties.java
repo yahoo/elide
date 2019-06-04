@@ -32,6 +32,16 @@ public class ElideConfigProperties {
     private SwaggerControllerProperties swagger;
 
     /**
+     * Settings for the Async.
+     */
+    private AsyncProperties async;
+
+    /**
+     * Settings for the Dynamic Configuration.
+     */
+    private DynamicConfigProperties dynamicConfig;
+
+    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

@@ -5,7 +5,10 @@
  */
 package com.yahoo.elide.security.checks;
 
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.ChangeSpec;
+import com.yahoo.elide.security.RequestScope;
+
+import java.util.Optional;
 
 /**
  * Operation check interface.
@@ -18,10 +21,14 @@ import com.yahoo.elide.security.User;
  *
  * @param <T> Type parameter
  */
-public abstract class OperationCheck<T> extends InlineCheck<T> {
-    /* NOTE: Operation checks and user checks are intended to be _distinct_ */
-    @Override
-    public final boolean ok(User user) {
-        throw new UnsupportedOperationException();
-    }
+public abstract class OperationCheck<T> implements Check {
+    /**
+     * Determines whether the user can access the resource.
+     *
+     * @param object Fully modified object
+     * @param requestScope Request scope object
+     * @param changeSpec Summary of modifications
+     * @return true if security check passed
+     */
+    public abstract boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec);
 }

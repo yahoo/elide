@@ -21,11 +21,12 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate3.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -114,16 +115,17 @@ public class HibernateTransaction implements DataStoreTransaction {
     /**
      * load a single record with id and filter.
      *
-     * @param entityClass class of query object
+     * @param projection The projection to query
      * @param id id of the query object
-     * @param filterExpression FilterExpression contains the predicates
      * @param scope Request scope associated with specific request
      */
     @Override
-    public Object loadObject(Class<?> entityClass,
+    public Object loadObject(EntityProjection projection,
                              Serializable id,
-                             Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
+
+        Class<?> entityClass = projection.getType();
+        FilterExpression filterExpression = projection.getFilterExpression();
 
         try {
             EntityDictionary dictionary = scope.getDictionary();
@@ -139,9 +141,9 @@ public class HibernateTransaction implements DataStoreTransaction {
                 idExpression = new FalsePredicate(idPath);
             }
 
-            FilterExpression joinedExpression = filterExpression
-                    .map(fe -> (FilterExpression) new AndFilterExpression(fe, idExpression))
-                    .orElse(idExpression);
+            FilterExpression joinedExpression = (filterExpression != null)
+                    ? new AndFilterExpression(filterExpression, idExpression)
+                    : idExpression;
 
             QueryWrapper query =
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, dictionary, sessionWrapper)
@@ -156,17 +158,20 @@ public class HibernateTransaction implements DataStoreTransaction {
 
     @Override
     public Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            EntityProjection projection,
             RequestScope scope) {
+
+
+        Class<?> entityClass = projection.getType();
+        Pagination pagination = projection.getPagination();
+        FilterExpression filterExpression = projection.getFilterExpression();
+        Sorting sorting = projection.getSorting();
 
         final QueryWrapper query =
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(entityClass, scope.getDictionary(), sessionWrapper)
-                        .withPossibleFilterExpression(filterExpression)
-                        .withPossibleSorting(sorting)
-                        .withPossiblePagination(pagination)
+                        .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                        .withPossibleSorting(Optional.ofNullable(sorting))
+                        .withPossiblePagination(Optional.ofNullable(pagination))
                         .build();
 
         Iterable results;
@@ -179,12 +184,13 @@ public class HibernateTransaction implements DataStoreTransaction {
             hasResults = ! ((Collection) results).isEmpty();
         }
 
-        pagination.ifPresent(p -> {
+        if (pagination != null) {
             //Issue #1429
-            if (p.isGenerateTotals() && (hasResults || p.getLimit() == 0)) {
-                p.setPageTotals(getTotalRecords(entityClass, filterExpression, scope.getDictionary()));
+            if (pagination.returnPageTotals() && (hasResults || pagination.getLimit() == 0)) {
+                pagination.setPageTotals(getTotalRecords(entityClass,
+                        Optional.ofNullable(filterExpression), scope.getDictionary()));
             }
-        });
+        }
 
         return results;
     }
@@ -193,14 +199,15 @@ public class HibernateTransaction implements DataStoreTransaction {
     public Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
-            String relationName,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            Relationship relation,
             RequestScope scope) {
 
+        FilterExpression filterExpression = relation.getProjection().getFilterExpression();
+        Sorting sorting = relation.getProjection().getSorting();
+        Pagination pagination = relation.getProjection().getPagination();
+
         EntityDictionary dictionary = scope.getDictionary();
-        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relationName, scope);
+        Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
         if (val instanceof Collection) {
             Collection<?> filteredVal = (Collection<?>) val;
             if (filteredVal instanceof AbstractPersistentCollection) {
@@ -209,31 +216,30 @@ public class HibernateTransaction implements DataStoreTransaction {
                  * If there is no filtering or sorting required in the data store, and the pagination is default,
                  * return the proxy and let Hibernate manage the SQL generation.
                  */
-                if (! filterExpression.isPresent() && ! sorting.isPresent()
-                    && (! pagination.isPresent() || pagination.get().isDefaultInstance())) {
+                if (filterExpression == null && sorting == null
+                        && (pagination == null || (pagination.isDefaultInstance()))) {
                     return val;
                 }
 
-                Class<?> relationClass = dictionary.getParameterizedType(entity, relationName);
+                Class<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
 
                 RelationshipImpl relationship = new RelationshipImpl(
                         dictionary.lookupEntityClass(entity.getClass()),
                         relationClass,
-                        relationName,
+                        relation.getName(),
                         entity,
                         filteredVal);
 
-                pagination.ifPresent(p -> {
-                    if (p.isGenerateTotals()) {
-                        p.setPageTotals(getTotalRecords(relationship, filterExpression, dictionary));
-                    }
-                });
+                if (pagination != null && pagination.returnPageTotals()) {
+                    pagination.setPageTotals(getTotalRecords(relationship,
+                            Optional.ofNullable(filterExpression), scope.getDictionary()));
+                }
 
                 final QueryWrapper query =
                     (QueryWrapper) new SubCollectionFetchQueryBuilder(relationship, dictionary, sessionWrapper)
-                                .withPossibleFilterExpression(filterExpression)
-                                .withPossibleSorting(sorting)
-                                .withPossiblePagination(pagination)
+                                .withPossibleFilterExpression(Optional.ofNullable(filterExpression))
+                                .withPossibleSorting(Optional.ofNullable(sorting))
+                                .withPossiblePagination(Optional.ofNullable(pagination))
                                 .build();
 
                 if (query != null) {
@@ -288,11 +294,6 @@ public class HibernateTransaction implements DataStoreTransaction {
             session.getTransaction().rollback();
             throw new IOException("Transaction not closed");
         }
-    }
-
-    @Override
-    public User accessUser(Object opaqueUser) {
-        return new User(opaqueUser);
     }
 
     /**

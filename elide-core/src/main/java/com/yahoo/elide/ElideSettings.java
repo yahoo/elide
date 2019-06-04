@@ -38,10 +38,7 @@ public class ElideSettings {
     @Getter private final JSONApiLinks jsonApiLinks;
     @Getter private final int defaultMaxPageSize;
     @Getter private final int defaultPageSize;
-    @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
-    @Getter private final boolean returnErrorObjects;
     @Getter private final Map<Class, Serde> serdes;
-    @Getter private final boolean encodeErrorResponses;
     @Getter private final boolean enableJsonLinks;
 }

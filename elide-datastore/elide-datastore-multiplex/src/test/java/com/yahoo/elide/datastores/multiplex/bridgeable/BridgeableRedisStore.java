@@ -9,7 +9,6 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
@@ -19,14 +18,15 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.multiplex.BridgeableStoreTest;
 import com.yahoo.elide.datastores.multiplex.BridgeableTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexTransaction;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -61,19 +61,18 @@ public class BridgeableRedisStore implements DataStore {
     public class ExampleRedisTransaction implements DataStoreTransaction, BridgeableTransaction {
 
         @Override
-        public Object loadObject(Class<?> entityClass,
+        public Object loadObject(EntityProjection projection,
                                  Serializable id,
-                                 Optional<FilterExpression> filterExpression,
                                  RequestScope scope) {
-            if (entityClass != RedisActions.class) {
-                log.debug("Tried to load unexpected object from redis: {}", entityClass);
+            if (projection.getType() != RedisActions.class) {
+                log.debug("Tried to load unexpected object from redis: {}", projection.getType());
                 throw new RuntimeException("Tried to load unexpected object from redis!");
             }
 
             String key = RedisActions.class.getCanonicalName();
 
-            if (filterExpression.isPresent()) {
-                FilterExpression fe = filterExpression.get();
+            FilterExpression fe = projection.getFilterExpression();
+            if (fe != null) {
                 RedisFilter filter = fe.accept(new FilterExpressionParser());
                 if ("user_id".equals(filter.getFieldName())) {
                     Iterable<?> values = fetchValues(key,
@@ -89,26 +88,23 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public Iterable<Object> loadObjects(Class<?> entityClass,
-                                            Optional<FilterExpression> filterExpression,
-                                            Optional<Sorting> sorting,
-                                            Optional<Pagination> pagination,
+        public Iterable<Object> loadObjects(EntityProjection projection,
                                             RequestScope scope) {
-            if (entityClass != RedisActions.class) {
-                log.debug("Tried to load unexpected object from redis: {}", entityClass);
+            if (projection.getType() != RedisActions.class) {
+                log.debug("Tried to load unexpected object from redis: {}", projection.getType());
                 throw new RuntimeException("Tried to load unexpected object from redis!");
             }
 
             String key = RedisActions.class.getCanonicalName();
 
-            return filterExpression
+            return Optional.ofNullable(projection.getFilterExpression())
                     .map(fe -> {
                         RedisFilter filter = fe.accept(new FilterExpressionParser());
                         if ("user_id".equals(filter.getFieldName())) {
                             return fetchValues(key,
                                     v -> v.startsWith("user" + filter.getValues().get(0) + ":"));
                         }
-                        log.error("Received bad filter: {} for type: {}", filter, entityClass);
+                        log.error("Received bad filter: {} for type: {}", filter, projection.getType());
                         throw new UnsupportedOperationException("Cannot filter object of that type");
                     })
                     .orElseGet(() -> fetchValues(key, unused -> true));
@@ -133,11 +129,6 @@ public class BridgeableRedisStore implements DataStore {
             return action;
         }
 
-        @Override
-        public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-            return PersistentResource.getValue(entity, attributeName, scope);
-        }
-
         // ---- Bridgeable Interfaces ----
 
         @Override
@@ -147,9 +138,9 @@ public class BridgeableRedisStore implements DataStore {
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
                 HibernateUser user = (HibernateUser) parent;
                 if ("specialAction".equals(relationName)) {
-                    return muxTx.loadObject(entityClass,
+                    return muxTx.loadObject(
+                            EntityProjection.builder().type(entityClass).build(),
                             String.valueOf(user.getSpecialActionId()),
-                            Optional.empty(),
                             scope);
                 } else if ("redisActions".equals(relationName)) {
                     FilterExpression updatedExpression = new InPredicate(
@@ -157,9 +148,11 @@ public class BridgeableRedisStore implements DataStore {
                             String.valueOf(((HibernateUser) parent).getId())
                     );
 
-                    return muxTx.loadObject(entityClass,
+                    return muxTx.loadObject(EntityProjection.builder()
+                            .type(entityClass)
+                            .filterExpression(updatedExpression)
+                            .build(),
                             String.valueOf(lookupId),
-                            Optional.of(updatedExpression),
                             scope);
                 }
             }
@@ -168,7 +161,12 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx, Object parent, String relationName, Optional<FilterExpression> filterExpressionOptional, Optional<Sorting> sorting, Optional<Pagination> pagination, RequestScope scope) {
+        public Iterable<Object> bridgeableLoadObjects(MultiplexTransaction muxTx,
+                                                      Object parent,
+                                                      String relationName,
+                                                      Optional<FilterExpression> filterExpressionOptional,
+                                                      Optional<Sorting> sorting,
+                                                      Optional<Pagination> pagination, RequestScope scope) {
             if (parent.getClass().equals(HibernateUser.class) && "redisActions".equals(relationName)) {
                 EntityDictionary dictionary = scope.getDictionary();
                 Class<?> entityClass = dictionary.getParameterizedType(parent, relationName);
@@ -176,11 +174,12 @@ public class BridgeableRedisStore implements DataStore {
                         new Path.PathElement(entityClass, String.class, "user_id"),
                         String.valueOf(((HibernateUser) parent).getId())
                 );
-                return muxTx.loadObjects(entityClass,
-                        Optional.of(filterExpression),
-                        sorting,
-                        pagination,
-                        scope);
+                return muxTx.loadObjects(EntityProjection.builder()
+                        .type(entityClass)
+                        .filterExpression(filterExpression)
+                        .sorting(sorting.orElse(null))
+                        .pagination(pagination.orElse(null))
+                        .build(), scope);
             }
             log.error("Tried to bridge from parent: {} to relation name: {}", parent, relationName);
             throw new RuntimeException("Unsupported bridging attempted!");
@@ -190,11 +189,7 @@ public class BridgeableRedisStore implements DataStore {
 
         @Override
         public Object getRelation(DataStoreTransaction relationTx,
-                                  Object entity,
-                                  String relationName,
-                                  Optional<FilterExpression> filterExpression,
-                                  Optional<Sorting> sorting,
-                                  Optional<Pagination> pagination, RequestScope scope) {
+                                  Object entity, Relationship relationship, RequestScope scope) {
             throw new UnsupportedOperationException("No redis relationships currently supported.");
         }
 
@@ -209,18 +204,8 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
-
-        }
-
-        @Override
         public void close() throws IOException {
 
-        }
-
-        @Override
-        public User accessUser(Object opaqueUser) {
-            return null;
         }
 
         @Override

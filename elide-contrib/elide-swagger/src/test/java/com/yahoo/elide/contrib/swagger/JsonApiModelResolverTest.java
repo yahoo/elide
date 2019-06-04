@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.contrib.swagger.model.Resource;
-import com.yahoo.elide.contrib.swagger.models.Author;
-import com.yahoo.elide.contrib.swagger.models.Book;
-import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import example.models.Author;
+import example.models.Book;
+import example.models.Publisher;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

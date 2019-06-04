@@ -289,6 +289,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, AUTHORS);
         verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, NAME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
+<<<<<<< HEAD
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
@@ -408,5 +409,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, never()).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any(), any(), any(), any());
+=======
+        verify(tx, never()).getRelation(any(), any(), any(), any());
+>>>>>>> 4271b3c98... Fixed rebase issues
     }
 }

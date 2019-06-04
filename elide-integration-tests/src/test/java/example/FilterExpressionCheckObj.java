@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -28,7 +27,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "filterExpressionCheckObj")
 @Include(rootLevel = true)
-@SharePermission
 @ReadPermission(expression = "checkLE OR deny all")  //ReadPermission for object id <= 2
 public class FilterExpressionCheckObj extends BaseId {
     private String name;
@@ -59,7 +57,7 @@ public class FilterExpressionCheckObj extends BaseId {
         Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
         Operator op = Operator.IN;
         List<Object> value = new ArrayList<>();
-        int userId = (int) requestScope.getUser().getOpaqueUser();
+        int userId = Integer.valueOf(requestScope.getUser().getPrincipal().getName());
         if (setUserId) {
             value.add(setId);
         } else {

@@ -63,7 +63,7 @@ public class User extends BaseId {
         this.reversedPassword = reversedPassword;
     }
 
-    @UpdatePermission(expression = "adminRoleCheck OR updateOnCreate")
+    @UpdatePermission(expression = "adminRoleCheck")
     public int getRole() {
         return role;
     }
@@ -76,11 +76,6 @@ public class User extends BaseId {
         @Override
         public boolean ok(User user, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return (user.getRole() == 1);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "adminRoleCheck";
         }
     }
 }

@@ -41,7 +41,9 @@ public class ElideCustomSerdeRegistrationTest {
 
     @Test
     public void testRegisterCustomSerde() {
-        HashMapDataStore wrapped = new HashMapDataStore(Dummy.class.getPackage());
+
+        //Create a fake Elide.  Don't actually bind any entities.
+        HashMapDataStore wrapped = new HashMapDataStore(String.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         ElideSettings elideSettings = new ElideSettingsBuilder(store).build();
         new Elide(elideSettings);

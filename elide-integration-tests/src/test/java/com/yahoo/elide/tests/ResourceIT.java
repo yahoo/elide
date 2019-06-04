@@ -20,6 +20,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,10 +46,10 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InfixPredicate;
 import com.yahoo.elide.core.filter.PostfixPredicate;
 import com.yahoo.elide.core.filter.PrefixPredicate;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.security.executors.BypassPermissionExecutor;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.Sets;
@@ -66,16 +67,17 @@ import example.User;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.owasp.encoder.Encode;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -555,7 +557,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollection() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/unknown").then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -564,7 +566,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollectionId() {
-        String expected = "{\"errors\":[\"InvalidObjectIdentifierException: Unknown identifier '6789' for parent\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown identifier 6789 for parent\"}]}";
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -572,7 +574,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failChild() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection unknown\"}]}";
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -580,7 +582,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failFieldRequest() throws Exception {
-        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'id'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"Unknown collection id\"}]}";
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -588,7 +590,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void parseFailure() {
-        String expected = "{\"errors\":[\"InvalidURLException: token recognition error at: '|'\"]}";
+        String expected = "{\"errors\":[{\"detail\":\"token recognition error at: &#39;|&#39;\"}]}";
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
@@ -914,7 +916,7 @@ public class ResourceIT extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1?include=children.BadRelation")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -1140,7 +1142,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void createParentList() {
         String request = jsonParser.getJson("/ResourceIT/createParentList.req.json");
-        String expected = "{\"errors\":[\"InvalidEntityBodyException: Bad Request Body";
+        String expected = "{\"errors\":[{\"detail\":\"Bad Request Body";
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -1406,7 +1408,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body("errors[0].detail", equalTo(detail));
+                .body("errors[0].detail[0]", equalTo(Encode.forHtml(detail)));
     }
 
     @Test
@@ -1733,6 +1735,7 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     //Verifies violation of unique column constraint.
     public void patchExtBadValue() throws IOException {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
@@ -2218,7 +2221,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/specialread")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo("{\"errors\":[{\"detail\":null,\"status\":403}]}"));
+                .body(equalTo("[{\"errors\":[{\"detail\":\"UpdatePermission Denied\",\"status\":\"403\"}]}]"));
     }
 
     @Test
@@ -2265,7 +2268,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN)
-                .body(equalTo("{\"errors\":[\"ForbiddenAccessException\"]}"));
+                .body(equalTo("{\"errors\":[{\"detail\":\"CreatePermission Denied\"}]}"));
     }
 
     @Test
@@ -2487,41 +2490,14 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void elideBypassSecurity() {
-        Resource child = resource(
-                type("child"),
-                id("1"),
-                attributes(
-                        attr("computedFailTest", "computed"),
-                        attr("name", null)
-                ),
-                relationships(
-                        relation("friends"),
-                        relation("noReadAccess", TO_ONE),
-                        relation("parents",
-                                linkage(type("parent"), id("1"))
-                        )
-                )
-        );
-
-        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withAuditLogger(new TestAuditLogger())
-                .withPermissionExecutor(BypassPermissionExecutor.class)
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
-                .build());
-        ElideResponse response =
-                elide.get(baseUrl, "parent/1/children/1", new MultivaluedHashMap<>(), -1);
-        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
-        assertEquals(datum(child).toJSON(), response.getBody());
-    }
-
-    @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
                 .build());
-        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), -1);
+
+        com.yahoo.elide.security.User user = new com.yahoo.elide.security.User(() -> "-1");
+        ElideResponse response = elide.get(baseUrl, "parent/1/children", new MultivaluedHashMap<>(), user, NO_VERSION);
         assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
@@ -2690,12 +2666,17 @@ public class ResourceIT extends IntegrationTest {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         when(scope.getDictionary()).thenReturn(dictionary);
-        Pagination pagination = mock(Pagination.class);
-        when(pagination.isGenerateTotals()).thenReturn(true);
-        tx.loadObjects(Book.class, Optional.of(filterPredicate), Optional.empty(), Optional.of(pagination), scope);
+        PaginationImpl pagination = mock(PaginationImpl.class);
+        when(pagination.returnPageTotals()).thenReturn(true);
+        tx.loadObjects(EntityProjection.builder()
+                .type(Book.class)
+
+                .filterExpression(filterPredicate)
+                .pagination(pagination)
+                .build(), scope);
         tx.commit(scope);
         tx.close();
-        verify(pagination).setPageTotals(noOfRecords);
+        verify(pagination).setPageTotals((long) noOfRecords);
     }
 
     @Test
@@ -2744,5 +2725,163 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void badChildCollectionId() {
         given().when().get("/user/1/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+                         //broken out by class instead of a common table.
+    public void testVersionedBookFetch() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/book?fields[book]=name")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+
+        given()
+                .header("ApiVersion", NO_VERSION)
+                .when()
+                .get("/book?fields[book]=title")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id("1"),
+                                        attributes(
+                                                attr("title", "titlewith%percentage")
+                                        )
+                                ),
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("title", "titlewithoutpercentage")
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookCreate() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        attributes(
+                                                attr("name", "A new book."),
+                                                attr("publishDate", 1123)
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/book")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("book"),
+                                        id("3"),
+                                        attributes(
+                                                attr("name", "A new book."),
+                                                attr("publishDate", 1123)
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookPatch() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("book"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "A new book.")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/book/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedPatchExtension() {
+        String req = jsonParser.getJson("/ResourceIT/versionedPatchExtension.req.json");
+        String expected = jsonParser.getJson("/ResourceIT/versionedPatchExtension.resp.json");
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+                .header("ApiVersion", "1.0")
+                .body(req)
+                .patch("/book")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    @Tag("skipInMemory") //Skipping because storage for in-memory store is
+    //broken out by class instead of a common table.
+    public void testVersionedBookDelete() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .delete("/book/2")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+
+    @Test
+    public void testMissingVersionedModels() throws Exception {
+        given()
+                .header("ApiVersion", "1.0")
+                .when()
+                .get("/parent")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

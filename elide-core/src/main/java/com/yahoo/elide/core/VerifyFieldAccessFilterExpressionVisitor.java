@@ -14,12 +14,13 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,6 +86,9 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
 
     private Stream<PersistentResource> getValueChecked(PersistentResource<?> resource, String fieldName,
             RequestScope requestScope) {
+
+        EntityDictionary dictionary = resource.getDictionary();
+
         // checkFieldAwareReadPermissions
         requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, ReadPermission.class,
                 fieldName);
@@ -93,8 +97,16 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
             return Stream.empty();
         }
+
+        Relationship relationship = Relationship.builder()
+                .name(fieldName)
+                .alias(fieldName)
+                .projection(EntityProjection.builder()
+                        .type(dictionary.getParameterizedType(resource.getResourceClass(), fieldName))
+                        .build())
+                .build();
         // use no filter to allow the read directly from loaded resource
-        return resource.getRelationChecked(fieldName, Optional.empty(), Optional.empty(), Optional.empty()).stream();
+        return resource.getRelationChecked(relationship).stream();
     }
 
     /**

@@ -19,6 +19,7 @@ import com.yahoo.elide.utils.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
         JsonNode result = getAsNode("/book?sort=-publisher.name");
         int size = result.get("data").size();
@@ -109,6 +111,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testSortingRootCollectionByRelationshipPropertyWithJoinFilterAndPagination() throws IOException {
         final JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name", HttpStatus.SC_BAD_REQUEST);
         assertNotNull(result.get("errors"));

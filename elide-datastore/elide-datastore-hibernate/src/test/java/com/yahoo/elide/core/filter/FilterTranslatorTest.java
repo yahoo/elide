@@ -65,6 +65,7 @@ public class FilterTranslatorTest {
 
         FilterTranslator filterOp = new FilterTranslator();
         String query = filterOp.apply(not, false);
+        query = query.trim().replaceAll(" +", " ");
 
         String p1Params = p1.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
@@ -72,7 +73,7 @@ public class FilterTranslatorTest {
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String p3Params = p3.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
-        String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
+        String expected = "NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
                 + "AND (authors IS NOT EMPTY AND authors.name IN (" + p1Params + "))))";
         assertEquals(expected, query);
     }

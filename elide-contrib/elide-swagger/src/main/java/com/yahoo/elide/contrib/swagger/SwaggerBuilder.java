@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.contrib.swagger.model.Data;
 import com.yahoo.elide.contrib.swagger.model.Datum;
 import com.yahoo.elide.contrib.swagger.property.Relationship;
@@ -706,10 +708,15 @@ public class SwaggerBuilder {
         ModelConverters converters = ModelConverters.getInstance();
         converters.addConverter(new JsonApiModelResolver(dictionary));
 
+        String apiVersion = swagger.getInfo().getVersion();
+        if (apiVersion == null) {
+            apiVersion = NO_VERSION;
+        }
+
         if (allClasses.isEmpty()) {
-            allClasses = dictionary.getBindings();
+            allClasses = dictionary.getBoundClassesByVersion(apiVersion);
         } else {
-            allClasses = Sets.intersection(dictionary.getBindings(), allClasses);
+            allClasses = Sets.intersection(dictionary.getBoundClassesByVersion(apiVersion), allClasses);
             if (allClasses.isEmpty()) {
                 throw new IllegalArgumentException("None of the provided classes are exported by Elide");
             }

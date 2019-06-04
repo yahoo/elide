@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016, Yahoo Inc.
+  ~ Copyright 2020, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.6.9-SNAPSHOT</version>
+    <version>5.0.0-pr9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -23,6 +23,7 @@
         <module>elide-integration-tests</module>
         <module>elide-example</module>
         <module>elide-contrib</module>
+        <module>elide-async</module>
         <module>elide-standalone</module>
         <module>elide-spring</module>
     </modules>
@@ -84,6 +85,7 @@
         <version.jackson>2.11.2</version.jackson>
         <version.jersey>2.31</version.jersey>
         <version.junit>5.6.2</version.junit>
+        <version.junit.platform>1.6.0</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.21</version.mysql>
         <hibernate5.version>5.4.18.Final</hibernate5.version>
@@ -103,12 +105,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>4.6.9-SNAPSHOT</version>
+                <version>5.0.0-pr9-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-example-models</artifactId>
-                <version>4.6.9-SNAPSHOT</version>
+                <version>5.0.0-pr9-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -209,6 +211,13 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>${version.junit.platform}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -507,6 +516,7 @@
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
+                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
                 </configuration>
                 <executions>
                     <execution>
