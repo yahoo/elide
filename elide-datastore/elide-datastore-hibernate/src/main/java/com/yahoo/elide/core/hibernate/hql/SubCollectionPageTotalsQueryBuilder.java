@@ -130,7 +130,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                         + parentAlias
                         + SPACE
                         + joinClause
-                        + SPACE
+                        + WHERE
                         + filterClause);
 
         //Fill in the query parameters

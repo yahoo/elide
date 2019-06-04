@@ -145,7 +145,7 @@ public class EncodedErrorObjectsIT extends IntegrationTest {
     @Test
     public void graphQLFetchError() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchErrorObjectEncoded.json");
         given()
             .contentType(GRAPHQL_CONTENT_TYPE)
             .accept(GRAPHQL_CONTENT_TYPE)

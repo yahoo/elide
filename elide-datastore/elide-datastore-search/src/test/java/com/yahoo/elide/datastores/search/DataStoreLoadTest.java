@@ -25,6 +25,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.search.models.Item;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
@@ -40,7 +41,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -54,9 +54,10 @@ public class DataStoreLoadTest {
     private SearchDataStore searchStore;
     private DataStoreTransaction wrappedTransaction;
     private RequestScope mockScope;
+    private EntityDictionary dictionary;
 
     public DataStoreLoadTest() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Item.class);
 
         filterParser = new RSQLFilterDialect(dictionary);
@@ -99,12 +100,16 @@ public class DataStoreLoadTest {
         //Case sensitive query against case insensitive index must lowercase
         FilterExpression filter = filterParser.parseFilterExpression("name==drum", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(
+                EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList());
 
         /* This query should hit the underlying store */
-        verify(wrappedTransaction, times(1)).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
     @Test
@@ -115,10 +120,13 @@ public class DataStoreLoadTest {
         /* Verify that '-' is escaped before we run the query */
         FilterExpression filter = filterParser.parseFilterExpression("name==-lucen*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(6L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -127,10 +135,13 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==+lucen*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList());
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -142,10 +153,13 @@ public class DataStoreLoadTest {
         //Case sensitive query against case insensitive index must lowercase
         FilterExpression filter = filterParser.parseFilterExpression("name==dru*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList());
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -156,10 +170,13 @@ public class DataStoreLoadTest {
         //Case sensitive query against case insensitive index must lowercase
         FilterExpression filter = filterParser.parseFilterExpression("name=='snare\\ dru*'", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(1L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -170,10 +187,13 @@ public class DataStoreLoadTest {
         //Case sensitive query against case insensitive index must lowercase
         FilterExpression filter = filterParser.parseFilterExpression("name=='*est\tTa*'", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(7L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -184,10 +204,13 @@ public class DataStoreLoadTest {
         //Case insensitive query against case insensitive index
         FilterExpression filter = filterParser.parseFilterExpression("name==*DrU*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(1L, 3L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -197,10 +220,13 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==drum*;description==brass*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(1L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -210,12 +236,15 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList());
 
         /* This query should hit the underlying store */
-        verify(wrappedTransaction, times(1)).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any());
     }
 
     @Test
@@ -225,10 +254,13 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==drum*,description==ride*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(1L, 2L, 3L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -243,10 +275,13 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(4L, 5L, 2L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -261,10 +296,14 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .sorting(sorting)
+                .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L, 5L, 4L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -281,12 +320,17 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .sorting(sorting)
+                .pagination(pagination)
+                .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(2L));
-        assertEquals(3, pagination.getPageTotals());
 
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        assertEquals(pagination.getPageTotals(), 3);
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test
@@ -303,11 +347,17 @@ public class DataStoreLoadTest {
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
-        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
+        Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .sorting(sorting)
+                .pagination(pagination)
+                .build(), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
-        assertEquals(3, pagination.getPageTotals());
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+
+        assertEquals(pagination.getPageTotals(), 3);
+        verify(wrappedTransaction, never()).loadObjects(any(), any());
     }
 
     @Test

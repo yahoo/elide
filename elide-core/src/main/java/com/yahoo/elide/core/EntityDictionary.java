@@ -31,6 +31,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +64,9 @@ import java.util.stream.Collectors;
 
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
 import javax.ws.rs.WebApplicationException;
 
@@ -272,8 +275,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-            String field,
-            Class<? extends Annotation> annotationClass) {
+                                            String field,
+                                            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
@@ -1317,7 +1320,7 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
@@ -1468,6 +1471,36 @@ public class EntityDictionary {
         return result;
     }
 
+    /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
+    }
+
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
         for (Map.Entry<?, ?> entry : values.entrySet()) {
             Object key = entry.getKey();
@@ -1487,6 +1520,60 @@ public class EntityDictionary {
     private void bindIfUnbound(Class<?> entityClass) {
         if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
+        }
+    }
+
+    /**
+     * Add a collection of argument to the attributes
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param arguments Set of Argument type containing name and type of each argument.
+     */
+    public void addArgumentsToAttribute(Class<?> cls, String attributeName, Set<ArgumentType> arguments) {
+        getEntityBinding(cls).addArgumentsToAttribute(attributeName, arguments);
+    }
+
+    /**
+     * Add a single argument to the attribute
+     * @param cls The entity
+     * @param attributeName attribute name to which argument has to be added
+     * @param argument A single argument
+     */
+    public void addArgumentToAttribute(Class<?> cls, String attributeName, ArgumentType argument) {
+        this.addArgumentsToAttribute(cls, attributeName, Sets.newHashSet(argument));
+    }
+
+    /**
+     * Returns the Collection of all attributes of an argument.
+     * @param cls The entity
+     * @param attributeName Name of the argument for ehich arguments are to be retrieved.
+     * @return A Set of ArgumentType for the given attribute.
+     */
+    public Set<ArgumentType> getAttributeArguments(Class<?> cls, String attributeName) {
+        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+    }
+
+    /**
+     * Get column name using JPA.
+     *
+     * @param cls The entity class.
+     * @param fieldName The entity attribute.
+     * @return The jpa column name.
+     */
+    public String getAnnotatedColumnName(Class<?> cls, String fieldName) {
+        Column[] column = getAttributeOrRelationAnnotations(cls, Column.class, fieldName);
+
+        // this would only be valid for dimension columns
+        JoinColumn[] joinColumn = getAttributeOrRelationAnnotations(cls, JoinColumn.class, fieldName);
+
+        if (column == null || column.length == 0) {
+            if (joinColumn == null || joinColumn.length == 0) {
+                return fieldName;
+            } else {
+                return joinColumn[0].name();
+            }
+        } else {
+            return column[0].name();
         }
     }
 }

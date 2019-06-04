@@ -24,6 +24,7 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Typical-use test binder for integration test resource configs.
@@ -59,6 +60,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
+                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
             }
 

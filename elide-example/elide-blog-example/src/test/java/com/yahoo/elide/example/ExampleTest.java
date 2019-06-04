@@ -89,6 +89,7 @@ public class ExampleTest extends IntegrationTest {
         .when()
             .post("/graphql/api/v1")
             .then()
+                .log().all()
             .body(equalTo(GraphQLDSL.document(
                 selection(
                     field(
