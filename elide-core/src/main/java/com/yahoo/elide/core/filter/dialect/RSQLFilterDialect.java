@@ -124,13 +124,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException("No such collection: " + lastPathComponent);
         }
 
-        try {
-            Node ast = parser.parse(queryParamValue);
-            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(true);
-            return ast.accept(visitor, entityType);
-        } catch (RSQLParserException e) {
-            throw new ParseException(e.getMessage());
-        }
+        return parseFilterExpression(queryParamValue, entityType);
     }
 
     @Override
@@ -157,19 +151,32 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
                 }
 
                 String expressionText = paramValues.get(0);
-                try {
-                    Node ast = parser.parse(expressionText);
-                    RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(false);
-                    FilterExpression filterExpression = ast.accept(visitor, entityType);
-                    expressionByType.put(typeName, filterExpression);
-                } catch (RSQLParserException e) {
-                    throw new ParseException(e.getMessage());
-                }
+
+                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType);
+                expressionByType.put(typeName, filterExpression);
             } else {
                 throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
             }
         }
         return expressionByType;
+    }
+
+
+    /**
+     * Parses a RSQL string into an Elide FilterExpression.
+     * @param expressionText the RSQL string
+     * @param entityType The type associated with the predicate
+     * @return An elide FilterExpression abstract syntax tree
+     * @throws ParseException
+     */
+    public FilterExpression parseFilterExpression(String expressionText, Class<?> entityType) throws ParseException {
+        try {
+            Node ast = parser.parse(expressionText);
+            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(false);
+            return ast.accept(visitor, entityType);
+        } catch (RSQLParseException e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     /**
