@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.prefab.Common;
 import com.yahoo.elide.security.checks.prefab.Role;
 
 import com.google.common.collect.ImmutableMap;
@@ -23,11 +22,9 @@ public class TestCheckMappings {
                     .put("deny all", Role.NONE.class)
                     .put("adminRoleCheck", User.AdminRoleCheck.class)
                     .put("initCheck", Child.InitCheck.class)
-                    .put("initCheckOp", Child.InitCheckOp.class)
                     .put("FailCheckOp", Child.FailCheckOp.class)
                     .put("initCheckFilter", Child.InitCheckFilter.class)
                     .put("parentInitCheck", Parent.InitCheck.class)
-                    .put("parentInitCheckOp", Parent.InitCheckOp.class)
                     .put("parentSpecialValue", Parent.SpecialValue.class)
                     .put("negativeIntegerUser", NegativeIntegerUserCheck.class)
                     .put("negativeChildId", NegativeChildIdCheck.class)
@@ -35,7 +32,6 @@ public class TestCheckMappings {
                     .put("child4Parent5", Child4Parent5Check.class)
                     .put("checkActsLikeFilter", AnotherFilterExpressionCheckObj.CheckActsLikeFilter.class)
                     .put("noRead", CreateButNoRead.NOREAD.class)
-                    .put("updateOnCreate", Common.UpdateOnCreate.class)
                     .put("checkLE", FilterExpressionCheckObj.CheckLE.class)
                     .put("checkRestrictUser", FilterExpressionCheckObj.CheckRestrictUser.class)
                     .put("specialValue", SpecialRead.SpecialValue.class)

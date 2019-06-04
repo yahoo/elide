@@ -41,7 +41,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * @return a list of the predicates from the query params
      * @throws ParseException when a filter parameter cannot be parsed
      */
-    private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams) throws ParseException {
+    private List<FilterPredicate> extractPredicates(MultivaluedMap<String, String> queryParams,
+                                                    String apiVersion) throws ParseException {
         List<FilterPredicate> filterPredicates = new ArrayList<>();
 
         Pattern pattern = Pattern.compile("filter\\[([^\\]]+)\\](\\[([^\\]]+)\\])?");
@@ -65,7 +66,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             final Operator operator = (matcher.group(3) == null) ? Operator.IN
                     : Operator.fromString(matcher.group(3));
 
-            Path path = getPath(keyParts);
+            Path path = getPath(keyParts, apiVersion);
             List<Path.PathElement> elements = path.getPathElements();
             Path.PathElement last = elements.get(elements.size() - 1);
 
@@ -87,10 +88,11 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     @Override
-    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams)
+    public FilterExpression parseGlobalExpression(String path, MultivaluedMap<String, String> filterParams,
+                                                  String apiVersion)
             throws ParseException {
         List<FilterPredicate> filterPredicates;
-        filterPredicates = extractPredicates(filterParams);
+        filterPredicates = extractPredicates(filterParams, apiVersion);
 
         /* Extract the first collection in the URL */
         String normalizedPath = JsonApiParser.normalizePath(path);
@@ -130,10 +132,11 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
     }
 
     @Override
-    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams)
+    public Map<String, FilterExpression> parseTypedExpression(String path, MultivaluedMap<String, String> filterParams,
+                                                              String apiVersion)
             throws ParseException {
         Map<String, FilterExpression> expressionMap = new HashMap<>();
-        List<FilterPredicate> filterPredicates = extractPredicates(filterParams);
+        List<FilterPredicate> filterPredicates = extractPredicates(filterParams, apiVersion);
 
         for (FilterPredicate filterPredicate : filterPredicates) {
             validateFilterPredicate(filterPredicate);
@@ -153,10 +156,11 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
      * Parses [ author, books, publisher, name ] into [(author, books), (book, publisher), (publisher, name)].
      *
      * @param keyParts [ author, books, publisher, name ]
+     * @param apiVersion The client requested version.
      * @return [(author, books), (book, publisher), (publisher, name)]
      * @throws ParseException if the filter cannot be parsed
      */
-    private Path getPath(final String[] keyParts) throws ParseException {
+    private Path getPath(final String[] keyParts, String apiVersion) throws ParseException {
         if (keyParts == null || keyParts.length <= 0) {
             throw new ParseException("Invalid filter expression");
         }
@@ -165,7 +169,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         Class<?>[] types = new Class[keyParts.length];
         String type = keyParts[0];
-        types[0] = dictionary.getEntityClass(type);
+
+        types[0] = dictionary.getEntityClass(type, apiVersion);
 
         if (types[0] == null) {
             throw new ParseException("Unknown entity in filter: " + type);

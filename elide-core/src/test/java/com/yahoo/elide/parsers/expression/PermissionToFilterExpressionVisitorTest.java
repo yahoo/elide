@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.parsers.expression;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
 import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
@@ -19,6 +20,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.EntityPermissions;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -26,6 +28,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.FilterExpressionCheck;
+import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.OperationCheck;
@@ -94,7 +97,7 @@ public class PermissionToFilterExpressionVisitorTest {
         checks.put(LT_FILTER, Permissions.LessThanFilterExpression.class);
         checks.put(GE_FILTER, Permissions.GreaterThanOrEqualFilterExpression.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
         elideSettings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build();
@@ -227,8 +230,8 @@ public class PermissionToFilterExpressionVisitorTest {
     // Helpers
     //
     public RequestScope newRequestScope() {
-        User john = new User("John");
-        return requestScope = new RequestScope(null, null, null, john, null, elideSettings);
+        User john = new TestUser("John");
+        return requestScope = new RequestScope(null, NO_VERSION, null, null, john, null, elideSettings);
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {

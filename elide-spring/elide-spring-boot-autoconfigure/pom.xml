@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-spring-boot-autoconfigure</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>5.0.0-pr9-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Spring Boot Autoconfigure</name>
     <description>Elide Spring Boot Autoconfigure</description>
@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>4.6.5-SNAPSHOT</version>
+        <version>5.0.0-pr9-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -54,35 +54,56 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-aggregation</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-dynamic-config-helpers</artifactId>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 
@@ -137,6 +158,13 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>${spring.boot.version}</version>
+            <optional>true</optional>
+        </dependency>
+
 
         <!-- Test Dependencies -->
 
@@ -151,7 +179,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.6.5-SNAPSHOT</version>
+            <version>5.0.0-pr9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -160,6 +188,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

@@ -8,14 +8,14 @@ package com.yahoo.elide.core;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.request.Sorting;
 
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -30,16 +30,6 @@ public interface DataStoreTransaction extends Closeable {
         FULL,
         PARTIAL,
         NONE
-    }
-
-    /**
-     * Wrap the opaque user.
-     *
-     * @param opaqueUser the opaque user
-     * @return wrapped user context
-     */
-    default User accessUser(Object opaqueUser) {
-        return new User(opaqueUser);
     }
 
     /**
@@ -112,19 +102,21 @@ public interface DataStoreTransaction extends Closeable {
     }
 
     /**
-     * Loads an object by ID.
+     * Loads an object by ID.  The reason we support both load by ID and load by filter is that
+     * some legacy stores are optimized to load by ID.
      *
-     * @param entityClass the type of class to load
+     * @param entityProjection the collection to load.
      * @param id - the ID of the object to load.
-     * @param filterExpression - security filters that can be evaluated in the data store.
      * @param scope - the current request scope
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default Object loadObject(Class<?> entityClass,
-                      Serializable id,
-                      Optional<FilterExpression> filterExpression,
-                      RequestScope scope) {
+    default Object loadObject(EntityProjection entityProjection,
+                              Serializable id,
+                              RequestScope scope) {
+        Class<?> entityClass = entityProjection.getType();
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+
         EntityDictionary dictionary = scope.getDictionary();
         Class idType = dictionary.getIdType(entityClass);
         String idField = dictionary.getIdFieldName(entityClass);
@@ -132,14 +124,15 @@ public interface DataStoreTransaction extends Closeable {
                 new Path.PathElement(entityClass, idType, idField),
                 id
         );
-        FilterExpression joinedFilterExpression = filterExpression
-                .map(fe -> (FilterExpression) new AndFilterExpression(idFilter, fe))
-                .orElse(idFilter);
-        Iterable<Object> results = loadObjects(entityClass,
-                Optional.of(joinedFilterExpression),
-                Optional.empty(),
-                Optional.empty(),
+        FilterExpression joinedFilterExpression = (filterExpression != null)
+                ? new AndFilterExpression(idFilter, filterExpression)
+                : idFilter;
+
+        Iterable<Object> results = loadObjects(entityProjection.copyOf()
+                .filterExpression(joinedFilterExpression)
+                .build(),
                 scope);
+
         Iterator<Object> it = results == null ? null : results.iterator();
         if (it != null && it.hasNext()) {
             return it.next();
@@ -150,19 +143,12 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads a collection of objects.
      *
-     * @param entityClass - the class to load
-     * @param filterExpression - filters that can be evaluated in the data store.
-     * It is optional for the data store to attempt evaluation.
-     * @param sorting - sorting which can be pushed down to the data store.
-     * @param pagination - pagination which can be pushed down to the data store.
+     * @param entityProjection - the class to load
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
     Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            EntityProjection entityProjection,
             RequestScope scope);
 
     /**
@@ -170,25 +156,18 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param relationTx - The datastore that governs objects of the relationhip's type.
      * @param entity - The object which owns the relationship.
-     * @param relationName - name of the relationship.
-     * @param filterExpression - filtering which can be pushed down to the data store.
-     * It is optional for the data store to attempt evaluation.
-     * @param sorting - sorting which can be pushed down to the data store.
-     * @param pagination - pagination which can be pushed down to the data store.
+     * @param relationship - the relationship to fetch.
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
     default Object getRelation(
             DataStoreTransaction relationTx,
             Object entity,
-            String relationName,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            Relationship relationship,
             RequestScope scope) {
-        return PersistentResource.getValue(entity, relationName, scope);
-    }
 
+        return PersistentResource.getValue(entity, relationship.getName(), scope);
+    }
 
     /**
      * Elide core will update the in memory representation of the objects to the requested state.
@@ -230,14 +209,14 @@ public interface DataStoreTransaction extends Closeable {
      * Get an attribute from an object.
      *
      * @param entity - The object which owns the attribute.
-     * @param attributeName - name of the attribute.
+     * @param attribute - The attribute to fetch
      * @param scope - contains request level metadata.
      * @return the value of the attribute
      */
     default Object getAttribute(Object entity,
-                                String attributeName,
+                                Attribute attribute,
                                 RequestScope scope) {
-        return PersistentResource.getValue(entity, attributeName, scope);
+        return PersistentResource.getValue(entity, attribute.getName(), scope);
 
     }
 
@@ -248,13 +227,11 @@ public interface DataStoreTransaction extends Closeable {
      * This function allow a data store to optionally persist the attribute if needed.
      *
      * @param entity - The object which owns the attribute.
-     * @param attributeName - name of the attribute.
-     * @param attributeValue - the desired attribute value.
+     * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
      */
     default void setAttribute(Object entity,
-                              String attributeName,
-                              Object attributeValue,
+                              Attribute attribute,
                               RequestScope scope) {
     }
 
@@ -270,7 +247,7 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can sort the provided class.
-     * @param entityClass
+     * @param entityClass The entity class that is being sorted.
      * @return true if sorting is possible
      */
     default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
@@ -279,10 +256,11 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can paginate the provided class.
-     * @param entityClass
+     * @param entityClass The entity class that is being paged.
+     * @param expression The filter expression
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass) {
+    default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
         return true;
     }
 }

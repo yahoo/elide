@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.6.5-SNAPSHOT</version>
+        <version>5.0.0-pr9-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,6 +44,7 @@
     </properties>
 
     <modules>
+        <module>elide-datastore-aggregation</module>
         <module>elide-datastore-hibernate</module>
         <module>elide-datastore-hibernate5</module>
         <module>elide-datastore-hibernate3</module>
@@ -59,7 +60,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.6.5-SNAPSHOT</version>
+                <version>5.0.0-pr9-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -89,7 +90,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
         </dependency>
-
     </dependencies>
     <build>
         <pluginManagement>

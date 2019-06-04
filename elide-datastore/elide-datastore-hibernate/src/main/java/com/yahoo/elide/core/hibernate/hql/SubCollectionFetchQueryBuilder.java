@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -61,8 +63,8 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
             return null;
         }
 
-        String childAlias = FilterPredicate.getTypeAlias(relationship.getChildType());
-        String parentAlias = FilterPredicate.getTypeAlias(relationship.getParentType()) + "__fetch";
+        String childAlias = getTypeAlias(relationship.getChildType());
+        String parentAlias = getTypeAlias(relationship.getParentType()) + "__fetch";
         String parentName = relationship.getParentType().getCanonicalName();
         String relationshipName = relationship.getRelationshipName();
 
@@ -82,7 +84,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
                             + joinClause
-                            + SPACE
+                            + WHERE
                             + filterClause
                             + " AND " + parentAlias + "=:" + parentAlias
                             + SPACE
