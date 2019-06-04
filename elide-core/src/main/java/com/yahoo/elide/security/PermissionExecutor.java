@@ -6,6 +6,7 @@
 package com.yahoo.elide.security;
 
 import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

@@ -1,0 +1,16 @@
+{
+  book {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+  author {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+}

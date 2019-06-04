@@ -17,6 +17,7 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 class GenerateIT extends IntegrationTest {
 
     @Test
+    @Tag("skipInMemory")
     public void testGeneratePost() {
 
         Resource resource = resource(

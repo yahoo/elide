@@ -2,6 +2,7 @@ server:
   port: 4001
 
 elide:
+  modelPackage: 'example.models'
   json-api:
     path: /json
     enabled: true
@@ -12,10 +13,19 @@ elide:
     path: /doc
     enabled: true
     version: "1.0"
-
+  async:
+    enabled: true
+    threadPoolSize: 7
+    maxRunTimeMinutes: 65
+    cleanupEnabled: true
+    queryCleanupDays: 7
+    defaultAsyncQueryDAO: true
+  dynamic-config:
+    path: src/test/resources/models
+    enabled: true
 spring:
   jpa:
-    show_sql: true
+    show-sql: true
     properties:
       hibernate:
         dialect: 'org.hibernate.dialect.H2Dialect'
@@ -25,7 +35,6 @@ spring:
       naming:
         physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
       ddl-auto: 'create'
-
   datasource:
     url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
     username: 'sa'

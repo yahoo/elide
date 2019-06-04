@@ -22,12 +22,4 @@ public interface PersistentResource<T> {
     T getObject();
     Class<T> getResourceClass();
     RequestScope getRequestScope();
-
-    /**
-     * Returns whether or not this resource was created in this transaction.
-     * @return True if this resource is newly created.
-     */
-    default boolean isNewlyCreated() {
-        return getRequestScope().getNewResources().contains(this);
-    }
 }

@@ -11,20 +11,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnCreatePostCommit;
-import com.yahoo.elide.annotation.OnCreatePreCommit;
-import com.yahoo.elide.annotation.OnCreatePreSecurity;
-import com.yahoo.elide.annotation.OnDeletePostCommit;
-import com.yahoo.elide.annotation.OnDeletePreCommit;
-import com.yahoo.elide.annotation.OnDeletePreSecurity;
-import com.yahoo.elide.annotation.OnReadPostCommit;
-import com.yahoo.elide.annotation.OnReadPreCommit;
-import com.yahoo.elide.annotation.OnReadPreSecurity;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
@@ -57,7 +44,6 @@ import javax.persistence.Transient;
 @CreatePermission(expression = "Book operation check")
 @UpdatePermission(expression = "Book operation check")
 @DeletePermission(expression = "Book operation check")
-@SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)
 @Audit(action = Audit.Action.CREATE,
@@ -160,93 +146,8 @@ public class Book {
         return getPublisher().getEditor();
     }
 
-    @OnUpdatePreSecurity("title")
-    public void onUpdatePreSecurityTitle(RequestScope requestScope) {
-       // title attribute updated
-    }
-
-    @OnUpdatePreSecurity("genre")
-    public void onUpdatePreSecurityGenre(RequestScope requestScope, ChangeSpec spec) {
-       // genre attribute updated
-    }
-
-    @OnCreatePreSecurity
-    public void onCreatePreSecurity(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnCreatePreCommit("*")
-    public void onCreatePreCommitStar(RequestScope requestScope, ChangeSpec spec) {
-        // book entity created
-    }
-
     public void checkPermission(RequestScope requestScope) {
         // performs create permission check
-    }
-
-    @OnDeletePreSecurity
-    public void onDeletePreSecurity(RequestScope requestScope) {
-       // book entity deleted
-    }
-
-    @OnUpdatePreCommit("title")
-    public void onUpdatePreCommitTitle(RequestScope requestScope) {
-        // title attribute updated
-    }
-
-    @OnUpdatePreCommit("genre")
-    public void onUpdatePreCommitGenre(RequestScope requestScope, ChangeSpec spec) {
-        // genre attribute updated
-    }
-
-    @OnCreatePreCommit
-    public void onCreatePreCommit(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnDeletePreCommit
-    public void onDeletePreCommit(RequestScope requestScope) {
-        // book entity deleted
-    }
-
-    @OnUpdatePostCommit("title")
-    public void onUpdatePostCommitTitle(RequestScope requestScope) {
-        // title attribute updated
-    }
-
-    @OnUpdatePostCommit("genre")
-    public void onUpdatePostCommitGenre(RequestScope requestScope, ChangeSpec spec) {
-        // genre attribute updated
-    }
-
-    @OnCreatePostCommit
-    public void onCreatePostCommit(RequestScope requestScope) {
-        // book entity created
-    }
-
-    @OnDeletePostCommit
-    public void onDeletePostCommit(RequestScope requestScope) {
-        // book entity deleted
-    }
-
-    @OnReadPreSecurity
-    public void onReadPreSecurity(RequestScope requestScope) {
-        // book being read pre security
-    }
-
-    @OnReadPreCommit("title")
-    public void onReadPreCommitTitle(RequestScope requestScope) {
-        // book being read pre commit
-    }
-
-    @OnReadPostCommit
-    public void onReadPostCommit(RequestScope requestScope) {
-        // book being read post commit
-    }
-
-    @OnUpdatePreCommit
-    public void onUpdatePreCommit() {
-        // should be called on _any_ class update
     }
 
     static public class BookOperationCheck extends OperationCheck<Book> {

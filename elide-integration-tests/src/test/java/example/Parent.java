@@ -10,11 +10,9 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import lombok.ToString;
@@ -33,10 +31,9 @@ import javax.validation.constraints.NotNull;
  * Parent test bean.
  */
 @CreatePermission(expression = "parentInitCheck OR allow all")
-@ReadPermission(expression = "parentInitCheckOp OR allow all")
+@ReadPermission(expression = "parentInitCheck OR allow all")
 @UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
-@DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
-@SharePermission
+@DeletePermission(expression = "parentInitCheck OR allow all OR deny all")
 @Include(rootLevel = true, type = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate
@@ -104,20 +101,8 @@ public class Parent extends BaseId {
         this.specialAttribute = specialAttribute;
     }
 
-    /**
-     * Initialization validation check.
-     */
-    static public class InitCheck extends CommitCheck<Parent> {
-        @Override
-        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
-        }
-    }
 
-    static public class InitCheckOp extends OperationCheck<Parent> {
+    static public class InitCheck extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {

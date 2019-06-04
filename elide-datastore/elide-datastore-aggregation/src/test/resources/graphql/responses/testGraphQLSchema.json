@@ -1,0 +1,80 @@
+{
+  "data": {
+    "__type": {
+      "name": "PlayerStatsWithViewEdge",
+      "fields": [
+        {
+          "name": "node",
+          "type": {
+            "name": "PlayerStatsWithView",
+            "fields": [
+              {
+                "name": "id",
+                "type": {
+                  "name": "DeferredID",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryViewIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "countryViewViewIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "highScore",
+                "type": {
+                  "name": "Long",
+                  "fields": null
+                }
+              },
+              {
+                "name": "lowScore",
+                "type": {
+                  "name": "Long",
+                  "fields": null
+                }
+              },
+              {
+                "name": "overallRating",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              },
+              {
+                "name": "recordedDate",
+                "type": {
+                  "name": "Date",
+                  "fields": null
+                }
+              },
+              {
+                "name": "subCountryIsoCode",
+                "type": {
+                  "name": "String",
+                  "fields": null
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

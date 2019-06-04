@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.parsers.state;
 
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RelationshipType;
@@ -18,6 +19,7 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -41,8 +43,13 @@ public class RelationshipTerminalState extends BaseState {
     private final RelationshipType relationshipType;
     private final String relationshipName;
 
-    public RelationshipTerminalState(PersistentResource record, String relationshipName) {
+    /* The projection which loaded the resource which owns the relationship */
+    private final EntityProjection parentProjection;
+
+    public RelationshipTerminalState(PersistentResource record, String relationshipName,
+                                     EntityProjection parentProjection) {
         this.record = record;
+        this.parentProjection = parentProjection;
 
         this.relationshipType = record.getRelationshipType(relationshipName);
         this.relationshipName = relationshipName;
@@ -55,9 +62,10 @@ public class RelationshipTerminalState extends BaseState {
         JsonApiMapper mapper = requestScope.getMapper();
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
-        Map<String, Relationship> relationships = record.toResourceWithSortingAndPagination().getRelationships();
+        Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
+        Relationship relationship = null;
         if (relationships != null) {
-            Relationship relationship = relationships.get(relationshipName);
+            relationship = relationships.get(relationshipName);
 
             // Handle valid relationship
 
@@ -168,7 +176,7 @@ public class RelationshipTerminalState extends BaseState {
         Collection<Resource> resources = data.get();
         if (CollectionUtils.isEmpty(resources)) {
             // As per: http://jsonapi.org/format/#crud-updating-relationship-responses-403
-            throw new ForbiddenAccessException("Unknown update");
+            throw new ForbiddenAccessException(UpdatePermission.class);
         }
         resources.stream().forEachOrdered(resource ->
             record.removeRelation(relationshipName, resource.toPersistentResource(requestScope)));

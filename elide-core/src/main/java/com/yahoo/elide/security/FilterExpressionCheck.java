@@ -12,12 +12,13 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.parsers.expression.FilterExpressionCheckEvaluationVisitor;
-import com.yahoo.elide.security.checks.InlineCheck;
 
+import com.yahoo.elide.security.checks.OperationCheck;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import javax.inject.Inject;
 
 /**
  * Check for FilterExpression. This is a super class for user defined FilterExpression check. The subclass should
@@ -26,7 +27,10 @@ import java.util.function.Predicate;
  * @param <T> Type of class
  */
 @Slf4j
-public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
+public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
+
+    @Inject
+    protected EntityDictionary dictionary;
 
     /**
      * Returns a FilterExpression from FilterExpressionCheck.
@@ -36,13 +40,6 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @return FilterExpression for FilterExpressionCheck.
      */
     public abstract FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope);
-
-    /* NOTE: Filter Expression checks and user checks are intended to be _distinct_ */
-    @Override
-    public final boolean ok(User user) {
-        throw new UnsupportedOperationException();
-    }
-
 
     /**
      * The filter expression is evaluated in memory if it cannot be pushed to the data store by elide for any reason.
@@ -54,7 +51,7 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class<?> entityClass = coreScope(requestScope).getDictionary().lookupBoundClass(object.getClass());
+        Class<?> entityClass = dictionary.lookupBoundClass(object.getClass());
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -88,10 +85,23 @@ public abstract class FilterExpressionCheck<T> extends InlineCheck<T> {
      * @param defaultPath  path to use if no FieldExpressionPath defined
      * @return Predicates
      */
-    protected static Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
-        EntityDictionary dictionary = coreScope(requestScope).getDictionary();
-        FilterExpressionPath fep = dictionary.getMethodAnnotation(type, method, FilterExpressionPath.class);
-        return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
+    protected Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
+        try {
+            FilterExpressionPath fep = getFilterExpressionPath(type, method, dictionary);
+            return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static FilterExpressionPath getFilterExpressionPath(
+            Class<?> type,
+            String method,
+            EntityDictionary dictionary) throws NoSuchMethodException {
+        FilterExpressionPath path = dictionary.lookupBoundClass(type)
+                .getMethod(method)
+                .getAnnotation(FilterExpressionPath.class);
+        return path;
     }
 
     protected static com.yahoo.elide.core.RequestScope coreScope(RequestScope requestScope) {

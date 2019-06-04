@@ -5,12 +5,14 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.jsonapi.serialization.KeySerializer;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -147,13 +149,21 @@ public class Resource {
 
     public PersistentResource<?> toPersistentResource(RequestScope requestScope)
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
-        Class<?> cls = requestScope.getDictionary().getEntityClass(type);
+        EntityDictionary dictionary = requestScope.getDictionary();
+
+        Class<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
+
         if (cls == null) {
             throw new UnknownEntityException(type);
         }
         if (id == null) {
             throw new InvalidObjectIdentifierException(id, type);
         }
-        return PersistentResource.loadRecord(cls, id, requestScope);
+
+        EntityProjection projection = EntityProjection.builder()
+            .type(cls)
+            .build();
+
+        return PersistentResource.loadRecord(projection, id, requestScope);
     }
 }

@@ -10,6 +10,9 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,16 +50,24 @@ public class ClassScanner {
     /**
      * Scans all classes accessible from the context class loader which belong to the current class loader.
      *
-     * @param annotation Annotation to search
+     * @param annotations  One or more annotation to search for
      * @return The classes
      */
-    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> annotation) {
-        try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().enableAnnotationInfo().scan()) {
-            return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
-                    .map((ClassInfo::loadClass))
-                    .collect(Collectors.toSet());
+    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
+        Set<Class<?>> result = new HashSet<>();
+        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
+            for (Class<? extends Annotation> annotation : annotations) {
+                result.addAll(scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
+                        .map((ClassInfo::loadClass))
+                        .collect(Collectors.toSet()));
+            }
         }
+        return result;
+    }
+
+    @SafeVarargs
+    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
+        return getAnnotatedClasses(Arrays.asList(annotations));
     }
 
     /**
