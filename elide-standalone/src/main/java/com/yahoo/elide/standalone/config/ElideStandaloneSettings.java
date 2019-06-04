@@ -131,8 +131,8 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /graphql/api/v1
      */
-    default String getGraphQLApiPathSepc() {
-        return "/graphql/api/v1";
+    default String getGraphQLApiPathSpec() {
+        return "/graphql/api/v1/*";
     }
 
 
@@ -141,7 +141,7 @@ public interface ElideStandaloneSettings {
      *
      * @return Default: /swagger/*
      */
-    default String getSwaggerPathSepc() {
+    default String getSwaggerPathSpec() {
         return "/swagger/*";
     }
 

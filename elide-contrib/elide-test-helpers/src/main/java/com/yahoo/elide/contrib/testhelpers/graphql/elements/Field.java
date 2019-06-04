@@ -83,7 +83,7 @@ public class Field extends Selection {
 
     @Override
     public String toResponse() {
-        if (selectionSet instanceof String) {
+        if (selectionSet instanceof String || selectionSet instanceof Number) {
             // scalar response field
             return String.format(
                     "\"%s\":%s",
@@ -92,7 +92,8 @@ public class Field extends Selection {
                             ? "{\"edges\":[]}"
                             : getSelectionSet().toString()
             );
-        } else {
+        }
+        else {
             // object response field
             return String.format("\"%s\":%s", getName(), ((SelectionSet) getSelectionSet()).toResponse());
         }

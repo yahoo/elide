@@ -246,8 +246,8 @@ public class EntityDictionary {
      *         or {@code null} if the permission is not specified on that field
      */
     public ParseTree getPermissionsForField(Class<?> resourceClass,
-            String field,
-            Class<? extends Annotation> annotationClass) {
+                                            String field,
+                                            Class<? extends Annotation> annotationClass) {
         EntityBinding binding = getEntityBinding(resourceClass);
         return binding.entityPermissions.getFieldChecksForPermission(field, annotationClass);
     }
@@ -1209,7 +1209,7 @@ public class EntityDictionary {
 
     /**
      * Returns whether or not a class is already bound.
-     * @param cls
+     * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Class<?> cls) {
@@ -1358,6 +1358,36 @@ public class EntityDictionary {
         }
 
         return result;
+    }
+
+    /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
     }
 
     private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {

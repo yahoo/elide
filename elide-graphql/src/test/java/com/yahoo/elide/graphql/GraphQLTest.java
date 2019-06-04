@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Bootstrap for GraphQL tests.
  */
-public class GraphQLTest {
+public abstract class GraphQLTest {
     protected EntityDictionary dictionary;
 
     public GraphQLTest() {
