@@ -1215,6 +1215,47 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
+     *
+     * @param fieldName  The entity field
+     * @param annotationClass  The provided annotation class
+     *
+     * @param <A>  The type of the {@code annotationClass}
+     *
+     * @return {@code true} if the field is annotated by the {@code annotationClass}
+     */
+    public <A extends Annotation> boolean attributeOrRelationAnnotationExists(
+            Class<?> cls,
+            String fieldName,
+            Class<A> annotationClass
+    ) {
+        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(cls).fieldsToValues;
+        if (fieldOrMethods == null) {
+            return false;
+        }
+
+        AccessibleObject fieldOrMethod = fieldOrMethods.get(fieldName);
+        if (fieldOrMethod == null) {
+            return false;
+        }
+
+        return getAttributeOrRelationAnnotation(cls, annotationClass, EntityBinding.getFieldName(fieldOrMethod))
+                != null;
+    }
+
+    /**
+     * Returns whether or not a specified field exists in an entity.
+     *
+     * @param cls  The entity
+     * @param fieldName  The provided field to check
+     *
+     * @return {@code true} if the field exists in the entity
+     */
+    public boolean isValidField(Class<?> cls, String fieldName) {
+        return getAllFields(cls).contains(fieldName);
+    }
+
+    /**
      * Binds the entity class if not yet bound.
      * @param entityClass the class to bind.
      */

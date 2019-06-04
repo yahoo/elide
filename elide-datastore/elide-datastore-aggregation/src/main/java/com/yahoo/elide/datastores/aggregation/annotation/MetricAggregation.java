@@ -23,10 +23,11 @@ import java.lang.annotation.Target;
  * </ol>
  * The AggregationDataStore binds entities that have at least one {@link MetricAggregation} annotation.
  * <p>
- * Example: {@literal @}MetricAggregation(default = Sum.class, aggregations = {Max.class, Median.class})
+ * Example: {@literal @}MetricAggregation(default = Sum.class, aggregations = {Max.class, Median.class}). Note that the
+ * {@code Sum.class} will also be included in the {@code aggregations} list if non-explicitly specified.
  */
 @Documented
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MetricAggregation {
 

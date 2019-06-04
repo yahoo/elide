@@ -12,12 +12,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that an annotated field is a friendlyName or human displayable column for that dimension.
+ * Indicates that the specified entity field has a configured long name and field description for human to read on UI.
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FriendlyName {
+public @interface Meta {
 
-    // intentionally left blank
+    String longName() default "";
+
+    String description() default "";
 }

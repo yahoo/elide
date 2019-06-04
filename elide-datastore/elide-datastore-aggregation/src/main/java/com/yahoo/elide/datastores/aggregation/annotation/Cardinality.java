@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,21 +18,28 @@ import java.lang.annotation.Target;
 /**
  * Indicates whether a dimension has small, medium, or large cardinality.
  * <p>
- * Example: {@literal @}Cardinality(size = {@link DimensionSize#MEDIUM}). If {@code size} is not specified,
- * {@link DimensionSize#LARGE} is used by default. See {@link DimensionSize}.
+ * Example: {@literal @}Cardinality(size = {@link CardinalitySize#MEDIUM}). If {@code size} is not specified,
+ * {@link CardinalitySize#LARGE} is used by default. See {@link CardinalitySize}.
+ * <p>
+ * In the case of double binding, the following precedence rule is applied:
+ * <ol>
+ *     <li> {@link ElementType#TYPE}
+ *     <li> {@link ElementType#METHOD}
+ *     <li> {@link ElementType#FIELD}
+ * </ol>
  */
 @Documented
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ TYPE, FIELD, METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cardinality {
 
     /**
      * Returns the size category of a dimension.
      * <p>
-     * The size category must be from one of the values of type {@link DimensionSize}. {@link DimensionSize#LARGE} will
-     * be the default if size is not specified.
+     * The size category must be from one of the values of type {@link CardinalitySize}. {@link CardinalitySize#LARGE}
+     * will be the default if size is not specified.
      *
      * @return dimension size
      */
-    DimensionSize size() default DimensionSize.LARGE;
+    CardinalitySize size() default CardinalitySize.LARGE;
 }

@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.annotation;
 /**
  * A set of constants that indicates how big a dimension is.
  */
-public enum DimensionSize {
+public enum CardinalitySize {
 
     /**
      * Size for a small dimension table.
