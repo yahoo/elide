@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -68,8 +70,6 @@ import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-
-import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.

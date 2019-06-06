@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -43,8 +45,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
-
-import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
 
 /**
  * FilterDialect which implements support for RSQL filter dialect.
