@@ -6,8 +6,11 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStore;
@@ -60,7 +63,7 @@ public class SearchDataStoreTest {
     }
 
     @Test
-    public void testSimplePredicate() throws Exception {
+    public void testEqualityPredicate() throws Exception {
 
         RequestScope mockScope = mock(RequestScope.class);
 
@@ -70,8 +73,55 @@ public class SearchDataStoreTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
-        assertListMatches(loaded, Lists.newArrayList(1L, 3L));
+        assertListContains(loaded, Lists.newArrayList(1L, 3L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
     }
+
+    @Test
+    public void testContainsPredicate() throws Exception {
+
+        RequestScope mockScope = mock(RequestScope.class);
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==*Dru*", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(1L, 3L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testPredicateConjunction() throws Exception {
+
+        RequestScope mockScope = mock(RequestScope.class);
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==Drum;description==brass", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(1L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testPredicateDisjunction() throws Exception {
+
+        RequestScope mockScope = mock(RequestScope.class);
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==Drum,description==ride", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(1L, 2L, 3L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
 
 
     private void assertListMatches(Iterable<Object> actual, List<Long> expectedIds) {
@@ -81,5 +131,17 @@ public class SearchDataStoreTest {
                 .collect(Collectors.toList());
 
         Assert.assertEquals(actualIds, expectedIds);
+    }
+
+    private void assertListContains(Iterable<Object> actual, List<Long> expectedIds) {
+        List<Long> actualIds = StreamSupport.stream(actual.spliterator(), false)
+                .map((obj) -> (Item) obj)
+                .map(Item::getId)
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<Long> expectedIdsSorted = expectedIds.stream().sorted().collect(Collectors.toList());
+
+        Assert.assertEquals(actualIds, expectedIdsSorted);
     }
 }

@@ -14,6 +14,10 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.query.dsl.QueryBuilder;
@@ -75,10 +79,15 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 throw new IllegalArgumentException("Unsupported Predicate Operator: " + filterPredicate.getOperator());
         }
 
-        return builder.simpleQueryString()
-                .onField(filterPredicate.getField())
-                .matching(queryString)
-                .createQuery();
+        Analyzer analyzer = new WhitespaceAnalyzer();
+        QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
+        queryParser.setLowercaseExpandedTerms(false);
+
+        try {
+            return queryParser.parse(queryString);
+        } catch (ParseException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
