@@ -21,7 +21,7 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import java.util.stream.Collectors;
 
 /**
- * Converts an Elide filter expression into a Lucene Search query
+ * Converts an Elide filter expression into a Lucene Search query.
  */
 public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Query> {
 

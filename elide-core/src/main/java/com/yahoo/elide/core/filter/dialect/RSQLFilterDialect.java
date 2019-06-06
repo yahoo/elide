@@ -124,7 +124,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             throw new ParseException("No such collection: " + lastPathComponent);
         }
 
-        return parseFilterExpression(queryParamValue, entityType);
+        return parseFilterExpression(queryParamValue, entityType, true);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
 
                 String expressionText = paramValues.get(0);
 
-                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType);
+                FilterExpression filterExpression = parseFilterExpression(expressionText, entityType, false);
                 expressionByType.put(typeName, filterExpression);
             } else {
                 throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
@@ -169,12 +169,14 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
      * @return An elide FilterExpression abstract syntax tree
      * @throws ParseException
      */
-    public FilterExpression parseFilterExpression(String expressionText, Class<?> entityType) throws ParseException {
+    public FilterExpression parseFilterExpression(String expressionText,
+                                                  Class<?> entityType,
+                                                  boolean allowNestedToManyAssociations) throws ParseException {
         try {
             Node ast = parser.parse(expressionText);
-            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(false);
+            RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations);
             return ast.accept(visitor, entityType);
-        } catch (RSQLParseException e) {
+        } catch (RSQLParserException e) {
             throw new ParseException(e.getMessage());
         }
     }
