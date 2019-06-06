@@ -74,7 +74,7 @@ public class EntityDictionary {
     protected final BiMap<String, Class<? extends Check>> checkNames;
     protected final Injector injector;
 
-    private final static String REGULAR_ID_NAME = "id";
+    public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Class, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
     /**
@@ -609,7 +609,6 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
-     *
      *     {@literal @}Id
      *     private Long id
      *
@@ -631,7 +630,6 @@ public class EntityDictionary {
      * <pre>
      * {@code
      * public class Address {
-     *
      *     {@literal @}Id
      *     private Long surrogateKey
      *
@@ -651,10 +649,10 @@ public class EntityDictionary {
      * }
      * </pre>
      * JSON-API spec does not allow "id" as non-ID field name. If, therefore, there is a non-ID field called "id",
-     * callling this method has undefined behavior
+     * calling this method has undefined behavior
      *
      * @param entityClass Entity class
-     * @param identifier  Field to lookup type
+     * @param identifier  Identifier/Field to lookup type
      * @return Type of entity
      */
     public Class<?> getType(Class<?> entityClass, String identifier) {
@@ -692,7 +690,7 @@ public class EntityDictionary {
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
-     * @param identifier  the identifier
+     * @param identifier  the identifier/field name
      * @param paramIndex  the index of the parameterization
      * @return Entity type for field otherwise null.
      */

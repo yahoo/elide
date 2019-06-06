@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+
 /**
  * FilterDialect which implements support for RSQL filter dialect.
  */
@@ -204,6 +206,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             Class entityType = rootEntityType;
 
             for (String associationName : associationNames) {
+                // if the association name is "id", replaced it with real id field name
+                // id field name can be "id" or other string, but non-id field can't have name "id".
+                if (associationName.equals(REGULAR_ID_NAME)) {
+                    associationName = dictionary.getIdFieldName(entityType);
+                }
+
                 String typeName = dictionary.getJsonAliasFor(entityType);
                 Class fieldType = dictionary.getParameterizedType(entityType, associationName);
 

@@ -69,6 +69,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
+import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
@@ -327,7 +329,7 @@ public class EntityBinding {
         String fieldName = getFieldName(fieldOrMethod);
         Class<?> fieldType = getFieldType(entityClass, fieldOrMethod);
 
-        if (fieldName == null || "id".equals(fieldName) || "class".equals(fieldName)
+        if (fieldName == null || REGULAR_ID_NAME.equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
             return; // Reserved
         }
