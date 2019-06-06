@@ -1,7 +1,20 @@
 # Change Log
+
+## 4.4.4
+**Fixes**
+ * When requesting an ID field whose name is not 'id', an error happens: `No such association id for type xxx`. When the requested field name equals 'id', Elide has been fixed to look for the field with the annotation @Id rather than looking by field name.
+ * Support RSQL INFIX, POSTFIX, and PREFIX filters on number types: remove '*' before coercing.
+
+**Features**
+* Issue#812 Add support for BigDecimal field in GraphQL. 
+* Elide standalone now includes a Hikari connection pool & Hibernate batch fetching by default
+
 ## 4.4.3
 **Features**
  * When fetching a collection, if there are no filters, sorting, or client specified pagination, the ORM backed data stores will return the proxy object rather than construct a HQL query.  This allows the ORM the opportunity to generate SQL to avoid the N+1 problem.
+
+**Fixes**
+ * Fixes bug where EntityManager creation for ElideStandalone was not thread safe.
 
 ## 4.4.2
 **Fixes**
