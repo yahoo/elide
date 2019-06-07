@@ -28,9 +28,9 @@ import org.hibernate.search.annotations.TokenizerDef;
 
 import lombok.Data;
 
+import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.util.Date;
 
 @Entity
 @Include
@@ -62,7 +62,7 @@ public class Item {
     private String description;
 
     @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
-    @DateBridge(resolution=Resolution.MINUTE, encoding= EncodingType.STRING)
+    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @SortableField
     private Date modifiedDate;
 }

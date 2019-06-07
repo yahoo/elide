@@ -22,6 +22,7 @@ import org.apache.lucene.search.Query;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.query.dsl.QueryBuilder;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -46,14 +47,17 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
 
         String queryString = "";
 
+        List<String> predicateValues = filterPredicate.getValues()
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+
         boolean lowerCaseTerms = false;
         switch (filterPredicate.getOperator()) {
             case IN_INSENSITIVE:
                 lowerCaseTerms = true;
             case IN: {
-                queryString = filterPredicate.getValues()
-                        .stream()
-                        .map(Object::toString)
+                queryString = predicateValues.stream()
                         .map((str) -> "\"" + str + "\"")
                         .collect(Collectors.joining(" | "));
                 break;
@@ -61,9 +65,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
             case NOT_INSENSITIVE:
                 lowerCaseTerms = true;
             case NOT: {
-                queryString = filterPredicate.getValues()
-                        .stream()
-                        .map(Object::toString)
+                queryString = predicateValues.stream()
                         .map((str) -> "-\"" + str + "\"")
                         .collect(Collectors.joining(" + "));
                 break;
@@ -73,9 +75,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 lowerCaseTerms = true;
             case PREFIX:
             case INFIX: {
-                queryString = filterPredicate.getValues()
-                        .stream()
-                        .map(Object::toString)
+                queryString = predicateValues.stream()
                         .map((str) -> str + "*")
                         .collect(Collectors.joining(" | "));
                 break;

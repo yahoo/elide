@@ -10,7 +10,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.datastore.wrapped.WrappedTransaction;
+import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Performs full text search when it can.  Otherwise delegates to a wrapped transaction.
  */
-public class SearchDataTransaction extends WrappedTransaction {
+public class SearchDataTransaction extends TransactionWrapper {
 
     EntityDictionary dictionary;
     FullTextEntityManager em;
@@ -59,13 +59,14 @@ public class SearchDataTransaction extends WrappedTransaction {
                                         Optional<Pagination> pagination,
                                         RequestScope requestScope) {
 
-        if (! filterExpression.isPresent()) {
+        if (!filterExpression.isPresent()) {
             return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
         }
 
         boolean canSearch = canSearch(filterExpression.get(), entityClass);
+        boolean mustSort = mustSort(sorting, entityClass);
 
-        if (sorting.isPresent()) {
+        if (mustSort) {
             canSearch = canSearch && canSort(sorting.get(), entityClass);
         }
 
@@ -79,7 +80,7 @@ public class SearchDataTransaction extends WrappedTransaction {
 
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
 
-            if (sorting.isPresent()) {
+            if (mustSort) {
                 fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
             }
 
@@ -110,6 +111,16 @@ public class SearchDataTransaction extends WrappedTransaction {
     }
 
     /**
+     * Indicates whether sorting has been requested for this entity
+     * @param sorting An optional elide sorting clause.
+     * @param entityClass The entity to sort.
+     * @return True if the entity must be sorted. False otherwise.
+     */
+    private boolean mustSort(Optional<Sorting> sorting, Class<?> entityClass) {
+        return sorting.isPresent() && !sorting.get().getValidSortingRules(entityClass, dictionary).isEmpty();
+    }
+
+    /**
      * Returns whether or not Lucene can be used to sort the query.
      * @param sorting The elide sorting clause
      * @param entityClass The entity being sorted.
@@ -117,7 +128,6 @@ public class SearchDataTransaction extends WrappedTransaction {
      */
     private boolean canSort(Sorting sorting, Class<?> entityClass) {
 
-        boolean canSearch = true;
         for (Map.Entry<Path, Sorting.SortOrder> entry
                 : sorting.getValidSortingRules(entityClass, dictionary).entrySet()) {
 
@@ -172,7 +182,7 @@ public class SearchDataTransaction extends WrappedTransaction {
             boolean indexed = false;
 
             for (Field field : fields) {
-                if (field.index() == Index.YES) {
+                if (field.index() == Index.YES && (field.name().equals(fieldName) || field.name().isEmpty())) {
                     indexed = true;
                 }
             }
