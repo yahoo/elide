@@ -25,10 +25,13 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.search.models.Item;
 
 import com.google.common.collect.Lists;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,8 @@ public class SearchDataStoreTest {
 
         mockScope = mock(RequestScope.class);
         when(mockScope.getDictionary()).thenReturn(dictionary);
+
+        CoerceUtil.register(Date.class, new ISO8601DateSerde());
     }
 
     @BeforeMethod
@@ -162,6 +167,7 @@ public class SearchDataStoreTest {
 
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.asc);
+        sortRules.put("modifiedDate", Sorting.SortOrder.desc);
         Sorting sorting = new Sorting(sortRules);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
@@ -179,13 +185,14 @@ public class SearchDataStoreTest {
 
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
+        sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
 
         FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
 
-        assertListMatches(loaded, Lists.newArrayList(2L, 4L, 5L));
+        assertListMatches(loaded, Lists.newArrayList(2L, 5L, 4L));
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
     }
 
@@ -196,6 +203,7 @@ public class SearchDataStoreTest {
 
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
+        sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
@@ -216,6 +224,7 @@ public class SearchDataStoreTest {
 
         Map<String, Sorting.SortOrder> sortRules = new HashMap();
         sortRules.put("name", Sorting.SortOrder.desc);
+        sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 1, true);
@@ -224,7 +233,7 @@ public class SearchDataStoreTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
 
-        assertListMatches(loaded, Lists.newArrayList(4L));
+        assertListMatches(loaded, Lists.newArrayList(5L));
         Assert.assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
     }

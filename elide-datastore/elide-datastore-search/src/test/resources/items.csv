@@ -1,6 +1,6 @@
-id,name,description
-1,Snare Drum,A brass snare drum
-2,Ride Cymbal,A 16 inch ride cymbal
-3,Bass Drum,A 22 inch base drum
-4,Cymbal Stand, A cymbal stand
-5,Cymbal Stand, B cymbal stand
+id,name,description,modifiedDate
+1,Snare Drum,A brass snare drum,2018-01-01 00:00:00
+2,Ride Cymbal,A 16 inch ride cymbal,2018-01-01 00:00:00
+3,Bass Drum,A 22 inch base drum,2018-01-01 00:00:00
+4,Cymbal Stand, A cymbal stand,2018-02-01 00:00:00
+5,Cymbal Stand, B cymbal stand,2018-01-01 00:00:00
