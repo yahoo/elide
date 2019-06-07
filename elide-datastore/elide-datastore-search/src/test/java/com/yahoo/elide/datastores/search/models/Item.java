@@ -28,6 +28,7 @@ import org.hibernate.search.annotations.TokenizerDef;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -65,4 +66,6 @@ public class Item {
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @SortableField
     private Date modifiedDate;
+
+    private BigDecimal price;
 }

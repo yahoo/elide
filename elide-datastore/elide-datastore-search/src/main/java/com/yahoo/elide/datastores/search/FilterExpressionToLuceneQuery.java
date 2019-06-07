@@ -45,11 +45,15 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
         Preconditions.checkArgument(filterPredicate.getPath().getPathElements().size() == 1);
         Preconditions.checkArgument(filterPredicate.getEntityType().equals(entityClass));
 
+        Analyzer analyzer = new WhitespaceAnalyzer();
+        QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
+
         String queryString = "";
 
         List<String> predicateValues = filterPredicate.getValues()
                 .stream()
                 .map(Object::toString)
+                .map(QueryParser::escape)
                 .collect(Collectors.toList());
 
         boolean lowerCaseTerms = false;
@@ -84,8 +88,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 throw new IllegalArgumentException("Unsupported Predicate Operator: " + filterPredicate.getOperator());
         }
 
-        Analyzer analyzer = new WhitespaceAnalyzer();
-        QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
+
         queryParser.setLowercaseExpandedTerms(lowerCaseTerms);
 
         try {

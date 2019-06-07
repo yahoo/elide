@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -92,6 +93,32 @@ public class SearchDataStoreTest {
     }
 
     @Test
+    public void testEscapedEqualityPredicate() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        /* Verify that '-' is escaped before we run the query */
+        FilterExpression filter = filterParser.parseFilterExpression("name==-lucene", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(6L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testEmptyResult() throws Exception {
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==lucene", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList());
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
     public void testEqualityPredicateWithInMemoryFiltering() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
@@ -145,6 +172,21 @@ public class SearchDataStoreTest {
 
         assertListContains(loaded, Lists.newArrayList(1L));
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testNonIndexedPredicate() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList());
+
+        /* This query should hit the underlying store */
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any(), any(), any(), any());
     }
 
     @Test
