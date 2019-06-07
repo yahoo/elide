@@ -231,6 +231,10 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     @Override
     public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+
+        // By returning partial, we allow the InMemoryStore to also run the same filters.
+        // This is crucial for correct behavior on exact match queries (IN, NOT) where the
+        // inverted index does not store the entire field but rather specific tokens.
         return FeatureSupport.PARTIAL;
     }
 }

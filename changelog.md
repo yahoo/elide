@@ -6,6 +6,7 @@
 
 **Fixes**
  * Run vulnerability check during build.  Updated dependencies to fix CVE-2018-1000632, CVE-2017-15708, CVE-2019-10247
+ * Upgrade to Hibernate 5.4.1
 
 ## 4.4.5
 **Fixes**
