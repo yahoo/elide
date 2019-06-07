@@ -218,4 +218,9 @@ public class SearchDataTransaction extends WrappedTransaction {
 
         return context.createSort();
     }
+
+    @Override
+    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        return FeatureSupport.PARTIAL;
+    }
 }

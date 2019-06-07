@@ -45,8 +45,11 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
         Preconditions.checkArgument(filterPredicate.getEntityType().equals(entityClass));
 
         String queryString = "";
+
+        boolean lowerCaseTerms = false;
         switch (filterPredicate.getOperator()) {
             case IN_INSENSITIVE:
+                lowerCaseTerms = true;
             case IN: {
                 queryString = filterPredicate.getValues()
                         .stream()
@@ -56,6 +59,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 break;
             }
             case NOT_INSENSITIVE:
+                lowerCaseTerms = true;
             case NOT: {
                 queryString = filterPredicate.getValues()
                         .stream()
@@ -64,10 +68,11 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                         .collect(Collectors.joining(" + "));
                 break;
             }
-            case PREFIX:
+            case INFIX_CASE_INSENSITIVE:
             case PREFIX_CASE_INSENSITIVE:
-            case INFIX:
-            case INFIX_CASE_INSENSITIVE: {
+                lowerCaseTerms = true;
+            case PREFIX:
+            case INFIX: {
                 queryString = filterPredicate.getValues()
                         .stream()
                         .map(Object::toString)
@@ -81,7 +86,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
 
         Analyzer analyzer = new WhitespaceAnalyzer();
         QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
-        queryParser.setLowercaseExpandedTerms(false);
+        queryParser.setLowercaseExpandedTerms(lowerCaseTerms);
 
         try {
             return queryParser.parse(queryString);

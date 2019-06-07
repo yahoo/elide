@@ -17,8 +17,11 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.search.models.Item;
 
 import com.google.common.collect.Lists;
@@ -28,6 +31,7 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -40,6 +44,7 @@ public class SearchDataStoreTest {
     private RSQLFilterDialect filterParser;
     private SearchDataStore searchStore;
     private DataStoreTransaction wrappedTransaction;
+    private RequestScope mockScope;
 
     public SearchDataStoreTest() {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
@@ -55,6 +60,10 @@ public class SearchDataStoreTest {
 
         searchStore = new SearchDataStore(mockStore, emf);
         searchStore.populateEntityDictionary(dictionary);
+
+
+        mockScope = mock(RequestScope.class);
+        when(mockScope.getDictionary()).thenReturn(dictionary);
     }
 
     @BeforeMethod
@@ -65,11 +74,11 @@ public class SearchDataStoreTest {
     @Test
     public void testEqualityPredicate() throws Exception {
 
-        RequestScope mockScope = mock(RequestScope.class);
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==Drum", Item.class, false);
+        //Case sensitive query against case insensitive index must lowercase
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -78,13 +87,41 @@ public class SearchDataStoreTest {
     }
 
     @Test
-    public void testContainsPredicate() throws Exception {
+    public void testEqualityPredicateWithInMemoryFiltering() throws Exception {
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        RequestScope mockScope = mock(RequestScope.class);
+        testTransaction = new InMemoryStoreTransaction(testTransaction);
+
+        //Case sensitive query against case insensitive index must lowercase
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList());
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testEqualityPredicatePhrase() throws Exception {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==*Dru*", Item.class, false);
+        //Case sensitive query against case insensitive index must lowercase
+        FilterExpression filter = filterParser.parseFilterExpression("name=='snare drum'", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(1L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testContainsPredicate() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        //Case insensitive query against case insensitive index
+        FilterExpression filter = filterParser.parseFilterExpression("name==*DrU*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -95,11 +132,9 @@ public class SearchDataStoreTest {
     @Test
     public void testPredicateConjunction() throws Exception {
 
-        RequestScope mockScope = mock(RequestScope.class);
-
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==Drum;description==brass", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum;description==brass", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -110,11 +145,9 @@ public class SearchDataStoreTest {
     @Test
     public void testPredicateDisjunction() throws Exception {
 
-        RequestScope mockScope = mock(RequestScope.class);
-
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==Drum,description==ride", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum,description==ride", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -122,7 +155,79 @@ public class SearchDataStoreTest {
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
     }
 
+    @Test
+    public void testSortingAscending() throws Exception {
 
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        sortRules.put("name", Sorting.SortOrder.asc);
+        Sorting sorting = new Sorting(sortRules);
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(4L, 5L, 2L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testSortingDescending() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        sortRules.put("name", Sorting.SortOrder.desc);
+        Sorting sorting = new Sorting(sortRules);
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
+
+        assertListMatches(loaded, Lists.newArrayList(2L, 4L, 5L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testPaginationPageOne() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        sortRules.put("name", Sorting.SortOrder.desc);
+        Sorting sorting = new Sorting(sortRules);
+
+        Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
+
+        assertListMatches(loaded, Lists.newArrayList(2L));
+        Assert.assertEquals(pagination.getPageTotals(), 3);
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testPaginationPageTwo() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        Map<String, Sorting.SortOrder> sortRules = new HashMap();
+        sortRules.put("name", Sorting.SortOrder.desc);
+        Sorting sorting = new Sorting(sortRules);
+
+        Pagination pagination = Pagination.fromOffsetAndLimit(1, 1, true);
+
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
+
+        assertListMatches(loaded, Lists.newArrayList(4L));
+        Assert.assertEquals(pagination.getPageTotals(), 3);
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
 
     private void assertListMatches(Iterable<Object> actual, List<Long> expectedIds) {
         List<Long> actualIds = StreamSupport.stream(actual.spliterator(), false)
