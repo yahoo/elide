@@ -26,10 +26,12 @@ public class SearchDataStore implements DataStore {
    private DataStore wrapped;
    private EntityDictionary dictionary;
    private EntityManagerFactory entityManagerFactory;
+   private boolean indexOnStartup = false;
 
-   public SearchDataStore(DataStore wrapped, EntityManagerFactory entityManagerFactory) {
+   public SearchDataStore(DataStore wrapped, EntityManagerFactory entityManagerFactory, boolean indexOnStartup) {
        this.wrapped = wrapped;
        this.entityManagerFactory = entityManagerFactory;
+       this.indexOnStartup = indexOnStartup;
 
        String lucenePath = (String) entityManagerFactory
                .getProperties()
@@ -43,17 +45,20 @@ public class SearchDataStore implements DataStore {
    public void populateEntityDictionary(EntityDictionary entityDictionary) {
        wrapped.populateEntityDictionary(entityDictionary);
 
-       FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
-       try {
-           for (Class<?> entityClass : entityDictionary.getBindings()) {
-               if (entityDictionary.getAnnotation(entityClass, Indexed.class) != null) {
-                   em.createIndexer(entityClass).startAndWait();
+       if (indexOnStartup) {
+
+           FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
+           try {
+               for (Class<?> entityClass : entityDictionary.getBindings()) {
+                   if (entityDictionary.getAnnotation(entityClass, Indexed.class) != null) {
+                       em.createIndexer(entityClass).startAndWait();
+                   }
                }
+           } catch (InterruptedException e) {
+               throw new IllegalStateException(e);
+           } finally {
+               em.close();
            }
-       } catch (InterruptedException e) {
-           throw new IllegalStateException(e);
-       } finally {
-           em.close();
        }
 
        this.dictionary = entityDictionary;
