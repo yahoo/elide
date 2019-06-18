@@ -6,20 +6,19 @@
 
 package com.yahoo.elide.core.datastore.wrapped;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.security.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class TransactionWrapperTest {
 
