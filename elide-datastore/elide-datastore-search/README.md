@@ -57,7 +57,6 @@ public class Item {
 ### Wrap Your DataStore
 
 ```java
-
 /* Create your ORM based data store */
 DataStore store = ...
 
@@ -73,12 +72,12 @@ ElideSettings = new ElideSettingsBuidler(searchStore).build();
 ### Indexing your Data
 You can index data either by:
 
-1. When the `SearchDataStore` is initalized, indicate (by setting `indexOnStartup` to true) that it should build a complete index.
-2. Issuing created, updated, and delete requests against your Elide service.
-3. Using an out of band process using Hibernate Search APIs.
+1.  When the `SearchDataStore` is initalized, indicate (by setting `indexOnStartup` to true) that it should build a complete index.
+2.  Issuing created, updated, and delete requests against your Elide service.
+3.  Using an out of band process using Hibernate Search APIs.
 
 ## Caveats
 
-1. Only text fields (String) are supported/tested. Other data types (dates, numbers, etc) have not been tested.
-2. Only IN, NOT, INFIX, and PREFIX operators (and their case insensitive equivalents) are supported.
-3. INFIX is implemented as tokenized PREFIX. A search for '*foo*' will match 'bar foobar' but not 'bar barfoo'.
+1.  Only text fields (String) are supported/tested. Other data types (dates, numbers, etc) have not been tested.
+2.  Only IN, NOT, INFIX, and PREFIX operators (and their case insensitive equivalents) are supported.
+3.  INFIX is implemented as tokenized PREFIX. A search for '*foo*' will match 'bar foobar' but not 'bar barfoo'.
