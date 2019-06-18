@@ -30,12 +30,10 @@ import java.util.stream.Collectors;
  */
 public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Query> {
 
-    private FullTextEntityManager entityManager;
     private QueryBuilder builder;
     private Class<?> entityClass;
 
     public FilterExpressionToLuceneQuery(FullTextEntityManager entityManager, Class<?> entityClass) {
-        this.entityManager = entityManager;
         this.entityClass = entityClass;
         builder = entityManager.getSearchFactory().buildQueryBuilder().forEntity(entityClass).get();
     }

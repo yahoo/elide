@@ -43,8 +43,8 @@ import java.util.stream.Collectors;
  */
 public class SearchDataTransaction extends TransactionWrapper {
 
-    EntityDictionary dictionary;
-    FullTextEntityManager em;
+    private EntityDictionary dictionary;
+    private FullTextEntityManager em;
 
     public SearchDataTransaction(DataStoreTransaction tx, EntityDictionary dictionary, FullTextEntityManager em) {
         super(tx);
