@@ -3,6 +3,7 @@
 ## 4.4.5
 **Fixes**
  * Issue 801
+ * Switched to Open JDK 8
  
 ## 4.4.4
 **Fixes**
