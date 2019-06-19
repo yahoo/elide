@@ -122,7 +122,7 @@ public class ElideStandalone {
                     EnumSet.of(DispatcherType.REQUEST));
 
             context.setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, ElideResourceConfig.getHealthCheckRegistry());
-            context.setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, ElideResourceConfig.getMetricRegistry());
+
             context.setAttribute(MetricsServlet.METRICS_REGISTRY, ElideResourceConfig.getMetricRegistry());
             context.addServlet(AdminServlet.class, "/stats/*");
         }
