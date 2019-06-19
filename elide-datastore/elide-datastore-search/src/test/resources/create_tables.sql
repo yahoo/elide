@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS item
     (
-      id BIGINT UNSIGNED,
+      id BIGINT,
       name VARCHAR(255),
       description VARCHAR(2047),
       modifiedDate TIMESTAMP,

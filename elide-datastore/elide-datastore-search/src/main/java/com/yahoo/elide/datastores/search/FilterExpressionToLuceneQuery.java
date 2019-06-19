@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.search;
 
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -54,38 +55,11 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 .map(QueryParser::escape)
                 .collect(Collectors.toList());
 
-        boolean lowerCaseTerms = false;
-        switch (filterPredicate.getOperator()) {
-            case IN_INSENSITIVE:
-                lowerCaseTerms = true;
-            case IN: {
-                queryString = predicateValues.stream()
-                        .map((str) -> "\"" + str + "\"")
-                        .collect(Collectors.joining(" | "));
-                break;
-            }
-            case NOT_INSENSITIVE:
-                lowerCaseTerms = true;
-            case NOT: {
-                queryString = predicateValues.stream()
-                        .map((str) -> "-\"" + str + "\"")
-                        .collect(Collectors.joining(" + "));
-                break;
-            }
-            case INFIX_CASE_INSENSITIVE:
-            case PREFIX_CASE_INSENSITIVE:
-                lowerCaseTerms = true;
-            case PREFIX:
-            case INFIX: {
-                queryString = predicateValues.stream()
-                        .map((str) -> str + "*")
-                        .collect(Collectors.joining(" | "));
-                break;
-            }
-            default:
-                throw new IllegalArgumentException("Unsupported Predicate Operator: " + filterPredicate.getOperator());
-        }
+        Operator op = filterPredicate.getOperator();
 
+        boolean lowerCaseTerms = lowerCaseTerms(op);
+
+        queryString = buildQueryString(op, predicateValues);
 
         queryParser.setLowercaseExpandedTerms(lowerCaseTerms);
 
@@ -120,5 +94,45 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 .must(expression.getNegated().accept(this))
                 .not()
                 .createQuery();
+    }
+
+    private boolean lowerCaseTerms(Operator op) {
+        switch (op) {
+            case IN_INSENSITIVE:
+            case NOT_INSENSITIVE:
+            case INFIX_CASE_INSENSITIVE:
+            case PREFIX_CASE_INSENSITIVE:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private String buildQueryString(Operator op, List<String> predicateValues) {
+        switch (op) {
+            case IN_INSENSITIVE:
+            case IN: {
+                return predicateValues.stream()
+                        .map((str) -> "\"" + str + "\"")
+                        .collect(Collectors.joining(" | "));
+            }
+            case NOT_INSENSITIVE:
+            case NOT: {
+                return predicateValues.stream()
+                        .map((str) -> "-\"" + str + "\"")
+                        .collect(Collectors.joining(" + "));
+            }
+            case INFIX_CASE_INSENSITIVE:
+            case PREFIX_CASE_INSENSITIVE:
+            case PREFIX:
+            case INFIX: {
+                return predicateValues.stream()
+                        .map((str) -> str + "*")
+                        .collect(Collectors.joining(" | "));
+            }
+            default:
+                throw new IllegalArgumentException("Unsupported Predicate Operator: " + op);
+        }
     }
 }

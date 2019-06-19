@@ -64,47 +64,13 @@ public class SearchDataTransaction extends TransactionWrapper {
         }
 
         boolean canSearch = canSearch(filterExpression.get(), entityClass);
-        boolean mustSort = mustSort(sorting, entityClass);
 
-        if (mustSort) {
+        if (mustSort(sorting, entityClass)) {
             canSearch = canSearch && canSort(sorting.get(), entityClass);
         }
 
         if (canSearch) {
-            Query query;
-            try {
-                query = filterExpression.get().accept(new FilterExpressionToLuceneQuery(em, entityClass));
-            } catch (IllegalArgumentException e) {
-                throw new InvalidPredicateException(e.getMessage());
-            }
-
-            FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
-
-            if (mustSort) {
-                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
-            }
-
-            if (pagination.isPresent()) {
-                fullTextQuery = fullTextQuery.setMaxResults(pagination.get().getLimit());
-                fullTextQuery = fullTextQuery.setFirstResult(pagination.get().getOffset());
-            }
-
-            List<Object[]> results = fullTextQuery
-                    .setProjection(ProjectionConstants.THIS)
-                    .getResultList();
-
-            if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(fullTextQuery.getResultSize());
-            }
-
-            if (results.isEmpty()) {
-                return new ArrayList<>();
-            }
-
-            return results.stream()
-                    .map((result) -> {
-                        return result[0];
-                    }).collect(Collectors.toList());
+            return search(entityClass, filterExpression.get(), sorting, pagination);
         }
 
         return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
@@ -236,5 +202,51 @@ public class SearchDataTransaction extends TransactionWrapper {
         // This is crucial for correct behavior on exact match queries (IN, NOT) where the
         // inverted index does not store the entire field but rather specific tokens.
         return FeatureSupport.PARTIAL;
+    }
+
+    /**
+     * Perform the full-text search.
+     * @param entityClass The class to search
+     * @param filterExpression The filter expression to apply
+     * @param sorting Optional sorting
+     * @param pagination Optional pagination
+     * @return A list of records of type entityClass.
+     */
+    private List<Object> search(Class<?> entityClass, FilterExpression filterExpression, Optional<Sorting> sorting,
+                                Optional<Pagination> pagination) {
+            Query query;
+            try {
+                query = filterExpression.accept(new FilterExpressionToLuceneQuery(em, entityClass));
+            } catch (IllegalArgumentException e) {
+                throw new InvalidPredicateException(e.getMessage());
+            }
+
+            FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
+
+            if (mustSort(sorting, entityClass)) {
+                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
+            }
+
+            if (pagination.isPresent()) {
+                fullTextQuery = fullTextQuery.setMaxResults(pagination.get().getLimit());
+                fullTextQuery = fullTextQuery.setFirstResult(pagination.get().getOffset());
+            }
+
+            List<Object[]> results = fullTextQuery
+                    .setProjection(ProjectionConstants.THIS)
+                    .getResultList();
+
+            if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
+                pagination.get().setPageTotals(fullTextQuery.getResultSize());
+            }
+
+            if (results.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            return results.stream()
+                    .map((result) -> {
+                        return result[0];
+                    }).collect(Collectors.toList());
     }
 }
