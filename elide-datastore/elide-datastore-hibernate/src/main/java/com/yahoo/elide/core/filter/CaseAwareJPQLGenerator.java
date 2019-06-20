@@ -3,13 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 /**
  * JPQLPredicateGenerator that can generate both case sensitive/insensitive predicate fragments.
  */
-public class CaseAwareJPQLGenerator implements FilterTranslator.JPQLPredicateGenerator {
+@Slf4j
+public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
 
     private static final String COMMA = ", ";
     private static final String FILTER_PATH_NOT_NULL = "Filtering field path cannot be empty.";
@@ -73,6 +74,7 @@ public class CaseAwareJPQLGenerator implements FilterTranslator.JPQLPredicateGen
     public String generate(String columnAlias, List<FilterPredicate.FilterParameter> params) {
 
         if (Strings.isNullOrEmpty(columnAlias)) {
+            log.error("columnAlias cannot be NULL or empty");
             throw new InvalidValueException(FILTER_PATH_NOT_NULL);
         }
 
@@ -82,6 +84,7 @@ public class CaseAwareJPQLGenerator implements FilterTranslator.JPQLPredicateGen
             Preconditions.checkArgument(params.size() == 1);
 
             if (Strings.isNullOrEmpty(params.get(0).getPlaceholder())) {
+                log.error("One non-null, non-empty argument was expected.");
                 throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
             }
         }

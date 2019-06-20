@@ -3,22 +3,22 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.core.datastore;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Common DataStore functionality for stores that leverage JPQL.
  */
 public interface JPQLDataStore extends DataStore {
+    Logger LOGGER = LoggerFactory.getLogger(JPQLDataStore.class);
 
     default void bindEntityClass(Class<?> entityClass, EntityDictionary dictionary) {
-
-
         try {
             // Ignore this result. We are just checking to see if it throws an exception meaning that
             // provided class was _not_ an entity.
@@ -46,6 +46,7 @@ public interface JPQLDataStore extends DataStore {
                        FilterTranslator.registerJPQLGenerator(annotation.operator(),
                                entityClass, attribute, annotation.generator().newInstance());
                    } catch (InstantiationException | IllegalAccessException e) {
+                       LOGGER.error("Unable to instantiate the JPQL fragment generator: {}", e.getMessage());
                        throw new IllegalStateException(e);
                    }
                }

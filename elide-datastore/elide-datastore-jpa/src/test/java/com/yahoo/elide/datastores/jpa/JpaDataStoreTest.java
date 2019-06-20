@@ -14,6 +14,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 
 import com.google.common.collect.Sets;
@@ -31,7 +32,7 @@ import javax.persistence.metamodel.Metamodel;
 
 
 public class JpaDataStoreTest {
-    public static class TestGenerator implements FilterTranslator.JPQLPredicateGenerator {
+    public static class TestGenerator implements JPQLPredicateGenerator {
         @Override
         public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
             return "FOO()";

@@ -10,7 +10,7 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 
 import java.lang.annotation.Inherited;
@@ -35,5 +35,5 @@ public @interface JPQLFilterFragment {
      * The function which generates the fragment.
      * @return the generator
      */
-    Class<? extends FilterTranslator.JPQLPredicateGenerator> generator();
+    Class<? extends JPQLPredicateGenerator> generator();
 }

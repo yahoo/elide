@@ -50,14 +50,6 @@ public class FilterTranslator implements FilterOperation<String> {
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
     private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
-    /**
-     * Converts a JPQL column alias and list of arguments into a JPQL filter predicate fragment.
-     */
-    @FunctionalInterface
-    public interface JPQLPredicateGenerator {
-        String generate(String columnAlias, List<FilterParameter> parameters);
-    }
-
     static {
         predicateOverrides = new HashMap<>();
 
@@ -226,10 +218,10 @@ public class FilterTranslator implements FilterOperation<String> {
     }
 
     /**
-     * Transforms a filter predicate into a HQL query fragment.
+     * Transforms a filter predicate into a JPQL query fragment.
      * @param filterPredicate The predicate to transform.
      * @param prefixWithAlias Whether or not to append the entity type to the predicate.
-     *                       This is useful for table aliases referenced in HQL for some kinds of joins.
+     *                       This is useful for table aliases referenced in JPQL for some kinds of joins.
      * @return The hql query fragment.
      */
     protected String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
@@ -241,7 +233,7 @@ public class FilterTranslator implements FilterOperation<String> {
 
         Path.PathElement last = filterPredicate.getPath().lastElement().get();
 
-        //HQL doesn't support 'this', but it does support aliases.
+        //JPQL doesn't support 'this', but it does support aliases.
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
         List<FilterParameter> params = filterPredicate.getParameters();
@@ -273,19 +265,17 @@ public class FilterTranslator implements FilterOperation<String> {
     }
 
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
+        JPQLQueryVisitor visitor = new JPQLQueryVisitor(prefixWithAlias);
         return "WHERE " + filterExpression.accept(visitor);
     }
 
     /**
-     * Filter expression visitor which builds an HQL query.
+     * Filter expression visitor which builds an JPQL query.
      */
-    public class HQLQueryVisitor implements FilterExpressionVisitor<String> {
-        public static final String TWO_NON_FILTERING_EXPRESSIONS =
-                "Cannot build a filter from two non-filtering expressions";
+    public class JPQLQueryVisitor implements FilterExpressionVisitor<String> {
         private boolean prefixWithAlias;
 
-        public HQLQueryVisitor(boolean prefixWithAlias) {
+        public JPQLQueryVisitor(boolean prefixWithAlias) {
             this.prefixWithAlias = prefixWithAlias;
         }
 

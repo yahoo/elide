@@ -96,7 +96,7 @@ public class FilterTranslatorTest {
     @Test
     public void testCustomPredicate() throws Exception {
 
-        FilterTranslator.JPQLPredicateGenerator generator = new FilterTranslator.JPQLPredicateGenerator() {
+        JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
             public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
                 return "FOO";
@@ -119,14 +119,14 @@ public class FilterTranslatorTest {
     @Test
     public void testCustomOperator() throws Exception {
 
-        FilterTranslator.JPQLPredicateGenerator generator = new FilterTranslator.JPQLPredicateGenerator() {
+        JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
             public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
                 return "FOO";
             }
         };
 
-        FilterTranslator.JPQLPredicateGenerator old = FilterTranslator.lookupJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE);
+        JPQLPredicateGenerator old = FilterTranslator.lookupJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE);
         try {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, generator);
 
