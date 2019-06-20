@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.4.5-SNAPSHOT</version>
+    <version>4.4.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -81,7 +81,7 @@
         <version.logback>1.1.7</version.logback>
         <version.jetty>9.4.17.v20190418</version.jetty>
         <version.restassured>2.9.0</version.restassured>
-        <version.jackson>2.9.8</version.jackson>
+        <version.jackson>2.9.9</version.jackson>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.2.15.Final</hibernate5.version>
         <version.mysql>8.0.15</version.mysql>
@@ -101,12 +101,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>4.4.5-SNAPSHOT</version>
+                <version>4.4.6-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-example-models</artifactId>
-                <version>4.4.5-SNAPSHOT</version>
+                <version>4.4.6-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -194,7 +194,7 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>1.4.197</version>
+                <version>1.4.199</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -368,7 +368,7 @@
                     <dependency>
                         <groupId>org.apache.maven.scm</groupId>
                         <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.9.5</version>
+                        <version>1.11.2</version>
                     </dependency>
                 </dependencies>
                 <configuration>
