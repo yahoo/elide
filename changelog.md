@@ -1,5 +1,5 @@
 # Change Log
-## 4.4.5
+## 4.4.6
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
 
