@@ -11,6 +11,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import example.Author;
 import example.Book;
 
+import example.Job;
+import example.StringId;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -36,6 +38,8 @@ public class RSQLFilterDialectTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(StringId.class);
+        dictionary.bindEntity(Job.class);
         dialect = new RSQLFilterDialect(dictionary);
     }
 
@@ -266,6 +270,38 @@ public class RSQLFilterDialectTest {
         Assert.assertEquals(
                 visitor.visit(comparisonNode, Author.class).toString(),
                 "author.id INFIX_CASE_INSENSITIVE [20]"
+        );
+    }
+
+    @Test
+    public void testFilterOnCustomizedLongIdField() throws ParseException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "id==1"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/job", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "job.jobId IN [1]"
+        );
+    }
+
+    @Test
+    public void testFilterOnCustomizedStringIdField() throws ParseException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "id==*identifier*"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/stringForId", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "stringId.surrogateKey INFIX_CASE_INSENSITIVE [identifier]"
         );
     }
 }
