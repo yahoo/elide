@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.5-SNAPSHOT</version>
+        <version>4.4.6-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -25,8 +25,7 @@
     </licenses>
 
     <properties>
-        <elide.version>4.4.5-SNAPSHOT</elide.version>
-        <jersey.version>2.27</jersey.version>
+        <elide.version>4.4.6-SNAPSHOT</elide.version>
     </properties>
 
     <dependencies>
@@ -67,13 +66,11 @@
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
-            <version>${jersey.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
-            <version>${jersey.version}</version>
             <scope>test</scope>
         </dependency>
 
