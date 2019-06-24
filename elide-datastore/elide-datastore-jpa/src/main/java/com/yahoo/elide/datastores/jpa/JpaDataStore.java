@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
 import javax.persistence.EntityManager;
@@ -16,7 +16,7 @@ import javax.persistence.metamodel.EntityType;
 /**
  * Implementation for JPA EntityManager data store.
  */
-public class JpaDataStore implements DataStore {
+public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier transactionSupplier;
 
@@ -35,8 +35,7 @@ public class JpaDataStore implements DataStore {
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);
 
-                // Bind if successful
-                dictionary.bindEntity(mappedClass);
+                bindEntityClass(mappedClass, dictionary);
             } catch (IllegalArgumentException e) {
                 // Ignore this entity.
                 // Turns out that JPA may include non-entity types in this list when using things like envers.

@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
+import com.yahoo.elide.core.datastore.JPQLDataStore;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,7 +20,7 @@ import javax.persistence.metamodel.EntityType;
 /**
  * Hibernate interface library.
  */
-public abstract class AbstractHibernateStore implements DataStore {
+public abstract class AbstractHibernateStore implements JPQLDataStore {
     protected final SessionFactory sessionFactory;
     protected final boolean isScrollEnabled;
     protected final ScrollMode scrollMode;
@@ -118,20 +118,9 @@ public abstract class AbstractHibernateStore implements DataStore {
     }
 
     protected void bindEntity(EntityDictionary dictionary, EntityType type) {
-        try {
-            Class mappedClass = type.getJavaType();
-            // Ignore this result. We are just checking to see if it throws an exception meaning that
-            // provided class was _not_ an entity.
-            dictionary.lookupEntityClass(mappedClass);
+        Class mappedClass = type.getJavaType();
 
-            // Bind if successful
-            dictionary.bindEntity(mappedClass);
-        } catch (IllegalArgumentException e)  {
-            // Ignore this entity
-            // Turns out that hibernate may include non-entity types in this list when using things
-            // like envers. Since they are not entities, we do not want to bind them into the entity
-            // dictionary
-        }
+        bindEntityClass(mappedClass, dictionary);
     }
 
     /**
