@@ -80,12 +80,10 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
 
     @Override
     public Query visitOrExpression(OrFilterExpression expression) {
-        Query query = builder.bool()
+        return builder.bool()
                 .should(expression.getLeft().accept(this))
                 .should(expression.getRight().accept(this))
                 .createQuery();
-
-        return query;
     }
 
     @Override

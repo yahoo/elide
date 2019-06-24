@@ -33,6 +33,7 @@ import org.hibernate.search.query.dsl.sort.SortFieldContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -241,7 +242,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             }
 
             if (results.isEmpty()) {
-                return new ArrayList<>();
+                return Collections.emptyList();
             }
 
             return results.stream()

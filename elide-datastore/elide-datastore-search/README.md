@@ -14,6 +14,7 @@ If the query cannot be answered by the `SearchDataStore`, it delegates the query
 ### Annotate Your Entity 
 
 Use Hibernate Search annotations to describe how your entities are indexed and stored in Lucene or Elasticsearch.
+Some of the annotations (like `AnalyzerDef`) can be defined once at the package level if desired.
 
 ```java
 @Entity
@@ -63,7 +64,8 @@ DataStore store = ...
 /* Wrap it with a SearchDataStore */
 EntityManagerFactory emf = Persistence.createEntityManagerFactory("MyPersistenceUnitName");
 
-searchStore = new SearchDataStore(mockStore, emf, true);
+boolean indexOnStartup = true; //Create a fresh index when the server starts
+searchStore = new SearchDataStore(store, emf, indexOnStartup);
 
 /* Configure Elide with your store */
 ElideSettings = new ElideSettingsBuidler(searchStore).build();
