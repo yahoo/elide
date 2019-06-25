@@ -278,7 +278,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     /**
-     * Returns the total record count for a entity relationship
+     * Returns the total record count for a entity relationship.
      *
      * @param relationship     The relationship
      * @param filterExpression optional security and request filters
