@@ -34,7 +34,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-@Include
+@Include(rootLevel = true)
 @Indexed
 @Data
 @AnalyzerDef(name = "case_sensitive",

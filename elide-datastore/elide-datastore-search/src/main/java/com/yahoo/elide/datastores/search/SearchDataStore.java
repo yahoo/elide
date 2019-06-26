@@ -38,7 +38,13 @@ public class SearchDataStore implements DataStore {
                .getOrDefault("hibernate.search.default.indexBase", "/tmp/lucene");
 
        File file = new File(lucenePath);
-       file.mkdirs();
+
+       if (file.exists() && file.isDirectory() && file.list().length > 0) {
+           //We only index into an empty directory
+           this.indexOnStartup = false;
+       } else {
+           file.mkdirs();
+       }
    }
 
    @Override

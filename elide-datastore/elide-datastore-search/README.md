@@ -20,7 +20,6 @@ Some of the annotations (like `AnalyzerDef`) can be defined once at the package 
 @Entity
 @Include
 @Indexed
-@Data
 @AnalyzerDef(name = "case_sensitive",
         tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class)
 )
