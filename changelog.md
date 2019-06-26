@@ -4,7 +4,7 @@
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
 
 **Fixes**
- * Run vulnerability check during build.  Updated dom4j to fix CVE-2018-1000632
+ * Run vulnerability check during build.  Updated dependencies to fix CVE-2018-1000632, CVE-2017-15708, CVE-2019-10247
 
 ## 4.4.5
 **Fixes**
