@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
