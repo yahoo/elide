@@ -12,6 +12,7 @@ import example.Author;
 import example.Book;
 
 import example.Job;
+import example.PrimitiveId;
 import example.StringId;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -40,6 +41,7 @@ public class RSQLFilterDialectTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
+        dictionary.bindEntity(PrimitiveId.class);
         dialect = new RSQLFilterDialect(dictionary);
     }
 
@@ -302,6 +304,22 @@ public class RSQLFilterDialectTest {
 
         Assert.assertEquals(expression.toString(),
                 "stringId.surrogateKey INFIX_CASE_INSENSITIVE [identifier]"
+        );
+    }
+
+    @Test
+    public void testInfixFilterOnPrimitiveIdField() throws ParseException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "id==*1*"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/primitiveTypeId", queryParams);
+
+        Assert.assertEquals(expression.toString(),
+                "primitiveId.primitiveId INFIX_CASE_INSENSITIVE [1]"
         );
     }
 }

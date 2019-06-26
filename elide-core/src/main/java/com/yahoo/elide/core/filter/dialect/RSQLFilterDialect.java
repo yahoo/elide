@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.utils.TypeHelper.isPrimitiveNumberType;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -290,7 +291,7 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
                     .map(argument ->
-                            Number.class.isAssignableFrom(relationshipType)
+                            isPrimitiveNumberType(relationshipType) || Number.class.isAssignableFrom(relationshipType)
                                     ? argument.replace("*", "") //Support filtering on number types
                                     : argument
                     )
