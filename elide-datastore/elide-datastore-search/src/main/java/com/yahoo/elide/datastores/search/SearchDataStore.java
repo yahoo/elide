@@ -39,12 +39,12 @@ public class SearchDataStore implements DataStore {
 
        File file = new File(lucenePath);
 
-       if (file.exists() && file.isDirectory() && file.list().length > 0) {
+       //if (file.exists() && file.isDirectory() && file.list().length > 0) {
            //We only index into an empty directory
-           this.indexOnStartup = false;
-       } else {
+       //    this.indexOnStartup = false;
+       //} else {
            file.mkdirs();
-       }
+       //}
    }
 
    @Override
