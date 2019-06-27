@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * A {@link Dimension} backed by a table column
+ * A {@link Dimension} backed by a table column.
  * <p>
  * {@link DegenerateDimension} is thread-safe and can be accessed by multiple threads.
  */
@@ -67,56 +67,27 @@ public class DegenerateDimension extends AbstractDimension {
         if (other == null || getClass() != other.getClass()) {
             return false;
         }
-
+        if (!super.equals(other)) { return false; }
         final DegenerateDimension that = (DegenerateDimension) other;
-        return getName().equals(that.getName())
-                && getLongName().equals(that.getLongName())
-                && getDescription().equals(that.getDescription())
-                && getDimensionType().equals(that.getDimensionType())
-                && getDataType().equals(that.getDataType())
-                && getCardinality().equals(that.getCardinality())
-                && getFriendlyName().equals(that.getFriendlyName())
-                && getColumnType().equals(that.getColumnType());
+        return getColumnType().equals(that.getColumnType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                getName(),
-                getLongName(),
-                getDescription(),
-                getDimensionType(),
-                getDataType(),
-                getCardinality(),
-                getFriendlyName(),
-                getColumnType()
-        );
+        return Objects.hash(super.hashCode(), getColumnType());
     }
 
-    /**
-     * Returns the string representation of this {@link Dimension}.
-     * <p>
-     * The string consists of values of all fields in the format
-     * "EntityDimension[name='XXX', longName='XXX', description='XXX', dimensionType=XXX, dataType=XXX, cardinality=XXX,
-     * friendlyName=XXX, columnType=XXX]", where values can be programmatically fetched via getters.
-     * <p>
-     * {@code dataType} are printed in its {@link Class#getSimpleName() simple name}.
-     * <p>
-     * Note that there is a single space separating each value pair.
-     *
-     * @return serialized {@link EntityDimension}
-     */
     @Override
     public String toString() {
-        return new StringJoiner(", ", EntityDimension.class.getSimpleName() + "[", "]")
-                .add("name='" + getName() + "'")
-                .add("longName='" + getLongName() + "'")
-                .add("description='" + getDescription() + "'")
-                .add("dimensionType=" + getDimensionType())
-                .add("dataType=" + getDataType().getSimpleName())
-                .add("cardinality=" + getCardinality())
-                .add("friendlyName='" + getFriendlyName() + "'")
-                .add("columnType=" + getColumnType())
+        return new StringJoiner(", ", DegenerateDimension.class.getSimpleName() + "[", "]")
+                .add("columnType=" + columnType)
+                .add("name='" + name + "'")
+                .add("longName='" + longName + "'")
+                .add("description='" + description + "'")
+                .add("dimensionType=" + dimensionType)
+                .add("dataType=" + dataType)
+                .add("cardinality=" + cardinality)
+                .add("friendlyName='" + friendlyName + "'")
                 .toString();
     }
 }

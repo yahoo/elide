@@ -12,6 +12,8 @@ public enum DefaultColumnType implements ColumnType {
 
     PRIMARY_KEY,
 
+    TEMPORAL,
+
     FIELD
     ;
 }

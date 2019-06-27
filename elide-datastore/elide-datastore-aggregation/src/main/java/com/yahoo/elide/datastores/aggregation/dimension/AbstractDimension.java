@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * Base class of {@link Dimension} with skeleton implementations.
  */
@@ -33,4 +35,36 @@ public abstract class AbstractDimension implements Dimension {
     protected final CardinalitySize cardinality;
 
     protected final String friendlyName;
+
+    @Override
+    public boolean equals(final Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof AbstractDimension)) {
+            return false;
+        }
+
+        final AbstractDimension that = (AbstractDimension) other;
+        return getName().equals(that.getName())
+                && getLongName().equals(that.getLongName())
+                && getDescription().equals(that.getDescription())
+                && getDimensionType().equals(that.getDimensionType())
+                && getDataType().equals(that.getDataType())
+                && getCardinality() == that.getCardinality()
+                && getFriendlyName().equals(that.getFriendlyName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getName(),
+                getLongName(),
+                getDescription(),
+                getDimensionType(),
+                getDataType(),
+                getCardinality(),
+                getFriendlyName()
+        );
+    }
 }

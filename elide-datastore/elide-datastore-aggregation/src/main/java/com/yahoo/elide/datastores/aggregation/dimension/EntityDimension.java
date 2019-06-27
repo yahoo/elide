@@ -50,38 +50,6 @@ public class EntityDimension extends AbstractDimension {
         );
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null || getClass() != other.getClass()) {
-            return false;
-        }
-
-        final EntityDimension that = (EntityDimension) other;
-        return getName().equals(that.getName())
-                && getLongName().equals(that.getLongName())
-                && getDescription().equals(that.getDescription())
-                && getDimensionType().equals(that.getDimensionType())
-                && getDataType().equals(that.getDataType())
-                && getCardinality().equals(that.getCardinality())
-                && getFriendlyName().equals(that.getFriendlyName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                getName(),
-                getLongName(),
-                getDescription(),
-                getDimensionType(),
-                getDataType(),
-                getCardinality(),
-                getFriendlyName()
-        );
-    }
-
     /**
      * Returns the string representation of this {@link Dimension}.
      * <p>

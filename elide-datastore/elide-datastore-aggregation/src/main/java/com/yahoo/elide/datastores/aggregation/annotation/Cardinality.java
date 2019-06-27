@@ -24,8 +24,7 @@ import java.lang.annotation.Target;
  * In the case of double binding, the following precedence rule is applied:
  * <ol>
  *     <li> {@link ElementType#TYPE}
- *     <li> {@link ElementType#METHOD}
- *     <li> {@link ElementType#FIELD}
+ *     <li> {@link ElementType#METHOD} or {@link ElementType#FIELD}
  * </ol>
  */
 @Documented
