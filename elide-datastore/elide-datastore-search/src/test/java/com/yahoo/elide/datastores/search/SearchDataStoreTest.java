@@ -28,8 +28,11 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 
 import com.google.common.collect.Lists;
+import org.h2.store.fs.FileUtils;
 import org.testng.Assert;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.util.Date;
@@ -70,6 +73,16 @@ public class SearchDataStoreTest {
         when(mockScope.getDictionary()).thenReturn(dictionary);
 
         CoerceUtil.register(Date.class, new ISO8601DateSerde());
+    }
+
+    @BeforeSuite
+    public void initialize() {
+        FileUtils.createDirectory("/tmp/lucene");
+    }
+
+    @AfterSuite
+    public void cleanup() {
+        FileUtils.deleteRecursive("/tmp/lucene", false);
     }
 
     @BeforeMethod

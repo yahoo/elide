@@ -14,8 +14,6 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 
-import java.io.File;
-
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -33,18 +31,6 @@ public class SearchDataStore implements DataStore {
        this.entityManagerFactory = entityManagerFactory;
        this.indexOnStartup = indexOnStartup;
 
-       String lucenePath = (String) entityManagerFactory
-               .getProperties()
-               .getOrDefault("hibernate.search.default.indexBase", "/tmp/lucene");
-
-       File file = new File(lucenePath);
-
-       //if (file.exists() && file.isDirectory() && file.list().length > 0) {
-           //We only index into an empty directory
-       //    this.indexOnStartup = false;
-       //} else {
-           file.mkdirs();
-       //}
    }
 
    @Override

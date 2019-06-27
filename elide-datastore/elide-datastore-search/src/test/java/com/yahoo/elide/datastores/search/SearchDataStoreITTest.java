@@ -16,9 +16,10 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
+
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -42,11 +43,10 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
 
     @Test
     public void testObjectIndexing() {
-
        /* Add a new item */
-       given().
-               contentType("application/vnd.api+json").
-               body(
+       given()
+           .contentType("application/vnd.api+json")
+           .body(
                    data(
                        resource(
                           type("item"),
@@ -56,11 +56,11 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
                                   attr("description", "Onyx Timpani Drum")
                           )
                        )
-                   ), ObjectMapperType.GSON).
-               when().
-               post("/item").
-               then().
-               statusCode(org.apache.http.HttpStatus.SC_CREATED);
+                   ), ObjectMapperType.GSON)
+           .when()
+           .post("/item")
+           .then()
+           .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
         /* This query hits the index */
         given()
@@ -79,5 +79,31 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6", "1000"));
+
+        /* Delete the newly added item */
+        given()
+            .contentType("application/vnd.api+json")
+            .when()
+            .delete("/item/1000")
+            .then()
+            .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        /* This query hits the index */
+        given()
+            .contentType("application/vnd.api+json")
+            .when()
+            .get("/item?filter[item]=name==*DrU*")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data.id", containsInAnyOrder("1", "3"));
+
+        /* This query hits the DB */
+        given()
+            .contentType("application/vnd.api+json")
+            .when()
+            .get("/item")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6"));
     }
 }

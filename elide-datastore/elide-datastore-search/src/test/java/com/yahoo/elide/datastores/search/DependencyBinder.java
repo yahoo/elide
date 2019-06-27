@@ -23,6 +23,7 @@ import com.yahoo.elide.security.executors.VerbosePermissionExecutor;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.TimeZone;
 
@@ -37,6 +38,16 @@ public class DependencyBinder extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
+
+                //We can only create the index once.
+                boolean indexOnStartup = false;
+                File file = new File("/tmp/lucene");
+
+                if (! file.exists()) {
+                    file.mkdirs();
+                    indexOnStartup = true;
+                }
+
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
@@ -44,7 +55,7 @@ public class DependencyBinder extends ResourceConfig {
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
-                DataStore searchStore = new SearchDataStore(jpaStore, emf, true);
+                DataStore searchStore = new SearchDataStore(jpaStore, emf, indexOnStartup);
                 jpaStore.populateEntityDictionary(dictionary);
                 searchStore.populateEntityDictionary(dictionary);
 
