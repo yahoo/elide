@@ -13,17 +13,17 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
+import com.yahoo.elide.datastores.search.constraints.IndexedFieldConstraint;
+import com.yahoo.elide.datastores.search.constraints.JoinConstraint;
+import com.yahoo.elide.datastores.search.constraints.OperatorConstraint;
+import com.yahoo.elide.datastores.search.constraints.SearchConstraint;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
-import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.engine.ProjectionConstants;
 import org.hibernate.search.jpa.FullTextEntityManager;
@@ -32,9 +32,9 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.sort.SortFieldContext;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,11 +47,17 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     private EntityDictionary dictionary;
     private FullTextEntityManager em;
+    private List<SearchConstraint> defaultConstraints;
 
     public SearchDataTransaction(DataStoreTransaction tx, EntityDictionary dictionary, FullTextEntityManager em) {
         super(tx);
         this.dictionary = dictionary;
         this.em = em;
+        defaultConstraints = new ArrayList<SearchConstraint>();
+
+        defaultConstraints.add(new JoinConstraint());
+        defaultConstraints.add(new OperatorConstraint(FeatureSupport.FULL, FeatureSupport.PARTIAL));
+        defaultConstraints.add(new IndexedFieldConstraint(dictionary));
     }
 
     @Override
@@ -60,12 +66,11 @@ public class SearchDataTransaction extends TransactionWrapper {
                                         Optional<Sorting> sorting,
                                         Optional<Pagination> pagination,
                                         RequestScope requestScope) {
-
         if (!filterExpression.isPresent()) {
             return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
         }
 
-        boolean canSearch = canSearch(filterExpression.get(), entityClass);
+        boolean canSearch = (supportsFiltering(entityClass, filterExpression.get()) != FeatureSupport.NONE);
 
         if (mustSort(sorting, entityClass)) {
             canSearch = canSearch && canSort(sorting.get(), entityClass);
@@ -79,7 +84,7 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     /**
-     * Indicates whether sorting has been requested for this entity
+     * Indicates whether sorting has been requested for this entity.
      * @param sorting An optional elide sorting clause.
      * @param entityClass The entity to sort.
      * @return True if the entity must be sorted. False otherwise.
@@ -114,60 +119,6 @@ public class SearchDataTransaction extends TransactionWrapper {
         }
 
         return true;
-    }
-
-    /**
-     * Verifies whether or not a filter expression can be searched with Lucene.
-     * @param expression An elide filter expression.
-     * @param entityClass The entity being searched.
-     * @return true if Lucene can be used.  False otherwise.
-     */
-    private boolean canSearch(FilterExpression expression, Class<?> entityClass) {
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-        return predicates.stream().allMatch((predicate) -> {
-
-            /* We don't support joins to other relationships */
-            if (predicate.getPath().getPathElements().size() != 1) {
-                return false;
-            }
-
-            /* We only support INFIX & PREFIX */
-            Operator op = predicate.getOperator();
-            if (! (op.equals(Operator.INFIX)
-                    || op.equals(Operator.INFIX_CASE_INSENSITIVE)
-                    || op.equals(Operator.PREFIX)
-                    || op.equals(Operator.PREFIX_CASE_INSENSITIVE))) {
-                return false;
-            }
-
-            String fieldName = predicate.getField();
-
-            List<Field> fields = new ArrayList<>();
-
-            Field fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(entityClass, Field.class, fieldName);
-
-            if (fieldAnnotation != null) {
-                fields.add(fieldAnnotation);
-            } else {
-                Fields fieldsAnnotation =
-                        dictionary.getAttributeOrRelationAnnotation(entityClass, Fields.class, fieldName);
-
-                if (fieldsAnnotation != null) {
-                    Arrays.stream(fieldsAnnotation.value()).forEach(fields::add);
-                }
-            }
-
-            boolean indexed = false;
-
-            for (Field field : fields) {
-                if (field.index() == Index.YES && (field.name().equals(fieldName) || field.name().isEmpty())) {
-                    indexed = true;
-                }
-            }
-
-            return indexed;
-        });
     }
 
     /**
@@ -210,11 +161,19 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     @Override
     public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+        /* Collapse the filter expression to a list of leaf predicates */
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
-        // By returning partial, we allow the InMemoryStore to also run the same filters.
-        // This is crucial for correct behavior on exact match queries (IN, NOT) where the
-        // inverted index does not store the entire field but rather specific tokens.
-        return FeatureSupport.PARTIAL;
+        /* Lookup the search constraints that apply to this entity */
+        List<SearchConstraint> constraints = SearchDataStore.lookupSearchConstraints(entityClass, defaultConstraints);
+
+        /* For each predicate and each constraint, rollup their FeatureSupport to a singular value */
+        return predicates.stream().flatMap((predicate) -> {
+
+            /* Map the constraints to a stream of FeatureSupports */
+            return constraints.stream()
+                    .map((constraint) -> constraint.canSearch(entityClass, predicate));
+        }).max(Comparator.comparing(Enum::ordinal)).orElse(FeatureSupport.NONE);
     }
 
     /**
