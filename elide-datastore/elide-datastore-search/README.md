@@ -18,13 +18,13 @@ Some of the annotations (like `AnalyzerDef`) can be defined once at the package 
 
 ```java
 @Entity
-@Include
+@Include(rootLevel = true)
 @Indexed
-@AnalyzerDef(name = "case_sensitive",
-        tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class)
-)
 @AnalyzerDef(name = "case_insensitive",
-        tokenizer = @TokenizerDef(factory = WhitespaceTokenizerFactory.class),
+        tokenizer = @TokenizerDef(factory = NGramTokenizerFactory.class, params = {
+            @Parameter(name = "minGramSize", value = "3"),
+            @Parameter(name = "maxGramSize", value = "50")
+        }),
         filters = {
                 @TokenFilterDef(factory = LowerCaseFilterFactory.class)
         }
@@ -80,5 +80,5 @@ You can index data either by:
 ## Caveats
 
 1.  Only text fields (String) are supported/tested. Other data types (dates, numbers, etc) have not been tested.
-2.  Only IN, NOT, INFIX, and PREFIX operators (and their case insensitive equivalents) are supported.
-3.  INFIX is implemented as tokenized PREFIX. A search for '*foo*' will match 'bar foobar' but not 'bar barfoo'.
+2.  Only INFIX, and PREFIX operators (and their case insensitive equivalents) are supported.
+3.  Elide uses a Lucene `KeywordAnalyzer` to analyze the query predicates in filter expressions.  These are then used to construct Prefix queries in Lucene/ElasticSearch.  For correct INFIX behavior, the search store also filters the Lucene results in memory.
