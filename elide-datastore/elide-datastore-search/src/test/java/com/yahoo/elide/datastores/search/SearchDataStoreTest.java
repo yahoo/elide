@@ -92,8 +92,6 @@ public class SearchDataStoreTest {
 
     @Test
     public void testEqualityPredicate() throws Exception {
-
-
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
@@ -101,17 +99,19 @@ public class SearchDataStoreTest {
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
-        assertListContains(loaded, Lists.newArrayList(1L, 3L));
-        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+        assertListContains(loaded, Lists.newArrayList());
+
+        /* This query should hit the underlying store */
+        verify(wrappedTransaction, times(1)).loadObjects(any(), any(), any(), any(), any());
     }
 
     @Test
-    public void testEscapedEqualityPredicate() throws Exception {
+    public void testEscapedPrefixPredicate() throws Exception {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         /* Verify that '-' is escaped before we run the query */
-        FilterExpression filter = filterParser.parseFilterExpression("name==-lucene", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==-lucen*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -123,7 +123,7 @@ public class SearchDataStoreTest {
     public void testEmptyResult() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==lucene", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==+lucen*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -132,13 +132,13 @@ public class SearchDataStoreTest {
     }
 
     @Test
-    public void testEqualityPredicateWithInMemoryFiltering() throws Exception {
+    public void testPrefixPredicateWithInMemoryFiltering() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         testTransaction = new InMemoryStoreTransaction(testTransaction);
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==dru*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -147,16 +147,30 @@ public class SearchDataStoreTest {
     }
 
     @Test
-    public void testEqualityPredicatePhrase() throws Exception {
+    public void testPrefixPredicatePhrase() throws Exception {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name=='snare drum'", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=='snare\\ dru*'", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
         assertListContains(loaded, Lists.newArrayList(1L));
+        verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testTabCharacter() throws Exception {
+
+        DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
+
+        //Case sensitive query against case insensitive index must lowercase
+        FilterExpression filter = filterParser.parseFilterExpression("name=='*est\tTa*'", Item.class, false);
+
+        Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
+
+        assertListContains(loaded, Lists.newArrayList(7L));
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
     }
 
@@ -179,7 +193,7 @@ public class SearchDataStoreTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum;description==brass", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum*;description==brass*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -192,7 +206,7 @@ public class SearchDataStoreTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -207,7 +221,7 @@ public class SearchDataStoreTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum,description==ride", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum*,description==ride*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.empty(), Optional.empty(), mockScope);
 
@@ -225,7 +239,7 @@ public class SearchDataStoreTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.desc);
         Sorting sorting = new Sorting(sortRules);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
 
@@ -243,7 +257,7 @@ public class SearchDataStoreTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new Sorting(sortRules);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.empty(), mockScope);
 
@@ -263,7 +277,7 @@ public class SearchDataStoreTest {
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
 
@@ -284,13 +298,23 @@ public class SearchDataStoreTest {
 
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 1, true);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal", Item.class, false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", Item.class, false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(Item.class, Optional.of(filter), Optional.of(sorting), Optional.of(pagination), mockScope);
 
         assertListMatches(loaded, Lists.newArrayList(5L));
         Assert.assertEquals(pagination.getPageTotals(), 3);
         verify(wrappedTransaction, never()).loadObjects(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testEscapeWhiteSpace() {
+        String toReplace = "Foo\tBar Blah\nFoobar";
+        String expected = "Foo\\\tBar\\ Blah\\\nFoobar";
+
+        String actual = FilterExpressionToLuceneQuery.escapeWhiteSpace(toReplace);
+
+        Assert.assertEquals(actual, expected);
     }
 
     private void assertListMatches(Iterable<Object> actual, List<Long> expectedIds) {

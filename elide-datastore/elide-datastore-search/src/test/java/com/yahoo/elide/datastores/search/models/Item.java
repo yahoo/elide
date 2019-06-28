@@ -9,7 +9,7 @@ package com.yahoo.elide.datastores.search.models;
 import com.yahoo.elide.annotation.Include;
 
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
+import org.apache.lucene.analysis.ngram.NGramTokenizerFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Analyzer;
@@ -20,6 +20,7 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Parameter;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.annotations.Store;
@@ -37,11 +38,11 @@ import javax.persistence.Id;
 @Include(rootLevel = true)
 @Indexed
 @Data
-@AnalyzerDef(name = "case_sensitive",
-        tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class)
-)
 @AnalyzerDef(name = "case_insensitive",
-        tokenizer = @TokenizerDef(factory = WhitespaceTokenizerFactory.class),
+        tokenizer = @TokenizerDef(factory = NGramTokenizerFactory.class, params = {
+            @Parameter(name = "minGramSize", value = "3"),
+            @Parameter(name = "maxGramSize", value = "50")
+        }),
         filters = {
                 @TokenFilterDef(factory = LowerCaseFilterFactory.class)
         }

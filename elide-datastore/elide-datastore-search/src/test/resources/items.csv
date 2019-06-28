@@ -5,3 +5,4 @@ id,name,description,modifiedDate,price
 4,Cymbal Stand, A cymbal stand,2018-02-01 00:00:00,50
 5,Cymbal Stand, B cymbal stand,2018-01-01 00:00:00,75
 6,Test !Escaping -Lucene +Query,Escape character test,2018-01-01 00:00:00,0
+7,Test	Tab,Tab Test,2018-01-01 00:00:00,0

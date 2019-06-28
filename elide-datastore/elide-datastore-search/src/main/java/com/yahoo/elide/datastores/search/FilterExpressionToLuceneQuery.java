@@ -16,7 +16,7 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.google.common.base.Preconditions;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
@@ -44,7 +44,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
         Preconditions.checkArgument(filterPredicate.getPath().getPathElements().size() == 1);
         Preconditions.checkArgument(filterPredicate.getEntityType().equals(entityClass));
 
-        Analyzer analyzer = new WhitespaceAnalyzer();
+        Analyzer analyzer = new KeywordAnalyzer();
         QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
 
         String queryString = "";
@@ -53,6 +53,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
                 .stream()
                 .map(Object::toString)
                 .map(QueryParser::escape)
+                .map(FilterExpressionToLuceneQuery::escapeWhiteSpace)
                 .collect(Collectors.toList());
 
         Operator op = filterPredicate.getOperator();
@@ -96,8 +97,6 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
 
     private boolean lowerCaseTerms(Operator op) {
         switch (op) {
-            case IN_INSENSITIVE:
-            case NOT_INSENSITIVE:
             case INFIX_CASE_INSENSITIVE:
             case PREFIX_CASE_INSENSITIVE:
                 return true;
@@ -109,18 +108,6 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
 
     private String buildQueryString(Operator op, List<String> predicateValues) {
         switch (op) {
-            case IN_INSENSITIVE:
-            case IN: {
-                return predicateValues.stream()
-                        .map((str) -> "\"" + str + "\"")
-                        .collect(Collectors.joining(" | "));
-            }
-            case NOT_INSENSITIVE:
-            case NOT: {
-                return predicateValues.stream()
-                        .map((str) -> "-\"" + str + "\"")
-                        .collect(Collectors.joining(" + "));
-            }
             case INFIX_CASE_INSENSITIVE:
             case PREFIX_CASE_INSENSITIVE:
             case PREFIX:
@@ -132,5 +119,19 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
             default:
                 throw new IllegalArgumentException("Unsupported Predicate Operator: " + op);
         }
+    }
+
+    public static String escapeWhiteSpace(String str) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+
+            if (Character.isWhitespace(c)) {
+                sb.append('\\');
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 }

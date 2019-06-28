@@ -78,7 +78,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
             .get("/item")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6", "1000"));
+            .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6", "7", "1000"));
 
         /* Delete the newly added item */
         given()
@@ -104,6 +104,6 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
             .get("/item")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6"));
+            .body("data.id", containsInAnyOrder("1", "2", "3", "4", "5", "6", "7"));
     }
 }

@@ -13,6 +13,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
@@ -125,7 +126,18 @@ public class SearchDataTransaction extends TransactionWrapper {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream().allMatch((predicate) -> {
+
+            /* We don't support joins to other relationships */
             if (predicate.getPath().getPathElements().size() != 1) {
+                return false;
+            }
+
+            /* We only support INFIX & PREFIX */
+            Operator op = predicate.getOperator();
+            if (! (op.equals(Operator.INFIX)
+                    || op.equals(Operator.INFIX_CASE_INSENSITIVE)
+                    || op.equals(Operator.PREFIX)
+                    || op.equals(Operator.PREFIX_CASE_INSENSITIVE))) {
                 return false;
             }
 
