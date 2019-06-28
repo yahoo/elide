@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 
 import java.util.Collections;
 
-public class WhereHavingTest {
+public class FilterConstraintsTest {
 
     private static final FilterPredicate WHERE_PREDICATE = new FilterPredicate(
             new Path.PathElement(PlayerStats.class, String.class, "id"),
@@ -30,36 +30,36 @@ public class WhereHavingTest {
 
     @Test
     public void testPureHaving() {
-        Assert.assertTrue(WhereHaving.pureHaving(HAVING_PREDICATE).isHavingExpression());
-        Assert.assertFalse(WhereHaving.pureHaving(HAVING_PREDICATE).isWhereExpression());
+        Assert.assertTrue(FilterConstraints.pureHaving(HAVING_PREDICATE).isPureHaving());
+        Assert.assertFalse(FilterConstraints.pureHaving(HAVING_PREDICATE).isPureWhere());
         Assert.assertEquals(
-                WhereHaving.pureHaving(HAVING_PREDICATE).getHavingExpression().toString(),
+                FilterConstraints.pureHaving(HAVING_PREDICATE).getHavingExpression().toString(),
                 "playerStats.highScore GT [99]"
         );
-        Assert.assertNull(WhereHaving.pureHaving(HAVING_PREDICATE).getWhereExpression());
+        Assert.assertNull(FilterConstraints.pureHaving(HAVING_PREDICATE).getWhereExpression());
     }
 
     @Test
     public void testPureWhere() {
-        Assert.assertTrue(WhereHaving.pureWhere(WHERE_PREDICATE).isWhereExpression());
-        Assert.assertFalse(WhereHaving.pureWhere(WHERE_PREDICATE).isHavingExpression());
+        Assert.assertTrue(FilterConstraints.pureWhere(WHERE_PREDICATE).isPureWhere());
+        Assert.assertFalse(FilterConstraints.pureWhere(WHERE_PREDICATE).isPureHaving());
         Assert.assertEquals(
-                WhereHaving.pureWhere(WHERE_PREDICATE).getWhereExpression().toString(),
+                FilterConstraints.pureWhere(WHERE_PREDICATE).getWhereExpression().toString(),
                 "playerStats.id IN [foo]"
         );
-        Assert.assertNull(WhereHaving.pureWhere(WHERE_PREDICATE).getHavingExpression());
+        Assert.assertNull(FilterConstraints.pureWhere(WHERE_PREDICATE).getHavingExpression());
     }
 
     @Test
     public void testWithWhereAndHaving() {
-        Assert.assertFalse(WhereHaving.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).isWhereExpression());
-        Assert.assertFalse(WhereHaving.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).isHavingExpression());
+        Assert.assertFalse(FilterConstraints.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).isPureWhere());
+        Assert.assertFalse(FilterConstraints.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).isPureHaving());
         Assert.assertEquals(
-                WhereHaving.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).getWhereExpression().toString(),
+                FilterConstraints.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).getWhereExpression().toString(),
                 "playerStats.id IN [foo]"
         );
         Assert.assertEquals(
-                WhereHaving.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).getHavingExpression().toString(),
+                FilterConstraints.withWhereAndHaving(WHERE_PREDICATE, HAVING_PREDICATE).getHavingExpression().toString(),
                 "playerStats.highScore GT [99]"
         );
     }

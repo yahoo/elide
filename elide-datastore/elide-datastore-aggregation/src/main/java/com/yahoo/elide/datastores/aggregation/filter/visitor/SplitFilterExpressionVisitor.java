@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -56,7 +57,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link SplitFilterExpressionVisitor} is thread-safe and can be accessed by multiple threads at the same time.
  */
 @Slf4j
-public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<WhereHaving> {
+public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<FilterConstraints> {
 
     @Getter(value = AccessLevel.PRIVATE)
     private final EntityDictionary entityDictionary;
@@ -79,45 +80,64 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Whe
     }
 
     @Override
-    public WhereHaving visitPredicate(final FilterPredicate filterPredicate) {
+    public FilterConstraints visitPredicate(final FilterPredicate filterPredicate) {
         return isHavingPredicate(filterPredicate)
-                ? WhereHaving.pureHaving(filterPredicate) // this filterPredicate belongs to a HAVING clause
-                : WhereHaving.pureWhere(filterPredicate); // this filterPredicate belongs to a WHERE clause
+                ? FilterConstraints.pureHaving(filterPredicate) // this filterPredicate belongs to a HAVING clause
+                : FilterConstraints.pureWhere(filterPredicate); // this filterPredicate belongs to a WHERE clause
     }
 
     @Override
-    public WhereHaving visitAndExpression(final AndFilterExpression expression) {
-        WhereHaving left = expression.getLeft().accept(this);
-        WhereHaving right = expression.getRight().accept(this);
+    public FilterConstraints visitAndExpression(final AndFilterExpression expression) {
+        /*
+         * Definition:
+         *     C = condition
+         *     pure-W = WHERE C
+         *     pure-H = HAVING C
+         *     mix-HW = WHERE C1 HAVING C2
+         *
+         * Given that L and R operands of an AndFilterExpression can only be one of "pure-H", "pure-W", or "mix-HW",
+         * then:
+         *
+         *     pure-W1 AND pure-W2 = WHERE C1 AND WHERE C2 = WHERE (C1 AND C2)    = pure-W
+         *     pure-H1 AND pure-H2 = HAVING C1 AND HAVING C2 = HAVING (C1 AND C2) = pure-H
+         *
+         *     pure-H1 AND pureW2 = HAVING C1 AND WHERE C2 = WHERE C2 HAVING C1   = mix-HW
+         *     pure-W1 AND pureH2                          = WHERE C1 HAVING C2   = mix-HW
+         *
+         *     mix-HW1 AND pure-W2 = WHERE C1 HAVING C1' AND WHERE C2 = WHERE (C1 & C2) HAVING C1'  = mix-HW
+         *     mix-HW1 AND pure-H2 = WHERE C1 HAVING C1' AND HAVING C2 = WHERE C1 HAVING (C1' & C2) = mix-HW
+         *
+         *     mix-HW1 AND mim-HW2 = WHERE C1 HAVING C1' AND WHERE C2 HAVING C2' = WHERE (C1 & C2) HAVING (C1' & C2')
+         *                         = mix-HW
+         */
 
-        if (left.isWhereExpression() && right.isWhereExpression()) {
-            // pure-W AND pure-W
-            return WhereHaving.pureWhere(
+        FilterConstraints left = expression.getLeft().accept(this);
+        FilterConstraints right = expression.getRight().accept(this);
+
+        if (left.isPureWhere() && right.isPureWhere()) {
+            // pure-W1 AND pure-W2 = WHERE (C1 & C2) = pure-W
+            return FilterConstraints.pureWhere(
                     new AndFilterExpression(
                             left.getWhereExpression(),
                             right.getWhereExpression()
                     )
             );
-        } else if (left.isHavingExpression() && right.isWhereExpression()) {
-            // pure-H AND pure-W
-            return WhereHaving.withWhereAndHaving(
-                    right.getWhereExpression(),
-                    left.getHavingExpression()
-            );
-
-        } else if (left.isWhereExpression() && right.isHavingExpression()) {
-            // pure-W AND pure-H
-            return WhereHaving.withWhereAndHaving(
-                    left.getWhereExpression(),
-                    right.getHavingExpression()
+        } else if (left.isPureHaving() && right.isPureHaving()) {
+            // pure-H1 AND pure-H2 = HAVING (C1 AND C2) = pure-H
+            return FilterConstraints.pureHaving(
+                    new AndFilterExpression(
+                            left.getHavingExpression(),
+                            right.getHavingExpression()
+                    )
             );
         } else {
-            return WhereHaving.withWhereAndHaving(
-                    AndFilterExpression.and(
+            // all of the rests are mix-HW
+            return FilterConstraints.withWhereAndHaving(
+                    AndFilterExpression.fromPair(
                             left.getWhereExpression(),
                             right.getWhereExpression()
                     ),
-                    AndFilterExpression.and(
+                    AndFilterExpression.fromPair(
                             left.getHavingExpression(),
                             right.getHavingExpression()
                     )
@@ -126,33 +146,60 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Whe
     }
 
     @Override
-    public WhereHaving visitOrExpression(final OrFilterExpression expression) {
-        WhereHaving left = expression.getLeft().accept(this);
-        WhereHaving right = expression.getRight().accept(this);
+    public FilterConstraints visitOrExpression(final OrFilterExpression expression) {
+        /*
+         * Definition:
+         *     C = condition
+         *     pure-W = WHERE C
+         *     pure-H = HAVING C
+         *     mix-HW = WHERE C1 HAVING C2
+         *
+         * Given that L and R operands of an OrFilterExpression can only be one of "pure-H", "pure-W", or "mix-HW",
+         * then:
+         *
+         *     pure-W1 OR pure-W2 = WHERE C1 OR WHERE C2 = WHERE (C1 OR C2)    = pure-W
+         *     pure-H1 OR pure-H2 = HAVING C1 OR HAVING C2 = HAVING (C1 OR C2) = pure-H
+         *
+         *     pure-H1 OR pureW2 = HAVING C1 OR WHERE C2 = HAVING (C1 OR C2)   = pure-H
+         *     pure-W1 OR pureH2 = WHERE C1 OR HAVING C2 = HAVING (C1 OR C2)   = pure-H
+         *
+         *     mix-HW1 OR pure-W2 = (WHERE C1 HAVING C1') OR WHERE C2 = HAVING (C1 & C1' | C2)  = pure-H
+         *     mix-HW1 OR pure-H2 = (WHERE C1 HAVING C1') OR HAVING C2 = HAVING (C1 & C1' | C2) = pure-H
+         *
+         *     mix-HW1 OR mim-HW2 = (WHERE C1 HAVING C1') OR (WHERE C2 HAVING C2') = HAVING ((C1 & C1') | (C2 & C2'))
+         *                        = pure-H
+         */
 
-        if (left.isWhereExpression() && right.isWhereExpression()) {
-            // pure-W OR pure-W
-            return WhereHaving.pureWhere(
-                    OrFilterExpression.or(
+        FilterConstraints left = expression.getLeft().accept(this);
+        FilterConstraints right = expression.getRight().accept(this);
+
+        if (left.isPureWhere() && right.isPureWhere()) {
+            // pure-W1 OR pure-W2 = WHERE (C1 OR C2) = pure-W
+            return FilterConstraints.pureWhere(
+                    OrFilterExpression.fromPair(
                             left.getWhereExpression(),
                             right.getWhereExpression()
                     )
             );
-        } else {
-            // H OR H
-            // W OR H (W promote)
-            // H OR W (W promote)
-            return WhereHaving.pureHaving(
-                    OrFilterExpression.or(
-                            expression.getLeft(),
-                            expression.getRight()
+        }  else {
+            // all of the rests are pure-H
+            return FilterConstraints.pureHaving(
+                    OrFilterExpression.fromPair(
+                            AndFilterExpression.fromPair(
+                                    left.getWhereExpression(),
+                                    left.getHavingExpression()
+                            ),
+                            AndFilterExpression.fromPair(
+                                    right.getWhereExpression(),
+                                    right.getHavingExpression()
+                            )
                     )
             );
         }
     }
 
     @Override
-    public WhereHaving visitNotExpression(NotFilterExpression expression) {
+    public FilterConstraints visitNotExpression(NotFilterExpression expression) {
         FilterExpression normalized = getNormalizationVisitor().visitNotExpression(expression);
 
         if (normalized instanceof AndFilterExpression) {
@@ -160,8 +207,18 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Whe
         } else if (normalized instanceof OrFilterExpression) {
             return visitOrExpression((OrFilterExpression) normalized);
         } else if (normalized instanceof NotFilterExpression) {
-            normalized = ((NotFilterExpression) normalized).getNegated();
-            return visitNotExpression((NotFilterExpression) normalized);
+            FilterConstraints negatedConstraint = visitNotExpression((NotFilterExpression) normalized);
+
+            if (negatedConstraint.isPureWhere()) {
+                return FilterConstraints.pureWhere(new NotFilterExpression(negatedConstraint.getWhereExpression()));
+            } else if (negatedConstraint.isPureHaving()) {
+                return FilterConstraints.pureHaving(new NotFilterExpression(negatedConstraint.getHavingExpression()));
+            } else {
+                return FilterConstraints.withWhereAndHaving(
+                        new NotFilterExpression(negatedConstraint.getWhereExpression()),
+                        new NotFilterExpression(negatedConstraint.getHavingExpression())
+                );
+            }
         } else {
             return visitPredicate((FilterPredicate) normalized);
         }
@@ -182,6 +239,9 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Whe
         String fieldName = filterPredicate.getField();
 
         return getEntityDictionary()
-                .getAttributeOrRelationAnnotation(entityClass, MetricAggregation.class, fieldName) != null;
+                .attributeOrRelationAnnotationExists(entityClass, fieldName, MetricAggregation.class)
+                ||
+                getEntityDictionary()
+                        .attributeOrRelationAnnotationExists(entityClass, fieldName, MetricComputation.class);
     }
 }

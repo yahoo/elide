@@ -11,6 +11,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
+import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
@@ -37,8 +38,7 @@ public class SplitFilterExpressionVisitorTest {
     );
 
     private EntityDictionary entityDictionary;
-    private FilterExpressionVisitor<WhereHaving> splitFilterExpressionVisitor;
-
+    private FilterExpressionVisitor<FilterConstraints> splitFilterExpressionVisitor;
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -50,21 +50,21 @@ public class SplitFilterExpressionVisitorTest {
     @Test
     public void testVisitPredicate() {
         // predicate should be a WHERE
-        Assert.assertTrue(splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).isWhereExpression());
+        Assert.assertTrue(splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).isPureWhere());
         Assert.assertEquals(
                 splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).getWhereExpression().toString(),
                 "playerStats.id IN [foo]"
         );
-        Assert.assertFalse(splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).isHavingExpression());
+        Assert.assertFalse(splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).isPureHaving());
         Assert.assertNull(splitFilterExpressionVisitor.visitPredicate(WHERE_PREDICATE).getHavingExpression());
 
         // predicate should be a HAVING
-        Assert.assertTrue(splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).isHavingExpression());
+        Assert.assertTrue(splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).isPureHaving());
         Assert.assertEquals(
                 splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).getHavingExpression().toString(),
                 "playerStats.highScore GT [99]"
         );
-        Assert.assertFalse(splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).isWhereExpression());
+        Assert.assertFalse(splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).isPureWhere());
         Assert.assertNull(splitFilterExpressionVisitor.visitPredicate(HAVING_PREDICATE).getWhereExpression());
     }
 
@@ -151,5 +151,18 @@ public class SplitFilterExpressionVisitorTest {
                 splitFilterExpressionVisitor.visitOrExpression(or).getHavingExpression().toString(),
                 "((playerStats.id IN [foo] AND playerStats.highScore GT [99]) OR playerStats.id IN [foo])"
         );
+    }
+
+    @Test
+    public void testVisitNotExpression() {
+        NotFilterExpression notExpression = new NotFilterExpression(
+                new AndFilterExpression(WHERE_PREDICATE, HAVING_PREDICATE)
+        );
+        Assert.assertNull(splitFilterExpressionVisitor.visitNotExpression(notExpression).getWhereExpression());
+        Assert.assertEquals(
+                splitFilterExpressionVisitor.visitNotExpression(notExpression).getHavingExpression().toString(),
+                "(playerStats.id NOT [foo] OR playerStats.highScore LE [99])"
+        );
+
     }
 }
