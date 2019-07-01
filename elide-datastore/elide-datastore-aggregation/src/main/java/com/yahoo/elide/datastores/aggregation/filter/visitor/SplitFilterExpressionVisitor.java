@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -14,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,6 +21,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
 
 /**
  * {@link SplitFilterExpressionVisitor} splits the {@link FilterExpression} into a {@code WHERE} expression and a
@@ -60,23 +62,25 @@ import lombok.extern.slf4j.Slf4j;
 public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<FilterConstraints> {
 
     @Getter(value = AccessLevel.PRIVATE)
-    private final EntityDictionary entityDictionary;
+    private final Schema schema;
     @Getter(value = AccessLevel.PRIVATE)
     private final FilterExpressionNormalizationVisitor normalizationVisitor;
 
     /**
      * Constructor.
      *
-     * @param entityDictionary  Object that offers annotation information about an entity field
+     * @param schema  Object that offers meta information about an entity field
      * @param normalizationVisitor  A helper {@link FilterExpressionVisitor} that is leveraged to transform
      * expressions like {@code NOT (A AND B)} into {@code NOT A OR NOT B}
+     *
+     * @throws NullPointerException if any one of the argument is {@code null}
      */
     public SplitFilterExpressionVisitor(
-            final EntityDictionary entityDictionary,
+            final Schema schema,
             final FilterExpressionNormalizationVisitor normalizationVisitor
     ) {
-        this.entityDictionary = entityDictionary;
-        this.normalizationVisitor = normalizationVisitor;
+        this.schema = Objects.requireNonNull(schema, "schema");
+        this.normalizationVisitor = Objects.requireNonNull(normalizationVisitor, "normalizationVisitor");
     }
 
     @Override
@@ -93,7 +97,7 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
          *     C = condition
          *     pure-W = WHERE C
          *     pure-H = HAVING C
-         *     mix-HW = WHERE C1 HAVING C2
+         *     mix-HW = WHERE C HAVING C'
          *
          * Given that L and R operands of an AndFilterExpression can only be one of "pure-H", "pure-W", or "mix-HW",
          * then:
@@ -152,7 +156,7 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
          *     C = condition
          *     pure-W = WHERE C
          *     pure-H = HAVING C
-         *     mix-HW = WHERE C1 HAVING C2
+         *     mix-HW = WHERE C HAVING C'
          *
          * Given that L and R operands of an OrFilterExpression can only be one of "pure-H", "pure-W", or "mix-HW",
          * then:
@@ -228,7 +232,7 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
      * Returns whether or not a {@link FilterPredicate} corresponds to a {@code HAVING} clause in JPQL query.
      * <p>
      * A {@link FilterPredicate} corresponds to a {@code HAVING} clause iff the predicate field has
-     * {@link MetricAggregation} annotation on it.
+     * {@link MetricAggregation} or {@link MetricComputation} annotation on it.
      *
      * @param filterPredicate  The terminal filter expression to check for
      *
@@ -238,10 +242,6 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
         Class entityClass = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
-        return getEntityDictionary()
-                .attributeOrRelationAnnotationExists(entityClass, fieldName, MetricAggregation.class)
-                ||
-                getEntityDictionary()
-                        .attributeOrRelationAnnotationExists(entityClass, fieldName, MetricComputation.class);
+        return getSchema().isMetricField(fieldName, entityClass);
     }
 }

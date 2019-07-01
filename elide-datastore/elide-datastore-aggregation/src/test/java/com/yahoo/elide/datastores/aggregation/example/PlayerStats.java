@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
@@ -24,6 +26,7 @@ import javax.persistence.TemporalType;
  */
 @Entity
 @Include(rootLevel = true)
+@Cardinality(size = CardinalitySize.LARGE)
 public class PlayerStats {
 
     /**

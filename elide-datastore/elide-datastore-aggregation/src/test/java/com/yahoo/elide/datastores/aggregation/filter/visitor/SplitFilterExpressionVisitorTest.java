@@ -13,7 +13,9 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 
 import org.testng.Assert;
@@ -38,13 +40,16 @@ public class SplitFilterExpressionVisitorTest {
     );
 
     private EntityDictionary entityDictionary;
+    private Schema schema;
     private FilterExpressionVisitor<FilterConstraints> splitFilterExpressionVisitor;
 
     @BeforeMethod
     public void setupEntityDictionary() {
         entityDictionary = new EntityDictionary(Collections.emptyMap());
         entityDictionary.bindEntity(PlayerStats.class);
-        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(entityDictionary, NORMALIZATION_VISITOR);
+        entityDictionary.bindEntity(Country.class);
+        schema = new Schema(PlayerStats.class, entityDictionary);
+        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(schema, NORMALIZATION_VISITOR);
     }
 
     @Test
