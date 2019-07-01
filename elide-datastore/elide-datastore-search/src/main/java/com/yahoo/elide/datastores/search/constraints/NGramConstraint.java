@@ -11,6 +11,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import lombok.Data;
 
 /**
@@ -36,6 +37,7 @@ public class NGramConstraint extends IndexedFieldConstraint {
         DataStoreTransaction.FeatureSupport fieldIndexSupport = super.canSearch(entityClass, predicate);
 
         boolean isIndexed = (fieldIndexSupport != DataStoreTransaction.FeatureSupport.NONE);
+        Operator op = predicate.getOperator();
 
         boolean withinNGramBounds = predicate.getValues().stream()
                 .map(Object::toString)
@@ -44,10 +46,14 @@ public class NGramConstraint extends IndexedFieldConstraint {
                 });
 
         if (isIndexed && ! withinNGramBounds) {
-            String message = String.format("Field values for %s on entity %s must be >= %d and <= %d",
-                    predicate.getField(), dictionary.getJsonAliasFor(entityClass), minNgram, maxNgram);
+            if (op == Operator.PREFIX || op == Operator.INFIX
+                    || op == Operator.INFIX_CASE_INSENSITIVE || op == Operator.PREFIX_CASE_INSENSITIVE) {
+                String message = String.format("Field values for %s on entity %s must be >= %d and <= %d",
+                        predicate.getField(), dictionary.getJsonAliasFor(entityClass), minNgram, maxNgram);
 
-            throw new InvalidValueException(predicate.getValues(), message);
+                throw new InvalidValueException(predicate.getValues(), message);
+            }
+            fieldIndexSupport = DataStoreTransaction.FeatureSupport.NONE;
         }
 
         return fieldIndexSupport;

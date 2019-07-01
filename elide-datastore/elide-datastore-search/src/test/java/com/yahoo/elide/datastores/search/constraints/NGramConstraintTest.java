@@ -45,6 +45,14 @@ public class NGramConstraintTest {
     }
 
     @Test
+    public void testLargeNgramForEqualityOperator() throws Exception {
+        FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==ruabcd",
+                Item.class, false);
+
+        Assert.assertEquals(constraint.canSearch(Item.class, filter), DataStoreTransaction.FeatureSupport.NONE);
+    }
+
+    @Test
     public void testNgramJustRight() throws Exception {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ruabc*",
                 Item.class, false);
