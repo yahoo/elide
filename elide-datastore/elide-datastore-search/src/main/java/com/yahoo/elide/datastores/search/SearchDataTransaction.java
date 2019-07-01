@@ -6,24 +6,29 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.FULL;
+import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.NONE;
+
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
+import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
-import com.yahoo.elide.datastores.search.constraints.JoinConstraint;
-import com.yahoo.elide.datastores.search.constraints.NGramConstraint;
-import com.yahoo.elide.datastores.search.constraints.OperatorConstraint;
-import com.yahoo.elide.datastores.search.constraints.SearchConstraint;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.engine.ProjectionConstants;
 import org.hibernate.search.jpa.FullTextEntityManager;
@@ -32,6 +37,7 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.sort.SortFieldContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,9 +53,8 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     private EntityDictionary dictionary;
     private FullTextEntityManager em;
-    private List<SearchConstraint> defaultConstraints;
-    private int minNgramSize;
-    private int maxNgramSize;
+    private int minNgram;
+    private int maxNgram;
 
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
@@ -59,15 +64,8 @@ public class SearchDataTransaction extends TransactionWrapper {
         super(tx);
         this.dictionary = dictionary;
         this.em = em;
-
-        this.minNgramSize = minNgramSize;
-        this.maxNgramSize = maxNgramSize;
-
-        defaultConstraints = new ArrayList<SearchConstraint>();
-
-        defaultConstraints.add(new JoinConstraint());
-        defaultConstraints.add(new OperatorConstraint(FeatureSupport.FULL, FeatureSupport.PARTIAL));
-        defaultConstraints.add(new NGramConstraint(minNgramSize, maxNgramSize, dictionary));
+        this.minNgram = minNgramSize;
+        this.maxNgram = maxNgramSize;
     }
 
     @Override
@@ -80,7 +78,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
         }
 
-        boolean canSearch = (supportsFiltering(entityClass, filterExpression.get()) != FeatureSupport.NONE);
+        boolean canSearch = (canSearch(entityClass, filterExpression.get()) != NONE);
 
         if (mustSort(sorting, entityClass)) {
             canSearch = canSearch && canSort(sorting.get(), entityClass);
@@ -171,19 +169,59 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     @Override
     public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+
+        /* Return the least support among all the predicates */
+        FeatureSupport support = canSearch(entityClass, expression);
+
+        if (support == NONE) {
+            return super.supportsFiltering(entityClass, expression);
+        }
+
+        return support;
+    }
+
+    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterExpression expression) {
+
         /* Collapse the filter expression to a list of leaf predicates */
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
-        /* Lookup the search constraints that apply to this entity */
-        List<SearchConstraint> constraints = SearchDataStore.lookupSearchConstraints(entityClass, defaultConstraints);
+        /* Return the least support among all the predicates */
+        FeatureSupport support = predicates.stream()
+                .map((predicate) -> canSearch(entityClass, predicate))
+                .max(Comparator.comparing(Enum::ordinal)).orElse(NONE);
 
-        /* For each predicate and each constraint, rollup their FeatureSupport to a singular value */
-        return predicates.stream().flatMap((predicate) -> {
+        if (support == NONE) {
+            return support;
+        }
 
-            /* Map the constraints to a stream of FeatureSupports */
-            return constraints.stream()
-                    .map((constraint) -> constraint.canSearch(entityClass, predicate));
-        }).max(Comparator.comparing(Enum::ordinal)).orElse(FeatureSupport.NONE);
+        /* Throw an exception if ngram size is violated */
+        predicates.stream().forEach((predicate) -> {
+            predicate.getValues().stream().map(Object::toString).forEach((value) -> {
+                if (value.length() < minNgram || value.length() > maxNgram) {
+                    String message = String.format("Field values for %s on entity %s must be >= %d and <= %d",
+                            predicate.getField(), dictionary.getJsonAliasFor(entityClass), minNgram, maxNgram);
+                    throw new InvalidValueException(predicate.getValues(), message);
+                }
+            });
+        });
+
+        return support;
+    }
+
+    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterPredicate predicate) {
+
+        boolean isIndexed = fieldIsIndexed(entityClass, predicate);
+
+        if (!isIndexed) {
+            return NONE;
+        }
+
+        /* We don't support joins to other relationships */
+        if (predicate.getPath().getPathElements().size() != 1) {
+            return NONE;
+        }
+
+        return operatorSupport(entityClass, predicate);
     }
 
     /**
@@ -230,5 +268,52 @@ public class SearchDataTransaction extends TransactionWrapper {
                     .map((result) -> {
                         return result[0];
                     }).collect(Collectors.toList());
+    }
+
+    private boolean fieldIsIndexed(Class<?> entityClass, FilterPredicate predicate) {
+        String fieldName = predicate.getField();
+
+        List<Field> fields = new ArrayList<>();
+
+        Field fieldAnnotation = dictionary.getAttributeOrRelationAnnotation(entityClass, Field.class, fieldName);
+
+        if (fieldAnnotation != null) {
+            fields.add(fieldAnnotation);
+        } else {
+            Fields fieldsAnnotation =
+                    dictionary.getAttributeOrRelationAnnotation(entityClass, Fields.class, fieldName);
+
+            if (fieldsAnnotation != null) {
+                Arrays.stream(fieldsAnnotation.value()).forEach(fields::add);
+            }
+        }
+
+        boolean indexed = false;
+
+        for (Field field : fields) {
+            if (field.index() == Index.YES && (field.name().equals(fieldName) || field.name().isEmpty())) {
+                indexed = true;
+            }
+        }
+
+        return indexed;
+    }
+
+    private DataStoreTransaction.FeatureSupport operatorSupport(Class<?> entityClass, FilterPredicate predicate)
+            throws HttpStatusException {
+
+        Operator op = predicate.getOperator();
+
+        /* We only support INFIX & PREFIX */
+        switch (op) {
+            case INFIX:
+            case INFIX_CASE_INSENSITIVE:
+                return FULL;
+            case PREFIX:
+            case PREFIX_CASE_INSENSITIVE:
+                return FeatureSupport.PARTIAL;
+            default:
+                return NONE;
+        }
     }
 }

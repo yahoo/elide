@@ -46,14 +46,14 @@ import java.util.stream.StreamSupport;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-public class SearchDataStoreTest {
+public class DataStoreLoadTest {
 
     private RSQLFilterDialect filterParser;
     private SearchDataStore searchStore;
     private DataStoreTransaction wrappedTransaction;
     private RequestScope mockScope;
 
-    public SearchDataStoreTest() {
+    public DataStoreLoadTest() {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Item.class);
 
@@ -65,7 +65,7 @@ public class SearchDataStoreTest {
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
 
-        searchStore = new SearchDataStore(mockStore, emf, true, 3, 50);
+        searchStore = new SearchDataStore(mockStore, emf, true, 3, 10);
         searchStore.populateEntityDictionary(dictionary);
 
 
