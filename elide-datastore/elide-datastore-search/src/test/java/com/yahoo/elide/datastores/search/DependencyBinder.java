@@ -55,7 +55,7 @@ public class DependencyBinder extends ResourceConfig {
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
-                DataStore searchStore = new SearchDataStore(jpaStore, emf, indexOnStartup);
+                DataStore searchStore = new SearchDataStore(jpaStore, emf, indexOnStartup, 3, 50);
                 jpaStore.populateEntityDictionary(dictionary);
                 searchStore.populateEntityDictionary(dictionary);
 

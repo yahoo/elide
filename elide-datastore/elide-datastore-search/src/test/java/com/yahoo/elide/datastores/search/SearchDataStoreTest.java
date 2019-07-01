@@ -65,7 +65,7 @@ public class SearchDataStoreTest {
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
 
-        searchStore = new SearchDataStore(mockStore, emf, true);
+        searchStore = new SearchDataStore(mockStore, emf, true, 3, 50);
         searchStore.populateEntityDictionary(dictionary);
 
 

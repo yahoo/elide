@@ -25,19 +25,35 @@ import javax.persistence.EntityManagerFactory;
  */
 public class SearchDataStore implements DataStore {
 
+    private static final int DEFAULT_MIN_NGRAM = 3;
+    private static final int DEFAULT_MAX_NGRAM = 5;
+
     private DataStore wrapped;
     private EntityDictionary dictionary;
     private EntityManagerFactory entityManagerFactory;
     private boolean indexOnStartup = false;
+    private int minNgramSize;
+    private int maxNgramSize;
 
     private static Map<Class<?>, List<SearchConstraint>> searchConstraintsOverrides = new HashMap<>();
 
     public SearchDataStore(DataStore wrapped, EntityManagerFactory entityManagerFactory, boolean indexOnStartup) {
+        this(wrapped, entityManagerFactory, indexOnStartup, DEFAULT_MIN_NGRAM, DEFAULT_MAX_NGRAM);
+    }
+
+    public SearchDataStore(DataStore wrapped,
+                           EntityManagerFactory entityManagerFactory,
+                           boolean indexOnStartup,
+                           int minNgramSize,
+                           int maxNgramSize) {
         this.wrapped = wrapped;
         this.entityManagerFactory = entityManagerFactory;
         this.indexOnStartup = indexOnStartup;
 
+        this.minNgramSize = minNgramSize;
+        this.maxNgramSize = maxNgramSize;
     }
+
 
     @Override
     public void populateEntityDictionary(EntityDictionary entityDictionary) {
@@ -72,7 +88,7 @@ public class SearchDataStore implements DataStore {
 
         FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
 
-        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary, em);
+        return new SearchDataTransaction(wrapped.beginReadTransaction(), dictionary, em, minNgramSize, maxNgramSize);
     }
 
     /**

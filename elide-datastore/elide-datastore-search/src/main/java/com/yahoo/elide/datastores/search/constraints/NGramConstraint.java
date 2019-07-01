@@ -35,7 +35,7 @@ public class NGramConstraint extends IndexedFieldConstraint {
 
         DataStoreTransaction.FeatureSupport fieldIndexSupport = super.canSearch(entityClass, predicate);
 
-        boolean isIndexed = (fieldIndexSupport != DataStoreTransaction.FeatureSupport.FULL);
+        boolean isIndexed = (fieldIndexSupport != DataStoreTransaction.FeatureSupport.NONE);
 
         boolean withinNGramBounds = predicate.getValues().stream()
                 .map(Object::toString)
@@ -44,7 +44,7 @@ public class NGramConstraint extends IndexedFieldConstraint {
                 });
 
         if (isIndexed && ! withinNGramBounds) {
-            String message = String.format("Field values for %s on entity %s must be >= %i and <= %i",
+            String message = String.format("Field values for %s on entity %s must be >= %d and <= %d",
                     predicate.getField(), dictionary.getJsonAliasFor(entityClass), minNgram, maxNgram);
 
             throw new InvalidValueException(predicate.getValues(), message);

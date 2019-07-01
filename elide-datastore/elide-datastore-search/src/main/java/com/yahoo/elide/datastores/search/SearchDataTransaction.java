@@ -18,8 +18,8 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
-import com.yahoo.elide.datastores.search.constraints.IndexedFieldConstraint;
 import com.yahoo.elide.datastores.search.constraints.JoinConstraint;
+import com.yahoo.elide.datastores.search.constraints.NGramConstraint;
 import com.yahoo.elide.datastores.search.constraints.OperatorConstraint;
 import com.yahoo.elide.datastores.search.constraints.SearchConstraint;
 import org.apache.lucene.search.Query;
@@ -48,16 +48,26 @@ public class SearchDataTransaction extends TransactionWrapper {
     private EntityDictionary dictionary;
     private FullTextEntityManager em;
     private List<SearchConstraint> defaultConstraints;
+    private int minNgramSize;
+    private int maxNgramSize;
 
-    public SearchDataTransaction(DataStoreTransaction tx, EntityDictionary dictionary, FullTextEntityManager em) {
+    public SearchDataTransaction(DataStoreTransaction tx,
+                                 EntityDictionary dictionary,
+                                 FullTextEntityManager em,
+                                 int minNgramSize,
+                                 int maxNgramSize) {
         super(tx);
         this.dictionary = dictionary;
         this.em = em;
+
+        this.minNgramSize = minNgramSize;
+        this.maxNgramSize = maxNgramSize;
+
         defaultConstraints = new ArrayList<SearchConstraint>();
 
         defaultConstraints.add(new JoinConstraint());
         defaultConstraints.add(new OperatorConstraint(FeatureSupport.FULL, FeatureSupport.PARTIAL));
-        defaultConstraints.add(new IndexedFieldConstraint(dictionary));
+        defaultConstraints.add(new NGramConstraint(minNgramSize, maxNgramSize, dictionary));
     }
 
     @Override
