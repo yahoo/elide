@@ -20,12 +20,19 @@ import java.lang.annotation.Target;
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Grain {
+public @interface Temporal {
 
     /**
      * All supported units into which temporal column can be divided
      *
      * @return all allowed time grain of a persistent storage column
      */
-    DefaultTimeGrain[] timeGrain();
+    DefaultTimeGrain[] timeGrains();
+
+    /**
+     * The timezone of the column.
+     *
+     * @return data timezone
+     */
+    String timeZone();
 }

@@ -37,13 +37,13 @@ public class SchemaTest {
 
     @Test
     public void testBaseMetricCheck() {
-        Assert.assertTrue(Schema.isBaseMetric("sessions", VideoGame.class, entityDictionary));
-        Assert.assertFalse(Schema.isBaseMetric("timeSpentPerGame", VideoGame.class, entityDictionary));
+        Assert.assertTrue(playerStatsSchema.isBaseMetric("sessions", VideoGame.class));
+        Assert.assertFalse(playerStatsSchema.isBaseMetric("timeSpentPerGame", VideoGame.class));
     }
 
     @Test void testMetricCheck() {
-        Assert.assertTrue(Schema.isMetricField("highScore", PlayerStats.class, entityDictionary));
-        Assert.assertFalse(Schema.isMetricField("country", PlayerStats.class, entityDictionary));
+        Assert.assertTrue(playerStatsSchema.isMetricField("highScore", PlayerStats.class));
+        Assert.assertFalse(playerStatsSchema.isMetricField("country", PlayerStats.class));
     }
 
     @Test
