@@ -70,17 +70,12 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
      * Constructor.
      *
      * @param schema  Object that offers meta information about an entity field
-     * @param normalizationVisitor  A helper {@link FilterExpressionVisitor} that is leveraged to transform
-     * expressions like {@code NOT (A AND B)} into {@code NOT A OR NOT B}
      *
      * @throws NullPointerException if any one of the argument is {@code null}
      */
-    public SplitFilterExpressionVisitor(
-            final Schema schema,
-            final FilterExpressionNormalizationVisitor normalizationVisitor
-    ) {
+    public SplitFilterExpressionVisitor(final Schema schema) {
         this.schema = Objects.requireNonNull(schema, "schema");
-        this.normalizationVisitor = Objects.requireNonNull(normalizationVisitor, "normalizationVisitor");
+        this.normalizationVisitor = new FilterExpressionNormalizationVisitor();
     }
 
     @Override
@@ -215,13 +210,10 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
 
             if (negatedConstraint.isPureWhere()) {
                 return FilterConstraints.pureWhere(new NotFilterExpression(negatedConstraint.getWhereExpression()));
-            } else if (negatedConstraint.isPureHaving()) {
-                return FilterConstraints.pureHaving(new NotFilterExpression(negatedConstraint.getHavingExpression()));
             } else {
-                return FilterConstraints.withWhereAndHaving(
-                        new NotFilterExpression(negatedConstraint.getWhereExpression()),
-                        new NotFilterExpression(negatedConstraint.getHavingExpression())
-                );
+                // It is not possible to have a mixed where/having for a NotFilterExpression after normalization
+                // so this must be a pure HAVING
+                return FilterConstraints.pureHaving(new NotFilterExpression(negatedConstraint.getHavingExpression()));
             }
         } else {
             return visitPredicate((FilterPredicate) normalized);

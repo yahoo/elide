@@ -16,7 +16,6 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.schema.Schema;
-import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -26,8 +25,6 @@ import java.util.Collections;
 
 public class SplitFilterExpressionVisitorTest {
 
-    private static final FilterExpressionNormalizationVisitor NORMALIZATION_VISITOR =
-            new FilterExpressionNormalizationVisitor();
     private static final FilterPredicate WHERE_PREDICATE = new FilterPredicate(
             new Path.PathElement(PlayerStats.class, String.class, "id"),
             Operator.IN,
@@ -49,7 +46,7 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         schema = new Schema(PlayerStats.class, entityDictionary);
-        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(schema, NORMALIZATION_VISITOR);
+        splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(schema);
     }
 
     @Test
