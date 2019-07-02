@@ -44,11 +44,6 @@
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-datastore-hibernate</artifactId>
-            <version>4.4.5-SNAPSHOT</version>
-        </dependency>
 
         <!-- JPA -->
         <dependency>
