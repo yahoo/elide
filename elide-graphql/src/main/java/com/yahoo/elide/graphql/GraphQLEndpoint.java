@@ -17,16 +17,20 @@ import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -81,6 +85,13 @@ public class GraphQLEndpoint {
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(elide.getElideSettings());
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(), fetcher);
         this.api = new GraphQL(builder.build());
+
+        // add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
+        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer(elideSettings.isEncodeErrorResponses());
+        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
+        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
+        module.addSerializer(GraphQLError.class, errorSerializer);
+        elideSettings.getMapper().getObjectMapper().registerModule(module);
     }
 
     /**
@@ -206,7 +217,7 @@ public class GraphQLEndpoint {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return Response.ok(mapper.writeValueAsString(result.toSpecification())).build();
+            return Response.ok(mapper.writeValueAsString(result)).build();
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
             return e.getResponse();
@@ -225,13 +236,13 @@ public class GraphQLEndpoint {
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getErrorResponse() {
-                    return e.getErrorResponse();
+                public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
+                    return e.getErrorResponse(encodeResponse);
                 }
 
                 @Override
-                public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-                    return e.getVerboseErrorResponse();
+                public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
+                    return e.getVerboseErrorResponse(encodeResponse);
                 }
 
                 @Override
@@ -255,14 +266,20 @@ public class GraphQLEndpoint {
     private Response buildErrorResponse(HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;
+        boolean encodeErrorResponses = elideSettings.isEncodeErrorResponses();
         if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
+            // get the error message and optionally encode it
+            String errorMessage = isVerbose ? error.getVerboseMessage() : error.toString();
+            if (encodeErrorResponses) {
+                errorMessage = Encode.forHtml(errorMessage);
+            }
             ErrorObjects errors = ErrorObjects.builder().addError()
-                    .with("message", isVerbose ? error.getVerboseMessage() : error.toString()).build();
+                    .with("message", errorMessage).build();
             errorNode = mapper.convertValue(errors, JsonNode.class);
         } else {
             errorNode = isVerbose
-                    ? error.getVerboseErrorResponse().getRight()
-                    : error.getErrorResponse().getRight();
+                    ? error.getVerboseErrorResponse(encodeErrorResponses).getRight()
+                    : error.getErrorResponse(encodeErrorResponses).getRight();
         }
         String errorBody;
         try {

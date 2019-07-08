@@ -40,4 +40,5 @@ public class ElideSettings {
     @Getter private final int updateStatusCode;
     @Getter private final boolean returnErrorObjects;
     @Getter private final Map<Class, Serde> serdes;
+    @Getter private final boolean encodeErrorResponses;
 }
