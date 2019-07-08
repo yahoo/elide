@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Optional;
@@ -22,6 +23,7 @@ import java.util.Set;
  * A {@link Query} is an object representing a query executed by {@link QueryEngine}.
  */
 @Data
+@Builder
 public class Query {
 
     private final Class<?> entityClass;

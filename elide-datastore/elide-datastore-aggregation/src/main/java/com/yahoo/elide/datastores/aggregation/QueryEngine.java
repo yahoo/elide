@@ -9,50 +9,40 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 
 /**
- * A {@link QueryEngine} is an abstraction layer that {@link DataStoreTransaction} leverages to optimize query and send
- * query, such as loading objects, to a persistent storage.
+ * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
+ * against an underlying persistence layer.
  * <p>
  * The purpose of {@link QueryEngine} is to allow a single {@link DataStore} to utilize multiple query frameworks, such
- * as Hibernate on SQL and Drill on NoSQL shown below. There will be 3 implementations of {@link QueryEngine}:
- * DrillQueryEngine, JpaQueryEngine, and HibernateQueryEngine
+ * as JPA on SQL or NoSQL query engine on Druid shown below.
  * <pre>
- *                              +-----------+
- *                              |           |
- *                              | DataStore |
- *                              |           |
- *                              +-----+-----+
- *                                    |
- *                                    |
- *                         +----------v-----------+
- *                         |                      |
- *                         | DataStoreTransaction |
- *                         |                      |
- *                         +----------+-----------+
- *                                    |
- *                                    |
- *                             +------v------+
- *                             |             |
- *                             | QueryEngine |
- *                             |             |
- *                             +------+------+
- *                                    |
- *                                    |
- *             +-----------------------------------------------+
- *             |                      |                        |
- *             |                      |                        |
- * +-----------v----------+      +----v----+          +--------v-------+
- * |     Apache Drill     |      |   JPA   |          |    Hibernate   |
- * +-----------+----------+      +----+----+          +--------+-------+
- *             |                      |                        |
- * +-----------v----------------------v------------------------v----------+
- * |                             SQL Driver                               |
- * +-------------------+----------------------------+---------------------+
- *                     |                            |
- *               +-----v-----+                  +---v----+
- *               |           |                  |        |
- *               |  NoSQL DB |                  | SQL DB |
- *               |           |                  |        |
- *               +-----------+                  +--------+
+ *        +-----------+
+ *        |           |
+ *        | DataStore |
+ *        |           |
+ *        +-----+-----+
+ *              |
+ *              |
+ *   +----------v-----------+
+ *   |                      |
+ *   | DataStoreTransaction |
+ *   |                      |
+ *   +----------+-----------+
+ *              |
+ *              |
+ *       +------v------+
+ *       |             |
+ *       | QueryEngine |
+ *       |             |
+ *       +------+------+
+ *              |
+ *              |
+ *     +--------+---------+
+ *     |                  |
+ * +---v---+          +---v---+
+ * |       |          |       |
+ * | Druid |          | MySQL |
+ * |       |          |       |
+ * +-------+          +-------+
  * </pre>
  * Implementor must assume that {@link DataStoreTransaction} will never keep reference to any internal state of a
  * {@link QueryEngine} object. This ensures the plugability of various {@link QueryEngine} implementations.
