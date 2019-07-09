@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.time.DefaultTimeGrain;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -27,7 +27,7 @@ public @interface Temporal {
      *
      * @return all allowed time grain of a persistent storage column
      */
-    DefaultTimeGrain[] timeGrains();
+    TimeGrain timeGrain();
 
     /**
      * The timezone of the column.

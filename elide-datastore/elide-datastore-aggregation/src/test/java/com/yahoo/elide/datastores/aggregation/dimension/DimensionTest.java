@@ -88,7 +88,7 @@ public class DimensionTest {
 
         Assert.assertEquals(
                 TIME_DIMENSION.toString(),
-                "TimeDimension[timeZone=Pacific Standard Time, timeGrains=[second], columnType=TEMPORAL, name='recordedTime', longName='Recorded Time', description='This is recorded time in UNIX timestemmp', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
+                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=[second], columnType=TEMPORAL, name='recordedTime', longName='Recorded Time', description='This is recorded time in UNIX timestemmp', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
         );
     }
 }

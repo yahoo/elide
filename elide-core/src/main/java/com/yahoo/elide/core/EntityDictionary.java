@@ -1229,18 +1229,7 @@ public class EntityDictionary {
             String fieldName,
             Class<A> annotationClass
     ) {
-        ConcurrentHashMap<String, AccessibleObject> fieldOrMethods = getEntityBinding(cls).fieldsToValues;
-        if (fieldOrMethods == null) {
-            return false;
-        }
-
-        AccessibleObject fieldOrMethod = fieldOrMethods.get(fieldName);
-        if (fieldOrMethod == null) {
-            return false;
-        }
-
-        return getAttributeOrRelationAnnotation(cls, annotationClass, EntityBinding.getFieldName(fieldOrMethod))
-                != null;
+        return getAttributeOrRelationAnnotation(cls, annotationClass, fieldName) != null;
     }
 
     /**

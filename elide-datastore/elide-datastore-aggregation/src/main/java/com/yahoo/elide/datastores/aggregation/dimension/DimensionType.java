@@ -8,7 +8,16 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 /**
  * An object that represents one of the allowed types for {@link Dimension} type in Elide.
  */
-public interface DimensionType {
+public enum  DimensionType {
 
-    // intentionally left blank
+    /**
+     * A degenerate dimension.
+     */
+    DEGENERATE,
+
+    /**
+     * A dimension backed by a table.
+     */
+    TABLE
+    ;
 }

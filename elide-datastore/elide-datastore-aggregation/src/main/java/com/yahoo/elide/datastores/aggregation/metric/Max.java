@@ -12,16 +12,6 @@ public class Max implements Aggregation {
 
     private static final long serialVersionUID = 3078602564074151821L;
 
-    /**
-     * Returns a singleton instance of this {@link Aggregation} function.
-     *
-     * @return the same function that calculates the max
-     */
-    public static Aggregation getInstance() {
-        return INSTANCE;
-    }
-
-    private static final Aggregation INSTANCE = new Max();
     private static final String AGG_FUNC_FORMAT = "MAX(%s)";
 
     @Override

@@ -5,15 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.Getter;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 
@@ -29,37 +26,18 @@ public class TimeDimension extends DegenerateDimension {
     @Getter
     private final TimeZone timeZone;
     @Getter
-    private final Set<TimeGrain> timeGrains;
+    private final TimeGrain timeGrain;
 
-    /**
-     * Constructor.
-     *
-     * @param name  The name of the entity representing this {@link Dimension} object
-     * @param longName  The a human-readable name (allowing spaces) of this {@link Dimension} object
-     * @param description  A short description explaining the meaning of this {@link Dimension}
-     * @param dataType  The entity field type of this {@link Dimension}
-     * @param cardinality  The estimated cardinality of this {@link Dimension}
-     * @param friendlyName  A human displayable column for this {@link Dimension}
-     * @param timeZone  The default timezone of time data stored in this temporal column
-     * @param timeGrains  All supported units into which this temporal column can be divided
-     *
-     * @throws NullPointerException is any one of the arguments is {@code null}
-     */
     public TimeDimension(
-            final String name,
-            final String longName,
-            final String description,
-            final Class<?> dataType,
-            final CardinalitySize cardinality,
-            final String friendlyName,
-            final TimeZone timeZone,
-            final Set<TimeGrain> timeGrains
+            String dimensionField,
+            Class<?> cls,
+            EntityDictionary entityDictionary,
+            TimeZone timeZone,
+            TimeGrain timeGrain
     ) {
-        super(name, longName, description, dataType, cardinality, friendlyName, DefaultColumnType.TEMPORAL);
+        super(dimensionField, cls, entityDictionary, ColumnType.TEMPORAL);
         this.timeZone = Objects.requireNonNull(timeZone, "timeZone");
-        this.timeGrains = Collections.unmodifiableSet(
-                new HashSet<>(Objects.requireNonNull(timeGrains, "timeGrains"))
-        );
+        this.timeGrain = timeGrain;
     }
 
     @Override
@@ -77,19 +55,19 @@ public class TimeDimension extends DegenerateDimension {
         final TimeDimension that = (TimeDimension) other;
 
         return getTimeZone().equals(that.getTimeZone())
-                && getTimeGrains().equals(that.getTimeGrains());
+                && getTimeGrain().equals(that.getTimeGrain());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), getTimeZone(), getTimeGrains());
+        return Objects.hash(super.hashCode(), getTimeZone(), getTimeGrain());
     }
 
     /**
      * Returns the string representation of this {@link Dimension}.
      * <p>
      * The string consists of values of all fields in the format
-     * "EntityDimension[timeZone=XXX, timeGrains=XXX, columnType=XXX, name='XXX', longName='XXX', description='XXX',
+     * "EntityDimension[timeZone=XXX, timeGrain=XXX, columnType=XXX, name='XXX', longName='XXX', description='XXX',
      * dimensionType=XXX, dataType=XXX, cardinality=XXX, friendlyName=XXX, columnType=XXX]", where values can be
      * programmatically fetched via getters.
      * <p>
@@ -104,7 +82,7 @@ public class TimeDimension extends DegenerateDimension {
     public String toString() {
         return new StringJoiner(", ", TimeDimension.class.getSimpleName() + "[", "]")
                 .add("timeZone=" + getTimeZone().getDisplayName())
-                .add("timeGrains=" + getTimeGrains())
+                .add("timeGrain=" + getTimeGrain())
                 .add("columnType=" + getColumnType())
                 .add("name='" + getName() + "'")
                 .add("longName='" + getLongName() + "'")

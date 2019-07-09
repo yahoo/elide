@@ -16,15 +16,17 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the annotated field is a metric column.
  * <p>
- * This annotation takes two arguments:
- * <ol>
- *     <li> the default aggregation function to apply to the metric, and
- *     <li> the complete list of supported aggregations
+ * This annotation takes a complete list of supported aggregations with the first as the default aggregation.
  * </ol>
  * The AggregationDataStore binds entities that have at least one {@link MetricAggregation} annotation.
  * <p>
- * Example: {@literal @}MetricAggregation(default = Sum.class, aggregations = {Max.class, Median.class}). Note that the
- * {@code Sum.class} will also be included in the {@code aggregations} list if non-explicitly specified.
+ * Example:
+ * <pre>
+ * {@code
+ * {@literal @}MetricAggregation(aggregations = {Max.class, Median.class})
+ * }
+ * </pre>
+ * {@code Max} is the default aggregation in the example above.
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
@@ -32,14 +34,7 @@ import java.lang.annotation.Target;
 public @interface MetricAggregation {
 
     /**
-     * The default aggregation function to apply to the metric.
-     *
-     * @return default aggregation
-     */
-    Class<? extends Aggregation> defaultAggregation();
-
-    /**
-     * The complete list of supported aggregations.
+     * The complete list of supported aggregations with the first as the default aggregation.
      *
      * @return a comprehensive list of provided aggregations
      */

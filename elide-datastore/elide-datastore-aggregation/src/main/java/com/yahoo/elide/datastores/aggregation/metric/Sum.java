@@ -12,16 +12,6 @@ public class Sum implements Aggregation {
 
     private static final long serialVersionUID = -6582997654294965367L;
 
-    /**
-     * Returns a singleton instance of this {@link Aggregation} function.
-     *
-     * @return the same function that calculates the sum
-     */
-    public static Aggregation getInstance() {
-        return INSTANCE;
-    }
-
-    private static final Aggregation INSTANCE = new Sum();
     private static final String AGG_FUNC_FORMAT = "SUM(%s)";
 
     @Override

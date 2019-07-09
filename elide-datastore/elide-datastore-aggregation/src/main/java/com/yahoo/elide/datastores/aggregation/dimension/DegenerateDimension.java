@@ -5,58 +5,55 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.core.EntityDictionary;
 
 import lombok.Getter;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import javax.persistence.Id;
+
 /**
  * A {@link Dimension} backed by a table column.
  * <p>
  * {@link DegenerateDimension} is thread-safe and can be accessed by multiple threads.
  */
-public class DegenerateDimension extends AbstractDimension {
+public class DegenerateDimension extends EntityDimension {
+
+    /**
+     * Returns the nature of a SQL column that is backing a specified dimension field in an entity.
+     *
+     * @param dimensionField  The provided dimension field
+     * @param cls  The entity having the {@code dimensionField}
+     *
+     * @return a {@link ColumnType}, such as PK or a regular field
+     */
+    public static ColumnType parseColumnType(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
+        if (entityDictionary.attributeOrRelationAnnotationExists(cls, dimensionField, Id.class)) {
+            return ColumnType.PRIMARY_KEY;
+        } else {
+            return ColumnType.FIELD;
+        }
+    }
 
     private static final long serialVersionUID = 370506626352850507L;
 
     @Getter
     ColumnType columnType;
 
-    /**
-     * Constructor.
-     *
-     * @param name  The name of the entity representing this {@link Dimension} object
-     * @param longName  The a human-readable name (allowing spaces) of this {@link Dimension} object
-     * @param description  A short description explaining the meaning of this {@link Dimension}
-     * @param dataType  The entity field type of this {@link Dimension}
-     * @param cardinality  The estimated cardinality of this {@link Dimension}
-     * @param friendlyName  A human displayable column for this {@link Dimension}
-     * @param columnType  An object that represents one of the allowed types for a SQL table column backing
-     * {@link Dimension}
-     *
-     * @throws NullPointerException is any one of the arguments is {@code null}
-     */
-    public DegenerateDimension(
-            final String name,
-            final String longName,
-            final String description,
-            final Class<?> dataType,
-            final CardinalitySize cardinality,
-            final String friendlyName,
-            final ColumnType columnType
+    public DegenerateDimension(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
+        this(dimensionField, cls, entityDictionary, parseColumnType(dimensionField, cls, entityDictionary));
+    }
+
+    protected DegenerateDimension(
+            String dimensionField,
+            Class<?> cls,
+            EntityDictionary entityDictionary,
+            ColumnType columnType
     ) {
-        super(
-                Objects.requireNonNull(name, "name"),
-                Objects.requireNonNull(longName, "longName"),
-                Objects.requireNonNull(description, "description"),
-                DefaultDimensionType.DEGENERATE,
-                Objects.requireNonNull(dataType, "dataType"),
-                Objects.requireNonNull(cardinality, "cardinality"),
-                Objects.requireNonNull(friendlyName, "friendlyName")
-        );
-        this.columnType = Objects.requireNonNull(columnType);
+        super(dimensionField, cls, entityDictionary, DimensionType.DEGENERATE);
+        this.columnType = columnType;
     }
 
     @Override

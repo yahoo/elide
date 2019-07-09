@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EntityMetricTest {
+public class BaseMetricTest {
 
-    private static final Metric SIMPLE_METRIC = new EntityMetric(
+    private static final Metric SIMPLE_METRIC = new BaseMetric(
             "highScore",
             "awesome score",
             "very awesome score",
@@ -23,7 +23,7 @@ public class EntityMetricTest {
             Arrays.asList(Max.class, Min.class)
     );
 
-    private static final Metric COMPUTED_METRIC = new EntityMetric(
+    private static final Metric COMPUTED_METRIC = new BaseMetric(
             "timeSpentPerGame",
             "Time Spent Per Game",
             "foo bar bat baz",
@@ -58,13 +58,13 @@ public class EntityMetricTest {
         // simple metric
         Assert.assertEquals(
                 SIMPLE_METRIC.toString(),
-                "EntityMetric[name='highScore', longName='awesome score', description='very awesome score', dataType=long, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='N/A']"
+                "BaseMetric[name='highScore', longName='awesome score', description='very awesome score', dataType=long, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='N/A']"
         );
 
         // computed metric
         Assert.assertEquals(
                 COMPUTED_METRIC.toString(),
-                "EntityMetric[name='timeSpentPerGame', longName='Time Spent Per Game', description='foo bar bat baz', dataType=class java.lang.Float, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='timeSpent / sessions / 100']"
+                "BaseMetric[name='timeSpentPerGame', longName='Time Spent Per Game', description='foo bar bat baz', dataType=class java.lang.Float, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='timeSpent / sessions / 100']"
         );
     }
 }

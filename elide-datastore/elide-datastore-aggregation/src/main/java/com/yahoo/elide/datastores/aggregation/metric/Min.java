@@ -12,16 +12,6 @@ public class Min implements Aggregation {
 
     private static final long serialVersionUID = -6582997654294965367L;
 
-    /**
-     * Returns a singleton instance of this {@link Aggregation} function.
-     *
-     * @return the same function that calculates the min
-     */
-    public static Aggregation getInstance() {
-        return INSTANCE;
-    }
-
-    private static final Aggregation INSTANCE = new Min();
     private static final String AGG_FUNC_FORMAT = "MIN(%s)";
 
     @Override

@@ -8,7 +8,11 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 /**
  * An object that represents one of the allowed types for a SQL table column.
  */
-public interface ColumnType {
+public enum  ColumnType {
+    PRIMARY_KEY,
 
-    // intentionally left blank
+    TEMPORAL,
+
+    FIELD
+    ;
 }
