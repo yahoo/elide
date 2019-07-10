@@ -11,7 +11,7 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 public enum  DimensionType {
 
     /**
-     * A degenerate dimension.
+     * A dimension backed by a column.
      */
     DEGENERATE,
 

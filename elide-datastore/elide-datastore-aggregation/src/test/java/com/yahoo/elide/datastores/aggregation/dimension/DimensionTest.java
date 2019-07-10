@@ -7,12 +7,11 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.time.DefaultTimeGrain;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
@@ -21,8 +20,7 @@ public class DimensionTest {
 
     private static final Dimension ENTITY_DIMENSION = new EntityDimension(
             "country",
-            "Country Domain Model",
-            "A model that represents all information about a country",
+            null,
             Country.class,
             CardinalitySize.SMALL,
             "name"
@@ -30,23 +28,21 @@ public class DimensionTest {
 
     private static final Dimension DEGENERATE_DIMENSION = new DegenerateDimension(
             "overallRating",
-            "Overall Rating",
-            "How is this guy doing",
+            null,
             String.class,
             CardinalitySize.SMALL,
             "overallRating",
-            DefaultColumnType.FIELD
+            ColumnType.FIELD
     );
 
     private static final Dimension TIME_DIMENSION = new TimeDimension(
             "recordedTime",
-            "Recorded Time",
-            "This is recorded time in UNIX timestemmp",
+            null,
             Long.class,
             CardinalitySize.LARGE,
             "recordedTime",
             TimeZone.getDefault(),
-            Collections.singleton(DefaultTimeGrain.SECOND)
+            TimeGrain.DAY
     );
 
     @Test
@@ -77,18 +73,18 @@ public class DimensionTest {
         // table dimension
         Assert.assertEquals(
                 ENTITY_DIMENSION.toString(),
-                "EntityDimension[name='country', longName='Country Domain Model', description='A model that represents all information about a country', dimensionType=TABLE, dataType=Country, cardinality=SMALL, friendlyName='name']"
+                "EntityDimension[name='country', longName='country', description='country', dimensionType=TABLE, dataType=Country, cardinality=SMALL, friendlyName='name']"
         );
 
         // degenerate dimension
         Assert.assertEquals(
                 DEGENERATE_DIMENSION.toString(),
-                "DegenerateDimension[columnType=FIELD, name='overallRating', longName='Overall Rating', description='How is this guy doing', dimensionType=DEGENERATE, dataType=class java.lang.String, cardinality=SMALL, friendlyName='overallRating']"
+                "DegenerateDimension[columnType=FIELD, name='overallRating', longName='overallRating', description='overallRating', dimensionType=DEGENERATE, dataType=String, cardinality=SMALL, friendlyName='overallRating']"
         );
 
         Assert.assertEquals(
                 TIME_DIMENSION.toString(),
-                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=[second], columnType=TEMPORAL, name='recordedTime', longName='Recorded Time', description='This is recorded time in UNIX timestemmp', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
+                "TimeDimension[timeZone=Pacific Standard Time, timeGrain=DAY, columnType=TEMPORAL, name='recordedTime', longName='recordedTime', description='recordedTime', dimensionType=DEGENERATE, dataType=class java.lang.Long, cardinality=LARGE, friendlyName='recordedTime']"
         );
     }
 }

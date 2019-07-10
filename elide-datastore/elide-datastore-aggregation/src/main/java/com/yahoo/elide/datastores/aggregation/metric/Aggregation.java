@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * Common interface for metric aggregation classes.
  * <p>
- * Implementors should make the concrete implementation immutable.
+ * Implementors must maintain a valid no-args constructor.
  */
 public interface Aggregation extends Serializable {
 

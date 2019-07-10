@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.Getter;
@@ -28,16 +29,31 @@ public class TimeDimension extends DegenerateDimension {
     @Getter
     private final TimeGrain timeGrain;
 
+    /**
+     * Constructor.
+     *
+     * @param dimensionField  The entity field or relation that this {@link Dimension} represents
+     * @param annotation  Provides static meta data about this {@link Dimension}
+     * @param fieldType  The Java type for this entity field or relation
+     * @param cardinality  The estimated cardinality of this {@link Dimension} in SQL table
+     * @param friendlyName  A human-readable name representing this {@link Dimension}
+     * @param timeZone  The timezone describing the data of this {@link Dimension}
+     * @param timeGrain  The finest unit into which this temporal {@link Dimension} column can be divided
+     *
+     * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
+     */
     public TimeDimension(
             String dimensionField,
-            Class<?> cls,
-            EntityDictionary entityDictionary,
+            Meta annotation,
+            Class<?> fieldType,
+            CardinalitySize cardinality,
+            String friendlyName,
             TimeZone timeZone,
             TimeGrain timeGrain
     ) {
-        super(dimensionField, cls, entityDictionary, ColumnType.TEMPORAL);
+        super(dimensionField, annotation, fieldType, cardinality, friendlyName, ColumnType.TEMPORAL);
         this.timeZone = Objects.requireNonNull(timeZone, "timeZone");
-        this.timeGrain = timeGrain;
+        this.timeGrain = Objects.requireNonNull(timeGrain, "timeGrain");
     }
 
     @Override

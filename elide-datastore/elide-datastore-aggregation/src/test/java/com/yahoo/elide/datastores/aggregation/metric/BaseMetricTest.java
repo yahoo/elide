@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metric;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,21 +16,18 @@ public class BaseMetricTest {
 
     private static final Metric SIMPLE_METRIC = new BaseMetric(
             "highScore",
-            "awesome score",
-            "very awesome score",
+            null,
             long.class,
-            Max.class,
-            Arrays.asList(Max.class, Min.class)
+            Collections.singletonList(Max.class),
+            "MAX(%s)"
     );
 
     private static final Metric COMPUTED_METRIC = new BaseMetric(
             "timeSpentPerGame",
-            "Time Spent Per Game",
-            "foo bar bat baz",
+            null,
             Float.class,
-            Max.class,
-            Arrays.asList(Max.class, Min.class),
-            "timeSpent / sessions / 100"
+            Collections.singletonList(Max.class),
+            "MAX(%s)"
     );
 
     @Test
@@ -58,13 +55,13 @@ public class BaseMetricTest {
         // simple metric
         Assert.assertEquals(
                 SIMPLE_METRIC.toString(),
-                "BaseMetric[name='highScore', longName='awesome score', description='very awesome score', dataType=long, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='N/A']"
+                "BaseMetric[name='highScore', longName='highScore', description='highScore', dataType=long, aggregations=Max, metricExpression='MAX(%s)']"
         );
 
         // computed metric
         Assert.assertEquals(
                 COMPUTED_METRIC.toString(),
-                "BaseMetric[name='timeSpentPerGame', longName='Time Spent Per Game', description='foo bar bat baz', dataType=class java.lang.Float, defaultAggregation=Max, allAggregations=Max, Min, computedMetricExpression='timeSpent / sessions / 100']"
+                "BaseMetric[name='timeSpentPerGame', longName='timeSpentPerGame', description='timeSpentPerGame', dataType=class java.lang.Float, aggregations=Max, metricExpression='MAX(%s)']"
         );
     }
 }

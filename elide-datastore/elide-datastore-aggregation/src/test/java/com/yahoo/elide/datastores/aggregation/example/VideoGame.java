@@ -27,18 +27,18 @@ public class VideoGame {
     private Long id;
 
     @Column(name = "rounds")
-    @MetricAggregation(defaultAggregation = Sum.class, aggregations = {Sum.class})
+    @MetricAggregation(aggregations = {Sum.class})
     Long sessions;
 
-    @MetricAggregation(defaultAggregation = Sum.class, aggregations = {Sum.class})
+    @MetricAggregation(aggregations = {Sum.class})
     Long timeSpent;
 
     @MetricComputation(expression = "timeSpent / sessions")
-    @MetricAggregation(defaultAggregation = Max.class, aggregations = {Max.class, Min.class})
+    @MetricAggregation(aggregations = {Max.class, Min.class})
     private Float timeSpentPerSession;
 
     @MetricComputation(expression = "timeSpentPerSession / 100")
-    @MetricAggregation(defaultAggregation = Max.class, aggregations = {Max.class, Min.class})
+    @MetricAggregation(aggregations = {Max.class, Min.class})
     private Float timeSpentPerGame;
 
     public Long getId() {

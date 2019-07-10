@@ -12,6 +12,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.TimeZone;
 
 /**
  * Indicates that the annotated entity field is a temporal field and is backed by a temporal column in persistent
@@ -23,14 +24,22 @@ import java.lang.annotation.Target;
 public @interface Temporal {
 
     /**
-     * All supported units into which temporal column can be divided
+     * The finest unit into which temporal column can be divided
      *
-     * @return all allowed time grain of a persistent storage column
+     * @return The finest supported time grain of a persistent storage column
      */
     TimeGrain timeGrain();
 
     /**
-     * The timezone of the column.
+     * The timezone in {@link String} of the column.
+     * <p>
+     * The String format can be expressed by
+     * <ul>
+     *     <li> an abbreviation such as "PST", or
+     *     <li> a full name such as "America/Los_Angeles", or
+     *     <li> a custom ID such as "GMT-8:00"
+     * </ul>
+     * The timezone will be parsed using {@link TimeZone#getTimeZone(String)}.
      *
      * @return data timezone
      */

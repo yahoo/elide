@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
-import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -37,43 +36,22 @@ public class SchemaTest {
 
     @Test
     public void testBaseMetricCheck() {
-        Assert.assertTrue(playerStatsSchema.isBaseMetric("sessions", VideoGame.class));
-        Assert.assertFalse(playerStatsSchema.isBaseMetric("timeSpentPerGame", VideoGame.class));
+        Assert.assertTrue(playerStatsSchema.isBaseMetric("highScore"));
+        Assert.assertFalse(videoGameSchema.isBaseMetric("timeSpentPerSession"));
     }
 
     @Test void testMetricCheck() {
-        Assert.assertTrue(playerStatsSchema.isMetricField("highScore", PlayerStats.class));
-        Assert.assertFalse(playerStatsSchema.isMetricField("country", PlayerStats.class));
+        Assert.assertTrue(playerStatsSchema.isMetricField("highScore"));
+        Assert.assertFalse(playerStatsSchema.isMetricField("country"));
     }
 
     @Test
-    public void testGetDimensionSize() {
-        Assert.assertTrue(playerStatsSchema.getDimensionSize("country").isPresent());
-        Assert.assertEquals(playerStatsSchema.getDimensionSize("country").get(), CardinalitySize.SMALL);
+    public void testGetDimension() {
+        Assert.assertEquals(playerStatsSchema.getDimension("country").getCardinality(), CardinalitySize.LARGE);
     }
 
     @Test
-    public void testComputedMetricExpressionExpanssion() {
-        // timeSpentPerSession
-        Metric timeSpentPerSession = videoGameSchema.getMetrics().stream()
-                .filter(metric -> "timeSpentPerSession".equals(metric.getName()))
-                .findFirst()
-                .get();
-
-        Assert.assertEquals(
-                timeSpentPerSession.getExpandedMetricExpression().get(),
-                "<PREFIX>.timeSpent / <PREFIX>.rounds"
-        );
-
-        // timeSpentPerGame
-        Metric timeSpentPerGame = videoGameSchema.getMetrics().stream()
-                .filter(metric -> "timeSpentPerGame".equals(metric.getName()))
-                .findFirst()
-                .get();
-
-        Assert.assertEquals(
-                timeSpentPerGame.getExpandedMetricExpression().get(),
-                "<PREFIX>.timeSpent / <PREFIX>.rounds / 100"
-        );
+    public void testGetMetric() {
+        Assert.assertEquals(playerStatsSchema.getMetric("highScore").getMetricExpression(), "MAX(%s)");
     }
 }

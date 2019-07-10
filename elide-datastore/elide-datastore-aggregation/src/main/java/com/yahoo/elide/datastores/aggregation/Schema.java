@@ -8,23 +8,26 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.dimension.DegenerateDimension;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.BaseMetric;
-import com.yahoo.elide.datastores.aggregation.metric.ComputedMetric;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
-import com.yahoo.elide.datastores.aggregation.metric.MetricUtils;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -46,18 +49,15 @@ public class Schema {
 
     @Getter
     private final Class<?> entityClass;
-
     @Getter
     private final Set<Metric> metrics;
-
     @Getter
     private final Set<Dimension> dimensions;
-
     @Getter(value = AccessLevel.PRIVATE)
     private final EntityDictionary entityDictionary;
 
     /**
-     * Private constructor which avoids itself being overridden.
+     * Constructor
      * <p>
      * This constructor calls {@link #constructDimension(String, Class, EntityDictionary)} and
      * {@link #constructMetric(String, Class, EntityDictionary)} ()} to construct all {@link Dimension}s and
@@ -77,18 +77,73 @@ public class Schema {
     }
 
     /**
-     * Returns an {@link Optional} of the JPQL DB table size associated with a dimension field, or
-     * {@link Optional#empty()} if no such dimension field is found.
+     * Finds the {@link Dimension} by name.
      *
-     * @param fieldName  A field whose corresponding table size is to be estimated
+     * @param dimensionName  The entity field name associated with the searched {@link Dimension}
      *
-     * @return {@link Optional} dimension size as {@link CardinalitySize} or {@link Optional#empty()}
+     * @return {@link Dimension} found or {@code null} if not found
      */
-    public Optional<CardinalitySize> getDimensionSize(String fieldName) {
+    public Dimension getDimension(String dimensionName) {
         return getDimensions().stream()
-                .filter(dimension -> dimension.getName().equals(fieldName))
-                .map(Dimension::getCardinality)
-                .findAny();
+                .filter(dimension -> dimension.getName().equals(dimensionName))
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
+     * Finds the {@link Metric} by name.
+     *
+     * @param metricName  The entity field name associated with the searched {@link Metric}
+     *
+     * @return {@link Metric} found or {@code null} if not found
+     */
+    public Metric getMetric(String metricName) {
+        return getMetrics().stream()
+                .filter(metric -> metric.getName().equals(metricName))
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
+     * Returns whether or not an entity field is a metric field.
+     * <p>
+     * A field is a metric field iff that field is annotated by at least one of
+     * <ol>
+     *     <li> {@link MetricAggregation}
+     *     <li> {@link MetricComputation}
+     * </ol>
+     *
+     * @param fieldName  The entity field
+     *
+     * @return {@code true} if the field is a metric field
+     */
+    public boolean isMetricField(String fieldName) {
+        return getEntityDictionary().attributeOrRelationAnnotationExists(
+                getEntityClass(), fieldName, MetricAggregation.class
+        )
+                || getEntityDictionary().attributeOrRelationAnnotationExists(
+                getEntityClass(), fieldName, MetricComputation.class
+        );
+    }
+
+    /**
+     * Returns whether or not an entity field is a simple metric, i.e. a metric field not decorated by
+     * {@link MetricComputation}.
+     *
+     * @param fieldName  The entity field
+     *
+     * @return {@code true} if the field is a simple metric
+     */
+    public boolean isBaseMetric(String fieldName) {
+        if (!isMetricField(fieldName)) {
+            return false;
+        }
+
+        return !getEntityDictionary().attributeOrRelationAnnotationExists(
+                getEntityClass(),
+                fieldName,
+                MetricComputation.class
+        );
     }
 
     /**
@@ -102,9 +157,38 @@ public class Schema {
      * @return a {@link Metric}
      */
     protected Metric constructMetric(String metricField, Class<?> cls, EntityDictionary entityDictionary) {
-        return MetricUtils.isBaseMetric(metricField, cls, entityDictionary)
-                ? new BaseMetric(metricField, cls, entityDictionary)
-                : new ComputedMetric(metricField, cls, entityDictionary);
+        Meta metaData = entityDictionary.getAttributeOrRelationAnnotation(cls, Meta.class, metricField);
+        Class<?> fieldType = entityDictionary.getType(cls, metricField);
+
+        // get all metric aggregations
+        List<Class<? extends Aggregation>> aggregations = Arrays.stream(
+                entityDictionary.getAttributeOrRelationAnnotation(
+                        cls,
+                        MetricAggregation.class,
+                        metricField
+                ).aggregations()
+        )
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                Collections::unmodifiableList
+                        )
+                );
+
+        // make sure we have at least 1 aggregation so we can generate static SQL functions
+        if (aggregations.isEmpty()) {
+            String message = String.format("'%s' has no aggregation.", metricField);
+            log.error(message);
+            throw new IllegalStateException(message);
+        }
+
+        return new BaseMetric(
+                metricField,
+                metaData,
+                fieldType,
+                aggregations,
+                BaseMetric.functionFormat(aggregations.get(0))
+        );
     }
 
     /**
@@ -118,9 +202,50 @@ public class Schema {
      * @return a {@link Dimension}
      */
     protected Dimension constructDimension(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
-        return entityDictionary.isRelation(cls, dimensionField)
-                ? constructEntityDimension(dimensionField, cls)
-                : constructDegenerateDimension(dimensionField, cls);
+        Meta metaData = entityDictionary.getAttributeOrRelationAnnotation(cls, Meta.class, dimensionField);
+        Class<?> fieldType = entityDictionary.getType(cls, dimensionField);
+
+        String friendlyName = EntityDimension.getFriendlyNameField(cls, entityDictionary);
+        CardinalitySize cardinality = EntityDimension.getEstimatedCardinality(dimensionField, cls, entityDictionary);
+
+        if (entityDictionary.isRelation(cls, dimensionField)) {
+            // relationship field
+            return new EntityDimension(
+                    dimensionField,
+                    metaData,
+                    fieldType,
+                    cardinality,
+                    friendlyName
+            );
+        } else if (!getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, Temporal.class)) {
+            // regular field
+            return new DegenerateDimension(
+                    dimensionField,
+                    metaData,
+                    fieldType,
+                    cardinality,
+                    friendlyName,
+                    DegenerateDimension.parseColumnType(dimensionField, cls, entityDictionary)
+            );
+        } else {
+            // temporal field
+            Temporal temporal = getEntityDictionary().getAttributeOrRelationAnnotation(
+                    cls,
+                    Temporal.class,
+                    dimensionField
+            );
+
+            return new TimeDimension(
+                    dimensionField,
+                    metaData,
+                    fieldType,
+                    cardinality,
+                    friendlyName,
+                    TimeZone.getTimeZone(temporal.timeZone()),
+                    temporal.timeGrain()
+            );
+
+        }
     }
 
     /**
@@ -133,7 +258,7 @@ public class Schema {
      */
     private Set<Metric> getAllMetrics() {
         return entityDictionary.getAllFields(getEntityClass()).stream()
-                .filter(field -> MetricUtils.isMetricField(field, getEntityClass(), getEntityDictionary()))
+                .filter(this::isMetricField)
                 .map(field -> constructMetric(field, getEntityClass(), entityDictionary))
                 .collect(
                         Collectors.collectingAndThen(
@@ -153,7 +278,7 @@ public class Schema {
      */
     private Set<Dimension> getAllDimensions() {
         return getEntityDictionary().getAllFields(getEntityClass()).stream()
-                .filter(field -> !MetricUtils.isMetricField(field, getEntityClass(), getEntityDictionary()))
+                .filter(field -> !isMetricField(field))
                 .map(field -> constructDimension(field, getEntityClass(), getEntityDictionary()))
                 .collect(
                         Collectors.collectingAndThen(
@@ -161,63 +286,5 @@ public class Schema {
                                 Collections::unmodifiableSet
                         )
                 );
-    }
-
-    /**
-     * Returns a new instance of dimension backed by a table.
-     *
-     * @param dimensionField  The dimension out of which the table dimension is to be created
-     * @param cls  The entity that contains the {@code dimensionField}
-     *
-     * @return a {@link Dimension} instance on sub-type {@link EntityDimension}
-     */
-    private Dimension constructEntityDimension(String dimensionField, Class<?> cls) {
-        return new EntityDimension(dimensionField, cls, getEntityDictionary());
-    }
-
-    /**
-     * Returns a new instance of degenerate dimension.
-     *
-     * @param dimensionField  The dimension out of which the degenerate dimension is to be created
-     * @param cls  The entity that contains the {@code dimensionField}
-     *
-     * @return a {@link Dimension} instance on sub-type {@link DegenerateDimension}
-     */
-    private Dimension constructDegenerateDimension(String dimensionField, Class<?> cls) {
-        return getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, Temporal.class)
-                ? createTimeDimension(dimensionField, cls) // temporal column
-                : createDegenerateDimension(dimensionField, cls);
-    }
-
-    /**
-     * Returns a new instance of degenerate dimension.
-     *
-     * @param dimensionField  The dimension out of which the degenerate dimension is to be created
-     * @param cls  The entity that contains the {@code dimensionField}
-     *
-     * @return a {@link Dimension} instance on sub-type {@link DegenerateDimension}
-     */
-    private Dimension createDegenerateDimension(String dimensionField, Class<?> cls) {
-        return new DegenerateDimension(dimensionField, cls, getEntityDictionary());
-    }
-
-    /**
-     * Returns a new instance of time dimension.
-     *
-     * @param dimensionField  The dimension out of which the degenerate dimension is to be created
-     * @param cls  The entity that contains the {@code dimensionField}
-     *
-     * @return a {@link Dimension} instance on sub-type {@link TimeDimension}
-     */
-    private Dimension createTimeDimension(String dimensionField, Class<?> cls) {
-        Temporal temporal = getEntityDictionary().getAttributeOrRelationAnnotation(cls, Temporal.class, dimensionField);
-
-        return new TimeDimension(
-                dimensionField,
-                cls,
-                getEntityDictionary(),
-                TimeZone.getTimeZone(temporal.timeZone()),
-                temporal.timeGrain()
-        );
     }
 }

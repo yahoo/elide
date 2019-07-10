@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metric;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.Column;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 
@@ -25,18 +25,32 @@ import java.util.stream.Collectors;
  * {@link BaseMetric} is thread-safe and can be accessed by multiple threads.
  */
 @Slf4j
-public class BaseMetric implements Metric {
+public class BaseMetric extends Column implements Metric {
 
-    public static String generateExpression(Class<? extends Aggregation> defaultAggregation) {
+    /**
+     * Given a {@link Aggregation}, returns the SQL aggregation function.
+     * <p>
+     * For example, returns "MAX(%s)" if the specified {@link Aggregation} is {@link Max}. If the specified aggregation
+     * is {@code null}, this method returns an empty string, i.e. "".
+     *
+     * @param aggregationType  A sub-type of {@link Aggregation}, such as {@link Max} and {@link Min}.
+     *
+     * @return the SQL function format of the {@code aggregationType}
+     */
+    public static String functionFormat(Class<? extends Aggregation> aggregationType) {
+        if (aggregationType == null) {
+            return "";
+        }
+
         try {
-            Class<?> clazz = Class.forName(defaultAggregation.getCanonicalName());
+            Class<?> clazz = Class.forName(aggregationType.getCanonicalName());
             Constructor<?> ctor = clazz.getConstructor();
-            Aggregation aggregation = (Aggregation) ctor.newInstance();
-            return aggregation.getAggFunctionFormat();
+            Aggregation instance = (Aggregation) ctor.newInstance();
+            return instance.getAggFunctionFormat();
         } catch (Exception exception) {
             String message = String.format(
                     "Cannot generate aggregation function for '%s'",
-                    defaultAggregation.getCanonicalName()
+                    aggregationType.getCanonicalName()
             );
             log.error(message, exception);
             throw new IllegalStateException(message, exception);
@@ -46,40 +60,41 @@ public class BaseMetric implements Metric {
     private static final long serialVersionUID = 3055820948480283917L;
 
     @Getter
-    private final String name;
-
-    @Getter
-    private final String longName;
-
-    @Getter
-    private final String description;
-
-    @Getter
-    private final Class<?> dataType;
-
-    @Getter
     private final List<Class<? extends Aggregation>> aggregations;
 
     @Getter
     private final String metricExpression;
 
-    public BaseMetric(String metricField, Class<?> cls, EntityDictionary entityDictionary) {
-        Meta metaData = entityDictionary.getAttributeOrRelationAnnotation(cls, Meta.class, metricField);
-        Class<?> fieldType = entityDictionary.getType(cls, metricField);
+    /**
+     * Constructor.
+     *
+     * @param metricField  The entity field or relation that this {@link Metric} represents
+     * @param annotation  Provides static meta data about this {@link Metric}
+     * @param fieldType  The Java type for this entity field or relation
+     * @param aggregations  A list of all supported aggregations on this {@link Metric}
+     * @param metricExpression  The SQL functions corresponding the default aggregation of this {@link Metric}. Note
+     * that the default aggregation is the first aggregation in this list
+     */
+    public BaseMetric(
+            String metricField,
+            Meta annotation,
+            Class<?> fieldType,
+            List<Class<? extends Aggregation>> aggregations,
+            String metricExpression
+    ) {
+        super(metricField, annotation, fieldType);
 
-        this.name = metricField;
-        this.longName = metaData == null || metaData.longName().isEmpty() ? metricField : metaData.longName();
-        this.description = metaData == null || metaData.description().isEmpty() ? metricField : metaData.description();
-        this.dataType = fieldType;
-        this.aggregations = MetricUtils.extractAggregations(metricField, cls, entityDictionary);
+        this.aggregations = aggregations;
+        this.metricExpression = metricExpression;
+    }
 
-        if (aggregations.isEmpty()) {
-            String message = String.format("'%s' in '%s' has no aggregation.", metricField, cls.getCanonicalName());
-            log.error(message);
-            throw new IllegalStateException(message);
-        }
-
-        this.metricExpression = generateExpression(aggregations.get(0));
+    /**
+     * Returns an immutable list of supported aggregations with the first as the default aggregation.
+     *
+     * @return a comprehensive list of provided aggregations
+     */
+    List<Class<? extends Aggregation>> getAggregations() {
+        return aggregations;
     }
 
     @Override
@@ -88,27 +103,19 @@ public class BaseMetric implements Metric {
             return true;
         }
         if (other == null || getClass() != other.getClass()) {
+            return false; }
+        if (!super.equals(other)) {
             return false;
         }
+
         final BaseMetric that = (BaseMetric) other;
-        return getName().equals(that.getName())
-                && getLongName().equals(that.getLongName())
-                && getDescription().equals(that.getDescription())
-                && getDataType().equals(that.getDataType())
-                && getAggregations().equals(that.getAggregations())
-                && this.getMetricExpression().equals(that.getMetricExpression());
+        return getAggregations().equals(that.getAggregations())
+                && getMetricExpression().equals(that.getMetricExpression());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                getName(),
-                getLongName(),
-                getDescription(),
-                getDataType(),
-                getAggregations(),
-                this.getMetricExpression()
-        );
+        return Objects.hash(super.hashCode(), getAggregations(), getMetricExpression());
     }
 
     /**

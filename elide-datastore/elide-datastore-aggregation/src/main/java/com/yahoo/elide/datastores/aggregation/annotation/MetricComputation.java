@@ -13,19 +13,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.persistence.Transient;
-
 /**
- * Indicates that a field is computed via a {@link #expression() JPQL metric formula expression}.
+ * Indicates that a field is computed via a {@link #expression() custom metric formula expression}, such as Calcite SQL.
  * <p>
- * Example: {@literal @}ComputedMetric(expression = '(fieldA * fieldB) / 100'). The expression must be a valid JPQL
- * fragment excluding any prefix or table alias used to qualify the field names. The field names should match the Elide
+ * Example: {@literal @}ComputedMetric(expression = '(fieldA * fieldB) / 100').The field names should match the Elide
  * data model field names.
  * <p>
  * {@code expression} can also be composite. During {@link Schema} construction, it will substitute attribute names in
  * the provided expression with either:
  * <ul>
- *     <li> The column alias for that column in the JPQL query, or
+ *     <li> The column alias for that column in the query, or
  *     <li> Another ComputedMetric expression - recursively expanding expressions until every referenced field is not
  *          computed.
  * </ul>
@@ -50,9 +47,6 @@ import javax.persistence.Transient;
  * </pre>
  * During {@link Schema} construction, {@code timeSpentPerSession} the provided expression will be substituted with
  * {@code timeSpent / sessions}.
- * <p>
- * Note that metric attributes should also be marked with {@link Transient} in the domain model since they are not
- * managed directly by the ORM.
  */
 @Documented
 @Target({ElementType.FIELD, ElementType.METHOD})
@@ -60,7 +54,7 @@ import javax.persistence.Transient;
 public @interface MetricComputation {
 
     /**
-     * The JPQL expression that represents this metric computation logic.
+     * The custom metric expression that represents this metric computation logic.
      *
      * @return metric formula
      */

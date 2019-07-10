@@ -42,7 +42,7 @@ public class PlayerStats {
     private long lowScore;
 
     /**
-     * A degenerate dimension
+     * A degenerate dimension.
      */
     private String overallRating;
 
@@ -62,7 +62,7 @@ public class PlayerStats {
         this.id = id;
     }
 
-    @MetricAggregation(defaultAggregation = Max.class, aggregations = {Max.class, Min.class})
+    @MetricAggregation(aggregations = {Max.class, Min.class})
     @Meta(longName = "awesome score", description = "very awesome score")
     public long getHighScore() {
         return highScore;
@@ -72,7 +72,7 @@ public class PlayerStats {
         this.highScore = highScore;
     }
 
-    @MetricAggregation(defaultAggregation = Min.class, aggregations = {Max.class, Min.class})
+    @MetricAggregation(aggregations = {Max.class, Min.class})
     public long getLowScore() {
         return lowScore;
     }

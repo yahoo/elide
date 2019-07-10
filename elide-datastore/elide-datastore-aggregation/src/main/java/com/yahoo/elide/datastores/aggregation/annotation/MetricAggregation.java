@@ -16,9 +16,8 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the annotated field is a metric column.
  * <p>
- * This annotation takes a complete list of supported aggregations with the first as the default aggregation.
- * </ol>
- * The AggregationDataStore binds entities that have at least one {@link MetricAggregation} annotation.
+ * This annotation takes a complete list of supported aggregations with the first as the default aggregation. The
+ * AggregationDataStore binds entities that have at least one {@link MetricAggregation} annotation.
  * <p>
  * Example:
  * <pre>
