@@ -16,6 +16,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.Set;
 
 public class SchemaTest {
 
@@ -47,11 +48,17 @@ public class SchemaTest {
 
     @Test
     public void testGetDimension() {
-        Assert.assertEquals(playerStatsSchema.getDimension("country").getCardinality(), CardinalitySize.LARGE);
+        Assert.assertEquals(playerStatsSchema.getDimension("country").getCardinality(), CardinalitySize.SMALL);
     }
 
     @Test
     public void testGetMetric() {
         Assert.assertEquals(playerStatsSchema.getMetric("highScore").getMetricExpression(), "MAX(%s)");
+    }
+
+    @Test
+    public void testParameterizedDimension() {
+        Assert.assertNotNull(playerStatsSchema.getDimension("favoriteGames"));
+        Assert.assertEquals(playerStatsSchema.getDimension("favoriteGames").getDataType(), Set.class);
     }
 }

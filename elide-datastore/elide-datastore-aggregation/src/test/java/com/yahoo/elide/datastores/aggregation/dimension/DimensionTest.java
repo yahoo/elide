@@ -58,6 +58,18 @@ public class DimensionTest {
 
         Assert.assertEquals(dimensions.size(), 1);
 
+        // a separate same object doesn't increase collection size
+        Dimension sameEntityDimension = new EntityDimension(
+                "country",
+                null,
+                Country.class,
+                CardinalitySize.SMALL,
+                "name"
+        );
+        Assert.assertEquals(sameEntityDimension, ENTITY_DIMENSION);
+        dimensions.add(sameEntityDimension);
+        Assert.assertEquals(dimensions.size(), 1);
+
         dimensions.add(ENTITY_DIMENSION);
         Assert.assertEquals(dimensions.size(), 1);
 

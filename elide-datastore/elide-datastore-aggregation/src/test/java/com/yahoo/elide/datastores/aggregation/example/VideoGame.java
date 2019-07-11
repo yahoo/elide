@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
-import com.yahoo.elide.datastores.aggregation.metric.Max;
-import com.yahoo.elide.datastores.aggregation.metric.Min;
 import com.yahoo.elide.datastores.aggregation.metric.Sum;
 
 import javax.persistence.Column;
@@ -34,11 +32,9 @@ public class VideoGame {
     Long timeSpent;
 
     @MetricComputation(expression = "timeSpent / sessions")
-    @MetricAggregation(aggregations = {Max.class, Min.class})
     private Float timeSpentPerSession;
 
     @MetricComputation(expression = "timeSpentPerSession / 100")
-    @MetricAggregation(aggregations = {Max.class, Min.class})
     private Float timeSpentPerGame;
 
     public Long getId() {

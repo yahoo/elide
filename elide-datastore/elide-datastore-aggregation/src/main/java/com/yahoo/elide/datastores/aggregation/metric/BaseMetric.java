@@ -88,15 +88,6 @@ public class BaseMetric extends Column implements Metric {
         this.metricExpression = metricExpression;
     }
 
-    /**
-     * Returns an immutable list of supported aggregations with the first as the default aggregation.
-     *
-     * @return a comprehensive list of provided aggregations
-     */
-    List<Class<? extends Aggregation>> getAggregations() {
-        return aggregations;
-    }
-
     @Override
     public boolean equals(final Object other) {
         if (this == other) {

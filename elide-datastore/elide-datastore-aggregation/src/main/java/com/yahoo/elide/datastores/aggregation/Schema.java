@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * {@link Schema} keeps track of table, metrics, and dimensions of an entity for AggregationDataStore.
@@ -53,6 +54,8 @@ public class Schema {
     private final Set<Metric> metrics;
     @Getter
     private final Set<Dimension> dimensions;
+    @Getter
+    private final Set<Column> columns;
     @Getter(value = AccessLevel.PRIVATE)
     private final EntityDictionary entityDictionary;
 
@@ -72,8 +75,33 @@ public class Schema {
         this.entityClass = Objects.requireNonNull(cls, "cls");
         this.entityDictionary = Objects.requireNonNull(entityDictionary, "entityDictionary");
 
-        this.metrics = getAllMetrics();
-        this.dimensions = getAllDimensions();
+        this.metrics = entityDictionary.getAllFields(getEntityClass()).stream()
+                .filter(this::isMetricField)
+                // TODO: remove the filter() below when computedMetric is supported
+                .filter(field ->
+                        getEntityDictionary()
+                                .attributeOrRelationAnnotationExists(entityClass, field, MetricAggregation.class)
+                )
+                .map(field -> constructMetric(field, getEntityClass(), entityDictionary))
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toSet(),
+                                Collections::unmodifiableSet
+                        )
+                );
+        this.dimensions = getEntityDictionary().getAllFields(getEntityClass()).stream()
+                .filter(field -> !isMetricField(field))
+                .map(field -> constructDimension(field, getEntityClass(), getEntityDictionary()))
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toSet(),
+                                Collections::unmodifiableSet
+                        )
+                );
+        this.columns = Stream.concat(
+                getDimensions().stream().map(dimension -> (Column) dimension),
+                getMetrics().stream().map(metric -> (Column) metric)
+        ).collect(Collectors.toSet());
     }
 
     /**
@@ -135,15 +163,11 @@ public class Schema {
      * @return {@code true} if the field is a simple metric
      */
     public boolean isBaseMetric(String fieldName) {
-        if (!isMetricField(fieldName)) {
+        if (getMetric(fieldName) == null) {
             return false;
         }
 
-        return !getEntityDictionary().attributeOrRelationAnnotationExists(
-                getEntityClass(),
-                fieldName,
-                MetricComputation.class
-        );
+        return !getMetric(fieldName).getAggregations().isEmpty();
     }
 
     /**
@@ -246,45 +270,5 @@ public class Schema {
             );
 
         }
-    }
-
-    /**
-     * Constructs all metrics found in an entity.
-     * <p>
-     * This method calls {@link #constructMetric(String, Class, EntityDictionary)} to create each dimension inside the
-     * entity
-     *
-     * @return all metric fields as {@link Metric} objects
-     */
-    private Set<Metric> getAllMetrics() {
-        return entityDictionary.getAllFields(getEntityClass()).stream()
-                .filter(this::isMetricField)
-                .map(field -> constructMetric(field, getEntityClass(), entityDictionary))
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toSet(),
-                                Collections::unmodifiableSet
-                        )
-                );
-    }
-
-    /**
-     * Constructs all dimensions found in an entity.
-     * <p>
-     * This method calls {@link #constructDimension(String, Class, EntityDictionary)} to create each dimension inside
-     * the entity
-     *
-     * @return all non-metric fields as {@link Dimension} objects
-     */
-    private Set<Dimension> getAllDimensions() {
-        return getEntityDictionary().getAllFields(getEntityClass()).stream()
-                .filter(field -> !isMetricField(field))
-                .map(field -> constructDimension(field, getEntityClass(), getEntityDictionary()))
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toSet(),
-                                Collections::unmodifiableSet
-                        )
-                );
     }
 }

@@ -15,10 +15,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * A dimension backed by a table.
@@ -39,26 +37,23 @@ public class EntityDimension extends Column implements Dimension {
      * @throws IllegalStateException if more than 1 fields are annotated by the {@link FriendlyName}
      */
     public static String getFriendlyNameField(Class<?> cls, EntityDictionary entityDictionary) {
-        List<String> singleFriendlyName = entityDictionary.getAllFields(cls).stream()
+        return entityDictionary.getAllFields(cls).stream()
                 .filter(field -> entityDictionary.attributeOrRelationAnnotationExists(
                         cls,
                         field,
                         FriendlyName.class
                 ))
-                .collect(Collectors.toList());
-
-        if (singleFriendlyName.size() > 1) {
-            String message = String.format(
-                    "Multiple @FriendlyName fields found in entity '%s'. Can only have 0 or 1",
-                    cls.getName()
-            );
-            log.error(message);
-            throw new IllegalStateException(message);
-        }
-
-        return singleFriendlyName.isEmpty()
-                ? entityDictionary.getIdFieldName(cls) // no friendly name found; use @Id field as friendly name
-                : singleFriendlyName.get(0);
+                .reduce((a, b) -> {
+                    String message = String.format(
+                            "Multiple @FriendlyName fields in %s: %s, %s. Can only have 0 or 1",
+                            cls.getName(),
+                            a,
+                            b
+                    );
+                    log.error(message);
+                    throw new IllegalStateException(message);
+                })
+                .orElse(entityDictionary.getIdFieldName(cls)); // no friendly name found; use @Id field as friendly name
     }
 
     /**
@@ -80,10 +75,9 @@ public class EntityDimension extends Column implements Dimension {
     ) {
         if (entityDictionary.isRelation(cls, dimension)) {
             // try to get annotation from entity first
-            Cardinality annotation = entityDictionary.getAttributeOrRelationAnnotation(
-                    cls,
-                    Cardinality.class,
-                    dimension
+            Cardinality annotation = entityDictionary.getAnnotation(
+                    entityDictionary.getType(cls, dimension),
+                    Cardinality.class
             );
 
             if (annotation != null) {
