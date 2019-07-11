@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 /**
  * {@link Metric} annotated by {@link MetricAggregation}.
  * <p>
- * {@link BaseMetric} is thread-safe and can be accessed by multiple threads.
+ * {@link AggregatedMetric} is thread-safe and can be accessed by multiple threads.
  */
 @Slf4j
-public class BaseMetric extends Column implements Metric {
+public class AggregatedMetric extends Column implements Metric {
 
     /**
      * Given a {@link Aggregation}, returns the SQL aggregation function.
@@ -62,9 +62,6 @@ public class BaseMetric extends Column implements Metric {
     @Getter
     private final List<Class<? extends Aggregation>> aggregations;
 
-    @Getter
-    private final String metricExpression;
-
     /**
      * Constructor.
      *
@@ -72,20 +69,44 @@ public class BaseMetric extends Column implements Metric {
      * @param annotation  Provides static meta data about this {@link Metric}
      * @param fieldType  The Java type for this entity field or relation
      * @param aggregations  A list of all supported aggregations on this {@link Metric}
-     * @param metricExpression  The SQL functions corresponding the default aggregation of this {@link Metric}. Note
-     * that the default aggregation is the first aggregation in this list
      */
-    public BaseMetric(
+    public AggregatedMetric(
             String metricField,
             Meta annotation,
             Class<?> fieldType,
-            List<Class<? extends Aggregation>> aggregations,
-            String metricExpression
+            List<Class<? extends Aggregation>> aggregations
     ) {
         super(metricField, annotation, fieldType);
 
+        // make sure we have at least 1 aggregation so we can generate static SQL functions
+        if (aggregations.isEmpty()) {
+            String message = String.format("'%s' has no aggregation.", metricField);
+            log.error(message);
+            throw new IllegalStateException(message);
+        }
+
         this.aggregations = aggregations;
-        this.metricExpression = metricExpression;
+    }
+
+    @Override
+    public String getMetricExpression(final Optional<Class<? extends Aggregation>> aggregation) {
+        if (!aggregation.isPresent()) {
+            return "";
+        }
+
+        try {
+            Class<?> clazz = Class.forName(aggregation.get().getCanonicalName());
+            Constructor<?> ctor = clazz.getConstructor();
+            Aggregation instance = (Aggregation) ctor.newInstance();
+            return instance.getAggFunctionFormat();
+        } catch (Exception exception) {
+            String message = String.format(
+                    "Cannot generate aggregation function for '%s'",
+                    aggregation.get().getCanonicalName()
+            );
+            log.error(message, exception);
+            throw new IllegalStateException(message, exception);
+        }
     }
 
     @Override
@@ -99,21 +120,20 @@ public class BaseMetric extends Column implements Metric {
             return false;
         }
 
-        final BaseMetric that = (BaseMetric) other;
-        return getAggregations().equals(that.getAggregations())
-                && getMetricExpression().equals(that.getMetricExpression());
+        final AggregatedMetric that = (AggregatedMetric) other;
+        return getAggregations().equals(that.getAggregations());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), getAggregations(), getMetricExpression());
+        return Objects.hash(super.hashCode(), getAggregations());
     }
 
     /**
      * Returns the string representation of this {@link Metric}.
      * <p>
      * The string consists of values of all fields in the format
-     * "BaseMetric[name='XXX', longName='XXX', description='XXX', dataType=XXX, defaultAggregation=XXX,
+     * "AggregatedMetric[name='XXX', longName='XXX', description='XXX', dataType=XXX, defaultAggregation=XXX,
      * aggregations=XXX, YYY, ..., metricExpression='XXX']", where values can be programmatically fetched via
      * getters.
      * <p>
@@ -122,11 +142,11 @@ public class BaseMetric extends Column implements Metric {
      * <p>
      * Note that there is a single space separating each value pair.
      *
-     * @return serialized {@link BaseMetric}
+     * @return serialized {@link AggregatedMetric}
      */
     @Override
     public String toString() {
-        return new StringJoiner(", ", BaseMetric.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", AggregatedMetric.class.getSimpleName() + "[", "]")
                 .add("name='" + getName() + "'")
                 .add("longName='" + getLongName() + "'")
                 .add("description='" + getDescription() + "'")
@@ -136,7 +156,6 @@ public class BaseMetric extends Column implements Metric {
                                 .map(Class::getSimpleName)
                                 .collect(Collectors.joining(", "))
                 )
-                .add("metricExpression='" + this.getMetricExpression() + "'")
                 .toString();
     }
 }

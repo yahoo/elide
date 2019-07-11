@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Elide's definition of metric.
@@ -49,14 +50,11 @@ public interface Metric extends Serializable {
     Class<?> getDataType();
 
     /**
-     * Returns a metric expression that represents this metric computation logic.
-     * <p>
-     * For computed metrics, this will be the expanded expression. For metric aggregations, this will be the UDF
-     * function called against the column name.
+     * Returns a metric expression that represents a specified aggregation.
      *
      * @return a arithmetic formula for computing this {@link Metric} or default aggregation UDF on a base/simple metric
      */
-    String getMetricExpression();
+    String getMetricExpression(Optional<Class<? extends Aggregation>> aggregation);
 
     /**
      * Returns a list of supported aggregations with the first as the default aggregation.

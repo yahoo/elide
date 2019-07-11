@@ -131,7 +131,7 @@ public class EntityDimension extends Column implements Dimension {
             CardinalitySize cardinality,
             String friendlyName
     ) {
-        this(dimensionField, annotation, fieldType, DimensionType.TABLE, cardinality, friendlyName);
+        this(dimensionField, annotation, fieldType, DimensionType.ENTITY, cardinality, friendlyName);
     }
 
     /**

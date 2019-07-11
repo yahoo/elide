@@ -41,7 +41,7 @@ public class DimensionTest {
             Long.class,
             CardinalitySize.LARGE,
             "recordedTime",
-            TimeZone.getDefault(),
+            TimeZone.getTimeZone("PST"),
             TimeGrain.DAY
     );
 
@@ -85,7 +85,7 @@ public class DimensionTest {
         // table dimension
         Assert.assertEquals(
                 ENTITY_DIMENSION.toString(),
-                "EntityDimension[name='country', longName='country', description='country', dimensionType=TABLE, dataType=Country, cardinality=SMALL, friendlyName='name']"
+                "EntityDimension[name='country', longName='country', description='country', dimensionType=ENTITY, dataType=Country, cardinality=SMALL, friendlyName='name']"
         );
 
         // degenerate dimension

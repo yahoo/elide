@@ -10,19 +10,20 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
+import com.yahoo.elide.datastores.aggregation.metric.Max;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 public class SchemaTest {
 
     private EntityDictionary entityDictionary;
     private Schema playerStatsSchema;
-    private Schema videoGameSchema;
 
     @BeforeMethod
     public void setupEntityDictionary() {
@@ -32,13 +33,6 @@ public class SchemaTest {
         entityDictionary.bindEntity(VideoGame.class);
 
         playerStatsSchema = new Schema(PlayerStats.class, entityDictionary);
-        videoGameSchema = new Schema(VideoGame.class, entityDictionary);
-    }
-
-    @Test
-    public void testBaseMetricCheck() {
-        Assert.assertTrue(playerStatsSchema.isBaseMetric("highScore"));
-        Assert.assertFalse(videoGameSchema.isBaseMetric("timeSpentPerSession"));
     }
 
     @Test void testMetricCheck() {
@@ -53,7 +47,10 @@ public class SchemaTest {
 
     @Test
     public void testGetMetric() {
-        Assert.assertEquals(playerStatsSchema.getMetric("highScore").getMetricExpression(), "MAX(%s)");
+        Assert.assertEquals(
+                playerStatsSchema.getMetric("highScore").getMetricExpression(Optional.of(Max.class)),
+                "MAX(%s)"
+        );
     }
 
     @Test

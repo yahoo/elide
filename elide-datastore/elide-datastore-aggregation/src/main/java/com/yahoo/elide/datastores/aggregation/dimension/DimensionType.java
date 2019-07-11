@@ -18,6 +18,6 @@ public enum  DimensionType {
     /**
      * A dimension backed by a table.
      */
-    TABLE
+    ENTITY
     ;
 }

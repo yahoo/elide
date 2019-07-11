@@ -16,8 +16,8 @@ import com.yahoo.elide.datastores.aggregation.dimension.DegenerateDimension;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.metric.AggregatedMetric;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
-import com.yahoo.elide.datastores.aggregation.metric.BaseMetric;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import lombok.AccessLevel;
@@ -155,22 +155,6 @@ public class Schema {
     }
 
     /**
-     * Returns whether or not an entity field is a simple metric, i.e. a metric field not decorated by
-     * {@link MetricComputation}.
-     *
-     * @param fieldName  The entity field
-     *
-     * @return {@code true} if the field is a simple metric
-     */
-    public boolean isBaseMetric(String fieldName) {
-        if (getMetric(fieldName) == null) {
-            return false;
-        }
-
-        return !getMetric(fieldName).getAggregations().isEmpty();
-    }
-
-    /**
      * Constructs a new {@link Metric} instance.
      *
      * @param metricField  The entity field of the metric being constructed
@@ -199,19 +183,11 @@ public class Schema {
                         )
                 );
 
-        // make sure we have at least 1 aggregation so we can generate static SQL functions
-        if (aggregations.isEmpty()) {
-            String message = String.format("'%s' has no aggregation.", metricField);
-            log.error(message);
-            throw new IllegalStateException(message);
-        }
-
-        return new BaseMetric(
+        return new AggregatedMetric(
                 metricField,
                 metaData,
                 fieldType,
-                aggregations,
-                BaseMetric.functionFormat(aggregations.get(0))
+                aggregations
         );
     }
 

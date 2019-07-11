@@ -12,22 +12,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BaseMetricTest {
+public class AggregatedMetricTest {
 
-    private static final Metric SIMPLE_METRIC_1 = new BaseMetric(
+    private static final Metric SIMPLE_METRIC_1 = new AggregatedMetric(
             "highScore",
             null,
             long.class,
-            Collections.singletonList(Max.class),
-            "MAX(%s)"
+            Collections.singletonList(Max.class)
     );
 
-    private static final Metric SIMPLE_METRIC_2 = new BaseMetric(
+    private static final Metric SIMPLE_METRIC_2 = new AggregatedMetric(
             "timeSpentPerGame",
             null,
             Float.class,
-            Collections.singletonList(Max.class),
-            "MAX(%s)"
+            Collections.singletonList(Max.class)
     );
 
     @Test
@@ -44,12 +42,11 @@ public class BaseMetricTest {
         Assert.assertEquals(set.size(), 1);
 
         // a separate same object doesn't increase collection size
-        Metric sameMetric = new BaseMetric(
+        Metric sameMetric = new AggregatedMetric(
                 "highScore",
                 null,
                 long.class,
-                Collections.singletonList(Max.class),
-                "MAX(%s)"
+                Collections.singletonList(Max.class)
         );
         Assert.assertEquals(sameMetric, SIMPLE_METRIC_1);
         set.add(sameMetric);
@@ -67,13 +64,13 @@ public class BaseMetricTest {
         // simple metric
         Assert.assertEquals(
                 SIMPLE_METRIC_1.toString(),
-                "BaseMetric[name='highScore', longName='highScore', description='highScore', dataType=long, aggregations=Max, metricExpression='MAX(%s)']"
+                "AggregatedMetric[name='highScore', longName='highScore', description='highScore', dataType=long, aggregations=Max]"
         );
 
         // computed metric
         Assert.assertEquals(
                 SIMPLE_METRIC_2.toString(),
-                "BaseMetric[name='timeSpentPerGame', longName='timeSpentPerGame', description='timeSpentPerGame', dataType=class java.lang.Float, aggregations=Max, metricExpression='MAX(%s)']"
+                "AggregatedMetric[name='timeSpentPerGame', longName='timeSpentPerGame', description='timeSpentPerGame', dataType=class java.lang.Float, aggregations=Max]"
         );
     }
 }
