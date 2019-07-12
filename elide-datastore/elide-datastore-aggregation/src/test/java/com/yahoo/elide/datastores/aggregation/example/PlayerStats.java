@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
 
 import java.util.Date;
-import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -57,8 +56,6 @@ public class PlayerStats {
     private Country country;
 
     private Date recordedDate;
-
-    private Set<VideoGame> favoriteGames;
 
     @Id
     public String getId() {
@@ -118,13 +115,5 @@ public class PlayerStats {
 
     public void setRecordedDate(final Date recordedDate) {
         this.recordedDate = recordedDate;
-    }
-
-    public Set<VideoGame> getFavoriteGames() {
-        return favoriteGames;
-    }
-
-    public void setFavoriteGames(final Set<VideoGame> favoriteGames) {
-        this.favoriteGames = favoriteGames;
     }
 }

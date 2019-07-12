@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.annotation.ToMany;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -32,6 +33,9 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 
 /**
  * {@link Schema} keeps track of table, metrics, and dimensions of an entity for AggregationDataStore.
@@ -191,6 +195,13 @@ public class Schema {
      * @return a {@link Dimension}
      */
     protected Dimension constructDimension(String dimensionField, Class<?> cls, EntityDictionary entityDictionary) {
+        // field with ToMany relationship is not supported
+        if (isToManyRelationship(dimensionField, cls)) {
+            String message = String.format("ToMany relationship is not supported in '%s'", cls.getCanonicalName());
+            log.error(message);
+            throw new IllegalStateException(message);
+        }
+
         Meta metaData = entityDictionary.getAttributeOrRelationAnnotation(cls, Meta.class, dimensionField);
         Class<?> fieldType = entityDictionary.getType(cls, dimensionField);
 
@@ -280,5 +291,19 @@ public class Schema {
                                 Collections::unmodifiableSet
                         )
                 );
+    }
+
+    /**
+     * Returns whether or not an entity field is a toMany relationship.
+     *
+     * @param dimensionField  The entity field to check
+     * @param cls  The entity that contains the field
+     *
+     * @return {@code true} if the field is toMany
+     */
+    private boolean isToManyRelationship(String dimensionField, Class<?> cls) {
+        return getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, ToMany.class)
+                || getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, OneToMany.class)
+                || getEntityDictionary().attributeOrRelationAnnotationExists(cls, dimensionField, ManyToMany.class);
     }
 }
