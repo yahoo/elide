@@ -56,7 +56,6 @@ public class SQLQueryEngine implements QueryEngine {
 
     private EntityManager entityManager;
     private EntityDictionary dictionary;
-
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
@@ -493,6 +492,9 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     protected Object coerceObjectToEntity(Class<?> entityClass, List<String> projections, Object[] result) {
+        SQLSchema schema = schemas.get(entityClass);
+
+        Preconditions.checkNotNull(schema);
         Preconditions.checkArgument(result.length == projections.size());
 
         Object entityInstance;
@@ -505,6 +507,13 @@ public class SQLQueryEngine implements QueryEngine {
         for (int idx = 0; idx < result.length; idx++) {
             Object value = result[idx];
             String fieldName = projections.get(idx);
+
+            Dimension dim = schema.getDimension(fieldName);
+            if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
+
+                //We don't hydrate relationships here.
+                continue;
+            }
 
             dictionary.setValue(entityInstance, fieldName, value);
         }
