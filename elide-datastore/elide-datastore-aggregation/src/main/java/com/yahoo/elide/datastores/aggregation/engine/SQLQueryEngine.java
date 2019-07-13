@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
@@ -23,6 +22,7 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.CalciteSqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -33,17 +33,19 @@ import javax.persistence.EntityManager;
 /**
  * QueryEngine for SQL backed stores.
  */
+@Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    SqlDialect dialect = CalciteSqlDialect.DEFAULT;
+    SqlDialect dialect;
 
     private EntityManager entityManager;
     private EntityDictionary dictionary;
     private Map<Class<?>, SQLSchema> schemas;
 
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
+    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary, SqlDialect dialect) {
         this.entityManager = entityManager;
         this.dictionary = dictionary;
+        this.dialect = dialect;
         schemas = dictionary.getBindings()
                 .stream()
                 .filter((clazz) ->
@@ -56,10 +58,18 @@ public class SQLQueryEngine implements QueryEngine {
                 ));
     }
 
+    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
+        this(entityManager, dictionary, CalciteSqlDialect.DEFAULT);
+    }
+
     @Override
     public Iterable<Object> executeQuery(Query query) {
-        String tableName = query.getEntityClass().getSimpleName();
-        String tableAlias = FilterPredicate.getTypeAlias(query.getEntityClass());
+        SQLSchema schema = schemas.get(query.getEntityClass());
+
+        Preconditions.checkNotNull(schema);
+
+        String tableName = schema.getTableDefinition();
+        String tableAlias = schema.getAlias();
 
         List<String> projections = query.getMetrics().stream()
                 .map(Metric::getName)
@@ -80,6 +90,8 @@ public class SQLQueryEngine implements QueryEngine {
         String sql = String.format("SELECT %s FROM %s AS %s",
                 projectionClause, tableName, tableAlias);
         String nativeSql = translateSqlToNative(sql, dialect);
+
+        log.debug("Running native SQL query: {}", nativeSql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
         List<Object[]> results = jpaQuery.getResultList();

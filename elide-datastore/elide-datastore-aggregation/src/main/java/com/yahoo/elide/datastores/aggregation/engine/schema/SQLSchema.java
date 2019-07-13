@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.engine.schema;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
@@ -33,7 +34,7 @@ public class SQLSchema extends Schema {
         FromTable fromTable = dictionary.getAnnotation(entityClass, FromTable.class);
 
         if (fromTable != null) {
-            alias = fromTable.name();
+            alias = FilterPredicate.getTypeAlias(entityClass);
             tableDefinition = fromTable.name();
         } else {
             FromSubquery fromSubquery = dictionary.getAnnotation(entityClass, FromSubquery.class);
