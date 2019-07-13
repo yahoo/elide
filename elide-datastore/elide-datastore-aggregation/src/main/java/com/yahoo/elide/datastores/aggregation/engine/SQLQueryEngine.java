@@ -7,8 +7,11 @@
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
@@ -26,8 +29,10 @@ import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -43,6 +48,15 @@ public class SQLQueryEngine implements QueryEngine {
     private EntityManager entityManager;
     private EntityDictionary dictionary;
     private Map<Class<?>, SQLSchema> schemas;
+
+    //Function to return the alias to apply to a filter predicate expression.
+    private static final Function<FilterPredicate, String> ALIAS_PROVIDER = (predicate) -> {
+        List<Path.PathElement> elements = predicate.getPath().getPathElements();
+
+        Path.PathElement last = elements.get(elements.size() - 1);
+
+        return FilterPredicate.getTypeAlias(last.getType());
+    };
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary, SqlDialect dialect) {
         this.entityManager = entityManager;
@@ -93,9 +107,18 @@ public class SQLQueryEngine implements QueryEngine {
                 projectionClause, tableName, tableAlias);
         String nativeSql = translateSqlToNative(sql, dialect);
 
+        if (query.getWhereFilter().isPresent()) {
+            nativeSql += translateFilterExpression(schema, query.getWhereFilter().get());
+        }
+
         log.debug("Running native SQL query: {}", nativeSql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
+
+        if (query.getWhereFilter().isPresent()) {
+            supplyFilterQueryParameters(query.getWhereFilter().get(), jpaQuery);
+        }
+
         List<Object[]> results = jpaQuery.getResultList();
 
         return results.stream()
@@ -145,9 +168,23 @@ public class SQLQueryEngine implements QueryEngine {
         return entityInstance;
     }
 
-    public String getWhereClause(SQLSchema schema, FilterExpression expression) {
-
+    private String translateFilterExpression(SQLSchema schema, FilterExpression expression) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
-        return "";
+
+        return filterVisitor.apply(expression, Optional.of(ALIAS_PROVIDER));
+    }
+
+    private void supplyFilterQueryParameters(FilterExpression expression,
+                                             javax.persistence.Query query) {
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+
+        for (FilterPredicate filterPredicate : predicates) {
+            if (filterPredicate.getOperator().isParameterized()) {
+                boolean shouldEscape = filterPredicate.isMatchingOperator();
+                filterPredicate.getParameters().forEach(param -> {
+                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                });
+            }
+        }
     }
 }

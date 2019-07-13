@@ -26,17 +26,28 @@ import java.util.Set;
 @Data
 @Builder
 public class Query {
-
     private final Class<?> entityClass;
+
     @Singular
     private final Set<Metric> metrics;
+
     @Singular
     private final Set<Dimension> groupDimensions;
+
     @Singular
     private final Set<TimeDimension> timeDimensions;
-    private final Optional<FilterExpression> whereFilter;
-    private final Optional<FilterExpression> havingFilter;
-    private final Optional<Sorting> sorting;
-    private final Optional<Pagination> pagination;
+
+    @Builder.Default
+    private final Optional<FilterExpression> whereFilter = Optional.empty();
+
+    @Builder.Default
+    private final Optional<FilterExpression> havingFilter = Optional.empty();
+
+    @Builder.Default
+    private final Optional<Sorting> sorting = Optional.empty();
+
+    @Builder.Default
+    private final Optional<Pagination> pagination = Optional.empty();
+
     private final RequestScope scope;
 }
