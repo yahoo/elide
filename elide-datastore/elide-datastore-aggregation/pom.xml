@@ -58,6 +58,11 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-core</artifactId>
+            <version>1.20.0</version>
+        </dependency>
     </dependencies>
 
     <build>
