@@ -520,4 +520,10 @@ public class SQLQueryEngine implements QueryEngine {
 
         return entityInstance;
     }
+
+    public String getWhereClause(SQLSchema schema, FilterExpression expression) {
+
+        HQLFilterOperation filterVisitor = new HQLFilterOperation();
+        return "";
+    }
 }
