@@ -16,6 +16,8 @@ import com.yahoo.elide.datastores.aggregation.dimension.EntityDimensionTest;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Date;
 
@@ -28,6 +30,8 @@ import javax.persistence.OneToOne;
  */
 @Entity
 @Include(rootLevel = true)
+@EqualsAndHashCode
+@ToString
 public class PlayerStats {
 
     /**
