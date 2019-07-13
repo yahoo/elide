@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -50,8 +51,12 @@ public class Schema {
 
     @Getter
     private final Class<?> entityClass;
+
+    @Singular
     @Getter
     private final Set<Metric> metrics;
+
+    @Singular
     @Getter
     private final Set<Dimension> dimensions;
     @Getter(value = AccessLevel.PRIVATE)

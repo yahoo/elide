@@ -6,9 +6,12 @@
 
 package com.yahoo.elide.datastores.aggregation.engine;
 
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 
+import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.metric.Metric;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.CalciteSqlDialect;
@@ -16,6 +19,7 @@ import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 /**
@@ -34,8 +38,29 @@ public class SQLQueryEngine implements QueryEngine {
 
     @Override
     public Iterable<Object> executeQuery(Query query) {
+        String tableName = query.getEntityClass().getSimpleName();
+        String tableAlias = FilterPredicate.getTypeAlias(query.getEntityClass());
 
-        String sql = String.format("SELECT * FROM %s", query.getEntityClass().getSimpleName());
+        List<String> projections = query.getMetrics().stream()
+                .map(Metric::getName)
+                .map((name) -> tableAlias + "." + name)
+                .collect(Collectors.toList());
+
+        projections.addAll(query.getGroupDimensions().stream()
+                .map(Dimension::getName)
+                .map((name) -> tableAlias + "." + name)
+                .collect(Collectors.toList()));
+
+        projections.addAll(query.getTimeDimensions().stream()
+                .map(Dimension::getName)
+                .map((name) -> tableAlias + "." + name)
+                .collect(Collectors.toList()));
+
+        String projectionClause = projections.stream().collect(Collectors.joining(","));
+
+
+        String sql = String.format("SELECT %s FROM %s AS %s",
+                projectionClause, tableName, tableAlias);
         String nativeSql = translateSqlToNative(sql, dialect);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
@@ -55,5 +80,9 @@ public class SQLQueryEngine implements QueryEngine {
         } catch (SqlParseException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    protected Object coerceObjectToEntity(Object result) {
+        return null;
     }
 }

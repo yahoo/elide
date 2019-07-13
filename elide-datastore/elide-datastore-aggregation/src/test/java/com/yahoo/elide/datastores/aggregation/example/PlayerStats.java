@@ -11,17 +11,17 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimensionTest;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
+import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -108,7 +108,7 @@ public class PlayerStats {
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      * {@link EntityDimensionTest#testCardinalityScan()}.
      */
-    @Temporal(TemporalType.DATE)
+    @Temporal(timeGrain = TimeGrain.DAY, timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }

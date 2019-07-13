@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 
 import java.util.Optional;
 import java.util.Set;
@@ -27,8 +28,11 @@ import java.util.Set;
 public class Query {
 
     private final Class<?> entityClass;
+    @Singular
     private final Set<Metric> metrics;
+    @Singular
     private final Set<Dimension> groupDimensions;
+    @Singular
     private final Set<TimeDimension> timeDimensions;
     private final Optional<FilterExpression> whereFilter;
     private final Optional<FilterExpression> havingFilter;
