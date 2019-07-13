@@ -7,6 +7,8 @@
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.HQLFilterOperation;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
@@ -141,5 +143,11 @@ public class SQLQueryEngine implements QueryEngine {
         }
 
         return entityInstance;
+    }
+
+    public String getWhereClause(SQLSchema schema, FilterExpression expression) {
+
+        HQLFilterOperation filterVisitor = new HQLFilterOperation();
+        return "";
     }
 }

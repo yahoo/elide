@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,21 +34,21 @@ public class HQLFilterOperation implements FilterOperation<String> {
 
     @Override
     public String apply(FilterPredicate filterPredicate) {
-        return apply(filterPredicate, false);
+        return apply(filterPredicate, Optional.empty());
     }
 
     /**
      * Transforms a filter predicate into a HQL query fragment.
      * @param filterPredicate The predicate to transform.
-     * @param prefixWithAlias Whether or not to append the entity type to the predicate.
-     *                       This is useful for table aliases referenced in HQL for some kinds of joins.
+     * @param aliasProvider Function which supplies an alias to append to the predicate fields.
+     *                      This is useful for table aliases referenced in HQL for some kinds of joins.
      * @return The hql query fragment.
      */
-    protected String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
+    protected String apply(FilterPredicate filterPredicate, Optional<Function<FilterPredicate, String>> aliasProvider) {
         String fieldPath = filterPredicate.getFieldPath();
 
-        if (prefixWithAlias) {
-            fieldPath = filterPredicate.getAlias() + "." + filterPredicate.getField();
+        if (aliasProvider.isPresent()) {
+            fieldPath = aliasProvider.get().apply(filterPredicate) + "." + filterPredicate.getField();
         }
 
         //HQL doesn't support 'this', but it does support aliases.
@@ -152,10 +153,31 @@ public class HQLFilterOperation implements FilterOperation<String> {
         }
     }
 
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param prefixWithAlias If true, use the default alias provider to append the predicates with an alias.
+     *                        Otherwise, don't append aliases.
+     * @return A JPQL filter fragment.
+     */
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        HQLQueryVisitor visitor = new HQLQueryVisitor(prefixWithAlias);
-        return "WHERE " + filterExpression.accept(visitor);
+        Optional<Function<FilterPredicate, String>> aliasProvider = Optional.empty();
+        if (prefixWithAlias) {
+            aliasProvider = Optional.of((predicate) -> predicate.getAlias());
+        }
 
+        return apply(filterExpression, aliasProvider);
+    }
+
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param aliasProvider Optionally appends the predicates clause with an alias.
+     * @return A JPQL filter fragment.
+     */
+    public String apply(FilterExpression filterExpression, Optional<Function<FilterPredicate, String>> aliasProvider) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor(aliasProvider);
+        return "WHERE " + filterExpression.accept(visitor);
     }
 
     /**
@@ -164,15 +186,15 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public class HQLQueryVisitor implements FilterExpressionVisitor<String> {
         public static final String TWO_NON_FILTERING_EXPRESSIONS =
                 "Cannot build a filter from two non-filtering expressions";
-        private boolean prefixWithAlias;
+        private Optional<Function<FilterPredicate, String>> aliasProvider;
 
-        public HQLQueryVisitor(boolean prefixWithAlias) {
-            this.prefixWithAlias = prefixWithAlias;
+        public HQLQueryVisitor(Optional<Function<FilterPredicate, String>> aliasProvider) {
+            this.aliasProvider = aliasProvider;
         }
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            return apply(filterPredicate, prefixWithAlias);
+            return apply(filterPredicate, aliasProvider);
         }
 
         @Override
