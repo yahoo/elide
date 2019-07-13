@@ -48,9 +48,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
-import java.util.List;
-import javax.persistence.EntityManager;
-
 /**
  * QueryEngine for SQL backed stores.
  */
@@ -78,12 +75,6 @@ public class SQLQueryEngine implements QueryEngine {
                         Function.identity(),
                         (clazz) -> (new SQLSchema(clazz, dictionary))
                 ));
-    }
-
-    private EntityManager entityManager;
-
-    public SQLQueryEngine(EntityManager entityManager) {
-        this.entityManager = entityManager;
     }
 
 
@@ -500,5 +491,9 @@ public class SQLQueryEngine implements QueryEngine {
         Class<? extends Aggregation> agg = query.getMetrics().get(metric);
 
         return metric.getMetricExpression(Optional.of(agg));
+    }
+
+    protected Object coerceObjectToEntity(Object result) {
+        return null;
     }
 }

@@ -37,6 +37,7 @@ import javax.persistence.Persistence;
 public class SQLQueryEngineTest {
 
     private EntityManagerFactory emf;
+    private Schema playerStatsSchema;
 
     private Schema playerStatsSchema;
     private Schema playerStatsViewSchema;
@@ -185,6 +186,7 @@ public class SQLQueryEngineTest {
     public void testSubqueryLoad() throws Exception {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
 
         Query query = Query.builder()
                 .schema(playerStatsViewSchema)
