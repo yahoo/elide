@@ -77,7 +77,6 @@ public class SQLQueryEngine implements QueryEngine {
                 ));
     }
 
-
     @Override
     public Iterable<Object> executeQuery(Query query) {
         SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
@@ -493,7 +492,23 @@ public class SQLQueryEngine implements QueryEngine {
         return metric.getMetricExpression(Optional.of(agg));
     }
 
-    protected Object coerceObjectToEntity(Object result) {
-        return null;
+    protected Object coerceObjectToEntity(Class<?> entityClass, List<String> projections, Object[] result) {
+        Preconditions.checkArgument(result.length == projections.size());
+
+        Object entityInstance;
+        try {
+            entityInstance = entityClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+
+        for (int idx = 0; idx < result.length; idx++) {
+            Object value = result[idx];
+            String fieldName = projections.get(idx);
+
+            dictionary.setValue(entityInstance, fieldName, value);
+        }
+
+        return entityInstance;
     }
 }

@@ -38,6 +38,7 @@ public class SQLQueryEngineTest {
 
     private EntityManagerFactory emf;
     private Schema playerStatsSchema;
+    private EntityDictionary dictionary;
 
     private Schema playerStatsSchema;
     private Schema playerStatsViewSchema;
