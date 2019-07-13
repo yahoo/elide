@@ -1403,6 +1403,161 @@ public class EntityDictionary {
     }
 
     /**
+     * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
+     * @param target the object to get
+     * @param fieldName the field name to get or invoke equivalent get method
+     * @return the value
+     */
+    public Object getValue(Object target, String fieldName, RequestScope scope) {
+        AccessibleObject accessor = getAccessibleObject(target, fieldName);
+        try {
+            if (accessor instanceof Method) {
+                // Pass RequestScope into @Computed fields if requested
+                if (isMethodRequestScopeable(target, (Method) accessor)) {
+                    return ((Method) accessor).invoke(target, scope);
+                }
+                return ((Method) accessor).invoke(target);
+            }
+            if (accessor instanceof Field) {
+                return ((Field) accessor).get(target);
+            }
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldName, getJsonAliasFor(target.getClass()), e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        }
+        throw new InvalidAttributeException(fieldName, getJsonAliasFor(target.getClass()));
+    }
+
+    /**
+     * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     * @param fieldName the field name to set or invoke equivalent set method
+     * @param value the value to set
+     */
+    public void setValue(Object target, String fieldName, Object value) {
+        Class<?> targetClass = target.getClass();
+        String targetType = getJsonAliasFor(targetClass);
+
+        try {
+            Class<?> fieldClass = getType(targetClass, fieldName);
+            String realName = getNameFromAlias(target, fieldName);
+            fieldName = (realName != null) ? realName : fieldName;
+            String setMethod = "set" + StringUtils.capitalize(fieldName);
+            Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
+            method.invoke(target, coerce(target, value, fieldName, fieldClass));
+        } catch (IllegalAccessException e) {
+            throw new InvalidAttributeException(fieldName, targetType, e);
+        } catch (InvocationTargetException e) {
+            throw handleInvocationTargetException(e);
+        } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
+            AccessibleObject accessor = getAccessibleObject(target, fieldName);
+            if (accessor != null && accessor instanceof Field) {
+                Field field = (Field) accessor;
+                try {
+                    field.set(target, coerce(target, value, fieldName, field.getType()));
+                } catch (IllegalAccessException noField) {
+                    throw new InvalidAttributeException(fieldName, targetType, noField);
+                }
+            } else {
+                throw new InvalidAttributeException(fieldName, targetType);
+            }
+        }
+    }
+
+    /**
+     * Handle an invocation target exception.
+     *
+     * @param e Exception the exception encountered while reflecting on an object's field
+     * @return Equivalent runtime exception
+     */
+    private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
+        Throwable exception = e.getTargetException();
+        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
+            return (RuntimeException) exception;
+        }
+        log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
+        return new InternalServerErrorException("Unexpected exception caught", e);
+    }
+
+    /**
+     * Coerce provided value into expected class type.
+     *
+     * @param value provided value
+     * @param fieldName the field name
+     * @param fieldClass expected class type
+     * @return coerced value
+     */
+    Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
+        if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
+            return coerceCollection(target, (Collection) value, fieldName, fieldClass);
+        }
+
+        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
+            return coerceMap(target, (Map<?, ?>) value, fieldName, fieldClass);
+        }
+
+        return CoerceUtil.coerce(value, fieldClass);
+    }
+
+    private Collection coerceCollection(Object target, Collection<?> values, String fieldName, Class<?> fieldClass) {
+        Class<?> providedType = getParameterizedType(target, fieldName);
+
+        // check if collection is of and contains the correct types
+        if (fieldClass.isAssignableFrom(values.getClass())) {
+            boolean valid = true;
+            for (Object member : values) {
+                if (member != null && !providedType.isAssignableFrom(member.getClass())) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                return values;
+            }
+        }
+
+        ArrayList<Object> list = new ArrayList<>(values.size());
+        for (Object member : values) {
+            list.add(CoerceUtil.coerce(member, providedType));
+        }
+
+        if (Set.class.isAssignableFrom(fieldClass)) {
+            return new LinkedHashSet<>(list);
+        }
+
+        return list;
+    }
+
+    private Map coerceMap(Object target, Map<?, ?> values, String fieldName, Class<?> fieldClass) {
+        Class<?> keyType = getParameterizedType(target, fieldName, 0);
+        Class<?> valueType = getParameterizedType(target, fieldName, 1);
+
+        // Verify the existing Map
+        if (isValidParameterizedMap(values, keyType, valueType)) {
+            return values;
+        }
+
+        LinkedHashMap<Object, Object> result = new LinkedHashMap<>(values.size());
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            result.put(CoerceUtil.coerce(entry.getKey(), keyType), CoerceUtil.coerce(entry.getValue(), valueType));
+        }
+
+        return result;
+    }
+
+    private boolean isValidParameterizedMap(Map<?, ?> values, Class<?> keyType, Class<?> valueType) {
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ((key != null && !keyType.isAssignableFrom(key.getClass()))
+                    || (value != null && !valueType.isAssignableFrom(value.getClass()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Binds the entity class if not yet bound.
      * @param entityClass the class to bind.
      */
