@@ -1217,6 +1217,7 @@ public class EntityDictionary {
     }
 
     /**
+<<<<<<< HEAD
      * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
      * @param target the object to get
      * @param fieldName the field name to get or invoke equivalent get method
@@ -1373,6 +1374,8 @@ public class EntityDictionary {
     }
 
     /**
+=======
+>>>>>>> 19fb6079... AggregationDataStore: Schema (#846)
      * Returns whether or not a specified annotation is present on an entity field or its corresponding method.
      *
      * @param fieldName  The entity field
