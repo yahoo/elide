@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.dimension.EntityDimensionTest;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
 import com.yahoo.elide.datastores.aggregation.metric.Min;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -32,6 +33,7 @@ import javax.persistence.OneToOne;
 @Include(rootLevel = true)
 @EqualsAndHashCode
 @ToString
+@FromTable(name = "playerStats")
 public class PlayerStats {
 
     /**

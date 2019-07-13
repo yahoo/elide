@@ -11,6 +11,10 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
+import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import com.google.common.base.Preconditions;
@@ -21,6 +25,8 @@ import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
@@ -33,10 +39,21 @@ public class SQLQueryEngine implements QueryEngine {
 
     private EntityManager entityManager;
     private EntityDictionary dictionary;
+    private Map<Class<?>, SQLSchema> schemas;
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
         this.entityManager = entityManager;
         this.dictionary = dictionary;
+        schemas = dictionary.getBindings()
+                .stream()
+                .filter((clazz) ->
+                        dictionary.getAnnotation(clazz, FromTable.class) != null
+                        || dictionary.getAnnotation(clazz, FromSubquery.class) != null
+                )
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        (clazz) -> (new SQLSchema(clazz, dictionary))
+                ));
     }
 
     @Override
@@ -85,6 +102,9 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     protected Object coerceObjectToEntity(Class<?> entityClass, List<String> projections, Object[] result) {
+        SQLSchema schema = schemas.get(entityClass);
+
+        Preconditions.checkNotNull(schema);
         Preconditions.checkArgument(result.length == projections.size());
 
         Object entityInstance;
@@ -97,6 +117,13 @@ public class SQLQueryEngine implements QueryEngine {
         for (int idx = 0; idx < result.length; idx++) {
             Object value = result[idx];
             String fieldName = projections.get(idx);
+
+            Dimension dim = schema.getDimension(fieldName);
+            if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
+
+                //We don't hydrate relationships here.
+                continue;
+            }
 
             dictionary.setValue(entityInstance, fieldName, value);
         }
