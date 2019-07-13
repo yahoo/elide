@@ -15,6 +15,9 @@ import org.apache.calcite.sql.dialect.CalciteSqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
+import java.util.List;
+import javax.persistence.EntityManager;
+
 /**
  * QueryEngine for SQL backed stores.
  */
@@ -22,9 +25,24 @@ public class SQLQueryEngine implements QueryEngine {
 
     SqlDialect dialect = CalciteSqlDialect.DEFAULT;
 
+    private EntityManager entityManager;
+
+    public SQLQueryEngine(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
+
     @Override
     public Iterable<Object> executeQuery(Query query) {
-        return null;
+
+        String sql = String.format("SELECT * FROM %s", query.getEntityClass().getSimpleName());
+        String nativeSql = translateSqlToNative(sql, dialect);
+
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
+
+        List<Object> results = jpaQuery.getResultList();
+
+        return results;
     }
 
     protected String translateSqlToNative(String sqlStatement, SqlDialect dialect) {
