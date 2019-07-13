@@ -48,6 +48,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
+import java.util.List;
+import javax.persistence.EntityManager;
+
 /**
  * QueryEngine for SQL backed stores.
  */
@@ -76,6 +79,13 @@ public class SQLQueryEngine implements QueryEngine {
                         (clazz) -> (new SQLSchema(clazz, dictionary))
                 ));
     }
+
+    private EntityManager entityManager;
+
+    public SQLQueryEngine(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
 
     @Override
     public Iterable<Object> executeQuery(Query query) {
