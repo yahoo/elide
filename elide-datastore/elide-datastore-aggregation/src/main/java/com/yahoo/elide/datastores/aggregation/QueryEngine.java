@@ -62,4 +62,3 @@ public interface QueryEngine {
      */
     Iterable<Object> executeQuery(Query query);
 }
-

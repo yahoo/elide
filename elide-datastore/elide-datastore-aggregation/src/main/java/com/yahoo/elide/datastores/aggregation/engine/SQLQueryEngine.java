@@ -15,6 +15,9 @@ import org.apache.calcite.sql.dialect.CalciteSqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
+/**
+ * QueryEngine for SQL backed stores.
+ */
 public class SQLQueryEngine implements QueryEngine {
 
     SqlDialect dialect = CalciteSqlDialect.DEFAULT;
