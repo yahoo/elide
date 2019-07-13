@@ -99,8 +99,8 @@ public class Pagination {
     public static Pagination fromOffsetAndLimit(int limit, int offset, boolean generatePageTotals) {
 
         ImmutableMap.Builder<PaginationKey, Integer> pageData = ImmutableMap.<PaginationKey, Integer>builder()
-                    .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
-                    .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
+                .put(PAGE_KEYS.get(PAGE_OFFSET_KEY), offset)
+                .put(PAGE_KEYS.get(PAGE_LIMIT_KEY), limit);
 
         if (generatePageTotals) {
             pageData.put(PAGE_KEYS.get(PAGE_TOTALS_KEY), 1);

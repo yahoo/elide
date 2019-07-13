@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class TimeDimension extends DegenerateDimension {
     /**
      * Constructor.
      *
+     * @param schema The schema this dimension belongs to
      * @param dimensionField  The entity field or relation that this {@link Dimension} represents
      * @param annotation  Provides static meta data about this {@link Dimension}
      * @param fieldType  The Java type for this entity field or relation
@@ -43,6 +45,7 @@ public class TimeDimension extends DegenerateDimension {
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     public TimeDimension(
+            Schema schema,
             String dimensionField,
             Meta annotation,
             Class<?> fieldType,
@@ -51,7 +54,7 @@ public class TimeDimension extends DegenerateDimension {
             TimeZone timeZone,
             TimeGrain timeGrain
     ) {
-        super(dimensionField, annotation, fieldType, cardinality, friendlyName, ColumnType.TEMPORAL);
+        super(schema, dimensionField, annotation, fieldType, cardinality, friendlyName, ColumnType.TEMPORAL);
         this.timeZone = Objects.requireNonNull(timeZone, "timeZone");
         this.timeGrain = Objects.requireNonNull(timeGrain, "timeGrain");
     }

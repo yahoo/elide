@@ -44,11 +44,29 @@
             <artifactId>elide-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-hibernate</artifactId>
+            <version>4.4.5-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
         <!-- JPA -->
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
             <artifactId>hibernate-jpa-2.1-api</artifactId>
             <version>1.0.0.Final</version>
+        </dependency>
+
+        <!-- Hibernate Entity Manager -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>${hibernate5.version}</version>
         </dependency>
 
         <!-- Test -->
@@ -57,6 +75,23 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.197</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>

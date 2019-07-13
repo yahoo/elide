@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -56,6 +57,7 @@ public class DegenerateDimension extends EntityDimension {
      * @throws NullPointerException any argument, except for {@code annotation}, is {@code null}
      */
     public DegenerateDimension(
+            Schema schema,
             String dimensionField,
             Meta annotation,
             Class<?> fieldType,
@@ -64,6 +66,7 @@ public class DegenerateDimension extends EntityDimension {
             ColumnType columnType
     ) {
         super(
+                schema,
                 dimensionField,
                 annotation,
                 fieldType,

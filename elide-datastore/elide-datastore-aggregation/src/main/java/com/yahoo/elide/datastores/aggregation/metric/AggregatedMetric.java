@@ -9,6 +9,7 @@ import com.yahoo.elide.datastores.aggregation.Column;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,36 +28,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AggregatedMetric extends Column implements Metric {
 
-    /**
-     * Given a {@link Aggregation}, returns the SQL aggregation function.
-     * <p>
-     * For example, returns "MAX(%s)" if the specified {@link Aggregation} is {@link Max}. If the specified aggregation
-     * is {@code null}, this method returns an empty string, i.e. "".
-     *
-     * @param aggregationType  A sub-type of {@link Aggregation}, such as {@link Max} and {@link Min}.
-     *
-     * @return the SQL function format of the {@code aggregationType}
-     */
-    public static String functionFormat(Class<? extends Aggregation> aggregationType) {
-        if (aggregationType == null) {
-            return "";
-        }
-
-        try {
-            Class<?> clazz = Class.forName(aggregationType.getCanonicalName());
-            Constructor<?> ctor = clazz.getConstructor();
-            Aggregation instance = (Aggregation) ctor.newInstance();
-            return instance.getAggFunctionFormat();
-        } catch (Exception exception) {
-            String message = String.format(
-                    "Cannot generate aggregation function for '%s'",
-                    aggregationType.getCanonicalName()
-            );
-            log.error(message, exception);
-            throw new IllegalStateException(message, exception);
-        }
-    }
-
     private static final long serialVersionUID = 3055820948480283917L;
 
     @Getter
@@ -71,12 +42,13 @@ public class AggregatedMetric extends Column implements Metric {
      * @param aggregations  A list of all supported aggregations on this {@link Metric}
      */
     public AggregatedMetric(
+            Schema schema,
             String metricField,
             Meta annotation,
             Class<?> fieldType,
             List<Class<? extends Aggregation>> aggregations
     ) {
-        super(metricField, annotation, fieldType);
+        super(schema, metricField, annotation, fieldType);
 
         // make sure we have at least 1 aggregation so we can generate static SQL functions
         if (aggregations.isEmpty()) {
@@ -98,7 +70,7 @@ public class AggregatedMetric extends Column implements Metric {
             Class<?> clazz = Class.forName(aggregation.get().getCanonicalName());
             Constructor<?> ctor = clazz.getConstructor();
             Aggregation instance = (Aggregation) ctor.newInstance();
-            return instance.getAggFunctionFormat();
+            return String.format(instance.getAggFunctionFormat(), schema.getAlias() + "." + name);
         } catch (Exception exception) {
             String message = String.format(
                     "Cannot generate aggregation function for '%s'",

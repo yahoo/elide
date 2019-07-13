@@ -3,11 +3,11 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.schema;
+package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.datastores.aggregation.Column;
+import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -51,8 +52,12 @@ public class Schema {
 
     @Getter
     private final Class<?> entityClass;
+
+    @Singular
     @Getter
     private final Set<Metric> metrics;
+
+    @Singular
     @Getter
     private final Set<Dimension> dimensions;
     @Getter(value = AccessLevel.PRIVATE)
@@ -142,6 +147,14 @@ public class Schema {
                 || getEntityDictionary().attributeOrRelationAnnotationExists(
                 getEntityClass(), fieldName, MetricComputation.class
         );
+    }
+
+    /**
+     * An alias to assign this schema.
+     * @return an alias that can be used in SQL.
+     */
+    public String getAlias() {
+        return FilterPredicate.getTypeAlias(entityClass);
     }
 
     /**
