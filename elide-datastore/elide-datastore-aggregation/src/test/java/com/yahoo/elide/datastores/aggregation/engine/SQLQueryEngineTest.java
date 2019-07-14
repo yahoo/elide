@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.Schema;
@@ -30,12 +31,14 @@ public class SQLQueryEngineTest {
     private EntityManagerFactory emf;
     private Schema playerStatsSchema;
     private EntityDictionary dictionary;
+    private RSQLFilterDialect filterParser;
 
     public SQLQueryEngineTest() {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(Country.class);
+        filterParser = new RSQLFilterDialect(dictionary);
 
         playerStatsSchema = new Schema(PlayerStats.class, dictionary);
     }
@@ -62,6 +65,41 @@ public class SQLQueryEngineTest {
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setLowScore(241);
+        stats2.setHighScore(2412);
+        stats2.setOverallRating("Great");
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(results.get(0), stats1);
+        Assert.assertEquals(results.get(1), stats2);
+    }
+
+    @Test
+    public void testDegenerateDimensionFilter() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStats.class)
+                .metrics(playerStatsSchema.getMetrics())
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setLowScore(241);
+        stats1.setHighScore(2412);
+        stats1.setOverallRating("Great");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats1);
     }
 }

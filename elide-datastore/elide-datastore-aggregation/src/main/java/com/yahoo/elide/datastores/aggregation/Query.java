@@ -17,7 +17,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -37,17 +36,9 @@ public class Query {
     @Singular
     private final Set<TimeDimension> timeDimensions;
 
-    @Builder.Default
-    private final Optional<FilterExpression> whereFilter = Optional.empty();
-
-    @Builder.Default
-    private final Optional<FilterExpression> havingFilter = Optional.empty();
-
-    @Builder.Default
-    private final Optional<Sorting> sorting = Optional.empty();
-
-    @Builder.Default
-    private final Optional<Pagination> pagination = Optional.empty();
-
+    private final FilterExpression whereFilter;
+    private final FilterExpression havingFilter;
+    private final Sorting sorting;
+    private final Pagination pagination;
     private final RequestScope scope;
 }

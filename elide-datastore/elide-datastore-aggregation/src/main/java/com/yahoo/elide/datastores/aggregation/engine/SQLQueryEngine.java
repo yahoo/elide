@@ -107,16 +107,16 @@ public class SQLQueryEngine implements QueryEngine {
                 projectionClause, tableName, tableAlias);
         String nativeSql = translateSqlToNative(sql, dialect);
 
-        if (query.getWhereFilter().isPresent()) {
-            nativeSql += translateFilterExpression(schema, query.getWhereFilter().get());
+        if (query.getWhereFilter() != null) {
+            nativeSql += translateFilterExpression(schema, query.getWhereFilter());
         }
 
         log.debug("Running native SQL query: {}", nativeSql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
 
-        if (query.getWhereFilter().isPresent()) {
-            supplyFilterQueryParameters(query.getWhereFilter().get(), jpaQuery);
+        if (query.getWhereFilter() != null) {
+            supplyFilterQueryParameters(query.getWhereFilter(), jpaQuery);
         }
 
         List<Object[]> results = jpaQuery.getResultList();
