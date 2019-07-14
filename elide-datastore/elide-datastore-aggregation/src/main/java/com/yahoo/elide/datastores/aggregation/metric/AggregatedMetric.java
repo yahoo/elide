@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metric;
 
 import com.yahoo.elide.datastores.aggregation.Column;
+import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 

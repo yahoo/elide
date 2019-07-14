@@ -100,7 +100,8 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStats.class)
-                .metrics(playerStatsSchema.getMetrics())
+                .metric(playerStatsSchema.getMetric("lowScore"), new Sum())
+                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
@@ -128,7 +129,8 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStats.class)
-                .metrics(playerStatsSchema.getMetrics())
+                .metric(playerStatsSchema.getMetric("lowScore"), new Sum())
+                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
@@ -162,7 +164,7 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStatsView.class)
-                .metrics(playerStatsViewSchema.getMetrics())
+                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
                 .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
                         PlayerStatsView.class, false))
                 .build();
@@ -184,7 +186,7 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStatsView.class)
-                .metrics(playerStatsViewSchema.getMetrics())
+                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)

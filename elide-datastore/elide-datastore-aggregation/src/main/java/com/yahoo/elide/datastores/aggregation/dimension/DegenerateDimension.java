@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.dimension;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 
