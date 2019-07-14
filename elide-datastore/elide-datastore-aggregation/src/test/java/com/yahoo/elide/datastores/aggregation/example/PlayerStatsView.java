@@ -13,6 +13,8 @@ import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -20,7 +22,7 @@ import javax.persistence.Id;
 @Entity
 @Include(rootLevel = true)
 @Data
-@FromSubquery(sql = "SELECT stats.highScore, c.name FROM playerStats AS stats LEFT JOIN country AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
+@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name FROM playerStats AS stats LEFT JOIN country AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
 public class PlayerStatsView {
 
     /**
@@ -39,4 +41,8 @@ public class PlayerStatsView {
      * A degenerate dimension.
      */
     private String countryName;
+
+    @OneToOne
+    @JoinColumn(name = "player_id")
+    private Player player;
 }

@@ -62,6 +62,11 @@ public class PlayerStats {
      */
     private Country country;
 
+    /**
+     * A table dimension.
+     */
+    private Player player;
+
     private Date recordedDate;
 
     @Id
@@ -110,6 +115,16 @@ public class PlayerStats {
 
     public void setCountry(final Country country) {
         this.country = country;
+    }
+
+    @OneToOne
+    @JoinColumn(name = "player_id")
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(final Player player) {
+        this.player = player;
     }
 
     /**

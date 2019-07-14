@@ -26,22 +26,28 @@ public class SQLSchema extends Schema {
     private String alias;
 
     @Getter
+    private boolean isSubquery;
+
+    @Getter
     private String tableDefinition;
 
     public SQLSchema(Class<?> entityClass, EntityDictionary dictionary) {
         super(entityClass, dictionary);
 
+        isSubquery = false;
+        alias = FilterPredicate.getTypeAlias(entityClass);
+
         FromTable fromTable = dictionary.getAnnotation(entityClass, FromTable.class);
 
         if (fromTable != null) {
-            alias = FilterPredicate.getTypeAlias(entityClass);
             tableDefinition = fromTable.name();
         } else {
             FromSubquery fromSubquery = dictionary.getAnnotation(entityClass, FromSubquery.class);
 
             if (fromSubquery != null) {
-                alias = "table" + this.hashCode();
                 tableDefinition = "(" + fromSubquery.sql() + ")";
+
+                isSubquery = true;
             } else {
                 throw new IllegalStateException("Entity is missing FromTable or FromSubquery annotations");
             }

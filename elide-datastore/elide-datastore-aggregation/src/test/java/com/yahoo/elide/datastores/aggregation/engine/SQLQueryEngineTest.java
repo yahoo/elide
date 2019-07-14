@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import org.testng.Assert;
@@ -41,6 +42,7 @@ public class SQLQueryEngineTest {
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
+        dictionary.bindEntity(Player.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         playerStatsSchema = new Schema(PlayerStats.class, dictionary);
@@ -139,6 +141,28 @@ public class SQLQueryEngineTest {
         Assert.assertEquals(results.size(), 2);
         Assert.assertEquals(results.get(0), stats1);
         Assert.assertEquals(results.get(1), stats2);
+    }
+
+    @Test
+    public void testSubqueryFilterJoin() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStatsView.class)
+                .metrics(playerStatsViewSchema.getMetrics())
+                .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
+                        PlayerStatsView.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setHighScore(2412);
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0), stats2);
     }
 
     @Test
