@@ -35,7 +35,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.persistence.Column;
 import javax.persistence.EntityManager;
+import javax.persistence.JoinColumn;
+import javax.persistence.Table;
 
 /**
  * QueryEngine for SQL backed stores.
@@ -105,11 +108,13 @@ public class SQLQueryEngine implements QueryEngine {
 
         String sql = String.format("SELECT %s FROM %s AS %s",
                 projectionClause, tableName, tableAlias);
-        String nativeSql = translateSqlToNative(sql, dialect);
 
         if (query.getWhereFilter() != null) {
-            nativeSql += translateFilterExpression(schema, query.getWhereFilter());
+            sql += " " + extractJoin(query.getWhereFilter());
+            sql += " " + translateFilterExpression(schema, query.getWhereFilter());
         }
+
+        String nativeSql = translateSqlToNative(sql, dialect);
 
         log.debug("Running native SQL query: {}", nativeSql);
 
@@ -134,7 +139,11 @@ public class SQLQueryEngine implements QueryEngine {
 
         try {
             SqlNode ast = parser.parseQuery();
-            return ast.toSqlString(dialect).getSql();
+            String translated = ast.toSqlString(dialect).getSql();
+            translated = translated.replaceAll("\'(:[a-zA-Z0-9_]+)\'", "$1");
+
+            log.debug("TRANSLATED: {}", translated);
+            return translated;
 
         } catch (SqlParseException e) {
             throw new IllegalStateException(e);
@@ -174,7 +183,49 @@ public class SQLQueryEngine implements QueryEngine {
     private String translateFilterExpression(SQLSchema schema, FilterExpression expression) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
-        return filterVisitor.apply(expression, Optional.of(ALIAS_PROVIDER));
+        String whereClause = filterVisitor.apply(expression, Optional.of(ALIAS_PROVIDER));
+
+        return whereClause.replaceAll("(:[a-zA-Z0-9_]+)", "\'$1\'");
+    }
+
+    private String extractJoin(FilterExpression expression) {
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+
+        return predicates.stream()
+                .filter(predicate -> predicate.getPath().getPathElements().size() > 1)
+                .map(this::extractJoin)
+                .collect(Collectors.joining(" "));
+    }
+
+    private String extractJoin(FilterPredicate predicate) {
+        return predicate.getPath().getPathElements().stream()
+                .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
+                .map(this::extractJoin)
+                .collect(Collectors.joining(" "));
+    }
+
+    private String extractJoin(Path.PathElement pathElement) {
+        String relationshipName = pathElement.getFieldName();
+        Class<?> relationshipClass = pathElement.getFieldType();
+        String relationshipAlias = FilterPredicate.getTypeAlias(relationshipClass);
+        Class<?> entityClass = pathElement.getType();
+        String entityAlias = FilterPredicate.getTypeAlias(entityClass);
+
+        Table tableAnnotation = dictionary.getAnnotation(relationshipClass, Table.class);
+
+        String relationshipTableName = (tableAnnotation == null)
+                ? dictionary.getJsonAliasFor(relationshipClass)
+                : tableAnnotation.name();
+
+        String relationshipIdField = getColumnName(relationshipClass, dictionary.getIdFieldName(relationshipClass));
+
+        return String.format("LEFT JOIN %s AS %s ON %s.%s = %s.%s",
+                relationshipTableName,
+                relationshipAlias,
+                entityAlias,
+                getColumnName(entityClass, relationshipName),
+                relationshipAlias,
+                relationshipIdField);
     }
 
     private void supplyFilterQueryParameters(FilterExpression expression,
@@ -188,6 +239,30 @@ public class SQLQueryEngine implements QueryEngine {
                     query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
                 });
             }
+        }
+    }
+
+    /**
+     * Returns the physical database column name of an entity field.  Note - we can't use Schema here because
+     * we need to look at Dimension table and Fact table fields.
+     * @param entityClass The JPA/Elide entity
+     * @param fieldName The field name to lookup
+     * @return
+     */
+    private String getColumnName(Class<?> entityClass, String fieldName) {
+        Column[] column = dictionary.getAttributeOrRelationAnnotations(entityClass, Column.class, fieldName);
+
+        JoinColumn[] joinColumn = dictionary.getAttributeOrRelationAnnotations(entityClass,
+                JoinColumn.class, fieldName);
+
+        if (column == null || column.length == 0) {
+            if (joinColumn == null || joinColumn.length == 0) {
+                return fieldName;
+            } else {
+                return joinColumn[0].name();
+            }
+        } else {
+            return column[0].name();
         }
     }
 }

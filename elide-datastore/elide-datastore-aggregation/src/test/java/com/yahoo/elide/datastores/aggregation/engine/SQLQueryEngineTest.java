@@ -108,6 +108,40 @@ public class SQLQueryEngineTest {
     }
 
     @Test
+    public void testFilterJoin() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStats.class)
+                .metrics(playerStatsSchema.getMetrics())
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setLowScore(72);
+        stats1.setHighScore(1234);
+        stats1.setOverallRating("Good");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setLowScore(241);
+        stats2.setHighScore(2412);
+        stats2.setOverallRating("Great");
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(results.get(0), stats1);
+        Assert.assertEquals(results.get(1), stats2);
+    }
+
+    @Test
     public void testSubqueryLoad() throws Exception {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
