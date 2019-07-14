@@ -41,7 +41,7 @@ public class SQLSchema extends Schema {
 
             if (fromSubquery != null) {
                 alias = "table" + this.hashCode();
-                tableDefinition = fromSubquery.sql();
+                tableDefinition = "(" + fromSubquery.sql() + ")";
             } else {
                 throw new IllegalStateException("Entity is missing FromTable or FromSubquery annotations");
             }

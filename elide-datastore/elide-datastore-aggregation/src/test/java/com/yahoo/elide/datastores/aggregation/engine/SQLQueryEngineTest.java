@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -30,6 +31,7 @@ public class SQLQueryEngineTest {
 
     private EntityManagerFactory emf;
     private Schema playerStatsSchema;
+    private Schema playerStatsViewSchema;
     private EntityDictionary dictionary;
     private RSQLFilterDialect filterParser;
 
@@ -37,10 +39,12 @@ public class SQLQueryEngineTest {
         emf = Persistence.createEntityManagerFactory("aggregationStore");
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
+        dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(Country.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         playerStatsSchema = new Schema(PlayerStats.class, dictionary);
+        playerStatsViewSchema = new Schema(PlayerStatsView.class, dictionary);
     }
 
     @Test
@@ -101,5 +105,25 @@ public class SQLQueryEngineTest {
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats1);
+    }
+
+    @Test
+    public void testSubqueryLoad() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStatsView.class)
+                .metrics(playerStatsViewSchema.getMetrics())
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setHighScore(2412);
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0), stats2);
     }
 }

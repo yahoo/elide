@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS playerStats
       recordedDate DATETIME
     ) AS SELECT * FROM CSVREAD('classpath:player_stats.csv');
 
-CREATE TABLE IF NOT EXISTS playerStats
+CREATE TABLE IF NOT EXISTS country
     (
       id VARCHAR(255),
       isoCode VARCHAR(255),

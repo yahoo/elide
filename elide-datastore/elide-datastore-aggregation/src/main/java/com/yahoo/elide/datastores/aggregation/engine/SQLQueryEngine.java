@@ -119,14 +119,17 @@ public class SQLQueryEngine implements QueryEngine {
             supplyFilterQueryParameters(query.getWhereFilter(), jpaQuery);
         }
 
-        List<Object[]> results = jpaQuery.getResultList();
+        List<Object> results = jpaQuery.getResultList();
 
         return results.stream()
+                .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
                 .map((result) -> coerceObjectToEntity(query.getEntityClass(), projections, result))
                 .collect(Collectors.toList());
     }
 
     protected String translateSqlToNative(String sqlStatement, SqlDialect dialect) {
+        log.debug("Parsing SQL {}", sqlStatement);
+
         SqlParser parser = SqlParser.create(sqlStatement);
 
         try {
