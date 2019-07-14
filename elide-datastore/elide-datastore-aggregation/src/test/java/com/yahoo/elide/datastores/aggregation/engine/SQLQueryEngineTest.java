@@ -57,8 +57,8 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStats.class)
-                .metric(playerStatsSchema.getMetric("lowScore"), new Sum())
-                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .build();
@@ -91,8 +91,8 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStats.class)
-                .metric(playerStatsSchema.getMetric("lowScore"), new Sum())
-                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
@@ -119,8 +119,8 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStats.class)
-                .metric(playerStatsSchema.getMetric("lowScore"), new Sum())
-                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
@@ -154,7 +154,7 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStatsView.class)
-                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
+                .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
                 .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
                         PlayerStatsView.class, false))
                 .build();
@@ -176,7 +176,7 @@ public class SQLQueryEngineTest {
 
         Query query = Query.builder()
                 .entityClass(PlayerStatsView.class)
-                .metric(playerStatsSchema.getMetric("highScore"), new Sum())
+                .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)

@@ -30,7 +30,7 @@ public class Query {
     private final Class<?> entityClass;
 
     @Singular
-    private final Map<Metric, Aggregation> metrics;
+    private final Map<Metric, Class<? extends Aggregation>> metrics;
 
     @Singular
     private final Set<Dimension> groupDimensions;
