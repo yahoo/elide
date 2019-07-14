@@ -36,6 +36,7 @@ public class SQLQueryEngineTest {
 
     private EntityManagerFactory emf;
     private Schema playerStatsSchema;
+    private Schema playerStatsViewSchema;
     private EntityDictionary dictionary;
     private RSQLFilterDialect filterParser;
 
@@ -117,5 +118,25 @@ public class SQLQueryEngineTest {
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats1);
         Assert.assertEquals(results.get(1), stats2);
+    }
+
+    @Test
+    public void testSubqueryLoad() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStatsView.class)
+                .metrics(playerStatsViewSchema.getMetrics())
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setHighScore(2412);
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0), stats2);
     }
 }
