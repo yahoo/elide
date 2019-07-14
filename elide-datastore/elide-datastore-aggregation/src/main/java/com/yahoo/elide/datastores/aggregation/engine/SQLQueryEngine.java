@@ -59,6 +59,8 @@ public class SQLQueryEngine implements QueryEngine {
     @Getter
     private Map<Class<?>, SQLSchema> schemas;
 
+    private static final String SUBQUERY = "__SUBQUERY__";
+
     //Function to return the alias to apply to a filter predicate expression.
     private static final Function<FilterPredicate, String> ALIAS_PROVIDER = (predicate) -> {
         List<Path.PathElement> elements = predicate.getPath().getPathElements();
