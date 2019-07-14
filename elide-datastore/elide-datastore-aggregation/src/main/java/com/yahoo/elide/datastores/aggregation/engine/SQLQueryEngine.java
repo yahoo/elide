@@ -8,10 +8,14 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.TimedFunction;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
@@ -29,10 +33,14 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Column;
@@ -158,7 +166,7 @@ public class SQLQueryEngine implements QueryEngine {
                     (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
         }
 
-        if (!query.getDimensions().isEmpty())  {
+        if (! query.getDimensions().isEmpty())  {
             builder.groupByClause(extractGroupBy(query));
         }
 
@@ -243,7 +251,7 @@ public class SQLQueryEngine implements QueryEngine {
     private String translateFilterExpression(SQLSchema schema,
                                              FilterExpression expression,
                                              Function<FilterPredicate, String> columnGenerator) {
-        FilterTranslator filterVisitor = new FilterTranslator();
+        HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
         return filterVisitor.apply(expression, columnGenerator);
     }
@@ -434,23 +442,14 @@ public class SQLQueryEngine implements QueryEngine {
         String projectionClause = metricProjections.stream()
                 .collect(Collectors.joining(","));
 
-        String sql = String.format("SELECT %s FROM %s AS %s",
-                projectionClause, tableName, tableAlias);
-        String nativeSql = translateSqlToNative(sql, dialect);
-
-        if (query.getWhereFilter().isPresent()) {
-            nativeSql += translateFilterExpression(schema, query.getWhereFilter().get());
+        if (!dimensionProjections.isEmpty()) {
+            projectionClause = projectionClause + "," + dimensionProjections.stream()
+                    .map((name) -> query.getSchema().getAlias() + "." + name)
+                    .collect(Collectors.joining(","));
         }
 
-        log.debug("Running native SQL query: {}", nativeSql);
-
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
-
-        if (query.getWhereFilter().isPresent()) {
-            supplyFilterQueryParameters(query.getWhereFilter().get(), jpaQuery);
-        }
-
-        List<Object[]> results = jpaQuery.getResultList();
+        return projectionClause;
+    }
 
     /**
      * Extracts a GROUP BY SQL clause.
@@ -529,25 +528,5 @@ public class SQLQueryEngine implements QueryEngine {
         }
 
         return entityInstance;
-    }
-
-    private String translateFilterExpression(SQLSchema schema, FilterExpression expression) {
-        HQLFilterOperation filterVisitor = new HQLFilterOperation();
-
-        return filterVisitor.apply(expression, Optional.of(ALIAS_PROVIDER));
-    }
-
-    private void supplyFilterQueryParameters(FilterExpression expression,
-                                             javax.persistence.Query query) {
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-        for (FilterPredicate filterPredicate : predicates) {
-            if (filterPredicate.getOperator().isParameterized()) {
-                boolean shouldEscape = filterPredicate.isMatchingOperator();
-                filterPredicate.getParameters().forEach(param -> {
-                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
-                });
-            }
-        }
     }
 }

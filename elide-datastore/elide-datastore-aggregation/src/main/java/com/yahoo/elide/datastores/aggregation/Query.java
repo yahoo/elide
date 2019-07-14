@@ -31,10 +31,10 @@ import java.util.stream.Stream;
 @Data
 @Builder
 public class Query {
-    private final Class<?> entityClass;
+    private final Schema schema;
 
     @Singular
-    private final Set<Metric> metrics;
+    private final Map<Metric, Class<? extends Aggregation>> metrics;
 
     @Singular
     private final Set<Dimension> groupDimensions;
@@ -42,18 +42,10 @@ public class Query {
     @Singular
     private final Set<TimeDimension> timeDimensions;
 
-    @Builder.Default
-    private final Optional<FilterExpression> whereFilter = Optional.empty();
-
-    @Builder.Default
-    private final Optional<FilterExpression> havingFilter = Optional.empty();
-
-    @Builder.Default
-    private final Optional<Sorting> sorting = Optional.empty();
-
-    @Builder.Default
-    private final Optional<Pagination> pagination = Optional.empty();
-
+    private final FilterExpression whereFilter;
+    private final FilterExpression havingFilter;
+    private final Sorting sorting;
+    private final Pagination pagination;
     private final RequestScope scope;
 
     /**
