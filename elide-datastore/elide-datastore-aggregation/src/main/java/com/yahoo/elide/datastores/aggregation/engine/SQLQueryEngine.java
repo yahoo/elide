@@ -29,8 +29,11 @@ import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.mutable.MutableInt;
-import lombok.Getter;
+import org.apache.calcite.sql.SqlDialect;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.dialect.H2SqlDialect;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -87,6 +91,11 @@ public class SQLQueryEngine implements QueryEngine {
                 ));
     }
 
+    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
+        //this(entityManager, dictionary, CalciteSqlDialect.DEFAULT);
+        this(entityManager, dictionary, new H2SqlDialect(SqlDialect.EMPTY_CONTEXT));
+    }
+
     @Override
     public Iterable<Object> executeQuery(Query query) {
         SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
@@ -97,18 +106,28 @@ public class SQLQueryEngine implements QueryEngine {
         //Translate the query into SQL.
         SQLQuery sql = toSQL(query);
 
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
+        List<String> metricProjections = query.getMetrics().entrySet().stream()
+                .map((entry) -> entry.getKey())
+                .map(Metric::getName)
+                .map((name) -> "__" + name.toUpperCase(Locale.ENGLISH) + "__")
+                .collect(Collectors.toList());
 
-        Pagination pagination = query.getPagination();
-        if (pagination != null) {
-            jpaQuery.setFirstResult(pagination.getOffset());
-            jpaQuery.setMaxResults(pagination.getLimit());
+        List<String> dimensionProjections = query.getGroupDimensions().stream()
+                .map(Dimension::getName)
+                .collect(Collectors.toList());
 
-            if (pagination.isGenerateTotals()) {
+        dimensionProjections.addAll(query.getTimeDimensions().stream()
+                .map(Dimension::getName)
+                .collect(Collectors.toList()));
 
-                SQLQuery paginationSQL = toPageTotalSQL(sql);
-                javax.persistence.Query pageTotalQuery =
-                        entityManager.createNativeQuery(paginationSQL.toString());
+        String projectionClause = metricProjections.stream()
+                .collect(Collectors.joining(","));
+
+        if (!dimensionProjections.isEmpty()) {
+            projectionClause = projectionClause + "," + dimensionProjections.stream()
+                .map((name) -> tableAlias + "." + name)
+                .collect(Collectors.joining(","));
+        }
 
                 //Supply the query parameters to the query
                 supplyFilterQueryParameters(query, pageTotalQuery);
@@ -122,20 +141,25 @@ public class SQLQueryEngine implements QueryEngine {
             }
         }
 
-        //Supply the query parameters to the query
-        supplyFilterQueryParameters(query, jpaQuery);
+        if (!dimensionProjections.isEmpty()) {
+            sql += " GROUP BY ";
+            sql += dimensionProjections.stream()
+                    .map((name) -> tableAlias + "." + name)
+                    .collect(Collectors.joining(","));
+        }
 
-        //Run the primary query and log the time spent.
-        List<Object> results = new TimedFunction<>(() -> {
-            return jpaQuery.getResultList();
-            }, "Running Query: " + sql).get();
+        String nativeSql = translateSqlToNative(sql, dialect);
+
+        nativeSql = expandMetricTemplates(nativeSql, query.getMetrics());
+
+        log.debug("Running native SQL query: {}", nativeSql);
 
 
         //Coerce the results into entity objects.
         MutableInt counter = new MutableInt(0);
         return results.stream()
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
-                .map((result) -> coerceObjectToEntity(query, result, counter))
+                .map((result) -> coerceObjectToEntity(query, result))
                 .collect(Collectors.toList());
     }
 
@@ -191,25 +215,23 @@ public class SQLQueryEngine implements QueryEngine {
         return builder.build();
     }
 
-    /**
-     * Coerces results from a JPA query into an Object.
-     * @param query The client query
-     * @param result A row from the results.
-     * @param counter Monotonically increasing number to generate IDs.
-     * @return A hydrated entity object.
-     */
-    protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
-        Class<?> entityClass = query.getSchema().getEntityClass();
+    protected Object coerceObjectToEntity(Query query, Object[] result) {
 
-        //Get all the projections from the client query.
+        Class<?> entityClass = query.getEntityClass();
         List<String> projections = query.getMetrics().entrySet().stream()
                 .map(Map.Entry::getKey)
                 .map(Metric::getName)
                 .collect(Collectors.toList());
 
-        projections.addAll(query.getDimensions().stream()
+        projections.addAll(query.getGroupDimensions().stream()
                 .map(Dimension::getName)
                 .collect(Collectors.toList()));
+
+        projections.addAll(query.getTimeDimensions().stream()
+                .map(Dimension::getName)
+                .collect(Collectors.toList()));
+
+        SQLSchema schema = schemas.get(entityClass);
 
         Preconditions.checkArgument(result.length == projections.size());
 
@@ -258,12 +280,20 @@ public class SQLQueryEngine implements QueryEngine {
         return filterVisitor.apply(expression, columnGenerator);
     }
 
-    /**
-     * Given a filter expression, extracts any entity relationship traversals that require joins.
-     * @param expression The filter expression
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private Set<Path.PathElement> extractPathElements(FilterExpression expression) {
+    private String expandMetricTemplates(String sql, Map<Metric, Class<? extends Aggregation>> metrics) {
+        String expanded = sql;
+        for (Map.Entry entry : metrics.entrySet()) {
+            Metric metric = (Metric) entry.getKey();
+            Class<? extends Aggregation> agg = (Class<? extends Aggregation>) entry.getValue();
+
+            expanded = expanded.replaceFirst(
+                    "__" + metric.getName().toUpperCase(Locale.ENGLISH) + "__",
+                    metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName());
+        }
+        return expanded;
+    }
+
+    private String extractJoin(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
