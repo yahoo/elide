@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.dimension;
 
+import static org.mockito.Mockito.mock;
+
+import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
@@ -18,7 +21,10 @@ import java.util.TimeZone;
 
 public class DimensionTest {
 
+    private static final Schema MOCK_SCHEMA = mock(Schema.class);
+
     private static final Dimension ENTITY_DIMENSION = new EntityDimension(
+            MOCK_SCHEMA,
             "country",
             null,
             Country.class,
@@ -27,6 +33,7 @@ public class DimensionTest {
     );
 
     private static final Dimension DEGENERATE_DIMENSION = new DegenerateDimension(
+            MOCK_SCHEMA,
             "overallRating",
             null,
             String.class,
@@ -36,6 +43,7 @@ public class DimensionTest {
     );
 
     private static final Dimension TIME_DIMENSION = new TimeDimension(
+            MOCK_SCHEMA,
             "recordedTime",
             null,
             Long.class,
@@ -60,6 +68,7 @@ public class DimensionTest {
 
         // a separate same object doesn't increase collection size
         Dimension sameEntityDimension = new EntityDimension(
+                MOCK_SCHEMA,
                 "country",
                 null,
                 Country.class,

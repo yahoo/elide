@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.VideoGame;
 import com.yahoo.elide.datastores.aggregation.metric.Max;
@@ -19,39 +19,8 @@ import org.testng.annotations.Test;
 
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
 public class SchemaTest {
-
-    /**
-     * Used to test un-happy path of dimension construction on ToMany relationship.
-     */
-    @Entity
-    @Include(rootLevel = true)
-    private static class Player {
-        private Long id;
-        private Set<VideoGame> favoriteGames;
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(final Long id) {
-            this.id = id;
-        }
-
-        @OneToMany
-        public Set<VideoGame> getFavoriteGames() {
-            return favoriteGames;
-        }
-
-        public void setFavoriteGames(final Set<VideoGame> favoriteGames) {
-            this.favoriteGames = favoriteGames;
-        }
-    }
 
     private EntityDictionary entityDictionary;
     private Schema playerStatsSchema;
@@ -59,10 +28,10 @@ public class SchemaTest {
     @BeforeMethod
     public void setupEntityDictionary() {
         entityDictionary = new EntityDictionary(Collections.emptyMap());
-        entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(VideoGame.class);
         entityDictionary.bindEntity(Player.class);
+        entityDictionary.bindEntity(PlayerStats.class);
 
         playerStatsSchema = new Schema(PlayerStats.class, entityDictionary);
     }
@@ -81,12 +50,7 @@ public class SchemaTest {
     public void testGetMetric() {
         Assert.assertEquals(
                 playerStatsSchema.getMetric("highScore").getMetricExpression(Optional.of(Max.class)),
-                "MAX(%s)"
+                "MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore)"
         );
-    }
-
-    @Test(expectedExceptions = IllegalStateException.class)
-    public void testParameterizedDimension() {
-        new Schema(Player.class, entityDictionary);
     }
 }

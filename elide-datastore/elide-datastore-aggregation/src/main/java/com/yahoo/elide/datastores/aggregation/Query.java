@@ -11,12 +11,14 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -28,7 +30,7 @@ public class Query {
     private final Class<?> entityClass;
 
     @Singular
-    private final Set<Metric> metrics;
+    private final Map<Metric, Aggregation> metrics;
 
     @Singular
     private final Set<Dimension> groupDimensions;

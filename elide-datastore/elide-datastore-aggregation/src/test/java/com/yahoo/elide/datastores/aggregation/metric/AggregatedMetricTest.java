@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.metric;
 
+import static org.mockito.Mockito.mock;
+
+import com.yahoo.elide.datastores.aggregation.Schema;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -14,7 +17,10 @@ import java.util.Set;
 
 public class AggregatedMetricTest {
 
+    private static final Schema MOCK_SCHEMA = mock(Schema.class);
+
     private static final Metric SIMPLE_METRIC_1 = new AggregatedMetric(
+            MOCK_SCHEMA,
             "highScore",
             null,
             long.class,
@@ -22,6 +28,7 @@ public class AggregatedMetricTest {
     );
 
     private static final Metric SIMPLE_METRIC_2 = new AggregatedMetric(
+            MOCK_SCHEMA,
             "timeSpentPerGame",
             null,
             Float.class,
@@ -43,6 +50,7 @@ public class AggregatedMetricTest {
 
         // a separate same object doesn't increase collection size
         Metric sameMetric = new AggregatedMetric(
+                MOCK_SCHEMA,
                 "highScore",
                 null,
                 long.class,

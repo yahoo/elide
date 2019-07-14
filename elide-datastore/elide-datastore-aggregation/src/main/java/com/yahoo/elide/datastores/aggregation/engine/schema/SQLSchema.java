@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.engine.schema;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
@@ -23,9 +22,6 @@ import lombok.ToString;
 public class SQLSchema extends Schema {
 
     @Getter
-    private String alias;
-
-    @Getter
     private boolean isSubquery;
 
     @Getter
@@ -35,7 +31,6 @@ public class SQLSchema extends Schema {
         super(entityClass, dictionary);
 
         isSubquery = false;
-        alias = FilterPredicate.getTypeAlias(entityClass);
 
         FromTable fromTable = dictionary.getAnnotation(entityClass, FromTable.class);
 

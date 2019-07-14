@@ -92,8 +92,10 @@ public class SQLQueryEngine implements QueryEngine {
         String tableName = schema.getTableDefinition();
         String tableAlias = schema.getAlias();
 
-        List<String> projections = query.getMetrics().stream()
+        List<String> projections = query.getMetrics().entrySet().stream()
+                .map((entry) -> entry.getKey())
                 .map(Metric::getName)
+                //.map((name) -> "__" + name + "__")
                 .collect(Collectors.toList());
 
         projections.addAll(query.getGroupDimensions().stream()
