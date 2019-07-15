@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,7 +55,10 @@ public class Query {
     public Set<Dimension> getDimensions() {
         return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
                 .collect(
-                        Collectors.toCollection(LinkedHashSet::new)
+                        Collectors.collectingAndThen(
+                                Collectors.toSet(),
+                                Collections::unmodifiableSet
+                        )
                 );
     }
 }

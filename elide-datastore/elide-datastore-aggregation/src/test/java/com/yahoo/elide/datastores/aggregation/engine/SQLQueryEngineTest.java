@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -239,5 +240,37 @@ public class SQLQueryEngineTest {
         Assert.assertEquals(results.size(), 2);
         Assert.assertEquals(results.get(0), stats1);
         Assert.assertEquals(results.get(1), stats2);
+    }
+
+    @Test
+    public void testPagination() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStats.class)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .pagination(pagination)
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setLowScore(72);
+        stats1.setHighScore(1234);
+        stats1.setOverallRating("Good");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        Assert.assertEquals(results.size(), 1, "Number of records returned does not match");
+        Assert.assertEquals(results.get(0), stats1, "Returned record does not match");
+        Assert.assertEquals(pagination.getPageTotals(), 2, "Page totals does not match");
     }
 }
