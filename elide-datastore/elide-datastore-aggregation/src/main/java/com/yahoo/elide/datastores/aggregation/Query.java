@@ -18,8 +18,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A {@link Query} is an object representing a query executed by {@link QueryEngine}.
@@ -43,4 +46,18 @@ public class Query {
     private final Sorting sorting;
     private final Pagination pagination;
     private final RequestScope scope;
+
+    /**
+     * Returns all the dimensions regardless of type.
+     * @return All the dimensions.
+     */
+    public Set<Dimension> getDimensions() {
+        return Stream.concat(getGroupDimensions().stream(), getTimeDimensions().stream())
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toSet(),
+                                Collections::unmodifiableSet
+                        )
+                );
+    }
 }

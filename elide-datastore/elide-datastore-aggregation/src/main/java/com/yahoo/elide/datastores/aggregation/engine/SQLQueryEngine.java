@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -22,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
 import org.apache.calcite.sql.SqlDialect;
@@ -147,7 +149,9 @@ public class SQLQueryEngine implements QueryEngine {
             joinClause += " " + extractJoin(sortClauses);
         }
 
-        String sql = String.format("SELECT %s FROM %s AS %s", projectionClause, tableName, tableAlias)
+        String fromClause = String.format("%s AS %s", tableName, tableAlias);
+
+        String sql = String.format("SELECT %s FROM %s", projectionClause, fromClause)
                 + joinClause
                 + whereClause
                 + groupByClause
@@ -160,6 +164,8 @@ public class SQLQueryEngine implements QueryEngine {
         log.debug("Running native SQL query: {}", nativeSql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
+
+        paginate(query, jpaQuery, fromClause, joinClause, whereClause);
 
         if (query.getWhereFilter() != null) {
             supplyFilterQueryParameters(query.getWhereFilter(), jpaQuery);
@@ -368,6 +374,51 @@ public class SQLQueryEngine implements QueryEngine {
             }
         } else {
             return column[0].name();
+        }
+    }
+
+    /**
+     * Paginates the query if requested.
+     * @param query The QueryEngine query
+     * @param jpaQuery The JPA query
+     */
+    private void paginate(Query query,
+                          javax.persistence.Query jpaQuery,
+                          String fromClause,
+                          String joinClause,
+                          String whereClause) {
+        Pagination pagination = query.getPagination();
+        if (pagination == null) {
+            return;
+        }
+        jpaQuery.setFirstResult(pagination.getOffset());
+        jpaQuery.setMaxResults(pagination.getLimit());
+
+        /*
+         * TODO - this is a naive implementation. We should run these in parallel or combine the queries
+         * with a windowing function (if the DB supports that).
+         */
+        if (pagination.isGenerateTotals()) {
+            String groupByDimensions = query.getDimensions().stream()
+                    .map(Dimension::getName)
+                    .map((name) -> getColumnName(query.getEntityClass(), name))
+                    .collect(Collectors.joining(","));
+
+            String sql = String.format("SELECT COUNT(DISTINCT(%s)) FROM %s %s %s",
+                    groupByDimensions,
+                    fromClause,
+                    joinClause,
+                    whereClause);
+
+            javax.persistence.Query pageTotalQuery = entityManager.createNativeQuery(sql);
+
+            if (query.getWhereFilter() != null) {
+                supplyFilterQueryParameters(query.getWhereFilter(), pageTotalQuery);
+            }
+
+            long total = CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
+
+            pagination.setPageTotals(total);
         }
     }
 }
