@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -83,7 +85,6 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        //this(entityManager, dictionary, CalciteSqlDialect.DEFAULT);
         this(entityManager, dictionary, new H2SqlDialect(SqlDialect.EMPTY_CONTEXT));
     }
 
@@ -95,6 +96,15 @@ public class SQLQueryEngine implements QueryEngine {
 
         String tableName = schema.getTableDefinition();
         String tableAlias = schema.getAlias();
+
+        Map<Path, Sorting.SortOrder> sortClauses = (query.getSorting() == null)
+                ? new HashMap<>()
+                : query.getSorting().getValidSortingRules(query.getEntityClass(), dictionary);
+
+        String joinClause = "";
+        String whereClause = "";
+        String orderByClause = "";
+        String groupByClause = "";
 
         List<String> metricProjections = query.getMetrics().entrySet().stream()
                 .map((entry) -> entry.getKey())
@@ -119,20 +129,29 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.joining(","));
         }
 
-        String sql = String.format("SELECT %s FROM %s AS %s",
-                projectionClause, tableName, tableAlias);
 
         if (query.getWhereFilter() != null) {
-            sql += " " + extractJoin(query.getWhereFilter());
-            sql += " " + translateFilterExpression(schema, query.getWhereFilter());
+            joinClause = " " + extractJoin(query.getWhereFilter());
+            whereClause = " " + translateFilterExpression(schema, query.getWhereFilter());
         }
 
         if (!dimensionProjections.isEmpty()) {
-            sql += " GROUP BY ";
-            sql += dimensionProjections.stream()
+            groupByClause = " GROUP BY ";
+            groupByClause += dimensionProjections.stream()
                     .map((name) -> tableAlias + "." + name)
                     .collect(Collectors.joining(","));
         }
+
+        if (query.getSorting() != null) {
+            orderByClause = " " + extractOrderBy(query.getEntityClass(), sortClauses);
+            joinClause += " " + extractJoin(sortClauses);
+        }
+
+        String sql = String.format("SELECT %s FROM %s AS %s", projectionClause, tableName, tableAlias)
+                + joinClause
+                + whereClause
+                + groupByClause
+                + orderByClause;
 
         String nativeSql = translateSqlToNative(sql, dialect);
 
@@ -280,6 +299,38 @@ public class SQLQueryEngine implements QueryEngine {
                 getColumnName(entityClass, relationshipName),
                 relationshipAlias,
                 relationshipIdField);
+    }
+
+    private String extractJoin(Map<Path, Sorting.SortOrder> sortClauses) {
+        if (sortClauses.isEmpty()) {
+            return "";
+        }
+
+        return sortClauses.entrySet().stream()
+                .map(Map.Entry::getKey)
+                .flatMap((path) -> path.getPathElements().stream())
+                .filter((predicate) -> dictionary.isRelation(predicate.getType(), predicate.getFieldName()))
+                .map(this::extractJoin)
+                .collect(Collectors.joining(" "));
+    }
+
+    private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
+        if (sortClauses.isEmpty()) {
+            return "";
+        }
+
+        return " ORDER BY " + sortClauses.entrySet().stream()
+                .map((entry) -> {
+                    Path path = entry.getKey();
+                    Sorting.SortOrder order = entry.getValue();
+
+                    Path.PathElement last = path.lastElement().get();
+
+                    return FilterPredicate.getTypeAlias(last.getType())
+                            + "."
+                            + getColumnName(entityClass, last.getFieldName())
+                            + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
+                }).collect(Collectors.joining(","));
     }
 
     private void supplyFilterQueryParameters(FilterExpression expression,

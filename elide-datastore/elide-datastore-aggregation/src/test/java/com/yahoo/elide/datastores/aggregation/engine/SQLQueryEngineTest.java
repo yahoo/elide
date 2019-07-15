@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.Schema;
@@ -23,6 +24,7 @@ import org.testng.annotations.Test;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.persistence.EntityManager;
@@ -194,5 +196,41 @@ public class SQLQueryEngineTest {
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats2);
+    }
+
+    @Test
+    public void testSortJoin() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Map<String, Sorting.SortOrder> sortMap = new HashMap<>();
+        sortMap.put("player.name", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStats.class)
+                .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
+                .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
+                .sorting(new Sorting(sortMap))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setLowScore(241);
+        stats1.setOverallRating("Great");
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
+        stats2.setLowScore(72);
+        stats2.setOverallRating("Good");
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(results.get(0), stats1);
+        Assert.assertEquals(results.get(1), stats2);
     }
 }
