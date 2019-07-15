@@ -68,12 +68,14 @@ public class SQLQueryEngineTest {
 
         //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
         PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
         stats1.setLowScore(72);
         stats1.setHighScore(1234);
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
         stats2.setLowScore(241);
         stats2.setHighScore(2412);
         stats2.setOverallRating("Great");
@@ -103,6 +105,7 @@ public class SQLQueryEngineTest {
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
         stats1.setLowScore(241);
         stats1.setHighScore(2412);
         stats1.setOverallRating("Great");
@@ -131,12 +134,14 @@ public class SQLQueryEngineTest {
                 .collect(Collectors.toList());
 
         PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
         stats1.setLowScore(72);
         stats1.setHighScore(1234);
         stats1.setOverallRating("Good");
         stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
+        stats2.setId("1");
         stats2.setLowScore(241);
         stats2.setHighScore(2412);
         stats2.setOverallRating("Great");
@@ -163,6 +168,7 @@ public class SQLQueryEngineTest {
                 .collect(Collectors.toList());
 
         PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setId("0");
         stats2.setHighScore(2412);
 
         Assert.assertEquals(results.size(), 1);
@@ -183,6 +189,7 @@ public class SQLQueryEngineTest {
                 .collect(Collectors.toList());
 
         PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setId("0");
         stats2.setHighScore(2412);
 
         Assert.assertEquals(results.size(), 1);

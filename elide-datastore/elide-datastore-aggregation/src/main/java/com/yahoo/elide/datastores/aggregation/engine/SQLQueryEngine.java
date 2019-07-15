@@ -28,6 +28,7 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.H2SqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -147,9 +148,11 @@ public class SQLQueryEngine implements QueryEngine {
 
         List<Object> results = jpaQuery.getResultList();
 
+        MutableInt counter = new MutableInt(0);
+
         return results.stream()
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
-                .map((result) -> coerceObjectToEntity(query, result))
+                .map((result) -> coerceObjectToEntity(query, result, counter))
                 .collect(Collectors.toList());
     }
 
@@ -171,7 +174,7 @@ public class SQLQueryEngine implements QueryEngine {
         }
     }
 
-    protected Object coerceObjectToEntity(Query query, Object[] result) {
+    protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
 
         Class<?> entityClass = query.getEntityClass();
         List<String> projections = query.getMetrics().entrySet().stream()
@@ -205,13 +208,15 @@ public class SQLQueryEngine implements QueryEngine {
 
             Dimension dim = schema.getDimension(fieldName);
             if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
-
                 //We don't hydrate relationships here.
                 continue;
             }
 
             dictionary.setValue(entityInstance, fieldName, value);
         }
+
+        //Set the ID (it must be coerced from an integer)
+        dictionary.setValue(entityInstance, dictionary.getIdFieldName(entityClass), counter.getAndIncrement());
 
         return entityInstance;
     }
