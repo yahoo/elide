@@ -34,6 +34,7 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.H2SqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -155,11 +156,11 @@ public class SQLQueryEngine implements QueryEngine {
         log.debug("Running native SQL query: {}", nativeSql);
 
 
-        //Coerce the results into entity objects.
         MutableInt counter = new MutableInt(0);
+
         return results.stream()
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
-                .map((result) -> coerceObjectToEntity(query, result))
+                .map((result) -> coerceObjectToEntity(query, result, counter))
                 .collect(Collectors.toList());
     }
 
@@ -215,7 +216,7 @@ public class SQLQueryEngine implements QueryEngine {
         return builder.build();
     }
 
-    protected Object coerceObjectToEntity(Query query, Object[] result) {
+    protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
 
         Class<?> entityClass = query.getEntityClass();
         List<String> projections = query.getMetrics().entrySet().stream()
