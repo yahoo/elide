@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -39,8 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -93,7 +91,6 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        //this(entityManager, dictionary, CalciteSqlDialect.DEFAULT);
         this(entityManager, dictionary, new H2SqlDialect(SqlDialect.EMPTY_CONTEXT));
     }
 
@@ -106,6 +103,15 @@ public class SQLQueryEngine implements QueryEngine {
 
         //Translate the query into SQL.
         SQLQuery sql = toSQL(query);
+
+        Map<Path, Sorting.SortOrder> sortClauses = (query.getSorting() == null)
+                ? new HashMap<>()
+                : query.getSorting().getValidSortingRules(query.getEntityClass(), dictionary);
+
+        String joinClause = "";
+        String whereClause = "";
+        String orderByClause = "";
+        String groupByClause = "";
 
         List<String> metricProjections = query.getMetrics().entrySet().stream()
                 .map((entry) -> entry.getKey())
@@ -130,24 +136,29 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.joining(","));
         }
 
-                //Supply the query parameters to the query
-                supplyFilterQueryParameters(query, pageTotalQuery);
 
-                //Run the Pagination query and log the time spent.
-                long total = new TimedFunction<>(() -> {
-                        return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
-                    }, "Running Query: " + paginationSQL).get();
-
-                pagination.setPageTotals(total);
-            }
+        if (query.getWhereFilter() != null) {
+            joinClause = " " + extractJoin(query.getWhereFilter());
+            whereClause = " " + translateFilterExpression(schema, query.getWhereFilter());
         }
 
         if (!dimensionProjections.isEmpty()) {
-            sql += " GROUP BY ";
-            sql += dimensionProjections.stream()
+            groupByClause = " GROUP BY ";
+            groupByClause += dimensionProjections.stream()
                     .map((name) -> tableAlias + "." + name)
                     .collect(Collectors.joining(","));
         }
+
+        if (query.getSorting() != null) {
+            orderByClause = " " + extractOrderBy(query.getEntityClass(), sortClauses);
+            joinClause += " " + extractJoin(sortClauses);
+        }
+
+        String sql = String.format("SELECT %s FROM %s AS %s", projectionClause, tableName, tableAlias)
+                + joinClause
+                + whereClause
+                + groupByClause
+                + orderByClause;
 
         String nativeSql = translateSqlToNative(sql, dialect);
 
@@ -335,29 +346,19 @@ public class SQLQueryEngine implements QueryEngine {
                 relationshipIdField);
     }
 
-    /**
-     * Given a list of columns to sort on, extracts any entity relationship traversals that require joins.
-     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A set of path elements that capture a relationship traversal.
-     */
-    private Set<Path.PathElement> extractPathElements(Map<Path, Sorting.SortOrder> sortClauses) {
+    private String extractJoin(Map<Path, Sorting.SortOrder> sortClauses) {
         if (sortClauses.isEmpty()) {
-            return new LinkedHashSet<>();
+            return "";
         }
 
         return sortClauses.entrySet().stream()
                 .map(Map.Entry::getKey)
                 .flatMap((path) -> path.getPathElements().stream())
-                .filter((element) -> dictionary.isRelation(element.getType(), element.getFieldName()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .filter((predicate) -> dictionary.isRelation(predicate.getType(), predicate.getFieldName()))
+                .map(this::extractJoin)
+                .collect(Collectors.joining(" "));
     }
 
-    /**
-     * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
-     * @param entityClass The class to sort.
-     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A SQL expression
-     */
     private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
         if (sortClauses.isEmpty()) {
             return "";
@@ -377,22 +378,9 @@ public class SQLQueryEngine implements QueryEngine {
                 }).collect(Collectors.joining(","));
     }
 
-    /**
-     * Given a JPA query, replaces any parameters with their values from client query.
-     * @param query The client query
-     * @param jpaQuery The JPA query
-     */
-    private void supplyFilterQueryParameters(Query query,
-                                             javax.persistence.Query jpaQuery) {
-
-        Collection<FilterPredicate> predicates = new ArrayList<>();
-        if (query.getWhereFilter() != null) {
-            predicates.addAll(query.getWhereFilter().accept(new PredicateExtractionVisitor()));
-        }
-
-        if (query.getHavingFilter() != null) {
-            predicates.addAll(query.getHavingFilter().accept(new PredicateExtractionVisitor()));
-        }
+    private void supplyFilterQueryParameters(FilterExpression expression,
+                                             javax.persistence.Query query) {
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
