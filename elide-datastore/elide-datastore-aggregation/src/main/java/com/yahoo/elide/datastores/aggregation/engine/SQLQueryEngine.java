@@ -19,7 +19,6 @@ import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
-import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
@@ -29,7 +28,7 @@ import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.mutable.MutableInt;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,7 +68,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .stream()
                 .filter((clazz) ->
                         dictionary.getAnnotation(clazz, FromTable.class) != null
-                        || dictionary.getAnnotation(clazz, FromSubquery.class) != null
+                                || dictionary.getAnnotation(clazz, FromSubquery.class) != null
                 )
                 .collect(Collectors.toMap(
                         Function.identity(),
@@ -105,8 +104,8 @@ public class SQLQueryEngine implements QueryEngine {
 
                 //Run the Pagination query and log the time spent.
                 long total = new TimedFunction<>(() -> {
-                        return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
-                    }, "Running Query: " + paginationSQL).get();
+                    return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
+                }, "Running Query: " + paginationSQL).get();
 
                 pagination.setPageTotals(total);
             }
@@ -118,15 +117,9 @@ public class SQLQueryEngine implements QueryEngine {
         //Run the primary query and log the time spent.
         List<Object> results = new TimedFunction<>(() -> {
             return jpaQuery.getResultList();
-            }, "Running Query: " + sql).get();
+        }, "Running Query: " + sql).get();
 
-
-        //Coerce the results into entity objects.
-        MutableInt counter = new MutableInt(0);
-        return results.stream()
-                .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
-                .map((result) -> coerceObjectToEntity(query, result, counter))
-                .collect(Collectors.toList());
+        return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
     }
 
     /**
@@ -182,58 +175,6 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Coerces results from a JPA query into an Object.
-     * @param query The client query
-     * @param result A row from the results.
-     * @param counter Monotonically increasing number to generate IDs.
-     * @return A hydrated entity object.
-     */
-    protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
-        Class<?> entityClass = query.getSchema().getEntityClass();
-
-        //Get all the projections from the client query.
-        List<String> projections = query.getMetrics().entrySet().stream()
-                .map(Map.Entry::getKey)
-                .map(Metric::getName)
-                .collect(Collectors.toList());
-
-        projections.addAll(query.getDimensions().stream()
-                .map(Dimension::getName)
-                .collect(Collectors.toList()));
-
-        Preconditions.checkArgument(result.length == projections.size());
-
-        SQLSchema schema = (SQLSchema) query.getSchema();
-
-        //Construct the object.
-        Object entityInstance;
-        try {
-            entityInstance = entityClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        }
-
-        //Populate all of the fields.
-        for (int idx = 0; idx < result.length; idx++) {
-            Object value = result[idx];
-            String fieldName = projections.get(idx);
-
-            Dimension dim = schema.getDimension(fieldName);
-            if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
-                //We don't hydrate relationships here.
-                continue;
-            }
-
-            dictionary.setValue(entityInstance, fieldName, value);
-        }
-
-        //Set the ID (it must be coerced from an integer)
-        dictionary.setValue(entityInstance, dictionary.getIdFieldName(entityClass), counter.getAndIncrement());
-
-        return entityInstance;
-    }
-
-    /**
      * Translates a filter expression into SQL.
      * @param schema The schema being queried.
      * @param expression The filter expression
@@ -241,8 +182,8 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL expression
      */
     private String translateFilterExpression(SQLSchema schema,
-                                             FilterExpression expression,
-                                             Function<FilterPredicate, String> columnGenerator) {
+            FilterExpression expression,
+            Function<FilterPredicate, String> columnGenerator) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
         return filterVisitor.apply(expression, columnGenerator);
@@ -342,7 +283,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @param jpaQuery The JPA query
      */
     private void supplyFilterQueryParameters(Query query,
-                                             javax.persistence.Query jpaQuery) {
+            javax.persistence.Query jpaQuery) {
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         if (query.getWhereFilter() != null) {
@@ -397,9 +338,9 @@ public class SQLQueryEngine implements QueryEngine {
         Query clientQuery = sql.getClientQuery();
 
         String groupByDimensions = clientQuery.getDimensions().stream()
-            .map(Dimension::getName)
-            .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
-            .collect(Collectors.joining(","));
+                .map(Dimension::getName)
+                .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
+                .collect(Collectors.joining(","));
 
         String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
 
@@ -455,8 +396,8 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()
-                    .map((name) -> query.getSchema().getAlias() + "." + name)
-                    .collect(Collectors.joining(","));
+                .map((name) -> query.getSchema().getAlias() + "." + name)
+                .collect(Collectors.joining(","));
 
     }
 
