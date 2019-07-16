@@ -70,13 +70,6 @@
             <version>${hibernate5.version}</version>
         </dependency>
 
-        <!-- Calcite SQL Engine -->
-        <dependency>
-            <groupId>org.apache.calcite</groupId>
-            <artifactId>calcite-core</artifactId>
-            <version>1.20.0</version>
-        </dependency>
-
         <!-- Test -->
         <dependency>
             <groupId>org.testng</groupId>

@@ -26,18 +26,12 @@ import com.yahoo.elide.datastores.aggregation.metric.Metric;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
-import org.apache.calcite.sql.SqlDialect;
-import org.apache.calcite.sql.SqlNode;
-import org.apache.calcite.sql.dialect.H2SqlDialect;
-import org.apache.calcite.sql.parser.SqlParseException;
-import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -53,8 +47,6 @@ import javax.persistence.Table;
 @Slf4j
 public class SQLQueryEngine implements QueryEngine {
 
-    SqlDialect dialect;
-
     private EntityManager entityManager;
     private EntityDictionary dictionary;
     private Map<Class<?>, SQLSchema> schemas;
@@ -69,10 +61,9 @@ public class SQLQueryEngine implements QueryEngine {
         return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
     };
 
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary, SqlDialect dialect) {
+    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
         this.entityManager = entityManager;
         this.dictionary = dictionary;
-        this.dialect = dialect;
         schemas = dictionary.getBindings()
                 .stream()
                 .filter((clazz) ->
@@ -83,10 +74,6 @@ public class SQLQueryEngine implements QueryEngine {
                         Function.identity(),
                         (clazz) -> (new SQLSchema(clazz, dictionary))
                 ));
-    }
-
-    public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
-        this(entityManager, dictionary, new H2SqlDialect(SqlDialect.EMPTY_CONTEXT));
     }
 
     @Override
@@ -108,10 +95,11 @@ public class SQLQueryEngine implements QueryEngine {
         String groupByClause = "";
 
         List<String> metricProjections = query.getMetrics().entrySet().stream()
-                .map((entry) -> entry.getKey())
-                .map(Metric::getName)
-                .map((name) -> getColumnName(query.getEntityClass(), name))
-                .map((name) -> "__" + name.toUpperCase(Locale.ENGLISH) + "__")
+                .map((entry) -> {
+                    Metric metric = entry.getKey();
+                    Class<? extends Aggregation> agg = entry.getValue();
+                    return metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName();
+                })
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getDimensions().stream()
@@ -153,13 +141,9 @@ public class SQLQueryEngine implements QueryEngine {
                 + groupByClause
                 + orderByClause;
 
-        String nativeSql = translateSqlToNative(sql, dialect);
+        log.debug("Running native SQL query: {}", sql);
 
-        nativeSql = expandMetricTemplates(nativeSql, query.getMetrics());
-
-        log.debug("Running native SQL query: {}", nativeSql);
-
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(nativeSql);
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql);
 
         paginate(query, jpaQuery, fromClause, joinClause, whereClause);
 
@@ -175,24 +159,6 @@ public class SQLQueryEngine implements QueryEngine {
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
                 .map((result) -> coerceObjectToEntity(query, result, counter))
                 .collect(Collectors.toList());
-    }
-
-    protected String translateSqlToNative(String sqlStatement, SqlDialect dialect) {
-        log.debug("Parsing SQL {}", sqlStatement);
-
-        SqlParser parser = SqlParser.create(sqlStatement);
-
-        try {
-            SqlNode ast = parser.parseQuery();
-            String translated = ast.toSqlString(dialect).getSql();
-            translated = translated.replaceAll("\'(:[a-zA-Z0-9_]+)\'", "$1");
-
-            log.debug("TRANSLATED: {}", translated);
-            return translated;
-
-        } catch (SqlParseException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
@@ -241,22 +207,7 @@ public class SQLQueryEngine implements QueryEngine {
     private String translateFilterExpression(SQLSchema schema, FilterExpression expression) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
-        String whereClause = filterVisitor.apply(expression, columnGenerator);
-
-        return whereClause.replaceAll("(:[a-zA-Z0-9_]+)", "\'$1\'");
-    }
-
-    private String expandMetricTemplates(String sql, Map<Metric, Class<? extends Aggregation>> metrics) {
-        String expanded = sql;
-        for (Map.Entry entry : metrics.entrySet()) {
-            Metric metric = (Metric) entry.getKey();
-            Class<? extends Aggregation> agg = (Class<? extends Aggregation>) entry.getValue();
-
-            expanded = expanded.replaceFirst(
-                    "__" + metric.getName().toUpperCase(Locale.ENGLISH) + "__",
-                    metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName());
-        }
-        return expanded;
+        return filterVisitor.apply(expression, columnGenerator);
     }
 
     private String extractJoin(FilterExpression expression) {
