@@ -11,9 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
-/**
- * Aids in constructing a SQL query from String fragments.
- */
 @Data
 @Builder
 public class SQLQuery {
