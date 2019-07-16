@@ -64,13 +64,12 @@ public class SQLQueryEngine implements QueryEngine {
 
     private static final String SUBQUERY = "__SUBQUERY__";
 
-    //Function to return the alias to apply to a filter predicate expression.
-    private static final Function<FilterPredicate, String> ALIAS_PROVIDER = (predicate) -> {
-        List<Path.PathElement> elements = predicate.getPath().getPathElements();
+    //Converts a filter predicate into a SQL column reference
+    private final Function<FilterPredicate, String> columnGenerator = (predicate) -> {
+        Path.PathElement last = predicate.getPath().lastElement().get();
+        Class<?> lastClass = last.getType();
 
-        Path.PathElement last = elements.get(elements.size() - 1);
-
-        return FilterPredicate.getTypeAlias(last.getType());
+        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
     };
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
@@ -116,16 +115,14 @@ public class SQLQueryEngine implements QueryEngine {
         List<String> metricProjections = query.getMetrics().entrySet().stream()
                 .map((entry) -> entry.getKey())
                 .map(Metric::getName)
+                .map((name) -> getColumnName(query.getEntityClass(), name))
                 .map((name) -> "__" + name.toUpperCase(Locale.ENGLISH) + "__")
                 .collect(Collectors.toList());
 
-        List<String> dimensionProjections = query.getGroupDimensions().stream()
+        List<String> dimensionProjections = query.getDimensions().stream()
                 .map(Dimension::getName)
+                .map((name) -> getColumnName(query.getEntityClass(), name))
                 .collect(Collectors.toList());
-
-        dimensionProjections.addAll(query.getTimeDimensions().stream()
-                .map(Dimension::getName)
-                .collect(Collectors.toList()));
 
         String projectionClause = metricProjections.stream()
                 .collect(Collectors.joining(","));
@@ -135,7 +132,6 @@ public class SQLQueryEngine implements QueryEngine {
                 .map((name) -> tableAlias + "." + name)
                 .collect(Collectors.joining(","));
         }
-
 
         if (query.getWhereFilter() != null) {
             joinClause = " " + extractJoin(query.getWhereFilter());
@@ -246,11 +242,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .map(Metric::getName)
                 .collect(Collectors.toList());
 
-        projections.addAll(query.getGroupDimensions().stream()
-                .map(Dimension::getName)
-                .collect(Collectors.toList()));
-
-        projections.addAll(query.getTimeDimensions().stream()
+        projections.addAll(query.getDimensions().stream()
                 .map(Dimension::getName)
                 .collect(Collectors.toList()));
 
@@ -300,7 +292,9 @@ public class SQLQueryEngine implements QueryEngine {
                                              Function<FilterPredicate, String> columnGenerator) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
-        return filterVisitor.apply(expression, columnGenerator);
+        String whereClause = filterVisitor.apply(expression, columnGenerator);
+
+        return whereClause.replaceAll("(:[a-zA-Z0-9_]+)", "\'$1\'");
     }
 
     private String expandMetricTemplates(String sql, Map<Metric, Class<? extends Aggregation>> metrics) {
