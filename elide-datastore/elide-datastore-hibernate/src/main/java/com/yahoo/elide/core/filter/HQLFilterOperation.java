@@ -177,7 +177,7 @@ public class HQLFilterOperation implements FilterOperation<String> {
      */
     public String apply(FilterExpression filterExpression, Function<FilterPredicate, String> columnGenerator) {
         HQLQueryVisitor visitor = new HQLQueryVisitor(columnGenerator);
-        return "WHERE " + filterExpression.accept(visitor);
+        return filterExpression.accept(visitor);
     }
 
     /**

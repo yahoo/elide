@@ -98,6 +98,7 @@ public class SubCollectionFetchQueryBuilderTest {
                 + "JOIN example_Author__fetch.books example_Book "
                 + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
 
         Assert.assertEquals(actual, expected);
     }
@@ -182,11 +183,12 @@ public class SubCollectionFetchQueryBuilderTest {
 
         String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
                 + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
-                + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch  order by example_Book.title asc";
+                + "LEFT JOIN example_Book.publisher example_Book_publisher "
+                + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");
+        actual = actual.trim().replaceAll(" +", " ");
 
         Assert.assertEquals(actual, expected);
     }

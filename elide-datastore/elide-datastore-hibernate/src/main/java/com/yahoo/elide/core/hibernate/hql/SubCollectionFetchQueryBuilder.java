@@ -63,7 +63,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
                             + JOIN
                             + parentAlias + PERIOD + relationshipName + SPACE + childAlias
                             + joinClause
-                            + SPACE
+                            + WHERE
                             + filterClause
                             + " AND " + parentAlias + "=:" + parentAlias
                             + SPACE
