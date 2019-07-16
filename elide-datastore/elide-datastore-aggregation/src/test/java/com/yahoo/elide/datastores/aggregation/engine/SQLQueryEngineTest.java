@@ -65,7 +65,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
@@ -101,7 +101,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
@@ -131,7 +131,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
@@ -168,7 +168,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStatsView.class)
+                .schema(playerStatsViewSchema)
                 .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
                 .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
                         PlayerStatsView.class, false))
@@ -191,7 +191,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStatsView.class)
+                .schema(playerStatsViewSchema)
                 .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
                 .build();
 
@@ -215,7 +215,7 @@ public class SQLQueryEngineTest {
         sortMap.put("player.name", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
@@ -250,7 +250,7 @@ public class SQLQueryEngineTest {
         Pagination pagination = Pagination.fromOffsetAndLimit(1, 0, true);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
@@ -280,7 +280,7 @@ public class SQLQueryEngineTest {
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
         Query query = Query.builder()
-                .entityClass(PlayerStats.class)
+                .schema(playerStatsSchema)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
                         PlayerStats.class, false))
