@@ -273,4 +273,28 @@ public class SQLQueryEngineTest {
         Assert.assertEquals(results.get(0), stats1, "Returned record does not match");
         Assert.assertEquals(pagination.getPageTotals(), 2, "Page totals does not match");
     }
+
+    @Test
+    public void testHavingClause() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .entityClass(PlayerStats.class)
+                .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
+                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
+                        PlayerStats.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        //Jon Doe,1234,72,Good,840,2019-07-12 00:00:00
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("0");
+        stats1.setHighScore(3646);
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0), stats1);
+    }
 }
