@@ -73,16 +73,17 @@ public class SQLQueryEngine implements QueryEngine {
 
     @Override
     public Iterable<Object> executeQuery(Query query) {
-        SQLSchema schema = schemas.get(query.getEntityClass());
+        SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
         Preconditions.checkNotNull(schema);
+        Class<?> entityClass = schema.getEntityClass();
 
         String tableName = schema.getTableDefinition();
         String tableAlias = schema.getAlias();
 
         Map<Path, Sorting.SortOrder> sortClauses = (query.getSorting() == null)
                 ? new HashMap<>()
-                : query.getSorting().getValidSortingRules(query.getEntityClass(), dictionary);
+                : query.getSorting().getValidSortingRules(entityClass, dictionary);
 
         String joinClause = "";
         String whereClause = "";
@@ -100,7 +101,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         List<String> dimensionProjections = query.getDimensions().stream()
                 .map(Dimension::getName)
-                .map((name) -> getColumnName(query.getEntityClass(), name))
+                .map((name) -> getColumnName(entityClass, name))
                 .collect(Collectors.toList());
 
         String projectionClause = metricProjections.stream()
@@ -131,7 +132,7 @@ public class SQLQueryEngine implements QueryEngine {
         }
 
         if (query.getSorting() != null) {
-            orderByClause = " " + extractOrderBy(query.getEntityClass(), sortClauses);
+            orderByClause = " " + extractOrderBy(entityClass, sortClauses);
             joinClause += " " + extractJoin(sortClauses);
         }
 
@@ -163,8 +164,7 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
-
-        Class<?> entityClass = query.getEntityClass();
+        Class<?> entityClass = query.getSchema().getEntityClass();
         List<String> projections = query.getMetrics().entrySet().stream()
                 .map(Map.Entry::getKey)
                 .map(Metric::getName)
@@ -355,7 +355,7 @@ public class SQLQueryEngine implements QueryEngine {
         if (pagination.isGenerateTotals()) {
             String groupByDimensions = query.getDimensions().stream()
                     .map(Dimension::getName)
-                    .map((name) -> getColumnName(query.getEntityClass(), name))
+                    .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
                     .collect(Collectors.joining(","));
 
             String sql = String.format("SELECT COUNT(DISTINCT(%s)) FROM %s %s %s",
@@ -387,7 +387,7 @@ public class SQLQueryEngine implements QueryEngine {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
 
-        if (! lastClass.equals(query.getEntityClass())) {
+        if (! lastClass.equals(query.getSchema().getEntityClass())) {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 

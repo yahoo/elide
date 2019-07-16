@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 @Data
 @Builder
 public class Query {
-    private final Class<?> entityClass;
+    private final Schema schema;
 
     @Singular
     private final Map<Metric, Class<? extends Aggregation>> metrics;
