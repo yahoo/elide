@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,26 +31,27 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public static final Function<FilterParameter, String> LOWERED_PARAMETER = p ->
             String.format("lower(%s)", p.getPlaceholder());
 
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = (predicate) -> {
+        return predicate.getFieldPath();
+    };
+
+    public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_WITH_ALIAS = (predicate) -> {
+        return predicate.getAlias() + "." + predicate.getField();
+    };
+
     @Override
     public String apply(FilterPredicate filterPredicate) {
-        return apply(filterPredicate, Optional.empty());
+        return apply(filterPredicate, GENERATE_HQL_COLUMN_NO_ALIAS);
     }
 
     /**
      * Transforms a filter predicate into a HQL query fragment.
      * @param filterPredicate The predicate to transform.
-     * @param aliasProvider Function which supplies an alias to append to the predicate fields.
-     *                      This is useful for table aliases referenced in HQL for some kinds of joins.
+     * @param columnGenerator Function which supplies a HQL fragment which represents the column in the predicate.
      * @return The hql query fragment.
      */
-    protected String apply(FilterPredicate filterPredicate, Optional<Function<FilterPredicate, String>> aliasProvider) {
-        String fieldPath = filterPredicate.getFieldPath();
-
-        if (aliasProvider.isPresent()) {
-            fieldPath = aliasProvider.get().apply(filterPredicate) + "." + filterPredicate.getField();
-        }
-
-        //HQL doesn't support 'this', but it does support aliases.
+    protected String apply(FilterPredicate filterPredicate, Function<FilterPredicate, String> columnGenerator) {
+        String fieldPath = columnGenerator.apply(filterPredicate);
         fieldPath = fieldPath.replaceAll("\\.this", "");
 
         List<FilterParameter> params = filterPredicate.getParameters();
@@ -161,22 +161,22 @@ public class HQLFilterOperation implements FilterOperation<String> {
      * @return A JPQL filter fragment.
      */
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        Optional<Function<FilterPredicate, String>> aliasProvider = Optional.empty();
+        Function<FilterPredicate, String> columnGenerator = GENERATE_HQL_COLUMN_NO_ALIAS;
         if (prefixWithAlias) {
-            aliasProvider = Optional.of((predicate) -> predicate.getAlias());
+            columnGenerator = GENERATE_HQL_COLUMN_WITH_ALIAS;
         }
 
-        return apply(filterExpression, aliasProvider);
+        return apply(filterExpression, columnGenerator);
     }
 
     /**
      * Translates the filterExpression to a JPQL filter fragment.
      * @param filterExpression The filterExpression to translate
-     * @param aliasProvider Optionally appends the predicates clause with an alias.
+     * @param columnGenerator Generates a HQL fragment that represents a column in the predicate
      * @return A JPQL filter fragment.
      */
-    public String apply(FilterExpression filterExpression, Optional<Function<FilterPredicate, String>> aliasProvider) {
-        HQLQueryVisitor visitor = new HQLQueryVisitor(aliasProvider);
+    public String apply(FilterExpression filterExpression, Function<FilterPredicate, String> columnGenerator) {
+        HQLQueryVisitor visitor = new HQLQueryVisitor(columnGenerator);
         return "WHERE " + filterExpression.accept(visitor);
     }
 
@@ -186,15 +186,15 @@ public class HQLFilterOperation implements FilterOperation<String> {
     public class HQLQueryVisitor implements FilterExpressionVisitor<String> {
         public static final String TWO_NON_FILTERING_EXPRESSIONS =
                 "Cannot build a filter from two non-filtering expressions";
-        private Optional<Function<FilterPredicate, String>> aliasProvider;
+        private Function<FilterPredicate, String> columnGenerator;
 
-        public HQLQueryVisitor(Optional<Function<FilterPredicate, String>> aliasProvider) {
-            this.aliasProvider = aliasProvider;
+        public HQLQueryVisitor(Function<FilterPredicate, String> columnGenerator) {
+            this.columnGenerator = columnGenerator;
         }
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            return apply(filterPredicate, aliasProvider);
+            return apply(filterPredicate, columnGenerator);
         }
 
         @Override
