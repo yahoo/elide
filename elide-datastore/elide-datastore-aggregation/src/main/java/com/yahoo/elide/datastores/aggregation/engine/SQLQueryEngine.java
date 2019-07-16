@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -30,6 +31,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -86,6 +88,7 @@ public class SQLQueryEngine implements QueryEngine {
         String whereClause = "";
         String orderByClause = "";
         String groupByClause = "";
+        String havingClause = "";
 
         List<String> metricProjections = query.getMetrics().entrySet().stream()
                 .map((entry) -> {
@@ -111,7 +114,13 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (query.getWhereFilter() != null) {
             joinClause = " " + extractJoin(query.getWhereFilter());
-            whereClause = " WHERE " + translateFilterExpression(schema, query.getWhereFilter());
+            whereClause = " WHERE " + translateFilterExpression(schema, query.getWhereFilter(),
+                    this::generateWhereClauseColumnReference);
+        }
+
+        if (query.getHavingFilter() != null) {
+            havingClause = " HAVING " + translateFilterExpression(schema, query.getHavingFilter(),
+                    (predicate) -> { return generateHavingClauseColumnReference(predicate, query); });
         }
 
         if (!dimensionProjections.isEmpty()) {
@@ -132,6 +141,7 @@ public class SQLQueryEngine implements QueryEngine {
                 + joinClause
                 + whereClause
                 + groupByClause
+                + havingClause
                 + orderByClause;
 
         log.debug("Running native SQL query: {}", sql);
@@ -140,9 +150,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         paginate(query, jpaQuery, fromClause, joinClause, whereClause);
 
-        if (query.getWhereFilter() != null) {
-            supplyFilterQueryParameters(query.getWhereFilter(), jpaQuery);
-        }
+        supplyFilterQueryParameters(query, jpaQuery);
 
         List<Object> results = jpaQuery.getResultList();
 
@@ -197,10 +205,12 @@ public class SQLQueryEngine implements QueryEngine {
         return entityInstance;
     }
 
-    private String translateFilterExpression(SQLSchema schema, FilterExpression expression) {
+    private String translateFilterExpression(SQLSchema schema,
+                                             FilterExpression expression,
+                                             Function<FilterPredicate, String> columnGenerator) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
-        return filterVisitor.apply(expression, this::generateWhereClauseColumnReference);
+        return filterVisitor.apply(expression, columnGenerator);
     }
 
     private String extractJoin(FilterExpression expression) {
@@ -275,15 +285,23 @@ public class SQLQueryEngine implements QueryEngine {
                 }).collect(Collectors.joining(","));
     }
 
-    private void supplyFilterQueryParameters(FilterExpression expression,
-                                             javax.persistence.Query query) {
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+    private void supplyFilterQueryParameters(Query query,
+                                             javax.persistence.Query jpaQuery) {
+
+        Collection<FilterPredicate> predicates = new ArrayList<>();
+        if (query.getWhereFilter() != null) {
+            predicates.addAll(query.getWhereFilter().accept(new PredicateExtractionVisitor()));
+        }
+
+        if (query.getHavingFilter() != null) {
+            predicates.addAll(query.getHavingFilter().accept(new PredicateExtractionVisitor()));
+        }
 
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
-                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                    jpaQuery.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
                 });
             }
         }
@@ -348,9 +366,7 @@ public class SQLQueryEngine implements QueryEngine {
 
             javax.persistence.Query pageTotalQuery = entityManager.createNativeQuery(sql);
 
-            if (query.getWhereFilter() != null) {
-                supplyFilterQueryParameters(query.getWhereFilter(), pageTotalQuery);
-            }
+            supplyFilterQueryParameters(query, pageTotalQuery);
 
             long total = CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
 
@@ -367,16 +383,18 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     //Converts a filter predicate into a SQL HAVING clause column reference
-    private String generateHavingClauseColumnReference(FilterPredicate predicate) {
+    private String generateHavingClauseColumnReference(FilterPredicate predicate, Query query) {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
+
+        if (! lastClass.equals(query.getEntityClass())) {
+            throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
+        }
+
         Schema schema = schemas.get(lastClass);
-
-        Preconditions.checkNotNull(schema);
         Metric metric = schema.getMetric(last.getFieldName());
+        Class<? extends Aggregation> agg = query.getMetrics().get(metric);
 
-        Preconditions.checkNotNull(metric);
-
-        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+        return metric.getMetricExpression(Optional.of(agg));
     }
 }
