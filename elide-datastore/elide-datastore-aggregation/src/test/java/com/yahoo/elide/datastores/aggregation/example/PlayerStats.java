@@ -28,6 +28,7 @@ import javax.persistence.TemporalType;
  */
 @Entity
 @Include(rootLevel = true)
+@Cardinality(size = CardinalitySize.LARGE)
 public class PlayerStats {
 
     /**
