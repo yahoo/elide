@@ -35,6 +35,7 @@ import javax.persistence.Persistence;
 public class SQLQueryEngineTest {
 
     private EntityManagerFactory emf;
+
     private Schema playerStatsSchema;
     private Schema playerStatsViewSchema;
     private EntityDictionary dictionary;

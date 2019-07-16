@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,80 +75,27 @@ public class SQLQueryEngine implements QueryEngine {
         SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
         Preconditions.checkNotNull(schema);
-        Class<?> entityClass = schema.getEntityClass();
 
-        String tableName = schema.getTableDefinition();
-        String tableAlias = schema.getAlias();
-
-        Map<Path, Sorting.SortOrder> sortClauses = (query.getSorting() == null)
-                ? new HashMap<>()
-                : query.getSorting().getValidSortingRules(entityClass, dictionary);
-
-        String joinClause = "";
-        String whereClause = "";
-        String orderByClause = "";
-        String groupByClause = "";
-        String havingClause = "";
-
-        List<String> metricProjections = query.getMetrics().entrySet().stream()
-                .map((entry) -> {
-                    Metric metric = entry.getKey();
-                    Class<? extends Aggregation> agg = entry.getValue();
-                    return metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName();
-                })
-                .collect(Collectors.toList());
-
-        List<String> dimensionProjections = query.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(entityClass, name))
-                .collect(Collectors.toList());
-
-        String projectionClause = metricProjections.stream()
-                .collect(Collectors.joining(","));
-
-        if (!dimensionProjections.isEmpty()) {
-            projectionClause = projectionClause + "," + dimensionProjections.stream()
-                .map((name) -> tableAlias + "." + name)
-                .collect(Collectors.joining(","));
-        }
-
-        if (query.getWhereFilter() != null) {
-            joinClause = " " + extractJoin(query.getWhereFilter());
-            whereClause = " WHERE " + translateFilterExpression(schema, query.getWhereFilter(),
-                    this::generateWhereClauseColumnReference);
-        }
-
-        if (query.getHavingFilter() != null) {
-            havingClause = " HAVING " + translateFilterExpression(schema, query.getHavingFilter(),
-                    (predicate) -> { return generateHavingClauseColumnReference(predicate, query); });
-        }
-
-        if (!dimensionProjections.isEmpty()) {
-            groupByClause = " GROUP BY ";
-            groupByClause += dimensionProjections.stream()
-                    .map((name) -> tableAlias + "." + name)
-                    .collect(Collectors.joining(","));
-        }
-
-        if (query.getSorting() != null) {
-            orderByClause = " " + extractOrderBy(entityClass, sortClauses);
-            joinClause += " " + extractJoin(sortClauses);
-        }
-
-        String fromClause = String.format("%s AS %s", tableName, tableAlias);
-
-        String sql = String.format("SELECT %s FROM %s", projectionClause, fromClause)
-                + joinClause
-                + whereClause
-                + groupByClause
-                + havingClause
-                + orderByClause;
+        SQLQuery sql = toSQL(query);
 
         log.debug("Running native SQL query: {}", sql);
 
-        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql);
+        javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
-        paginate(query, jpaQuery, fromClause, joinClause, whereClause);
+        Pagination pagination = query.getPagination();
+        if (pagination != null) {
+            jpaQuery.setFirstResult(pagination.getOffset());
+            jpaQuery.setMaxResults(pagination.getLimit());
+
+            if (pagination.isGenerateTotals()) {
+                javax.persistence.Query pageTotalQuery =
+                        entityManager.createNativeQuery(toPageTotalSQL(sql).toString());
+
+                supplyFilterQueryParameters(query, pageTotalQuery);
+
+                pagination.setPageTotals(CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class));
+            }
+        }
 
         supplyFilterQueryParameters(query, jpaQuery);
 
@@ -161,6 +107,49 @@ public class SQLQueryEngine implements QueryEngine {
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
                 .map((result) -> coerceObjectToEntity(query, result, counter))
                 .collect(Collectors.toList());
+    }
+
+    protected SQLQuery toSQL(Query query) {
+        SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
+        Class<?> entityClass = schema.getEntityClass();
+
+        Preconditions.checkNotNull(schema);
+
+        SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(query);
+
+        String tableName = schema.getTableDefinition();
+        String tableAlias = schema.getAlias();
+
+        String joinClause = "";
+        builder.projectionClause(extractProjection(query));
+
+        if (query.getWhereFilter() != null) {
+            joinClause = extractJoin(query.getWhereFilter());
+            builder.whereClause("WHERE " + translateFilterExpression(schema, query.getWhereFilter(),
+                    this::generateWhereClauseColumnReference));
+        }
+
+        if (query.getHavingFilter() != null) {
+            builder.havingClause("HAVING " + translateFilterExpression(schema, query.getHavingFilter(),
+                    (predicate) -> { return generateHavingClauseColumnReference(predicate, query); }));
+        }
+
+        if (! query.getDimensions().isEmpty())  {
+            builder.groupByClause(extractGroupBy(query));
+        }
+
+        if (query.getSorting() != null) {
+            Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getValidSortingRules(entityClass, dictionary);
+
+            builder.orderByClause(extractOrderBy(entityClass, sortClauses));
+            joinClause += extractJoin(sortClauses);
+        }
+
+        builder.joinClause(joinClause);
+
+        builder.fromClause(String.format("%s AS %s", tableName, tableAlias));
+
+        return builder.build();
     }
 
     protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
@@ -331,47 +320,61 @@ public class SQLQueryEngine implements QueryEngine {
         }
     }
 
-    /**
-     * Paginates the query if requested.
-     * @param query The QueryEngine query
-     * @param jpaQuery The JPA query
-     */
-    private void paginate(Query query,
-                          javax.persistence.Query jpaQuery,
-                          String fromClause,
-                          String joinClause,
-                          String whereClause) {
-        Pagination pagination = query.getPagination();
-        if (pagination == null) {
-            return;
-        }
-        jpaQuery.setFirstResult(pagination.getOffset());
-        jpaQuery.setMaxResults(pagination.getLimit());
+    private SQLQuery toPageTotalSQL(SQLQuery sql) {
+        Query clientQuery = sql.getClientQuery();
 
-        /*
-         * TODO - this is a naive implementation. We should run these in parallel or combine the queries
-         * with a windowing function (if the DB supports that).
-         */
-        if (pagination.isGenerateTotals()) {
-            String groupByDimensions = query.getDimensions().stream()
-                    .map(Dimension::getName)
-                    .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+        String groupByDimensions = clientQuery.getDimensions().stream()
+            .map(Dimension::getName)
+            .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
+            .collect(Collectors.joining(","));
+
+        String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
+
+        return SQLQuery.builder()
+                .clientQuery(sql.getClientQuery())
+                .projectionClause(projectionClause)
+                .fromClause(sql.getFromClause())
+                .joinClause(sql.getJoinClause())
+                .whereClause(sql.getWhereClause())
+                .build();
+    }
+
+    private String extractProjection(Query query) {
+        List<String> metricProjections = query.getMetrics().entrySet().stream()
+                .map((entry) -> {
+                    Metric metric = entry.getKey();
+                    Class<? extends Aggregation> agg = entry.getValue();
+                    return metric.getMetricExpression(Optional.of(agg)) + " AS " + metric.getName();
+                })
+                .collect(Collectors.toList());
+
+        List<String> dimensionProjections = query.getDimensions().stream()
+                .map(Dimension::getName)
+                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .collect(Collectors.toList());
+
+        String projectionClause = metricProjections.stream()
+                .collect(Collectors.joining(","));
+
+        if (!dimensionProjections.isEmpty()) {
+            projectionClause = projectionClause + "," + dimensionProjections.stream()
+                    .map((name) -> query.getSchema().getAlias() + "." + name)
+                    .collect(Collectors.joining(","));
+        }
+
+        return projectionClause;
+    }
+
+    private String extractGroupBy(Query query) {
+        List<String> dimensionProjections = query.getDimensions().stream()
+                .map(Dimension::getName)
+                .map((name) -> getColumnName(query.getSchema().getEntityClass(), name))
+                .collect(Collectors.toList());
+
+        return "GROUP BY " + dimensionProjections.stream()
+                    .map((name) -> query.getSchema().getAlias() + "." + name)
                     .collect(Collectors.joining(","));
 
-            String sql = String.format("SELECT COUNT(DISTINCT(%s)) FROM %s %s %s",
-                    groupByDimensions,
-                    fromClause,
-                    joinClause,
-                    whereClause);
-
-            javax.persistence.Query pageTotalQuery = entityManager.createNativeQuery(sql);
-
-            supplyFilterQueryParameters(query, pageTotalQuery);
-
-            long total = CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
-
-            pagination.setPageTotals(total);
-        }
     }
 
     //Converts a filter predicate into a SQL WHERE clause column reference
