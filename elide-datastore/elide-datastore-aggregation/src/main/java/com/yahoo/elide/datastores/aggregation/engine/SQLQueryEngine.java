@@ -18,6 +18,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
@@ -57,14 +58,6 @@ public class SQLQueryEngine implements QueryEngine {
     private Map<Class<?>, SQLSchema> schemas;
 
     private static final String SUBQUERY = "__SUBQUERY__";
-
-    //Converts a filter predicate into a SQL column reference
-    private final Function<FilterPredicate, String> columnGenerator = (predicate) -> {
-        Path.PathElement last = predicate.getPath().lastElement().get();
-        Class<?> lastClass = last.getType();
-
-        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
-    };
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
         this.entityManager = entityManager;
@@ -124,7 +117,7 @@ public class SQLQueryEngine implements QueryEngine {
 
         if (query.getWhereFilter() != null) {
             joinClause = " " + extractJoin(query.getWhereFilter());
-            whereClause = " " + translateFilterExpression(schema, query.getWhereFilter());
+            whereClause = " WHERE " + translateFilterExpression(schema, query.getWhereFilter());
         }
 
         if (!dimensionProjections.isEmpty()) {
@@ -225,7 +218,7 @@ public class SQLQueryEngine implements QueryEngine {
                                              Function<FilterPredicate, String> columnGenerator) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
-        return filterVisitor.apply(expression, columnGenerator);
+        return filterVisitor.apply(expression, this::generateWhereClauseColumnReference);
     }
 
     private String extractJoin(FilterExpression expression) {
@@ -382,5 +375,27 @@ public class SQLQueryEngine implements QueryEngine {
 
             pagination.setPageTotals(total);
         }
+    }
+
+    //Converts a filter predicate into a SQL WHERE clause column reference
+    private String generateWhereClauseColumnReference(FilterPredicate predicate) {
+        Path.PathElement last = predicate.getPath().lastElement().get();
+        Class<?> lastClass = last.getType();
+
+        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
+    }
+
+    //Converts a filter predicate into a SQL HAVING clause column reference
+    private String generateHavingClauseColumnReference(FilterPredicate predicate) {
+        Path.PathElement last = predicate.getPath().lastElement().get();
+        Class<?> lastClass = last.getType();
+        Schema schema = schemas.get(lastClass);
+
+        Preconditions.checkNotNull(schema);
+        Metric metric = schema.getMetric(last.getFieldName());
+
+        Preconditions.checkNotNull(metric);
+
+        return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
     }
 }
