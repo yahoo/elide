@@ -39,7 +39,6 @@
     </scm>
 
     <dependencies>
-        <!-- Elide (including integration tests) -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
