@@ -298,11 +298,18 @@ public class SQLQueryEngineTest {
         EntityManager em = emf.createEntityManager();
         QueryEngine engine = new SQLQueryEngine(em, dictionary);
 
+        Map<String, Sorting.SortOrder> sortMap = new HashMap<>();
+        sortMap.put("player.name", Sorting.SortOrder.asc);
+
         Query query = Query.builder()
                 .schema(playerStatsViewSchema)
                 .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
+                .groupDimension(playerStatsViewSchema.getDimension("countryName"))
                 .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
                         PlayerStatsView.class, false))
+                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
+                        PlayerStatsView.class, false))
+                .sorting(new Sorting(sortMap))
                 .build();
 
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
@@ -311,6 +318,8 @@ public class SQLQueryEngineTest {
         PlayerStatsView stats2 = new PlayerStatsView();
         stats2.setId("0");
         stats2.setHighScore(2412);
+        stats2.setCountryName("United States");
+
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats2);

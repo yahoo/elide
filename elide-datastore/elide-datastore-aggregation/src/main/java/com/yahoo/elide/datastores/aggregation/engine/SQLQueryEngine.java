@@ -35,9 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Column;
@@ -138,11 +141,12 @@ public class SQLQueryEngine implements QueryEngine {
         String tableName = schema.getTableDefinition();
         String tableAlias = schema.getAlias();
 
-        String joinClause = "";
         builder.projectionClause(extractProjection(query));
 
+        Set<Path.PathElement> joinPredicates = new HashSet<>();
+
         if (query.getWhereFilter() != null) {
-            joinClause = extractJoin(query.getWhereFilter());
+            joinPredicates.addAll(extractPathElements(query.getWhereFilter()));
             builder.whereClause("WHERE " + translateFilterExpression(schema, query.getWhereFilter(),
                     this::generateWhereClauseColumnReference));
         }
@@ -160,8 +164,13 @@ public class SQLQueryEngine implements QueryEngine {
             Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getValidSortingRules(entityClass, dictionary);
 
             builder.orderByClause(extractOrderBy(entityClass, sortClauses));
-            joinClause += extractJoin(sortClauses);
+
+            joinPredicates.addAll(extractPathElements(sortClauses));
         }
+
+        String joinClause = joinPredicates.stream()
+                .map(this::extractJoin)
+                .collect(Collectors.joining(" "));
 
         builder.joinClause(joinClause);
 
@@ -238,29 +247,19 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Given a filter expression, extracts any table joins that are required to perform the filter.
+     * Given a filter expression, extracts any entity relationship traversals that require joins.
      * @param expression The filter expression
-     * @return A SQL expression
+     * @return A set of path elements that capture a relationship traversal.
      */
-    private String extractJoin(FilterExpression expression) {
+    private Set<Path.PathElement> extractPathElements(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
                 .filter(predicate -> predicate.getPath().getPathElements().size() > 1)
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
-    }
-
-    /**
-     * Given a filter predicate, extracts any table joins that are required to perform the filter.
-     * @param predicate The filter predicate
-     * @return A SQL expression
-     */
-    private String extractJoin(FilterPredicate predicate) {
-        return predicate.getPath().getPathElements().stream()
+                .map(FilterPredicate::getPath)
+                .flatMap((path) -> path.getPathElements().stream())
                 .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -294,21 +293,20 @@ public class SQLQueryEngine implements QueryEngine {
     }
 
     /**
-     * Given a list of columns to sort on, extracts any required table joins to perform the sort.
+     * Given a list of columns to sort on, extracts any entity relationship traversals that require joins.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A SQL expression
+     * @return A set of path elements that capture a relationship traversal.
      */
-    private String extractJoin(Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<Path.PathElement> extractPathElements(Map<Path, Sorting.SortOrder> sortClauses) {
         if (sortClauses.isEmpty()) {
-            return "";
+            return new LinkedHashSet<>();
         }
 
         return sortClauses.entrySet().stream()
                 .map(Map.Entry::getKey)
                 .flatMap((path) -> path.getPathElements().stream())
-                .filter((predicate) -> dictionary.isRelation(predicate.getType(), predicate.getFieldName()))
-                .map(this::extractJoin)
-                .collect(Collectors.joining(" "));
+                .filter((element) -> dictionary.isRelation(element.getType(), element.getFieldName()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**

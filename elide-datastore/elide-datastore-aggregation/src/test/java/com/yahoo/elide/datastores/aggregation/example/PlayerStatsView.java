@@ -22,7 +22,7 @@ import javax.persistence.OneToOne;
 @Entity
 @Include(rootLevel = true)
 @Data
-@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name FROM playerStats AS stats LEFT JOIN country AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
+@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN country AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
 public class PlayerStatsView {
 
     /**
