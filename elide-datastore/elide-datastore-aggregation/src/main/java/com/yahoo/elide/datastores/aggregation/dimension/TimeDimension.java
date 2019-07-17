@@ -33,6 +33,7 @@ public class TimeDimension extends DegenerateDimension {
     /**
      * Constructor.
      *
+     * @param schema The schema this dimension belongs to
      * @param dimensionField  The entity field or relation that this {@link Dimension} represents
      * @param annotation  Provides static meta data about this {@link Dimension}
      * @param fieldType  The Java type for this entity field or relation

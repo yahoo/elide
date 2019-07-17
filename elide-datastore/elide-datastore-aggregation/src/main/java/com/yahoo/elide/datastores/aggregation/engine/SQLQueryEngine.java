@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.HQLFilterOperation;
@@ -29,6 +30,7 @@ import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -51,13 +53,15 @@ public class SQLQueryEngine implements QueryEngine {
 
     private EntityManager entityManager;
     private EntityDictionary dictionary;
-    private Map<Class<?>, SQLSchema> schemas;
 
-    private static final String SUBQUERY = "__SUBQUERY__";
+    @Getter
+    private Map<Class<?>, SQLSchema> schemas;
 
     public SQLQueryEngine(EntityManager entityManager, EntityDictionary dictionary) {
         this.entityManager = entityManager;
         this.dictionary = dictionary;
+
+        // Construct the list of schemas that will be managed by this query engine.
         schemas = dictionary.getBindings()
                 .stream()
                 .filter((clazz) ->
@@ -74,11 +78,11 @@ public class SQLQueryEngine implements QueryEngine {
     public Iterable<Object> executeQuery(Query query) {
         SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
 
+        //Make sure we actually manage this schema.
         Preconditions.checkNotNull(schema);
 
+        //Translate the query into SQL.
         SQLQuery sql = toSQL(query);
-
-        log.debug("Running native SQL query: {}", sql);
 
         javax.persistence.Query jpaQuery = entityManager.createNativeQuery(sql.toString());
 
@@ -91,29 +95,43 @@ public class SQLQueryEngine implements QueryEngine {
                 javax.persistence.Query pageTotalQuery =
                         entityManager.createNativeQuery(toPageTotalSQL(sql).toString());
 
+                //Supply the query parameters to the query
                 supplyFilterQueryParameters(query, pageTotalQuery);
 
-                pagination.setPageTotals(CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class));
+                //Run the Pagination query and log the time spent.
+                long total = new TimedFunction<>(() -> {
+                        return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
+                    }, "Pagination Query").get();
+
+                pagination.setPageTotals(total);
             }
         }
 
+        //Supply the query parameters to the query
         supplyFilterQueryParameters(query, jpaQuery);
 
-        List<Object> results = jpaQuery.getResultList();
+        //Run the primary query and log the time spent.
+        List<Object> results = new TimedFunction<>(() -> {
+            return jpaQuery.getResultList();
+            }, "Primary Query").get();
 
+
+        //Coerce the results into entity objects.
         MutableInt counter = new MutableInt(0);
-
         return results.stream()
                 .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
                 .map((result) -> coerceObjectToEntity(query, result, counter))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Translates the client query into SQL.
+     * @param query the client query.
+     * @return the SQL query.
+     */
     protected SQLQuery toSQL(Query query) {
-        SQLSchema schema = schemas.get(query.getSchema().getEntityClass());
+        SQLSchema schema = (SQLSchema) query.getSchema();
         Class<?> entityClass = schema.getEntityClass();
-
-        Preconditions.checkNotNull(schema);
 
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder().clientQuery(query);
 
@@ -152,8 +170,17 @@ public class SQLQueryEngine implements QueryEngine {
         return builder.build();
     }
 
+    /**
+     * Coerces results from a JPA query into an Object.
+     * @param query The client query
+     * @param result A row from the results.
+     * @param counter Monotonically increasing number to generate IDs.
+     * @return A hydrated entity object.
+     */
     protected Object coerceObjectToEntity(Query query, Object[] result, MutableInt counter) {
         Class<?> entityClass = query.getSchema().getEntityClass();
+
+        //Get all the projections from the client query.
         List<String> projections = query.getMetrics().entrySet().stream()
                 .map(Map.Entry::getKey)
                 .map(Metric::getName)
@@ -163,11 +190,11 @@ public class SQLQueryEngine implements QueryEngine {
                 .map(Dimension::getName)
                 .collect(Collectors.toList()));
 
-        SQLSchema schema = schemas.get(entityClass);
-
-        Preconditions.checkNotNull(schema);
         Preconditions.checkArgument(result.length == projections.size());
 
+        SQLSchema schema = (SQLSchema) query.getSchema();
+
+        //Construct the object.
         Object entityInstance;
         try {
             entityInstance = entityClass.newInstance();
@@ -175,6 +202,7 @@ public class SQLQueryEngine implements QueryEngine {
             throw new IllegalStateException(e);
         }
 
+        //Populate all of the fields.
         for (int idx = 0; idx < result.length; idx++) {
             Object value = result[idx];
             String fieldName = projections.get(idx);
@@ -194,6 +222,13 @@ public class SQLQueryEngine implements QueryEngine {
         return entityInstance;
     }
 
+    /**
+     * Translates a filter expression into SQL.
+     * @param schema The schema being queried.
+     * @param expression The filter expression
+     * @param columnGenerator A function which generates a column reference in SQL from a FilterPredicate.
+     * @return A SQL expression
+     */
     private String translateFilterExpression(SQLSchema schema,
                                              FilterExpression expression,
                                              Function<FilterPredicate, String> columnGenerator) {
@@ -202,6 +237,11 @@ public class SQLQueryEngine implements QueryEngine {
         return filterVisitor.apply(expression, columnGenerator);
     }
 
+    /**
+     * Given a filter expression, extracts any table joins that are required to perform the filter.
+     * @param expression The filter expression
+     * @return A SQL expression
+     */
     private String extractJoin(FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
@@ -211,6 +251,11 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.joining(" "));
     }
 
+    /**
+     * Given a filter predicate, extracts any table joins that are required to perform the filter.
+     * @param predicate The filter predicate
+     * @return A SQL expression
+     */
     private String extractJoin(FilterPredicate predicate) {
         return predicate.getPath().getPathElements().stream()
                 .filter((p) -> dictionary.isRelation(p.getType(), p.getFieldName()))
@@ -218,6 +263,12 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.joining(" "));
     }
 
+    /**
+     * Given one component of the path taken to reach a particular field, extracts any table
+     * joins that are required to perform the traversal to the field.
+     * @param pathElement A field or relationship traversal from an entity
+     * @return A SQL expression
+     */
     private String extractJoin(Path.PathElement pathElement) {
         String relationshipName = pathElement.getFieldName();
         Class<?> relationshipClass = pathElement.getFieldType();
@@ -242,6 +293,11 @@ public class SQLQueryEngine implements QueryEngine {
                 relationshipIdField);
     }
 
+    /**
+     * Given a list of columns to sort on, extracts any required table joins to perform the sort.
+     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
+     * @return A SQL expression
+     */
     private String extractJoin(Map<Path, Sorting.SortOrder> sortClauses) {
         if (sortClauses.isEmpty()) {
             return "";
@@ -255,6 +311,12 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.joining(" "));
     }
 
+    /**
+     * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
+     * @param entityClass The class to sort.
+     * @param sortClauses The list of sort columns and their sort order (ascending or descending).
+     * @return A SQL expression
+     */
     private String extractOrderBy(Class<?> entityClass, Map<Path, Sorting.SortOrder> sortClauses) {
         if (sortClauses.isEmpty()) {
             return "";
@@ -274,6 +336,11 @@ public class SQLQueryEngine implements QueryEngine {
                 }).collect(Collectors.joining(","));
     }
 
+    /**
+     * Given a JPA query, replaces any parameters with their values from client query.
+     * @param query The client query
+     * @param jpaQuery The JPA query
+     */
     private void supplyFilterQueryParameters(Query query,
                                              javax.persistence.Query jpaQuery) {
 
@@ -298,7 +365,7 @@ public class SQLQueryEngine implements QueryEngine {
 
     /**
      * Returns the physical database column name of an entity field.  Note - we can't use Schema here because
-     * we need to look at Dimension table and Fact table fields.
+     * we need to look at both Dimension table and Fact table fields.
      * @param entityClass The JPA/Elide entity
      * @param fieldName The field name to lookup
      * @return
@@ -320,6 +387,12 @@ public class SQLQueryEngine implements QueryEngine {
         }
     }
 
+    /**
+     * Takes a SQLQuery and creates a new clone that instead returns the total number of records of the original
+     * query.
+     * @param sql The original query
+     * @return A new query that returns the total number of records.
+     */
     private SQLQuery toPageTotalSQL(SQLQuery sql) {
         Query clientQuery = sql.getClientQuery();
 
@@ -339,6 +412,11 @@ public class SQLQueryEngine implements QueryEngine {
                 .build();
     }
 
+    /**
+     * Given a client query, constructs the list of columns to project from a database table.
+     * @param query The client query
+     * @return A SQL fragment to use in the SELECT .. statement.
+     */
     private String extractProjection(Query query) {
         List<String> metricProjections = query.getMetrics().entrySet().stream()
                 .map((entry) -> {
@@ -365,6 +443,11 @@ public class SQLQueryEngine implements QueryEngine {
         return projectionClause;
     }
 
+    /**
+     * Extracts a GROUP BY SQL clause.
+     * @param query A client query
+     * @return The SQL GROUP BY clause
+     */
     private String extractGroupBy(Query query) {
         List<String> dimensionProjections = query.getDimensions().stream()
                 .map(Dimension::getName)
@@ -377,7 +460,11 @@ public class SQLQueryEngine implements QueryEngine {
 
     }
 
-    //Converts a filter predicate into a SQL WHERE clause column reference
+    /**
+     * Converts a filter predicate into a SQL WHERE clause column reference.
+     * @param predicate The predicate to convert
+     * @return A SQL fragment that references a database column
+     */
     private String generateWhereClauseColumnReference(FilterPredicate predicate) {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();
@@ -385,7 +472,11 @@ public class SQLQueryEngine implements QueryEngine {
         return FilterPredicate.getTypeAlias(lastClass) + "." + getColumnName(lastClass, last.getFieldName());
     }
 
-    //Converts a filter predicate into a SQL HAVING clause column reference
+    /**
+     * Converts a filter predicate into a SQL HAVING clause column reference.
+     * @param predicate The predicate to convert
+     * @return A SQL fragment that references a database column
+     */
     private String generateHavingClauseColumnReference(FilterPredicate predicate, Query query) {
         Path.PathElement last = predicate.getPath().lastElement().get();
         Class<?> lastClass = last.getType();

@@ -130,6 +130,7 @@ public class PlayerStats {
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      * {@link EntityDimensionTest#testCardinalityScan()}.
+     * @return the date of the player session.
      */
     @Temporal(timeGrain = TimeGrain.DAY, timeZone = "UTC")
     public Date getRecordedDate() {

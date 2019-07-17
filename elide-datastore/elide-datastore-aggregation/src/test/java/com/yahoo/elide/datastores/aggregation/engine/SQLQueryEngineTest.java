@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -50,8 +51,8 @@ public class SQLQueryEngineTest {
         dictionary.bindEntity(Player.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
-        playerStatsSchema = new Schema(PlayerStats.class, dictionary);
-        playerStatsViewSchema = new Schema(PlayerStatsView.class, dictionary);
+        playerStatsSchema = new SQLSchema(PlayerStats.class, dictionary);
+        playerStatsViewSchema = new SQLSchema(PlayerStatsView.class, dictionary);
     }
 
     @Test
