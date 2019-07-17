@@ -6,10 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.metric;
 
 import com.yahoo.elide.datastores.aggregation.Column;
-import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.annotation.Meta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

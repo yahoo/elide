@@ -18,7 +18,6 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.engine.annotation.FromSubquery;
@@ -26,6 +25,7 @@ import com.yahoo.elide.datastores.aggregation.engine.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Preconditions;
@@ -95,8 +95,10 @@ public class SQLQueryEngine implements QueryEngine {
             jpaQuery.setMaxResults(pagination.getLimit());
 
             if (pagination.isGenerateTotals()) {
+
+                SQLQuery paginationSQL = toPageTotalSQL(sql);
                 javax.persistence.Query pageTotalQuery =
-                        entityManager.createNativeQuery(toPageTotalSQL(sql).toString());
+                        entityManager.createNativeQuery(paginationSQL.toString());
 
                 //Supply the query parameters to the query
                 supplyFilterQueryParameters(query, pageTotalQuery);
@@ -104,7 +106,7 @@ public class SQLQueryEngine implements QueryEngine {
                 //Run the Pagination query and log the time spent.
                 long total = new TimedFunction<>(() -> {
                         return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
-                    }, "Pagination Query").get();
+                    }, "Running Query: " + paginationSQL).get();
 
                 pagination.setPageTotals(total);
             }
@@ -116,7 +118,7 @@ public class SQLQueryEngine implements QueryEngine {
         //Run the primary query and log the time spent.
         List<Object> results = new TimedFunction<>(() -> {
             return jpaQuery.getResultList();
-            }, "Primary Query").get();
+            }, "Running Query: " + sql).get();
 
 
         //Coerce the results into entity objects.

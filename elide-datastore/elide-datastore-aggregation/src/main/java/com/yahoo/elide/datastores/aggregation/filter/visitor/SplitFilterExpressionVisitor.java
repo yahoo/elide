@@ -231,9 +231,8 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
      * @return {@code true} if the {@link FilterPredicate} is a HAVING clause
      */
     private boolean isHavingPredicate(final FilterPredicate filterPredicate) {
-        Class entityClass = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
-        return getSchema().isMetricField(fieldName, entityClass);
+        return getSchema().isMetricField(fieldName);
     }
 }

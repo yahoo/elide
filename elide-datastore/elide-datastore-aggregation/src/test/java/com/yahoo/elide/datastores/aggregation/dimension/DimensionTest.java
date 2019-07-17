@@ -7,9 +7,9 @@ package com.yahoo.elide.datastores.aggregation.dimension;
 
 import static org.mockito.Mockito.mock;
 
-import com.yahoo.elide.datastores.aggregation.Schema;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.example.Country;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import com.yahoo.elide.datastores.aggregation.time.TimeGrain;
 
 import org.testng.Assert;

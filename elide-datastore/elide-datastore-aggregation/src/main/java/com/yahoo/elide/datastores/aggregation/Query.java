@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.dimension.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metric.Aggregation;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;

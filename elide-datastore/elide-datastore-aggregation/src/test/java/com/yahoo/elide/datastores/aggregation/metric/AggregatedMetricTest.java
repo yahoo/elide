@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metric;
 
 import static org.mockito.Mockito.mock;
 
-import com.yahoo.elide.datastores.aggregation.Schema;
+import com.yahoo.elide.datastores.aggregation.schema.Schema;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
