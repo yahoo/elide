@@ -298,4 +298,27 @@ public class SQLQueryEngineTest {
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), stats1);
     }
+
+    @Test
+    public void testTheEverythingQuery() throws Exception {
+        EntityManager em = emf.createEntityManager();
+        QueryEngine engine = new SQLQueryEngine(em, dictionary);
+
+        Query query = Query.builder()
+                .schema(playerStatsViewSchema)
+                .metric(playerStatsViewSchema.getMetric("highScore"), Sum.class)
+                .whereFilter(filterParser.parseFilterExpression("player.name=='Jane Doe'",
+                        PlayerStatsView.class, false))
+                .build();
+
+        List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
+                .collect(Collectors.toList());
+
+        PlayerStatsView stats2 = new PlayerStatsView();
+        stats2.setId("0");
+        stats2.setHighScore(2412);
+
+        Assert.assertEquals(results.size(), 1);
+        Assert.assertEquals(results.get(0), stats2);
+    }
 }
