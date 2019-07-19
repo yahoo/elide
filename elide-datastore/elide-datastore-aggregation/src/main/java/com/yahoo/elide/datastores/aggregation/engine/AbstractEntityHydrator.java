@@ -145,12 +145,12 @@ public abstract class AbstractEntityHydrator {
     private void populateObjectLookupTable() {
         // mapping: relationship field name -> join ID's
         Map<String, List<Object>> hydrationIdsByRelationship = getStitchList().getHydrationMapping();
-        Class<?> entityType = getQuery().getSchema().getEntityClass();
 
         // hydrate each relationship
         for (Map.Entry<String, List<Object>> entry : hydrationIdsByRelationship.entrySet()) {
             String joinField = entry.getKey();
             List<Object> joinFieldIds = entry.getValue();
+            Class<?> entityType = getEntityDictionary().getType(getQuery().getSchema().getEntityClass(), joinField);
 
             getStitchList().populateLookup(entityType, getRelationshipValues(entityType, joinField, joinFieldIds));
         }

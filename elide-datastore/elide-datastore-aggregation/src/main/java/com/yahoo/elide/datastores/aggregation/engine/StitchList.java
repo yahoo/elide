@@ -85,7 +85,8 @@ public final class StitchList {
             String relationshipName = todo.getRelationshipName();
             Object foreignKey = todo.getForeignKey();
 
-            Object relationshipValue = getObjectLookups().get(entityInstance.getClass()).get(foreignKey);
+            Class<?> relationshipType = getEntityDictionary().getType(entityInstance, relationshipName);
+            Object relationshipValue = getObjectLookups().get(relationshipType).get(foreignKey);
 
             getEntityDictionary().setValue(entityInstance, relationshipName, relationshipValue);
         }
