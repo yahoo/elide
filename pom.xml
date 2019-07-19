@@ -458,7 +458,7 @@
             <plugin>
                 <groupId>com.versioneye</groupId>
                 <artifactId>versioneye-maven-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.11.4</version>
                 <configuration>
                     <apiKey>${env.versioneye_api_key}</apiKey>
                     <parentGroupId>com.yahoo.elide</parentGroupId>
