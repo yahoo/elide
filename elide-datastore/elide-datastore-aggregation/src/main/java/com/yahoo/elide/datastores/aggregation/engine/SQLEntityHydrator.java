@@ -48,7 +48,7 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
     }
 
     @Override
-    public Map<Object, Object> getRelationshipValues(Class<?> entityClass, String joinField, List<Object> joinFieldIds) {
+    protected Map<Object, Object> getRelationshipValues(Class<?> entityClass, String joinField, List<Object> joinFieldIds) {
         if (joinFieldIds.isEmpty()) {
             return Collections.emptyMap();
         }
