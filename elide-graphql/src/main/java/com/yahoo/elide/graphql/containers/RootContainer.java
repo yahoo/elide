@@ -9,6 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
+import com.yahoo.elide.request.DataCollection;
 import graphql.language.Field;
 
 /**
@@ -19,6 +20,10 @@ public class RootContainer implements GraphQLContainer {
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         EntityDictionary dictionary = context.requestScope.getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(context.field.getName());
+
+        //TODO - This needs to be modified to build the entire document.
+
+        context.requestScope.setDataCollection(DataCollection.builder().type(entityClass).build());
         boolean generateTotals = requestContainsPageInfo(context.field);
         return fetcher.fetchObject(context, context.requestScope, entityClass, context.ids,
                 context.sort, context.offset, context.first, context.filters, generateTotals);
