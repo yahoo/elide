@@ -7,15 +7,12 @@ package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
-import com.yahoo.elide.datastores.aggregation.QueryEngine;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;

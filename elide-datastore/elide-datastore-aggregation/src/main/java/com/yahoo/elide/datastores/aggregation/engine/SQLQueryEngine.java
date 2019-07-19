@@ -396,8 +396,8 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()
-            .map((name) -> query.getSchema().getAlias() + "." + name)
-            .collect(Collectors.joining(","));
+                    .map((name) -> query.getSchema().getAlias() + "." + name)
+                    .collect(Collectors.joining(","));
 
     }
 
