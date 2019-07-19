@@ -1,7 +1,13 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,16 +24,27 @@ import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
 
+/**
+ * {@link SQLEntityHydrator} hydrates the entity loaded by {@link SQLQueryEngine#executeQuery(Query)}.
+ */
 public class SQLEntityHydrator extends AbstractEntityHydrator {
 
     @Getter(AccessLevel.PRIVATE)
     private final EntityManager entityManager;
 
+    /**
+     * Constructor.
+     *
+     * @param results The loaded objects from {@link SQLQueryEngine#executeQuery(Query)}
+     * @param query  The query passed to {@link SQLQueryEngine#executeQuery(Query)} to load the objects
+     * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
+     * @param entityManager  An service that issues JPQL queries to load relationship objects
+     */
     public SQLEntityHydrator(
-            final List<Object> results,
-            final Query query,
-            final EntityDictionary entityDictionary,
-            final EntityManager entityManager
+            List<Object> results,
+            Query query,
+            EntityDictionary entityDictionary,
+            EntityManager entityManager
     ) {
         super(results, query, entityDictionary);
         this.entityManager = entityManager;
@@ -56,10 +73,6 @@ public class SQLEntityHydrator extends AbstractEntityHydrator {
         return IntStream.range(0, loaded.size())
                 .boxed()
                 .map(i -> new AbstractMap.SimpleImmutableEntry<>(uniqueIds.get(i), loaded.get(i)))
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
-                                Collections::unmodifiableMap)
-                );
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

@@ -1,7 +1,13 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.Query;
+import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
 import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
@@ -21,7 +27,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- *
+ * {@link AbstractEntityHydrator} hydrates the entity loaded by {@link QueryEngine#executeQuery(Query)}.
+ * <p>
+ * {@link AbstractEntityHydrator} is not thread-safe and should be accessed by only 1 thread in this application,
+ * because it uses {@link StitchList}. See {@link StitchList} for more details.
  */
 public abstract class AbstractEntityHydrator {
 
@@ -37,6 +46,13 @@ public abstract class AbstractEntityHydrator {
     @Getter(AccessLevel.PRIVATE)
     private final Query query;
 
+    /**
+     * Constructor.
+     *
+     * @param results The loaded objects from {@link QueryEngine#executeQuery(Query)}
+     * @param query  The query passed to {@link QueryEngine#executeQuery(Query)} to load the objects
+     * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
+     */
     public AbstractEntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {
         this.stitchList = new StitchList(entityDictionary);
         this.results = new ArrayList<>(results);
@@ -45,16 +61,37 @@ public abstract class AbstractEntityHydrator {
     }
 
     /**
-     * Returns a list of relationship objects whose ID matches a specified list of ID's
+     * Loads a map of relationship object ID to relationship object instance.
      * <p>
-     * Note the relationship cannot be toMany. Regardless of ID duplicates, this method returns the list of relationship
-     * objects in the same size as the specified list of ID's, i.e. duplicate ID mapps to the same object in the
-     * returned list. For example:
+     * Note the relationship cannot be toMany. This method will be invoked for every relationship field of the
+     * requested entity. Its implementation should return the result of the following query
      * <p>
-     * if {@code entityClass = Country.java}, {@code joinField = country}, and {@code joinFieldIds = [840, 840, 344]},
-     * then this method returns {@code Country(id:840), Country(id:840), Country(id:344)}.
+     * <b>Given a relationship {@code joinField} in an entity of type {@code entityClass}, loads all relationship
+     * objects whose foreign keys are one of the specified list, {@code joinFieldIds}</b>.
      * <p>
-     * If the ID list is empty or no matching objects are found, this method returns {@link Collections#emptyList()}.
+     * For example, when the relationship is loaded from SQL and we have the following example identity:
+     * <pre>
+     * {@code
+     * public class PlayerStats {
+     *     private String id;
+     *     private Country country;
+     *
+     *     @OneToOne
+     *     @JoinColumn(name = "country_id")
+     *     public Country getCountry() {
+     *         return country;
+     * }
+     * </pre>
+     * In this case {@code entityClass = PlayerStats.class}; {@code joinField = "country"}. If {@code country} is
+     * requested in {@code PlayerStats} query and 3 stats, for example, are found in database whose country ID's are
+     * {@code joinFieldIds = [840, 344, 840]}, then this method should effectively run the following query (JPQL as
+     * example)
+     * <pre>
+     * {@code
+     *     SELECT e FROM country_table e WHERE country_id IN (840, 344);
+     * }
+     * </pre>
+     * and returns the map of [840: Country(id:840), 344: Country(id:344)]
      *
      * @param entityClass  The type of relationship
      * @param joinField  The relationship field name
@@ -142,6 +179,10 @@ public abstract class AbstractEntityHydrator {
         return entityInstance;
     }
 
+    /**
+     * Foe each requested relationship, run a single query to load all relationship objects whose ID's are involved in
+     * the request.
+     */
     private void populateObjectLookupTable() {
         // mapping: relationship field name -> join ID's
         Map<String, List<Object>> hydrationIdsByRelationship = getStitchList().getHydrationMapping();
