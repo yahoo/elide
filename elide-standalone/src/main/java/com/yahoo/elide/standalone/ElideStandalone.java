@@ -109,6 +109,7 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
+        /*
         if (elideStandaloneSettings.enableGraphQL()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getGraphQLApiPathSepc());
@@ -116,6 +117,7 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
+        */
 
         if (elideStandaloneSettings.enableServiceMonitoring()) {
             FilterHolder instrumentedFilterHolder = new FilterHolder(InstrumentedFilter.class);

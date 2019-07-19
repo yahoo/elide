@@ -64,6 +64,7 @@
             <artifactId>elide-datastore-jpa</artifactId>
             <version>4.5.2-SNAPSHOT</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
@@ -74,6 +75,7 @@
             <artifactId>elide-swagger</artifactId>
             <version>4.5.2-SNAPSHOT</version>
         </dependency>
+        -->
 
         <!-- JPA -->
         <dependency>

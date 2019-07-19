@@ -25,11 +25,11 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.ToString;
@@ -186,8 +186,16 @@ public class CollectionTerminalState extends BaseState {
                     + " to type: " + entityClass);
         }
 
-        PersistentResource pResource = PersistentResource.createObject(
-                parent.orElse(null), newObjectClass, requestScope, Optional.ofNullable(id));
+        PersistentResource pResource;
+        EntityProjection collection;
+        if (parent.isPresent()) {
+            collection = parent.get().getRelationshipProjection(relationName.get());
+            pResource = PersistentResource.createObject(parent.get(), newObjectClass, collection,
+                    requestScope, Optional.ofNullable(id));
+        } else {
+            pResource = PersistentResource.createObject(null, newObjectClass, requestScope.getEntityProjection(),
+                    requestScope, Optional.ofNullable(id));
+        }
 
         Map<String, Object> attributes = resource.getAttributes();
         if (attributes != null) {

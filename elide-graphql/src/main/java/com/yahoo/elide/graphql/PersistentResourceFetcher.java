@@ -23,6 +23,7 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
+import com.yahoo.elide.request.EntityProjection;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -380,19 +381,21 @@ public class PersistentResourceFetcher implements DataFetcher {
         RequestScope requestScope = entity.getRequestScope();
         PersistentResource upsertedResource;
         PersistentResource parentResource;
+        EntityProjection collection;
         if (!entity.getParentResource().isPresent()) {
             parentResource = null;
+            collection = requestScope.getEntityProjection();
         } else {
             parentResource = entity.getParentResource().get().toPersistentResource();
+            collection = parentResource.getRelationshipProjection(context.field.getName());
         }
 
         if (!id.isPresent()) {
             entity.setId();
             id = entity.getId();
+
             upsertedResource = PersistentResource.createObject(parentResource,
-                    entity.getEntityClass(),
-                    requestScope,
-                    id);
+                    entity.getEntityClass(), collection, requestScope, id);
         } else {
             try {
                 Set<PersistentResource> loadedResource = fetchObject(context, requestScope, entity.getEntityClass(),
@@ -406,10 +409,8 @@ public class PersistentResourceFetcher implements DataFetcher {
 
             //The ID doesn't exist yet.  Let's create the object.
             } catch (InvalidObjectIdentifierException | InvalidValueException e) {
-                upsertedResource = PersistentResource.createObject(parentResource,
-                        entity.getEntityClass(),
-                        requestScope,
-                        id);
+                upsertedResource = PersistentResource.createObject(parentResource, entity.getEntityClass(),
+                        collection, requestScope, id);
             }
         }
 

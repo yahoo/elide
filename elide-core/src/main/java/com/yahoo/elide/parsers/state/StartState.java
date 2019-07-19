@@ -27,6 +27,7 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
+
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }

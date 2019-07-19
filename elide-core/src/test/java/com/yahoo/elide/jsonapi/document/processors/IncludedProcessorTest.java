@@ -8,14 +8,13 @@ package com.yahoo.elide.jsonapi.document.processors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.security.User;
@@ -55,6 +54,10 @@ public class IncludedProcessorTest {
 
     private PersistentResource<FunWithPermissions> funWithPermissionsRecord;
 
+    private User goodUser = new User(1);
+    private User badUser = new User(1);
+    private DataStoreTransaction mockTransaction = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
+
     @BeforeEach
     public void setUp() throws Exception {
         includedProcessor = new IncludedProcessor();
@@ -64,20 +67,7 @@ public class IncludedProcessorTest {
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
 
-        ElideSettings elideSettings = new ElideSettingsBuilder(null)
-                .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(dictionary)
-                .build();
-
-        RequestScope goodUserScope = new RequestScope(null,
-                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(1), null,
-                elideSettings);
-
-        RequestScope badUserScope = new RequestScope(null,
-                new JsonApiDocument(), mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS),
-                new User(-1), null,
-                elideSettings);
+        reset(mockTransaction);
 
         //Create objects
         Parent parent1 = newParent(1);
@@ -102,16 +92,19 @@ public class IncludedProcessorTest {
         child3.setFriends(new HashSet<>(Collections.singletonList(child1)));
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
-        //Create Persistent Resources
-        parentRecord1 = new PersistentResource<>(parent1, null, goodUserScope.getUUIDFor(parent1), goodUserScope);
-        parentRecord2 = new PersistentResource<>(parent2, null, goodUserScope.getUUIDFor(parent2), goodUserScope);
-        parentRecord3 = new PersistentResource<>(parent3, null, goodUserScope.getUUIDFor(parent3), goodUserScope);
-        childRecord1  = new PersistentResource<>(child1, null, goodUserScope.getUUIDFor(child1), goodUserScope);
-        childRecord2  = new PersistentResource<>(child2, null, goodUserScope.getUUIDFor(child2), goodUserScope);
-        childRecord3  = new PersistentResource<>(child3, null, goodUserScope.getUUIDFor(child3), goodUserScope);
-        childRecord4  = new PersistentResource<>(child4, null, goodUserScope.getUUIDFor(child4), goodUserScope);
+        RequestScope parentScope = new TestRequestScope(mockTransaction, goodUser, dictionary, Parent.class, 3);
+        RequestScope childScope = new TestRequestScope(mockTransaction, goodUser, dictionary, Child.class, 3);
+        RequestScope funScope = new TestRequestScope(mockTransaction, badUser, dictionary, FunWithPermissions.class, 1);
+        //Create Persistent Resource
+        parentRecord1 = new PersistentResource<>(parent1, null, parentScope.getUUIDFor(parent1), parentScope);
+        parentRecord2 = new PersistentResource<>(parent2, null, parentScope.getUUIDFor(parent2), parentScope);
+        parentRecord3 = new PersistentResource<>(parent3, null, parentScope.getUUIDFor(parent3), parentScope);
+        childRecord1  = new PersistentResource<>(child1, null, childScope.getUUIDFor(child1), childScope);
+        childRecord2  = new PersistentResource<>(child2, null, childScope.getUUIDFor(child2), childScope);
+        childRecord3  = new PersistentResource<>(child3, null, childScope.getUUIDFor(child3), childScope);
+        childRecord4  = new PersistentResource<>(child4, null, childScope.getUUIDFor(child4), childScope);
 
-        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, goodUserScope.getUUIDFor(funWithPermissions), badUserScope);
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, funScope.getUUIDFor(funWithPermissions), funScope);
     }
 
     @Test
