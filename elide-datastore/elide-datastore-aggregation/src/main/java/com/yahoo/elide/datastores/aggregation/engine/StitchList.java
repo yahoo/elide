@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.datastores.aggregation.engine;
 
 import com.yahoo.elide.core.EntityDictionary;
@@ -29,7 +34,7 @@ import java.util.stream.Collectors;
 public final class StitchList {
 
     /**
-     * A representation of an element in a {@link StitchList}.
+     * A representation of an TODO item in a {@link StitchList}.
      */
     @Data
     public static class Todo {
@@ -39,7 +44,7 @@ public final class StitchList {
     }
 
     /**
-     * Maps an relationship entity class to a Map of object ID to object instance.
+     * Maps an relationship entity class to a map of object ID to object instance.
      * <p>
      * For example, [Country.class: [340: Country(id:340), 100: Country(id:100)]]
      */
@@ -55,30 +60,54 @@ public final class StitchList {
     @Getter(AccessLevel.PRIVATE)
     private final EntityDictionary entityDictionary;
 
+    /**
+     * Constructor.
+     *
+     * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
+     */
     public StitchList(EntityDictionary entityDictionary) {
         this.objectLookups = new ConcurrentHashMap<>();
         this.todoList = Collections.synchronizedList(new ArrayList<>());
         this.entityDictionary = entityDictionary;
     }
 
+    /**
+     * Returns whether or not the entity instances in this {@link StitchList} have relationships that are unset.
+     *
+     * @return {@code true} if the entity instances in this {@link StitchList} should be further hydrated because they
+     * have one or more relationship fields.
+     */
     public boolean shouldStitch() {
         return !getTodoList().isEmpty();
     }
 
+    /**
+     * Enqueues an entity instance which will be further hydrated on one of its relationship fields later
+     *
+     * @param entityInstance  The entity instance to be hydrated
+     * @param fieldName  The relationship field to hydrate in the entity instance
+     * @param value  The foreign key between the entity instance and the field entity.
+     */
     public void todo(Object entityInstance, String fieldName, Object value) {
         getTodoList().add(new Todo(entityInstance, fieldName, value));
     }
 
     /**
-     * Any existing values will be overwritten.
+     * Sets all the relationship values of an requested entity.
+     * <p>
+     * Values associated with the existing key will be overwritten.
      *
-     * @param relationshipType
-     * @param idToInstance
+     * @param relationshipType  The type of the relationship to set
+     * @param idToInstance  A map from relationship ID to the actual relationship instance with that ID
      */
     public void populateLookup(Class<?> relationshipType, Map<Object, Object> idToInstance) {
         getObjectLookups().put(relationshipType, idToInstance);
     }
 
+    /**
+     * Stitch all entity instances currently in this {@link StitchList} by setting their relationship fields whose
+     * values are determined by relationship ID's.
+     */
     public void stitch() {
         for (Todo todo : getTodoList()) {
             Object entityInstance = todo.getEntityInstance();
@@ -93,6 +122,8 @@ public final class StitchList {
     }
 
     /**
+     * Returns a mapping from relationship name to an immutable list of foreign key ID objects.
+     * <p>
      * For example, given the following {@code todoList}:
      * <pre>
      * {@code
@@ -118,8 +149,14 @@ public final class StitchList {
         return getTodoList().stream()
                 .collect(
                         Collectors.groupingBy(
-                                StitchList.Todo::getRelationshipName,
-                                Collectors.mapping(StitchList.Todo::getForeignKey, Collectors.toCollection(LinkedList::new))
+                                Todo::getRelationshipName,
+                                Collectors.mapping(
+                                        Todo::getForeignKey,
+                                        Collectors.collectingAndThen(
+                                                Collectors.toCollection(LinkedList::new),
+                                                Collections::unmodifiableList
+                                        )
+                                )
                         )
                 );
     }

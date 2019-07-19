@@ -9,6 +9,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricComputation;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;

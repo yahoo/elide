@@ -68,7 +68,7 @@ public class SQLQueryEngine implements QueryEngine {
                 .stream()
                 .filter((clazz) ->
                         dictionary.getAnnotation(clazz, FromTable.class) != null
-                                || dictionary.getAnnotation(clazz, FromSubquery.class) != null
+                        || dictionary.getAnnotation(clazz, FromSubquery.class) != null
                 )
                 .collect(Collectors.toMap(
                         Function.identity(),
@@ -104,8 +104,8 @@ public class SQLQueryEngine implements QueryEngine {
 
                 //Run the Pagination query and log the time spent.
                 long total = new TimedFunction<>(() -> {
-                    return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
-                }, "Running Query: " + paginationSQL).get();
+                        return CoerceUtil.coerce(pageTotalQuery.getSingleResult(), Long.class);
+                    }, "Running Query: " + paginationSQL).get();
 
                 pagination.setPageTotals(total);
             }
@@ -117,7 +117,7 @@ public class SQLQueryEngine implements QueryEngine {
         //Run the primary query and log the time spent.
         List<Object> results = new TimedFunction<>(() -> {
             return jpaQuery.getResultList();
-        }, "Running Query: " + sql).get();
+            }, "Running Query: " + sql).get();
 
         return new SQLEntityHydrator(results, query, dictionary, entityManager).hydrate();
     }
@@ -182,8 +182,8 @@ public class SQLQueryEngine implements QueryEngine {
      * @return A SQL expression
      */
     private String translateFilterExpression(SQLSchema schema,
-            FilterExpression expression,
-            Function<FilterPredicate, String> columnGenerator) {
+                                             FilterExpression expression,
+                                             Function<FilterPredicate, String> columnGenerator) {
         HQLFilterOperation filterVisitor = new HQLFilterOperation();
 
         return filterVisitor.apply(expression, columnGenerator);
@@ -283,7 +283,7 @@ public class SQLQueryEngine implements QueryEngine {
      * @param jpaQuery The JPA query
      */
     private void supplyFilterQueryParameters(Query query,
-            javax.persistence.Query jpaQuery) {
+                                             javax.persistence.Query jpaQuery) {
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         if (query.getWhereFilter() != null) {
@@ -338,9 +338,9 @@ public class SQLQueryEngine implements QueryEngine {
         Query clientQuery = sql.getClientQuery();
 
         String groupByDimensions = clientQuery.getDimensions().stream()
-                .map(Dimension::getName)
-                .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
-                .collect(Collectors.joining(","));
+            .map(Dimension::getName)
+            .map((name) -> getColumnName(clientQuery.getSchema().getEntityClass(), name))
+            .collect(Collectors.joining(","));
 
         String projectionClause = String.format("SELECT COUNT(DISTINCT(%s))", groupByDimensions);
 
@@ -396,8 +396,8 @@ public class SQLQueryEngine implements QueryEngine {
                 .collect(Collectors.toList());
 
         return "GROUP BY " + dimensionProjections.stream()
-                .map((name) -> query.getSchema().getAlias() + "." + name)
-                .collect(Collectors.joining(","));
+            .map((name) -> query.getSchema().getAlias() + "." + name)
+            .collect(Collectors.joining(","));
 
     }
 
