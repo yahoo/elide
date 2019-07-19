@@ -98,7 +98,7 @@ public abstract class AbstractEntityHydrator {
      *
      * @return a list of hydrating values
      */
-    public abstract Map<Object, Object> getRelationshipValues(
+    protected abstract Map<Object, Object> getRelationshipValues(
             Class<?> entityClass,
             String joinField,
             List<Object> joinFieldIds
