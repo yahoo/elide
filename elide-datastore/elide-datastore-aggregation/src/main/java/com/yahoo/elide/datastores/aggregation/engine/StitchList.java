@@ -13,6 +13,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +25,6 @@ import java.util.stream.Collectors;
  * instance.
  * <p>
  * {@link StitchList} should not be subclassed.
- * <p>
- * Concurrency note: {@link #stitch()} operation generally do not block, so may overlap with update operations (
- * {@link #todo(Object, String, Object)} and {@link #populateLookup(Class, Map)}). {@link #stitch()} reflects the
- * results of the most recently completed update operations holding upon their onset. (More formally, an update
- * operation bears a happens-before relation with a {@link #stitch()} operation.)
  */
 public final class StitchList {
 
@@ -65,8 +61,8 @@ public final class StitchList {
      * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
      */
     public StitchList(EntityDictionary entityDictionary) {
-        this.objectLookups = new ConcurrentHashMap<>();
-        this.todoList = Collections.synchronizedList(new ArrayList<>());
+        this.objectLookups = new HashMap<>();
+        this.todoList = new ArrayList<>();
         this.entityDictionary = entityDictionary;
     }
 
