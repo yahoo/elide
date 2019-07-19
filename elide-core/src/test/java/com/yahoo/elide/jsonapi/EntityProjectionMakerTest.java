@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.InInsensitivePredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import example.Address;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+
 import java.util.HashMap;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -37,6 +39,7 @@ public class EntityProjectionMakerTest {
     private EntityDictionary dictionary;
 
     @BeforeAll
+
     public void init() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
@@ -57,6 +60,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
+
                 .attribute(Attribute.builder().name("title").type(String.class).build())
                 .attribute(Attribute.builder().name("genre").type(String.class).build())
                 .attribute(Attribute.builder().name("language").type(String.class).build())
@@ -76,6 +80,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -91,6 +96,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
+
                 .attribute(Attribute.builder().name("title").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .relationship("authors", EntityProjection.builder()
@@ -102,6 +108,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -116,6 +123,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
+
                 .attribute(Attribute.builder().name("title").type(String.class).build())
                 .attribute(Attribute.builder().name("genre").type(String.class).build())
                 .attribute(Attribute.builder().name("language").type(String.class).build())
@@ -134,6 +142,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -151,6 +160,7 @@ public class EntityProjectionMakerTest {
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .relationship("publisher", EntityProjection.builder()
+
                                 .type(Publisher.class)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
@@ -161,6 +171,7 @@ public class EntityProjectionMakerTest {
                                         .type(Editor.class)
                                         .build())
                                 .pagination(defaultPagination)
+
                                 .build())
                         .build())
                 .build();
@@ -168,6 +179,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -185,6 +197,7 @@ public class EntityProjectionMakerTest {
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .relationship("publisher", EntityProjection.builder()
+
                                 .type(Publisher.class)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
@@ -192,6 +205,7 @@ public class EntityProjectionMakerTest {
                                         .type(Book.class)
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
+
                                         .type(Editor.class)
                                         .build())
                                 .build())
@@ -201,6 +215,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -224,6 +239,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -244,15 +260,18 @@ public class EntityProjectionMakerTest {
                         .pagination(defaultPagination)
                         .build())
                 .relationship("authors", EntityProjection.builder()
+
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
+
                                 .build())
                         .type(Author.class)
                         .build())
                 .relationship("editor", EntityProjection.builder()
+
                         .type(Editor.class)
                         .build())
                 .build();
@@ -260,6 +279,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -275,17 +295,20 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
+
                 .attribute(Attribute.builder().name("title").type(String.class).build())
                 .attribute(Attribute.builder().name("genre").type(String.class).build())
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
+
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
+
                                 .build())
                         .build())
                 .relationship("publisher", EntityProjection.builder()
@@ -300,6 +323,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -315,17 +339,20 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Book.class)
+
                 .attribute(Attribute.builder().name("title").type(String.class).build())
                 .attribute(Attribute.builder().name("genre").type(String.class).build())
                 .attribute(Attribute.builder().name("language").type(String.class).build())
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .relationship("authors", EntityProjection.builder()
                         .type(Author.class)
+
                         .attribute(Attribute.builder().name("name").type(String.class).build())
                         .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                         .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                         .relationship("books", EntityProjection.builder()
                                 .type(Book.class)
+
                                 .build())
                         .build())
                 .relationship("publisher", EntityProjection.builder()
@@ -343,6 +370,7 @@ public class EntityProjectionMakerTest {
 
     @Test
     public void testRootCollectionWithNestedInclude() throws Exception {
+
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("include", "books");
         queryParams.add("include", "books.publisher,books.editor");
@@ -360,6 +388,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
+
                         .attribute(Attribute.builder().name("title").type(String.class).build())
                         .attribute(Attribute.builder().name("genre").type(String.class).build())
                         .attribute(Attribute.builder().name("language").type(String.class).build())
@@ -381,6 +410,7 @@ public class EntityProjectionMakerTest {
                                         .type(Book.class)
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
+
                                         .type(Editor.class)
                                         .build())
                                 .build())
@@ -394,6 +424,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -410,11 +441,13 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
+
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
+
                         .attribute(Attribute.builder().name("title").type(String.class).build())
                         .attribute(Attribute.builder().name("genre").type(String.class).build())
                         .attribute(Attribute.builder().name("language").type(String.class).build())
@@ -427,19 +460,23 @@ public class EntityProjectionMakerTest {
                                         .type(Book.class)
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
+
                                         .type(Editor.class)
                                         .build())
                                 .build())
                         .relationship("editor", EntityProjection.builder()
                                 .type(Editor.class)
+
                                 .attribute(Attribute.builder().name("firstName").type(String.class).build())
                                 .attribute(Attribute.builder().name("lastName").type(String.class).build())
                                 .attribute(Attribute.builder().name("fullName").type(String.class).build())
                                 .relationship("editor", EntityProjection.builder()
+
                                         .type(Editor.class)
                                         .build())
                                 .build())
                         .relationship("authors", EntityProjection.builder()
+
                                 .type(Author.class)
                                 .build())
                         .build())
@@ -448,6 +485,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -466,10 +504,12 @@ public class EntityProjectionMakerTest {
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .relationship("publisher", EntityProjection.builder()
+
                                 .type(Publisher.class)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
                                 .relationship("books", EntityProjection.builder()
+
                                         .type(Book.class)
                                         .attribute(Attribute.builder().name("title").type(String.class).build())
                                         .attribute(Attribute.builder().name("genre").type(String.class).build())
@@ -482,10 +522,12 @@ public class EntityProjectionMakerTest {
                                                 .type(Publisher.class)
                                                 .build())
                                         .relationship("editor", EntityProjection.builder()
+
                                                 .type(Editor.class)
                                                 .build())
                                         .build())
                                 .relationship("editor", EntityProjection.builder()
+
                                         .type(Editor.class)
                                         .build())
                                 .build())
@@ -495,6 +537,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -513,10 +556,12 @@ public class EntityProjectionMakerTest {
                 .relationship("books", EntityProjection.builder()
                         .type(Book.class)
                         .relationship("publisher", EntityProjection.builder()
+
                                 .type(Publisher.class)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
                                 .relationship("books", EntityProjection.builder()
+
                                         .attribute(Attribute.builder().name("title").type(String.class).build())
                                         .attribute(Attribute.builder().name("genre").type(String.class).build())
                                         .attribute(Attribute.builder().name("language").type(String.class).build())
@@ -528,6 +573,7 @@ public class EntityProjectionMakerTest {
                                                 .type(Publisher.class)
                                                 .build())
                                         .relationship("editor", EntityProjection.builder()
+
                                                 .type(Editor.class)
                                                 .build())
                                         .type(Book.class)
@@ -536,6 +582,7 @@ public class EntityProjectionMakerTest {
                                         .type(Editor.class)
                                         .build())
                                 .pagination(defaultPagination)
+
                                 .build())
                         .build())
                 .build();
@@ -543,6 +590,7 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 
     @Test
@@ -562,6 +610,7 @@ public class EntityProjectionMakerTest {
 
         EntityProjection expected = EntityProjection.builder()
                 .type(Author.class)
+
                 .attribute(Attribute.builder().name("name").type(String.class).build())
                 .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
                 .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
@@ -570,10 +619,12 @@ public class EntityProjectionMakerTest {
                         .attribute(Attribute.builder().name("title").type(String.class).build())
                         .relationship("publisher", EntityProjection.builder()
                                 .type(Publisher.class)
+
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .build())
                         .relationship("editor", EntityProjection.builder()
                                 .type(Editor.class)
+
                                 .attribute(Attribute.builder().name("fullName").type(String.class).build())
                                 .build())
                         .build())
@@ -740,5 +791,6 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         assertEquals(expected, actual);
+
     }
 }

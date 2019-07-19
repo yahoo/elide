@@ -59,6 +59,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckClassAnnotationForCreatingAnEntitySuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -70,6 +71,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntitySuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -81,6 +83,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionCheckFieldAnnotationForCreatingAnEntityFailureCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         assertThrows(
@@ -93,6 +96,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForAttributeSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -104,6 +108,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
+
                 "1",
                 userTwoScope);
         loaded.updateAttribute("name", "");
@@ -113,6 +118,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForAttributeFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -124,6 +130,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
+
                 "1",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("name", ""));
@@ -133,6 +140,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForAttributeSuccessCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -144,6 +152,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
+
                 "1",
                 userFourScope);
         loaded.updateAttribute("alias", "");
@@ -153,6 +162,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForAttributeFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -164,6 +174,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(UpdateAndCreate.class)
                         .build(),
+
                 "1",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.updateAttribute("alias", ""));
@@ -175,6 +186,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForRelationSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -197,6 +209,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
+
                 "2",
                 userTwoScope);
         loaded.addRelation("books", loadedBook);
@@ -206,6 +219,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionInheritedForRelationFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -228,6 +242,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
+
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("books", loadedBook));
@@ -237,6 +252,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForRelationSuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, new User(3), dictionary);
+
 
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
         updateAndCreateExistingObject.setId(1L);
@@ -261,6 +277,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
+
                 "2",
                 userThreeScope);
         loaded.addRelation("author", loadedAuthor);
@@ -270,6 +287,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void updatePermissionOverwrittenForRelationFailureCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateExistingObject = new UpdateAndCreate();
 
         when(tx.loadObject(any(),
@@ -292,6 +310,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
+
                 "2",
                 userTwoScope);
         assertThrows(ForbiddenAccessException.class, () -> loaded.addRelation("author", loadedAuthor));
@@ -302,6 +321,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForAttributeSuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -313,6 +333,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForAttributeFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -324,6 +345,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForAttributeSuccessCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -335,6 +357,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForAttributeFailureCase() {
         RequestScope userFourScope = new TestRequestScope(tx, userFour, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
         assertThrows(
@@ -352,6 +375,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForRelationSuccessCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -365,6 +389,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Book.class)
                         .build(),
+
                 "2",
                 userOneScope);
 
@@ -375,6 +400,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionInheritedForRelationFailureCase() {
         RequestScope userThreeScope = new TestRequestScope(tx, userThree, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -388,6 +414,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                     .type(Book.class)
                     .build(),
+
                 "2",
                 userThreeScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("books", loadedBook));
@@ -397,6 +424,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForRelationSuccessCase() {
         RequestScope userTwoScope = new TestRequestScope(tx, userTwo, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -410,6 +438,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
+
                 "2",
                 userTwoScope);
         created.addRelation("author", loadedAuthor);
@@ -419,6 +448,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
     @Test
     public void createPermissionOverwrittenForRelationFailureCase() {
         RequestScope userOneScope = new TestRequestScope(tx, userOne, dictionary);
+
         UpdateAndCreate updateAndCreateNewObject = new UpdateAndCreate();
         when(tx.createNewObject(UpdateAndCreate.class)).thenReturn(updateAndCreateNewObject);
 
@@ -432,6 +462,7 @@ public class UpdateOnCreateTest extends PersistenceResourceTestSetup {
                 EntityProjection.builder()
                         .type(Author.class)
                         .build(),
+
                 "2",
                 userOneScope);
         assertThrows(ForbiddenAccessException.class, () -> created.addRelation("author", loadedAuthor));

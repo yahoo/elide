@@ -223,7 +223,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         tx.createObject(entity, scope);
     }
 
-
     private Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
                                                 Optional<FilterExpression> filterExpression,
                                                 RequestScope scope) {

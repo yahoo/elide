@@ -24,6 +24,7 @@ import com.yahoo.elide.request.EntityProjection;
 
 import com.google.common.collect.Sets;
 
+import com.yahoo.elide.request.EntityProjection;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
