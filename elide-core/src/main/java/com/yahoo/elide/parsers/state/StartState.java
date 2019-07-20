@@ -31,7 +31,11 @@ public class StartState extends BaseState {
 
         //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
         //This is a placeholder until that bit is ready.
-        state.getRequestScope().setDataCollection(DataCollection.builder().type(entityClass).build());
+        state.getRequestScope().setDataCollection(DataCollection.builder()
+                .dictionary(dictionary)
+                .type(entityClass)
+                .build());
+
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
@@ -82,7 +86,10 @@ public class StartState extends BaseState {
 
         //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
         //This is a placeholder until that bit is ready.
-        state.getRequestScope().setDataCollection(DataCollection.builder().type(entityClass).build());
+        state.getRequestScope().setDataCollection(DataCollection.builder()
+                .type(entityClass)
+                .dictionary(dictionary)
+                .build());
 
         return PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
     }
