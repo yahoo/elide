@@ -35,6 +35,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.request.DataCollection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.OperationCheck;
@@ -608,7 +609,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Relationship ids = new Relationship(null, new Data<>(new ResourceIdentifier("right", "3").castToResource()));
 
-        when(tx.loadObject(eq(Right.class), eq(3L), any(), any())).thenReturn(right);
+        DataCollection collection = DataCollection.builder()
+                .type(Right.class)
+                .dictionary(dictionary)
+                .build();
+        goodScope.setDataCollection(collection);
+
+        when(tx.loadObject(eq(collection), eq(3L), any(), any())).thenReturn(right);
         boolean updated = leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
@@ -702,12 +709,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         idList.add(new ResourceIdentifier("child", "6").castToResource());
         Relationship ids = new Relationship(null, new Data<>(idList));
 
+        DataCollection collection = DataCollection.builder()
+                .type(Child.class)
+                .dictionary(dictionary)
+                .build();
 
-        when(tx.loadObject(eq(Child.class), eq(2L), any(), any())).thenReturn(child2);
-        when(tx.loadObject(eq(Child.class), eq(3L), any(), any())).thenReturn(child3);
-        when(tx.loadObject(eq(Child.class), eq(-4L), any(), any())).thenReturn(child4);
-        when(tx.loadObject(eq(Child.class), eq(-5L), any(), any())).thenReturn(child5);
-        when(tx.loadObject(eq(Child.class), eq(6L), any(), any())).thenReturn(child6);
+        goodScope.setDataCollection(collection);
+
+        when(tx.loadObject(eq(collection), eq(2L), any(), any())).thenReturn(child2);
+        when(tx.loadObject(eq(collection), eq(3L), any(), any())).thenReturn(child3);
+        when(tx.loadObject(eq(collection), eq(-4L), any(), any())).thenReturn(child4);
+        when(tx.loadObject(eq(collection), eq(-5L), any(), any())).thenReturn(child5);
+        when(tx.loadObject(eq(collection), eq(6L), any(), any())).thenReturn(child6);
 
         //Final set after operation = (3,4,5,6)
         Set<Child> expected = new HashSet<>();
@@ -1587,10 +1600,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObjects(eq(Child.class), any(), any(), any(), any(RequestScope.class)))
+        DataCollection collection = DataCollection.builder()
+            .type(Child.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObjects(eq(collection), any(), any(), any(), any(RequestScope.class)))
                 .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
+
         Set<PersistentResource> loaded = PersistentResource.loadRecords(Child.class, new ArrayList<>(),
                 Optional.empty(), Optional.empty(), Optional.empty(), goodScope);
 
@@ -1613,9 +1633,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObject(eq(Child.class), eq(1L), any(), any())).thenReturn(child1);
+        DataCollection collection = DataCollection.builder()
+            .type(Child.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(child1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(Child.class, "1", goodScope);
 
         Assert.assertEquals(loaded.getObject(), child1, "The load function should return the requested child object");
@@ -1626,9 +1652,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObject(eq(Child.class), eq("1"), any(), any())).thenReturn(null);
+        DataCollection collection = DataCollection.builder()
+            .type(Child.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq("1"), any(), any())).thenReturn(null);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource.loadRecord(Child.class, "1", goodScope);
     }
 
@@ -1639,9 +1671,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
 
-        when(tx.loadObject(eq(NoReadEntity.class), eq(1L), any(), any())).thenReturn(noRead);
+        DataCollection collection = DataCollection.builder()
+            .type(NoReadEntity.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noRead);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope);
     }
 
@@ -1870,9 +1908,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare);
+
+        DataCollection collection = DataCollection.builder()
+            .type(NoShareEntity.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
@@ -1891,9 +1936,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(UnshareableWithEntityUnshare.class), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
+
+        DataCollection collection = DataCollection.builder()
+            .type(UnshareableWithEntityUnshare.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope));
@@ -1912,9 +1964,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(ShareableWithPackageShare.class), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
+
+        DataCollection collection = DataCollection.builder()
+            .type(ShareableWithPackageShare.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("shareableWithPackageShares", shareables.toPersistentResources(goodScope));
@@ -1940,10 +1999,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare1);
-        when(tx.loadObject(eq(NoShareEntity.class), eq(2L), any(), any())).thenReturn(noShare2);
+
+        DataCollection collection = DataCollection.builder()
+                .type(NoShareEntity.class)
+                .dictionary(dictionary)
+                .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare1);
+        when(tx.loadObject(eq(collection), eq(2L), any(), any())).thenReturn(noShare2);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
@@ -1969,10 +2035,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare1);
+
+        DataCollection collection = DataCollection.builder()
+            .type(Right.class)
+            .dictionary(dictionary)
+            .build();
+
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare1);
         when(tx.getRelation(any(), eq(userModel), eq("noShares"), any(), any(), any(), any())).thenReturn(noshares);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+
+        goodScope.setDataCollection(collection);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         boolean returnVal = userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
@@ -1998,11 +2072,17 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        DataCollection collection = DataCollection.builder()
+            .type(Right.class)
+            .dictionary(dictionary)
+            .build();
 
         when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any(), any(), any())).thenReturn(noShare);
-        when(tx.loadObject(eq(NoShareEntity.class), eq(1L), any(), any())).thenReturn(noShare);
+        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        goodScope.setDataCollection(collection);
+
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));

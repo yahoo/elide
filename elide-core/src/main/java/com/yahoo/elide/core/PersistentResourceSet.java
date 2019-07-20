@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.core;
 
-import com.google.common.collect.UnmodifiableIterator;
 import com.yahoo.elide.request.DataCollection;
+
+import com.google.common.collect.UnmodifiableIterator;
 
 import java.util.AbstractSet;
 import java.util.Iterator;

@@ -176,6 +176,22 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     }
 
     /**
+     * Construct a new resource from the ID provided.
+     *
+     * @param obj the obj
+     * @param parent the parent
+     * @param id the id
+     * @param scope the request scope
+     */
+    public PersistentResource(@NonNull T obj, PersistentResource parent,
+                              String id, @NonNull RequestScope scope) {
+        this(obj, DataCollection.builder()
+                .type(obj.getClass())
+                .dictionary(scope.getDictionary())
+                .build(), parent, id, scope);
+    }
+
+    /**
      * Check whether an id matches for this persistent resource.
      *
      * @param checkId the check id
