@@ -7,11 +7,15 @@
 package com.yahoo.elide.request;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Singular;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,7 +36,13 @@ public class DataCollection {
     private Set<Attribute> attributes;
 
     @Singular
-    private Set<DataCollection> relationships;
+    private Map<String, DataCollection> relationships;
+
+    private FilterExpression filterExpression;
+
+    private Sorting sorting;
+
+    private Pagination pagination;
 
     /**
      * Returns the entity name.
@@ -43,14 +53,27 @@ public class DataCollection {
     }
 
     /**
+     * Creates a builder initialized as a copy of this collection
+     * @return The new builder
+     */
+    public DataCollectionBuilder withDataCollection() {
+        return DataCollection.builder()
+                .dictionary(this.dictionary)
+                .parent(this.parent)
+                .type(this.type)
+                .attributes(this.attributes)
+                .relationships(this.relationships)
+                .filterExpression(this.filterExpression)
+                .sorting(this.sorting)
+                .pagination(this.pagination);
+    }
+
+    /**
      * Returns a relationship subgraph by name.
      * @param name The name of the relationship.
      * @return
      */
     public DataCollection getDataCollection(String name) {
-        return relationships.stream()
-                .filter((relationship) -> name.equals(relationship.getName()))
-                .findFirst()
-                .orElse(null);
+        return relationships.get(name);
     }
 }

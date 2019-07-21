@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import graphql.language.Document;
+import graphql.parser.Parser;
 import org.apache.commons.lang3.tuple.Pair;
 
 import graphql.ExecutionInput;
@@ -158,6 +160,9 @@ public class GraphQLEndpoint {
             }
 
             String query = jsonDocument.get(QUERY).asText();
+
+            //TODO
+            Document document = new Parser().parseDocument(query);
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.

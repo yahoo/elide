@@ -163,9 +163,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     @Override
     public Object loadObject(DataCollection dataCollection,
                              Serializable id,
-                             Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
-        return tx.loadObject(dataCollection, id, filterExpression, scope);
+        return tx.loadObject(dataCollection, id, scope);
     }
 
 

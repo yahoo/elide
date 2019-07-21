@@ -356,7 +356,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1")); // should throw here
+        PersistentResource.createObject(NoCreateEntity.class, goodScope, Optional.of("1")); // should throw here
     }
 
     @Test
@@ -615,7 +615,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .build();
         goodScope.setDataCollection(collection);
 
-        when(tx.loadObject(eq(collection), eq(3L), any(), any())).thenReturn(right);
+        when(tx.loadObject(eq(collection), eq(3L), any())).thenReturn(right);
         boolean updated = leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
@@ -716,11 +716,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         goodScope.setDataCollection(collection);
 
-        when(tx.loadObject(eq(collection), eq(2L), any(), any())).thenReturn(child2);
-        when(tx.loadObject(eq(collection), eq(3L), any(), any())).thenReturn(child3);
-        when(tx.loadObject(eq(collection), eq(-4L), any(), any())).thenReturn(child4);
-        when(tx.loadObject(eq(collection), eq(-5L), any(), any())).thenReturn(child5);
-        when(tx.loadObject(eq(collection), eq(6L), any(), any())).thenReturn(child6);
+        when(tx.loadObject(eq(collection), eq(2L), any())).thenReturn(child2);
+        when(tx.loadObject(eq(collection), eq(3L), any())).thenReturn(child3);
+        when(tx.loadObject(eq(collection), eq(-4L), any())).thenReturn(child4);
+        when(tx.loadObject(eq(collection), eq(-5L), any())).thenReturn(child5);
+        when(tx.loadObject(eq(collection), eq(6L), any())).thenReturn(child6);
 
         //Final set after operation = (3,4,5,6)
         Set<Child> expected = new HashSet<>();
@@ -1605,7 +1605,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObjects(eq(collection), any(), any(), any(), any(RequestScope.class)))
+        when(tx.loadObjects(eq(collection), any(RequestScope.class)))
                 .thenReturn(Lists.newArrayList(child1, child2, child3, child4, child5));
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
@@ -1638,7 +1638,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(child1);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(child1);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -1657,7 +1657,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq("1"), any(), any())).thenReturn(null);
+        when(tx.loadObject(eq(collection), eq("1"), any())).thenReturn(null);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -1676,7 +1676,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noRead);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noRead);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -1692,7 +1692,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(Parent.class)).thenReturn(parent);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<Parent> created = PersistentResource.createObject(null, Parent.class, goodScope, Optional.of("uuid"));
+        PersistentResource<Parent> created = PersistentResource.createObject(Parent.class, goodScope, Optional.of("uuid"));
         parent.setChildren(new HashSet<>());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
@@ -1711,7 +1711,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(Job.class)).thenReturn(job);
 
         final RequestScope goodScope = new RequestScope(null, null, tx, new User(1), null, elideSettings);
-        PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
+        PersistentResource<Job> created = PersistentResource.createObject(Job.class, goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         Assert.assertEquals(created.getObject().getTitle(), "day job",
@@ -1721,7 +1721,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 "The create function should not override the ID"
         );
 
-        created = PersistentResource.createObject(null, Job.class, goodScope, Optional.of("1234"));
+        created = PersistentResource.createObject(Job.class, goodScope, Optional.of("1234"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         Assert.assertEquals(created.getObject().getTitle(), "day job",
@@ -1742,7 +1742,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1"));
+        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(NoCreateEntity.class, goodScope, Optional.of("1"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
@@ -1914,7 +1914,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -1942,7 +1942,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(unshareableWithEntityUnshare);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -1970,7 +1970,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(shareableWithPackageShare);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(shareableWithPackageShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -2005,8 +2005,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 .dictionary(dictionary)
                 .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare1);
-        when(tx.loadObject(eq(collection), eq(2L), any(), any())).thenReturn(noShare2);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare1);
+        when(tx.loadObject(eq(collection), eq(2L), any())).thenReturn(noShare2);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);
@@ -2041,7 +2041,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .dictionary(dictionary)
             .build();
 
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare1);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare1);
         when(tx.getRelation(any(), eq(userModel), eq("noShares"), any(), any(), any(), any())).thenReturn(noshares);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
@@ -2078,7 +2078,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             .build();
 
         when(tx.getRelation(any(), eq(userModel), eq("noShare"), any(), any(), any(), any())).thenReturn(noShare);
-        when(tx.loadObject(eq(collection), eq(1L), any(), any())).thenReturn(noShare);
+        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(noShare);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         goodScope.setDataCollection(collection);

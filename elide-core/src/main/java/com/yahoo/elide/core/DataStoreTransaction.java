@@ -117,16 +117,15 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param dataCollection the collection to load.
      * @param id - the ID of the object to load.
-     * @param filterExpression - security filters that can be evaluated in the data store.
      * @param scope - the current request scope
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
     default Object loadObject(DataCollection dataCollection,
                    Serializable id,
-                   Optional<FilterExpression> filterExpression,
                    RequestScope scope) {
-        return this.loadObject(dataCollection.getType(), id, filterExpression, scope);
+        return this.loadObject(dataCollection.getType(), id,
+                Optional.ofNullable(dataCollection.getFilterExpression()), scope);
     }
 
     /**
@@ -189,24 +188,17 @@ public interface DataStoreTransaction extends Closeable {
      * Loads a collection of objects.
      *
      * @param dataCollection - the class to load
-     * @param filterExpression - filters that can be evaluated in the data store.
-     * It is optional for the data store to attempt evaluation.
-     * @param sorting - sorting which can be pushed down to the data store.
-     * @param pagination - pagination which can be pushed down to the data store.
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
     default Iterable<Object> loadObjects(
             DataCollection dataCollection,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
             RequestScope scope) {
 
         return loadObjects(dataCollection.getType(),
-                filterExpression,
-                sorting,
-                pagination,
+                Optional.ofNullable(dataCollection.getFilterExpression()),
+                Optional.ofNullable(dataCollection.getSorting()),
+                Optional.ofNullable(dataCollection.getPagination()),
                 scope);
     }
 
@@ -217,10 +209,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the relationship.
      * @param relationName - name of the relationship.
      * @param collection - The data collection to fetch
-     * @param filterExpression - filtering which can be pushed down to the data store.
      * It is optional for the data store to attempt evaluation.
-     * @param sorting - sorting which can be pushed down to the data store.
-     * @param pagination - pagination which can be pushed down to the data store.
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
@@ -229,18 +218,15 @@ public interface DataStoreTransaction extends Closeable {
             Object entity,
             String relationName,
             DataCollection collection,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
             RequestScope scope) {
 
         return this.getRelation(
                 relationTx,
                 entity,
                 relationName,
-                filterExpression,
-                sorting,
-                pagination,
+                Optional.ofNullable(collection.getFilterExpression()),
+                Optional.ofNullable(collection.getSorting()),
+                Optional.ofNullable(collection.getPagination()),
                 scope);
     }
 
