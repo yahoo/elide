@@ -65,6 +65,7 @@ import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -127,7 +128,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
         dictionary.bindEntity(UnshareableWithEntityUnshare.class);
+    }
 
+    @BeforeMethod
+    public void beforeTest() {
         reset(tx);
     }
 
@@ -1187,13 +1191,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(parent), eq("children"), any(), any())).thenReturn(children2);
         when(tx.getRelation(any(), eq(child), eq("readNoAccess"), any(), any())).thenReturn(secret);
 
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(bootstrapEntityProjection(fun));
+        RequestScope funScope = new TestRequestScope(tx, goodUser, dictionary, FunWithPermissions.class, 1);
+        RequestScope childScope = new TestRequestScope(tx, goodUser, dictionary, Child.class, 1);
+        RequestScope parentScope = new TestRequestScope(tx, goodUser, dictionary, Parent.class, 1);
 
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
-        PersistentResource<Child> secretResource = new PersistentResource<>(secret, null, "1", goodScope);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", funScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", childScope);
+        PersistentResource<Child> secretResource = new PersistentResource<>(secret, null, "1", childScope);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", parentScope);
 
         // Add an existing to-one relationship
         funResource.addRelation("relation3", childResource);
@@ -1225,11 +1230,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         // Clear empty to-one relation
         secretResource.clearRelation("readNoAccess");
 
-        goodScope.saveOrCreateObjects();
-        verify(tx, never()).save(fun, goodScope);
-        verify(tx, never()).save(child, goodScope);
-        verify(tx, never()).save(parent, goodScope);
-        verify(tx, never()).save(secret, goodScope);
+        parentScope.saveOrCreateObjects();
+        childScope.saveOrCreateObjects();
+        funScope.saveOrCreateObjects();
+        verify(tx, never()).save(fun, funScope);
+        verify(tx, never()).save(child, childScope);
+        verify(tx, never()).save(parent, parentScope);
+        verify(tx, never()).save(secret, childScope);
     }
 
     @Test()
@@ -1893,12 +1900,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         unShareableList.add(new ResourceIdentifier("unshareableWithEntityUnshare", "1").castToResource());
         Relationship unShareales = new Relationship(null, new Data<>(unShareableList));
 
-        EntityProjection collection = bootstrapEntityProjection(ContainerWithPackageShare.class);
+        when(tx.loadObject(any(), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
 
-        when(tx.loadObject(eq(collection), eq(1L), any())).thenReturn(unshareableWithEntityUnshare);
-
-        RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        goodScope.setEntityProjection(collection);
+        RequestScope goodScope = new TestRequestScope(tx, goodUser, dictionary, ContainerWithPackageShare.class, 1);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
         containerResource.updateRelation("unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope));
