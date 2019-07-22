@@ -227,6 +227,58 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
     /**
      * Load an single entity from the DB.
      *
+     * @param projection What to load from the DB.
+     * @param id the id
+     * @param requestScope the request scope
+     * @param <T> type of resource
+     * @return resource persistent resource
+     * @throws InvalidObjectIdentifierException the invalid object identifier exception
+     */
+    @SuppressWarnings("resource")
+    @NonNull public static <T> PersistentResource<T> loadRecord(
+            EntityProjection projection, String id, RequestScope requestScope)
+            throws InvalidObjectIdentifierException {
+        Preconditions.checkNotNull(projection);
+        Preconditions.checkNotNull(id);
+        Preconditions.checkNotNull(requestScope);
+
+        DataStoreTransaction tx = requestScope.getTransaction();
+        EntityDictionary dictionary = requestScope.getDictionary();
+        Class<?> loadClass = projection.getType();
+
+        // Check the resource cache if exists
+        Object obj = requestScope.getObjectById(dictionary.getJsonAliasFor(loadClass), id);
+        if (obj == null) {
+            // try to load object
+            Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
+                    requestScope);
+            Class<?> idType = dictionary.getIdType(loadClass);
+
+            projection = projection
+                .withProjection()
+                .filterExpression(permissionFilter.orElse(null))
+                .build();
+
+            obj = tx.loadObject(projection, (Serializable) CoerceUtil.coerce(id, idType), requestScope);
+            if (obj == null) {
+                throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
+            }
+        }
+
+        PersistentResource<T> resource = new PersistentResource(obj, projection,
+                null, requestScope.getUUIDFor(obj), requestScope);
+        // No need to have read access for a newly created object
+        if (!requestScope.getNewResources().contains(resource)) {
+            resource.checkFieldAwarePermissions(ReadPermission.class);
+        }
+
+        return resource;
+    }
+
+
+    /**
+     * Load an single entity from the DB.
+     *
      * @param loadClass resource type
      * @param id the id
      * @param requestScope the request scope
@@ -242,36 +294,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(requestScope);
 
-        DataStoreTransaction tx = requestScope.getTransaction();
-        EntityDictionary dictionary = requestScope.getDictionary();
-
-        // Check the resource cache if exists
-        Object obj = requestScope.getObjectById(dictionary.getJsonAliasFor(loadClass), id);
-        if (obj == null) {
-            // try to load object
-            Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
-                    requestScope);
-            Class<?> idType = dictionary.getIdType(loadClass);
-
-            EntityProjection modifiedProjection = requestScope.getEntityProjection()
-                .withProjection()
-                .filterExpression(permissionFilter.orElse(null))
-                .build();
-
-            obj = tx.loadObject(modifiedProjection, (Serializable) CoerceUtil.coerce(id, idType), requestScope);
-            if (obj == null) {
-                throw new InvalidObjectIdentifierException(id, dictionary.getJsonAliasFor(loadClass));
-            }
-        }
-
-        PersistentResource<T> resource = new PersistentResource(obj, requestScope.getEntityProjection(),
-                null, requestScope.getUUIDFor(obj), requestScope);
-        // No need to have read access for a newly created object
-        if (!requestScope.getNewResources().contains(resource)) {
-            resource.checkFieldAwarePermissions(ReadPermission.class);
-        }
-
-        return resource;
+        return loadRecord(requestScope.getEntityProjection(), id, requestScope);
     }
 
     /**
