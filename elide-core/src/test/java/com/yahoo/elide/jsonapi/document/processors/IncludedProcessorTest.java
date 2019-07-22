@@ -8,9 +8,6 @@ package com.yahoo.elide.jsonapi.document.processors;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
-import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
