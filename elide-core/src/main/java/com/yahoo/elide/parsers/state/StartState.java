@@ -15,7 +15,7 @@ import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesCo
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public class StartState extends BaseState {
 
         //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
         //This is a placeholder until that bit is ready.
-        state.getRequestScope().setDataCollection(DataCollection.builder()
+        state.getRequestScope().setEntityProjection(EntityProjection.builder()
                 .dictionary(dictionary)
                 .type(entityClass)
                 .build());
@@ -86,7 +86,7 @@ public class StartState extends BaseState {
 
         //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
         //This is a placeholder until that bit is ready.
-        state.getRequestScope().setDataCollection(DataCollection.builder()
+        state.getRequestScope().setEntityProjection(EntityProjection.builder()
                 .type(entityClass)
                 .dictionary(dictionary)
                 .build());

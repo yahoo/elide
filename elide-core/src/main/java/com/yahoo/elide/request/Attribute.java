@@ -20,7 +20,7 @@ import java.util.Set;
 @Builder
 public class Attribute {
     @NonNull
-    private DataCollection parent;
+    private EntityProjection parent;
 
     @NonNull
     private String name;

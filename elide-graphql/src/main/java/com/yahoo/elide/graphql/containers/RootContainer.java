@@ -9,7 +9,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 import graphql.language.Field;
 
 /**
@@ -23,7 +23,7 @@ public class RootContainer implements GraphQLContainer {
 
         //TODO - This needs to be modified to build the entire document.
 
-        context.requestScope.setDataCollection(DataCollection.builder()
+        context.requestScope.setEntityProjection(EntityProjection.builder()
                 .type(entityClass)
                 .dictionary(dictionary)
                 .build());

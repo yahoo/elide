@@ -30,7 +30,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.PermissionExecutor;
 import com.yahoo.elide.security.User;
@@ -62,7 +62,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
-    @Getter private final EntityDictionary dictionary;
+    @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
@@ -81,7 +81,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final MultipleFilterDialect filterDialect;
 
     //TODO - this ought to be read only and set in the constructor.
-    @Getter @Setter private DataCollection dataCollection;
+    @Getter @Setter private EntityProjection entityProjection;
 
     private final Map<String, FilterExpression> expressionsByType;
 

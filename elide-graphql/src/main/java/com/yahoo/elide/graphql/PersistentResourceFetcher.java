@@ -23,7 +23,7 @@ import com.yahoo.elide.graphql.containers.ConnectionContainer;
 
 import com.google.common.collect.Sets;
 
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -381,10 +381,10 @@ public class PersistentResourceFetcher implements DataFetcher {
         RequestScope requestScope = entity.getRequestScope();
         PersistentResource upsertedResource;
         PersistentResource parentResource;
-        DataCollection collection;
+        EntityProjection collection;
         if (!entity.getParentResource().isPresent()) {
             parentResource = null;
-            collection = requestScope.getDataCollection();
+            collection = requestScope.getEntityProjection();
         } else {
             parentResource = entity.getParentResource().get().toPersistentResource();
             collection = parentResource.getRelationshipProjection(context.field.getName());

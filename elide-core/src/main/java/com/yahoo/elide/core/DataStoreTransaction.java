@@ -10,7 +10,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
 import java.io.Closeable;
@@ -115,17 +115,17 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads an object by ID.
      *
-     * @param dataCollection the collection to load.
+     * @param entityProjection the collection to load.
      * @param id - the ID of the object to load.
      * @param scope - the current request scope
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default Object loadObject(DataCollection dataCollection,
-                   Serializable id,
-                   RequestScope scope) {
-        return this.loadObject(dataCollection.getType(), id,
-                Optional.ofNullable(dataCollection.getFilterExpression()), scope);
+    default Object loadObject(EntityProjection entityProjection,
+                              Serializable id,
+                              RequestScope scope) {
+        return this.loadObject(entityProjection.getType(), id,
+                Optional.ofNullable(entityProjection.getFilterExpression()), scope);
     }
 
     /**
@@ -187,18 +187,18 @@ public interface DataStoreTransaction extends Closeable {
     /**
      * Loads a collection of objects.
      *
-     * @param dataCollection - the class to load
+     * @param entityProjection - the class to load
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
     default Iterable<Object> loadObjects(
-            DataCollection dataCollection,
+            EntityProjection entityProjection,
             RequestScope scope) {
 
-        return loadObjects(dataCollection.getType(),
-                Optional.ofNullable(dataCollection.getFilterExpression()),
-                Optional.ofNullable(dataCollection.getSorting()),
-                Optional.ofNullable(dataCollection.getPagination()),
+        return loadObjects(entityProjection.getType(),
+                Optional.ofNullable(entityProjection.getFilterExpression()),
+                Optional.ofNullable(entityProjection.getSorting()),
+                Optional.ofNullable(entityProjection.getPagination()),
                 scope);
     }
 
@@ -217,7 +217,7 @@ public interface DataStoreTransaction extends Closeable {
             DataStoreTransaction relationTx,
             Object entity,
             String relationName,
-            DataCollection collection,
+            EntityProjection collection,
             RequestScope scope) {
 
         return this.getRelation(

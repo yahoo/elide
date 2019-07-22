@@ -25,7 +25,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.request.DataCollection;
+import com.yahoo.elide.request.EntityProjection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -187,13 +187,13 @@ public class CollectionTerminalState extends BaseState {
         }
 
         PersistentResource pResource;
-        DataCollection collection;
+        EntityProjection collection;
         if (parent.isPresent()) {
             collection = parent.get().getRelationshipProjection(relationName.get());
             pResource = PersistentResource.createObject(parent.get(), newObjectClass, collection,
                     requestScope, Optional.ofNullable(id));
         } else {
-            pResource = PersistentResource.createObject(null, newObjectClass, requestScope.getDataCollection(),
+            pResource = PersistentResource.createObject(null, newObjectClass, requestScope.getEntityProjection(),
                     requestScope, Optional.ofNullable(id));
         }
 

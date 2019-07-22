@@ -23,11 +23,9 @@ import java.util.Set;
  */
 @Data
 @Builder
-public class DataCollection {
+public class EntityProjection {
     @NonNull
     private EntityDictionary dictionary;
-
-    private DataCollection parent;
 
     @NonNull
     private Class<?> type;
@@ -36,7 +34,7 @@ public class DataCollection {
     private Set<Attribute> attributes;
 
     @Singular
-    private Map<String, DataCollection> relationships;
+    private Map<String, EntityProjection> relationships;
 
     private FilterExpression filterExpression;
 
@@ -56,10 +54,9 @@ public class DataCollection {
      * Creates a builder initialized as a copy of this collection
      * @return The new builder
      */
-    public DataCollectionBuilder withDataCollection() {
-        return DataCollection.builder()
+    public EntityProjectionBuilder withProjection() {
+        return EntityProjection.builder()
                 .dictionary(this.dictionary)
-                .parent(this.parent)
                 .type(this.type)
                 .attributes(this.attributes)
                 .relationships(this.relationships)
@@ -73,7 +70,7 @@ public class DataCollection {
      * @param name The name of the relationship.
      * @return
      */
-    public DataCollection getDataCollection(String name) {
+    public EntityProjection getRelationship(String name) {
         return relationships.get(name);
     }
 }
