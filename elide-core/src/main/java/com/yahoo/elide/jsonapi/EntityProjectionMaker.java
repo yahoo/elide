@@ -15,12 +15,13 @@ import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Converts a JSON-API request (URL and query parameters) into an EntityProjection.
@@ -122,7 +123,7 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
 
             return EntityProjection.builder()
                 .dictionary(dictionary)
-                .relationship( pathElement.getFieldName(), relationshipProjection)
+                .relationship(pathElement.getFieldName(), relationshipProjection)
                 .type(entityClass)
                 .build();
         }
@@ -201,7 +202,11 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
 
         Map<String, EntityProjection> relationships = includePaths.stream()
                 .map((path) -> Pair.of(path.getPathElements().get(0).getFieldName(), visitPath(path)))
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(
+                        Pair::getKey,
+                        Pair::getValue,
+                        EntityProjection::mergeRelationships
+                ));
 
         return relationships;
     }

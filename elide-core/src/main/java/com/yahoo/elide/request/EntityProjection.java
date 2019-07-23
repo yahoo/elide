@@ -73,4 +73,28 @@ public class EntityProjection {
     public EntityProjection getRelationship(String name) {
         return relationships.get(name);
     }
+
+    /**
+     * Recursively merges two EntityProjections by their relationships.
+     * @param toMerge The projection to merge
+     * @return A newly created & merged EntityProjection.
+     */
+    public EntityProjection mergeRelationships(EntityProjection toMerge) {
+        EntityProjectionBuilder merged = withProjection();
+
+        for (Map.Entry<String, EntityProjection> entry : toMerge.getRelationships().entrySet()) {
+            String relationshipName = entry.getKey();
+
+            EntityProjection theirs = entry.getValue();
+            EntityProjection ours = relationships.get(relationshipName);
+
+            if (ours != null) {
+                merged.relationship(relationshipName, ours.mergeRelationships(theirs));
+            } else {
+                merged.relationship(relationshipName, theirs);
+            }
+        }
+
+        return merged.build();
+    }
 }
