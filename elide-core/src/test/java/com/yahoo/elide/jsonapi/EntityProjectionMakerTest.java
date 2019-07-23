@@ -55,4 +55,31 @@ public class EntityProjectionMakerTest {
 
         Assert.assertEquals(actual, expected);
     }
+
+    @Test
+    public void testNestedCollectionNoQueryParams() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        String path = "/author/1/books/3/publisher";
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+
+        EntityProjection expected = EntityProjection.builder()
+                .type(Author.class)
+                .dictionary(dictionary)
+                .relationship("books", EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(Book.class)
+                        .relationship("publisher", EntityProjection.builder()
+                                .dictionary(dictionary)
+                                .type(Publisher.class)
+                                .attribute(Attribute.builder().name("name").type(String.class).build())
+                                .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
+                                .build())
+                        .build())
+                .build();
+
+        EntityProjection actual = maker.visit(JsonApiParser.parse(path));
+
+        Assert.assertEquals(actual, expected);
+    }
 }
