@@ -11,14 +11,18 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
+import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+import lombok.Builder;
+import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -28,116 +32,146 @@ import javax.ws.rs.core.MultivaluedMap;
  * TODO - Parse filter parameters and add them to the projection.
  * TODO - Parse sparse fields and limit the attributes in the projection.
  */
-public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
+public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, EntityProjectionMaker.NamedEntityProjection>> {
+
+    @Data
+    @Builder
+    public static class NamedEntityProjection {
+        private String name;
+        private EntityProjection projection;
+    }
 
     private static final String INCLUDE = "include";
 
     private EntityDictionary dictionary;
     private MultivaluedMap<String, String> queryParams;
-    private Class<?> entityClass;
-
 
     public EntityProjectionMaker(EntityDictionary dictionary, MultivaluedMap<String, String> queryParams) {
        this.dictionary = dictionary;
        this.queryParams = queryParams;
-       entityClass = null;
+    }
+
+    public EntityProjection make(String path) {
+        return visit(JsonApiParser.parse(path)).apply(null).projection;
     }
 
     @Override
-    public EntityProjection visitRootCollectionLoadEntities(CoreParser.RootCollectionLoadEntitiesContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionLoadEntities(CoreParser.RootCollectionLoadEntitiesContext ctx) {
         return visitTerminalCollection(ctx.term());
     }
 
     @Override
-    public EntityProjection visitSubCollectionReadCollection(CoreParser.SubCollectionReadCollectionContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionReadCollection(CoreParser.SubCollectionReadCollectionContext ctx) {
         return visitTerminalCollection(ctx.term());
     }
 
     @Override
-    public EntityProjection visitRootCollectionSubCollection(CoreParser.RootCollectionSubCollectionContext ctx) {
-        String relationshipName =
-                ((CoreParser.SubCollectionSubCollectionContext) ctx.subCollection()).entity().term().getText();
-
-        return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection(), relationshipName);
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionSubCollection(CoreParser.RootCollectionSubCollectionContext ctx) {
+        return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection());
     }
 
     @Override
-    public EntityProjection visitSubCollectionSubCollection(CoreParser.SubCollectionSubCollectionContext ctx) {
-        String relationshipName =
-                ((CoreParser.SubCollectionSubCollectionContext) ctx.subCollection()).entity().term().getText();
-
-        return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection(), relationshipName);
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionSubCollection(CoreParser.SubCollectionSubCollectionContext ctx) {
+        return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection());
     }
 
     @Override
-    public EntityProjection visitRootCollectionRelationship(CoreParser.RootCollectionRelationshipContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionRelationship(CoreParser.RootCollectionRelationshipContext ctx) {
         return visitEntityWithRelationship(ctx.entity(), ctx.relationship());
     }
 
     @Override
-    public EntityProjection visitSubCollectionRelationship(CoreParser.SubCollectionRelationshipContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionRelationship(CoreParser.SubCollectionRelationshipContext ctx) {
         return visitEntityWithRelationship(ctx.entity(), ctx.relationship());
     }
 
     @Override
-    public EntityProjection visitRootCollectionLoadEntity(CoreParser.RootCollectionLoadEntityContext ctx) {
-        return visitTerminalEntity(ctx.entity());
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionLoadEntity(
+            CoreParser.RootCollectionLoadEntityContext ctx) {
+        return (unused) -> {
+            return ctx.entity().accept(this).apply(null);
+        };
     }
 
     @Override
-    public EntityProjection visitSubCollectionReadEntity(CoreParser.SubCollectionReadEntityContext ctx) {
-        return visitTerminalEntity(ctx.entity());
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionReadEntity(
+            CoreParser.SubCollectionReadEntityContext ctx) {
+        return (parentClass) -> {
+            return ctx.entity().accept(this).apply(parentClass);
+        };
     }
 
     @Override
-    public EntityProjection visitRelationship(CoreParser.RelationshipContext ctx) {
-        String entityName = ctx.term().getText();
+    public Function<Class<?>, NamedEntityProjection> visitRelationship(CoreParser.RelationshipContext ctx) {
+        return (parentClass) -> {
+            String entityName = ctx.term().getText();
 
-        Class<?> entityClass = getEntityClass(entityName);
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
+            Class<?> entityClass;
+            if (parentClass == null) {
+                entityClass = dictionary.getEntityClass(entityName);
+            } else {
+                entityClass = dictionary.getParameterizedType(parentClass, entityName);
+            }
 
-        return EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .build();
+            if (entityClass == null) {
+                throw new InvalidCollectionException(entityName);
+            }
+
+            return NamedEntityProjection.builder()
+                    .name(entityName)
+                    .projection(EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(entityClass)
+                        .build()
+                    ).build();
+        };
     }
 
     @Override
-    protected EntityProjection aggregateResult(EntityProjection aggregate, EntityProjection nextResult) {
-        if (aggregate != null) {
-            return aggregate;
-        }
-        return nextResult;
+    public Function<Class<?>, NamedEntityProjection> visitEntity(CoreParser.EntityContext ctx) {
+        return (parentClass) -> {
+            String entityName = ctx.term().getText();
+            String id = ctx.id().getText();
+
+            Class<?> entityClass;
+            if (parentClass == null) {
+                entityClass = dictionary.getEntityClass(entityName);
+            } else {
+                entityClass = dictionary.getParameterizedType(parentClass, entityName);
+            }
+
+            if (entityClass == null) {
+                throw new InvalidCollectionException(entityName);
+            }
+
+            Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
+                    .map(attributeName -> Attribute.builder()
+                            .name(attributeName)
+                            .type(dictionary.getType(entityClass, attributeName))
+                            .build())
+                    .collect(Collectors.toSet());
+
+            return NamedEntityProjection.builder()
+                    .name(entityName)
+                    .projection(EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(entityClass)
+                        .attributes(attributes)
+                        .relationships(getIncludedRelationships(entityClass))
+                        .build()
+                    ).build();
+        };
     }
 
-    private EntityProjection visitTerminalEntity(CoreParser.EntityContext ctx) {
-        String entityName = ctx.term().getText();
-        String id = ctx.id().getText();
+    @Override
+    protected Function<Class<?>, NamedEntityProjection> aggregateResult(
+            Function<Class<?>, NamedEntityProjection> aggregate,
+            Function<Class<?>, NamedEntityProjection> nextResult) {
 
-        Class<?> entityClass = getEntityClass(entityName);
-
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
-
-        Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
-                .map(attributeName -> Attribute.builder()
-                        .name(attributeName)
-                        .type(dictionary.getType(entityClass, attributeName))
-                        .build())
-                .collect(Collectors.toSet());
-
-        return EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .attributes(attributes)
-                .relationships(getIncludedRelationships(entityClass))
-                .build();
+        if (aggregate == null) {
+            return nextResult;
+        } else return aggregate;
     }
-
-
 
     public EntityProjection visitPath(Path path) {
         Path.PathElement pathElement = path.getPathElements().get(0);
@@ -162,70 +196,99 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
                 .build();
     }
 
-    private EntityProjection visitEntityWithSubCollection(CoreParser.EntityContext entity,
-                                                          CoreParser.SubCollectionContext subCollection,
-                                                          String relationshipName) {
+    private Function<Class<?>, NamedEntityProjection> visitEntityWithSubCollection(CoreParser.EntityContext entity,
+                                                            CoreParser.SubCollectionContext subCollection) {
+        return (parentClass) -> {
+            String entityName = entity.term().getText();
+            String id = entity.id().getText();
 
-        String entityName = entity.term().getText();
-        String id = entity.id().getText();
+            Class<?> entityClass;
+            if (parentClass == null) {
+                entityClass = dictionary.getEntityClass(entityName);
+            } else {
+                entityClass = dictionary.getParameterizedType(parentClass, entityName);
+            }
 
-       Class<?> entityClass = getEntityClass(entityName);
+            if (entityClass == null) {
+                throw new InvalidCollectionException(entityName);
+            }
 
-        if (entityClass == null) {
-            throw new InvalidCollectionException(entityName);
-        }
+            NamedEntityProjection projection = subCollection.accept(this).apply(entityClass);
 
-        return EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .relationship(relationshipName, subCollection.accept(this))
-                .build();
+            return NamedEntityProjection.builder()
+                    .name(entityName)
+                    .projection(EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(entityClass)
+                        .relationship(projection.name, projection.projection)
+                        .build()
+                    ).build();
+        };
     }
 
-    private EntityProjection visitEntityWithRelationship(CoreParser.EntityContext entity,
+    private Function<Class<?>, NamedEntityProjection> visitEntityWithRelationship(CoreParser.EntityContext entity,
                                                          CoreParser.RelationshipContext relationship) {
-        String entityName = entity.term().getText();
-        String id = entity.id().getText();
+        return (parentClass) -> {
+            String entityName = entity.term().getText();
+            String id = entity.id().getText();
 
-        Class<?> entityClass = getEntityClass(entityName);
+            Class<?> entityClass;
+            if (parentClass == null) {
+                entityClass = dictionary.getEntityClass(entityName);
+            } else {
+                entityClass = dictionary.getParameterizedType(parentClass, entityName);
+            }
 
-        if (entityClass == null || !dictionary.isRoot(entityClass)) {
-            throw new InvalidCollectionException(entityName);
-        }
+            if (entityClass == null || !dictionary.isRoot(entityClass)) {
+                throw new InvalidCollectionException(entityName);
+            }
 
-        String relationshipName = relationship.term().getText();
-        EntityProjection relationshipProjection = relationship.accept(this);
+            String relationshipName = relationship.term().getText();
+            NamedEntityProjection relationshipProjection = relationship.accept(this).apply(entityClass);
 
-        return EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .relationship(relationshipName, relationshipProjection)
-                .build();
+            return NamedEntityProjection.builder()
+                    .name(entityName)
+                    .projection(EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .type(entityClass)
+                        .relationship(relationshipName, relationshipProjection.projection)
+                        .build()
+                    ).build();
+        };
     }
 
+    private Function<Class<?>, NamedEntityProjection> visitTerminalCollection(CoreParser.TermContext collectionName) {
+        return (parentClass) -> {
+            String collectionNameText = collectionName.getText();
 
-    private EntityProjection visitTerminalCollection(CoreParser.TermContext collectionName) {
-        String collectionNameText = collectionName.getText();
+            Class<?> entityClass;
+            if (parentClass == null) {
+                entityClass = dictionary.getEntityClass(collectionNameText);
+            } else {
+                entityClass = dictionary.getParameterizedType(parentClass, collectionNameText);
+            }
 
-        Class<?> entityClass = getEntityClass(collectionNameText);
+            if (entityClass == null) {
+                throw new InvalidCollectionException(collectionNameText);
+            }
 
-        if (entityClass == null) {
-            throw new InvalidCollectionException(collectionNameText);
-        }
+            Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
+                    .map(attributeName -> Attribute.builder()
+                            .name(attributeName)
+                            .type(dictionary.getType(entityClass, attributeName))
+                            .build())
+                    .collect(Collectors.toSet());
 
-        Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
-                .map(attributeName -> Attribute.builder()
-                        .name(attributeName)
-                        .type(dictionary.getType(entityClass, attributeName))
-                        .build())
-                .collect(Collectors.toSet());
-
-        return EntityProjection.builder()
-            .dictionary(dictionary)
-            .relationships(getIncludedRelationships(entityClass))
-            .attributes(attributes)
-            .type(entityClass)
-            .build();
+            return NamedEntityProjection.builder()
+                    .name(collectionNameText)
+                    .projection(EntityProjection.builder()
+                        .dictionary(dictionary)
+                        .relationships(getIncludedRelationships(entityClass))
+                        .attributes(attributes)
+                        .type(entityClass)
+                        .build()
+                    ).build();
+        };
     }
 
     private Map<String, EntityProjection> getIncludedRelationships(Class<?> entityClass) {
@@ -252,14 +315,5 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
         }
 
         return new HashSet<>();
-    }
-
-    private Class<?> getEntityClass(String collectionName) {
-        if (entityClass == null) {
-            entityClass = dictionary.getEntityClass(collectionName);
-        } else {
-            entityClass = dictionary.getParameterizedType(entityClass, collectionName);
-        }
-        return entityClass;
     }
 }

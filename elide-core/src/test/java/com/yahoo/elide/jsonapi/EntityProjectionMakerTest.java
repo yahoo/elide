@@ -7,7 +7,6 @@
 package com.yahoo.elide.jsonapi;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import example.Author;
@@ -51,7 +50,7 @@ public class EntityProjectionMakerTest {
                 .attribute(Attribute.builder().name("publishDate").type(long.class).build())
                 .build();
 
-        EntityProjection actual = maker.visit(JsonApiParser.parse(path));
+        EntityProjection actual = maker.make(path);
 
         Assert.assertEquals(actual, expected);
     }
@@ -78,7 +77,7 @@ public class EntityProjectionMakerTest {
                         .build())
                 .build();
 
-        EntityProjection actual = maker.visit(JsonApiParser.parse(path));
+        EntityProjection actual = maker.make(path);
 
         Assert.assertEquals(actual, expected);
     }

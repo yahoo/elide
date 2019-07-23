@@ -10,6 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -23,6 +24,7 @@ import java.util.Set;
  */
 @Data
 @Builder
+@AllArgsConstructor
 public class EntityProjection {
     @NonNull
     private EntityDictionary dictionary;
