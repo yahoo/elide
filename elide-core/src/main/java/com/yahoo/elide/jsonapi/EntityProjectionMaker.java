@@ -111,6 +111,14 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
                 .build();
     }
 
+    @Override
+    protected EntityProjection aggregateResult(EntityProjection aggregate, EntityProjection nextResult) {
+        if (aggregate != null) {
+            return aggregate;
+        }
+        return nextResult;
+    }
+
     public EntityProjection visitPath(Path path) {
         Path.PathElement pathElement = path.getPathElements().get(0);
         int size = path.getPathElements().size();
@@ -190,9 +198,17 @@ public class EntityProjectionMaker extends CoreBaseVisitor<EntityProjection> {
             throw new InvalidCollectionException(entityName);
         }
 
+        Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
+                .map(attributeName -> Attribute.builder()
+                        .name(attributeName)
+                        .type(dictionary.getType(entityClass, attributeName))
+                        .build())
+                .collect(Collectors.toSet());
+
         return EntityProjection.builder()
             .dictionary(dictionary)
             .relationships(getIncludedRelationships(entityClass))
+            .attributes(attributes)
             .type(entityClass)
             .build();
     }
