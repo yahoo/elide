@@ -20,19 +20,11 @@ import java.util.Set;
 @Builder
 public class Attribute {
     @NonNull
-    private EntityProjection parent;
+    private Class<?> type;
 
     @NonNull
     private String name;
 
     @Singular
     private Set<Argument> arguments;
-
-    /**
-     * Returns the attribute type.
-     * @return the attribute type.
-     */
-    public Class<?> getType() {
-        return parent.getDictionary().getType(parent.getType(), name);
-    }
 }
