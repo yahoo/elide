@@ -24,7 +24,6 @@ import lombok.Data;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -192,7 +191,7 @@ public class EntityProjectionMaker
         }
     }
 
-    public EntityProjection visitPath(Path path) {
+    public EntityProjection visitIncludePath(Path path) {
         Path.PathElement pathElement = path.getPathElements().get(0);
         int size = path.getPathElements().size();
 
@@ -200,17 +199,19 @@ public class EntityProjectionMaker
 
         if (size > 1) {
             Path nextPath = new Path(path.getPathElements().subList(1, size));
-            EntityProjection relationshipProjection = visitPath(nextPath);
+            EntityProjection relationshipProjection = visitIncludePath(nextPath);
 
             return EntityProjection.builder()
                 .dictionary(dictionary)
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
+                .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
                 .build();
         }
 
         return EntityProjection.builder()
                 .dictionary(dictionary)
+                .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
                 .build();
     }
@@ -292,19 +293,12 @@ public class EntityProjectionMaker
                 throw new InvalidCollectionException(collectionNameText);
             }
 
-            Set<Attribute> attributes = dictionary.getAttributes(entityClass).stream()
-                    .map(attributeName -> Attribute.builder()
-                            .name(attributeName)
-                            .type(dictionary.getType(entityClass, attributeName))
-                            .build())
-                    .collect(Collectors.toSet());
-
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
                         .relationships(getRequiredRelationships(entityClass))
-                        .attributes(attributes)
+                        .attributes(getSparseAttributes(entityClass))
                         .type(entityClass)
                         .build()
                     ).build();
@@ -315,7 +309,7 @@ public class EntityProjectionMaker
         Set<Path> includePaths = getIncludePaths(entityClass);
 
         Map<String, EntityProjection> relationships = includePaths.stream()
-                .map((path) -> Pair.of(path.getPathElements().get(0).getFieldName(), visitPath(path)))
+                .map((path) -> Pair.of(path.getPathElements().get(0).getFieldName(), visitIncludePath(path)))
                 .collect(Collectors.toMap(
                         Pair::getKey,
                         Pair::getValue,
