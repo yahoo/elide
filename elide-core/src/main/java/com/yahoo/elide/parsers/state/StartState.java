@@ -15,7 +15,6 @@ import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesCo
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionRelationshipContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionSubCollectionContext;
-import com.yahoo.elide.request.EntityProjection;
 
 import java.util.Optional;
 
@@ -28,13 +27,6 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
         Class<?> entityClass = dictionary.getEntityClass(entityName);
-
-        //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
-        //This is a placeholder until that bit is ready.
-        state.getRequestScope().setEntityProjection(EntityProjection.builder()
-                .dictionary(dictionary)
-                .type(entityClass)
-                .build());
 
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
@@ -83,13 +75,6 @@ public class StartState extends BaseState {
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);
         }
-
-        //TODO - This needs to be replaced with logic (likely elsewhere) that builds the entire document.
-        //This is a placeholder until that bit is ready.
-        state.getRequestScope().setEntityProjection(EntityProjection.builder()
-                .type(entityClass)
-                .dictionary(dictionary)
-                .build());
 
         return PersistentResource.loadRecord(entityClass, id, state.getRequestScope());
     }

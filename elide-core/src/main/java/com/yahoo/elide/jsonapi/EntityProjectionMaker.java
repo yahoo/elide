@@ -14,17 +14,22 @@ import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -33,8 +38,12 @@ import javax.ws.rs.core.MultivaluedMap;
  * TODO - Parse sparse fields and limit the attributes in the projection.
  * TODO - Add attributes for included entities.
  */
-public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, EntityProjectionMaker.NamedEntityProjection>> {
+public class EntityProjectionMaker
+        extends CoreBaseVisitor<Function<Class<?>, EntityProjectionMaker.NamedEntityProjection>> {
 
+    /**
+     * An entity projection labeled with the class name or relationship name it is associated with.
+     */
     @Data
     @Builder
     public static class NamedEntityProjection {
@@ -48,8 +57,12 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
     private MultivaluedMap<String, String> queryParams;
 
     public EntityProjectionMaker(EntityDictionary dictionary, MultivaluedMap<String, String> queryParams) {
-       this.dictionary = dictionary;
-       this.queryParams = queryParams;
+        this.dictionary = dictionary;
+        this.queryParams = queryParams;
+    }
+
+    public EntityProjectionMaker(EntityDictionary dictionary) {
+        this(dictionary, new MultivaluedHashMap<>());
     }
 
     public EntityProjection make(String path) {
@@ -57,32 +70,38 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitRootCollectionLoadEntities(CoreParser.RootCollectionLoadEntitiesContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionLoadEntities(
+            CoreParser.RootCollectionLoadEntitiesContext ctx) {
         return visitTerminalCollection(ctx.term());
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitSubCollectionReadCollection(CoreParser.SubCollectionReadCollectionContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionReadCollection(
+            CoreParser.SubCollectionReadCollectionContext ctx) {
         return visitTerminalCollection(ctx.term());
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitRootCollectionSubCollection(CoreParser.RootCollectionSubCollectionContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionSubCollection(
+            CoreParser.RootCollectionSubCollectionContext ctx) {
         return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection());
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitSubCollectionSubCollection(CoreParser.SubCollectionSubCollectionContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionSubCollection(
+            CoreParser.SubCollectionSubCollectionContext ctx) {
         return visitEntityWithSubCollection(ctx.entity(), ctx.subCollection());
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitRootCollectionRelationship(CoreParser.RootCollectionRelationshipContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitRootCollectionRelationship(
+            CoreParser.RootCollectionRelationshipContext ctx) {
         return visitEntityWithRelationship(ctx.entity(), ctx.relationship());
     }
 
     @Override
-    public Function<Class<?>, NamedEntityProjection> visitSubCollectionRelationship(CoreParser.SubCollectionRelationshipContext ctx) {
+    public Function<Class<?>, NamedEntityProjection> visitSubCollectionRelationship(
+            CoreParser.SubCollectionRelationshipContext ctx) {
         return visitEntityWithRelationship(ctx.entity(), ctx.relationship());
     }
 
@@ -158,7 +177,7 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
                         .dictionary(dictionary)
                         .type(entityClass)
                         .attributes(attributes)
-                        .relationships(getIncludedRelationships(entityClass))
+                        .relationships(getRequiredRelationships(entityClass))
                         .build()
                     ).build();
         };
@@ -171,7 +190,9 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
 
         if (aggregate == null) {
             return nextResult;
-        } else return aggregate;
+        } else {
+            return aggregate;
+        }
     }
 
     public EntityProjection visitPath(Path path) {
@@ -252,7 +273,7 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
                         .type(entityClass)
-                        .relationships(getIncludedRelationships(entityClass))
+                        .relationships(getRequiredRelationships(entityClass))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
                     ).build();
@@ -285,7 +306,7 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
                     .name(collectionNameText)
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
-                        .relationships(getIncludedRelationships(entityClass))
+                        .relationships(getRequiredRelationships(entityClass))
                         .attributes(attributes)
                         .type(entityClass)
                         .build()
@@ -305,6 +326,34 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
                 ));
 
         return relationships;
+    }
+
+
+    private Map<String, EntityProjection> getSparseRelationships(Class<?> entityClass) {
+        List<String> relationshipNames = dictionary.getRelationships(entityClass);
+
+
+        return relationshipNames.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        (relationshipName) -> {
+                            return EntityProjection.builder()
+                                    .type(dictionary.getParameterizedType(entityClass, relationshipName))
+                                    .dictionary(dictionary)
+                                    .build();
+                        }
+                ));
+    }
+
+    private Map<String, EntityProjection> getRequiredRelationships(Class<?> entityClass) {
+        return Stream.concat(
+                getIncludedRelationships(entityClass).entrySet().stream(),
+                getSparseRelationships(entityClass).entrySet().stream()
+        ).collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                EntityProjection::mergeRelationships
+        ));
     }
 
     private Set<Path> getIncludePaths(Class<?> entityClass) {

@@ -238,7 +238,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
      * @param queryParams The request query parameters
      * @return Parsed sparseFields map
      */
-    private static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
+    public static Map<String, Set<String>> parseSparseFields(MultivaluedMap<String, String> queryParams) {
         Map<String, Set<String>> result = new HashMap<>();
 
         for (Map.Entry<String, List<String>> kv : queryParams.entrySet()) {
