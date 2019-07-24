@@ -31,6 +31,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * Converts a JSON-API request (URL and query parameters) into an EntityProjection.
  * TODO - Parse filter parameters and add them to the projection.
  * TODO - Parse sparse fields and limit the attributes in the projection.
+ * TODO - Add attributes for included entities.
  */
 public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, EntityProjectionMaker.NamedEntityProjection>> {
 
@@ -180,12 +181,12 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
         Class<?> entityClass = pathElement.getFieldType();
 
         if (size > 1) {
-            Path nextPath = new Path(path.getPathElements().subList(1, size - 1));
+            Path nextPath = new Path(path.getPathElements().subList(1, size));
             EntityProjection relationshipProjection = visitPath(nextPath);
 
             return EntityProjection.builder()
                 .dictionary(dictionary)
-                .relationship(pathElement.getFieldName(), relationshipProjection)
+                .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .type(entityClass)
                 .build();
         }
@@ -251,6 +252,7 @@ public class EntityProjectionMaker extends CoreBaseVisitor<Function<Class<?>, En
                     .projection(EntityProjection.builder()
                         .dictionary(dictionary)
                         .type(entityClass)
+                        .relationships(getIncludedRelationships(entityClass))
                         .relationship(relationshipName, relationshipProjection.projection)
                         .build()
                     ).build();
