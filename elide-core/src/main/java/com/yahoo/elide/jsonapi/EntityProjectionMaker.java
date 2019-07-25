@@ -129,16 +129,7 @@ public class EntityProjectionMaker
         return (parentClass) -> {
             String entityName = ctx.term().getText();
 
-            Class<?> entityClass;
-            if (parentClass == null) {
-                entityClass = dictionary.getEntityClass(entityName);
-            } else {
-                entityClass = dictionary.getParameterizedType(parentClass, entityName);
-            }
-
-            if (entityClass == null) {
-                throw new InvalidCollectionException(entityName);
-            }
+            Class<?> entityClass = getEntityClass(parentClass, entityName);
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -156,16 +147,7 @@ public class EntityProjectionMaker
             String entityName = ctx.term().getText();
             String id = ctx.id().getText();
 
-            Class<?> entityClass;
-            if (parentClass == null) {
-                entityClass = dictionary.getEntityClass(entityName);
-            } else {
-                entityClass = dictionary.getParameterizedType(parentClass, entityName);
-            }
-
-            if (entityClass == null) {
-                throw new InvalidCollectionException(entityName);
-            }
+            Class<?> entityClass = getEntityClass(parentClass, entityName);
 
             return NamedEntityProjection.builder()
                     .name(entityName)
@@ -224,16 +206,7 @@ public class EntityProjectionMaker
             String entityName = entity.term().getText();
             String id = entity.id().getText();
 
-            Class<?> entityClass;
-            if (parentClass == null) {
-                entityClass = dictionary.getEntityClass(entityName);
-            } else {
-                entityClass = dictionary.getParameterizedType(parentClass, entityName);
-            }
-
-            if (entityClass == null) {
-                throw new InvalidCollectionException(entityName);
-            }
+            Class<?> entityClass = getEntityClass(parentClass, entityName);
 
             NamedEntityProjection projection = subCollection.accept(this).apply(entityClass);
 
@@ -254,16 +227,7 @@ public class EntityProjectionMaker
             String entityName = entity.term().getText();
             String id = entity.id().getText();
 
-            Class<?> entityClass;
-            if (parentClass == null) {
-                entityClass = dictionary.getEntityClass(entityName);
-            } else {
-                entityClass = dictionary.getParameterizedType(parentClass, entityName);
-            }
-
-            if (entityClass == null || !dictionary.isRoot(entityClass)) {
-                throw new InvalidCollectionException(entityName);
-            }
+            Class<?> entityClass = getEntityClass(parentClass, entityName);
 
             String relationshipName = relationship.term().getText();
             NamedEntityProjection relationshipProjection = relationship.accept(this).apply(entityClass);
@@ -284,16 +248,7 @@ public class EntityProjectionMaker
         return (parentClass) -> {
             String collectionNameText = collectionName.getText();
 
-            Class<?> entityClass;
-            if (parentClass == null) {
-                entityClass = dictionary.getEntityClass(collectionNameText);
-            } else {
-                entityClass = dictionary.getParameterizedType(parentClass, collectionNameText);
-            }
-
-            if (entityClass == null) {
-                throw new InvalidCollectionException(collectionNameText);
-            }
+            Class<?> entityClass = getEntityClass(parentClass, collectionNameText);
 
             return NamedEntityProjection.builder()
                     .name(collectionNameText)
@@ -305,6 +260,25 @@ public class EntityProjectionMaker
                         .build()
                     ).build();
         };
+    }
+
+    private Class<?> getEntityClass(Class<?> parentClass, String entityLabel) {
+
+            //entityLabel represents a root collection.
+            if (parentClass == null) {
+                Class<?> entityClass = dictionary.getEntityClass(entityLabel);
+
+                if (entityClass != null) {
+                    return entityClass;
+                }
+
+
+            //entityLabel represents a relationship.
+            } else if (dictionary.isRelation(parentClass, entityLabel)) {
+                return dictionary.getParameterizedType(parentClass, entityLabel);
+            }
+
+            throw new InvalidCollectionException(entityLabel);
     }
 
     private Map<String, EntityProjection> getIncludedRelationships(Class<?> entityClass) {

@@ -36,11 +36,13 @@
             <artifactId>elide-core</artifactId>
             <version>${elide.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
             <version>${elide.version}</version>
         </dependency>
+        -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-example-models</artifactId>
