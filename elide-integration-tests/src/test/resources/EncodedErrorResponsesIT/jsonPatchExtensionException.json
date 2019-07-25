@@ -1,0 +1,6 @@
+[
+  {
+    "detail":"Bad Request Body&#39;Could not parse patch extension value: {&#34;id&#34;:&#34;6&#34;,&#34;type&#34;:&#34;parent&#34;,&#34;notARelationship&#34;:{}}&#39;",
+    "status":400
+  }
+]

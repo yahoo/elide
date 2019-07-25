@@ -41,7 +41,6 @@ public class JsonPatchExtensionException extends HttpStatusException {
 
     @Override
     public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
-        // TODO: encode response
         if (!encodeResponse) {
             return response;
         }
@@ -56,7 +55,6 @@ public class JsonPatchExtensionException extends HttpStatusException {
 
     @Override
     public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
-        // TODO: encode response
         if (!encodeResponse) {
             return response;
         }

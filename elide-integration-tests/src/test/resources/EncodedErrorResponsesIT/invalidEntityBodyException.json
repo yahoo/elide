@@ -1,0 +1,5 @@
+{
+  "errors": [
+    "InvalidEntityBodyException: Bad Request Body&#39;[{&#34;op&#34;:&#34;add&#34;,&#34;path&#34;:&#34;/parent&#34;,&#34;value&#34;:{&#34;id&#34;:&#34;23&#34;,&#34;type&#34;:&#34;parent&#34;},&#34;relationships&#34;:{&#34;spouses&#34;:{}}}]&#39;"
+  ]
+}
