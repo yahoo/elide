@@ -77,11 +77,11 @@ public class EntityProjection {
     }
 
     /**
-     * Recursively merges two EntityProjections by their relationships.
+     * Recursively merges two EntityProjections.
      * @param toMerge The projection to merge
      * @return A newly created & merged EntityProjection.
      */
-    public EntityProjection mergeRelationships(EntityProjection toMerge) {
+    public EntityProjection merge(EntityProjection toMerge) {
         EntityProjectionBuilder merged = withProjection();
 
         for (Map.Entry<String, EntityProjection> entry : toMerge.getRelationships().entrySet()) {
@@ -91,15 +91,19 @@ public class EntityProjection {
             EntityProjection ours = relationships.get(relationshipName);
 
             if (ours != null) {
-                merged.relationship(relationshipName, ours.mergeRelationships(theirs));
+                merged.relationship(relationshipName, ours.merge(theirs));
             } else {
                 merged.relationship(relationshipName, theirs);
             }
         }
+        merged.attributes.addAll(toMerge.attributes);
 
         return merged.build();
     }
 
+    /**
+     * Customizes the lombok builder to our needs.
+     */
     public static class EntityProjectionBuilder {
         private Map<String, EntityProjection> relationships = new HashMap<>();
 
@@ -111,7 +115,7 @@ public class EntityProjection {
         public EntityProjectionBuilder relationship(String relationName, EntityProjection relationship) {
             EntityProjection existing = relationships.get(relationName);
             if (existing != null) {
-                relationships.put(relationName, existing.mergeRelationships(relationship));
+                relationships.put(relationName, existing.merge(relationship));
             } else {
                 relationships.put(relationName, relationship);
             }

@@ -904,6 +904,9 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                         .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
                                 && ids.contains(resource.getUUID().orElse("")))
                         .map((resource) -> {
+
+                                    //Newly created objects may not have the same entity projection that matches
+                                    //the current request.  We have to clone it and reset the projection.
                                     return new PersistentResource(resource.obj,
                                             entityProjection.getRelationship(relation),
                                             resource.lineage,

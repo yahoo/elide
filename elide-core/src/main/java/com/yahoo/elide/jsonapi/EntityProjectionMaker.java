@@ -315,15 +315,14 @@ public class EntityProjectionMaker
                 .collect(Collectors.toMap(
                         Pair::getKey,
                         Pair::getValue,
-                        EntityProjection::mergeRelationships
+                        EntityProjection::merge
                 ));
 
         return relationships;
     }
 
     private Set<Attribute> getSparseAttributes(Class<?> entityClass) {
-        try {
-            Set<String> allAttributes = new HashSet<>(dictionary.getAttributes(entityClass));
+        Set<String> allAttributes = new HashSet<>(dictionary.getAttributes(entityClass));
 
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
@@ -336,11 +335,6 @@ public class EntityProjectionMaker
                     .type(dictionary.getType(entityClass, attributeName))
                     .build())
                 .collect(Collectors.toSet());
-
-       } catch (NullPointerException e) {
-            System.out.println(entityClass);
-            return null;
-        }
     }
 
     private Map<String, EntityProjection> getSparseRelationships(Class<?> entityClass) {
@@ -372,7 +366,7 @@ public class EntityProjectionMaker
         ).collect(Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue,
-                EntityProjection::mergeRelationships
+                EntityProjection::merge
         ));
     }
 
