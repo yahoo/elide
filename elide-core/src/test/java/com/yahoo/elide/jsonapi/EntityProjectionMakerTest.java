@@ -69,6 +69,30 @@ public class EntityProjectionMakerTest {
     }
 
     @Test
+    public void testRootCollectionSparseFields() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("fields[book]", "title,publishDate,authors");
+        String path = "/book";
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+
+        EntityProjection expected = EntityProjection.builder()
+                .type(Book.class)
+                .dictionary(dictionary)
+                .attribute(Attribute.builder().name("title").type(String.class).build())
+                .attribute(Attribute.builder().name("publishDate").type(long.class).build())
+                .relationship("authors", EntityProjection.builder()
+                        .type(Author.class)
+                        .dictionary(dictionary)
+                        .build())
+                .build();
+
+        EntityProjection actual = maker.make(path);
+
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Test
     public void testRootEntityNoQueryParams() {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         String path = "/book/1";
@@ -524,6 +548,46 @@ public class EntityProjectionMakerTest {
                                         .dictionary(dictionary)
                                         .type(Editor.class)
                                         .build())
+                                .build())
+                        .build())
+                .build();
+
+        EntityProjection actual = maker.make(path);
+
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Test
+    public void testRootEntityWithNestedIncludeAndSparseFields() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("include", "books");
+        queryParams.add("include", "books.publisher,books.editor");
+        queryParams.add("fields[publisher]", "name");
+        queryParams.add("fields[editor]", "fullName");
+        queryParams.add("fields[book]", "publisher,editor,title");
+        String path = "/author/1";
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, queryParams);
+
+        EntityProjection expected = EntityProjection.builder()
+                .type(Author.class)
+                .dictionary(dictionary)
+                .attribute(Attribute.builder().name("name").type(String.class).build())
+                .attribute(Attribute.builder().name("type").type(Author.AuthorType.class).build())
+                .attribute(Attribute.builder().name("homeAddress").type(Address.class).build())
+                .relationship("books", EntityProjection.builder()
+                        .type(Book.class)
+                        .dictionary(dictionary)
+                        .attribute(Attribute.builder().name("title").type(String.class).build())
+                        .relationship("publisher", EntityProjection.builder()
+                                .type(Publisher.class)
+                                .dictionary(dictionary)
+                                .attribute(Attribute.builder().name("name").type(String.class).build())
+                                .build())
+                        .relationship("editor", EntityProjection.builder()
+                                .type(Editor.class)
+                                .dictionary(dictionary)
+                                .attribute(Attribute.builder().name("fullName").type(String.class).build())
                                 .build())
                         .build())
                 .build();
