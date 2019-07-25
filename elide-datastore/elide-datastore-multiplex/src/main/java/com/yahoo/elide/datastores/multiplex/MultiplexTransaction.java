@@ -17,6 +17,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
 import java.io.IOException;
@@ -69,6 +70,12 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         getTransaction(entity).createObject(entity, scope);
     }
 
+    @Override
+    public Object loadObject(EntityProjection entityProjection,
+                             Serializable id,
+                             RequestScope scope) {
+        return getTransaction(entityProjection.getType()).loadObject(entityProjection, id, scope);
+    }
 
     @Override
     public Object loadObject(Class<?> entityClass,

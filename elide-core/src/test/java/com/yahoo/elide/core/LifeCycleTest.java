@@ -42,6 +42,7 @@ import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
@@ -186,7 +187,7 @@ public class LifeCycleTest {
         Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
 
         when(store.beginReadTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(book);
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         elide.get("/book/1", headers, null);
@@ -215,7 +216,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(book);
 
         String bookBody = "{\"data\":{\"type\":\"book\",\"id\":1,\"attributes\": {\"title\":\"Grapes of Wrath\"}}}";
 
@@ -254,7 +255,7 @@ public class LifeCycleTest {
 
         when(book.getId()).thenReturn(1L);
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.loadObject(eq(Book.class), any(), any(), isA(RequestScope.class))).thenReturn(book);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(book);
 
         elide.delete("/book/1", "", null);
         /*
@@ -279,7 +280,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource resource = PersistentResource.createObject(null, Book.class, scope, Optional.of("uuid"));
+        PersistentResource resource = PersistentResource.createObject(Book.class, scope, Optional.of("uuid"));
         resource.setValueChecked("title", "should not affect calls since this is create!");
         resource.setValueChecked("genre", "boring books");
         assertNotNull(resource);
@@ -556,7 +557,7 @@ public class LifeCycleTest {
         Book book = mock(Book.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Book.class, 1);
         PersistentResource resource = new PersistentResource(book, null, scope.getUUIDFor(book), scope);
         verify(book, never()).onCreatePreSecurity(scope);
         verify(book, never()).onDeletePreSecurity(scope);
@@ -849,7 +850,7 @@ public class LifeCycleTest {
         Book book = new Book();
         when(tx.createNewObject(Book.class)).thenReturn(book);
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
-        PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
+        PersistentResource bookResource = PersistentResource.createObject(Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 
         assertEquals(book.createPreSecurityInvoked, 0);
@@ -941,9 +942,12 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
-        PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
-        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
+
+        PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class,
+                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("1"));
+
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource)));
 
         scope.runQueuedPreCommitTriggers();
@@ -956,9 +960,10 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
+        scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
-        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class,
+                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
         publisherResource.addRelation("books", book2Resource);
 
@@ -981,11 +986,13 @@ public class LifeCycleTest {
         store.populateEntityDictionary(new EntityDictionary(checkMappings));
         DataStoreTransaction tx = store.beginTransaction();
 
-        RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
+        RequestScope scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
-        PersistentResource publisherResource = PersistentResource.createObject(null, Publisher.class, scope, Optional.of("1"));
-        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("1"));
-        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        PersistentResource publisherResource = PersistentResource.createObject(Publisher.class, scope, Optional.of("1"));
+        PersistentResource book1Resource = PersistentResource.createObject(publisherResource, Book.class,
+                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("1"));
+        PersistentResource book2Resource = PersistentResource.createObject(publisherResource, Book.class,
+                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book1Resource, book2Resource)));
 
         scope.runQueuedPreCommitTriggers();
@@ -998,9 +1005,11 @@ public class LifeCycleTest {
         /* Only the creat hooks should be triggered */
         assertFalse(publisher.isUpdateHookInvoked());
 
-        scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, wrapped.getDictionary(), MOCK_AUDIT_LOGGER));
+        scope = new TestRequestScope(tx, new User(1), dictionary, Publisher.class, 1);
 
-        book2Resource = PersistentResource.createObject(publisherResource, Book.class, scope, Optional.of("2"));
+        book2Resource = PersistentResource.createObject(publisherResource, Book.class,
+                scope.getEntityProjection().getRelationship("books"), scope, Optional.of("2"));
+
         publisherResource = PersistentResource.loadRecord(Publisher.class, "1", scope);
         publisherResource.updateRelation("books", new HashSet<>(Arrays.asList(book2Resource)));
 

@@ -126,8 +126,8 @@ public class EntityBinding {
         entityName = null;
         idField = null;
         idType = null;
-        attributes = null;
-        relationships = null;
+        attributes = new ArrayList<>();
+        relationships = new ArrayList<>();
         entityClass = null;
         inheritedTypes = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;

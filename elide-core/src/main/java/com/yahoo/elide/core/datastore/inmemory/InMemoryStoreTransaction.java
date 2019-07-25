@@ -17,6 +17,7 @@ import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -158,6 +159,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     public void createObject(Object entity, RequestScope scope) {
         tx.createObject(entity, scope);
     }
+
+    @Override
+    public Object loadObject(EntityProjection entityProjection,
+                             Serializable id,
+                             RequestScope scope) {
+        return tx.loadObject(entityProjection, id, scope);
+    }
+
 
     @Override
     public Object loadObject(Class<?> entityClass,
