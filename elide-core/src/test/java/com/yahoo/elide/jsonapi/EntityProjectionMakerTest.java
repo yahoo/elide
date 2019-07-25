@@ -370,7 +370,7 @@ public class EntityProjectionMakerTest {
         Assert.assertEquals(actual, expected);
     }
 
-    //@Test
+    @Test
     public void testRootEntityWithNestedInclude() {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("include", "books");
@@ -397,6 +397,14 @@ public class EntityProjectionMakerTest {
                                 .dictionary(dictionary)
                                 .attribute(Attribute.builder().name("name").type(String.class).build())
                                 .attribute(Attribute.builder().name("updateHookInvoked").type(boolean.class).build())
+                                .relationship("books", EntityProjection.builder()
+                                        .dictionary(dictionary)
+                                        .type(Book.class)
+                                        .build())
+                                .relationship("editor", EntityProjection.builder()
+                                        .dictionary(dictionary)
+                                        .type(Editor.class)
+                                        .build())
                                 .build())
                         .relationship("editor", EntityProjection.builder()
                                 .type(Editor.class)
@@ -404,6 +412,14 @@ public class EntityProjectionMakerTest {
                                 .attribute(Attribute.builder().name("firstName").type(String.class).build())
                                 .attribute(Attribute.builder().name("lastName").type(String.class).build())
                                 .attribute(Attribute.builder().name("fullName").type(String.class).build())
+                                .relationship("editor", EntityProjection.builder()
+                                        .dictionary(dictionary)
+                                        .type(Editor.class)
+                                        .build())
+                                .build())
+                        .relationship("authors", EntityProjection.builder()
+                                .dictionary(dictionary)
+                                .type(Author.class)
                                 .build())
                         .build())
                 .build();
