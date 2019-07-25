@@ -205,6 +205,19 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         this(obj, scope.getEntityProjection(), parent, id, scope);
     }
 
+    private PersistentResource(T obj, EntityProjection projection, ResourceLineage lineage,
+                               Optional<String> uuid, RequestScope scope) {
+        this.obj = obj;
+        this.entityProjection = projection;
+        this.uuid = uuid;
+        this.lineage = lineage;
+        this.dictionary = scope.getDictionary();
+        this.type = dictionary.getJsonAliasFor(obj.getClass());
+        this.transaction = scope.getTransaction();
+        this.requestScope = scope;
+        dictionary.initializeEntity(obj);
+    }
+
     /**
      * Check whether an id matches for this persistent resource.
      *
@@ -890,6 +903,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
                 newResources = requestScope.getNewPersistentResources().stream()
                         .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
                                 && ids.contains(resource.getUUID().orElse("")))
+                        .map((resource) -> {
+                                    return new PersistentResource(resource.obj,
+                                            entityProjection.getRelationship(relation),
+                                            resource.lineage,
+                                            resource.uuid,
+                                            requestScope);
+                        })
                         .collect(Collectors.toSet());
 
                 FilterExpression idExpression = buildIdFilterExpression(ids, entityType, dictionary, requestScope);

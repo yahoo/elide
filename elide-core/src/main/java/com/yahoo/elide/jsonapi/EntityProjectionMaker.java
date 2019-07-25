@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.jsonapi;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
@@ -17,6 +16,7 @@ import com.yahoo.elide.parsers.JsonApiParser;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Builder;
@@ -203,6 +203,7 @@ public class EntityProjectionMaker
 
             return EntityProjection.builder()
                 .dictionary(dictionary)
+                .relationships(getSparseRelationships(entityClass))
                 .relationship(nextPath.getPathElements().get(0).getFieldName(), relationshipProjection)
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
@@ -211,6 +212,7 @@ public class EntityProjectionMaker
 
         return EntityProjection.builder()
                 .dictionary(dictionary)
+                .relationships(getSparseRelationships(entityClass))
                 .attributes(getSparseAttributes(entityClass))
                 .type(entityClass)
                 .build();
@@ -320,7 +322,9 @@ public class EntityProjectionMaker
     }
 
     private Set<Attribute> getSparseAttributes(Class<?> entityClass) {
-        Set<String> allAttributes = new HashSet<>(dictionary.getAttributes(entityClass));
+        try {
+            Set<String> allAttributes = new HashSet<>(dictionary.getAttributes(entityClass));
+
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
             sparseFieldsForEntity = allAttributes;
@@ -332,6 +336,11 @@ public class EntityProjectionMaker
                     .type(dictionary.getType(entityClass, attributeName))
                     .build())
                 .collect(Collectors.toSet());
+
+       } catch (NullPointerException e) {
+            System.out.println(entityClass);
+            return null;
+        }
     }
 
     private Map<String, EntityProjection> getSparseRelationships(Class<?> entityClass) {

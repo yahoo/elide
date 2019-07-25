@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.Singular;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +36,6 @@ public class EntityProjection {
     @Singular
     private Set<Attribute> attributes;
 
-    @Singular
     private Map<String, EntityProjection> relationships;
 
     private FilterExpression filterExpression;
@@ -98,5 +98,24 @@ public class EntityProjection {
         }
 
         return merged.build();
+    }
+
+    public static class EntityProjectionBuilder {
+        private Map<String, EntityProjection> relationships = new HashMap<>();
+
+        public EntityProjectionBuilder relationships(Map<String, EntityProjection> relationships) {
+            this.relationships = relationships;
+            return this;
+        }
+
+        public EntityProjectionBuilder relationship(String relationName, EntityProjection relationship) {
+            EntityProjection existing = relationships.get(relationName);
+            if (existing != null) {
+                relationships.put(relationName, existing.mergeRelationships(relationship));
+            } else {
+                relationships.put(relationName, relationship);
+            }
+            return this;
+        }
     }
 }

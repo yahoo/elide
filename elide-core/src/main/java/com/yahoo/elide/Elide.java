@@ -134,7 +134,6 @@ public class Elide {
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
                 PatchRequestScope requestScope = new PatchRequestScope(path, tx, user, elideSettings);
-                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary()).make(path));
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);

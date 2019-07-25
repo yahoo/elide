@@ -234,6 +234,6 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
         Class entityClass = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
-        return getSchema().isMetricField(fieldName, entityClass);
+        return getSchema().isMetricField(fieldName);
     }
 }

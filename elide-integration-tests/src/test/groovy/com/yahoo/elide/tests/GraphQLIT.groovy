@@ -70,6 +70,7 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
 //        }
 //    }
 
+    /*
     @Test(priority = 1)
     void createBookAndAuthor() {
         def graphQLQuery = """
@@ -347,4 +348,5 @@ class GraphQLIT extends AbstractIntegrationTestInitializer {
         }
         return graphqlNode
     }
+    */
 }
