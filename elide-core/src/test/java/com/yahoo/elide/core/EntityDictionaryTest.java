@@ -47,6 +47,7 @@ import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 public class EntityDictionaryTest extends EntityDictionary {
@@ -474,5 +475,17 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testBadLookupEntityClass() {
         Assert.assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(null));
         Assert.assertThrows(IllegalArgumentException.class, () -> lookupEntityClass(Object.class));
+    }
+
+    @Test
+    public void testAttributeOrRelationAnnotationExists() {
+        Assert.assertTrue(attributeOrRelationAnnotationExists(Job.class, "jobId", Id.class));
+        Assert.assertFalse(attributeOrRelationAnnotationExists(Job.class, "title", OneToOne.class));
+    }
+
+    @Test
+    public void testIsValidField() {
+        Assert.assertTrue(isValidField(Job.class, "title"));
+        Assert.assertFalse(isValidField(Job.class, "foo"));
     }
 }
