@@ -15,16 +15,16 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
-
+import io.swagger.models.Swagger;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.hk2.api.TypeLiteral;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.function.Consumer;
 
 import javax.persistence.EntityManager;
@@ -181,11 +181,23 @@ public interface ElideStandaloneSettings {
      *
      * Before calling the consumer, the class will be injected by the ServiceLocator.
      *
-     * @return Default: null
+     * @return Default: register the DependencyBinder that binds swagger map to named endpoint if swagger is not configured.
      */
     default Consumer<ResourceConfig> getApplicationConfigurator() {
-        // Do nothing by default
-        return (x) -> {};
+        // Do nothing if swagger map is empty
+        Map<String, Swagger> swaggerDocs = enableSwagger();
+        if(swaggerDocs.isEmpty())
+            return (x) -> {};
+
+        //Bind the swagger docs to the named parameter
+        return (x) -> {
+            x.register(new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
+                }
+            });
+        };
     }
 
     /**
@@ -204,6 +216,18 @@ public interface ElideStandaloneSettings {
      * @param servletContextHandler ServletContextHandler in use by Elide standalone.
      */
     default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
-        // Do nothing
+        ServletHolder jerseyServlet = servletContextHandler.addServlet(ServletContainer.class, "/swagger");
+        jerseyServlet.setInitOrder(0);
+        jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.contrib.swagger.resources");
+        jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+
+    }
+
+    /**
+     * Enable swagger documentation by returning non empty map object.
+     * @return Map object that maps document name to swagger object.
+     */
+    default Map<String, Swagger> enableSwagger() {
+        return new HashMap<>();
     }
 }
