@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
 
+    private static final String GRAPHQL_CONTENT_TYPE = "application/json";
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
             "application/vnd.api+json; ext=jsonpatch";
@@ -118,6 +119,34 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
                 .body(request).post("/invoice")
                 .then()
                 .statusCode(HttpStatus.SC_LOCKED)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void graphQLMutationError() {
+        String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.req.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.json");
+        given()
+                .contentType(GRAPHQL_CONTENT_TYPE)
+                .accept(GRAPHQL_CONTENT_TYPE)
+                .body(request)
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void graphQLFetchError() {
+        String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.req.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.json");
+        given()
+                .contentType(GRAPHQL_CONTENT_TYPE)
+                .accept(GRAPHQL_CONTENT_TYPE)
+                .body(request)
+                .post("/graphQL")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected));
     }
 }
