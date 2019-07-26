@@ -38,7 +38,7 @@ public class JsonApiEndpoint {
     protected final Elide elide;
     protected final Function<SecurityContext, Object> getUser;
 
-    private static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
+    public static final DefaultOpaqueUserFunction DEFAULT_GET_USER = securityContext -> securityContext;
 
     @Inject
     public JsonApiEndpoint(@Named("elide") Elide elide,

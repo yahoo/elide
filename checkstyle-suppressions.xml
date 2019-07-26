@@ -13,4 +13,5 @@
   <suppress files="[/\\]src[/\\]test[/\\]" checks="(JavadocType|LineLength)"/>
   <suppress files="[/\\]src[/\\]main[/\\]webapp[/\\]WEB-INF[/\\]api-docs[/\\]" checks=".*"/>
   <suppress files="[/\\]target[/\\]" checks=".*"/>
+  <suppress files="\.csv" checks=".*"/>
 </suppressions>
