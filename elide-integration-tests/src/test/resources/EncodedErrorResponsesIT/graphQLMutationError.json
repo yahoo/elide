@@ -1,0 +1,12 @@
+{
+  "data":null,
+  "errors":[
+    {
+      "message":"Exception while fetching data (/invoice) : Invalid value: 6&lt;script&gt;alert(1)&lt;/script&gt;",
+      "locations":[
+        {"line":1,"column":11}
+      ],
+      "path":["invoice"]
+    }
+  ]
+}

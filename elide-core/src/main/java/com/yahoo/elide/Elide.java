@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -266,13 +267,20 @@ public class Elide {
         if (error instanceof InternalServerErrorException) {
             log.error("Internal Server Error", error);
         }
+
+        boolean encodeErrorResponse = elideSettings.isEncodeErrorResponses();
         if (!(error instanceof CustomErrorException) && elideSettings.isReturnErrorObjects()) {
-            ErrorObjects errors = ErrorObjects.builder().addError()
-                    .withDetail(isVerbose ? error.getVerboseMessage() : error.toString()).build();
+            String errorDetail = isVerbose ? error.getVerboseMessage() : error.toString();
+            if (encodeErrorResponse) {
+                errorDetail = Encode.forHtml(errorDetail);
+            }
+            ErrorObjects errors = ErrorObjects.builder().addError().withDetail(errorDetail).build();
             JsonNode responseBody = mapper.getObjectMapper().convertValue(errors, JsonNode.class);
             return buildResponse(Pair.of(error.getStatus(), responseBody));
         }
-        return buildResponse(isVerbose ? error.getVerboseErrorResponse() : error.getErrorResponse());
+
+        return buildResponse(isVerbose ? error.getVerboseErrorResponse(encodeErrorResponse)
+                : error.getErrorResponse(encodeErrorResponse));
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {
