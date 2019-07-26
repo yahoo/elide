@@ -2,6 +2,9 @@
 ## 4.4.6
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
+ * Issue #871. Add ElideSettings property `encodeErrorResponses`, which when enabled will encode error messages to be safe for HTML. This works for both JSONAPI and GraphQL endpoints, with verbose errors or error object settings enabled/disabled.
+ * HttpStatusException class now supports the following additional functions: `getErrorResponse(boolean encodeResponse)` and `getVerboseErrorResponse(boolean encodeResponse)`
+ * Add `GraphQLErrorSerializer` and `ExecutionResultSerializer` which are added to the `ObjectMapper` provided by the ElideSettings. These are used to parse the GraphQL results, instead of using `ExecutionResult#toSpecification`.
 
 **Fixes**
  * Run vulnerability check during build.  Updated dependencies to fix CVE-2018-1000632, CVE-2017-15708, CVE-2019-10247
