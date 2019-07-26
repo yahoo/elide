@@ -16,6 +16,8 @@ import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
+import com.yahoo.elide.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.security.executors.VerbosePermissionExecutor;
 
 import example.TestCheckMappings;
 
@@ -35,10 +37,15 @@ import java.util.Arrays;
 public class EncodedErrorResponsesTestBinder extends AbstractBinder {
     private final AuditLogger auditLogger;
     private final ServiceLocator injector;
+    private final boolean verboseErrors;
+    private final boolean errorObjects;
 
-    public EncodedErrorResponsesTestBinder(final AuditLogger auditLogger, ServiceLocator injector) {
+    public EncodedErrorResponsesTestBinder(final AuditLogger auditLogger, ServiceLocator injector,
+                                           boolean verboseErrors, boolean errorObjects) {
         this.auditLogger = auditLogger;
         this.injector = injector;
+        this.verboseErrors = verboseErrors;
+        this.errorObjects = errorObjects;
     }
 
     @Override
@@ -62,6 +69,8 @@ public class EncodedErrorResponsesTestBinder extends AbstractBinder {
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withEncodeErrorResponses(true)
+                        .withReturnErrorObjects(errorObjects)
+                        .withPermissionExecutor(verboseErrors ? VerbosePermissionExecutor::new : ActivePermissionExecutor::new)
                         .build());
             }
 

@@ -12,13 +12,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.inject.Inject;
 
-/**
- * Resource configuration for encoded error response integration tests.
- */
-public class EncodedErrorResponsesTestApplicationResourceConfig extends ResourceConfig {
+public class VerboseEncodedErrorResponsesTestApplicationResourceConfig extends ResourceConfig {
 
     @Inject
-    public EncodedErrorResponsesTestApplicationResourceConfig(ServiceLocator injector) {
-        register(new EncodedErrorResponsesTestBinder(new TestAuditLogger(), injector, false, false));
+    public VerboseEncodedErrorResponsesTestApplicationResourceConfig(ServiceLocator injector) {
+        register(new EncodedErrorResponsesTestBinder(new TestAuditLogger(), injector, true, false));
     }
 }

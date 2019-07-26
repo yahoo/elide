@@ -9,25 +9,22 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.EncodedErrorResponsesTestApplicationResourceConfig;
+import com.yahoo.elide.initialization.EncodedErrorObjectsTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * Test class for checking encoding of error response messages.
- */
-public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer {
+public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
             "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
-    public EncodedErrorResponsesIT() {
-        super(EncodedErrorResponsesTestApplicationResourceConfig.class);
+    public EncodedErrorObjectsIT() {
+        super(EncodedErrorObjectsTestApplicationResourceConfig.class);
     }
 
     @BeforeClass
@@ -39,7 +36,7 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
     @Test
     public void invalidAttributeException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidAttributeException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
@@ -52,32 +49,32 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
 
     @Test
     public void invalidCollectionException() {
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidCollection.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidCollectionErrorObject.json");
         given().when().get("/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND).body(equalTo(expected));
     }
 
     @Test
     public void invalidEntityBodyException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(request)
                 .patch("/parent")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
 
     @Test
     public void invalidObjectIdentifierException() {
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidObjectIdentifierExecption.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidObjectIdentifierExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/100")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
     }
@@ -86,13 +83,13 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
     @Test
     public void invalidValueException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(request)
                 .post("/invoice")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
@@ -100,12 +97,12 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
     @Test
     public void jsonPatchExtensionException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(request).patch()
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
@@ -114,12 +111,12 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
     public void transactionException() {
         // intentionally forget the comma between type and id to force a transaction exception
         String request = "{\"data\": {\"type\": \"invoice\" \"id\": 100}}";
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/transactionException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/transactionExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(request).post("/invoice")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_LOCKED)
                 .body(equalTo(expected));
     }

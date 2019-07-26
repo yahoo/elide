@@ -9,7 +9,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-import com.yahoo.elide.initialization.EncodedErrorResponsesTestApplicationResourceConfig;
+import com.yahoo.elide.initialization.VerboseEncodedErrorResponsesTestApplicationResourceConfig;
 import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
@@ -17,17 +17,19 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Test class for checking encoding of error response messages.
+ * Test class for checking encoding on verbose error messages.
+ * Note that many exceptions don't really differ very much/at all between verbose and non-verbose, so many
+ * of these tests are similar to {@link EncodedErrorResponsesIT}.
  */
-public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer {
+public class VerboseEncodedErrorResponsesIT extends AbstractIntegrationTestInitializer {
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
             "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
 
-    public EncodedErrorResponsesIT() {
-        super(EncodedErrorResponsesTestApplicationResourceConfig.class);
+    public VerboseEncodedErrorResponsesIT() {
+        super(VerboseEncodedErrorResponsesTestApplicationResourceConfig.class);
     }
 
     @BeforeClass
@@ -65,7 +67,7 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(request)
                 .patch("/parent")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
@@ -77,7 +79,7 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/100")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(equalTo(expected));
     }
@@ -86,13 +88,13 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
     @Test
     public void invalidValueException() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueException.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueException.json");
+        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueExceptionVerbose.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(request)
                 .post("/invoice")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
@@ -105,7 +107,7 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
                 .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
                 .body(request).patch()
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
     }
@@ -119,7 +121,7 @@ public class EncodedErrorResponsesIT extends AbstractIntegrationTestInitializer 
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(request).post("/invoice")
-        .then()
+                .then()
                 .statusCode(HttpStatus.SC_LOCKED)
                 .body(equalTo(expected));
     }
