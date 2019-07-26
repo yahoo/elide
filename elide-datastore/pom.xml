@@ -143,6 +143,7 @@
                             <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-fieldleveltest.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-assignedIdLong.xml</suiteXmlFile>
+                            <suiteXmlFile>${project.basedir}/../testng-errorencoding.xml</suiteXmlFile>
                         </suiteXmlFiles>
                     </configuration>
                     <executions>

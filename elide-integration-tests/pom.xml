@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
             <artifactId>hibernate-jpa-2.1-api</artifactId>
-            <version>1.0.0.Final</version>
+            <version>1.0.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.21.0-GA</version>
+            <version>3.25.0-GA</version>
             <scope>test</scope>
         </dependency>
         <dependency>
