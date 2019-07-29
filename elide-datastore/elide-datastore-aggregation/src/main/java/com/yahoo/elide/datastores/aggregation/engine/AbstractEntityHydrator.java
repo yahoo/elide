@@ -38,13 +38,13 @@ public abstract class AbstractEntityHydrator {
     protected final EntityDictionary entityDictionary;
 
     @Getter(AccessLevel.PRIVATE)
-    protected final StitchList stitchList;
+    private final StitchList stitchList;
+
+    @Getter(AccessLevel.PROTECTED)
+    private final List<Map<String, Object>> results = new ArrayList<>();
 
     @Getter(AccessLevel.PRIVATE)
-    protected final List<Map<String, Object>> results = new ArrayList<>();
-
-    @Getter(AccessLevel.PRIVATE)
-    protected final Query query;
+    private final Query query;
 
     /**
      * Constructor.
