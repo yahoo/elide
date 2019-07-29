@@ -131,6 +131,7 @@ public class SQLQueryEngineTest {
                 .metric(playerStatsSchema.getMetric("lowScore"), Sum.class)
                 .metric(playerStatsSchema.getMetric("highScore"), Sum.class)
                 .groupDimension(playerStatsSchema.getDimension("overallRating"))
+                .groupDimension(playerStatsSchema.getDimension("country"))
                 .timeDimension((TimeDimension) playerStatsSchema.getDimension("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("country.name=='United States'",
                         PlayerStats.class, false))
@@ -139,23 +140,35 @@ public class SQLQueryEngineTest {
         List<Object> results = StreamSupport.stream(engine.executeQuery(query).spliterator(), false)
                 .collect(Collectors.toList());
 
+        Country expectedCountry = new Country();
+        expectedCountry.setId("840");
+        expectedCountry.setIsoCode("USA");
+        expectedCountry.setName("United States");
+
+
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("0");
-        stats1.setLowScore(72);
-        stats1.setHighScore(1234);
-        stats1.setOverallRating("Good");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats1.setLowScore(241);
+        stats1.setHighScore(2412);
+        stats1.setOverallRating("Great");
+        stats1.setCountry(expectedCountry);
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("1");
-        stats2.setLowScore(241);
-        stats2.setHighScore(2412);
-        stats2.setOverallRating("Great");
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats2.setLowScore(72);
+        stats2.setHighScore(1234);
+        stats2.setOverallRating("Good");
+        stats2.setCountry(expectedCountry);
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
 
         Assert.assertEquals(results.size(), 2);
         Assert.assertEquals(results.get(0), stats1);
         Assert.assertEquals(results.get(1), stats2);
+
+        // test join
+        PlayerStats actualStats1 = (PlayerStats) results.get(0);
+        Assert.assertNotNull(actualStats1.getCountry());
     }
 
     @Test
