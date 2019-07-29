@@ -266,7 +266,7 @@ public class FilterTranslator implements FilterOperation<String> {
 
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
         JPQLQueryVisitor visitor = new JPQLQueryVisitor(prefixWithAlias);
-        return "WHERE " + filterExpression.accept(visitor);
+        return filterExpression.accept(visitor);
     }
 
     /**
