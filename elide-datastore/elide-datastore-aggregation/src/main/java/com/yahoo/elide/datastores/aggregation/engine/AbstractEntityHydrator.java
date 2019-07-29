@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractEntityHydrator {
 
     @Getter(AccessLevel.PROTECTED)
-    protected final EntityDictionary entityDictionary;
+    private final EntityDictionary entityDictionary;
 
     @Getter(AccessLevel.PRIVATE)
     private final StitchList stitchList;
