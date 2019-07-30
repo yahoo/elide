@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
-import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import com.google.common.base.Preconditions;
@@ -156,8 +155,6 @@ public abstract class AbstractEntityHydrator {
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
         Class<?> entityClass = query.getSchema().getEntityClass();
 
-        SQLSchema schema = (SQLSchema) query.getSchema();
-
         //Construct the object.
         Object entityInstance;
         try {
@@ -167,7 +164,7 @@ public abstract class AbstractEntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            Dimension dim = schema.getDimension(fieldName);
+            Dimension dim = query.getSchema().getDimension(fieldName);
 
             if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
                 getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.
