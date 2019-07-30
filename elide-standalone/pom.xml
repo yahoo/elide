@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-standalone</artifactId>
-    <version>4.4.6-SNAPSHOT</version>
+    <version>4.5.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Elide Standalone</name>
     <description>Elide Standalone Application</description>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.6-SNAPSHOT</version>
+        <version>4.5.1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -49,7 +49,7 @@
         <!-- Versions -->
         <jetty.version>9.4.17.v20190418</jetty.version>
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.0.5</metrics.version>
+        <metrics.version>4.1.0</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -62,12 +62,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -213,7 +213,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${min_jdk_version}</source>
                     <target>${min_jdk_version}</target>

@@ -8,13 +8,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.4.6-SNAPSHOT</version>
+    <version>4.5.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
     <url>https://github.com/yahoo/elide</url>
-
-
 
     <modules>
         <module>elide-annotations</module>
@@ -79,13 +77,13 @@
 
         <!-- dependency versions -->
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.18.v20190429</version.jetty>
+        <version.jetty>9.4.19.v20190610</version.jetty>
         <version.restassured>2.9.0</version.restassured>
         <version.jackson>2.9.9</version.jackson>
         <version.jersey>2.28</version.jersey>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <hibernate5.version>5.2.15.Final</hibernate5.version>
         <version.mysql>8.0.16</version.mysql>
+        <hibernate5.version>5.4.2.Final</hibernate5.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -102,12 +100,12 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-annotations</artifactId>
-                <version>4.4.6-SNAPSHOT</version>
+                <version>4.5.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-example-models</artifactId>
-                <version>4.4.6-SNAPSHOT</version>
+                <version>4.5.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -277,7 +275,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>3.1.0</version>
                     <executions>
                         <execution>
                             <id>validate</id>
@@ -341,7 +339,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${source.jdk.version}</source>
                     <target>${target.jdk.version}</target>
@@ -387,6 +385,12 @@
                         <artifactId>maven-scm-provider-gitexe</artifactId>
                         <version>1.11.2</version>
                     </dependency>
+
+                   <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-api</artifactId>
+                        <version>1.11.2</version>
+                   </dependency>
                 </dependencies>
                 <configuration>
                     <tagNameFormat>@{project.version}</tagNameFormat>
@@ -458,7 +462,7 @@
             <plugin>
                 <groupId>com.versioneye</groupId>
                 <artifactId>versioneye-maven-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.11.4</version>
                 <configuration>
                     <apiKey>${env.versioneye_api_key}</apiKey>
                     <parentGroupId>com.yahoo.elide</parentGroupId>

@@ -1,0 +1,7 @@
+{
+  "errors": [
+    {
+      "detail":"TransactionException: Unexpected character (&#39;&#34;&#39; (code 34)): was expecting comma to separate Object entries\n at [Source: (String)&#34;{&#34;data&#34;: {&#34;type&#34;: &#34;invoice&#34; &#34;id&#34;: 100}}&#34;; line: 1, column: 30]"
+    }
+  ]
+}

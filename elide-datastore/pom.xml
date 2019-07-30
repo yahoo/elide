@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.4.6-SNAPSHOT</version>
+        <version>4.5.1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -51,6 +51,7 @@
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
         <module>elide-datastore-noop</module>
+        <module>elide-datastore-search</module>
     </modules>
 
     <dependencyManagement>
@@ -58,7 +59,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>4.4.6-SNAPSHOT</version>
+                <version>4.5.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -142,6 +143,7 @@
                             <suiteXmlFile>${project.basedir}/../testng-audit.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-fieldleveltest.xml</suiteXmlFile>
                             <suiteXmlFile>${project.basedir}/../testng-assignedIdLong.xml</suiteXmlFile>
+                            <suiteXmlFile>${project.basedir}/../testng-errorencoding.xml</suiteXmlFile>
                         </suiteXmlFiles>
                     </configuration>
                     <executions>
