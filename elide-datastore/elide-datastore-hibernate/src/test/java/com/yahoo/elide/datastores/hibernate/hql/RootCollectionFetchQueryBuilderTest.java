@@ -13,10 +13,10 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.sort.Sorting;
 
-import example.Author;
-import example.Book;
-import example.Chapter;
-import example.Publisher;
+import com.yahoo.elide.models.example.Author;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Chapter;
+import com.yahoo.elide.models.example.Publisher;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -51,7 +51,7 @@ public class RootCollectionFetchQueryBuilderTest {
 
         TestQueryWrapper query = (TestQueryWrapper) builder.build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book  ";
+        String expected = "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Book AS com_yahoo_elide_models_example_Book  ";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
@@ -69,7 +69,7 @@ public class RootCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Book AS example_Book   order by example_Book.title asc";
+        String expected = "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Book AS com_yahoo_elide_models_example_Book   order by com_yahoo_elide_models_example_Book.title asc";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
@@ -108,12 +108,12 @@ public class RootCollectionFetchQueryBuilderTest {
 
 
         String expected =
-                "SELECT example_Author FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  "
-                + "WHERE (example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
-                + "OR example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
+                "SELECT com_yahoo_elide_models_example_Author FROM com.yahoo.elide.models.example.Author AS com_yahoo_elide_models_example_Author  "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author.books com_yahoo_elide_models_example_Author_books  "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author_books.chapters com_yahoo_elide_models_example_Book_chapters   "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author_books.publisher com_yahoo_elide_models_example_Book_publisher  "
+                + "WHERE (com_yahoo_elide_models_example_Book_chapters.title IN (:books_chapters_title_XXX, :books_chapters_title_XXX) "
+                + "OR com_yahoo_elide_models_example_Book_publisher.name IN (:books_publisher_name_XXX)) ";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_chapters_title_\\w\\w\\w\\w+", ":books_chapters_title_XXX");
@@ -142,8 +142,8 @@ public class RootCollectionFetchQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT example_Book FROM example.Book AS example_Book  "
-                + "WHERE example_Book.id IN (:id_XXX)  order by example_Book.title asc";
+                "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Book AS com_yahoo_elide_models_example_Book  "
+                + "WHERE com_yahoo_elide_models_example_Book.id IN (:id_XXX)  order by com_yahoo_elide_models_example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");

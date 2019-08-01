@@ -13,10 +13,10 @@ import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.sort.Sorting;
 
-import example.Author;
-import example.Book;
-import example.Chapter;
-import example.Publisher;
+import com.yahoo.elide.models.example.Author;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Chapter;
+import com.yahoo.elide.models.example.Publisher;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -94,9 +94,9 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book "
-                + "WHERE example_Author__fetch=:example_Author__fetch order by example_Book.title asc";
+        String expected = "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Author com_yahoo_elide_models_example_Author__fetch "
+                + "JOIN com_yahoo_elide_models_example_Author__fetch.books com_yahoo_elide_models_example_Book "
+                + "WHERE com_yahoo_elide_models_example_Author__fetch=:com_yahoo_elide_models_example_Author__fetch order by com_yahoo_elide_models_example_Book.title asc";
         String actual = query.getQueryText();
 
         Assert.assertEquals(actual, expected);
@@ -134,10 +134,10 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
-                + "WHERE example_Book_publisher.name IN (:books_publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch ";
+        String expected = "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Author com_yahoo_elide_models_example_Author__fetch "
+                + "JOIN com_yahoo_elide_models_example_Author__fetch.books com_yahoo_elide_models_example_Book "
+                + "LEFT JOIN com_yahoo_elide_models_example_Book.publisher com_yahoo_elide_models_example_Book_publisher  "
+                + "WHERE com_yahoo_elide_models_example_Book_publisher.name IN (:books_publisher_name_XXX) AND com_yahoo_elide_models_example_Author__fetch=:com_yahoo_elide_models_example_Author__fetch ";
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+_\\w+", ":books_publisher_name_XXX");
 
@@ -180,10 +180,10 @@ public class SubCollectionFetchQueryBuilderTest {
                 .withPossibleSorting(Optional.of(new Sorting(sorting)))
                 .build();
 
-        String expected = "SELECT example_Book FROM example.Author example_Author__fetch "
-                + "JOIN example_Author__fetch.books example_Book "
-                + "LEFT JOIN example_Book.publisher example_Book_publisher  "
-                + "WHERE example_Book_publisher.name IN (:publisher_name_XXX) AND example_Author__fetch=:example_Author__fetch  order by example_Book.title asc";
+        String expected = "SELECT com_yahoo_elide_models_example_Book FROM com.yahoo.elide.models.example.Author com_yahoo_elide_models_example_Author__fetch "
+                + "JOIN com_yahoo_elide_models_example_Author__fetch.books com_yahoo_elide_models_example_Book "
+                + "LEFT JOIN com_yahoo_elide_models_example_Book.publisher com_yahoo_elide_models_example_Book_publisher  "
+                + "WHERE com_yahoo_elide_models_example_Book_publisher.name IN (:publisher_name_XXX) AND com_yahoo_elide_models_example_Author__fetch=:com_yahoo_elide_models_example_Author__fetch  order by com_yahoo_elide_models_example_Book.title asc";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":publisher_name_\\w+", ":publisher_name_XXX");

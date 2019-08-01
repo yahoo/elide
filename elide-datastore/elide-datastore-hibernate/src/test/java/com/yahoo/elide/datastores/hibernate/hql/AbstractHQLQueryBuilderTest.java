@@ -24,12 +24,11 @@ import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-
-import example.Author;
-import example.Book;
-import example.Chapter;
-import example.Left;
-import example.Publisher;
+import com.yahoo.elide.models.example.Author;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Chapter;
+import com.yahoo.elide.models.example.Left;
+import com.yahoo.elide.models.example.Publisher;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -97,9 +96,9 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
         AndFilterExpression andExpression = new AndFilterExpression(orExpression, titlePredicateDuplicate);
 
         String actual = getJoinClauseFromFilters(andExpression);
-        String expected = " LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.chapters example_Book_chapters   "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher  ";
+        String expected = " LEFT JOIN com_yahoo_elide_models_example_Author.books com_yahoo_elide_models_example_Author_books  "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author_books.chapters com_yahoo_elide_models_example_Book_chapters   "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author_books.publisher com_yahoo_elide_models_example_Book_publisher  ";
         Assert.assertEquals(actual, expected);
     }
 
@@ -131,7 +130,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         String actual = getSortClause(Optional.of(new Sorting(sorting)), Book.class, USE_ALIAS);
 
-        String expected = " order by example_Book.title asc,example_Book.genre desc";
+        String expected = " order by com_yahoo_elide_models_example_Book.title asc,com_yahoo_elide_models_example_Book.genre desc";
         Assert.assertEquals(actual, expected);
     }
 

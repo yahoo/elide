@@ -11,14 +11,12 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.models.example.Embedded;
+import com.yahoo.elide.models.example.Left;
+import com.yahoo.elide.models.example.Right;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.ImmutableSet;
-
-import example.Embedded;
-import example.Left;
-import example.Right;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

@@ -12,7 +12,7 @@ import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-import example.Left
+import com.yahoo.elide.models.example.Left
 
 import org.testng.Assert
 import org.testng.annotations.BeforeClass

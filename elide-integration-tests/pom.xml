@@ -50,6 +50,14 @@
             <artifactId>elide-test-helpers</artifactId>
             <version>${elide.version}</version>
         </dependency>
+        <!-- Elide beans for testing -->
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-example-models</artifactId>
+            <version>${elide.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Additional dependencies -->
         <dependency>

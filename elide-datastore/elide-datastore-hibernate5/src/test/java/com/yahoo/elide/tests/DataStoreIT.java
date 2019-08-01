@@ -14,17 +14,15 @@ import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.models.example.Author;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Chapter;
+import com.yahoo.elide.models.example.TestCheckMappings;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import example.Author;
-import example.Book;
-import example.Chapter;
 import example.Filtered;
-import example.TestCheckMappings;
-
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,7 +31,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 
 public class DataStoreIT extends AbstractIntegrationTestInitializer {

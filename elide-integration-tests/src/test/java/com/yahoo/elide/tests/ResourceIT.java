@@ -34,22 +34,20 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Child;
+import com.yahoo.elide.models.example.ExceptionThrowingBean;
+import com.yahoo.elide.models.example.FunWithPermissions;
+import com.yahoo.elide.models.example.Invoice;
+import com.yahoo.elide.models.example.LineItem;
+import com.yahoo.elide.models.example.Parent;
+import com.yahoo.elide.models.example.TestCheckMappings;
+import com.yahoo.elide.models.example.User;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-
-import example.Book;
-import example.Child;
-import example.ExceptionThrowingBean;
-import example.FunWithPermissions;
-import example.Invoice;
-import example.LineItem;
-import example.Parent;
-import example.TestCheckMappings;
-import example.User;
-
 import org.apache.http.HttpStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -62,7 +60,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;

@@ -17,10 +17,10 @@ import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 
-import example.Author;
-import example.Book;
-import example.Chapter;
-import example.Publisher;
+import com.yahoo.elide.models.example.Author;
+import com.yahoo.elide.models.example.Book;
+import com.yahoo.elide.models.example.Chapter;
+import com.yahoo.elide.models.example.Publisher;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -72,10 +72,10 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
-                + "WHERE example_Author.id IN (:id_XXX)";
+                "SELECT COUNT(DISTINCT com_yahoo_elide_models_example_Author_books)  "
+                + "FROM com.yahoo.elide.models.example.Author AS com_yahoo_elide_models_example_Author  "
+                + "JOIN com_yahoo_elide_models_example_Author.books com_yahoo_elide_models_example_Author_books  "
+                + "WHERE com_yahoo_elide_models_example_Author.id IN (:id_XXX)";
 
         Assert.assertEquals(actual, expected);
     }
@@ -135,12 +135,12 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher   "
-                + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
-                + "AND example_Author.id IN (:id_XXX))";
+                "SELECT COUNT(DISTINCT com_yahoo_elide_models_example_Author_books)  "
+                + "FROM com.yahoo.elide.models.example.Author AS com_yahoo_elide_models_example_Author  "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author.books com_yahoo_elide_models_example_Author_books  "
+                + "LEFT JOIN com_yahoo_elide_models_example_Author_books.publisher com_yahoo_elide_models_example_Book_publisher   "
+                + "WHERE (com_yahoo_elide_models_example_Book_publisher.name IN (:books_publisher_name_XXX) "
+                + "AND com_yahoo_elide_models_example_Author.id IN (:id_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");

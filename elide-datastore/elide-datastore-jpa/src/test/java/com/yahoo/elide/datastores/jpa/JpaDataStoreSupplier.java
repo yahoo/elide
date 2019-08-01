@@ -7,11 +7,10 @@ package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.models.example.Parent;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
-
-import example.Parent;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.MetadataSources;
@@ -27,7 +26,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

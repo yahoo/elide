@@ -56,13 +56,22 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <!-- Elide beans for testing -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-integration-tests</artifactId>
+            <artifactId>elide-example-models</artifactId>
             <version>4.5.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
-    	</dependency>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-example-models</artifactId>
+            <version>4.5.1-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -135,16 +144,6 @@
         </dependency>
 
         <!-- Integration test -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

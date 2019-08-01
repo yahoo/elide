@@ -7,8 +7,7 @@ package com.yahoo.elide.tests;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
-
-import example.Parent;
+import com.yahoo.elide.models.example.Parent;
 
 import org.testng.annotations.Test;
 

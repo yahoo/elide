@@ -6,8 +6,7 @@
 package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.DataStore;
-
-import example.Parent;
+import com.yahoo.elide.models.example.Parent;
 
 import java.util.function.Supplier;
 

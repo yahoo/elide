@@ -56,9 +56,11 @@
             <version>4.5.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Elide beans for testing -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-integration-tests</artifactId>
+            <artifactId>elide-example-models</artifactId>
             <version>4.5.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>

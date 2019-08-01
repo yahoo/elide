@@ -6,14 +6,13 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.models.example.Parent;
+import com.yahoo.elide.models.example.TestCheckMappings;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
 
 import example.Filtered;
-import example.Parent;
-import example.TestCheckMappings;
-
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
@@ -25,7 +24,6 @@ import org.hibernate.tool.schema.TargetType;
 
 import java.util.EnumSet;
 import java.util.function.Supplier;
-
 import javax.persistence.Entity;
 
 /**
