@@ -80,9 +80,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.IN)
-        assertEquals(predicate.getValues(), ["abc"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.IN, predicate.getOperator())
+        assertEquals(["abc"], predicate.getValues())
     }
 
     @Test
@@ -94,9 +94,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.IN)
-        assertEquals(predicate.getValues(), ["abc", "def"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.IN, predicate.getOperator())
+        assertEquals(["abc", "def"], predicate.getValues())
     }
 
     @Test
@@ -111,12 +111,12 @@ public class FilterPredicateTest {
         for (FilterPredicate predicate : predicates.get("book")) {
             switch (predicate.getField()) {
                 case "title":
-                    assertEquals(predicate.getOperator(), Operator.IN)
-                    assertEquals(predicate.getValues(), ["abc", "def"])
+                    assertEquals(Operator.IN, predicate.getOperator())
+                    assertEquals(["abc", "def"], predicate.getValues())
                     break
                 case "genre":
-                    assertEquals(predicate.getOperator(), Operator.IN)
-                    assertEquals(predicate.getValues(), ["def", "jkl"])
+                    assertEquals(Operator.IN, predicate.getOperator())
+                    assertEquals(["def", "jkl"], predicate.getValues())
                     break
                 default:
                     fail(predicate.toString() + " case not covered")
@@ -133,9 +133,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.IN)
-        assertEquals(predicate.getValues(), ["abc", "def"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.IN, predicate.getOperator())
+        assertEquals(["abc", "def"], predicate.getValues())
     }
 
     @Test
@@ -147,9 +147,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.NOT)
-        assertEquals(predicate.getValues(), ["abc", "def"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.NOT, predicate.getOperator())
+        assertEquals(["abc", "def"], predicate.getValues())
     }
 
     @Test
@@ -161,9 +161,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.PREFIX)
-        assertEquals(predicate.getValues(), ["abc"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.PREFIX, predicate.getOperator())
+        assertEquals(["abc"], predicate.getValues())
     }
 
     @Test
@@ -175,9 +175,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.POSTFIX)
-        assertEquals(predicate.getValues(), ["abc", "def"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.POSTFIX, predicate.getOperator())
+        assertEquals(["abc", "def"], predicate.getValues())
     }
 
     @Test
@@ -189,9 +189,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "title")
-        assertEquals(predicate.getOperator(), Operator.INFIX)
-        assertEquals(predicate.getValues(), ["abc", "def"])
+        assertEquals("title", predicate.getField())
+        assertEquals(Operator.INFIX, predicate.getOperator())
+        assertEquals(["abc", "def"], predicate.getValues())
     }
 
     @Test
@@ -211,9 +211,9 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "id")
-        assertEquals(predicate.getOperator(), Operator.IN)
-        assertEquals(predicate.getValues(), [1])
+        assertEquals("id", predicate.getField())
+        assertEquals(Operator.IN, predicate.getOperator())
+        assertEquals([1], predicate.getValues())
     }
 
     @Test
@@ -225,8 +225,8 @@ public class FilterPredicateTest {
         assertTrue(predicates.containsKey("book"))
 
         def predicate = predicates.get("book").iterator().next()
-        assertEquals(predicate.getField(), "id")
-        assertEquals(predicate.getOperator(), Operator.IN)
-        assertEquals(predicate.getValues(), [1, 2, 3])
+        assertEquals("id", predicate.getField())
+        assertEquals(Operator.IN, predicate.getOperator())
+        assertEquals([1, 2, 3], predicate.getValues())
     }
 }
