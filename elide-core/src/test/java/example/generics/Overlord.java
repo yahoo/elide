@@ -22,5 +22,5 @@ import javax.persistence.OneToMany;
 public class Overlord<T> extends BaseId {
 
     @OneToMany
-    private Set<T> minions;
+    public Set<T> minions;
 }

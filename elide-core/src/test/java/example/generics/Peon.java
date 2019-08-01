@@ -20,5 +20,5 @@ import javax.persistence.OneToOne;
 public class Peon<T> extends BaseId {
 
     @OneToOne
-    private T boss;
+    public T boss;
 }
