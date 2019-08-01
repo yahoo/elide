@@ -45,10 +45,10 @@ public abstract class BaseId {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof BaseId)) {
+        if (obj == null || !(obj instanceof example.generics.BaseId)) {
             return false;
         }
 
-        return ((BaseId) obj).naturalKey.equals(naturalKey);
+        return ((example.generics.BaseId) obj).naturalKey.equals(naturalKey);
     }
 }

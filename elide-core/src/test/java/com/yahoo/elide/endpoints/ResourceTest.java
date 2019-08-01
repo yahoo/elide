@@ -5,12 +5,14 @@
  */
 package com.yahoo.elide.endpoints;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.parsers.JsonApiParser;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * The type Config resource test.
@@ -27,24 +29,32 @@ public class ResourceTest {
         new CoreBaseVisitor().visit(parse("company/123/cities/2/relationships/states/1"));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void parseFailRelationship() {
-        new CoreBaseVisitor().visit(parse("company/123/relationships"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/123/relationships")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void parseFailRelationshipCollection() {
-        new CoreBaseVisitor().visit(parse("company/relationships"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/relationships")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void parseFailure() {
-        new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company/123|apps/2/links/foo")));
     }
 
-    @Test(expectedExceptions = ParseCancellationException.class)
+    @Test
     public void wrongPathSeparator() {
-        new CoreBaseVisitor().visit(parse("company\\123"));
+        assertThrows(
+                ParseCancellationException.class,
+                () -> new CoreBaseVisitor().visit(parse("company\\123")));
     }
 
     private static ParseTree parse(String path) {

@@ -4,9 +4,9 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.models.generics;
+package example.generics;
 
-import com.yahoo.elide.models.BaseId;
+import example.BaseId;
 
 import java.util.Set;
 
