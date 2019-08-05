@@ -35,7 +35,7 @@ public class EntityProjection {
     private Class<?> type;
 
     @Singular
-    private Set<Attribute> attributes = new HashSet<>();
+    private Set<Attribute> attributes;
 
     private Map<String, EntityProjection> relationships;
 
