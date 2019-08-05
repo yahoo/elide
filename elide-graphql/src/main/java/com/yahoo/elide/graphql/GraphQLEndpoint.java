@@ -32,6 +32,7 @@ import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -161,8 +162,10 @@ public class GraphQLEndpoint {
 
             String query = jsonDocument.get(QUERY).asText();
 
-            //TODO
-            Document document = new Parser().parseDocument(query);
+            // we assume there is only 1 root entity in the query
+            requestScope.setEntityProjection(
+                    new GraphQLEntityProjectionMaker(requestScope.getDictionary()).make(query).iterator().next()
+            );
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.

@@ -678,6 +678,23 @@ public class EntityDictionary {
     }
 
     /**
+     * Get a bound type for a specific entity type name
+     *
+     * @param identifier  The entity type name in string
+     *
+     * @return Type of entity
+     */
+    public Class<?> getType(String identifier) {
+        for (Class<?> entityType : entityBindings.keySet()) {
+            if (entityType.getSimpleName().equalsIgnoreCase(identifier)) {
+                return entityType;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieve the parameterized type for the given field.
      *
      * @param entityClass the entity class
