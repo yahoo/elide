@@ -1258,7 +1258,7 @@ public class EntityDictionary {
      * @return {@code true} if the field exists in the entity
      */
     public boolean isValidField(Class<?> cls, String fieldName) {
-        return getAllFields(cls).contains(fieldName);
+        return getAllFields(cls).contains(fieldName) || REGULAR_ID_NAME.equals(getIdFieldName(cls));
     }
 
     /**

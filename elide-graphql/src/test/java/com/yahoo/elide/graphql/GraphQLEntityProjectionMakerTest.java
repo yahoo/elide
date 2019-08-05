@@ -25,7 +25,7 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
     public void testMake() {
         Collection<EntityProjection> entityProjections = projectionMaker.make(
                 "{\n" +
-                        "  book {\n" +
+                        "  book(id: \"1\") {\n" +
                         "        id\n" +
                         "        title\n" +
                         "        author {\n" +

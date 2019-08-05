@@ -102,6 +102,13 @@ public class EntityProjection {
         return merged.build();
     }
 
+    public Attribute getAttributeByName(String attributeName) {
+        return getAttributes().stream()
+                .filter(attribute -> attribute.getName().equals(attributeName))
+                .findAny()
+                .orElse(null);
+    }
+
     /**
      * Customizes the lombok builder to our needs.
      */

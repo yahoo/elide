@@ -34,6 +34,10 @@ import java.util.stream.IntStream;
  * <b>{@link GraphQLEntityProjectionMaker} produces {@link EntityProjection} that is only used in read operations</b>.
  * Read-Write GraphQL query should be processed by GraphQL API instead({@link GraphQL#execute(String)}).
  *
+ * @see EntityProjection
+ *
+ * TODO - transform sorting
+ * TODO - transform pagination
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -87,23 +91,6 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         // nothing interesting about entity projection here; go to child nodes down the parse tree
         return super.visitDefinition(ctx);
     }
-
-//    @Override
-//    public Void visitOperationDefinition(final GraphqlParser.OperationDefinitionContext ctx) {
-//        // GraphQL grammar for operation (6.0):
-//        //     selectionSet |
-//        //     operationType  name? variableDefinitions? directives? selectionSet;
-//
-//        if (ctx.operationType().MUTATION() != null) {
-//            String message = "Mutation is not allowed, because entity projection is for read-only operations";
-//            log.error(message);
-//            throw new IllegalStateException(message);
-//        }
-//
-//        // nothing interesting about entity projection here except for selectionSet;
-//        // go to selectionSet child node down the parse tree
-//        return super.visitSelectionSet(ctx.selectionSet());
-//    }
 
     @Override
     public Void visitField(final GraphqlParser.FieldContext ctx) {
@@ -180,21 +167,28 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         String entityName = ((GraphqlParser.FieldContext) ctx.getParent().getParent()).name().getText();
         Class<?> entityType = getDictionary().getType(entityName);
 
-        Attribute targetAttribute = getAllEntityProjections().get(entityType).getAttributes().stream()
-                .filter(attribute -> attribute.getName().equals(name))
-                .findFirst()
-                .orElseThrow(() -> {
-                    String message = String.format("'%s' is not a '%s' field", name, entityName);
-                    log.error(message);
-                    return new IllegalStateException(message);
-                });
+        if (!getDictionary().isValidField(entityType, name)) {
+            // invalid argument name
+            String message = String.format("'%s' is not a '%s' field", name, entityName);
+            log.error(message);
+            throw  new IllegalStateException(message);
+        }
 
-        targetAttribute.getArguments().add(
-                Argument.builder()
-                        .name(name)
-                        .value(value)
-                        .build()
-        );
+        Attribute targetAttribute = getProjectionsByKey().get(entityType).getAttributeByName(name);
+
+        if (targetAttribute == null) {
+            Class<?> attributeType = getDictionary().getType(entityType, name);
+            targetAttribute = Attribute.builder().type(attributeType).name(name).argument(                Argument.builder()
+                    .name(name)
+                    .value(value)
+                    .build()).build();
+        } else {
+            targetAttribute.getArguments().add(
+                    Argument.builder()
+                            .name(name)
+                            .value(value)
+                            .build());
+        }
 
         return super.visitArgument(ctx);
     }
