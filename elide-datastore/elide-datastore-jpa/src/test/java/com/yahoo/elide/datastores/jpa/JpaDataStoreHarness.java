@@ -1,18 +1,18 @@
 /*
- * Copyright 2017, Yahoo Inc.
+ * Copyright 2019, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
-
 import example.Parent;
-
 import org.hibernate.MappingException;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -26,23 +26,22 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
-
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 /**
- * Supplier of Hibernate 5 Data Store.
+ * IT Test Harness for the JpaDataStore.
  */
-@Deprecated
-public class JpaDataStoreSupplier implements Supplier<DataStore> {
+public class JpaDataStoreHarness implements DataStoreTestHarness {
+
     private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
 
-    @Override
-    public DataStore get() {
+    private DataStore store;
+    private MetadataImplementor metadataImplementor;
+
+    public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 
@@ -62,7 +61,6 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
         options.put(AvailableSettings.LOADED_CLASSES, bindClasses);
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("elide-tests", options);
-        EntityManager em = emf.createEntityManager();
 
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
@@ -86,8 +84,17 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
             throw new IllegalStateException(e);
         }
 
-        MetadataImplementor metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
+        metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
 
+        resetSchema();
+
+        store = new JpaDataStore(
+                () -> { return emf.createEntityManager(); },
+                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+        );
+    }
+
+    public void resetSchema() {
         EnumSet<TargetType> type = EnumSet.of(TargetType.DATABASE);
         // create example tables from beans
         SchemaExport schemaExport = new SchemaExport();
@@ -97,10 +104,15 @@ public class JpaDataStoreSupplier implements Supplier<DataStore> {
         if (!schemaExport.getExceptions().isEmpty()) {
             throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
+    }
 
-        return new JpaDataStore(
-                () -> { return em; },
-                (entityManager) -> { return new NonJtaTransaction(entityManager); }
-        );
+    @Override
+    public DataStore getDataStore() {
+        return store;
+    }
+
+    @Override
+    public void cleanseTestData() {
+        resetSchema();
     }
 }

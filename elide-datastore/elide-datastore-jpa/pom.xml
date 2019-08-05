@@ -40,6 +40,7 @@
 
     <properties>
         <dataStoreSupplier>com.yahoo.elide.datastores.jpa.JpaDataStoreSupplier</dataStoreSupplier>
+        <dataStoreHarness>com.yahoo.elide.datastores.jpa.JpaDataStoreHarness</dataStoreHarness>
     </properties>
 
     <dependencies>
@@ -119,6 +120,27 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.4.1</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>5.4.1</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>5.4.1</version>
+        <scope>test</scope>
+    </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>

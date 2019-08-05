@@ -39,6 +39,20 @@ import java.util.stream.StreamSupport;
  */
 public class InMemoryStoreTransaction implements DataStoreTransaction {
 
+    private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
+        if (a == null && b == null) {
+            return 0;
+        } else if (a == null) {
+            return -1;
+        } else if (b == null) {
+            return 1;
+        } else if (a instanceof Comparable) {
+            return ((Comparable) a).compareTo(b);
+        } else {
+            throw new IllegalStateException("Trying to comparing non-comparable types!");
+        }
+    };
+
     private DataStoreTransaction tx;
 
     /**
@@ -346,15 +360,11 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                 rightCompare = PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope);
             }
 
-            // Make sure value is comparable and perform comparison
-            if (leftCompare instanceof Comparable) {
-                if (order == Sorting.SortOrder.asc) {
-                    return ((Comparable<Object>) leftCompare).compareTo(rightCompare);
-                }
-                return ((Comparable<Object>) rightCompare).compareTo(leftCompare);
+            if (order == Sorting.SortOrder.asc) {
+                return NULL_SAFE_COMPARE.compare(leftCompare, rightCompare);
+            } else {
+                return NULL_SAFE_COMPARE.compare(rightCompare, leftCompare);
             }
-
-            throw new IllegalStateException("Trying to comparing non-comparable types!");
         };
     }
 

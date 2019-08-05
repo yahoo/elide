@@ -14,9 +14,9 @@ import java.util.Optional;
 /**
  * Contrived check to disallow updates on Child 4 through parent 10
  */
-public class Child4Parent10Check extends OperationCheck<Child> {
+public class Child4Parent5Check extends OperationCheck<Child> {
     @Override
     public boolean ok(Child object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        return object.getId() != 4L || object.getParents().stream().map(Parent::getId).noneMatch(id -> id == 10);
+        return object.getId() != 4L || object.getParents().stream().map(Parent::getId).noneMatch(id -> id == 5);
     }
 }
