@@ -31,8 +31,17 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
+ * A strategy that mapps a read-only GraphQL query to a collection of {@link EntityProjection}s.
+ * <p>
  * <b>{@link GraphQLEntityProjectionMaker} produces {@link EntityProjection} that is only used in read operations</b>.
- * Read-Write GraphQL query should be processed by GraphQL API instead({@link GraphQL#execute(String)}).
+ * Any write operations will result in runtime exceptions, although they might be supported in future releases. GraphQL
+ * query involving write operations should be processed by GraphQL API instead({@link GraphQL#execute(String)}).
+ * <p>
+ * {@link GraphQLEntityProjectionMaker} is not thread-safe and its concurrent access must be guarded by external
+ * synchronizations.
+ * <p>
+ * Caller should not call any methods on {@link GraphQLEntityProjectionMaker} except for its constructor and
+ * {@link #make(String)}.
  *
  * @see EntityProjection
  *
@@ -175,19 +184,24 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         Attribute targetAttribute = getProjectionsByKey().get(entityType).getAttributeByName(name);
+        Argument setArgument = Argument.builder()
+                .name(name)
+                .value(value)
+                .build();
 
         if (targetAttribute == null) {
             Class<?> attributeType = getDictionary().getType(entityType, name);
-            targetAttribute = Attribute.builder().type(attributeType).name(name).argument(                Argument.builder()
+            targetAttribute = Attribute.builder()
+                    .type(attributeType)
                     .name(name)
-                    .value(value)
-                    .build()).build();
+                    .argument(setArgument)
+                    .build();
+
+            Set<Attribute> existingAttribute = new HashSet<>(getProjectionsByKey().get(entityType).getAttributes());
+            existingAttribute.add(targetAttribute);
+            getProjectionsByKey().get(entityType).setAttributes(existingAttribute);
         } else {
-            targetAttribute.getArguments().add(
-                    Argument.builder()
-                            .name(name)
-                            .value(value)
-                            .build());
+            targetAttribute.getArguments().add(setArgument);
         }
 
         return super.visitArgument(ctx);
