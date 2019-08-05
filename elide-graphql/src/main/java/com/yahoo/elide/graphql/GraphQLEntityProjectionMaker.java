@@ -52,6 +52,7 @@ import java.util.stream.IntStream;
  *
  * TODO - transform sorting
  * TODO - transform pagination
+ * TODO - support directive since it's required by specification
  */
 @Slf4j
 @RequiredArgsConstructor
