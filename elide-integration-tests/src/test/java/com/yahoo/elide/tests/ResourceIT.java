@@ -6,6 +6,15 @@
 package com.yahoo.elide.tests;
 
 import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -174,56 +183,106 @@ public class ResourceIT extends IntegrationTest {
         // To see the detail of the FilterExpression check, go to the bean of filterExpressionCheckObj and see
         // CheckRestrictUser.
         //
-        String createObj1 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.1.json");
+        given()
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(
+                data(
+                    resource(
+                        type("filterExpressionCheckObj"),
+                        id(null),
+                        attributes(
+                            attr("name", "obj1")
+                        )
+                    )
+                )
+            )
+            .post("/filterExpressionCheckObj")
+            .then()
+            .statusCode(HttpStatus.SC_CREATED)
+            .body("data.id", equalTo("1"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createObj1)
+                .body(
+                        data(
+                                resource(
+                                        type("filterExpressionCheckObj"),
+                                        id("2"),
+                                        attributes(
+                                                attr("name", "obj2")
+                                        )
+                                )
+                        )
+                )
                 .post("/filterExpressionCheckObj")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        String createObj2 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.2.json");
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("2"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createObj2)
+                .body(
+                        data(
+                                resource(
+                                        type("filterExpressionCheckObj"),
+                                        id("3"),
+                                        attributes(
+                                                attr("name", "obj3")
+                                        )
+                                )
+                        )
+                )
                 .post("/filterExpressionCheckObj")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        String createObj3 = jsonParser.getJson("/ResourceIT/createFilterExpressionCheckObj.3.json");
-
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(createObj2)
-                .post("/filterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        String createAnother = jsonParser.getJson("/ResourceIT/createAnotherFilterExpressionCheckObj.json");
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("3"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createAnother)
+                .body(
+                    data(
+                        resource(
+                            type("anotherFilterExpressionCheckObj"),
+                            id("1"),
+                            attributes(
+                                attr("anotherName", "anotherObj1"),
+                                attr("createDate", "1999")
+                            ),
+                            relationships(
+                                relation("linkToParent",
+                                    linkage(type("filterExpressionCheckObj"), id("1"))
+                                )
+                            )
+                        )
+                    )
+                )
                 .post("/anotherFilterExpressionCheckObj")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        String createAnotherAnother =
-                jsonParser.getJson("/ResourceIT/createAnotherFilterExpressionCheckObj2.json");
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("1"));
 
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(createAnotherAnother)
-                .post("/anotherFilterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(
+                data(
+                    resource(
+                        type("anotherFilterExpressionCheckObj"),
+                        attributes(
+                            attr("anotherName", "anotherObj2"),
+                            attr("createDate", "2000")
+                        )
+                    )
+                )
+            )
+            .post("/anotherFilterExpressionCheckObj")
+            .then()
+            .statusCode(HttpStatus.SC_CREATED)
+            .body("data.id", equalTo("2"));
 
         //The User ID is set to one so the following get request won't return record including
         // filterExpressionCheckObj.id != User'id.
