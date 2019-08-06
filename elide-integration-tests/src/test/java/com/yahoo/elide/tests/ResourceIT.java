@@ -382,11 +382,10 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testRootCollectionRelationships() {
-        String expected = jsonParser.getJson("/ResourceIT/testRootCollectionRelationships.json");
-
         given()
             .when().get("/parent/1/relationships/children").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+            .body(equalTo(
+                data(linkage(type("child"), id("1"))).toJSON()));
     }
 
     @Test

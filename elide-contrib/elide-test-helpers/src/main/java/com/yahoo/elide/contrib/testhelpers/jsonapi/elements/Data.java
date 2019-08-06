@@ -18,7 +18,7 @@ public class Data extends LinkedHashMap<String, Object> {
     static private final Gson GSON_INSTANCE = new GsonBuilder().serializeNulls().create();
 
     /**
-     * Instantiates a new Data.
+     * Instantiates a new Data based on resources.
      *
      * @param resources the resources
      */
@@ -30,6 +30,14 @@ public class Data extends LinkedHashMap<String, Object> {
         else {
             this.put("data", resources);
         }
+    }
+
+    /**
+     * Instantiates a new Data based on relationship links.
+     * @param links the relationships.
+     */
+    public Data(ResourceLinkage... links) {
+        this.put("data", links);
     }
 
     /**

@@ -46,6 +46,16 @@ public class JsonApiDSL {
     }
 
     /**
+     * Data data.
+     *
+     * @param links the relationship links
+     * @return data
+     */
+    public static Data data(ResourceLinkage... links) {
+        return new Data(links);
+    }
+
+    /**
      * Resource resource.
      *
      * @param type          the type
