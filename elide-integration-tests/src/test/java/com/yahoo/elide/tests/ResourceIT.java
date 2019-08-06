@@ -493,19 +493,7 @@ public class ResourceIT extends IntegrationTest {
            .then()
            .statusCode(HttpStatus.SC_OK)
            .body(equalTo(
-               data(
-                   resource(
-                       type("parent"),
-                       id("1"),
-                       attributes(
-                           attr("firstName", null)
-                       ),
-                       relationships(
-                           relation("children", linkage(type("child"), id("1"))),
-                           relation("spouses")
-                       )
-                   )
-               ).toJSON()));
+               data(PARENT1).toJSON()));
     }
 
     @Test
@@ -519,20 +507,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testChild() throws Exception {
         given().when().get("/parent/1/children/1").then().statusCode(HttpStatus.SC_OK)
-        .body(equalTo(
-           data(
-              resource(
-                 type("child"),
-                 id("1"),
-                 attributes(
-                    attr("name", null)
-                 ),
-                 relationships(
-                    relation("friends"),
-                    relation("parents", linkage(type("parent"), id("1")))
-                 )
-              )
-           ).toJSON()));
+        .body(equalTo(data(CHILD1).toJSON()));
     }
 
     @Test
@@ -775,21 +750,7 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(
-                   data(
-                           resource(
-                                   type("parent"),
-                                   id("2"),
-                                   attributes(),
-                                   relationships(
-                                           relation("children",
-                                                   linkage(type("child"), id("2")),
-                                                   linkage(type("child"), id("3"))
-                                           )
-                                   )
-                           )
-                   )
-            )
+            .body(data(PARENT2))
             .patch("/parent/2")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
@@ -801,23 +762,7 @@ public class ResourceIT extends IntegrationTest {
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(
-                        data(
-                                resource(
-                                        type("parent"),
-                                        id("2"),
-                                        attributes(
-                                                attr("firstName", "John")
-                                        ),
-                                        relationships(
-                                                relation("children",
-                                                        linkage(type("child"), id("2")),
-                                                        linkage(type("child"), id("3"))
-                                                ),
-                                                relation("spouses")
-                                        )
-                                )
-                        ).toJSON()
+                .body(equalTo(data(PARENT2).toJSON()
                 ));
     }
 
