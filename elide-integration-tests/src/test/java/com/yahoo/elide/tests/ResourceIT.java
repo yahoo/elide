@@ -390,18 +390,28 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testChild() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/testChild.json");
-
         given().when().get("/parent/1/children/1").then().statusCode(HttpStatus.SC_OK)
-        .body(equalTo(expected));
+        .body(equalTo(
+           data(
+              resource(
+                 type("child"),
+                 id("1"),
+                 attributes(
+                    attr("name", null)
+                 ),
+                 relationships(
+                    relation("friends"),
+                    relation("parents", linkage(type("parent"), id("1")))
+                 )
+              )
+           ).toJSON()));
     }
 
     @Test
     public void testSubCollectionRelationships() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/testSubCollectionRelationships.json");
-
         given().when().get("/parent/1/children/1/relationships/parents").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+            .body(equalTo(
+                data(linkage(type("parent"), id("1"))).toJSON()));
     }
 
     @Test
@@ -411,15 +421,16 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failRootCollection() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/failRootCollection.json");
+        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
 
-        given().when().get("/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
+        given().when().get("/unknown").then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
     }
 
     @Test
     public void failRootCollectionId() {
-        String expected = jsonParser.getJson("/ResourceIT/failRootCollectionId.json");
+        String expected = "{\"errors\":[\"InvalidObjectIdentifierException: Unknown identifier '6789' for parent\"]}";
 
         given().when().get("/parent/6789").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -427,7 +438,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failChild() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/failChild.json");
+        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'unknown'\"]}";
 
         given().when().get("/parent/1/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -435,7 +446,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void failFieldRequest() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/failFieldRequest.json");
+        String expected = "{\"errors\":[\"InvalidCollectionException: Unknown collection 'id'\"]}";
 
         given().when().get("/parent/1/id").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
@@ -443,7 +454,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void parseFailure() {
-        String expected = jsonParser.getJson("/ResourceIT/parseFailure.json");
+        String expected = "{\"errors\":[\"InvalidURLException: token recognition error at: '|'\"]}";
 
         given().when().get("company/1|apps/2/links/foo").then().statusCode(HttpStatus.SC_NOT_FOUND)
         .body(equalTo(expected));
