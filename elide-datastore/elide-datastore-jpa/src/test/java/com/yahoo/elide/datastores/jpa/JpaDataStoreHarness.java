@@ -1,3 +1,9 @@
+/*
+ * Copyright 2019, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.DataStore;
@@ -16,15 +22,18 @@ import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import javax.persistence.Entity;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
-public class JpaDataStoreFactory implements DataStoreHarness {
+/**
+ * IT Test Harness for the JpaDataStore.
+ */
+public class JpaDataStoreHarness implements DataStoreHarness {
 
     private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";
@@ -32,7 +41,7 @@ public class JpaDataStoreFactory implements DataStoreHarness {
     private DataStore store;
     private MetadataImplementor metadataImplementor;
 
-    public JpaDataStoreFactory() {
+    public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 

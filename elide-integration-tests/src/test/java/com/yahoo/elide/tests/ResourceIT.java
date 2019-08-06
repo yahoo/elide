@@ -543,6 +543,7 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(actual, expected);
     }
 
+    /*
     @Test
     public void testGetNestedSingleInclude() throws IOException {
         String expected  = jsonParser.getJson("/ResourceIT/testGetNestedSingleInclude.json");
@@ -722,7 +723,7 @@ public class ResourceIT extends IntegrationTest {
 
         assertEqualDocuments(actual, expected);
     }
-/*
+
     @Test(priority = 9)
     public void testPatchRelSetDirect() throws Exception {
         String request = jsonParser.getJson("/ResourceIT/testPatchRelSetDirect.json");

@@ -137,6 +137,7 @@
                         <systemPropertyVariables>
                             <restassured.port>${restassured.port}</restassured.port>
                             <dataStoreSupplier>${dataStoreSupplier}</dataStoreSupplier>
+                            <dataStoreHarness>${dataStoreHarness}</dataStoreHarness>
                         </systemPropertyVariables>
                         <suiteXmlFiles>
                             <suiteXmlFile>${project.basedir}/../testng.xml</suiteXmlFile>
