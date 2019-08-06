@@ -9,7 +9,9 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.include;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
@@ -18,6 +20,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
@@ -40,10 +43,11 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -54,6 +58,134 @@ public class ResourceIT extends IntegrationTest {
     private static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
             "application/vnd.api+json; ext=jsonpatch";
     private final JsonParser jsonParser = new JsonParser();
+
+    private static final Resource PARENT1 = resource(
+            type("parent"),
+            id("1"),
+            attributes(
+                    attr("firstName", null)
+            ),
+            relationships(
+                    relation("children",
+                            linkage(type("child"), id("1"))
+                    ),
+                    relation("spouses")
+            )
+    );
+
+    private static final Resource PARENT2 = resource(
+            type("parent"),
+            id("2"),
+            attributes(
+                    attr("firstName", "John")
+            ),
+            relationships(
+                    relation("children",
+                            linkage(type("child"), id("2")),
+                            linkage(type("child"), id("3"))
+                    ),
+                    relation("spouses")
+            )
+    );
+
+    private static final Resource PARENT3 = resource(
+            type("parent"),
+            id("3"),
+            attributes(
+                    attr("firstName", "Link")
+            ),
+            relationships(
+                    relation("children",
+                            linkage(type("child"), id("4")),
+                            linkage(type("child"), id("5"))
+                    ),
+                    relation("spouses")
+            )
+    );
+
+    private static final Resource PARENT4 = resource(
+            type("parent"),
+            id("4"),
+            attributes(
+                    attr("firstName", "Unknown")
+            ),
+            relationships(
+                    relation("children"),
+                    relation("spouses")
+            )
+    );
+
+    private static final Resource CHILD1 = resource(
+            type("child"),
+            id("1"),
+            attributes(
+                    attr("name", null)
+            ),
+            relationships(
+                    relation("friends"),
+                    relation("parents",
+                            linkage(type("parent"), id("1"))
+                    )
+            )
+    );
+
+    private static final Resource CHILD2 = resource(
+            type("child"),
+            id("2"),
+            attributes(
+                    attr("name", "Child-ID2")
+            ),
+            relationships(
+                    relation("friends",
+                            linkage(type("child"), id("3"))
+                    ),
+                    relation("parents",
+                            linkage(type("parent"), id("2"))
+                    )
+            )
+    );
+
+    private static final Resource CHILD3 = resource(
+            type("child"),
+            id("3"),
+            attributes(
+                    attr("name", "Child-ID3")
+            ),
+            relationships(
+                    relation("friends"),
+                    relation("parents",
+                            linkage(type("parent"), id("2"))
+                    )
+            )
+    );
+
+    private static final Resource CHILD4 = resource(
+            type("child"),
+            id("4"),
+            attributes(
+                    attr("name", null)
+            ),
+            relationships(
+                    relation("friends"),
+                    relation("parents",
+                            linkage(type("parent"), id("3"))
+                    )
+            )
+    );
+
+    private static final Resource CHILD5 = resource(
+            type("child"),
+            id("5"),
+            attributes(
+                    attr("name", null)
+            ),
+            relationships(
+                    relation("friends"),
+                    relation("parents",
+                            linkage(type("parent"), id("3"))
+                    )
+            )
+    );
 
     public ResourceIT() {
         super(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
@@ -734,35 +866,29 @@ public class ResourceIT extends IntegrationTest {
             ));
     }
 
-    /*
     @Test
-    public void testGetNestedSingleInclude() throws IOException {
-        String expected  = jsonParser.getJson("/ResourceIT/testGetNestedSingleInclude.json");
+    public void testGetNestedSingleInclude() throws Exception {
+        String expected = document(
+                data(PARENT2),
+                include(CHILD2, CHILD3)).toJSON();
 
         String actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .get("/parent/2?include=children.friends")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .get("/parent/2?include=children.friends")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
+        JSONAssert.assertEquals(expected, actual, false);
     }
 
     @Test
     public void testGetSingleIncludeOnCollection() throws Exception {
 
-        ///
-         // /parent?include=children
-         //
-         // {data: [
-         //      all the parents
-         // ], include: [
-         //      all the children belonging to a parent
-         // ]}
-         //
-        String expected  = jsonParser.getJson("/ResourceIT/testGetSingleIncludeOnCollection.json");
+        String expected = document(
+                data(PARENT1, PARENT2, PARENT3, PARENT4),
+                include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5)).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -772,8 +898,12 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
+        System.out.println("ACTUAL: " + actual);
+        System.out.println("EXPECTED: " + expected);
+
+        JSONAssert.assertEquals(expected, actual, false);
     }
+    /*
 
     @Test
     public void testGetMultipleIncludeOnCollection() throws Exception {
@@ -2151,7 +2281,7 @@ public class ResourceIT extends IntegrationTest {
     }
 
     // TODO: Test that user checks still apply at commit time
-
+*/
     @Test
     public void badRoot() {
         given().when().get("/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
@@ -2171,5 +2301,4 @@ public class ResourceIT extends IntegrationTest {
     public void badChildCollectionId() {
         given().when().get("/user/1/oops/1").then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
-    */
 }

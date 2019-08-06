@@ -12,9 +12,9 @@ import com.google.gson.GsonBuilder;
 import java.util.LinkedHashMap;
 
 /**
- * The type Data.
+ * Top Level JSON-API Document
  */
-public class Data extends LinkedHashMap<String, Object> {
+public class Document extends LinkedHashMap<String, Object> {
     static private final Gson GSON_INSTANCE = new GsonBuilder().serializeNulls().create();
 
     /**
@@ -22,7 +22,7 @@ public class Data extends LinkedHashMap<String, Object> {
      *
      * @param resources the resources
      */
-    public Data(Resource... resources) {
+    public Document(Resource... resources) {
         // PATCH method does not work on an array of resources, hence sending it as a single element
         if (resources.length == 1) {
             this.put("data", resources[0]);
@@ -30,6 +30,19 @@ public class Data extends LinkedHashMap<String, Object> {
         else {
             this.put("data", resources);
         }
+    }
+
+    public Document(Data resources, Include includes) {
+        this.put("data", resources.get("data"));
+        this.put("included", includes.get("included"));
+    }
+
+    /**
+     * Instantiates a new Data based on relationship links.
+     * @param links the relationships.
+     */
+    public Document(ResourceLinkage... links) {
+        this.put("data", links);
     }
 
     /**

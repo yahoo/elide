@@ -163,21 +163,24 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.4.1</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.4.1</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
             <version>5.4.1</version>
-            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>1.5.0</version>
         </dependency>
 
         <dependency>

@@ -9,7 +9,9 @@ package com.yahoo.elide.contrib.testhelpers.jsonapi;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Attribute;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Attributes;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Id;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Include;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relationships;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -39,20 +41,41 @@ public class JsonApiDSL {
      * Data data.
      *
      * @param resources the resources
-     * @return data
+     * @return a data
      */
     public static Data data(Resource... resources) {
         return new Data(resources);
     }
 
     /**
+     * Include data.
+     *
+     * @param resources the resources
+     * @return An include
+     */
+    public static Include include(Resource... resources) {
+        return new Include(resources);
+    }
+
+    /**
      * Data data.
      *
      * @param links the relationship links
-     * @return data
+     * @return A top level JSON-API doc
      */
-    public static Data data(ResourceLinkage... links) {
-        return new Data(links);
+    public static Document data(ResourceLinkage... links) {
+        return new Document(links);
+    }
+
+    /**
+     * Data data.
+     *
+     * @param resources the data resources
+     * @param includes the included resources
+     * @return A top level JSON-API doc
+     */
+    public static Document document(Data resources, Include includes) {
+        return new Document(resources, includes);
     }
 
     /**
