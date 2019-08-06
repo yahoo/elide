@@ -18,11 +18,6 @@ public class Include extends LinkedHashMap<String, Object> {
      * @param resources the resources
      */
     public Include(Resource... resources) {
-        // PATCH method does not work on an array of resources, hence sending it as a single element
-        if (resources.length == 1) {
-            this.put("included", resources[0]);
-        } else {
-            this.put("included", resources);
-        }
+        this.put("included", resources);
     }
 }

@@ -111,7 +111,9 @@ public class ResourceIT extends IntegrationTest {
             ),
             relationships(
                     relation("children"),
-                    relation("spouses")
+                    relation("spouses",
+                            linkage(type("parent"), id("3"))
+                    )
             )
     );
 
@@ -244,7 +246,7 @@ public class ResourceIT extends IntegrationTest {
         p3.setFirstName("Unknown");
 
         p2.setSpouses(Sets.newHashSet());
-        p3.setSpouses(Sets.newHashSet());
+        p3.setSpouses(Sets.newHashSet(p2));
         p3.setChildren(Sets.newHashSet());
 
         tx.createObject(c1, null);
@@ -687,7 +689,9 @@ public class ResourceIT extends IntegrationTest {
                                linkage(type("child"), id("4")),
                                linkage(type("child"), id("5"))
                            ),
-                           relation("spouses")
+                           relation("spouses",
+                               linkage(type("parent"), id("3"))
+                            )
                        )
                     )
                 ).toJSON()
@@ -848,21 +852,12 @@ public class ResourceIT extends IntegrationTest {
 
         JSONAssert.assertEquals(expected, actual, false);
     }
-    /*
 
     @Test
     public void testGetMultipleIncludeOnCollection() throws Exception {
-
-        ///
-         // /parent?include=children,spouses
-         //
-         // {data: [
-         //      all the parents
-         // ], include: [
-         //      all the children and spouses belonging to a parent
-         // ]}
-         ///
-        String expected  = jsonParser.getJson("/ResourceIT/testGetMultipleIncludeOnCollection.json");
+        String expected = document(
+                data(PARENT1, PARENT2, PARENT3, PARENT4),
+                include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5, PARENT3)).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -877,17 +872,9 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testGetSingleIncludeOnRelationship() {
-
-        //
-         // /parent/1/relationships/children?include=children
-         //
-         // {data: [
-         //      child 1 resource identification object
-         // ], include: [
-         //      child 1's data
-         // ]}
-         //
-        String expected = jsonParser.getJson("/ResourceIT/testGetSingleIncludeOnRelationship.json");
+        String expected = document(
+                data(linkage(type("child"), id("1"))),
+                include(CHILD1)).toJSON();
 
         given()
                 .when().get("/parent/1/relationships/children?include=children").then().statusCode(HttpStatus.SC_OK)
@@ -896,7 +883,6 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testGetIncludeBadRelation() {
-
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -908,21 +894,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testGetSortCollection() throws Exception {
 
-        ///
-
-         //
-        ///
-        ///
-        ///
-        ///
-        ///
-        // / / / / / /parent?sort=firstName
-
-        //  {data: [
-         //      parents sorted by name
-          //]}
-         ///
-        String expected  = jsonParser.getJson("/ResourceIT/testGetSortCollection.json");
+        String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -938,18 +910,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testGetReverseSortCollection() throws Exception {
 
-        ///
-         //
-//   parent//
-// ?sort=f//
-//me
-         //
-         //
-//   data: [
-//               parents sorted by name
-//          ]}
-//         /
-        String expected  = jsonParser.getJson("/ResourceIT/testGetReverseSortCollection.json");
+        String expected = data(PARENT4, PARENT3, PARENT2, PARENT1).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -962,9 +923,10 @@ public class ResourceIT extends IntegrationTest {
         assertEquals(actual, expected);
     }
 
+
     @Test
     public void testGetRelEmptyColl() {
-        String expected = jsonParser.getJson("/ResourceIT/testGetRelEmptyColl.json");
+        String expected = data(null).toJSON();
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -977,7 +939,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testGetWithTrailingSlash() {
-        String expected = jsonParser.getJson("/ResourceIT/testGetWithTrailingSlash.json");
+        String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -989,6 +951,8 @@ public class ResourceIT extends IntegrationTest {
 
         assertEqualDocuments(actual, expected);
     }
+
+    /*
 
     @Test(priority = 9)
     public void testPatchRelSetDirect() throws Exception {

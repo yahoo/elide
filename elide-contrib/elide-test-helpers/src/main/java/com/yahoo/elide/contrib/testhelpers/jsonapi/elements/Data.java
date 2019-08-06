@@ -23,13 +23,26 @@ public class Data extends LinkedHashMap<String, Object> {
      * @param resources the resources
      */
     public Data(Resource... resources) {
+        if (resources == null) {
+            this.put("data", new Resource[0]);
+        }
+
         // PATCH method does not work on an array of resources, hence sending it as a single element
-        if (resources.length == 1) {
+        else if (resources.length == 1) {
             this.put("data", resources[0]);
         }
         else {
             this.put("data", resources);
         }
+    }
+
+    /**
+     * Instantiates a new Data based on relationships.
+     *
+     * @param links the relationships
+     */
+    public Data(ResourceLinkage... links) {
+        this.put("data", links);
     }
 
     /**

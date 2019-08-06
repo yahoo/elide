@@ -32,8 +32,23 @@ public class Document extends LinkedHashMap<String, Object> {
         }
     }
 
+    /**
+     * Instantiates a document with resources and corresponding includes.
+     * @param includes The includes
+     * @param resources The resources
+     */
     public Document(Data resources, Include includes) {
         this.put("data", resources.get("data"));
+        this.put("included", includes.get("included"));
+    }
+
+    /**
+     * Instantiates a document with relationships and corresponding includes.
+     * @param includes The includes
+     * @param links The relationships
+     */
+    public Document(Include includes, ResourceLinkage... links) {
+        this.put("data", links);
         this.put("included", includes.get("included"));
     }
 

@@ -58,17 +58,17 @@ public class JsonApiDSL {
     }
 
     /**
-     * Data data.
+     * Data relationships.
      *
      * @param links the relationship links
      * @return A top level JSON-API doc
      */
-    public static Document data(ResourceLinkage... links) {
-        return new Document(links);
+    public static Data data(ResourceLinkage... links) {
+        return new Data(links);
     }
 
     /**
-     * Data data.
+     * A document with data & includes.
      *
      * @param resources the data resources
      * @param includes the included resources
