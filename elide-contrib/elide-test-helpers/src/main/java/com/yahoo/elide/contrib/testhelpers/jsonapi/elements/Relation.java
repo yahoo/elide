@@ -30,4 +30,14 @@ public class Relation {
         this.field = field;
         this.resourceLinkages = resourceLinkages;
     }
+
+    /**
+     * Instantiates a new Relation.
+     *
+     * @param field            the field
+     */
+    public Relation(String field) {
+        this.field = field;
+        this.resourceLinkages = new ResourceLinkage[0];
+    }
 }

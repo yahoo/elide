@@ -7,6 +7,7 @@
 package com.yahoo.elide.contrib.testhelpers.jsonapi.elements;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.LinkedHashMap;
 
@@ -14,7 +15,7 @@ import java.util.LinkedHashMap;
  * The type Data.
  */
 public class Data extends LinkedHashMap<String, Object> {
-    static private final Gson GSON_INSTANCE = new Gson();
+    static private final Gson GSON_INSTANCE = new GsonBuilder().serializeNulls().create();
 
     /**
      * Instantiates a new Data.

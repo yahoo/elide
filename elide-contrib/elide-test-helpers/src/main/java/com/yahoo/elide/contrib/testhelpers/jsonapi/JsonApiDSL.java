@@ -167,6 +167,16 @@ public class JsonApiDSL {
     }
 
     /**
+     * Relation relation.
+     *
+     * @param field           the field
+     * @return the relation
+     */
+    public static Relation relation(String field) {
+        return new Relation(field);
+    }
+
+    /**
      * Linkage resource linkage.
      *
      * @param type the type

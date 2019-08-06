@@ -15,6 +15,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -358,12 +359,25 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testRootCollectionId() {
-        String expected = jsonParser.getJson("/ResourceIT/testRootCollectionId.json");
-
-        String actual = given().when().get("/parent/1").then().statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEquals(actual, expected);
+        given()
+           .when()
+           .get("/parent/1")
+           .then()
+           .statusCode(HttpStatus.SC_OK)
+           .body(equalTo(
+               data(
+                   resource(
+                       type("parent"),
+                       id("1"),
+                       attributes(
+                           attr("firstName", null)
+                       ),
+                       relationships(
+                           relation("children", linkage(type("child"), id("1"))),
+                           relation("spouses")
+                       )
+                   )
+               ).toJSON()));
     }
 
     @Test
