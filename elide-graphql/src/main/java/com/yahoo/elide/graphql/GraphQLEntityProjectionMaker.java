@@ -149,7 +149,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         String nodeName = ctx.name().getText();
         if (ConnectionContainer.EDGES_KEYWORD.equals(nodeName) || EdgesContainer.NODE_KEYWORD.equals(nodeName)) {
-            // an "edges" or "node" field, do nothing on
+            // an "edges" or "node" field, do nothing
             // see https://graphql.org/learn/pagination/#pagination-and-edges
             return super.visitField(ctx);
         }
