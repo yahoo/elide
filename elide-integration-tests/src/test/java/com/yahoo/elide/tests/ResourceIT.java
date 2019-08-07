@@ -9,6 +9,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.include;
@@ -18,6 +19,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.core.StringStartsWith.startsWith;
@@ -32,6 +34,7 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.utils.JsonParser;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 
 import example.Book;
@@ -500,7 +503,7 @@ public class ResourceIT extends IntegrationTest {
            .then()
            .statusCode(HttpStatus.SC_OK)
            .body(equalTo(
-               data(PARENT1).toJSON()));
+               datum(PARENT1).toJSON()));
     }
 
     @Test
@@ -514,7 +517,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testChild() throws Exception {
         given().when().get("/parent/1/children/1").then().statusCode(HttpStatus.SC_OK)
-        .body(equalTo(data(CHILD1).toJSON()));
+        .body(equalTo(datum(CHILD1).toJSON()));
     }
 
     @Test
@@ -577,7 +580,7 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .body(
-                data(
+                datum(
                     resource(
                         type("parent"),
                         id("2"),
@@ -600,7 +603,7 @@ public class ResourceIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK)
             .contentType(JSONAPI_CONTENT_TYPE)
             .body(equalTo(
-                data(
+                datum(
                     resource(
                         type("parent"),
                         id("2"),
@@ -655,7 +658,7 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .body(
-                data(
+                datum(
                     resource(
                         type("parent"),
                         id("4"),
@@ -682,7 +685,7 @@ public class ResourceIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(
-                data(
+                datum(
                     resource(
                        type("parent"),
                        id("4"),
@@ -709,7 +712,7 @@ public class ResourceIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        data(
+                        datum(
                                 resource(
                                         type("parent"),
                                         id("2"),
@@ -735,7 +738,7 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(
-                        data(
+                        datum(
                                 resource(
                                         type("parent"),
                                         id("2"),
@@ -759,7 +762,7 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(data(PARENT2))
+            .body(datum(PARENT2))
             .patch("/parent/2")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
@@ -771,7 +774,7 @@ public class ResourceIT extends IntegrationTest {
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(data(PARENT2).toJSON()
+                .body(equalTo(datum(PARENT2).toJSON()
                 ));
     }
 
@@ -781,7 +784,7 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .body(
-                    data(
+                    datum(
                             resource(
                                     type("parent"),
                                     id("2"),
@@ -804,7 +807,7 @@ public class ResourceIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(
-                    data(
+                    datum(
                             resource(
                                     type("parent"),
                                     id("2"),
@@ -823,7 +826,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testGetNestedSingleInclude() throws Exception {
         String expected = document(
-                data(PARENT2),
+                datum(PARENT2),
                 include(CHILD2, CHILD3)).toJSON();
 
         String actual = given()
@@ -1043,7 +1046,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void createParentNoRels() throws Exception {
 
-        Data parent = data(
+        Data parent = datum(
                 resource(
                         type("parent"),
                         id("5"),
@@ -1073,7 +1076,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void createParentWithRels() throws Exception {
 
-        Data parentInput = data(
+        Data parentInput = datum(
                 resource(
                         type("parent"),
                         id("required"),
@@ -1088,7 +1091,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        Data parentOutput = data(
+        Data parentOutput = datum(
                 resource(
                         type("parent"),
                         id("5"),
@@ -1148,7 +1151,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        Data childOutput = data(
+        Data childOutput = datum(
                 resource(
                         type("child"),
                         id("6"),
@@ -1165,7 +1168,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        Data parentOutput = data(
+        Data parentOutput = datum(
                 resource(
                         type("parent"),
                         id("4"),
@@ -1250,7 +1253,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void testAddAndRemoveOneToOneRelationship() throws Exception {
 
-        Data funInput = data(
+        Data funInput = datum(
                 resource(
                         type("fun"),
                         id("1"),
@@ -1263,7 +1266,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        Data funOutput = data(
+        Data funOutput = datum(
                 resource(
                         type("fun"),
                         id("1"),
@@ -1298,7 +1301,7 @@ public class ResourceIT extends IntegrationTest {
 
         JSONAssert.assertEquals(funOutput.toJSON(), actual, true);
 
-        funInput = data(
+        funInput = datum(
                 resource(
                         type("fun"),
                         id("1"),
@@ -1309,7 +1312,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        funOutput = data(
+        funOutput = datum(
                 resource(
                         type("fun"),
                         id("1"),
@@ -1481,9 +1484,7 @@ public class ResourceIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
-    /*
-
-    @Test(priority = 19)
+    @Test
     public void testAddRoot() {
         String request = jsonParser.getJson("/ResourceIT/testAddRoot.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/testAddRoot.1.json");
@@ -1499,13 +1500,13 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/10")
+            .get("/parent/5")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected2));
     }
 
-    @Test(priority = 20)
+    @Test
     public void updateRelationshipDirect() {
         String request = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/updateRelationshipDirect.1.json");
@@ -1514,14 +1515,14 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(request)
-            .patch("/parent/10/relationships/children")
+            .patch("/parent/1/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected1));
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/10")
+            .get("/parent/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
@@ -1529,7 +1530,7 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(response, expected2);
     }
 
-    @Test(priority = 21)
+    @Test
     public void removeSingleRelationship() {
         String request = jsonParser.getJson("/ResourceIT/removeSingleRelationship.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/removeSingleRelationship.1.json");
@@ -1538,14 +1539,14 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(request)
-            .patch("/parent/10/relationships/children")
+            .patch("/parent/2/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected1));
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/10")
+            .get("/parent/2")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
@@ -1553,51 +1554,84 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(response, expected2);
     }
 
-    @Test(priority = 22)
-    public void addRelationshipChild() {
-        String request = jsonParser.getJson("/ResourceIT/addRelationshipChild.req.json");
-        String expected = jsonParser.getJson("/ResourceIT/addRelationshipChild.json");
+    @Test
+    public void addRelationshipChild() throws Exception {
+        Data expected = datum(
+                resource(
+                        type("child"),
+                        id("1"),
+                        attributes(
+                                attr("name", null)
+                        ),
+                        relationships(
+                                relation("friends"),
+                                relation("parents",
+                                        linkage(type("parent"), id("1")),
+                                        linkage(type("parent"), id("2"))
+                                )
+                        )
+                )
+        );
+
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .post("/parent/5/children/6/relationships/parents")
+            .body(
+                    datum(
+                        linkage(type("parent"), id("2"))
+                    )
+            )
+            .post("/parent/1/children/1/relationships/parents")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
             .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5/children/6")
+            .get("/parent/1/children/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
 
-        assertEqualDocuments(response, expected);
+        JSONAssert.assertEquals(expected.toJSON(), response, true);
     }
 
-    @Test(priority = 23)
+    @Test
     public void removeRelationshipChild() {
-        String request = jsonParser.getJson("/ResourceIT/removeRelationshipChild.req.json");
-        String expected = jsonParser.getJson("/ResourceIT/removeRelationshipChild.json");
+        Data expected = datum(
+                resource(
+                        type("child"),
+                        id("1"),
+                        attributes(
+                                attr("name", null)
+                        ),
+                        relationships(
+                                relation("friends"),
+                                relation("parents")
+                        )
+                )
+        );
+
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .delete("/parent/5/children/6/relationships/parents")
+            .body(datum(
+                    linkage(type("parent"), id("1"))
+            ))
+            .delete("/parent/1/children/1/relationships/parents")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
             .header(HttpHeaders.CONTENT_LENGTH, (String) null);
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5/children/6")
+            .get("/child/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+            .body(equalTo(expected.toJSON()));
     }
 
-    @Test(priority = 24)
+    @Test
     public void addRelationships() throws IOException {
         String request = jsonParser.getJson("/ResourceIT/addRelationships.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/addRelationships.json");
@@ -1606,14 +1640,14 @@ public class ResourceIT extends IntegrationTest {
             .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
             .body(request)
-            .patch("/parent/10/relationships/children")
+            .patch("/parent/1/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected1));
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/10")
+            .get("/parent/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
@@ -1621,7 +1655,7 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(response, expected2);
     }
 
-    @Test(priority = 25)
+    @Test
     public void checkJsonApiPatchWithError() {
         String request = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.req.json");
         String expected = jsonParser.getJson("/ResourceIT/checkJsonApiPatchWithError.json");
@@ -1635,7 +1669,7 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 26)
+    @Test
     public void patchExtBadId() {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadId.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadId.json");
@@ -1649,7 +1683,7 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 27)
+    @Test
     public void patchExtAddUpdate() {
         String request = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtAddUpdate.json");
@@ -1663,11 +1697,8 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 28)
+    @Test
     public void patchExtBadValue() throws IOException {
-        // NOTE: This is a very hibernate/MySQL-centric test
-        // TODO: If we want this test suite to be a universal suite for datastores, we need to refactor
-        // these implementation details.
         String request = jsonParser.getJson("/ResourceIT/patchExtBadValue.req.json");
 
         JsonNode result = jsonApiMapper.getObjectMapper().readTree(given()
@@ -1676,21 +1707,13 @@ public class ResourceIT extends IntegrationTest {
             .body(request)
             .patch("/")
             .then()
-            .statusCode(HttpStatus.SC_LOCKED)
+            .statusCode(anyOf(equalTo(HttpStatus.SC_LOCKED), equalTo(HttpStatus.SC_BAD_REQUEST)))
             .extract()
             .body()
             .asString());
-
-        JsonNode errors = result.get("errors");
-        assertNotNull(errors);
-        assertEquals(errors.size(), 1);
-
-        String error = errors.get(0).asText();
-        String expected = "TransactionException:";
-        assertTrue(error.startsWith(expected), "Error does not start with '" + expected + "' but found " + error);
     }
 
-    @Test(priority = 29)
+    @Test
     public void patchExtBadDelete() {
         String request = jsonParser.getJson("/ResourceIT/patchExtBadDelete.req.json");
         String expected = jsonParser.getJson("/ResourceIT/patchExtBadDelete.json");
@@ -1704,32 +1727,68 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 30)
+    @Test
     public void createParentWithoutId() {
-        String request = jsonParser.getJson("/ResourceIT/createParentWithoutId.req.json");
-        String expected = jsonParser.getJson("/ResourceIT/createParentWithoutId.json");
+        Data newParent = data(
+                resource(
+                        type("parent"),
+                        attributes(
+                                attr("firstName", "omg. I have kidz.")
+                        ),
+                        relationships(
+                                relation("children",
+                                        linkage(type("child"), id("2"))
+                                ),
+                                relation("spouses")
+                        )
+                )
+        );
+
+        Data expected = data(
+                resource(
+                        type("parent"),
+                        id("5"),
+                        attributes(
+                                attr("firstName", "omg. I have kidz.")
+                        ),
+                        relationships(
+                                relation("children",
+                                        linkage(type("child"), id("2"))
+                                ),
+                                relation("spouses")
+                        )
+                )
+        );
 
         String actualResponse = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(newParent)
                 .post("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract().body().asString();
 
-        assertEqualDocuments(actualResponse, expected);
+        assertEqualDocuments(actualResponse, expected.toJSON());
     }
 
-    @Test(priority = 31)
+    @Test
     public void testOneToOneRelationshipAdding() {
-        // This is a regression test: we had an issue that disallowed creation of non-root one-to-one objects.
-        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+
+        Data oneToOneRoot = datum(
+                resource(
+                        type("oneToOneRoot"),
+                        id("1"),
+                        attributes(
+                                attr("name", "test123")
+                        )
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(createRoot)
+            .body(oneToOneRoot)
             .post("/oneToOneRoot")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
@@ -1738,48 +1797,79 @@ public class ResourceIT extends IntegrationTest {
         String o = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(createRoot)
+            .body(oneToOneRoot)
             .get("/oneToOneRoot/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().asString();
 
-        // Create other object
-        String createChild = jsonParser.getJson("/ResourceIT/createOneToOneNonRoot.json");
+        Data oneToOneNonRoot = datum(
+                resource(
+                        type("oneToOneNonRoot"),
+                        id("1"),
+                        attributes(
+                                attr("test", "Other object")
+                        )
+                )
+        );
+
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(createChild)
+            .body(oneToOneNonRoot)
             .post("/oneToOneRoot/1/otherObject")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
         // Verify contents
-        String actualFirst = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(createChild)
             .get("/oneToOneRoot/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
+            .body(equalTo(
+                    datum(
+                            resource(
+                                    type("oneToOneRoot"),
+                                    id("1"),
+                                    attributes(
+                                            attr("name", "test123")
+                                    ),
+                                    relationships(
+                                            relation("otherObject", TO_ONE,
+                                                    linkage(type("oneToOneNonRoot"), id("1"))
+                                            )
+                                    )
+                            )
+                    ).toJSON()
+            ));
 
-        String actualChild = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(createChild)
             .get("/oneToOneRoot/1/otherObject")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .extract().body().asString();
-
-        String expectedFirst = jsonParser.getJson("/ResourceIT/oneToOneRootCreatedRelationship.json");
-        String expectedChild = jsonParser.getJson("/ResourceIT/oneToOneNonRootCreatedRelationship.json");
-
-        assertEqualDocuments(actualFirst, expectedFirst);
-        assertEqualDocuments(actualChild, expectedChild);
+            .body(equalTo(
+                    data(
+                            resource(
+                                    type("oneToOneNonRoot"),
+                                    id("1"),
+                                    attributes(
+                                            attr("test", "Other object")
+                                    ),
+                                    relationships(
+                                            relation("root", TO_ONE,
+                                                    linkage(type("oneToOneRoot"), id("1"))
+                                            )
+                                    )
+                            )
+                    ).toJSON()
+            ));
     }
 
+    /*
     @Test(priority = 32)
     public void testReadPermissionDefaultOverride() {
         String create = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.req.json");

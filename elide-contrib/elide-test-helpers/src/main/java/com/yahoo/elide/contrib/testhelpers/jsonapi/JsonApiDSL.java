@@ -40,6 +40,16 @@ public class JsonApiDSL {
     /**
      * Data data.
      *
+     * @param resource the singular resource
+     * @return a data
+     */
+    public static Data datum(Resource resource) {
+        return new Data(resource);
+    }
+
+    /**
+     * Data data.
+     *
      * @param resources the resources
      * @return a data
      */
@@ -65,6 +75,16 @@ public class JsonApiDSL {
      */
     public static Data data(ResourceLinkage... links) {
         return new Data(links);
+    }
+
+    /**
+     * Data relationship.
+     *
+     * @param link the singular relationship link
+     * @return A top level JSON-API doc
+     */
+    public static Data datum(ResourceLinkage link) {
+        return new Data(link);
     }
 
     /**

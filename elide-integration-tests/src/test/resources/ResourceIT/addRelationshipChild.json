@@ -1,7 +1,7 @@
 {
     "data":{
         "type":"child",
-        "id":"6",
+        "id":"1",
         "attributes":{
             "name":null
         },
@@ -13,11 +13,11 @@
                 "data":[
                     {
                         "type":"parent",
-                        "id":"2"
+                        "id":"1"
                     },
                     {
                         "type":"parent",
-                        "id":"5"
+                        "id":"2"
                     }
                 ]
             }

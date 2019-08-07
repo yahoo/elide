@@ -19,31 +19,42 @@ public class Data extends LinkedHashMap<String, Object> {
             .serializeNulls().create();
 
     /**
-     * Instantiates a new Data based on resources.
+     * Instantiates a singular data object from a single resource.
+     * @param resource
+     */
+    public Data(Resource resource) {
+        this.put("data", resource);
+    }
+
+    /**
+     * Instantiates a data list based on multiple resources.
      *
      * @param resources the resources
      */
     public Data(Resource... resources) {
         if (resources == null) {
             this.put("data", new Resource[0]);
-        }
-
-        // PATCH method does not work on an array of resources, hence sending it as a single element
-        else if (resources.length == 1) {
-            this.put("data", resources[0]);
-        }
-        else {
+        } else {
             this.put("data", resources);
         }
     }
 
     /**
-     * Instantiates a new Data based on relationships.
+     * Instantiates a new data list based on relationships.
      *
      * @param links the relationships
      */
     public Data(ResourceLinkage... links) {
         this.put("data", links);
+    }
+
+    /**
+     * Instantiates a singular data object based on a relationship.
+     *
+     * @param link the relationships
+     */
+    public Data(ResourceLinkage link) {
+        this.put("data", link);
     }
 
     /**

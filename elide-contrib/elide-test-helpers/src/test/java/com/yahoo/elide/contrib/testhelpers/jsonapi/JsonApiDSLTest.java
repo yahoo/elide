@@ -17,7 +17,7 @@ public class JsonApiDSLTest {
     public void verifyBasicRequest() {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":1,\"attributes\":null,\"relationships\":null}}";
 
-        String actual = data(
+        String actual = datum(
                 resource(
                         type("blog"),
                         id(1)
@@ -32,7 +32,7 @@ public class JsonApiDSLTest {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
                 + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"},\"relationships\":null}}";
 
-        String actual = data(
+        String actual = datum(
                 resource(
                         type("blog"),
                         id("1"),
@@ -52,7 +52,7 @@ public class JsonApiDSLTest {
                 + "\"attributes\":{\"title\":\"title\"},"
                 + "\"relationships\":{\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]}}}}";
 
-        String actual = data(
+        String actual = datum(
                 resource(
                         type("blog"),
                         id("1"),
@@ -78,7 +78,7 @@ public class JsonApiDSLTest {
                 + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"1\"},"
                 + "{\"type\":\"comment\",\"id\":\"2\"}]}}}}";
 
-        String actual = data(
+        String actual = datum(
                 resource(
                         type("blog"),
                         id("1"),
@@ -105,7 +105,7 @@ public class JsonApiDSLTest {
                 + "\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]},"
                 + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"2\"}]}}}}";
 
-        String actual = data(
+        String actual = datum(
                 resource(
                         type("blog"),
                         id("1"),

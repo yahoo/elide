@@ -9,7 +9,7 @@ package com.yahoo.elide.triggers;
 import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
@@ -19,22 +19,28 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
+import com.yahoo.elide.resources.JsonApiEndpoint;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LifeCycleHookIT extends AbstractIntegrationTestInitializer {
+public class LifeCycleHookIT extends IntegrationTest {
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
-    @BeforeTest
+    @BeforeEach
     public void resetMocks() {
         reset(BILLING_SERVICE);
+    }
+
+    public LifeCycleHookIT() {
+        super(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
     @Test
@@ -46,7 +52,7 @@ public class LifeCycleHookIT extends AbstractIntegrationTestInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        data(
+                        datum(
                                 resource(
                                         type("customerInvoice"),
                                         id("123"),

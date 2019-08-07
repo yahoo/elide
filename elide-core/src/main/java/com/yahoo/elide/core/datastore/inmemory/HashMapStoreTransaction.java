@@ -9,6 +9,7 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
@@ -118,6 +119,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     public void setId(Object value, String id) {
+        //TODO - this should be replaced with entityDictionary.setId
+        //This is an issue for classes where the ID field is a property and not a class.
         for (Class<?> cls = value.getClass(); cls != null; cls = cls.getSuperclass()) {
             for (Method method : cls.getMethods()) {
                 if (method.isAnnotationPresent(Id.class) && method.getName().startsWith("get")) {
@@ -156,7 +159,11 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             idToChildResource.put(dictionary.getId(values), values);
         } else if (values instanceof Collection) {
             idToChildResource.putAll((Map) ((Collection) values).stream()
-                    .collect(Collectors.toMap(dictionary::getId, Function.identity())));
+                    .collect(Collectors.toMap(dictionary::getId,
+                            Function.identity(),
+                            (a, b) -> {
+                                throw new TransactionException(new IllegalStateException("Duplicate key"));
+                            })));
         } else {
             return null;
         }
