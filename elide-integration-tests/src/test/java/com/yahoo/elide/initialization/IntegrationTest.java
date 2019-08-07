@@ -68,7 +68,11 @@ public abstract class IntegrationTest {
     private DataStoreHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
-            return Class.forName(dataStoreSupplierName).asSubclass(DataStoreHarness.class).newInstance();
+
+            if (dataStoreSupplierName != null && !dataStoreSupplierName.isEmpty()) {
+                return Class.forName(dataStoreSupplierName).asSubclass(DataStoreHarness.class).newInstance();
+            }
+            return new InMemoryDataStoreHarness();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException e) {
             throw new IllegalStateException(e);
         }

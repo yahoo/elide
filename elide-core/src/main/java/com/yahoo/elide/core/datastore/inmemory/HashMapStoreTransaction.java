@@ -158,7 +158,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             idToChildResource.putAll((Map) ((Collection) values).stream()
                     .collect(Collectors.toMap(dictionary::getId, Function.identity())));
         } else {
-            throw new IllegalStateException("An unexpected error occurred querying a relationship");
+            return null;
         }
 
         return idToChildResource.values();

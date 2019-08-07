@@ -5,10 +5,12 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import com.google.common.collect.Sets;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
+import com.yahoo.elide.core.datastore.test.DataStoreHarness;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -29,28 +32,39 @@ import javax.persistence.Entity;
 /**
  * Simple in-memory only database.
  */
-public class HashMapDataStore implements DataStore {
+public class HashMapDataStore implements DataStore, DataStoreHarness {
     private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter private EntityDictionary dictionary;
-    @Getter private final Package beanPackage;
+    @Getter private final Set<Package> beanPackages;
     @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
     public HashMapDataStore(Package beanPackage) {
-        this.beanPackage = beanPackage;
+        this(Sets.newHashSet(beanPackage));
+    }
+
+    public HashMapDataStore(Set<Package> beanPackages) {
+        this.beanPackages = beanPackages;
+        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+
+        for (Package beanPackage : beanPackages) {
+            configurationBuilder.addUrls(ClasspathHelper.forPackage(beanPackage.getName()));
+        }
+        configurationBuilder.setScanners(new SubTypesScanner(), new TypeAnnotationsScanner());
+
+        Reflections reflections = new Reflections(configurationBuilder);
+
+        reflections.getTypesAnnotatedWith(Entity.class).stream()
+                .forEach((cls) -> {
+                    dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
+                });
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addUrls(ClasspathHelper.forPackage(beanPackage.getName()))
-                .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
-        reflections.getTypesAnnotatedWith(Entity.class).stream()
-                .filter(entityAnnotatedClass -> entityAnnotatedClass.getPackage().getName()
-                        .startsWith(beanPackage.getName()))
-                .forEach((cls) -> {
-                    dictionary.bindEntity(cls);
-                    dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
-                });
+        for (Class<?> clazz : dataStore.keySet()) {
+            dictionary.bindEntity(clazz);
+        }
+
         this.dictionary = dictionary;
     }
 
@@ -71,5 +85,18 @@ public class HashMapDataStore implements DataStore {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public DataStore getDataStore() {
+        return this;
+    }
+
+    @Override
+    public void cleanseTestData() {
+        for (Map<String, Object> objects : dataStore.values()) {
+            objects.clear();
+        }
+        typeIds.clear();
     }
 }

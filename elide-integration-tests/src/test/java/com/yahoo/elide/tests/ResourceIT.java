@@ -18,6 +18,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
@@ -1020,19 +1021,22 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
+    */
 
-    @Test(priority = 11)
+
+
+    @Test
     public void testForbiddenDeleteEmptyCollectionRelationship() throws Exception {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body("{\"data\":[]}")
-                .delete("/parent/4/children/4/relationships/parents")
+                .delete("/parent/1/children/1/relationships/parents")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
-    @Test(priority = 11)
+    @Test
     public void testDeleteParent() {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1043,7 +1047,7 @@ public class ResourceIT extends IntegrationTest {
             .body(isEmptyOrNullString());
     }
 
-    @Test(priority = 11)
+    @Test
     public void testDeleteWithCascade() {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1054,7 +1058,7 @@ public class ResourceIT extends IntegrationTest {
             .body(isEmptyOrNullString());
     }
 
-    @Test(priority = 12)
+    @Test
     public void failDeleteParent() {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1063,6 +1067,8 @@ public class ResourceIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
+
+    /*
 
     @Test(priority = 1)
     public void createParentNoRels() {
@@ -2162,6 +2168,7 @@ public class ResourceIT extends IntegrationTest {
         verify(pagination).setPageTotals(noOfRecords);
     }
 
+*/
     @Test
     public void testPaginationLimitOverrides() {
         // Well below the limit
@@ -2190,7 +2197,6 @@ public class ResourceIT extends IntegrationTest {
     }
 
     // TODO: Test that user checks still apply at commit time
-*/
     @Test
     public void badRoot() {
         given().when().get("/oops").then().statusCode(Status.NOT_FOUND.getStatusCode());
