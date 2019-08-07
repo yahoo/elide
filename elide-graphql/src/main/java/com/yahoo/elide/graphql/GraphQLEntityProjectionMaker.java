@@ -81,6 +81,9 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * we could easily peek out the entity type when we visit child node of this entity(or "field") node. This will be
      * very useful when we need to know, for example, "what is the parent entity that includes this 'id' field?". When
      * we are done with the sub-tree of this entity node, we pop it out.
+     * <p>
+     * To read a prent entity type, use {@link Deque#peek()} and DO NOT use {@link Deque#pop()}
+     * (See {@link #withParentEntity(Class, Supplier)}).
      */
     @Getter(AccessLevel.PRIVATE)
     private final Deque<Class<?>> parentEntityTypes = new LinkedList<>();
@@ -137,7 +140,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         Class<?> entityType = getDictionary().getType(entityName);
 
         if (!(ctx.getParent().getParent().getParent() instanceof GraphqlParser.FieldContext)) {
-            // a root field
+            // a root field; walk sub-tree rooted at this entity
             return withParentEntity(entityType, () -> {
                 EntityProjection rootProjection = EntityProjection.builder()
                         .dictionary(getDictionary())
@@ -152,11 +155,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // not a root field, then there must be a prent
-        //String parentEntity = ((GraphqlParser.FieldContext) ctx.getParent().getParent().getParent()).name().getText();
         Class<?> parentType = getParentEntityTypes().peek();
 
         if (entityType != null) {
-            // a relationship
+            // a relationship; walk sub-tree rooted at this relationship entity
             return withParentEntity(entityType, () -> {
                 EntityProjection relationshipProjection = EntityProjection.builder()
                         .dictionary(getDictionary())
@@ -264,7 +266,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     ) {
         getParentEntityTypes().push(parentEntity);
 
-        actionUnderEntity.get();
+        actionUnderEntity.get(); // perform action
 
         getParentEntityTypes().pop();
 
