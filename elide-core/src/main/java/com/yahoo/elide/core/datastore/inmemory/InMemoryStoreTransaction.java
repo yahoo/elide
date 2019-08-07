@@ -46,8 +46,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             return -1;
         } else if (b == null) {
             return 1;
-        } else if (a instanceof Comparable){
-            return ((Comparable)a).compareTo(b);
+        } else if (a instanceof Comparable) {
+            return ((Comparable) a).compareTo(b);
         } else {
             throw new IllegalStateException("Trying to comparing non-comparable types!");
         }

@@ -46,10 +46,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.ws.rs.core.Response.Status;
 
 /**
  * The type Config resource test.
@@ -617,24 +618,24 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testPatchAttrList() throws Exception {
-        String request = "{\n" +
-                "    \"data\":[\n" +
-                "        {\n" +
-                "            \"type\":\"parent\",\n" +
-                "            \"id\":\"3\",\n" +
-                "            \"attributes\":{\n" +
-                "                \"firstName\":\"Senor\"\n" +
-                "            }\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"type\":\"parent\",\n" +
-                "            \"id\":\"11\",\n" +
-                "            \"attributes\":{\n" +
-                "                \"firstName\":\"woot\"\n" +
-                "            }\n" +
-                "        }\n" +
-                "    ]\n" +
-                "}";
+        String request = "{\n"
+                + "    \"data\":[\n"
+                + "        {\n"
+                + "            \"type\":\"parent\",\n"
+                + "            \"id\":\"3\",\n"
+                + "            \"attributes\":{\n"
+                + "                \"firstName\":\"Senor\"\n"
+                + "            }\n"
+                + "        },\n"
+                + "        {\n"
+                + "            \"type\":\"parent\",\n"
+                + "            \"id\":\"11\",\n"
+                + "            \"attributes\":{\n"
+                + "                \"firstName\":\"woot\"\n"
+                + "            }\n"
+                + "        }\n"
+                + "    ]\n"
+                + "}";
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
@@ -1022,8 +1023,6 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
     */
-
-
 
     @Test
     public void testForbiddenDeleteEmptyCollectionRelationship() throws Exception {

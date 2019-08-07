@@ -15,7 +15,7 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyBasicRequest() {
-        String expected = "{\"data\":{\"id\":1,\"type\":\"blog\"}}";
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":1,\"attributes\":null,\"relationships\":null}}";
 
         String actual = data(
                 resource(
@@ -29,8 +29,8 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithAttributes() {
-        String expected = "{\"data\":{\"id\":\"1\",\"type\":\"blog\",\""
-                + "attributes\":{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"}}}";
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
+                + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"},\"relationships\":null}}";
 
         String actual = data(
                 resource(
@@ -48,9 +48,9 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithOneToOneRelationship() {
-        String expected = "{\"data\":{\"id\":\"1\",\"type\":\"blog\","
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
-                + "\"relationships\":{\"author\":{\"data\":[{\"id\":\"1\",\"type\":\"author\"}]}}}}";
+                + "\"relationships\":{\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]}}}}";
 
         String actual = data(
                 resource(
@@ -72,10 +72,11 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithOneToManyRelationship() {
-        String expected = "{\"data\":{\"id\":\"1\",\"type\":\"blog\","
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
-                + "\"relationships\":{\"comments\":{"
-                + "\"data\":[{\"id\":\"1\",\"type\":\"comment\"},{\"id\":\"2\",\"type\":\"comment\"}]}}}}";
+                + "\"relationships\":{"
+                + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"1\"},"
+                + "{\"type\":\"comment\",\"id\":\"2\"}]}}}}";
 
         String actual = data(
                 resource(
@@ -98,11 +99,11 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithManyRelationships() {
-        String expected = "{\"data\":{\"id\":\"1\",\"type\":\"blog\","
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
                 + "\"relationships\":{"
-                + "\"author\":{\"data\":[{\"id\":\"1\",\"type\":\"author\"}]},"
-                + "\"comments\":{\"data\":[{\"id\":\"2\",\"type\":\"comment\"}]}}}}";
+                + "\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]},"
+                + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"2\"}]}}}}";
 
         String actual = data(
                 resource(

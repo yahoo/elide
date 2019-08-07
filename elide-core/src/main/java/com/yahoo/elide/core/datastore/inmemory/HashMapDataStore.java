@@ -5,12 +5,13 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.yahoo.elide.core.datastore.test.DataStoreHarness;
+
+import com.google.common.collect.Sets;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -55,7 +56,12 @@ public class HashMapDataStore implements DataStore, DataStoreHarness {
 
         reflections.getTypesAnnotatedWith(Entity.class).stream()
                 .forEach((cls) -> {
-                    dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
+                    for (Package beanPackage : beanPackages) {
+                        if (cls.getName().startsWith(beanPackage.getName())) {
+                            dataStore.put(cls, Collections.synchronizedMap(new LinkedHashMap<>()));
+                            break;
+                        }
+                    }
                 });
     }
 

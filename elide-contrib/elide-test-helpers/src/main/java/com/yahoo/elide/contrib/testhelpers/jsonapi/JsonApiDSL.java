@@ -68,7 +68,7 @@ public class JsonApiDSL {
     }
 
     /**
-     * A document with data & includes.
+     * A document with data and includes.
      *
      * @param resources the data resources
      * @param includes the included resources

@@ -6,12 +6,13 @@
 
 package com.yahoo.elide.initialization;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreHarness;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
+
+import com.google.common.collect.Sets;
 import example.Parent;
 
 import java.util.Set;
