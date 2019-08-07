@@ -21,7 +21,7 @@ import javax.ws.rs.BadRequestException;
 public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer {
     @Getter private final PersistentResource persistentResource;
 
-    private static final String NODE_KEYWORD = "node";
+    public static final String NODE_KEYWORD = "node";
 
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {

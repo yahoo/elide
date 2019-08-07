@@ -6,13 +6,15 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.graphql.containers.ConnectionContainer;
+import com.yahoo.elide.graphql.containers.EdgesContainer;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
+import org.atteo.evo.inflector.English;
 
 import graphql.GraphQL;
 import graphql.parser.antlr.GraphqlBaseVisitor;
@@ -145,10 +147,17 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         // GraphQL grammar for field (6.0):
         //     field : alias? name arguments? directives? selectionSet?;
 
-        String entityName = ctx.name().getText();
+        String nodeName = ctx.name().getText();
+        if (ConnectionContainer.EDGES_KEYWORD.equals(nodeName) || EdgesContainer.NODE_KEYWORD.equals(nodeName)) {
+            // an "edges" or "node" field, do nothing on
+            return super.visitField(ctx);
+        }
+
+        // on relationship field, change "authors" to "author" so we can look it up in entity dictionary
+        String entityName = singularized(nodeName);
         Class<?> entityType = getDictionary().getType(entityName);
 
-        if (!(ctx.getParent().getParent().getParent() instanceof GraphqlParser.FieldContext)) {
+        if (getParentEntityTypes().isEmpty()) {
             // a root field; walk sub-tree rooted at this entity
             return withParentEntity(entityType, () -> {
                 EntityProjection rootProjection = EntityProjection.builder()
@@ -222,12 +231,11 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         Object argumentValue = visitTerminalValue(ctx.valueWithVariable()); //
 
         // argument must comes with parent
-        String entityName = ((GraphqlParser.FieldContext) ctx.getParent().getParent()).name().getText();
         Class<?> entityType = getParentEntityTypes().peek();
 
         if (!getDictionary().isValidField(entityType, argumentName)) {
             // invalid argument name
-            String message = String.format("'%s' is not a field in '%s'", argumentName, entityName);
+            String message = String.format("'%s' is not a field in '%s'", argumentName, entityType);
             log.error(message);
             throw new IllegalStateException(message);
         }
@@ -290,6 +298,16 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         return null;
+    }
+
+    private String singularized(String plural) {
+        String entityType = getDictionary().getBindings().stream()
+                .map(Class::getSimpleName)
+                .filter(it -> it.equalsIgnoreCase(plural) || English.plural(it, 2).equalsIgnoreCase(plural))
+                .findFirst()
+                .orElse(null);
+
+        return entityType == null ? plural : entityType;
     }
 
     /**

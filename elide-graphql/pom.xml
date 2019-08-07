@@ -57,6 +57,12 @@
             <version>6.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.atteo</groupId>
+            <artifactId>evo-inflector</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

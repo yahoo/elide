@@ -66,7 +66,7 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
                                 .build()
                 )
                 .attribute(bookTitleAttribute())
-                .relationship("author", authorProjection())
+                .relationship("Author", authorProjection())
                 .build();
 
         // Fetch Single Book with single argument
@@ -96,8 +96,40 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
                 .type(Book.class)
                 .attribute(bookIdAttribute())
                 .attribute(bookTitleAttribute())
-                .relationship("author", authorProjection())
+                .relationship("Author", authorProjection())
                 .build();
+    }
+
+    @Test
+    public void testMakeOnQueryWithRelationship() {
+        EntityProjection expectedProjection = bookProjection();
+
+        // Fetch Single Book
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        "  book {\n" +
+                        "    edges {\n" +
+                        "      node {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        authors {\n" +
+                        "          edges {\n" +
+                        "            node {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
+        );
+        Assert.assertEquals(entityProjections.size(), 1);
+
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+
+        Assert.assertEquals(actualProjection, expectedProjection);
     }
 
     private Attribute bookIdAttribute() {
