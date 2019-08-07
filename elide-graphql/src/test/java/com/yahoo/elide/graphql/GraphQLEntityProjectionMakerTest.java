@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.request.Argument;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
 import org.testng.Assert;
@@ -27,7 +29,33 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
     }
 
     @Test
-    public void testMake() {
+    public void testMakeOnBasicQuery() {
+        EntityProjection expectedProjection = bookProjection();
+
+        // Fetch Single Book
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        //"  book(id: \"1\") {\n" +
+                        "  book {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        author {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "  }\n" +
+                        "}"
+        );
+        Assert.assertEquals(entityProjections.size(), 1);
+
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+
+        Assert.assertEquals(actualProjection, expectedProjection);
+    }
+
+    @Test
+    public void testMakeOnSingleFetchWithArgument() {
+        // Fetch Single Book
         Collection<EntityProjection> entityProjections = projectionMaker.make(
                 "{\n" +
                         "  book(id: \"1\") {\n" +
@@ -41,11 +69,71 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
                         "}"
         );
 
+        EntityProjection expectedProjection = EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(Book.class)
+                .attribute(
+                        Attribute.builder()
+                                .type(long.class)
+                                .name("id")
+                                .argument(Argument.builder().name("id").value("1").build())
+                                .build()
+                )
+                .attribute(bookTitleAttribute())
+                .relationship("author", authorProjection())
+                .build();
+
         Assert.assertEquals(entityProjections.size(), 1);
 
-        EntityProjection entityProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
 
-        Assert.assertEquals(entityProjection.getType(), Book.class);
-        Assert.assertEquals(entityProjection.getRelationship("author").getType(), Author.class);
+        Assert.assertEquals(actualProjection, expectedProjection);
+    }
+
+    private EntityProjection bookProjection() {
+        return EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(Book.class)
+                .attribute(bookIdAttribute())
+                .attribute(bookTitleAttribute())
+                .relationship("author", authorProjection())
+                .build();
+    }
+
+    private Attribute bookIdAttribute() {
+        return Attribute.builder()
+                .type(long.class)
+                .name("id")
+                .build();
+    }
+
+    private Attribute bookTitleAttribute() {
+        return Attribute.builder()
+                .type(String.class)
+                .name("title")
+                .build();
+    }
+
+    private EntityProjection authorProjection() {
+        return EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(Author.class)
+                .attribute(authorIdAttribute())
+                .attribute(authorNameAttribute())
+                .build();
+    }
+
+    private Attribute authorIdAttribute() {
+        return Attribute.builder()
+                .type(Long.class)
+                .name("id")
+                .build();
+    }
+
+    private Attribute authorNameAttribute() {
+        return Attribute.builder()
+                .type(String.class)
+                .name("name")
+                .build();
     }
 }

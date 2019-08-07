@@ -10,6 +10,8 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -41,7 +43,7 @@ import java.util.Set;
  * {@link GraphQLEntityProjectionMaker} is not thread-safe and its concurrent access must be guarded by external
  * synchronizations.
  * <p>
- * Caller should not call any methods on {@link GraphQLEntityProjectionMaker} except for its constructor and
+ * Caller should not invoke any {@link GraphQLEntityProjectionMaker} methods except for its constructor and
  * {@link #make(String)}.
  *
  * @see EntityProjection
@@ -157,17 +159,22 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         if (fieldType != null) {
             Set<Attribute> existingAttributes = new HashSet<>(getProjectionsByType().get(parentType).getAttributes());
-            existingAttributes.add(
-                    Attribute.builder()
-                            .type(fieldType)
-                            .name(entityName)
-                            .build()
-            );
+            Attribute matchedAttribute = getProjectionsByType().get(parentType).getAttributeByName(entityName);
 
-            // an attribute
-            getProjectionsByType()
-                    .get(parentType)
-                    .setAttributes(existingAttributes);
+            if (matchedAttribute == null) {
+                // this is a new attribute, add it
+                existingAttributes.add(
+                        Attribute.builder()
+                                .type(fieldType)
+                                .name(entityName)
+                                .build()
+                );
+
+                // update mutated attributes
+                getProjectionsByType()
+                        .get(parentType)
+                        .setAttributes(existingAttributes);
+            }
 
             return super.visitField(ctx);
         }
@@ -180,41 +187,41 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
     @Override
     public Void visitArgument(final GraphqlParser.ArgumentContext ctx) {
-        // GraphQL grammar for field (6.0):
+        // GraphQL grammar for argument (6.0):
         //     argument : name ':' valueWithVariable;
-        String name = ctx.name().getText();
-        Object value = ctx.valueWithVariable();
+        String argumentName = ctx.name().getText();
+        Object argumentValue = visitValueWithVariable(ctx.valueWithVariable()); //
 
         // argument must comes with parent
         String entityName = ((GraphqlParser.FieldContext) ctx.getParent().getParent()).name().getText();
         Class<?> entityType = getDictionary().getType(entityName);
 
-        if (!getDictionary().isValidField(entityType, name)) {
+        if (!getDictionary().isValidField(entityType, argumentName)) {
             // invalid argument name
-            String message = String.format("'%s' is not a '%s' field", name, entityName);
+            String message = String.format("'%s' is not a field in '%s'", argumentName, entityName);
             log.error(message);
-            throw  new IllegalStateException(message);
+            throw new IllegalStateException(message);
         }
 
-        Attribute targetAttribute = getProjectionsByType().get(entityType).getAttributeByName(name);
-        Argument setArgument = Argument.builder()
-                .name(name)
-                .value(value)
+        Attribute targetAttribute = getProjectionsByType().get(entityType).getAttributeByName(argumentName);
+        Argument newArgument = Argument.builder()
+                .name(argumentName)
+                .value(argumentValue)
                 .build();
 
         if (targetAttribute == null) {
-            Class<?> attributeType = getDictionary().getType(entityType, name);
+            Class<?> attributeType = getDictionary().getType(entityType, argumentName);
             targetAttribute = Attribute.builder()
                     .type(attributeType)
-                    .name(name)
-                    .argument(setArgument)
+                    .name(argumentName)
+                    .argument(newArgument)
                     .build();
 
             Set<Attribute> existingAttribute = new HashSet<>(getProjectionsByType().get(entityType).getAttributes());
             existingAttribute.add(targetAttribute);
             getProjectionsByType().get(entityType).setAttributes(existingAttribute);
         } else {
-            targetAttribute.getArguments().add(setArgument);
+            targetAttribute.getArguments().add(newArgument);
         }
 
         return super.visitArgument(ctx);
