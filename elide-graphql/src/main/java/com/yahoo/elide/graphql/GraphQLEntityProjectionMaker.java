@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.EdgesContainer;
 import com.yahoo.elide.request.Argument;
@@ -24,6 +25,7 @@ import graphql.GraphQL;
 import graphql.parser.antlr.GraphqlBaseVisitor;
 import graphql.parser.antlr.GraphqlLexer;
 import graphql.parser.antlr.GraphqlParser;
+import jdk.nashorn.internal.objects.NativeUint8Array;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -249,6 +251,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             return null; // this is a terminal node
         }
 
+        if (isSortingArgument(argumentName)) {
+            attachSorting(argumentValue);
+            return null; // this is a terminal node
+        }
 
         // argument must comes with parent
         Class<?> entityType = getParentEntityTypes().peek();
@@ -343,6 +349,21 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         entityProjection.setPagination(pagination);
+    }
+
+    private static boolean isSortingArgument(String argumentName) {
+        return ModelBuilder.ARGUMENT_SORT.equals(argumentName);
+    }
+
+    private void attachSorting(Object argumentValue) {
+        Class<?> sortedEntity = getParentEntityTypes().peek();
+
+        EntityProjection entityProjection = getProjectionsByType().get(sortedEntity);
+
+        String sortRule = (String) argumentValue;
+        Sorting sorting = Sorting.parseSortRule(sortRule.substring(1, sortRule.length() - 1));
+
+        entityProjection.setSorting(sorting);
     }
 
     private String singularized(String plural) {

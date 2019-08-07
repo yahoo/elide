@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -213,6 +214,35 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
         EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
 
         Assert.assertEquals(actualProjection.getPagination().getOffset(), 1);
+    }
+
+    @Test
+    public void testMakeOnQueryWithSorting() {
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        "  book(sort: \"-author.id,id\") {\n" +
+                        "    edges {\n" +
+                        "      node {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        authors {\n" +
+                        "          edges {\n" +
+                        "            node {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
+        );
+        Assert.assertEquals(entityProjections.size(), 1);
+
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+
+        Assert.assertEquals(actualProjection.getSorting(), Sorting.parseSortRule("-author.id,id"));
     }
 
     private Attribute bookIdAttribute() {
