@@ -223,7 +223,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         // argument must comes with parent
         String entityName = ((GraphqlParser.FieldContext) ctx.getParent().getParent()).name().getText();
-        Class<?> entityType = getDictionary().getType(entityName);
+        Class<?> entityType = getParentEntityTypes().peek();
 
         if (!getDictionary().isValidField(entityType, argumentName)) {
             // invalid argument name
