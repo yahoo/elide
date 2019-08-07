@@ -5,12 +5,16 @@
  */
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.EdgesContainer;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
+
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -58,6 +62,7 @@ import java.util.function.Supplier;
  * TODO - transform sorting
  * TODO - transform pagination
  * TODO - support directive since it's required by specification
+ * TODO - support fragment
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -102,6 +107,10 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     @NonNull
     @Getter(AccessLevel.PRIVATE)
     private final EntityDictionary dictionary;
+
+    @NonNull
+    @Getter(AccessLevel.PRIVATE)
+    private final ElideSettings elideSettings;
 
     public Collection<EntityProjection> make(String query) {
         ANTLRInputStream inputStream = new ANTLRInputStream(query);
@@ -148,9 +157,13 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         //     field : alias? name arguments? directives? selectionSet?;
 
         String nodeName = ctx.name().getText();
-        if (ConnectionContainer.EDGES_KEYWORD.equals(nodeName) || EdgesContainer.NODE_KEYWORD.equals(nodeName)) {
+        if (ConnectionContainer.EDGES_KEYWORD.equals(nodeName)
+                || EdgesContainer.NODE_KEYWORD.equals(nodeName)
+                || ConnectionContainer.PAGE_INFO_KEYWORD.equals(nodeName)
+        ) {
             // an "edges" or "node" field, do nothing
             // see https://graphql.org/learn/pagination/#pagination-and-edges
+            // https://elide.io/pages/guide/11-graphql.html#relationship-metadata
             return super.visitField(ctx);
         }
 
@@ -231,6 +244,12 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         String argumentName = ctx.name().getText();
         Object argumentValue = visitTerminalValue(ctx.valueWithVariable()); //
 
+        if (isPaginationArgument(argumentName)) {
+            attachPagination(argumentName, argumentValue);
+            return null; // this is a terminal node
+        }
+
+
         // argument must comes with parent
         Class<?> entityType = getParentEntityTypes().peek();
 
@@ -262,7 +281,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             targetAttribute.getArguments().add(newArgument);
         }
 
-        return super.visitArgument(ctx);
+        return null; // this is a terminal node
     }
 
     @Override
@@ -299,6 +318,31 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         return null;
+    }
+
+    private static boolean isPaginationArgument(String argumentName) {
+        return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
+    }
+
+    private void attachPagination(String paginationArgument, Object paginationValue) {
+        Class<?> paginatedEntity = getParentEntityTypes().peek();
+
+        EntityProjection entityProjection = getProjectionsByType().get(paginatedEntity);
+
+        Pagination pagination = entityProjection.getPagination() == null
+                ? Pagination.getDefaultPagination(getElideSettings())
+                : entityProjection.getPagination();
+
+        Integer value = Integer.parseInt((String) paginationValue);
+        if (ModelBuilder.ARGUMENT_FIRST.equals(paginationArgument)) {
+            pagination.setFirst(value);
+        } else if (ModelBuilder.ARGUMENT_AFTER.equals(paginationArgument)) {
+            pagination.setOffset(value);
+        } else {
+            String message = String.format("Unrecognized pagination argument '%s'", paginationArgument);
+        }
+
+        entityProjection.setPagination(pagination);
     }
 
     private String singularized(String plural) {

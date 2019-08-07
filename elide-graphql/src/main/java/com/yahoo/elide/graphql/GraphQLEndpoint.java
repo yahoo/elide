@@ -164,7 +164,12 @@ public class GraphQLEndpoint {
 
             // we assume there is only 1 root entity in the query
             requestScope.setEntityProjection(
-                    new GraphQLEntityProjectionMaker(requestScope.getDictionary()).make(query).iterator().next()
+                    new GraphQLEntityProjectionMaker(
+                            requestScope.getDictionary(),
+                            requestScope.getElideSettings()
+                    ).make(query)
+                            .iterator()
+                            .next()
             );
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into

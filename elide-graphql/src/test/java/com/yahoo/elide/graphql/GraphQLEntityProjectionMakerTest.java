@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.graphql;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -25,7 +29,11 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
 
     @BeforeMethod
     public void childInit() {
-        projectionMaker = new GraphQLEntityProjectionMaker(dictionary);
+        ElideSettings elideSettings = mock(ElideSettings.class);
+        when(elideSettings.getDefaultMaxPageSize()).thenReturn(100);
+        when(elideSettings.getDefaultPageSize()).thenReturn(100);
+
+        projectionMaker = new GraphQLEntityProjectionMaker(dictionary, elideSettings);
     }
 
     @Test
@@ -174,6 +182,37 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
         EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
 
         Assert.assertEquals(actualProjection, expectedProjection);
+    }
+
+    @Test
+    public void testMakeOnQueryWithPagination() {
+
+        // Fetch Single Book
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        "  book(first: 1, after: 1) {\n" +
+                        "    edges {\n" +
+                        "      node {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        authors {\n" +
+                        "          edges {\n" +
+                        "            node {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
+        );
+        Assert.assertEquals(entityProjections.size(), 1);
+
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+
+        Assert.assertEquals(actualProjection.getPagination().getOffset(), 1);
     }
 
     private Attribute bookIdAttribute() {
