@@ -1204,15 +1204,23 @@ public class ResourceIT extends IntegrationTest {
         JSONAssert.assertEquals(parentOutput.toJSON(), parentActual, true);
     }
 
-    /*
     @Test
     public void createParentBadUri() {
-        String request = jsonParser.getJson("/ResourceIT/createParentBadUri.json");
+
+        Data parentInput = data(
+                resource(
+                        type("parent"),
+                        id("required"),
+                        attributes(
+                                attr("firstName", "I should not be created :x")
+                        )
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(parentInput)
             .post("/parent/678")
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -1220,19 +1228,30 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void createChildNonRootable() {
-        String request = jsonParser.getJson("/ResourceIT/createChildNonRootable.json");
+        Data childInput = data(
+                resource(
+                        type("child"),
+                        id("required"),
+                        attributes(
+                                attr("firstName", "I should not be created :x")
+                        )
+                )
+        );
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(childInput)
             .post("/child")
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
+    /*
 
     @Test
     public void testAddAndRemoveOneToOneRelationship() {
         // first set
+
+        Data funInput =
         final String request1 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.req.json");
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
