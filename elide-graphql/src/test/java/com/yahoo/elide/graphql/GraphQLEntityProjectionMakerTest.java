@@ -54,7 +54,7 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
     }
 
     @Test
-    public void testMakeOnSingleFetchWithArgument() {
+    public void testMakeOnBasicQueryWithArgument() {
         EntityProjection expectedProjection = EntityProjection.builder()
                 .dictionary(dictionary)
                 .type(Book.class)
