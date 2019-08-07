@@ -49,6 +49,8 @@ import java.util.stream.IntStream;
  * {@link #make(String)}.
  *
  * @see EntityProjection
+ * @see ModelBuilder
+ * @see <a href="http://elide.io/pages/guide/11-graphql.html#sorting">Sorting</a>
  *
  * TODO - transform sorting
  * TODO - transform pagination
