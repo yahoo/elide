@@ -15,7 +15,8 @@ import java.util.LinkedHashMap;
  * Top Level JSON-API Document
  */
 public class Document extends LinkedHashMap<String, Object> {
-    static private final Gson GSON_INSTANCE = new GsonBuilder().serializeNulls().create();
+    static private final Gson GSON_INSTANCE = new GsonBuilder()
+            .serializeNulls().create();
 
     /**
      * Instantiates a new Data based on resources.

@@ -203,10 +203,33 @@ public class JsonApiDSL {
      * Relation relation.
      *
      * @param field           the field
+     * @param toOne           whether or not this is a toOne or toMany relationship
+     * @param resourceLinkage the resource linkage
+     * @return the relation
+     */
+    public static Relation relation(String field, boolean toOne, ResourceLinkage... resourceLinkage) {
+        return new Relation(field, toOne, resourceLinkage);
+    }
+
+    /**
+     * Relation relation.
+     *
+     * @param field           the field
      * @return the relation
      */
     public static Relation relation(String field) {
         return new Relation(field);
+    }
+
+    /**
+     * Relation relation.
+     *
+     * @param field           the field
+     * @param toOne           whether or not this is a toOne or toMany relationship
+     * @return the relation
+     */
+    public static Relation relation(String field, boolean toOne) {
+        return new Relation(field, toOne);
     }
 
     /**

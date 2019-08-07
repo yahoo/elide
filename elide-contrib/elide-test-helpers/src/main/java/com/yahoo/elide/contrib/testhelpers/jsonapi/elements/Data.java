@@ -15,7 +15,8 @@ import java.util.LinkedHashMap;
  * The type Data.
  */
 public class Data extends LinkedHashMap<String, Object> {
-    static private final Gson GSON_INSTANCE = new GsonBuilder().serializeNulls().create();
+    static private final Gson GSON_INSTANCE = new GsonBuilder()
+            .serializeNulls().create();
 
     /**
      * Instantiates a new Data based on resources.

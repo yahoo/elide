@@ -17,6 +17,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.core.StringStartsWith.startsWith;
@@ -1245,43 +1246,104 @@ public class ResourceIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
-    /*
 
     @Test
-    public void testAddAndRemoveOneToOneRelationship() {
-        // first set
+    public void testAddAndRemoveOneToOneRelationship() throws Exception {
 
-        Data funInput =
-        final String request1 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.req.json");
+        Data funInput = data(
+                resource(
+                        type("fun"),
+                        id("1"),
+                        attributes(),
+                        relationships(
+                                relation("relation3", TO_ONE,
+                                        linkage(type("child"), id("2"))
+                                )
+                        )
+                )
+        );
+
+        Data funOutput = data(
+                resource(
+                        type("fun"),
+                        id("1"),
+                        attributes(
+                                attr("field2", null),
+                                attr("field3", null),
+                                attr("field4", null),
+                                attr("field5", null),
+                                attr("field6", null),
+                                attr("field8", null)
+                        ),
+                        relationships(
+                                relation("relation3", TO_ONE,
+                                        linkage(type("child"), id("2"))
+                                ),
+                                relation("relation1"),
+                                relation("relation2")
+                        )
+                )
+        );
+
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request1)
+            .body(funInput)
             .patch("/fun/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
             .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
-        final String expected1 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.json");
-        final String actual1 = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
-        assertEqualDocuments(actual1, expected1);
+        String actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
 
-        // second set
-        final String request2 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.req.json");
+        JSONAssert.assertEquals(funOutput.toJSON(), actual, true);
+
+        funInput = data(
+                resource(
+                        type("fun"),
+                        id("1"),
+                        attributes(),
+                        relationships(
+                                relation("relation3", TO_ONE)
+                        )
+                )
+        );
+
+        funOutput = data(
+                resource(
+                        type("fun"),
+                        id("1"),
+                        attributes(
+                                attr("field2", null),
+                                attr("field3", null),
+                                attr("field4", null),
+                                attr("field5", null),
+                                attr("field6", null),
+                                attr("field8", null)
+                        ),
+                        relationships(
+                                relation("relation3", TO_ONE),
+                                relation("relation1"),
+                                relation("relation2")
+                        )
+                )
+        );
+
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request2)
+            .body(funInput)
             .patch("/fun/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
             .header(HttpHeaders.CONTENT_LENGTH, (String) null);
-        final String expected2 = jsonParser.getJson("/ResourceIT/testAddAndRemoveOneToOneRelationship.2.json");
-        final String actual2 = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
-        assertEqualDocuments(actual2, expected2);
+
+        actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
+
+        JSONAssert.assertEquals(funOutput.toJSON(), actual, true);
     }
 
-    @Test(priority = 13)
+    @Test
     public void createDependentPatchExt() {
         String request = jsonParser.getJson("/ResourceIT/createDependentPatchExt.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createDependentPatchExt.json");
@@ -1295,7 +1357,7 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 14)
+    @Test
     public void createChildRelateExisting() {
         String request = jsonParser.getJson("/ResourceIT/createChildRelateExisting.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createChildRelateExisting.json");
@@ -1309,7 +1371,7 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @Test(priority = 15)
+    @Test
     public void updateChildRelationToExisting() {
         String request = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/updateChildRelationToExisting.1.json");
@@ -1325,13 +1387,13 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5/children/8")
+            .get("/parent/4/children/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expected2));
     }
 
-    @Test(priority = 16)
+    @Test
     public void replaceAttributesAndRelationship() {
         String request = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.req.json");
         String expected1 = jsonParser.getJson("/ResourceIT/replaceAttributesAndRelationship.json");
@@ -1347,7 +1409,7 @@ public class ResourceIT extends IntegrationTest {
         String response = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/7")
+            .get("/parent/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
@@ -1355,7 +1417,7 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(response, expected2);
     }
 
-    @Test(priority = 17)
+    @Test
     public void removeObject() {
         String req1 = jsonParser.getJson("/ResourceIT/removeObject.1.req.json");
         String req2 = jsonParser.getJson("/ResourceIT/removeObject.2.req.json");
@@ -1373,7 +1435,7 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/8")
+            .get("/parent/5")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body(equalTo(expectedDirect));
@@ -1388,19 +1450,19 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/8")
+            .get("/parent/5")
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
-    @Test(priority = 18)
+    @Test
     public void createAndRemoveParent() {
         String request = jsonParser.getJson("/ResourceIT/createAndRemoveParent.req.json");
         String expected = jsonParser.getJson("/ResourceIT/createAndRemoveParent.json");
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/7")
+            .get("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_OK);
         given()
@@ -1414,10 +1476,12 @@ public class ResourceIT extends IntegrationTest {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/7")
+            .get("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
+
+    /*
 
     @Test(priority = 19)
     public void testAddRoot() {
