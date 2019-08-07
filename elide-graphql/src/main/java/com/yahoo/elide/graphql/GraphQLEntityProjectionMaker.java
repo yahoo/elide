@@ -10,8 +10,6 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -34,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -81,11 +78,12 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * A stack helper structure used while performing depth-first walk of GraphQL parse tree.
      * <p>
      * When we see an entity node("field" in GraphQL grammar), we push the type of this entity to this stack so that
-     * we could easily pop out the entity type when we visit child node of this entity(or "field") node. This will be
-     * very useful when we need to know, for example, "what is the parent entity that includes this 'id' field?".
+     * we could easily peek out the entity type when we visit child node of this entity(or "field") node. This will be
+     * very useful when we need to know, for example, "what is the parent entity that includes this 'id' field?". When
+     * we are done with the sub-tree of this entity node, we pop it out.
      */
     @Getter(AccessLevel.PRIVATE)
-    private final Deque<Class<?>> parentEntityType = new LinkedList<>();
+    private final Deque<Class<?>> parentEntityTypes = new LinkedList<>();
 
     @NonNull
     @Getter(AccessLevel.PRIVATE)
@@ -140,32 +138,36 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         if (!(ctx.getParent().getParent().getParent() instanceof GraphqlParser.FieldContext)) {
             // a root field
-            EntityProjection rootProjection = EntityProjection.builder()
-                    .dictionary(getDictionary())
-                    .type(entityType)
-                    .build();
+            return withParentEntity(entityType, () -> {
+                EntityProjection rootProjection = EntityProjection.builder()
+                        .dictionary(getDictionary())
+                        .type(entityType)
+                        .build();
 
-            addProjection(rootProjection);
-            getProjectionsByType().put(entityType, rootProjection);
+                addProjection(rootProjection);
+                getProjectionsByType().put(entityType, rootProjection);
 
-            return super.visitField(ctx);
+                return super.visitField(ctx);
+            });
         }
 
         // not a root field, then there must be a prent
-        String parentEntity = ((GraphqlParser.FieldContext) ctx.getParent().getParent().getParent()).name().getText();
-        Class<?> parentType = getDictionary().getType(parentEntity);
+        //String parentEntity = ((GraphqlParser.FieldContext) ctx.getParent().getParent().getParent()).name().getText();
+        Class<?> parentType = getParentEntityTypes().peek();
 
         if (entityType != null) {
             // a relationship
-            EntityProjection relationshipProjection = EntityProjection.builder()
-                    .dictionary(getDictionary())
-                    .type(entityType)
-                    .build();
+            return withParentEntity(entityType, () -> {
+                EntityProjection relationshipProjection = EntityProjection.builder()
+                        .dictionary(getDictionary())
+                        .type(entityType)
+                        .build();
 
-            getProjectionsByType().get(parentType).getRelationships().put(entityName, relationshipProjection);
-            getProjectionsByType().put(entityType, relationshipProjection);
+                getProjectionsByType().get(parentType).getRelationships().put(entityName, relationshipProjection);
+                getProjectionsByType().put(entityType, relationshipProjection);
 
-            return super.visitField(ctx);
+                return super.visitField(ctx);
+            });
         }
 
         // not a root field; not a relationship; this must be an Attribute
@@ -246,15 +248,25 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         return super.visitValueWithVariable(ctx);
     }
 
+    /**
+     * Puts an entity type onto top of stack, which is {@link #parentEntityTypes}, performs an depth-first walk rooted
+     * at this entity, and pops out the entity type.
+     *
+     * @param parentEntity
+     * @param actionUnderEntity
+     * @param <T>
+     *
+     * @return {@code null}
+     */
     private <T> T withParentEntity(
             Class<?> parentEntity,
             Supplier<T> actionUnderEntity
     ) {
-        getParentEntityType().push(parentEntity);
+        getParentEntityTypes().push(parentEntity);
 
         actionUnderEntity.get();
 
-        getParentEntityType().pop();
+        getParentEntityTypes().pop();
 
         return null;
     }
