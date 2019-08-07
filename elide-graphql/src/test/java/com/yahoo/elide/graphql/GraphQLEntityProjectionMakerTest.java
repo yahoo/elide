@@ -62,7 +62,7 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
                         Attribute.builder()
                                 .type(long.class)
                                 .name("id")
-                                .argument(Argument.builder().name("id").value("1").build())
+                                .argument(Argument.builder().name("id").value("\"1\"").build())
                                 .build()
                 )
                 .attribute(bookTitleAttribute())

@@ -12,6 +12,7 @@ import com.yahoo.elide.request.EntityProjection;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import graphql.GraphQL;
 import graphql.parser.antlr.GraphqlBaseVisitor;
@@ -21,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -69,7 +71,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     private final List<EntityProjection> allEntityProjections = new ArrayList<>();
 
     /**
-     * A map from EntityProjection.type to EntityProjection.
+     * A map from EntityProjection.type to the EntityProjection.
      */
     @Getter(AccessLevel.PRIVATE)
     private final Map<Class<?>, EntityProjection> projectionsByType = new HashMap<>();
@@ -87,6 +89,13 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      */
     @Getter(AccessLevel.PRIVATE)
     private final Deque<Class<?>> parentEntityTypes = new LinkedList<>();
+
+    /**
+     * Reference
+     */
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private Object valueWithVariable;
 
     @NonNull
     @Getter(AccessLevel.PRIVATE)
@@ -158,7 +167,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         Class<?> parentType = getParentEntityTypes().peek();
 
         if (entityType != null) {
-            // a relationship; walk sub-tree rooted at this relationship entity
+            // a relationship field; walk sub-tree rooted at this relationship entity
             return withParentEntity(entityType, () -> {
                 EntityProjection relationshipProjection = EntityProjection.builder()
                         .dictionary(getDictionary())
@@ -172,7 +181,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             });
         }
 
-        // not a root field; not a relationship; this must be an Attribute
+        // not a root field; not a relationship field; this must be an Attribute
         Class<?> fieldType = getDictionary().getType(parentType, entityName);
 
         if (fieldType != null) {
@@ -206,9 +215,11 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     @Override
     public Void visitArgument(final GraphqlParser.ArgumentContext ctx) {
         // GraphQL grammar for argument (6.0):
+        //     field : alias? name arguments? directives? selectionSet?;
         //     argument : name ':' valueWithVariable;
+
         String argumentName = ctx.name().getText();
-        Object argumentValue = visitValueWithVariable(ctx.valueWithVariable()); //
+        Object argumentValue = visitTerminalValue(ctx.valueWithVariable()); //
 
         // argument must comes with parent
         String entityName = ((GraphqlParser.FieldContext) ctx.getParent().getParent()).name().getText();
@@ -247,12 +258,28 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
     @Override
     public Void visitValueWithVariable(final GraphqlParser.ValueWithVariableContext ctx) {
+        // GraphQL grammar for argument (6.0):
+        //     argument : name ':' valueWithVariable;
+        //     valueWithVariable :
+        //     variable |
+        //     IntValue |
+        //     FloatValue |
+        //     StringValue |
+        //     BooleanValue |
+        //     NullValue |
+        //     enumValue |
+        //     arrayValueWithVariable |
+        //     objectValueWithVariable;
+        if (ctx.StringValue() != null) {
+            setValueWithVariable(ctx.StringValue().getText());
+        }
+
         return super.visitValueWithVariable(ctx);
     }
 
     /**
      * Puts an entity type onto top of stack, which is {@link #parentEntityTypes}, performs an depth-first walk rooted
-     * at this entity, and pops out the entity type.
+     * at this entity (including this root entity), and pops out the entity type.
      *
      * @param parentEntity
      * @param actionUnderEntity
@@ -271,6 +298,11 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         getParentEntityTypes().pop();
 
         return null;
+    }
+
+    private Object visitTerminalValue(GraphqlParser.ValueWithVariableContext ctx) {
+        visitValueWithVariable(ctx);
+        return getValueWithVariable();
     }
 
     private void addProjection(EntityProjection newProjection) {
