@@ -6,7 +6,6 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
@@ -30,10 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * A strategy that mapps a read-only GraphQL query to a collection of {@link EntityProjection}s.
@@ -60,11 +56,20 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
+    /**
+     * All EntityProjections transformed from a GraphQL query.
+     * <p>
+     * GraphQL can query multiple entities in a single query, each root entity is transformed in an EntityProjections in
+     * this list.
+     */
     @Getter(AccessLevel.PRIVATE)
-    private final Map<Class<?>, EntityProjection> allEntityProjections = new HashMap<>();
+    private final List<EntityProjection> allEntityProjections = new ArrayList<>();
 
+    /**
+     * A map from EntityProjection.type to EntityProjection.
+     */
     @Getter(AccessLevel.PRIVATE)
-    private final Map<Class<?>, EntityProjection> projectionsByKey = new HashMap<>();
+    private final Map<Class<?>, EntityProjection> projectionsByType = new HashMap<>();
 
     @NonNull
     @Getter(AccessLevel.PRIVATE)
@@ -86,7 +91,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
         definitions.forEach(this::visitDefinition);
 
-        return allEntityProjections.values();
+        return allEntityProjections;
     }
 
     @Override
@@ -125,7 +130,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
                     .build();
 
             addProjection(rootProjection);
-            getProjectionsByKey().put(entityType, rootProjection);
+            getProjectionsByType().put(entityType, rootProjection);
 
             return super.visitField(ctx);
         }
@@ -141,8 +146,8 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
                     .type(entityType)
                     .build();
 
-            getAllEntityProjections().get(parentType).getRelationships().put(entityName, relationshipProjection);
-            getProjectionsByKey().put(entityType, relationshipProjection);
+            getProjectionsByType().get(parentType).getRelationships().put(entityName, relationshipProjection);
+            getProjectionsByType().put(entityType, relationshipProjection);
 
             return super.visitField(ctx);
         }
@@ -151,7 +156,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         Class<?> fieldType = getDictionary().getType(parentType, entityName);
 
         if (fieldType != null) {
-            Set<Attribute> existingAttributes = new HashSet<>(getProjectionsByKey().get(parentType).getAttributes());
+            Set<Attribute> existingAttributes = new HashSet<>(getProjectionsByType().get(parentType).getAttributes());
             existingAttributes.add(
                     Attribute.builder()
                             .type(fieldType)
@@ -160,7 +165,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             );
 
             // an attribute
-            getProjectionsByKey()
+            getProjectionsByType()
                     .get(parentType)
                     .setAttributes(existingAttributes);
 
@@ -191,7 +196,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             throw  new IllegalStateException(message);
         }
 
-        Attribute targetAttribute = getProjectionsByKey().get(entityType).getAttributeByName(name);
+        Attribute targetAttribute = getProjectionsByType().get(entityType).getAttributeByName(name);
         Argument setArgument = Argument.builder()
                 .name(name)
                 .value(value)
@@ -205,9 +210,9 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
                     .argument(setArgument)
                     .build();
 
-            Set<Attribute> existingAttribute = new HashSet<>(getProjectionsByKey().get(entityType).getAttributes());
+            Set<Attribute> existingAttribute = new HashSet<>(getProjectionsByType().get(entityType).getAttributes());
             existingAttribute.add(targetAttribute);
-            getProjectionsByKey().get(entityType).setAttributes(existingAttribute);
+            getProjectionsByType().get(entityType).setAttributes(existingAttribute);
         } else {
             targetAttribute.getArguments().add(setArgument);
         }
@@ -216,12 +221,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     }
 
     private void addProjection(EntityProjection newProjection) {
-        getAllEntityProjections().compute(newProjection.getType(), (k, existingProjection) -> {
-            if (existingProjection == null) {
-                return newProjection;
-            } else {
-                return existingProjection.merge(newProjection);
-            }
-        });
+        getAllEntityProjections().add(newProjection);
+        getProjectionsByType().put(newProjection.getType(), newProjection);
     }
 }
