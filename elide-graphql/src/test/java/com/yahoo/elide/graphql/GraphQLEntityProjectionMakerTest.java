@@ -55,20 +55,6 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
 
     @Test
     public void testMakeOnSingleFetchWithArgument() {
-        // Fetch Single Book
-        Collection<EntityProjection> entityProjections = projectionMaker.make(
-                "{\n" +
-                        "  book(id: \"1\") {\n" +
-                        "        id\n" +
-                        "        title\n" +
-                        "        author {\n" +
-                        "              id\n" +
-                        "              name\n" +
-                        "            }\n" +
-                        "  }\n" +
-                        "}"
-        );
-
         EntityProjection expectedProjection = EntityProjection.builder()
                 .dictionary(dictionary)
                 .type(Book.class)
@@ -82,6 +68,20 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
                 .attribute(bookTitleAttribute())
                 .relationship("author", authorProjection())
                 .build();
+
+        // Fetch Single Book with single argument
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        "  book(id: \"1\") {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        author {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "  }\n" +
+                        "}"
+        );
 
         Assert.assertEquals(entityProjections.size(), 1);
 

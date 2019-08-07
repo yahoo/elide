@@ -27,11 +27,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A strategy that mapps a read-only GraphQL query to a collection of {@link EntityProjection}s.
@@ -73,6 +77,16 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     @Getter(AccessLevel.PRIVATE)
     private final Map<Class<?>, EntityProjection> projectionsByType = new HashMap<>();
 
+    /**
+     * A stack helper structure used while performing depth-first walk of GraphQL parse tree.
+     * <p>
+     * When we see an entity node("field" in GraphQL grammar), we push the type of this entity to this stack so that
+     * we could easily pop out the entity type when we visit child node of this entity(or "field") node. This will be
+     * very useful when we need to know, for example, "what is the parent entity that includes this 'id' field?".
+     */
+    @Getter(AccessLevel.PRIVATE)
+    private final Deque<Class<?>> parentEntityType = new LinkedList<>();
+
     @NonNull
     @Getter(AccessLevel.PRIVATE)
     private final EntityDictionary dictionary;
@@ -88,7 +102,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         //     document : definition+;
         //
         // Given that GraphQL can query multiple entities in a single query,
-        // we define one document.definition per entity projection
+        // we define one root level entity projection for each document.definition
         List<GraphqlParser.DefinitionContext> definitions = parser.document().definition();
 
         definitions.forEach(this::visitDefinition);
@@ -225,6 +239,24 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         return super.visitArgument(ctx);
+    }
+
+    @Override
+    public Void visitValueWithVariable(final GraphqlParser.ValueWithVariableContext ctx) {
+        return super.visitValueWithVariable(ctx);
+    }
+
+    private <T> T withParentEntity(
+            Class<?> parentEntity,
+            Supplier<T> actionUnderEntity
+    ) {
+        getParentEntityType().push(parentEntity);
+
+        actionUnderEntity.get();
+
+        getParentEntityType().pop();
+
+        return null;
     }
 
     private void addProjection(EntityProjection newProjection) {
