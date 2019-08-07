@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -53,6 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -203,6 +205,7 @@ public class ResourceIT extends IntegrationTest {
 
     @BeforeEach
     public void setup() throws IOException {
+        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
         DataStoreTransaction tx = dataStore.beginTransaction();
 
         Parent parent = new Parent(); // id 1

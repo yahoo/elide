@@ -13,13 +13,11 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
 
 /**
  * HashMapDataStore transaction handler.
@@ -101,43 +99,32 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     public void createObject(Object entity, RequestScope scope) {
         Class entityClass = entity.getClass();
 
-        // TODO: Id's are not necessarily numeric.
-        AtomicLong nextId;
-        synchronized (dataStore) {
-            nextId = typeIds.computeIfAbsent(entityClass,
-                    (key) -> {
-                        long maxId = dataStore.get(key).keySet().stream()
-                                .mapToLong(Long::parseLong)
-                                .max()
-                                .orElse(0);
-                        return new AtomicLong(maxId + 1);
-                    });
+        String idFieldName = dictionary.getIdFieldName(entityClass);
+        String id;
+        if (dictionary.getAttributeOrRelationAnnotation(entityClass, GeneratedValue.class, idFieldName) != null) {
+            // TODO: Id's are not necessarily numeric.
+            AtomicLong nextId;
+            synchronized (dataStore) {
+                nextId = typeIds.computeIfAbsent(entityClass,
+                        (key) -> {
+                            long maxId = dataStore.get(key).keySet().stream()
+                                    .mapToLong(Long::parseLong)
+                                    .max()
+                                    .orElse(0);
+                            return new AtomicLong(maxId + 1);
+                        });
+            }
+            id = String.valueOf(nextId.getAndIncrement());
+            setId(entity, id);
+        } else {
+            id = dictionary.getId(entity);
         }
-        String id = String.valueOf(nextId.getAndIncrement());
-        setId(entity, id);
+
         operations.add(new Operation(id, entity, entity.getClass(), false));
     }
 
     public void setId(Object value, String id) {
-        //TODO - this should be replaced with entityDictionary.setId
-        //This is an issue for classes where the ID field is a property and not a class.
-        for (Class<?> cls = value.getClass(); cls != null; cls = cls.getSuperclass()) {
-            for (Method method : cls.getMethods()) {
-                if (method.isAnnotationPresent(Id.class) && method.getName().startsWith("get")) {
-                    String setName = "set" + method.getName().substring(3);
-                    for (Method setMethod : cls.getMethods()) {
-                        if (setMethod.getName().equals(setName) && setMethod.getParameterCount() == 1) {
-                            try {
-                                setMethod.invoke(value, CoerceUtil.coerce(id, setMethod.getParameters()[0].getType()));
-                            } catch (ReflectiveOperationException e) {
-                                log.error("set {}", setMethod, e);
-                            }
-                            return;
-                        }
-                    }
-                }
-            }
-        }
+        dictionary.setValue(value, dictionary.getIdFieldName(value.getClass()), id);
     }
 
     @Override
