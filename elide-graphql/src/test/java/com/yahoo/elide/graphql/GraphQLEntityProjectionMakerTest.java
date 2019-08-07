@@ -132,6 +132,50 @@ public class GraphQLEntityProjectionMakerTest extends GraphQLTest {
         Assert.assertEquals(actualProjection, expectedProjection);
     }
 
+    @Test
+    public void testMakeOnQueryWithRelationshipAndArgument() {
+        EntityProjection expectedProjection = EntityProjection.builder()
+                .dictionary(dictionary)
+                .type(Book.class)
+                .attribute(
+                        Attribute.builder()
+                                .type(long.class)
+                                .name("id")
+                                .argument(Argument.builder().name("id").value("\"1\"").build())
+                                .build()
+                )
+                .attribute(bookTitleAttribute())
+                .relationship("Author", authorProjection())
+                .build();
+
+        // Fetch Single Book
+        Collection<EntityProjection> entityProjections = projectionMaker.make(
+                "{\n" +
+                        "  book(id: \"1\") {\n" +
+                        "    edges {\n" +
+                        "      node {\n" +
+                        "        id\n" +
+                        "        title\n" +
+                        "        authors {\n" +
+                        "          edges {\n" +
+                        "            node {\n" +
+                        "              id\n" +
+                        "              name\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      }\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
+        );
+        Assert.assertEquals(entityProjections.size(), 1);
+
+        EntityProjection actualProjection = entityProjections.stream().collect(Collectors.toList()).get(0);
+
+        Assert.assertEquals(actualProjection, expectedProjection);
+    }
+
     private Attribute bookIdAttribute() {
         return Attribute.builder()
                 .type(long.class)
