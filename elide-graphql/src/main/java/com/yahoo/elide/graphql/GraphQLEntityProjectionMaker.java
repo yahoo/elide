@@ -258,23 +258,38 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
 
     @Override
     public Void visitValueWithVariable(final GraphqlParser.ValueWithVariableContext ctx) {
-        // GraphQL grammar for argument (6.0):
-        //     argument : name ':' valueWithVariable;
-        //     valueWithVariable :
-        //     variable |
-        //     IntValue |
-        //     FloatValue |
-        //     StringValue |
-        //     BooleanValue |
-        //     NullValue |
-        //     enumValue |
-        //     arrayValueWithVariable |
-        //     objectValueWithVariable;
-        if (ctx.StringValue() != null) {
+        /*
+         * GraphQL grammar for valueWithVariable (6.0):
+         *
+         *     valueWithVariable :
+         *     variable |
+         *     IntValue |
+         *     FloatValue |
+         *     StringValue |
+         *     BooleanValue |
+         *     NullValue |
+         *     enumValue |
+         *     arrayValueWithVariable |
+         *     objectValueWithVariable;
+         */
+        if (ctx.IntValue() != null) {
+            setValueWithVariable(ctx.IntValue().getText());
+        } else if (ctx.FloatValue() != null) {
+            setValueWithVariable(ctx.FloatValue().getText());
+        } else if (ctx.StringValue() != null) {
             setValueWithVariable(ctx.StringValue().getText());
+        } else if (ctx.BooleanValue() != null) {
+            setValueWithVariable(ctx.BooleanValue().getText());
+        } else if (ctx.NullValue() != null) {
+            setValueWithVariable(ctx.NullValue().getText());
+        } else {
+            // TODO - support enumValue, variable, arrayValueWithVariable, and objectValueWithVariable ASAP
+            String message = "Non-primitive-typed argument will be supported in future release";
+            log.error(message);
+            throw new IllegalStateException(message);
         }
 
-        return super.visitValueWithVariable(ctx);
+        return null;
     }
 
     /**
