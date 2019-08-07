@@ -19,8 +19,10 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -954,16 +956,18 @@ public class ResourceIT extends IntegrationTest {
         assertEqualDocuments(actual, expected);
     }
 
-    /*
-
-    @Test(priority = 9)
+    @Test
     public void testPatchRelSetDirect() throws Exception {
-        String request = jsonParser.getJson("/ResourceIT/testPatchRelSetDirect.json");
+
+        Data relationships = data(
+                linkage(type("child"), id("4")),
+                linkage(type("child"), id("5"))
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(relationships)
             .patch("/parent/4/relationships/children")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
@@ -977,42 +981,10 @@ public class ResourceIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK)
             .extract().response().asString();
 
-        JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
-        Data<Resource> list = doc.getData();
-        Iterator<Resource> itr = list.get().iterator();
-        String rel1 = itr.next().getId();
-        String rel2 = itr.next().getId();
-
-        // Sort is not enabled-- order agnostic.
-        String id1;
-        String id2;
-        if ("4".equals(rel1)) {
-            id1 = rel1;
-            id2 = rel2;
-        } else {
-            id1 = rel2;
-            id2 = rel1;
-        }
-
-        assertEquals(id1, "4");
-        assertEquals(id2, "5");
+        JSONAssert.assertEquals(relationships.toJSON(), actual, false);
     }
 
-    @Test(priority = 10)
-    public void testPatchRelNoUpdateDirect() throws Exception {
-        String request = jsonParser.getJson("/ResourceIT/testPatchRelNoUpdateDirect.json");
-
-        given()
-            .contentType(JSONAPI_CONTENT_TYPE)
-            .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .patch("/parent/4/relationships/children")
-            .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT)
-            .header(HttpHeaders.CONTENT_LENGTH, (String) null);
-    }
-
-    @Test(priority = 11)
+    @Test
     public void testNoDeleteExcludedRelationship() throws Exception {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -1022,7 +994,6 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
-    */
 
     @Test
     public void testForbiddenDeleteEmptyCollectionRelationship() throws Exception {
@@ -1067,40 +1038,81 @@ public class ResourceIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
-    /*
 
-    @Test(priority = 1)
-    public void createParentNoRels() {
-        String request = jsonParser.getJson("/ResourceIT/createParentNoRels.req.json");
-        String expected = jsonParser.getJson("/ResourceIT/createParentNoRels.json");
+    @Test
+    public void createParentNoRels() throws Exception {
+
+        Data parent = data(
+                resource(
+                        type("parent"),
+                        id("5"),
+                        attributes(
+                                attr("firstName", "I'm new here")
+                        ),
+                        relationships(
+                                relation("spouses"),
+                                relation("children")
+                        )
+                )
+        );
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(parent)
             .post("/parent")
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
+        JSONAssert.assertEquals(parent.toJSON(), actual, true);
     }
 
-    @Test(priority = 2)
-    public void createParentWithRels() {
-        String request = jsonParser.getJson("/ResourceIT/createParentWithRels.req.json");
-        String expected = jsonParser.getJson("/ResourceIT/createParentWithRels.json");
+
+    @Test
+    public void createParentWithRels() throws Exception {
+
+        Data parentInput = data(
+                resource(
+                        type("parent"),
+                        id("required"),
+                        attributes(
+                                attr("firstName", "omg. I have kidz.")
+                        ),
+                        relationships(
+                                relation("children",
+                                        linkage(type("child"), id("2"))
+                                )
+                        )
+                )
+        );
+
+        Data parentOutput = data(
+                resource(
+                        type("parent"),
+                        id("5"),
+                        attributes(
+                                attr("firstName", "omg. I have kidz.")
+                        ),
+                        relationships(
+                                relation("children",
+                                        linkage(type("child"), id("2"))
+                                ),
+                                relation("spouses")
+                        )
+                )
+        );
 
         String actual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(parentInput)
             .post("/parent")
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
+        JSONAssert.assertEquals(parentOutput.toJSON(), actual, true);
     }
 
     @Test
@@ -1118,48 +1130,81 @@ public class ResourceIT extends IntegrationTest {
             .body(startsWith(expected));
     }
 
-    @Test(priority = 3)
+
+    @Test
     public void createChild() throws Exception {
-        String request = jsonParser.getJson("/ResourceIT/createChild.json");
+
+        Data childInput = data(
+                resource(
+                        type("child"),
+                        id("required"),
+                        attributes(),
+                        relationships(
+                                relation("parents",
+                                        linkage(type("parent"), id("1"))
+                                )
+                        )
+                )
+        );
+
+        Data childOutput = data(
+                resource(
+                        type("child"),
+                        id("6"),
+                        attributes(
+                                attr("name", null)
+                        ),
+                        relationships(
+                                relation("parents",
+                                        linkage(type("parent"), id("1")),
+                                        linkage(type("parent"), id("4"))
+                                ),
+                                relation("friends")
+                        )
+                )
+        );
+
+        Data parentOutput = data(
+                resource(
+                        type("parent"),
+                        id("4"),
+                        attributes(
+                                attr("firstName", "Unknown")
+                        ),
+                        relationships(
+                                relation("children",
+                                        linkage(type("child"), id("6"))
+                                ),
+                                relation("spouses",
+                                        linkage(type("parent"), id("3"))
+                                )
+                        )
+                )
+        );
 
         String childActual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
-            .post("/parent/5/children")
+            .body(childInput)
+            .post("/parent/4/children")
             .then()
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
-        JsonApiDocument childJsonApiDocument = jsonApiMapper.readJsonApiDocument(childActual);
-        Resource resource = childJsonApiDocument.getData().getSingleValue();
-        Collection<ResourceIdentifier> resourceIdentifiers = resource.getRelationships().get("parents").getResourceIdentifierData().get();
-        ResourceIdentifier rId1 = resourceIdentifiers.iterator().next();
-        assertEquals(resource.getId(), "6");
-        assertEquals(resource.getType(), "child");
-        assertEquals(resource.getRelationships().size(), 2);
-        assertEquals(resourceIdentifiers.size(), 2);
-        assertEquals(rId1.getType(), "parent");
+        JSONAssert.assertEquals(childOutput.toJSON(), childActual, true);
 
         String parentActual = given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .get("/parent/5")
+            .get("/parent/4")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
 
-        JsonApiDocument parentJsonApiDocument = jsonApiMapper.readJsonApiDocument(parentActual);
-        boolean hasIdentifier = false;
-
-        resource = parentJsonApiDocument.getData().getSingleValue();
-        resourceIdentifiers = resource.getRelationships().get("children").getResourceIdentifierData().get();
-        for (ResourceIdentifier resourceIdentifier : resourceIdentifiers) {
-            hasIdentifier |= resourceIdentifier.getId().equals("6");
-        }
-        assertTrue(hasIdentifier);
+        JSONAssert.assertEquals(parentOutput.toJSON(), parentActual, true);
     }
 
+    /*
     @Test
     public void createParentBadUri() {
         String request = jsonParser.getJson("/ResourceIT/createParentBadUri.json");
