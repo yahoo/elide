@@ -2011,21 +2011,36 @@ public class ResourceIT extends IntegrationTest {
                 ));
     }
 
-    /*
-
-    @Test(priority = 34)
+    @Test
     public void testPostToRecord() {
-        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+        Data oneToOneRoot = datum(
+                resource(
+                        type("oneToOneRoot"),
+                        id("1"),
+                        attributes(
+                                attr("name", "test123")
+                        )
+                )
+        );
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createRoot)
+                .body(oneToOneRoot)
+                .post("/oneToOneRoot")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(oneToOneRoot)
                 .post("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
+    /*
     @Test(priority = 34)
     public void testFilterIds() {
         String expectedRels = jsonParser.getJson("/ResourceIT/testFilterIdRels.json");
