@@ -24,15 +24,30 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.InfixPredicate;
+import com.yahoo.elide.core.filter.PostfixPredicate;
+import com.yahoo.elide.core.filter.PrefixPredicate;
+import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.resources.JsonApiEndpoint;
+import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,19 +60,26 @@ import example.FunWithPermissions;
 import example.Invoice;
 import example.LineItem;
 import example.Parent;
+import example.TestCheckMappings;
 import example.User;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
 /**
@@ -2227,38 +2249,49 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(Status.GONE.getStatusCode());
     }
 
+*/
     @Test
     public void assignedIdString() {
-        String expected = jsonParser.getJson("/ResourceIT/assignedIdString.json");
+
+        Resource resource = resource(
+                type("assignedIdString"),
+                id("user1"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
 
         //Create user with assigned id
-        String request = jsonParser.getJson("/ResourceIT/assignedIdString.req.json");
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(datum(resource))
                 .post("/assignedIdString")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-        assertEqualDocuments(actual, expected);
+                .body(equalTo(datum(resource).toJSON()));
 
         //Fetch newly created user
-        String getResponse = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/assignedIdString/user1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-        assertEqualDocuments(getResponse, expected);
+                .body(equalTo(datum(resource).toJSON()));
 
-        //Try to reassign id
-        String patchRequest = jsonParser.getJson("/ResourceIT/failPatchIdString.req.json");
+        Resource modified = resource(
+                type("assignedIdString"),
+                id("user2"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(patchRequest)
+                .body(datum(modified))
                 .patch("/assignedIdString/user1")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -2266,36 +2299,46 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void assignedIdLong() {
-        String expected = jsonParser.getJson("/ResourceIT/assignedIdLong.json");
 
-        //Create user with assigned id
-        String postRequest = jsonParser.getJson("/ResourceIT/assignedIdLong.req.json");
-        String postResponse = given()
+        Resource resource = resource(
+                type("assignedIdLong"),
+                id("1"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
+
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(postRequest)
+                .body(datum(resource))
                 .post("/assignedIdLong")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-        assertEqualDocuments(postResponse, expected);
+                .body(equalTo(datum(resource).toJSON()));
 
         //Fetch newly created user
-        String getResponse = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/assignedIdLong/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-        assertEqualDocuments(getResponse, expected);
+                .body(equalTo(datum(resource).toJSON()));
 
-        //Try to reassign id
-        String patchRequest = jsonParser.getJson("/ResourceIT/failPatchIdLong.req.json");
+        Resource modified = resource(
+                type("assignedIdLong"),
+                id("2"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
+
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(patchRequest)
+                .body(datum(modified))
                 .patch("/assignedIdLong/1")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -2303,12 +2346,17 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void assignedIdWithoutProvidedId() {
-        String request = jsonParser.getJson("/ResourceIT/assignedIdWithoutId.req.json");
+        Resource resource = resource(
+                type("assignedIdString"),
+                attributes(
+                        attr("value", 22)
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(datum(resource))
             .post("/assignedIdString")
             .then()
             .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -2316,22 +2364,36 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void elideBypassSecurity() {
-        String expected = jsonParser.getJson("/ResourceIT/elideBypassSecurity.json");
+        Resource child = resource(
+                type("child"),
+                id("1"),
+                attributes(
+                        attr("computedFailTest", "computed"),
+                        attr("name", null)
+                ),
+                relationships(
+                        relation("friends"),
+                        relation("noReadAccess", TO_ONE),
+                        relation("parents",
+                                linkage(type("parent"), id("1"))
+                        )
+                )
+        );
 
-        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withAuditLogger(new TestAuditLogger())
                 .withPermissionExecutor(BypassPermissionExecutor.class)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .build());
         ElideResponse response =
                 elide.get("parent/1/children/1", new MultivaluedHashMap<>(), -1);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
-        assertEquals(response.getBody(), expected);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+        assertEquals(datum(child).toJSON(), response.getBody());
     }
 
     @Test
     public void elideSecurityEnabled() {
-        Elide elide = new Elide(new ElideSettingsBuilder(AbstractIntegrationTestInitializer.getDatabaseManager())
+        Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
                 .withAuditLogger(new TestAuditLogger())
                 .build());
@@ -2340,50 +2402,95 @@ public class ResourceIT extends IntegrationTest {
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
 
+
     @Test
     public void testComputedAttribute() throws Exception {
-        String expected = jsonParser.getJson("/ResourceIT/testComputedAttribute.json");
-        String request = jsonParser.getJson("/ResourceIT/testComputedAttribute.req.json");
+        Resource patched = resource(
+                type("user"),
+                id("1"),
+                attributes(
+                        attr("password", "god")
+                )
+        );
+
+        Resource returned = resource(
+                type("user"),
+                id("1"),
+                attributes(
+                        attr("password", ""),
+                        attr("reversedPassword", "dog"),
+                        attr("role", 0)
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(datum(patched))
             .patch("/user/1")
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT)
             .header(HttpHeaders.CONTENT_LENGTH, (String) null);
 
         given().when().get("/user/1").then().statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
+            .body(equalTo(datum(returned).toJSON()));
     }
 
     @Test
     public void testPrivilegeEscalation() throws Exception {
-        String request = jsonParser.getJson("/ResourceIT/testUserRoleModification.req.json");
+        Resource patched = resource(
+                type("user"),
+                id("1"),
+                attributes(
+                        attr("role", 1)
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(request)
+            .body(datum(patched))
             .patch("/user/1")
             .then()
             .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
+
     // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.
     @Test
     public void testUpdateDeferredOnCreate() {
-        String expected = jsonParser.getJson("/ResourceIT/createButNoUpdate.resp.json");
-        String badRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.bad.req.json");
-        String request = jsonParser.getJson("/ResourceIT/createButNoUpdate.req.json");
-        String updateRequest = jsonParser.getJson("/ResourceIT/createButNoUpdate.update.req.json");
+
+        Resource expected = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("cannotModify", "unmodified"),
+                        attr("textValue", "new value")
+                )
+        );
+
+        Resource badRequest = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("cannotModify", "This should fail this whole create"),
+                        attr("textValue", "test")
+                )
+        );
+
+        Resource validRequest = resource(
+                type("createButNoUpdate"),
+                id("1"),
+                attributes(
+                        attr("textValue", "new value")
+                )
+        );
 
         // First ensure we cannot update fields that are explicitly disallowed
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(badRequest)
+                .body(datum(badRequest))
                 .post("/createButNoUpdate")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
@@ -2392,17 +2499,17 @@ public class ResourceIT extends IntegrationTest {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(datum(validRequest))
                 .post("/createButNoUpdate")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .body(equalTo(expected));
+                .body(equalTo(datum(expected).toJSON()));
 
         // Ensure we cannot update that newly created object
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(updateRequest)
+                .body(datum(validRequest))
                 .patch("/createButNoUpdate/1")
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
@@ -2422,16 +2529,17 @@ public class ResourceIT extends IntegrationTest {
             .body(equalTo(expected));
     }
 
-    @DataProvider (name = "like_queries")
-    public Object[][] likeQueryProvider() {
-        return new Object[][]{
-                {"filter[book.title][infix]=with%perce", 1},
-                {"filter[book.title][prefix]=titlewith%perce", 1},
-                {"filter[book.title][postfix]=with%percentage", 1}
-        };
+
+    private static Stream<Arguments> likeQueryProvider() {
+        return Stream.of(
+                Arguments.of("filter[book.title][infix]=with%perce", 1),
+                Arguments.of("filter[book.title][prefix]=titlewith%perce", 1),
+                Arguments.of("filter[book.title][postfix]=with%percentage", 1)
+        );
     }
 
-    @Test(dataProvider = "like_queries")
+    @ParameterizedTest
+    @MethodSource("likeQueryProvider")
     public void testSpecialCharacterLikeQuery(String filterParam, int noOfRecords) throws Exception {
         String actual = given().when().get(String.format("/book?%s", filterParam)).then().statusCode(HttpStatus.SC_OK)
                 .extract().body().asString();
@@ -2440,18 +2548,18 @@ public class ResourceIT extends IntegrationTest {
 
     }
 
-    @DataProvider (name = "like_queries_hql")
-    public Object[][] queryProviderHQL() {
+    private static Stream<Arguments> queryProviderHQL() {
         Path.PathElement pathToTitle = new Path.PathElement(Book.class, String.class, "title");
 
-        return new Object[][]{
-                {new InfixPredicate(pathToTitle, "with%perce"), 1},
-                {new PrefixPredicate(pathToTitle, "titlewith%perce"), 1},
-                {new PostfixPredicate(pathToTitle, "with%percentage"), 1}
-        };
+        return Stream.of(
+                Arguments.of(new InfixPredicate(pathToTitle, "with%perce"), 1),
+                Arguments.of(new PrefixPredicate(pathToTitle, "titlewith%perce"), 1),
+                Arguments.of(new PostfixPredicate(pathToTitle, "with%percentage"), 1)
+        );
     }
 
-    @Test (dataProvider = "like_queries_hql")
+    @ParameterizedTest
+    @MethodSource("queryProviderHQL")
     public void testSpecialCharacterLikeQueryHQL(FilterPredicate filterPredicate, int noOfRecords) throws Exception {
         DataStoreTransaction tx = dataStore.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
@@ -2466,7 +2574,6 @@ public class ResourceIT extends IntegrationTest {
         verify(pagination).setPageTotals(noOfRecords);
     }
 
-*/
     @Test
     public void testPaginationLimitOverrides() {
         // Well below the limit

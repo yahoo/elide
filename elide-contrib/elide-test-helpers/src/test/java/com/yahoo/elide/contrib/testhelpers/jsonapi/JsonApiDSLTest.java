@@ -15,7 +15,7 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyBasicRequest() {
-        String expected = "{\"data\":{\"type\":\"blog\",\"id\":1,\"attributes\":null,\"relationships\":null}}";
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":1}}";
 
         String actual = datum(
                 resource(
@@ -30,7 +30,7 @@ public class JsonApiDSLTest {
     @Test
     public void verifyRequestWithAttributes() {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"attributes\":"
-                + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"},\"relationships\":null}}";
+                + "{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"}}}";
 
         String actual = datum(
                 resource(

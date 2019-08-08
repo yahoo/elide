@@ -8,6 +8,7 @@ package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
@@ -21,7 +22,8 @@ import java.util.Set;
  * Test Harness to initialize the default data store for IT tests.
  */
 public class InMemoryDataStoreHarness implements DataStoreTestHarness {
-    HashMapDataStore store;
+    InMemoryDataStore memoryStore;
+    HashMapDataStore mapStore;
 
     public InMemoryDataStoreHarness() {
         Set<Package> beanPackages = Sets.newHashSet(
@@ -30,16 +32,17 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 Manager.class.getPackage()
         );
 
-        store = new HashMapDataStore(beanPackages);
+        mapStore = new HashMapDataStore(beanPackages);
+        memoryStore = new InMemoryDataStore(mapStore);
     }
 
     @Override
     public DataStore getDataStore() {
-        return store;
+        return memoryStore;
     }
 
     @Override
     public void cleanseTestData() {
-        store.cleanseTestData();
+        mapStore.cleanseTestData();
     }
 }
