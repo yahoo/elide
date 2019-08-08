@@ -72,6 +72,7 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithOneToManyRelationship() {
+        // multi-elements array of resource identifier objects for non-empty to-many relationships.
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
                 + "\"relationships\":{"
@@ -90,6 +91,29 @@ public class JsonApiDSLTest {
                                       linkage(type("comment"), id("1")),
                                       linkage(type("comment"), id("2"))
                               )
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(actual, expected);
+
+        // single-element array of resource identifier objects for non-empty to-many relationships.
+        expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
+                + "\"attributes\":{\"title\":\"title\"},"
+                + "\"relationships\":{"
+                + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"1\"}]}}}}";
+
+        actual = datum(
+                resource(
+                        type("blog"),
+                        id("1"),
+                        attributes(
+                                attr("title", "title")
+                        ),
+                        relationships(
+                                relation("comments",
+                                        linkage(type("comment"), id("1"))
+                                )
                         )
                 )
         ).toJSON();
