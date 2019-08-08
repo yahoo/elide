@@ -15,8 +15,6 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.atteo.evo.inflector.English;
@@ -25,7 +23,6 @@ import graphql.GraphQL;
 import graphql.parser.antlr.GraphqlBaseVisitor;
 import graphql.parser.antlr.GraphqlLexer;
 import graphql.parser.antlr.GraphqlParser;
-import jdk.nashorn.internal.objects.NativeUint8Array;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -61,10 +58,7 @@ import java.util.function.Supplier;
  * @see ModelBuilder
  * @see <a href="http://elide.io/pages/guide/11-graphql.html#sorting">Sorting</a>
  *
- * TODO - transform sorting
- * TODO - transform pagination
- * TODO - support directive since it's required by specification
- * TODO - support fragment
+ * @// TODO: 2019-08-07 Support fragment query and update elide doc to include example of frangment query
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -97,7 +91,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
      * (See {@link #withParentEntity(Class, Supplier)}).
      */
     @Getter(AccessLevel.PRIVATE)
-    private final Deque<Class<?>> parentEntityTypes = new LinkedList<>();
+    private final Deque<Class<?>> parentEntityStack = new LinkedList<>();
 
     /**
      * Reference
@@ -173,7 +167,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         String entityName = singularized(nodeName);
         Class<?> entityType = getDictionary().getType(entityName);
 
-        if (getParentEntityTypes().isEmpty()) {
+        if (getParentEntityStack().isEmpty()) {
             // a root field; walk sub-tree rooted at this entity
             return withParentEntity(entityType, () -> {
                 EntityProjection rootProjection = EntityProjection.builder()
@@ -189,7 +183,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // not a root field, then there must be a prent
-        Class<?> parentType = getParentEntityTypes().peek();
+        Class<?> parentType = getParentEntityStack().peek();
 
         if (entityType != null) {
             // a relationship field; walk sub-tree rooted at this relationship entity
@@ -257,7 +251,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         }
 
         // argument must comes with parent
-        Class<?> entityType = getParentEntityTypes().peek();
+        Class<?> entityType = getParentEntityStack().peek();
 
         if (!getDictionary().isValidField(entityType, argumentName)) {
             // invalid argument name
@@ -326,12 +320,27 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         return null;
     }
 
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a pagination argument.
+     *
+     * @param argumentName  Name key of the GraphQL argument
+     *
+     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_FIRST} or
+     * {@link ModelBuilder#ARGUMENT_AFTER}
+     */
     private static boolean isPaginationArgument(String argumentName) {
         return ModelBuilder.ARGUMENT_FIRST.equals(argumentName) || ModelBuilder.ARGUMENT_AFTER.equals(argumentName);
     }
 
+    /**
+     * Creates a {@link Pagination} object from pagination GraphQL argument and attaches it to the entity paginated
+     * according to the newly created {@link Pagination} object.
+     *
+     * @param paginationArgument  A string that contains the key to a value of sorting spec
+     * @param paginationValue  A string that contains the value of pagination spec
+     */
     private void attachPagination(String paginationArgument, Object paginationValue) {
-        Class<?> paginatedEntity = getParentEntityTypes().peek();
+        Class<?> paginatedEntity = getParentEntityStack().peek();
 
         EntityProjection entityProjection = getProjectionsByType().get(paginatedEntity);
 
@@ -351,12 +360,25 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         entityProjection.setPagination(pagination);
     }
 
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a sorting argument.
+     *
+     * @param argumentName  Name key of the GraphQL argument
+     *
+     * @return {@code true} if the name equals to {@link ModelBuilder#ARGUMENT_SORT}
+     */
     private static boolean isSortingArgument(String argumentName) {
         return ModelBuilder.ARGUMENT_SORT.equals(argumentName);
     }
 
+    /**
+     * Creates a {@link Sorting} object from sorting GraphQL argument value and attaches it to the entity sorted
+     * according to the newly created {@link Sorting} object.
+     *
+     * @param argumentValue  A string that contains the value of sorting spec
+     */
     private void attachSorting(Object argumentValue) {
-        Class<?> sortedEntity = getParentEntityTypes().peek();
+        Class<?> sortedEntity = getParentEntityStack().peek();
 
         EntityProjection entityProjection = getProjectionsByType().get(sortedEntity);
 
@@ -366,6 +388,16 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
         entityProjection.setSorting(sorting);
     }
 
+    /**
+     * Returns the singular form of a GraphQL entity-typed field; if the field is not an entity, the method returns
+     * the field unmodified.
+     * <p>
+     * For example, return Author on author, Author on authors, and id on id
+     *
+     * @param plural  An entity type or field type
+     *
+     * @return singular entity type or unmodified field type
+     */
     private String singularized(String plural) {
         String entityType = getDictionary().getBindings().stream()
                 .map(Class::getSimpleName)
@@ -377,12 +409,13 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
     }
 
     /**
-     * Puts an entity type onto top of stack, which is {@link #parentEntityTypes}, performs an depth-first walk rooted
+     * Puts an entity type onto top of stack, which is {@link #parentEntityStack}, performs an depth-first walk rooted
      * at this entity (including this root entity), and pops out the entity type.
      *
-     * @param parentEntity
-     * @param actionUnderEntity
-     * @param <T>
+     * @param parentEntity  The entity type to be pushed the stack
+     * @param actionUnderEntity  The depth-first walk after the push
+     *
+     * @param <T>  The type of return value as a result of the depth-first walk.
      *
      * @return {@code null}
      */
@@ -390,20 +423,33 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
             Class<?> parentEntity,
             Supplier<T> actionUnderEntity
     ) {
-        getParentEntityTypes().push(parentEntity);
+        getParentEntityStack().push(parentEntity);
 
         actionUnderEntity.get(); // perform action
 
-        getParentEntityTypes().pop();
+        getParentEntityStack().pop();
 
         return null;
     }
 
+    /**
+     * Visit terminal node in parse tree and sets the last terminal value.
+     *
+     * @param ctx  The parent node of the visited terminal node
+     *
+     * @return the value on the terminal node
+     */
     private Object visitTerminalValue(GraphqlParser.ValueWithVariableContext ctx) {
         visitValueWithVariable(ctx);
         return getValueWithVariable();
     }
 
+    /**
+     * Records one newly constructed {@link EntityProjection} to the final result list and cache it by root entity type
+     * for quick reference later.
+     *
+     * @param newProjection  The new {@link EntityProjection} to be added
+     */
     private void addProjection(EntityProjection newProjection) {
         getAllEntityProjections().add(newProjection);
         getProjectionsByType().put(newProjection.getType(), newProjection);

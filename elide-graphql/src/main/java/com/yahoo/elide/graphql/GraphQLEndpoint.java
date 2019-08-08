@@ -22,8 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import graphql.language.Document;
-import graphql.parser.Parser;
 import org.apache.commons.lang3.tuple.Pair;
 
 import graphql.ExecutionInput;
@@ -32,7 +30,6 @@ import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
