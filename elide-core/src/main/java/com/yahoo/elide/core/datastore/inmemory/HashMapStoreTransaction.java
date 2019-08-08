@@ -101,6 +101,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
         String idFieldName = dictionary.getIdFieldName(entityClass);
         String id;
+
+        //GeneratedValue means the DB needs to assign the ID.
         if (dictionary.getAttributeOrRelationAnnotation(entityClass, GeneratedValue.class, idFieldName) != null) {
             // TODO: Id's are not necessarily numeric.
             AtomicLong nextId;

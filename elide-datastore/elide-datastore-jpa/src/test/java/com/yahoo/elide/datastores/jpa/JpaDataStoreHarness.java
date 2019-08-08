@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.datastore.test.DataStoreHarness;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
@@ -33,7 +33,7 @@ import javax.persistence.Persistence;
 /**
  * IT Test Harness for the JpaDataStore.
  */
-public class JpaDataStoreHarness implements DataStoreHarness {
+public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private static final String JDBC = "jdbc:h2:mem:root;IGNORECASE=TRUE";
     private static final String ROOT = "root";

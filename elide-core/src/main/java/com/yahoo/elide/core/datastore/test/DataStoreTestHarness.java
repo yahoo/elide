@@ -11,7 +11,7 @@ import com.yahoo.elide.core.DataStore;
 /**
  * Stuff.
  */
-public interface DataStoreHarness {
+public interface DataStoreTestHarness {
     public DataStore getDataStore();
     public void cleanseTestData();
 }

@@ -21,7 +21,11 @@ public class Resource extends ResourceLinkage {
      */
     public Resource(Id id, Type type, Attributes attributes, Relationships relationships) {
         super(id, type);
-        this.put("attributes", attributes);
-        this.put("relationships", relationships);
+        if (attributes != null) {
+            this.put("attributes", attributes);
+        }
+        if (relationships != null) {
+            this.put("relationships", relationships);
+        }
     }
 }

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.datastore.test.DataStoreHarness;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
@@ -37,7 +37,7 @@ import java.util.HashMap;
 public abstract class IntegrationTest {
 
     /* Shared between the test setup code (to insert test data) as well as the Jetty server (to serve test data) */
-    private static DataStoreHarness dataStoreHarness;
+    private static DataStoreTestHarness dataStoreHarness;
 
     protected DataStore dataStore = null;
     private Server server = null;
@@ -65,12 +65,12 @@ public abstract class IntegrationTest {
         }
     }
 
-    private DataStoreHarness createHarness() {
+    private DataStoreTestHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
             if (dataStoreSupplierName != null && !dataStoreSupplierName.isEmpty()) {
-                return Class.forName(dataStoreSupplierName).asSubclass(DataStoreHarness.class).newInstance();
+                return Class.forName(dataStoreSupplierName).asSubclass(DataStoreTestHarness.class).newInstance();
             }
             return new InMemoryDataStoreHarness();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException e) {

@@ -1872,15 +1872,20 @@ public class ResourceIT extends IntegrationTest {
             ));
     }
 
-    /*
-    @Test(priority = 32)
-    public void testReadPermissionDefaultOverride() {
-        String create = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.req.json");
+    @Test
+    public void testReadPermissionDefaultOverride() throws Exception {
+        Resource obj = resource(
+                type("yetAnotherPermission"),
+                id("1"),
+                attributes(
+                        attr("youShouldBeAbleToRead", "this!")
+                )
+        );
 
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
-            .body(create)
+            .body(datum(obj))
             .post("/yetAnotherPermission")
             .then()
             .statusCode(HttpStatus.SC_CREATED);
@@ -1894,61 +1899,119 @@ public class ResourceIT extends IntegrationTest {
             .statusCode(HttpStatus.SC_OK)
             .extract().body().asString();
 
-        String expected = jsonParser.getJson("/ResourceIT/createYetAnotherPermissionRead.json");
-
-        assertEqualDocuments(actual, expected);
+        JSONAssert.assertEquals(data(obj).toJSON(), actual, true);
     }
 
-    @Test(priority = 33)
-    public void testUpdateToOneCollection() {
-        String createRoot = jsonParser.getJson("/ResourceIT/createOneToOneRoot.json");
+    @Test
+    public void testUpdateToOneCollection() throws Exception {
+        Data oneToOneRoot = datum(
+                resource(
+                        type("oneToOneRoot"),
+                        id("1"),
+                        attributes(
+                                attr("name", "test123")
+                        )
+                )
+        );
 
-        // Verify it was actually created
-        String o = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(createRoot)
-                .get("/oneToOneRoot/1")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().asString();
-
-        // Create other object
-        String createChild = jsonParser.getJson("/ResourceIT/updateOneToOneNonRoot.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createChild)
+                .body(oneToOneRoot)
+                .post("/oneToOneRoot")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        Data oneToOneNonRoot = datum(
+                resource(
+                        type("oneToOneNonRoot"),
+                        id("1"),
+                        attributes(
+                                attr("test", "Other object")
+                        )
+                )
+        );
+
+        // Create other object
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(oneToOneNonRoot)
                 .post("/oneToOneRoot/1/otherObject")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Verify contents
-        String actualFirst = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createChild)
                 .get("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
+                .body(equalTo(
+                        datum(
+                            resource(
+                                    type("oneToOneRoot"),
+                                    id("1"),
+                                    attributes(
+                                            attr("name", "test123")
 
-        String actualChild = given()
+                                    ),
+                                    relationships(
+                                            relation("otherObject", TO_ONE,
+                                                    linkage(type("oneToOneNonRoot"), id("1"))
+                                            )
+                                    )
+                            )
+                        ).toJSON()
+                ));
+
+        Data updated = datum(
+                resource(
+                        type("oneToOneNonRoot"),
+                        id("2"),
+                        attributes(
+                                attr("test", "Another object")
+                        )
+                )
+        );
+
+        // Create another object
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(createChild)
-                .get("/oneToOneRoot/1/otherObject")
+                .body(updated)
+                .post("/oneToOneRoot/1/otherObject")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        // Verify contents
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/oneToOneRoot/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
+                .body(equalTo(
+                        datum(
+                                resource(
+                                        type("oneToOneRoot"),
+                                        id("1"),
+                                        attributes(
+                                                attr("name", "test123")
 
-        String
-                expectedFirst = jsonParser.getJson("/ResourceIT/oneToOneRootUpdatedRelationship.json");
-        String expectedChild = jsonParser.getJson("/ResourceIT/oneToOneNonRootUpdatedRelationship.json");
-
-        assertEqualDocuments(actualFirst, expectedFirst);
-        assertEqualDocuments(actualChild, expectedChild);
+                                        ),
+                                        relationships(
+                                                relation("otherObject", TO_ONE,
+                                                        linkage(type("oneToOneNonRoot"), id("2"))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
     }
+
+    /*
 
     @Test(priority = 34)
     public void testPostToRecord() {

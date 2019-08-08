@@ -9,7 +9,7 @@ import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
-import com.yahoo.elide.core.datastore.test.DataStoreHarness;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 
 import com.google.common.collect.Sets;
 import org.reflections.Reflections;
@@ -33,7 +33,7 @@ import javax.persistence.Entity;
 /**
  * Simple in-memory only database.
  */
-public class HashMapDataStore implements DataStore, DataStoreHarness {
+public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter private EntityDictionary dictionary;
     @Getter private final Set<Package> beanPackages;

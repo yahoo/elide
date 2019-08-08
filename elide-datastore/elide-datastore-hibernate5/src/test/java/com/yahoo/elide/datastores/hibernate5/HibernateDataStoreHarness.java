@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.datastore.test.DataStoreHarness;
+import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
@@ -28,7 +28,7 @@ import javax.persistence.Entity;
 /**
  * IT Test Harness for the Hibernate 5 Data Store.
  */
-public class HibernateDataStoreHarness implements DataStoreHarness {
+public class HibernateDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
