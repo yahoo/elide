@@ -163,7 +163,7 @@ public class GraphQLEntityProjectionMaker extends GraphqlBaseVisitor<Void> {
                 || EdgesContainer.NODE_KEYWORD.equals(nodeName)
                 || ConnectionContainer.PAGE_INFO_KEYWORD.equals(nodeName)
         ) {
-            // do nothing on "edges", "node", "pageInfo" field 
+            // do nothing on "edges", "node", or "pageInfo" field 
             // see https://graphql.org/learn/pagination/#pagination-and-edges
             // https://elide.io/pages/guide/11-graphql.html#relationship-metadata
             return super.visitField(ctx);
