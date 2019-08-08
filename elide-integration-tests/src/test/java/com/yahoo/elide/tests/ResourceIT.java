@@ -2347,7 +2347,6 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .body(equalTo(data(CHILD2, CHILD3).toJSON()));
 
-        String sortByIdDescendingTopLevel = jsonParser.getJson("/ResourceIT/sortByIdNonRootableTopLevelDescending.json");
         given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/2/children?sort=-id")
