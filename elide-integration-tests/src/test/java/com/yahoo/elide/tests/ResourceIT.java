@@ -44,9 +44,7 @@ import com.yahoo.elide.core.filter.PostfixPredicate;
 import com.yahoo.elide.core.filter.PrefixPredicate;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.security.executors.BypassPermissionExecutor;
 import com.yahoo.elide.utils.JsonParser;
 
@@ -219,10 +217,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
-    public ResourceIT() {
-        super(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
 
     @BeforeEach
     public void setup() throws IOException {

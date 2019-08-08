@@ -21,8 +21,6 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.HttpStatus;
 
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class InheritanceIT extends IntegrationTest {
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-
-    public InheritanceIT() {
-        super(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
 
     @Test
     public void testEmployeeHierarchy() {

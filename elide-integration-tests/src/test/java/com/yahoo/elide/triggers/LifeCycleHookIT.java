@@ -21,8 +21,6 @@ import static org.mockito.Mockito.reset;
 import com.yahoo.elide.core.HttpStatus;
 
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.initialization.IntegrationTestApplicationResourceConfig;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -37,10 +35,6 @@ public class LifeCycleHookIT extends IntegrationTest {
     @BeforeEach
     public void resetMocks() {
         reset(BILLING_SERVICE);
-    }
-
-    public LifeCycleHookIT() {
-        super(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
     @Test

@@ -15,6 +15,7 @@ import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import com.jayway.restassured.RestAssured;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -50,6 +51,10 @@ public abstract class IntegrationTest {
      * Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only
      */
     protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
+
+    protected IntegrationTest() {
+        this(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     protected IntegrationTest(final Class<? extends ResourceConfig> resourceConfig, String packageName) {
         this.resourceConfig = resourceConfig.getCanonicalName();
