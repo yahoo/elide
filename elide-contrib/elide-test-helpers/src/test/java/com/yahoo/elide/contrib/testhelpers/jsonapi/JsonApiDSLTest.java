@@ -50,7 +50,7 @@ public class JsonApiDSLTest {
     public void verifyRequestWithOneToOneRelationship() {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
-                + "\"relationships\":{\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]}}}}";
+                + "\"relationships\":{\"author\":{\"data\":{\"type\":\"author\",\"id\":\"1\"}}}}}";
 
         String actual = datum(
                 resource(
@@ -60,7 +60,7 @@ public class JsonApiDSLTest {
                                 attr("title", "title")
                         ),
                         relationships(
-                                relation("author",
+                                toOneRelation("author",
                                         linkage(type("author"), id("1"))
                                 )
                         )
