@@ -6,18 +6,6 @@
 
 package com.yahoo.elide.tests;
 
-import com.google.gson.JsonObject;
-import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
@@ -26,6 +14,19 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.IntegrationTest;
+
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Tests for UserType
  */
@@ -33,7 +34,7 @@ class UserTypeIT extends IntegrationTest {
 
     @Data
     @AllArgsConstructor
-    private class Address{
+    private class Address {
         private String street;
         private String state;
         private Zip zip;
