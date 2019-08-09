@@ -232,28 +232,6 @@ public class JsonApiDSL {
     }
 
     /**
-     * Creates a to-one relationship
-     *
-     * @param field           the field
-     * @param resourceLinkage the resource linkage
-     * @return the relation
-     */
-    public static Relation toOneRelation(String field, ResourceLinkage... resourceLinkage) {
-        return new Relation(field, true, resourceLinkage);
-    }
-
-    /**
-     * Creates a to-many relationship
-     *
-     * @param field           the field
-     * @param resourceLinkage the resource linkage
-     * @return the relation
-     */
-    public static Relation toManyRelation(String field, ResourceLinkage... resourceLinkage) {
-        return new Relation(field, false, resourceLinkage);
-    }
-
-    /**
      * Relation relation.
      *
      * @param field           the field
