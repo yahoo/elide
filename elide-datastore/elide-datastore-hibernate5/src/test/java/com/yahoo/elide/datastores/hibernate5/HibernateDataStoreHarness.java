@@ -10,9 +10,7 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.models.triggers.Invoice;
 import com.yahoo.elide.utils.ClassScanner;
-import example.Filtered;
 import example.Parent;
-import example.TestCheckMappings;
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
@@ -34,11 +32,6 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
     private MetadataImplementor metadataImplementor;
 
     public HibernateDataStoreHarness() {
-        // Add additional checks to our static check mappings map.
-        // NOTE: This is a bit hacky. We need to do a major overhaul on our test architecture
-        TestCheckMappings.MAPPINGS.put("filterCheck", Filtered.FilterCheck.class);
-        TestCheckMappings.MAPPINGS.put("filterCheck3", Filtered.FilterCheck3.class);
-
         // method to force class initialization
         MetadataSources metadataSources = new MetadataSources(
                 new StandardServiceRegistryBuilder()

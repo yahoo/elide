@@ -13,9 +13,9 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.resources.JsonApiEndpoint;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
