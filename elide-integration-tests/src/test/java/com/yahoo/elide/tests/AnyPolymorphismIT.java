@@ -5,10 +5,20 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
@@ -22,6 +32,17 @@ import org.junit.jupiter.api.Test;
 public class AnyPolymorphismIT extends IntegrationTest {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     private final JsonParser jsonParser = new JsonParser();
+
+    private static final Resource TRACTOR_PROPERTY = resource(
+            type("property"),
+            id("1"),
+            attributes(),
+            relationships(
+                    relation("myStuff", TO_ONE,
+                            linkage(type("tractor"), id("1"))
+                    )
+            )
+    );
 
     @BeforeEach
     public void setUp() {
@@ -48,12 +69,11 @@ public class AnyPolymorphismIT extends IntegrationTest {
 
     @Test
     public void testAny() {
-
         String id1 = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -65,7 +85,19 @@ public class AnyPolymorphismIT extends IntegrationTest {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddSmartphoneProperty.json"))
+                .body(
+                        datum(
+                                resource(
+                                        type("property"),
+                                        attributes(),
+                                        relationships(
+                                                relation("myStuff", TO_ONE,
+                                                        linkage(type("smartphone"), id("1"))
+                                                )
+                                        )
+                                )
+                        )
+                )
                 .post("/property")
                 .then()
                 .assertThat()
@@ -140,7 +172,7 @@ public class AnyPolymorphismIT extends IntegrationTest {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -197,7 +229,7 @@ public class AnyPolymorphismIT extends IntegrationTest {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
