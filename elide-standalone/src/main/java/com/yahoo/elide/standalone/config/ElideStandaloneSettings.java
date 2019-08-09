@@ -132,6 +132,14 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1";
     }
 
+
+    /**
+     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     *
+     * @return Default: /swagger/api/v1
+     */
+    default String getSwaggerPathSepc() { return "/swagger/api/v1"; }
+
     /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
@@ -166,6 +174,16 @@ public interface ElideStandaloneSettings {
     default boolean enableServiceMonitoring() {
         return true;
     }
+
+
+    /**
+     * Enable swagger documentation by returning non empty map object.
+     * @return Map object that maps document name to swagger object.
+     */
+    default Map<String, Swagger> enableSwagger() {
+        return new HashMap<>();
+    }
+
 
     /**
      * JAX-RS filters to register with the web service.
@@ -216,18 +234,8 @@ public interface ElideStandaloneSettings {
      * @param servletContextHandler ServletContextHandler in use by Elide standalone.
      */
     default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
-        ServletHolder jerseyServlet = servletContextHandler.addServlet(ServletContainer.class, "/swagger");
-        jerseyServlet.setInitOrder(0);
-        jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.contrib.swagger.resources");
-        jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        // Do nothing
 
     }
 
-    /**
-     * Enable swagger documentation by returning non empty map object.
-     * @return Map object that maps document name to swagger object.
-     */
-    default Map<String, Swagger> enableSwagger() {
-        return new HashMap<>();
-    }
 }
