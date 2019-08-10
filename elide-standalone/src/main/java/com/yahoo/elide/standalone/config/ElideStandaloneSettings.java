@@ -136,9 +136,9 @@ public interface ElideStandaloneSettings {
     /**
      * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
      *
-     * @return Default: /swagger/api/v1
+     * @return Default: /swagger/*
      */
-    default String getSwaggerPathSepc() { return "/swagger/api/v1"; }
+    default String getSwaggerPathSepc() { return "/swagger/*"; }
 
     /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.

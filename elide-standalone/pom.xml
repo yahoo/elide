@@ -219,6 +219,11 @@
             <artifactId>swagger-core</artifactId>
             <version>1.5.10</version>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-swagger</artifactId>
+            <version>4.4.6-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
