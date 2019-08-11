@@ -5,14 +5,15 @@
  */
 package com.yahoo.elide.contrib.swagger;
 
+import com.google.common.collect.ImmutableMap;
 import com.yahoo.elide.contrib.swagger.model.Resource;
-import com.yahoo.elide.contrib.swagger.models.Author;
 import com.yahoo.elide.contrib.swagger.models.Book;
 import com.yahoo.elide.contrib.swagger.models.Publisher;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.google.common.collect.Maps;
 
+import io.swagger.models.properties.StringProperty;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -25,33 +26,36 @@ import java.util.Map;
 
 
 public class JsonApiModelResolverTest {
-    EntityDictionary dictionary;
+
+    private static final String KEY_BOOK = "book";
+    private static final String KEY_PUBLISHER = "publisher";
+
+    private static final Map<String, Class> ENTITIES =
+        ImmutableMap.of(KEY_BOOK, Book.class,
+                        KEY_PUBLISHER, Publisher.class);
+
+    private ModelConverters converters;
 
     @BeforeSuite
     public void setup() {
-        dictionary = new EntityDictionary(Maps.newHashMap());
+        EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
 
-        dictionary.bindEntity(Book.class);
-        dictionary.bindEntity(Author.class);
-        dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(ENTITIES.get(KEY_BOOK));
+        dictionary.bindEntity(ENTITIES.get(KEY_PUBLISHER));
+
+        converters = ModelConverters.getInstance();
+        converters.addConverter(new JsonApiModelResolver(dictionary));
     }
 
     @Test
-    public void testBookPermissions() throws Exception {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
+    public void testBookPermissions() {
+        StringProperty entity = getStringProperty(KEY_BOOK, "type");
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "attributes");
+        ObjectProperty relationships = getObjectProperty(KEY_BOOK, "relationships");
 
-        Map<String, Model> models = converters.readAll(Book.class);
-
-        Resource bookModel = (Resource) models.get("book");
-
-        String entityPermissions = bookModel.getProperties().get("type").getDescription();
+        String entityPermissions = entity.getDescription();
         Assert.assertEquals(entityPermissions,
-                "Create Permissions : (Principal is author)\nDelete Permissions : (Deny All)");
-
-
-        ObjectProperty attributes = (ObjectProperty) bookModel.getProperties().get("attributes");
-        ObjectProperty relationships = (ObjectProperty) bookModel.getProperties().get("relationships");
+            "Create Permissions : (Principal is author)\nDelete Permissions : (Deny All)");
 
         String titlePermissions = attributes.getProperties().get("title").getDescription();
         Assert.assertEquals(titlePermissions,  "Read Permissions : (Principal is author OR Principal is publisher)");
@@ -63,16 +67,9 @@ public class JsonApiModelResolverTest {
     }
 
     @Test
-    public void testModelResolution() throws Exception {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
-
-        Map<String, Model> models = converters.readAll(Publisher.class);
-
-        Resource publisherModel = (Resource) models.get("publisher");
-
-        ObjectProperty attributes = (ObjectProperty) publisherModel.getProperties().get("attributes");
-        ObjectProperty relationships = (ObjectProperty) publisherModel.getProperties().get("relationships");
+    public void testModelResolution() {
+        ObjectProperty attributes = getObjectProperty(KEY_PUBLISHER, "attributes");
+        ObjectProperty relationships = getObjectProperty(KEY_PUBLISHER, "relationships");
 
         Assert.assertEquals(attributes.getProperties().size(), 3);
         Assert.assertEquals(relationships.getProperties().size(), 2);
@@ -84,14 +81,7 @@ public class JsonApiModelResolverTest {
 
     @Test
     public void testDescription() {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
-
-        Map<String, Model> models = converters.readAll(Publisher.class);
-
-        Resource publisherModel = (Resource) models.get("publisher");
-
-        ObjectProperty attributes = (ObjectProperty) publisherModel.getProperties().get("attributes");
+        ObjectProperty attributes = getObjectProperty(KEY_PUBLISHER, "attributes");
 
         String phoneDescription = attributes.getProperties().get("phone").getDescription();
         Assert.assertEquals(phoneDescription,  "Phone number");
@@ -99,14 +89,7 @@ public class JsonApiModelResolverTest {
 
     @Test
     public void testExample() {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
-
-        Map<String, Model> models = converters.readAll(Publisher.class);
-
-        Resource publisherModel = (Resource) models.get("publisher");
-
-        ObjectProperty attributes = (ObjectProperty) publisherModel.getProperties().get("attributes");
+        ObjectProperty attributes = getObjectProperty(KEY_PUBLISHER, "attributes");
 
         Object phoneExample = attributes.getProperties().get("phone").getExample();
         Assert.assertEquals(phoneExample,  "555-000-1111");
@@ -114,29 +97,16 @@ public class JsonApiModelResolverTest {
 
     @Test
     public void testConcatenatedDescriptionAndPermissions() {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "attributes");
 
-        Map<String, Model> models = converters.readAll(Book.class);
-
-        Resource bookModel = (Resource) models.get("book");
-
-        ObjectProperty attributes = (ObjectProperty) bookModel.getProperties().get("attributes");
-
-        String isbnDescription = attributes.getProperties().get("year").getDescription();
-        Assert.assertEquals(isbnDescription,  "Year published\nRead Permissions : (Principal is author OR Principal is publisher)");
+        String yearDescription = attributes.getProperties().get("year").getDescription();
+        Assert.assertEquals(yearDescription,
+            "Year published\nRead Permissions : (Principal is author OR Principal is publisher)");
     }
 
     @Test
     public void testRequired() {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
-
-        Map<String, Model> models = converters.readAll(Book.class);
-
-        Resource publisherModel = (Resource) models.get("book");
-
-        ObjectProperty attributes = (ObjectProperty) publisherModel.getProperties().get("attributes");
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "attributes");
 
         boolean titleRequired = attributes.getProperties().get("title").getRequired();
         Assert.assertTrue(titleRequired);
@@ -144,16 +114,22 @@ public class JsonApiModelResolverTest {
 
     @Test
     public void testReadOnly() {
-        ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
-
-        Map<String, Model> models = converters.readAll(Book.class);
-
-        Resource publisherModel = (Resource) models.get("book");
-
-        ObjectProperty attributes = (ObjectProperty) publisherModel.getProperties().get("attributes");
+        ObjectProperty attributes = getObjectProperty(KEY_BOOK, "attributes");
 
         Boolean titleReadOnly = attributes.getProperties().get("year").getReadOnly();
         Assert.assertTrue(titleReadOnly);
+    }
+
+    private Resource getModel(String entityKey) {
+        Map<String, Model> models = converters.readAll(ENTITIES.get(entityKey));
+        return (Resource) models.get(entityKey);
+    }
+
+    private ObjectProperty getObjectProperty(String entityKey, String propertyKey) {
+        return (ObjectProperty) getModel(entityKey).getProperties().get(propertyKey);
+    }
+
+    private StringProperty getStringProperty(String entityKey, String propertyKey) {
+        return (StringProperty) getModel(entityKey).getProperties().get(propertyKey);
     }
 }

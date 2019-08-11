@@ -1,4 +1,8 @@
 # Change Log
+## 4.5.1
+**Features**
+ * Issue #900. Add `@ApiModelProperty` support to `elide-swagger` that makes it possible to customize `description`, `example`, `readOnly` and `required` attributes of object definitions in resulting generates Swagger document.
+
 ## 4.5.0
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
