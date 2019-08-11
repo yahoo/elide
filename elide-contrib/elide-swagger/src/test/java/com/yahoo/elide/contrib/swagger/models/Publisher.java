@@ -6,7 +6,6 @@
 package com.yahoo.elide.contrib.swagger.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.UpdatePermission;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Map;
