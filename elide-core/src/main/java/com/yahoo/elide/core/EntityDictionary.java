@@ -1252,28 +1252,29 @@ public class EntityDictionary {
         Class<?> targetClass = target.getClass();
         String targetType = getJsonAliasFor(targetClass);
 
+        String fieldAlias = fieldName;
         try {
             Class<?> fieldClass = getType(targetClass, fieldName);
             String realName = getNameFromAlias(target, fieldName);
-            fieldName = (realName != null) ? realName : fieldName;
-            String setMethod = "set" + StringUtils.capitalize(fieldName);
+            fieldAlias = (realName != null) ? realName : fieldName;
+            String setMethod = "set" + StringUtils.capitalize(fieldAlias);
             Method method = EntityDictionary.findMethod(targetClass, setMethod, fieldClass);
-            method.invoke(target, coerce(target, value, fieldName, fieldClass));
+            method.invoke(target, coerce(target, value, fieldAlias, fieldClass));
         } catch (IllegalAccessException e) {
-            throw new InvalidAttributeException(fieldName, targetType, e);
+            throw new InvalidAttributeException(fieldAlias, targetType, e);
         } catch (InvocationTargetException e) {
             throw handleInvocationTargetException(e);
         } catch (IllegalArgumentException | NoSuchMethodException noMethod) {
-            AccessibleObject accessor = getAccessibleObject(target, fieldName);
+            AccessibleObject accessor = getAccessibleObject(target, fieldAlias);
             if (accessor != null && accessor instanceof Field) {
                 Field field = (Field) accessor;
                 try {
-                    field.set(target, coerce(target, value, fieldName, field.getType()));
+                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
                 } catch (IllegalAccessException noField) {
-                    throw new InvalidAttributeException(fieldName, targetType, noField);
+                    throw new InvalidAttributeException(fieldAlias, targetType, noField);
                 }
             } else {
-                throw new InvalidAttributeException(fieldName, targetType);
+                throw new InvalidAttributeException(fieldAlias, targetType);
             }
         }
     }
@@ -1301,13 +1302,13 @@ public class EntityDictionary {
      * @param fieldClass expected class type
      * @return coerced value
      */
-    Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
+    public Object coerce(Object target, Object value, String fieldName, Class<?> fieldClass) {
         if (fieldClass != null && Collection.class.isAssignableFrom(fieldClass) && value instanceof Collection) {
             return coerceCollection(target, (Collection) value, fieldName, fieldClass);
         }
 
         if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
-            return coerceMap(target, (Map<?, ?>) value, fieldName, fieldClass);
+            return coerceMap(target, (Map<?, ?>) value, fieldName);
         }
 
         return CoerceUtil.coerce(value, fieldClass);
@@ -1342,7 +1343,7 @@ public class EntityDictionary {
         return list;
     }
 
-    private Map coerceMap(Object target, Map<?, ?> values, String fieldName, Class<?> fieldClass) {
+    private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
         Class<?> keyType = getParameterizedType(target, fieldName, 0);
         Class<?> valueType = getParameterizedType(target, fieldName, 1);
 

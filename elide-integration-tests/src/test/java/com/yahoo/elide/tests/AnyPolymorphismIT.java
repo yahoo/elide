@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.Test;
 
 public class AnyPolymorphismIT extends IntegrationTest {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-    private final JsonParser jsonParser = new JsonParser();
 
     private static final Resource TRACTOR_PROPERTY = resource(
             type("property"),

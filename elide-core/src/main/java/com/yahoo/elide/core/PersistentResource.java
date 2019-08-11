@@ -14,7 +14,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
@@ -47,7 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,8 +62,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.WebApplicationException;
 
 /**
  * Resource wrapper around Entity bean.
@@ -1712,21 +1708,6 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     private void markDirty() {
         requestScope.getDirtyResources().add(this);
-    }
-
-    /**
-     * Handle an invocation target exception.
-     *
-     * @param e Exception the exception encountered while reflecting on an object's field
-     * @return Equivalent runtime exception
-     */
-    private static RuntimeException handleInvocationTargetException(InvocationTargetException e) {
-        Throwable exception = e.getTargetException();
-        if (exception instanceof HttpStatusException || exception instanceof WebApplicationException) {
-            return (RuntimeException) exception;
-        }
-        log.error("Caught an unexpected exception (rethrowing as internal server error)", e);
-        return new InternalServerErrorException("Unexpected exception caught", e);
     }
 
     /**

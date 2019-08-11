@@ -16,14 +16,11 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class AssignedIdLongIT extends IntegrationTest {
-    private final JsonParser jsonParser = new JsonParser();
-
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
     @Test

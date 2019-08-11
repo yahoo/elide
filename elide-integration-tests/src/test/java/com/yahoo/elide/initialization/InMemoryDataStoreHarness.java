@@ -22,8 +22,8 @@ import java.util.Set;
  * Test Harness to initialize the default data store for IT tests.
  */
 public class InMemoryDataStoreHarness implements DataStoreTestHarness {
-    InMemoryDataStore memoryStore;
-    HashMapDataStore mapStore;
+    private InMemoryDataStore memoryStore;
+    private HashMapDataStore mapStore;
 
     public InMemoryDataStoreHarness() {
         Set<Package> beanPackages = Sets.newHashSet(

@@ -83,10 +83,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
                         if (op.getOpType() == Operation.OpType.DELETE) {
                             data.remove(id);
                         } else {
-                            if (op.getOpType() == Operation.OpType.CREATE) {
-                                if (data.get(id) != null) {
-                                    throw new TransactionException(new IllegalStateException("Duplicate key"));
-                                }
+                            if (op.getOpType() == Operation.OpType.CREATE && data.get(id) != null) {
+                                throw new TransactionException(new IllegalStateException("Duplicate key"));
                             }
                             data.put(id, instance);
                         }

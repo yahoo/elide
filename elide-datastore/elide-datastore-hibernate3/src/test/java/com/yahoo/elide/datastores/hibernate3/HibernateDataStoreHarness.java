@@ -39,7 +39,7 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
             ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
         } catch (MappingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         SessionFactory sessionFactory = configuration.configure("hibernate.cfg.xml")
@@ -61,7 +61,7 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
         schemaExport.execute(false, true, false, true);
 
         if (!schemaExport.getExceptions().isEmpty()) {
-            throw new RuntimeException(schemaExport.getExceptions().toString());
+            throw new IllegalStateException(schemaExport.getExceptions().toString());
         }
     }
 

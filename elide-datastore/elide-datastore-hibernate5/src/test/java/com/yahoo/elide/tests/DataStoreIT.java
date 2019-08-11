@@ -20,7 +20,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +44,6 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 public class DataStoreIT extends IntegrationTest {
-    private final JsonParser jsonParser;
     private final ObjectMapper mapper;
     private final Elide elide;
 
@@ -63,7 +61,6 @@ public class DataStoreIT extends IntegrationTest {
     private static final int ALL_BOOKS_COUNT = 3;
 
     public DataStoreIT() {
-        jsonParser = new JsonParser();
         mapper = new ObjectMapper();
         Map<String, Class<? extends Check>> checks = new HashMap(TestCheckMappings.MAPPINGS);
         checks.put("filterCheck", Filtered.FilterCheck.class);

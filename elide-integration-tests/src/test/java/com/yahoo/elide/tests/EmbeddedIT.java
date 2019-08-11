@@ -23,7 +23,6 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -42,7 +41,6 @@ import java.util.HashMap;
  * Integration test for embedded collections.
  */
 public class EmbeddedIT extends IntegrationTest {
-    private final JsonParser jsonParser = new JsonParser();
 
     @BeforeEach
     public void setup() throws IOException {

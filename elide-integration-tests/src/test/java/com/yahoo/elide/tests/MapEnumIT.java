@@ -18,7 +18,6 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -28,8 +27,6 @@ import java.util.Map;
  * Test rehydration of Map of Enums.
  */
 class MapEnumIT extends IntegrationTest {
-    private final ObjectMapper mapper = new ObjectMapper();
-
     @Test
     public void testPostColorShape() {
 

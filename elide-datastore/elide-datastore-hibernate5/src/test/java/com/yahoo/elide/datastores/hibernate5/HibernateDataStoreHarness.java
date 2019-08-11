@@ -51,7 +51,7 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
             ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         metadataImplementor = (MetadataImplementor) metadataSources.buildMetadata();
