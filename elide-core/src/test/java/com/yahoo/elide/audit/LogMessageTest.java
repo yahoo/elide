@@ -8,6 +8,7 @@ package com.yahoo.elide.audit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -22,8 +23,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LogMessageTest {
@@ -99,6 +104,25 @@ public class LogMessageTest {
     private AuditLogger testAuditLogger = new Slf4jLogger();
 
     @Test
+    public void threadSafetyTest() {
+        final List<Throwable> exceptions = new ArrayList<>();
+        final int parallelTests = 10;
+
+        ExecutorService testThreadPool = Executors.newFixedThreadPool(parallelTests);
+
+        for (int i = 0; i < parallelTests; i++) {
+            testThreadPool.submit(() -> {
+                try {
+                    threadSafeLogger();
+                } catch (Exception e) {
+                    exceptions.add(e);
+                }
+            });
+        }
+
+        assertTrue(exceptions.isEmpty(), exceptions.stream().map(Throwable::getMessage).findFirst().orElse(""));
+    }
+
     public void threadSafeLogger() throws IOException, InterruptedException {
         TestLoggerException testException = new TestLoggerException();
         LogMessage failMessage = new LogMessage("test", 0) {
@@ -110,7 +134,7 @@ public class LogMessageTest {
         try {
             testAuditLogger.log(failMessage);
             Thread.sleep(Math.floorMod(ThreadLocalRandom.current().nextInt(), 100));
-            testAuditLogger.commit((RequestScope) null);
+            testAuditLogger.commit(null);
             fail("Exception expected");
         } catch (TestLoggerException e) {
             assertSame(e, testException);
@@ -118,7 +142,7 @@ public class LogMessageTest {
 
         // should not cause another exception
         try {
-            testAuditLogger.commit((RequestScope) null);
+            testAuditLogger.commit(null);
         } catch (TestLoggerException e) {
             fail("Exception not cleared from previous logger commit");
         }
