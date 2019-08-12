@@ -1,4 +1,9 @@
 # Change Log
+
+## 4.5.1
+**Fixes**
+[Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+
 ## 4.5.0
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
