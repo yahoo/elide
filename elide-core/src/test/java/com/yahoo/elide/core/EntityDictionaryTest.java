@@ -19,6 +19,8 @@ import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.models.generics.Employee;
+import com.yahoo.elide.models.generics.Manager;
 import com.yahoo.elide.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.security.checks.prefab.Common.UpdateOnCreate;
@@ -33,8 +35,6 @@ import example.Parent;
 import example.Right;
 import example.StringId;
 import example.User;
-import example.generics.Employee;
-import example.generics.Manager;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
