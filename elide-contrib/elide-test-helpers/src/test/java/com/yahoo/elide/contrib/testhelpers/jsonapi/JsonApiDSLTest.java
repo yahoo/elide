@@ -151,4 +151,133 @@ public class JsonApiDSLTest {
 
         assertEquals(actual, expected);
     }
+
+    @Test
+    public void verifyResourcesWithIncludes() {
+        String expected = "{\"data\":[{\"type\":\"blog\",\"id\":1}],\"included\":[{\"type\":\"author\",\"id\":1}]}";
+
+        String actual = document(
+                data(
+                    resource(
+                            type("blog"),
+                            id(1)
+                    )
+                ),
+                include(
+                        resource(
+                                type("author"),
+                                id(1)
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyDataWithRelationshipLinks() {
+        String expected = "{\"data\":[{\"type\":\"blog\",\"id\":1},{\"type\":\"blog\",\"id\":2}]}";
+
+        String actual =
+                data(
+                        linkage(
+                                type("blog"),
+                                id(1)
+                        ),
+                        linkage(
+                                type("blog"),
+                                id(2)
+                        )
+                ).toJSON();
+
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyEmptyToOneRelationship() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
+                + "\"attributes\":{\"title\":\"title\"},\"relationships\":{\"author\":{\"data\":null}}}}";
+
+        String actual =
+                datum(
+                        resource(
+                                type("blog"),
+                                id("1"),
+                                attributes(
+                                        attr("title", "title")
+                                ),
+                                relationships(
+                                        relation("author", TO_ONE)
+                                )
+                        )
+                ).toJSON();
+
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyEmptyToManyRelationship() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
+                + "\"attributes\":{\"title\":\"title\"},\"relationships\":{\"comments\":{\"data\":[]}}}}";
+
+        String actual =
+                datum(
+                        resource(
+                                type("blog"),
+                                id("1"),
+                                attributes(
+                                        attr("title", "title")
+                                ),
+                                relationships(
+                                        relation("comments")
+                                )
+                        )
+                ).toJSON();
+
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyRelationshipsButNoAttributes() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\",\"relationships\":{\"comments\":{\"data\":[]},"
+                + "\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]}}}}";
+
+        String actual =
+                datum(
+                        resource(
+                                type("blog"),
+                                id("1"),
+                                relationships(
+                                        relation("comments"),
+                                        relation("author",
+                                                linkage(type("author"), id("1"))
+                                        )
+                                )
+                        )
+                ).toJSON();
+
+
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void verifyNoId() {
+        String expected = "{\"data\":{\"type\":\"blog\",\"id\":null,\"attributes\""
+                + ":{\"title\":\"Why You Should use Elide\",\"date\":\"2019-01-01\"}}}";
+
+        String actual = datum(
+                resource(
+                        type("blog"),
+                        attributes(
+                                attr("title", "Why You Should use Elide"),
+                                attr("date", "2019-01-01")
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(actual, expected);
+    }
 }
