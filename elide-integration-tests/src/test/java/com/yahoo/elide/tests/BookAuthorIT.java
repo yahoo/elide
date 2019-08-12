@@ -7,8 +7,8 @@ package com.yahoo.elide.tests;
 
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.jsonData;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,7 +99,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(HEMINGWAY),
+                        datum(HEMINGWAY),
                         ObjectMapperType.GSON
                 )
                 .post("/author")
@@ -112,7 +112,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(THE_OLD_MAN_AND_THE_SEA),
+                        datum(THE_OLD_MAN_AND_THE_SEA),
                         ObjectMapperType.GSON
                 )
                 .post("/book")
@@ -125,7 +125,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(HEMINGWAY_RELATIONSHIP),
+                        datum(HEMINGWAY_RELATIONSHIP),
                         ObjectMapperType.GSON
                 )
                 .patch("/book/1/relationships/authors")
@@ -138,7 +138,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(ORSON_SCOTT_CARD),
+                        datum(ORSON_SCOTT_CARD),
                         ObjectMapperType.GSON
                 )
                 .post("/author")
@@ -151,7 +151,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(ENDERS_GAME),
+                        datum(ENDERS_GAME),
                         ObjectMapperType.GSON
                 )
                 .post("/book")
@@ -164,7 +164,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(ORSON_RELATIONSHIP),
+                        datum(ORSON_RELATIONSHIP),
                         ObjectMapperType.GSON
                 )
                 .patch("/book/2/relationships/authors")
@@ -177,7 +177,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(FOR_WHOM_THE_BELL_TOLLS),
+                        datum(FOR_WHOM_THE_BELL_TOLLS),
                         ObjectMapperType.GSON
                 )
                 .post("/book")
@@ -190,7 +190,7 @@ public class BookAuthorIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        jsonData(HEMINGWAY_RELATIONSHIP),
+                        datum(HEMINGWAY_RELATIONSHIP),
                         ObjectMapperType.GSON
                 )
                 .patch("/book/3/relationships/authors")
