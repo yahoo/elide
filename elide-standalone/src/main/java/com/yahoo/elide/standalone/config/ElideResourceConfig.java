@@ -14,13 +14,16 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.standalone.Util;
 
+import io.swagger.models.Swagger;
 import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -79,6 +82,19 @@ public class ElideResourceConfig extends ResourceConfig {
                 bind(elideSettings).to(ElideSettings.class);
                 bind(elideSettings.getDictionary()).to(EntityDictionary.class);
                 bind(elideSettings.getDataStore()).to(DataStore.class).named("elideDataStore");
+            }
+        });
+
+        // Bind swaggers to given endpoint
+        register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+            @Override
+            protected void configure() {
+                Map<String, Swagger> swaggerDocs = settings.enableSwagger();
+
+                if(!swaggerDocs.isEmpty()) {
+                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
+                }
+
             }
         });
 

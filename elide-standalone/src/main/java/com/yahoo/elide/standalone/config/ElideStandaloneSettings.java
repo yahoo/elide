@@ -18,8 +18,6 @@ import com.yahoo.elide.standalone.Util;
 import io.swagger.models.Swagger;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.hk2.api.TypeLiteral;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import java.util.*;
@@ -200,21 +198,10 @@ public interface ElideStandaloneSettings {
      * @return Default: register the DependencyBinder that binds swagger map to named endpoint if swagger is not configured.
      */
     default Consumer<ResourceConfig> getApplicationConfigurator() {
-        // Do nothing if swagger map is empty
-        Map<String, Swagger> swaggerDocs = enableSwagger();
-        if(swaggerDocs.isEmpty())
-            return (x) -> {};
-
-        //Bind the swagger docs to the named parameter
-        return (x) -> {
-            x.register(new AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
-                }
-            });
-        };
+        // Do nothing by default
+        return (x) -> {};
     }
+
 
     /**
      * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.
