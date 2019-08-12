@@ -18,6 +18,9 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.ResourceLinkage;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Type;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Adds helper functions for creating Json API style data.
  * <p>
@@ -36,6 +39,20 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Type;
  * }
  */
 public class JsonApiDSL {
+    /**
+     * Create a new json data object
+     * @return Map that Rest-Assured can serialize to Json API format
+     */
+    public static Map<String, Object> jsonData(Resource... resources) {
+        Map<String, Object> body = new LinkedHashMap<String, Object>();
+        // PATCH method does not work on an array of resources, hence sending it as a single element
+        if (resources.length == 1) {
+            body.put("data", resources[0]);
+        } else {
+            body.put("data", resources);
+        }
+        return body;
+    }
 
     /**
      * Data data.
