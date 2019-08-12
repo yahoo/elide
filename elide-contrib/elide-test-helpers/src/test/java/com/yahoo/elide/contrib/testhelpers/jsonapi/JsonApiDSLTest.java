@@ -7,6 +7,7 @@
 package com.yahoo.elide.contrib.testhelpers.jsonapi;
 
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.*;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
@@ -50,7 +51,7 @@ public class JsonApiDSLTest {
     public void verifyRequestWithOneToOneRelationship() {
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
-                + "\"relationships\":{\"author\":{\"data\":[{\"type\":\"author\",\"id\":\"1\"}]}}}}";
+                + "\"relationships\":{\"author\":{\"data\":{\"type\":\"author\",\"id\":\"1\"}}}}}";
 
         String actual = datum(
                 resource(
@@ -61,6 +62,7 @@ public class JsonApiDSLTest {
                         ),
                         relationships(
                                 relation("author",
+                                        TO_ONE,
                                         linkage(type("author"), id("1"))
                                 )
                         )
@@ -72,6 +74,7 @@ public class JsonApiDSLTest {
 
     @Test
     public void verifyRequestWithOneToManyRelationship() {
+        // multi-elements array of resource identifier objects for non-empty to-many relationships.
         String expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
                 + "\"attributes\":{\"title\":\"title\"},"
                 + "\"relationships\":{"
@@ -90,6 +93,29 @@ public class JsonApiDSLTest {
                                       linkage(type("comment"), id("1")),
                                       linkage(type("comment"), id("2"))
                               )
+                        )
+                )
+        ).toJSON();
+
+        assertEquals(actual, expected);
+
+        // single-element array of resource identifier objects for non-empty to-many relationships.
+        expected = "{\"data\":{\"type\":\"blog\",\"id\":\"1\","
+                + "\"attributes\":{\"title\":\"title\"},"
+                + "\"relationships\":{"
+                + "\"comments\":{\"data\":[{\"type\":\"comment\",\"id\":\"1\"}]}}}}";
+
+        actual = datum(
+                resource(
+                        type("blog"),
+                        id("1"),
+                        attributes(
+                                attr("title", "title")
+                        ),
+                        relationships(
+                                relation("comments",
+                                        linkage(type("comment"), id("1"))
+                                )
                         )
                 )
         ).toJSON();

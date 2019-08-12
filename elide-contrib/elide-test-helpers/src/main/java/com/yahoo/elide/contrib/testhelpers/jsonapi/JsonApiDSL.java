@@ -221,7 +221,7 @@ public class JsonApiDSL {
     }
 
     /**
-     * Relation relation.
+     * Creates a to-many relationship
      *
      * @param field           the field
      * @param resourceLinkage the resource linkage
