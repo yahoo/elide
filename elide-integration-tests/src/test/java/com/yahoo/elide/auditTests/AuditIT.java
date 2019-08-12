@@ -6,15 +6,25 @@
 package com.yahoo.elide.auditTests;
 
 import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.audit.InMemoryLogger;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.ResourceLinkage;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
-import com.yahoo.elide.utils.JsonParser;
 
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +39,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AuditIT extends IntegrationTest {
     private final InMemoryLogger logger = AuditIntegrationTestApplicationResourceConfig.LOGGER;
-    private final JsonParser jsonParser = new JsonParser();
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
@@ -40,7 +49,7 @@ public class AuditIT extends IntegrationTest {
     @AfterEach
     @Override
     public void afterEach() {
-        // Don't clean up the database between tests
+        // don't clean up the database between tests
     }
 
     @AfterAll
@@ -51,20 +60,42 @@ public class AuditIT extends IntegrationTest {
 
     @Test
     @Order(1)
-    public void testAuditOnCreate() throws Exception {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntity.req.json");
-        String expected = jsonParser.getJson("/AuditIT/createAuditEntity.resp.json");
+    public void testAuditOnCreate() {
+        String expected = datum(
+                resource(
+                        type("auditEntity"),
+                        id("1"),
+                        attributes(
+                                attr("value", "test abc")
+                        ),
+                        relationships(
+                                relation("otherEntity", (ResourceLinkage[]) null),
+                                relation("inverses")
+                        )
+                )
+        ).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntity"),
+                                        id("1"),
+                                        attributes(
+                                                attr("value", "test abc")
+                                        )
+                                )
+                        ),
+                        ObjectMapperType.GSON
+                )
                 .post("/auditEntity")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
+        assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
         assertTrue(logger.logMessages.contains("old: null\n"
                 + "new: Value: test abc relationship: null"));
         assertTrue(logger.logMessages.contains("Created with value: test abc"));
@@ -73,26 +104,83 @@ public class AuditIT extends IntegrationTest {
     @Test
     @Order(2)
     public void testAuditOnUpdate() {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntity2.req.json");
-        String expected = jsonParser.getJson("/AuditIT/createAuditEntity2.resp.json");
+        String expected = datum(
+                resource(
+                        type("auditEntity"),
+                        id("2"),
+                        attributes(
+                                attr("value", "test def")
+                        ),
+                        relationships(
+                                relation(
+                                        "otherEntity",
+                                        linkage(
+                                                type("auditEntity"),
+                                                id("1")
+                                        )
+                                ),
+                                relation("inverses")
+                        )
+                )
+        ).toJSON();
 
         String actual = given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntity"),
+                                        id("2"),
+                                        attributes(
+                                                attr("value", "test def")
+                                        ),
+                                        relationships(
+                                                relation(
+                                                        "otherEntity",
+                                                        true,
+                                                        linkage(
+                                                                type("auditEntity"),
+                                                                id("1")
+                                                        )
+                                                )
+                                        )
+                                )
+                        ),
+                        ObjectMapperType.GSON
+                )
                 .post("/auditEntity")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
                 .extract().body().asString();
 
-        assertEqualDocuments(actual, expected);
-
-        request = jsonParser.getJson("/AuditIT/updateAuditEntity.req.json");
+        assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntity"),
+                                        id("1"),
+                                        attributes(
+                                                attr("value", "updated value")
+                                        ),
+                                        relationships(
+                                                relation(
+                                                        "otherEntity",
+                                                        true,
+                                                        linkage(
+                                                                type("auditEntity"),
+                                                                id("2")
+                                                        )
+                                                )
+                                        )
+                                )
+                        ),
+                        ObjectMapperType.GSON
+                )
                 .patch("/auditEntity/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -104,12 +192,21 @@ public class AuditIT extends IntegrationTest {
     @Test
     @Order(3)
     public void testAuditWithDuplicateLineageEntry() {
-        String request = jsonParser.getJson("/AuditIT/updateAuditEntityLineageDup.req.json");
-
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntity"),
+                                        id("1"),
+                                        attributes(
+                                                attr("value", "update id 1 through id 2")
+                                        )
+                                )
+                        ),
+                        ObjectMapperType.GSON
+                )
                 .patch("/auditEntity/2/otherEntity/1")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -120,14 +217,29 @@ public class AuditIT extends IntegrationTest {
     @Test
     @Order(4)
     public void testAuditUpdateOnInverseCollection() {
-        String request = jsonParser.getJson("/AuditIT/createAuditEntityInverse.req.json");
-
         assertFalse(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(
+                        datum(
+                                resource(
+                                        type("auditEntityInverse"),
+                                        id("1"),
+                                        relationships(
+                                                relation(
+                                                        "entities",
+                                                        linkage(
+                                                                type("auditEntity"),
+                                                                id("1")
+                                                        )
+                                                )
+                                        )
+                                )
+                        ),
+                        ObjectMapperType.GSON
+                )
                 .post("/auditEntityInverse")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
