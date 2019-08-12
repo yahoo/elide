@@ -17,12 +17,10 @@ import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
 import io.swagger.models.Swagger;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.util.*;
 import java.util.function.Consumer;
