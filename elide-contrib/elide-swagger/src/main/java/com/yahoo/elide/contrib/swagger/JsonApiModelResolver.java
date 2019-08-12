@@ -14,6 +14,7 @@ import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.fasterxml.jackson.databind.type.SimpleType;
+import org.apache.commons.lang3.StringUtils;
 
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.converter.ModelConverter;
@@ -22,7 +23,6 @@ import io.swagger.jackson.ModelResolver;
 import io.swagger.models.Model;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
-import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -100,7 +100,9 @@ public class JsonApiModelResolver extends ModelResolver {
         return entitySchema;
     }
 
-    private Property processAttribute(Class<?> clazz, String attributeName, Class<?> attributeClazz, ModelConverterContext context, Iterator<ModelConverter> next) {
+    private Property processAttribute(Class<?> clazz, String attributeName, Class<?> attributeClazz,
+        ModelConverterContext context, Iterator<ModelConverter> next) {
+
         Property attribute = super.resolveProperty(attributeClazz, context, null, next);
 
         String permissions = getFieldPermissions(clazz, attributeName);
