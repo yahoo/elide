@@ -10,6 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import example.Parent;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -20,6 +21,12 @@ import java.util.HashSet;
  * Simple integration tests to verify session and access.
  */
 public class AccessIT extends IntegrationTest {
+
+    @BeforeAll
+    public void setup() {
+        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+    }
+
     @Test
     public void verifySession() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
@@ -29,7 +36,6 @@ public class AccessIT extends IntegrationTest {
 
     @Test
     public void accessParentBean() throws IOException {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
         DataStoreTransaction tx = dataStore.beginTransaction();
         Parent parent = new Parent();
         parent.setChildren(new HashSet<>());
