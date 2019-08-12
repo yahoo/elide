@@ -195,7 +195,7 @@ public interface ElideStandaloneSettings {
      *
      * Before calling the consumer, the class will be injected by the ServiceLocator.
      *
-     * @return Default: register the DependencyBinder that binds swagger map to named endpoint if swagger is not configured.
+     * @return Default: null
      */
     default Consumer<ResourceConfig> getApplicationConfigurator() {
         // Do nothing by default
@@ -220,7 +220,5 @@ public interface ElideStandaloneSettings {
      */
     default void updateServletContextHandler(ServletContextHandler servletContextHandler) {
         // Do nothing
-
     }
-
 }

@@ -90,11 +90,9 @@ public class ElideResourceConfig extends ResourceConfig {
             @Override
             protected void configure() {
                 Map<String, Swagger> swaggerDocs = settings.enableSwagger();
-
                 if(!swaggerDocs.isEmpty()) {
                     bind(swaggerDocs).named("swagger").to(new TypeLiteral<Map<String, Swagger>>() { });
                 }
-
             }
         });
 
