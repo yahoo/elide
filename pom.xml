@@ -496,7 +496,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>5.0.0</version>
                 <configuration>
-                    <failBuildOnCVSS>6</failBuildOnCVSS>
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
                 </configuration>
                 <executions>

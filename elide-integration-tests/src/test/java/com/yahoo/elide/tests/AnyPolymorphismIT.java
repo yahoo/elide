@@ -5,25 +5,44 @@
  */
 package com.yahoo.elide.tests;
 
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
-import com.yahoo.elide.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
+public class AnyPolymorphismIT extends IntegrationTest {
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
-    private final JsonParser jsonParser = new JsonParser();
 
-    @BeforeClass
+    private static final Resource TRACTOR_PROPERTY = resource(
+            type("property"),
+            id("1"),
+            attributes(),
+            relationships(
+                    relation("myStuff", TO_ONE,
+                            linkage(type("tractor"), id("1"))
+                    )
+            )
+    );
+
+    @BeforeEach
     public void setUp() {
         //Create a tractor
         RestAssured
@@ -48,12 +67,11 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
     @Test
     public void testAny() {
-
         String id1 = RestAssured
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -65,7 +83,19 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddSmartphoneProperty.json"))
+                .body(
+                        datum(
+                                resource(
+                                        type("property"),
+                                        attributes(),
+                                        relationships(
+                                                relation("myStuff", TO_ONE,
+                                                        linkage(type("smartphone"), id("1"))
+                                                )
+                                        )
+                                )
+                        )
+                )
                 .post("/property")
                 .then()
                 .assertThat()
@@ -140,7 +170,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -197,7 +227,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
                 .given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(jsonParser.getJson("/AnyPolymorphismIT/AddTractorProperty.json"))
+                .body(datum(TRACTOR_PROPERTY))
                 .post("/property")
                 .then()
                 .assertThat()
@@ -218,7 +248,7 @@ public class AnyPolymorphismIT extends AbstractApiResourceInitializer {
 
         Integer collectionSize = response.path("data.size()");
         Integer totalSize = response.path("meta.page.totalRecords");
-        Assert.assertEquals(collectionSize, totalSize);
+        assertEquals(totalSize, collectionSize);
 
         RestAssured
                 .given()

@@ -209,6 +209,7 @@
                         <configuration>
                             <systemPropertyVariables>
                                 <dataStoreSupplier>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreSupplier</dataStoreSupplier>
+                                <dataStoreHarness>com.yahoo.elide.datastores.hibernate5.HibernateDataStoreHarness</dataStoreHarness>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>

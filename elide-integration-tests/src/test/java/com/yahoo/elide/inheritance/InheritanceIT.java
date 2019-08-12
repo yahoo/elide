@@ -8,7 +8,7 @@ package com.yahoo.elide.inheritance;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
@@ -19,14 +19,15 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
 
-import org.testng.annotations.Test;
+import com.yahoo.elide.initialization.IntegrationTest;
+
+import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class InheritanceIT extends AbstractIntegrationTestInitializer {
+public class InheritanceIT extends IntegrationTest {
 
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
 
@@ -37,7 +38,7 @@ public class InheritanceIT extends AbstractIntegrationTestInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        data(
+                        datum(
                                 resource(
                                         type("manager"),
                                         id(null)
@@ -53,7 +54,7 @@ public class InheritanceIT extends AbstractIntegrationTestInitializer {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        data(
+                        datum(
                                 resource(
                                         type("employee"),
                                         id(null),

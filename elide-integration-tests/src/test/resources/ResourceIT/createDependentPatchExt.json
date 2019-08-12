@@ -2,7 +2,7 @@
     {
         "data":{
             "type":"parent",
-            "id":"7",
+            "id":"5",
             "attributes":{
                 "firstName":"test parent"
             },
@@ -11,7 +11,7 @@
                     "data":[
                         {
                             "type":"child",
-                            "id":"7"
+                            "id":"6"
                         }
                     ]
                 },
@@ -24,7 +24,7 @@
     {
         "data":{
             "type":"child",
-            "id":"7",
+            "id":"6",
             "attributes":{
                 "name":null
             },
@@ -36,7 +36,7 @@
                     "data":[
                         {
                             "type":"parent",
-                            "id":"7"
+                            "id":"5"
                         }
                     ]
                 }

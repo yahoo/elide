@@ -59,7 +59,6 @@ public class Filtered extends BaseId {
         public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
             return getPredicateOfId(1L);
         }
-
     }
 
     /**
