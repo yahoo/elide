@@ -3,6 +3,9 @@
 **Features**
  * Issue #900. Add `@ApiModelProperty` support to `elide-swagger` that makes it possible to customize `description`, `example`, `readOnly` and `required` attributes of object definitions in resulting generates Swagger document.
 
+**Fixes**
+ * [Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+
 ## 4.5.0
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
