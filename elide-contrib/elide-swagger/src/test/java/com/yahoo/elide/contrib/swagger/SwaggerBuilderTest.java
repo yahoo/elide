@@ -302,7 +302,7 @@ public class SwaggerBuilderTest {
                 .collect(Collectors.toSet());
 
         long filterParams = paramNames.stream().filter((name) -> name.startsWith("filter")).count();
-        Assert.assertEquals(filterParams, 13);
+        Assert.assertEquals(filterParams, 24);
 
         Assert.assertTrue(paramNames.contains("filter"));
         Assert.assertTrue(paramNames.contains("filter[book]"));
