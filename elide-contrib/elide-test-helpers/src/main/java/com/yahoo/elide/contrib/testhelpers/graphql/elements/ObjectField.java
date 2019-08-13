@@ -11,6 +11,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
+ * {@link ObjectField} represents the same concept as GraphQL {@link graphql.language.ObjectField}, but specializes
+ * in serialization, in contrast to GraphQL{@link graphql.language.ObjectField}, which is designed for deserialization.
+ * <p>
  * According to GraphQL grammar (6.0):
  * <pre>
  * {@code

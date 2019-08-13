@@ -10,6 +10,8 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SharePermission;
 
+import lombok.Builder;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,7 @@ import javax.persistence.Transient;
  * Model for authors.
  */
 @Entity
+@Builder
 @Table(name = "author")
 @Include(rootLevel = true)
 @SharePermission

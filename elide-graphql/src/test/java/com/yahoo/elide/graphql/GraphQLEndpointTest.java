@@ -11,18 +11,16 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.entity;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.enumValue;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.jsonResponseField;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.nullResponseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.objectValueWithVariable;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.responseField;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.typedOperation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableValue;
-import static com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL.attribute;
-import static com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL.edges;
-import static com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL.node;
-import static com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL.resource;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -200,26 +198,23 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String graphQLResponse = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        attribute("title", "My first book"),
-                                        resource(
+        String graphQLResponse = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField("title", "My first book"),
+                                        responseField(
                                                 "authors",
-                                                edges(
-                                                        node(
-                                                                attribute("name", "Ricky Carmichael")
-
-                                                        )
+                                                selection(
+                                                        responseField("name", "Ricky Carmichael")
                                                 )
                                         )
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
@@ -254,26 +249,25 @@ public class GraphQLEndpointTest {
                         )
                 )
         ).toQuery();
-        String graphQLResponse = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        attribute("title", "My first book"),
-                                        resource(
-                                                "authors",
-                                                edges(
-                                                        node(
-                                                                attribute("name", "Ricky Carmichael")
 
-                                                        )
+        String graphQLResponse = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField("title", "My first book"),
+                                        responseField(
+                                                "authors",
+                                                selection(
+                                                        responseField("name", "Ricky Carmichael")
                                                 )
                                         )
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
+
         Map<String, String> variables = new HashMap<>();
         variables.put("bookId", "1");
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest, variables));
@@ -293,16 +287,16 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String graphQLResponse = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("user1SecretField", "this is a secret for user 1 only1")
+        String graphQLResponse = document(
+                selection(
+                        responseField(
+                                "book",
+                                selection(
+                                        responseField("user1SecretField", "this is a secret for user 1 only1")
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
@@ -346,18 +340,18 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expectedData = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("user1SecretField", null),
-                                        attribute("id", "1"),
-                                        attribute("title", "My first book")
+        String expectedData = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        nullResponseField("user1SecretField"),
+                                        responseField("id", "1"),
+                                        responseField("title", "My first book")
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
@@ -366,17 +360,20 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedMutationAndRead() throws IOException, JSONException {
+        example.Book book = example.Book.builder()
+                .id(1)
+                .title("my new book!")
+                .author(example.Author.builder().id(2L).build())
+                .build();
+
+
         String graphQLRequest = document(
                 selection(
                         entity(
                                 "book",
                                 arguments(
                                         argument("op", enumValue("UPSERT")),
-                                        argument(
-                                                "data",
-                                                objectValueWithVariable("id: \"1\", title: \"my new book!\", " +
-                                                        "authors:[{id:\"2\"}]")
-                                        )
+                                        argument("data", objectValueWithVariable(book))
                                 ),
                                 selections(
                                         field("id"),
@@ -401,17 +398,17 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        attribute("title", "My first book")
-                                )
+        String expected = document(
+                selection(
+                        responseField(
+                                "book",
+                               selections(
+                                       responseField("id", "1"),
+                                       responseField("title", "My first book")
+                               )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         response = endpoint.post(user2, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
@@ -433,10 +430,10 @@ public class GraphQLEndpointTest {
                                                                 argument("op", enumValue("UPSERT")),
                                                                 argument(
                                                                         "data",
-                                                                        objectValueWithVariable("id: \"123\", " +
+                                                                        enumValue("{id: \"123\", " +
                                                                                 "name: \"my new author\", \" +\n" +
                                                                                 "                " +
-                                                                                "\"noShare:{id:\"1\"}")
+                                                                                "\"noShare:{id:\"1\"}}")
                                                                 )
                                                         ),
                                                         selections(
@@ -484,29 +481,26 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        resource(
+        String expected = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField(
                                                 "authors",
-                                                edges(
-                                                        node(
-                                                                attribute("id", "1"),
-                                                                attribute("name", "Ricky Carmichael"),
-                                                                resource(
-                                                                        "noShare",
-                                                                        edges()
-                                                                )
+                                                selections(
+                                                        responseField("id", "1"),
+                                                        responseField("name", "Ricky Carmichael"),
+                                                        responseField(
+                                                                "noShare"
                                                         )
                                                 )
                                         )
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
@@ -519,6 +513,11 @@ public class GraphQLEndpointTest {
         User principal = new User().withName("1");
         Mockito.when(user.getUserPrincipal()).thenReturn(principal);
 
+        example.Book book = example.Book.builder()
+                .id(1)
+                .title("my new book!")
+                .build();
+
         String graphQLRequest = document(
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
@@ -529,7 +528,8 @@ public class GraphQLEndpointTest {
                                                 argument("op", enumValue("UPSERT")),
                                                 argument(
                                                         "data",
-                                                        objectValueWithVariable("id: \"1\", title: \"my new book!\""))
+                                                        objectValueWithVariable(book)
+                                                )
                                         ),
                                         selections(
                                                 field("id"),
@@ -540,17 +540,17 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        attribute("title", "my new book!")
+        String expected = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField("title", "my new book!")
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
@@ -564,6 +564,10 @@ public class GraphQLEndpointTest {
     void testAuditLogging() throws IOException {
         Mockito.reset(audit);
 
+        example.Book book = example.Book.builder()
+                .title("my new book!")
+                .build();
+
         String graphQLRequest = document(
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
@@ -574,7 +578,7 @@ public class GraphQLEndpointTest {
                                                 argument("op", enumValue("UPSERT")),
                                                 argument(
                                                         "data",
-                                                        objectValueWithVariable("title: \"my new book!\"")
+                                                        objectValueWithVariable(book)
                                                 )
                                         ),
                                         selections(
@@ -595,6 +599,12 @@ public class GraphQLEndpointTest {
 
     @Test
     void testSuccessfulMutation() throws JSONException {
+        example.Book book = example.Book.builder()
+                .id(123)
+                .title("my new book!")
+                .author(example.Author.builder().id(2L).build())
+                .build();
+
         String graphQLRequest = document(
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
@@ -603,11 +613,7 @@ public class GraphQLEndpointTest {
                                         "book",
                                         arguments(
                                                 argument("op", enumValue("UPSERT")),
-                                                argument(
-                                                        "data",
-                                                        objectValueWithVariable("id: \"123\", title: \"my new " +
-                                                                "book!\", authors:[{id:\"2\"}]")
-                                                )
+                                                argument("data", objectValueWithVariable(book))
                                         ),
                                         selections(
                                                 field("id"),
@@ -619,18 +625,18 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        String expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "2"),
-                                        attribute("title", "my new book!"),
-                                        attribute("user1SecretField", "this is a secret for user 1 only1")
+        String expected = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "2"),
+                                        responseField("title", "my new book!"),
+                                        responseField("user1SecretField", "this is a secret for user 1 only1")
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
@@ -654,39 +660,36 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        attribute("title", "My first book"),
-                                        resource(
+        expected = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField("title", "My first book"),
+                                        responseField(
                                                 "authors",
-                                                edges(
-                                                        node(
-                                                                attribute("id", "1"),
-                                                                attribute("name", "Ricky Carmichael")
-                                                        )
+                                                selections(
+                                                        responseField("id", "1"),
+                                                        responseField("name", "Ricky Carmichael")
                                                 )
                                         )
                                 ),
-                                node(
-                                        attribute("id", "2"),
-                                        attribute("title", "my new book!"),
-                                        resource(
+                                selections(
+                                        responseField("id", "2"),
+                                        responseField("title", "my new book!"),
+                                        responseField(
                                                 "authors",
-                                                edges(
-                                                        node(
-                                                                attribute("id", "2"),
-                                                                attribute("name", "The Silent Author")
-                                                        )
+                                                selections(
+                                                        responseField("id", "2"),
+                                                        responseField("name", "The Silent Author")
                                                 )
                                         )
                                 )
+
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
@@ -694,6 +697,11 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedCommitCheck() throws IOException {
+        example.Book book = example.Book.builder()
+                .id(1)
+                .title("update title")
+                .build();
+
         // NOTE: User 3 cannot update books.
         String graphQLRequest = document(
                 typedOperation(
@@ -703,9 +711,7 @@ public class GraphQLEndpointTest {
                                         "book",
                                         arguments(
                                                 argument("op", enumValue("UPSERT")),
-                                                argument(
-                                                        "data",
-                                                        objectValueWithVariable("id:\"1\", title:\"update title\""))
+                                                argument("data", objectValueWithVariable(book))
                                         ),
                                         selections(
                                                 field("id"),
@@ -750,27 +756,24 @@ public class GraphQLEndpointTest {
         second.put("key", "Bookz");
         second.put("value", "Pulitzer Prize");
 
-        String expected = datum(
-                resource(
-                        "book",
-                        edges(
-                                node(
-                                        attribute("id", "1"),
-                                        resource(
+        String expected = document(
+                selection(
+                        responseField(
+                                "book",
+                                selections(
+                                        responseField("id", "1"),
+                                        responseField(
                                                 "authors",
-                                                edges(
-                                                        node(
-                                                                attribute(
-                                                                        "bookTitlesAndAwards",
-                                                                        Arrays.asList(first, second)
-                                                                )
-                                                        )
+                                                selection(
+                                                        jsonResponseField(
+                                                                "bookTitlesAndAwards",
+                                                                Arrays.asList(first, second))
                                                 )
                                         )
                                 )
                         )
                 )
-        ).toJSON();
+        ).toResponse();
 
         Response response = endpoint.post(user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);

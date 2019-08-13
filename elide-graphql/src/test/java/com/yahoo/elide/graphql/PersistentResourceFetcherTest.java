@@ -91,43 +91,48 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         publisher2.setId(2L);
         publisher2.setName("The Other Guy");
 
-        Author author1 = new Author();
-        author1.setId(1L);
-        author1.setName("Mark Twain");
-        author1.setType(Author.AuthorType.EXCLUSIVE);
+        Author author1 = Author.builder()
+                .id(1L)
+                .name("Mark Twain")
+                .type(Author.AuthorType.EXCLUSIVE)
+                .build();
 
         Pseudonym authorOne = new Pseudonym();
         authorOne.setId(1L);
         authorOne.setName("The People's Author");
 
-        Book book1 = new Book();
-        book1.setId(1L);
-        book1.setTitle("Libro Uno");
-        book1.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
-        book1.setPublisher(publisher1);
-        book1.setPublicationDate(new Date(1514397817135L));
+        Book book1 = Book.builder()
+                .id(1L)
+                .title("Libro Uno")
+                .authors(new ArrayList<>(Collections.singletonList(author1)))
+                .publisher(publisher1)
+                .publicationDate(new Date(1514397817135L))
+                .build();
 
-        Book book2 = new Book();
-        book2.setId(2L);
-        book2.setTitle("Libro Dos");
-        book2.setAuthors(new ArrayList<>(Collections.singletonList(author1)));
-        book2.setPublisher(publisher1);
-        book2.setPublicationDate(new Date(0L));
+        Book book2 = Book.builder()
+                .id(2L)
+                .title("Libro Dos")
+                .authors(new ArrayList<>(Collections.singletonList(author1)))
+                .publisher(publisher1)
+                .publicationDate(new Date(0L))
+                .build();
 
         author1.setPenName(authorOne);
         author1.setBooks(new ArrayList<>(Arrays.asList(book1, book2)));
         authorOne.setAuthor(author1);
 
-        Author author2 = new Author();
-        author2.setId(2L);
-        author2.setName("Boris Pasternak");
-        author2.setType(Author.AuthorType.EXCLUSIVE);
+        Author author2 = Author.builder()
+                .id(2L)
+                .name("Boris Pasternak")
+                .type(Author.AuthorType.EXCLUSIVE)
+                .build();
 
-        Book book3 = new Book();
-        book3.setId(3L);
-        book3.setTitle("Doctor Zhivago");
-        book3.setAuthors(new ArrayList<>(Collections.singletonList(author2)));
-        book3.setPublisher(publisher2);
+        Book book3 = Book.builder()
+                .id(3L)
+                .title("Doctor Zhivago")
+                .authors(new ArrayList<>(Collections.singletonList(author2)))
+                .publisher(publisher2)
+                .build();
 
         author2.setBooks(new ArrayList<>(Collections.singletonList(book3)));
 

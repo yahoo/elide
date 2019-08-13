@@ -45,6 +45,24 @@ public class Document implements Serializable {
      * @return a string representation of a GraphQL query
      */
     public String toQuery() {
+        return serialize();
+    }
+
+    /**
+     * Returns the complete GraphQL response that this {@link Document} represents.
+     *
+     * @return a string representation of a GraphQL response
+     */
+    public String toResponse() {
+        return String.format("{\"data\":%s}", serialize());
+    }
+
+    /**
+     * Turns this {@link Document} into its string representation.
+     *
+     * @return a string representation of a GraphQL query
+     */
+    private String serialize() {
         return getDefinitions().stream()
                 .map(Definition::toGraphQLSpec)
                 .collect(Collectors.joining(" "));

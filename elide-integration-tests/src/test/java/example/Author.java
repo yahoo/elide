@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.SharePermission;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,6 +30,7 @@ import javax.persistence.Table;
  * Model for authors.
  */
 @Entity
+@Builder
 @Table(name = "author")
 @Include(rootLevel = true)
 @SharePermission
