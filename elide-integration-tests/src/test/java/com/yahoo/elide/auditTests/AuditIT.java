@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.audit.InMemoryLogger;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.ResourceLinkage;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
@@ -26,17 +27,11 @@ import com.yahoo.elide.resources.JsonApiEndpoint;
 
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * Integration tests for audit functionality.
  */
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AuditIT extends IntegrationTest {
     private final InMemoryLogger logger = AuditIntegrationTestApplicationResourceConfig.LOGGER;
 
@@ -46,20 +41,51 @@ public class AuditIT extends IntegrationTest {
         super(AuditIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
-    @AfterEach
-    @Override
-    public void afterEach() {
-        // don't clean up the database between tests
-    }
+    private static final Resource AUDIT_1 = resource(
+            type("auditEntity"),
+            id("1"),
+            attributes(
+                    attr("value", "test abc")
+            )
+    );
 
-    @AfterAll
-    public void clear() {
-        super.afterEach(); // clean up the database
-        super.afterAll(); // stop the server
-    }
+    private static final Resource AUDIT_1_RELATIONSHIP = resource(
+            type("auditEntity"),
+            id("1"),
+            attributes(
+                    attr("value", "updated value")
+            ),
+            relationships(
+                    relation(
+                            "otherEntity",
+                            true,
+                            linkage(
+                                    type("auditEntity"),
+                                    id("2")
+                            )
+                    )
+            )
+    );
+
+    private static final Resource AUDIT_2 = resource(
+            type("auditEntity"),
+            id("2"),
+            attributes(
+                    attr("value", "test def")
+            ),
+            relationships(
+                    relation(
+                            "otherEntity",
+                            true,
+                            linkage(
+                                    type("auditEntity"),
+                                    id("1")
+                            )
+                    )
+            )
+    );
 
     @Test
-    @Order(1)
     public void testAuditOnCreate() {
         String expected = datum(
                 resource(
@@ -75,25 +101,8 @@ public class AuditIT extends IntegrationTest {
                 )
         ).toJSON();
 
-        String actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        datum(
-                                resource(
-                                        type("auditEntity"),
-                                        id("1"),
-                                        attributes(
-                                                attr("value", "test abc")
-                                        )
-                                )
-                        ),
-                        ObjectMapperType.GSON
-                )
-                .post("/auditEntity")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+        // create auditEntity 1 and validate the created entity
+        String actual = createAuditEntity(AUDIT_1);
 
         assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
         assertTrue(logger.logMessages.contains("old: null\n"
@@ -102,7 +111,6 @@ public class AuditIT extends IntegrationTest {
     }
 
     @Test
-    @Order(2)
     public void testAuditOnUpdate() {
         String expected = datum(
                 resource(
@@ -124,61 +132,20 @@ public class AuditIT extends IntegrationTest {
                 )
         ).toJSON();
 
-        String actual = given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        datum(
-                                resource(
-                                        type("auditEntity"),
-                                        id("2"),
-                                        attributes(
-                                                attr("value", "test def")
-                                        ),
-                                        relationships(
-                                                relation(
-                                                        "otherEntity",
-                                                        true,
-                                                        linkage(
-                                                                type("auditEntity"),
-                                                                id("1")
-                                                        )
-                                                )
-                                        )
-                                )
-                        ),
-                        ObjectMapperType.GSON
-                )
-                .post("/auditEntity")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+        // create auditEntity 1
+        createAuditEntity(AUDIT_1);
+
+        // create auditEntity 2 and validate the created entity
+        String actual = createAuditEntity(AUDIT_2);
 
         assertEqualDocuments(actual, expected); // document comparison is needed as the order of relationship can be different
 
+        // update auditEntity 1 directly
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(
-                                resource(
-                                        type("auditEntity"),
-                                        id("1"),
-                                        attributes(
-                                                attr("value", "updated value")
-                                        ),
-                                        relationships(
-                                                relation(
-                                                        "otherEntity",
-                                                        true,
-                                                        linkage(
-                                                                type("auditEntity"),
-                                                                id("2")
-                                                        )
-                                                )
-                                        )
-                                )
-                        ),
+                        datum(AUDIT_1_RELATIONSHIP),
                         ObjectMapperType.GSON
                 )
                 .patch("/auditEntity/1")
@@ -190,8 +157,12 @@ public class AuditIT extends IntegrationTest {
     }
 
     @Test
-    @Order(3)
     public void testAuditWithDuplicateLineageEntry() {
+        // create auditEntity 1 and 2
+        createAuditEntity(AUDIT_1);
+        createAuditEntity(AUDIT_2);
+
+        // update auditEntity 1 through the relationship of auditEntity 2
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -215,9 +186,22 @@ public class AuditIT extends IntegrationTest {
     }
 
     @Test
-    @Order(4)
     public void testAuditUpdateOnInverseCollection() {
-        assertFalse(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+        // create auditEntity 1 and 2, update auditEntity 1 to have relationship to auditEntity 2
+        createAuditEntity(AUDIT_1);
+        createAuditEntity(AUDIT_2);
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(AUDIT_1_RELATIONSHIP),
+                        ObjectMapperType.GSON
+                )
+                .patch("/auditEntity/1")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        assertFalse(logger.logMessages.contains("Inverse entities: [Value: updated value relationship: 2]"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -244,8 +228,8 @@ public class AuditIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list [AuditEntityInverse{id=1, entities=[Value: update id 1 through id 2 relationship: 2]}]"));
-        assertTrue(logger.logMessages.contains("Inverse entities: [Value: update id 1 through id 2 relationship: 2]"));
+        assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list [AuditEntityInverse{id=1, entities=[Value: updated value relationship: 2]}]"));
+        assertTrue(logger.logMessages.contains("Inverse entities: [Value: updated value relationship: 2]"));
 
         // This message may have been added on create. Remove it so we don't get a false positive.
         // NOTE: Our internal audit loggers handle this behavior by ignoring update messages associated with
@@ -263,5 +247,21 @@ public class AuditIT extends IntegrationTest {
 
         assertTrue(logger.logMessages.contains("Entity with id 1 now has inverse list []"));
         assertTrue(logger.logMessages.contains("Inverse entities: []"));
+    }
+
+    private String createAuditEntity(Resource auditEntity) {
+        return given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(auditEntity),
+                        ObjectMapperType.GSON
+                )
+                .post("/auditEntity")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .extract()
+                .body()
+                .asString();
     }
 }
