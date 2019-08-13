@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
 
@@ -38,5 +39,9 @@ public class Book {
     }
 
     @NotNull
+    @ApiModelProperty(required = true)
     public String title;
+
+    @ApiModelProperty(value = "Year published", example = "1999", readOnly = true)
+    public String year;
 }
