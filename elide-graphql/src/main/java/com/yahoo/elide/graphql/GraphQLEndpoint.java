@@ -78,7 +78,7 @@ public class GraphQLEndpoint {
     public GraphQLEndpoint(
             @Named("elide") Elide elide,
             @Named("elideUserExtractionFunction") DefaultOpaqueUserFunction getUser) {
-        log.error("Started ~~");
+        log.debug("Started ~~");
         this.elide = elide;
         this.elideSettings = elide.getElideSettings();
         this.getUser = getUser == null ? DEFAULT_GET_USER : getUser;

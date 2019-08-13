@@ -32,6 +32,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class SubCollectionPageTotalsQueryBuilderTest {
+
+    private static final Author AUTHOR_WITH_ID_1 = Author.builder()
+            .id(1L)
+            .build();
+
     private EntityDictionary dictionary;
 
     private static final String BOOKS = "books";
@@ -48,9 +53,6 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @Test
     public void testSubCollectionPageTotals() {
-        Author author = new Author();
-        author.setId(1L);
-
         Book book = new Book();
         book.setId(2);
 
@@ -58,7 +60,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 Author.class,
                 Book.class,
                 BOOKS,
-                author,
+                AUTHOR_WITH_ID_1,
                 Arrays.asList(book)
         );
 
@@ -104,9 +106,6 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @Test
     public void testSubCollectionPageTotalsWithJoinFilter() {
-        Author author = new Author();
-        author.setId(1L);
-
         Book book = new Book();
         book.setId(2);
 
@@ -114,7 +113,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 Author.class,
                 Book.class,
                 BOOKS,
-                author,
+                AUTHOR_WITH_ID_1,
                 Arrays.asList(book)
         );
 

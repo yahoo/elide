@@ -24,7 +24,9 @@ import com.yahoo.elide.contrib.testhelpers.graphql.elements.ObjectField;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.ScalarField;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Selection;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.SelectionSet;
-import com.yahoo.elide.contrib.testhelpers.relayjsonapi.RelayJsonApiDSL;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,10 +91,115 @@ import java.util.stream.Collectors;
  * }
  * }
  * </pre>
- * Caller should use {@link GraphQLDSL} to construct test GraphQL query and use {@link RelayJsonApiDSL} to verify the query
- * results.
+ * In addition, {@link GraphQLDSL} also allows programmatically constructing GraphQL response data. For example,
+ * <pre>
+ * {@code
+ * document(
+ *         selection(
+ *                 responseField(
+ *                         "book",
+ *                         selections(
+ *                                 responseField("id", "3"),
+ *                                 responseField("title", "Doctor Zhivago"),
+ *                                 responseField(
+ *                                         "publisher",
+ *                                         selection(
+ *                                                 responseField("id", "2")
+ *                                         )
+ *                                 )
+ *                         ),
+ *                         selections(
+ *                                 responseField("id", "1"),
+ *                                 responseField("title", "Libro Uno"),
+ *                                 responseField(
+ *                                         "publisher",
+ *                                         selection(
+ *                                                 responseField("id", "1")
+ *                                         )
+ *                                 )
+ *                         ),
+ *                         selections(
+ *                                 responseField("id", "2"),
+ *                                 responseField("title", "Libro Dos"),
+ *                                 responseField(
+ *                                         "publisher",
+ *                                         selection(
+ *                                                 responseField("id", "1")
+ *                                         )
+ *                                 )
+ *                         )
+ *                 )
+ *         )
+ * ).toResponse();
+ * }
+ * </pre>
+ * produces the following response:
+ * <pre>
+ * {@code
+ * {
+ *     "data":{
+ *         "book":{
+ *             "edges":[
+ *                 {
+ *                     "node":{
+ *                         "id":"3",
+ *                         "title":"Doctor Zhivago",
+ *                         "publisher":{
+ *                             "edges":[
+ *                                 {
+ *                                     "node":{
+ *                                         "id":"2"
+ *                                     }
+ *                                 }
+ *                             ]
+ *                         }
+ *                     }
+ *                 },
+ *                 {
+ *                     "node":{
+ *                         "id":"1",
+ *                         "title":"Libro Uno",
+ *                         "publisher":{
+ *                             "edges":[
+ *                                 {
+ *                                     "node":{
+ *                                         "id":"1"
+ *                                     }
+ *                                 }
+ *                             ]
+ *                         }
+ *                     }
+ *                 },
+ *                 {
+ *                     "node":{
+ *                         "id":"2",
+ *                         "title":"Libro Dos",
+ *                         "publisher":{
+ *                             "edges":[
+ *                                 {
+ *                                     "node":{
+ *                                         "id":"1"
+ *                                     }
+ *                                 }
+ *                             ]
+ *                         }
+ *                     }
+ *                 }
+ *             ]
+ *         }
+ *     }
+ * }
+ * }
+ * </pre>
+ * Note that {@link GraphQLDSL} follows Relay's connection pattern(https://graphql.org/learn/pagination/).
  */
 public final class GraphQLDSL {
+
+    /**
+     * Serializes expected JSON object to a string.
+     */
+    static private final Gson GSON_INSTANCE = new GsonBuilder()
+            .serializeNulls().create();
 
     /**
      * Constructor.
@@ -358,7 +465,7 @@ public final class GraphQLDSL {
      *
      * @return a GraphQL spec
      */
-    public static ValueWithVariable objectValueWithVariable(String object) {
+    public static ValueWithVariable objectValueWithVariable(Object object) {
         return new ObjectValueWithVariable(object);
     }
 
@@ -371,6 +478,60 @@ public final class GraphQLDSL {
      */
     public static ValueWithVariable enumValue(String enumValue) {
         return new EnumValue(enumValue);
+    }
+
+    /**
+     * Creates an response attribute(scalar field).
+     *
+     * @param name  The name of the selected attribute that would appear in a GraphQL query.
+     * @param value  The attribute value
+     *
+     * @return a field that represents an non-reltionship entity response attribute
+     */
+    public static Selection responseField(String name, String value) {
+        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withQuotedValue(name, value);
+    }
+
+    /**
+     * Creates an response attribute(scalar field) whose value is {@code null}(unquoted).
+     *
+     * @param name  The name of the selected attribute that would appear in a GraphQL query.
+     *
+     * @return a field that represents an non-reltionship entity response attribute whose value is
+     * {@code null}(unquoted)
+     */
+    public static Selection nullResponseField(String name) {
+        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withUnquotedValue(name, null);
+    }
+
+    /**
+     * Creates an response attribute(scalar field) whose value is a GSON-serializable object, such as map.
+     *
+     * @param name  The name of the selected attribute that would appear in a GraphQL query.
+     *
+     * @return a field that represents an non-reltionship entity response attribute whose value a GSON-serializable
+     * object, such as map.
+     */
+    public static Selection jsonResponseField(String name, Object jsonOjbect) {
+        return com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ScalarField.withUnquotedValue(
+                name,
+                GSON_INSTANCE.toJson(jsonOjbect)
+        );
+    }
+
+    /**
+     * Creates a entity(object field) response attribute.
+     *
+     * @param name  The name of the selected entity/field that would appear in a GraphQL query
+     * @param nodes  All instances of the entity in the response data
+     *
+     * @return an entity selection instantiation
+     */
+    public static Selection responseField(String name, SelectionSet... nodes) {
+        return new com.yahoo.elide.contrib.testhelpers.graphql.elements.response.ObjectField(
+                name,
+                Arrays.asList(nodes)
+        );
     }
 
     /**

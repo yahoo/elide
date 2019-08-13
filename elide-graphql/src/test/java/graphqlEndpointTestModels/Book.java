@@ -20,6 +20,7 @@ import com.yahoo.elide.security.RequestScope;
 
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
+import lombok.Builder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 
+/**
+ * Model for book.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
+ */
 @Include(rootLevel = true)
 @Entity
 @CreatePermission(expression = UserChecks.IS_USER_1)
