@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.core.filter.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.InPredicate;
@@ -13,18 +16,17 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
 public class FilterPredicatePushdownExtractorTest {
 
-    private EntityDictionary dictionary;
+    private static EntityDictionary dictionary;
 
-    @BeforeTest
-    public void init() {
+    @BeforeAll
+    public static void init() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -39,7 +41,7 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, expression);
 
-        Assert.assertEquals(extracted, expression);
+        assertEquals(expression, extracted);
     }
 
     @Test
@@ -54,7 +56,7 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
 
-        Assert.assertNull(extracted);
+        assertNull(extracted);
     }
 
     @Test
@@ -69,6 +71,6 @@ public class FilterPredicatePushdownExtractorTest {
 
         FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
 
-        Assert.assertEquals(extracted, ((InPredicate) dataStoreExpression).negate());
+        assertEquals(((InPredicate) dataStoreExpression).negate(), extracted);
     }
 }

@@ -5,30 +5,30 @@
  */
 package com.yahoo.elide.core;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
 
 import java.lang.reflect.AccessibleObject;
 import java.util.List;
-
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 
 public class EntityBindingTest {
-    private EntityBinding entityBinding;
+    private static EntityBinding entityBinding;
 
     @Mock
+    static
     EntityDictionary entityDictionary;
 
-    @BeforeTest
-    public void init() {
+    @BeforeAll
+    public static void init() {
         entityBinding = new EntityBinding(entityDictionary, ChildClass.class, "child", "childBinding");
     }
 
@@ -36,7 +36,7 @@ public class EntityBindingTest {
     public void testGetAllFields() throws Exception {
         List<AccessibleObject> allFields = entityBinding.getAllFields();
 
-        assertEquals(allFields.size(), 2);
+        assertEquals(2, allFields.size());
         assertEquals(allFields.get(0), ChildClass.class.getDeclaredField("childField"));
         assertEquals(allFields.get(1), ParentClass.class.getDeclaredField("parentField"));
     }
