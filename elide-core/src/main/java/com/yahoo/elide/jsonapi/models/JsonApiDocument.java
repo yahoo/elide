@@ -43,7 +43,6 @@ public class JsonApiDocument {
 
     public void setData(Data<Resource> data) {
         this.data = data;
-        this.meta = null;
     }
 
     public Data<Resource> getData() {
