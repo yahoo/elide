@@ -45,9 +45,11 @@ import javax.persistence.Table;
 
 /**
  * Model for books.
+ * <p>
+ * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
+ * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
 @Entity
-@Builder
 @SharePermission
 @Table(name = "book")
 @Include(rootLevel = true)

@@ -360,10 +360,10 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedMutationAndRead() throws IOException, JSONException {
-        example.Book book = example.Book.builder()
+        Book book = Book.builder()
                 .id(1)
                 .title("my new book!")
-                .author(example.Author.builder().id(2L).build())
+                .author(Author.builder().id(2L).build())
                 .build();
 
 
@@ -513,7 +513,7 @@ public class GraphQLEndpointTest {
         User principal = new User().withName("1");
         Mockito.when(user.getUserPrincipal()).thenReturn(principal);
 
-        example.Book book = example.Book.builder()
+        Book book = Book.builder()
                 .id(1)
                 .title("my new book!")
                 .build();
@@ -564,7 +564,7 @@ public class GraphQLEndpointTest {
     void testAuditLogging() throws IOException {
         Mockito.reset(audit);
 
-        example.Book book = example.Book.builder()
+        Book book = Book.builder()
                 .title("my new book!")
                 .build();
 
@@ -599,10 +599,10 @@ public class GraphQLEndpointTest {
 
     @Test
     void testSuccessfulMutation() throws JSONException {
-        example.Book book = example.Book.builder()
+        Book book = Book.builder()
                 .id(123)
                 .title("my new book!")
-                .author(example.Author.builder().id(2L).build())
+                .author(Author.builder().id(2L).build())
                 .build();
 
         String graphQLRequest = document(
@@ -697,7 +697,7 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedCommitCheck() throws IOException {
-        example.Book book = example.Book.builder()
+        Book book = Book.builder()
                 .id(1)
                 .title("update title")
                 .build();
