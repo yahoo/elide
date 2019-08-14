@@ -7,6 +7,8 @@ package example;
 
 import com.yahoo.elide.annotation.Exclude;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.UUID;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,6 +18,7 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class BaseId {
     protected long id;
+    @JsonIgnore
     protected String naturalKey = UUID.randomUUID().toString();
 
     @Id

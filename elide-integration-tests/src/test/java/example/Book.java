@@ -12,10 +12,16 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SharePermission;
+import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import org.hibernate.annotations.Formula;
+
+import lombok.Builder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +49,10 @@ import javax.persistence.Transient;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class Book extends BaseId {
+
+    @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
     private String title;
     private String genre;
     private String language;
@@ -91,6 +100,7 @@ public class Book extends BaseId {
      * @return The number of chapters in a book.
      */
     @Formula(value = "(SELECT COUNT(*) FROM book AS b JOIN book_chapter AS bc ON bc.book_id = b.id WHERE id=b.id)")
+    @JsonIgnore
     public int getChapterCount() {
         return chapters.size();
     }

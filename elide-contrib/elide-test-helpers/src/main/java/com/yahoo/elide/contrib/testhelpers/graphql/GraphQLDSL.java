@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.testhelpers.graphql;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Argument;
+import com.yahoo.elide.contrib.testhelpers.graphql.elements.ArrayValueWithVariable;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Definition;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.Document;
 import com.yahoo.elide.contrib.testhelpers.graphql.elements.EnumValue;
@@ -326,7 +327,24 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection entity(String name, SelectionSet selectionSet) {
-        return ObjectField.withoutArguments(name, relayWrap(selectionSet));
+        return new ObjectField(null, name, Arguments.emptyArgument(), relayWrap(selectionSet));
+    }
+
+    /**
+     * Creates a single top-level entity(object field) aliased-selection without {@link Argument}s.
+     *
+     * @param alias  The alias of the {@code name}
+     * @param name  The name of the selected entity/field that would appear in a GraphQL query
+     * @param selectionSet  The fields of the entity that are selected
+     *
+     * @return a top-level selection
+     *
+     * @see <a href="https://graphql.org/learn/queries/#aliases">Aliases</a>
+     * @see <a href="https://graphql.org/learn/queries/#fields">Fields</a>
+     * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
+     */
+    public static Selection entity(String alias, String name, SelectionSet selectionSet) {
+        return new ObjectField(alias, name, Arguments.emptyArgument(), relayWrap(selectionSet));
     }
 
     /**
@@ -343,7 +361,7 @@ public final class GraphQLDSL {
      * @see <a href="https://graphql.org/learn/schema/#object-types-and-fields">Object Types and Fields</a>
      */
     public static Selection entity(String name, Arguments arguments, SelectionSet selectionSet) {
-        return new ObjectField(name, arguments, relayWrap(selectionSet));
+        return new ObjectField(null, name, arguments, relayWrap(selectionSet));
     }
 
     /**
@@ -478,6 +496,51 @@ public final class GraphQLDSL {
      */
     public static ValueWithVariable enumValue(String enumValue) {
         return new EnumValue(enumValue);
+    }
+
+    /**
+     * Creates a string value that represents a list of {@link ValueWithVariable values}.
+     *
+     * @param values  The list elements
+     *
+     * @return a GraphQL representation of list of values
+     */
+    public static ValueWithVariable arrayValueWithVariable(ValueWithVariable... values) {
+        return new ArrayValueWithVariable(Arrays.asList(values));
+    }
+
+    /**
+     * Creates a single root-entity response selection spec.
+     *
+     * @param selection  The single selection spec object
+     *
+     * @return a definition of a multi-definitions GraphQL response
+     *
+     * @see com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet
+     */
+    public static com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet responseSelection(
+            Selection selection
+    ) {
+        return new com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet(
+                new LinkedHashSet<>(Collections.singleton(selection))
+        );
+    }
+
+    /**
+     * Creates a multi-root-entities response selections spec.
+     *
+     * @param selections  An variable-sized array of selection spec objects
+     *
+     * @return a definition of a multi-definitions GraphQL response
+     *
+     * @see com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet
+     */
+    public static com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet responseSelections(
+            Selection... selections
+    ) {
+        return new com.yahoo.elide.contrib.testhelpers.graphql.elements.response.SelectionSet(
+                Arrays.stream(selections).collect(Collectors.toCollection(LinkedHashSet::new))
+        );
     }
 
     /**

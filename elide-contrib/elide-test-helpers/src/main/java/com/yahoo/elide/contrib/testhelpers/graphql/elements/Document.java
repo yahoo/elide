@@ -45,26 +45,100 @@ public class Document implements Serializable {
      * @return a string representation of a GraphQL query
      */
     public String toQuery() {
-        return serialize();
+        return getDefinitions().stream()
+                .map(Definition::toGraphQLSpec)
+                .collect(Collectors.joining(" "));
     }
 
     /**
      * Returns the complete GraphQL response that this {@link Document} represents.
+     * <p>
+     * In the case of multiple {@link Definition response definitions}, a pair of square brackets is surrounding the
+     * entire response. For example:
+     * <pre>
+     * {@code
+     * {
+     *     "data": {
+     *         "book": {
+     *             "edges": [
+     *                 {
+     *                     "node": {
+     *                         "id": "1",
+     *                         "title": "1984",
+     *                         "authors": {
+     *                             "edges": [
+     *                                 {
+     *                                     "node": {
+     *                                         "id": "1",
+     *                                         "name": "George Orwell"
+     *                                     }
+     *                                 }
+     *                             ]
+     *                         }
+     *                     }
+     *                 },
+     *                 {
+     *                     "node": {
+     *                         "id": "2",
+     *                         "title": "Grapes of Wrath",
+     *                         "authors": {
+     *                             "edges": [
+     *                                 {
+     *                                     "node": {
+     *                                         "id": "2",
+     *                                         "name": "John Setinbeck"
+     *                                     }
+     *                                 }
+     *                             ]
+     *                         }
+     *                     }
+     *                 }
+     *             ]
+     *         }
+     *     }
+     * }
+     *
+     * [
+     *     {
+     *         "data": {
+     *             "book": {
+     *                 "edges": [
+     *                     {
+     *                         "node": {
+     *                             "id": "4",
+     *                             "title": "my book created in batch!"
+     *                         }
+     *                     }
+     *                 ]
+     *             }
+     *         }
+     *     },
+     *     {
+     *         "data": {
+     *             "book": {
+     *                 "edges": [
+     *                     {
+     *                         "node": {
+     *                             "id": "4",
+     *                             "title": "my book created in batch!"
+     *                         }
+     *                     }
+     *                 ]
+     *             }
+     *         }
+     *     }
+     * ]
+     * }
+     * </pre>
      *
      * @return a string representation of a GraphQL response
      */
     public String toResponse() {
-        return String.format("{\"data\":%s}", serialize());
-    }
-
-    /**
-     * Turns this {@link Document} into its string representation.
-     *
-     * @return a string representation of a GraphQL query
-     */
-    private String serialize() {
-        return getDefinitions().stream()
-                .map(Definition::toGraphQLSpec)
-                .collect(Collectors.joining(" "));
+        return String.format(
+                getDefinitions().size() == 1 ? "%s" : "[%s]",
+                getDefinitions().stream()
+                        .map(definition -> String.format("{\"data\":%s}", definition.toGraphQLSpec()))
+                        .collect(Collectors.joining(","))
+        );
     }
 }
