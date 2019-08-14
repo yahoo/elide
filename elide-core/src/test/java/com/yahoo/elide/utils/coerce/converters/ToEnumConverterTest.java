@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.utils.coerce.converters;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-
 import org.apache.commons.beanutils.Converter;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class ToEnumConverterTest {
@@ -20,7 +20,7 @@ public class ToEnumConverterTest {
 
     public enum Seasons { WINTER, SPRING, SUMMER, FALL }
 
-    @BeforeMethod
+    @BeforeEach
     public void setUp() throws Exception {
        this.converter = new ToEnumConverter();
     }
@@ -28,38 +28,46 @@ public class ToEnumConverterTest {
     @Test
     public void testIntToEnumConversion() throws Exception {
 
-        assertEquals(converter.convert(Seasons.class, 0),  Seasons.WINTER,
+        assertEquals(
+                Seasons.WINTER,
+                converter.convert(Seasons.class, 0),
                 "Enum converter correctly converted int to enum");
 
-        assertEquals(converter.convert(Seasons.class, 1),  Seasons.SPRING,
+        assertEquals(
+                Seasons.SPRING,
+                converter.convert(Seasons.class, 1),
                 "Enum converter correctly converted int to enum");
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testMissingNumberValueException() throws Exception {
 
-        converter.convert(Seasons.class, 5);
+        assertThrows(InvalidAttributeException.class, () -> converter.convert(Seasons.class, 5));
     }
 
     @Test
     public void testStringToEnumConversion() throws Exception {
 
-        assertEquals(converter.convert(Seasons.class, "SUMMER"),  Seasons.SUMMER,
+        assertEquals(
+                Seasons.SUMMER,
+                converter.convert(Seasons.class, "SUMMER"),
                 "Enum converter correctly converted String to enum");
 
-        assertEquals(converter.convert(Seasons.class, "FALL"),  Seasons.FALL,
+        assertEquals(
+                Seasons.FALL,
+                converter.convert(Seasons.class, "FALL"),
                 "Enum converter correctly converted String to enum");
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testMissingStringValueException() throws Exception {
 
-        converter.convert(Seasons.class, "AUTUMN");
+        assertThrows(InvalidAttributeException.class, () -> converter.convert(Seasons.class, "AUTUMN"));
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testInvalidType() throws Exception {
 
-        converter.convert(Seasons.class, 'A');
+        assertThrows(InvalidAttributeException.class, () -> converter.convert(Seasons.class, 'A'));
     }
 }

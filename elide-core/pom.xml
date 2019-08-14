@@ -43,6 +43,10 @@
         <tag>HEAD</tag>
     </scm>
 
+    <properties>
+        <junit.version>5.4.1</junit.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
@@ -51,7 +55,6 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-example-models</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -75,7 +78,6 @@
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
             <version>2.2</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -150,7 +152,34 @@
             <version>1.2.2</version>
         </dependency>
 
-        <!-- Test -->
+        <!--
+            ============================
+            Test dependencies
+            ============================
+        -->
+
+        <!-- JUnit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -159,11 +188,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

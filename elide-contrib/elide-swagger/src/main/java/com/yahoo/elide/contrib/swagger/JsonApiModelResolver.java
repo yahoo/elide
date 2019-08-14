@@ -14,7 +14,9 @@ import com.yahoo.elide.contrib.swagger.property.Relationship;
 import com.yahoo.elide.core.EntityDictionary;
 
 import com.fasterxml.jackson.databind.type.SimpleType;
+import org.apache.commons.lang3.StringUtils;
 
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.jackson.ModelResolver;
@@ -23,8 +25,10 @@ import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Swagger ModelResolvers map POJO classes to Swagger com.yahoo.elide.contrib.swagger.models.
@@ -70,9 +74,7 @@ public class JsonApiModelResolver extends ModelResolver {
         for (String attributeName : attributeNames) {
             Class<?> attributeClazz = dictionary.getType(clazz, attributeName);
 
-            Property attribute = super.resolveProperty(attributeClazz, context, null, next);
-
-            attribute.setDescription(getFieldPermissions(clazz, attributeName));
+            Property attribute = processAttribute(clazz, attributeName, attributeClazz, context, next);
             entitySchema.addAttribute(attributeName, attribute);
         }
 
@@ -98,6 +100,46 @@ public class JsonApiModelResolver extends ModelResolver {
         return entitySchema;
     }
 
+    private Property processAttribute(Class<?> clazz, String attributeName, Class<?> attributeClazz,
+        ModelConverterContext context, Iterator<ModelConverter> next) {
+
+        Property attribute = super.resolveProperty(attributeClazz, context, null, next);
+
+        String permissions = getFieldPermissions(clazz, attributeName);
+        String description = getFieldDescription(clazz, attributeName);
+
+        attribute.setDescription(joinNonEmpty("\n", description, permissions));
+        attribute.setExample((Object) getFieldExample(clazz, attributeName));
+        attribute.setReadOnly(getFieldReadOnly(clazz, attributeName));
+        attribute.setRequired(getFieldRequired(clazz, attributeName));
+
+        return attribute;
+    }
+
+    private ApiModelProperty getApiModelProperty(Class<?> clazz, String fieldName) {
+        return dictionary.getAttributeOrRelationAnnotation(clazz, ApiModelProperty.class, fieldName);
+    }
+
+    private boolean getFieldRequired(Class<?> clazz, String fieldName) {
+        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        return property != null && property.required();
+    }
+
+    private boolean getFieldReadOnly(Class<?> clazz, String fieldName) {
+        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        return property != null && property.readOnly();
+    }
+
+    private String getFieldExample(Class<?> clazz, String fieldName) {
+        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        return property == null ? "" : property.example();
+    }
+
+    private String getFieldDescription(Class<?> clazz, String fieldName) {
+        ApiModelProperty property = getApiModelProperty(clazz, fieldName);
+        return property == null ? "" : property.value();
+    }
+
     /**
      * Get the class-level permission annotation value.
      *
@@ -108,10 +150,14 @@ public class JsonApiModelResolver extends ModelResolver {
         String createPermissions = getCreatePermission(clazz);
         String deletePermissions = getDeletePermission(clazz);
 
+        createPermissions = (createPermissions == null) ? "" : "Create Permissions : (" + createPermissions + ")";
+        deletePermissions = (deletePermissions == null) ? "" : "Delete Permissions : (" + deletePermissions + ")";
+        return joinNonEmpty("\n", createPermissions, deletePermissions);
+    }
 
-        createPermissions = (createPermissions == null) ? "" : "Create Permissions : (" + createPermissions + ")\n";
-        deletePermissions = (deletePermissions == null) ? "" : "Delete Permissions : (" + deletePermissions + ")\n";
-        return createPermissions + deletePermissions;
+    private String joinNonEmpty(String delimiter, String... elements) {
+        return Arrays.stream(elements).filter(StringUtils::isNotBlank)
+            .collect(Collectors.joining(delimiter));
     }
 
     /**
@@ -125,9 +171,9 @@ public class JsonApiModelResolver extends ModelResolver {
         String readPermissions = getReadPermission(clazz, fieldName);
         String updatePermissions = getUpdatePermission(clazz, fieldName);
 
-        readPermissions = (readPermissions == null) ? "" : "Read Permissions : (" + readPermissions + ")\n";
-        updatePermissions = (updatePermissions == null) ? "" : "Update Permissions : (" + updatePermissions + ")\n";
-        return readPermissions + updatePermissions;
+        readPermissions = (readPermissions == null) ? "" : "Read Permissions : (" + readPermissions + ")";
+        updatePermissions = (updatePermissions == null) ? "" : "Update Permissions : (" + updatePermissions + ")";
+        return joinNonEmpty("\n", readPermissions, updatePermissions);
     }
 
     /**

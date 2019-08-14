@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.core.filter.expression;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.InPredicate;
@@ -13,18 +16,17 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
 public class InMemoryExecutionVerifierTest {
 
-    private EntityDictionary dictionary;
+    private static EntityDictionary dictionary;
 
-    @BeforeTest
-    public void init() {
+    @BeforeAll
+    public static void init() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -37,7 +39,7 @@ public class InMemoryExecutionVerifierTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        Assert.assertFalse(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, expression));
+        assertFalse(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, expression));
     }
 
     @Test
@@ -50,7 +52,7 @@ public class InMemoryExecutionVerifierTest {
 
         FilterExpression finalExpression = new NotFilterExpression(new AndFilterExpression(dataStoreExpression, inMemoryExpression));
 
-        Assert.assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
+        assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
     }
 
     @Test
@@ -63,6 +65,6 @@ public class InMemoryExecutionVerifierTest {
 
         FilterExpression finalExpression = new NotFilterExpression(new OrFilterExpression(dataStoreExpression, inMemoryExpression));
 
-        Assert.assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
+        assertTrue(InMemoryExecutionVerifier.shouldExecuteInMemory(dictionary, finalExpression));
     }
 }
