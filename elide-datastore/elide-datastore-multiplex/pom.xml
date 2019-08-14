@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>4.4.6-SNAPSHOT</version>
+        <version>4.5.1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,19 +47,19 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-inmemorydb</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
+            <version>3.0.1</version>
             <type>jar</type>
             <scope>test</scope>
         </dependency>
@@ -121,6 +121,16 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy-agent</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

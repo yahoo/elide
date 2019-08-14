@@ -1,0 +1,8 @@
+id,name,description,modifiedDate,price
+1,Snare Drum,A brass snare drum,2018-01-01 00:00:00,4000
+2,Ride Cymbal,A 16 inch ride cymbal,2018-01-01 00:00:00,250
+3,Bass Drum,A 22 inch base drum,2018-01-01 00:00:00,600
+4,Cymbal Stand, A cymbal stand,2018-02-01 00:00:00,50
+5,Cymbal Stand, B cymbal stand,2018-01-01 00:00:00,75
+6,Test !Escaping -Lucene +Query,Escape character test,2018-01-01 00:00:00,0
+7,Test	Tab,Tab Test,2018-01-01 00:00:00,0

@@ -6,6 +6,7 @@
 package com.yahoo.elide.contrib.swagger.models;
 
 import com.yahoo.elide.annotation.Include;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,4 +45,7 @@ public class Publisher {
     public Address billingAddress;
 
     public Map<String, Integer> billingCodes;
+
+    @ApiModelProperty(value = "Phone number", example = "555-000-1111")
+    public String phone;
 }

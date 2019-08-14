@@ -1,0 +1,7 @@
+{
+  "errors": [
+    {
+      "detail":"InvalidCollectionException: Unknown collection &#39;unknown&#39;"
+    }
+  ]
+}

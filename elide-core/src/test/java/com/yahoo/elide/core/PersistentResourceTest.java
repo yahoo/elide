@@ -5,6 +5,14 @@
  */
 package com.yahoo.elide.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,7 +49,6 @@ import com.yahoo.elide.security.checks.OperationCheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Color;
 import example.ComputedBean;
@@ -62,16 +69,12 @@ import example.Shape;
 import example.packageshareable.ContainerWithPackageShare;
 import example.packageshareable.ShareableWithPackageShare;
 import example.packageshareable.UnshareableWithEntityUnshare;
-
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,7 +88,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -107,10 +109,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                 new User(1), null, elideSettings);
         badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
                 new User(-1), null, elideSettings);
+
+        init();
     }
 
-    @BeforeTest
-    public void init() {
+    void init() {
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(FunWithPermissions.class);
@@ -332,22 +335,22 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Map<String, Relationship> relationships = funResource.getRelationships();
 
-        Assert.assertEquals(relationships.size(), 5, "All relationships should be returned.");
-        Assert.assertTrue(relationships.containsKey("relation1"), "relation1 should be present");
-        Assert.assertTrue(relationships.containsKey("relation2"), "relation2 should be present");
-        Assert.assertTrue(relationships.containsKey("relation3"), "relation3 should be present");
-        Assert.assertTrue(relationships.containsKey("relation4"), "relation4 should be present");
-        Assert.assertTrue(relationships.containsKey("relation5"), "relation5 should be present");
+        assertEquals(5, relationships.size(), "All relationships should be returned.");
+        assertTrue(relationships.containsKey("relation1"), "relation1 should be present");
+        assertTrue(relationships.containsKey("relation2"), "relation2 should be present");
+        assertTrue(relationships.containsKey("relation3"), "relation3 should be present");
+        assertTrue(relationships.containsKey("relation4"), "relation4 should be present");
+        assertTrue(relationships.containsKey("relation5"), "relation5 should be present");
 
         PersistentResource<FunWithPermissions> funResourceWithBadScope = new PersistentResource<>(fun, null, "3", badUserScope);
         relationships = funResourceWithBadScope.getRelationships();
 
-        Assert.assertEquals(relationships.size(), 0, "All relationships should be filtered out");
+        assertEquals(0, relationships.size(), "All relationships should be filtered out");
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testNoCreate() {
-        Assert.assertNotNull(dictionary);
+        assertNotNull(dictionary);
         NoCreateEntity noCreate = new NoCreateEntity();
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
@@ -355,7 +358,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1")); // should throw here
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> PersistentResource.createObject(
+                        null, NoCreateEntity.class, goodScope, Optional.of("1"))); // should throw here
     }
 
     @Test
@@ -370,30 +376,30 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Map<String, Object> attributes = funResource.getAttributes();
 
-        Assert.assertEquals(attributes.size(), 6,
+        assertEquals(6, attributes.size(),
                 "A valid user should have access to all attributes that are readable."
         );
 
-        Assert.assertTrue(attributes.containsKey("field2"), "Readable attributes should include field2");
-        Assert.assertTrue(attributes.containsKey("field3"), "Readable attributes should include field3");
-        Assert.assertTrue(attributes.containsKey("field4"), "Readable attributes should include field4");
-        Assert.assertTrue(attributes.containsKey("field5"), "Readable attributes should include field5");
-        Assert.assertTrue(attributes.containsKey("field6"), "Readable attributes should include field6");
-        Assert.assertTrue(attributes.containsKey("field8"), "Readable attributes should include field8");
-        Assert.assertEquals(attributes.get("field2"), null, "field2 should be set to original value.");
-        Assert.assertEquals(attributes.get("field3"), "Foobar", "field3 should be set to original value.");
-        Assert.assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
+        assertTrue(attributes.containsKey("field2"), "Readable attributes should include field2");
+        assertTrue(attributes.containsKey("field3"), "Readable attributes should include field3");
+        assertTrue(attributes.containsKey("field4"), "Readable attributes should include field4");
+        assertTrue(attributes.containsKey("field5"), "Readable attributes should include field5");
+        assertTrue(attributes.containsKey("field6"), "Readable attributes should include field6");
+        assertTrue(attributes.containsKey("field8"), "Readable attributes should include field8");
+        assertNull(attributes.get("field2"), "field2 should be set to original value.");
+        assertEquals(attributes.get("field3"), "Foobar", "field3 should be set to original value.");
+        assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
 
         PersistentResource<FunWithPermissions> funResourceBad = new PersistentResource<>(fun, null, "3", badUserScope);
 
         attributes = funResourceBad.getAttributes();
 
-        Assert.assertEquals(attributes.size(), 3, "An invalid user should have access to a subset of attributes.");
-        Assert.assertTrue(attributes.containsKey("field2"), "Readable attributes should include field2");
-        Assert.assertTrue(attributes.containsKey("field4"), "Readable attributes should include field4");
-        Assert.assertTrue(attributes.containsKey("field5"), "Readable attributes should include field5");
-        Assert.assertEquals(attributes.get("field2"), null, "field2 should be set to original value.");
-        Assert.assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
+        assertEquals(3, attributes.size(), "An invalid user should have access to a subset of attributes.");
+        assertTrue(attributes.containsKey("field2"), "Readable attributes should include field2");
+        assertTrue(attributes.containsKey("field4"), "Readable attributes should include field4");
+        assertTrue(attributes.containsKey("field5"), "Readable attributes should include field5");
+        assertNull(attributes.get("field2"), "field2 should be set to original value.");
+        assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
     }
 
     @Test
@@ -413,9 +419,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
             Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources);
-            Assert.assertEquals(results.size(), 2, "Only a subset of the children are readable");
-            Assert.assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
-            Assert.assertTrue(results.contains(child3Resource), "Readable children includes children with positive IDs");
+            assertEquals(2, results.size(), "Only a subset of the children are readable");
+            assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
+            assertTrue(results.contains(child3Resource), "Readable children includes children with positive IDs");
         }
 
         {
@@ -428,7 +434,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     Sets.newHashSet(child1Resource, child2Resource, child3Resource, child4Resource);
 
             Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class, resources);
-            Assert.assertEquals(results.size(), 0, "No children are readable by an invalid user");
+            assertEquals(0, results.size(), "No children are readable by an invalid user");
         }
     }
 
@@ -437,13 +443,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField3("testValue");
         String result;
-        result = (String) getValue(fun, "field3",  getRequestScope());
-        Assert.assertEquals(result, "testValue", "getValue should set the appropriate value in the resource");
+        result = (String) getValue(fun, "field3", getRequestScope());
+        assertEquals("testValue", result, "getValue should set the appropriate value in the resource");
 
         fun.setField1("testValue2");
 
         result = (String) getValue(fun, "field1", getRequestScope());
-        Assert.assertEquals(result, "testValue2", "getValue should set the appropriate value in the resource");
+        assertEquals(result, "testValue2", "getValue should set the appropriate value in the resource");
 
         Child testChild = newChild(3);
         fun.setRelation1(Sets.newHashSet(testChild));
@@ -451,8 +457,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         @SuppressWarnings("unchecked")
         Set<Child> children = (Set<Child>) getValue(fun, "relation1", getRequestScope());
 
-        Assert.assertTrue(children.contains(testChild), "getValue should set the correct relation.");
-        Assert.assertEquals(children.size(), 1, "getValue should set the relation with the correct number of elements");
+        assertTrue(children.contains(testChild), "getValue should set the correct relation.");
+        assertEquals(1, children.size(), "getValue should set the relation with the correct number of elements");
 
         ComputedBean computedBean = new ComputedBean();
 
@@ -460,25 +466,25 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         String computedTest2 = (String) getValue(computedBean, "testWithScope", getRequestScope());
         String computedTest3 = (String) getValue(computedBean, "testWithSecurityScope", getRequestScope());
 
-        Assert.assertEquals(computedTest1, "test1");
-        Assert.assertEquals(computedTest2, "test2");
-        Assert.assertEquals(computedTest3, "test3");
+        assertEquals("test1", computedTest1);
+        assertEquals("test2", computedTest2);
+        assertEquals("test3", computedTest3);
 
         try {
             getValue(computedBean, "NonComputedWithScope", getRequestScope());
-            Assert.fail("Getting a bad relation should throw an InvalidAttributeException.");
+            fail("Getting a bad relation should throw an InvalidAttributeException.");
         } catch (InvalidAttributeException e) {
             // Do nothing
         }
 
         try {
             getValue(fun, "badRelation", getRequestScope());
-            Assert.fail("Getting a bad relation should throw an InvalidAttributeException.");
+            fail("Getting a bad relation should throw an InvalidAttributeException.");
         } catch (InvalidAttributeException e) {
             return;
         }
 
-        Assert.fail("Getting a bad relation should throw an InvalidAttributeException.");
+        fail("Getting a bad relation should throw an InvalidAttributeException.");
     }
 
     @Test
@@ -486,23 +492,23 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         this.obj = fun;
         setValue("field3", "testValue");
-        Assert.assertEquals(fun.getField3(), "testValue", "setValue should set the appropriate value in the resource");
+        assertEquals("testValue", fun.getField3(), "setValue should set the appropriate value in the resource");
 
         setValue("field1", "testValue2");
-        Assert.assertEquals(fun.getField1(), "testValue2", "setValue should set the appropriate value in the resource");
+        assertEquals("testValue2", fun.getField1(), "setValue should set the appropriate value in the resource");
 
         Child testChild = newChild(3);
         setValue("relation1", Sets.newHashSet(testChild));
 
-        Assert.assertTrue(fun.getRelation1().contains(testChild), "setValue should set the correct relation.");
-        Assert.assertEquals(fun.getRelation1().size(), 1, "setValue should set the relation with the correct number of elements");
+        assertTrue(fun.getRelation1().contains(testChild), "setValue should set the correct relation.");
+        assertEquals(fun.getRelation1().size(), 1, "setValue should set the relation with the correct number of elements");
 
         try {
             setValue("badRelation", "badValue");
         } catch (InvalidAttributeException e) {
             return;
         }
-        Assert.fail("Setting a bad relation should throw an InvalidAttributeException.");
+        fail("Setting a bad relation should throw an InvalidAttributeException.");
     }
 
     @Test
@@ -516,28 +522,28 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         coerceable.put("Violet", "Triangle");
         setValue("colorShapeMap", coerceable);
 
-        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Red), Shape.Circle);
-        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Green), Shape.Square);
-        Assert.assertEquals(mapColorShape.getColorShapeMap().get(Color.Violet), Shape.Triangle);
-        Assert.assertEquals(mapColorShape.getColorShapeMap().size(), 3);
+        assertEquals(Shape.Circle, mapColorShape.getColorShapeMap().get(Color.Red));
+        assertEquals(Shape.Square, mapColorShape.getColorShapeMap().get(Color.Green));
+        assertEquals(Shape.Triangle, mapColorShape.getColorShapeMap().get(Color.Violet));
+        assertEquals(3, mapColorShape.getColorShapeMap().size());
     }
 
-    @Test(expectedExceptions = {InvalidValueException.class})
+    @Test
     public void testSetMapInvalidColorEnum() {
         this.obj = new MapColorShape();
 
         HashMap<Object, Object> coerceable = new HashMap<>();
         coerceable.put("InvalidColor", "Circle");
-        setValue("colorShapeMap", coerceable);
+        assertThrows(InvalidValueException.class, () -> setValue("colorShapeMap", coerceable));
     }
 
-    @Test(expectedExceptions = {InvalidValueException.class})
+    @Test
     public void testSetMapInvalidShapeEnum() {
         this.obj = new MapColorShape();
 
         HashMap<Object, Object> coerceable = new HashMap<>();
         coerceable.put("Red", "InvalidShape");
-        setValue("colorShapeMap", coerceable);
+        assertThrows(InvalidValueException.class, () -> setValue("colorShapeMap", coerceable));
     }
 
     @Test
@@ -551,8 +557,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         leftResource.deleteInverseRelation("one2one", right);
 
-        Assert.assertEquals(right.getOne2one(), null, "The one-2-one inverse relationship should have been unset");
-        Assert.assertEquals(left.getOne2one(), right, "The owning relationship should NOT have been unset");
+        assertNull(right.getOne2one(), "The one-2-one inverse relationship should have been unset");
+        assertEquals(right, left.getOne2one(), "The owning relationship should NOT have been unset");
 
         Child child = new Child();
         Parent parent = new Parent();
@@ -564,8 +570,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         childResource.deleteInverseRelation("parents", parent);
 
-        Assert.assertEquals(parent.getChildren().size(), 0, "The many-2-many inverse collection should have been cleared.");
-        Assert.assertTrue(child.getParents().contains(parent), "The owning relationship should NOT have been touched");
+        assertEquals(parent.getChildren().size(), 0, "The many-2-many inverse collection should have been cleared.");
+        assertTrue(child.getParents().contains(parent), "The owning relationship should NOT have been touched");
     }
 
     @Test
@@ -577,7 +583,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         leftResource.addInverseRelation("one2one", right);
 
-        Assert.assertEquals(right.getOne2one(), left, "The one-2-one inverse relationship should have been updated.");
+        assertEquals(left, right.getOne2one(), "The one-2-one inverse relationship should have been updated.");
 
         Child child = new Child();
         Parent parent = new Parent();
@@ -589,8 +595,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         childResource.addInverseRelation("parents", parent);
 
-        Assert.assertEquals(parent.getChildren().size(), 1, "The many-2-many inverse relationship should have been updated");
-        Assert.assertTrue(parent.getChildren().contains(child), "The many-2-many inverse relationship should have been updated");
+        assertEquals(1, parent.getChildren().size(), "The many-2-many inverse relationship should have been updated");
+        assertTrue(parent.getChildren().contains(child), "The many-2-many inverse relationship should have been updated");
     }
 
     @Test
@@ -615,8 +621,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).save(right, goodScope);
         verify(tx, times(1)).getRelation(tx, left, "one2one", Optional.empty(), Optional.empty(), Optional.empty(),
                 goodScope);
-        Assert.assertEquals(updated, true, "The one-2-one relationship should be added.");
-        Assert.assertEquals(left.getOne2one().getId(), 3, "The correct object was set in the one-2-one relationship");
+        assertTrue(updated, "The one-2-one relationship should be added.");
+        assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
     }
 
     /**
@@ -634,8 +640,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
      * </code>
      * </pre>
      */
-    @Test(expectedExceptions = InvalidObjectIdentifierException.class,
-            expectedExceptionsMessageRegExp = "Unknown identifier 'null' for right")
+    @Test
     public void testSuccessfulOneToOneRelationshipAddNull() throws Exception {
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class, Answers.CALLS_REAL_METHODS);
@@ -648,7 +653,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Relationship ids = new Relationship(null, new Data<>(new Resource("right", null, null, null, null, null)));
 
-        leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope));
+        InvalidObjectIdentifierException thrown = assertThrows(
+                InvalidObjectIdentifierException.class,
+                () -> leftResource.updateRelation("one2one", ids.toPersistentResources(goodScope)));
+
+        assertEquals("Unknown identifier 'null' for right", thrown.getMessage());
     }
 
     @Test
@@ -727,9 +736,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, never()).save(child5, goodScope);
         verify(tx, never()).save(child3, goodScope);
 
-        Assert.assertEquals(updated, true, "Many-2-many relationship should be updated.");
-        Assert.assertTrue(parent.getChildren().containsAll(expected), "All expected members were updated");
-        Assert.assertTrue(expected.containsAll(parent.getChildren()), "All expected members were updated");
+        assertTrue(updated, "Many-2-many relationship should be updated.");
+        assertTrue(parent.getChildren().containsAll(expected), "All expected members were updated");
+        assertTrue(expected.containsAll(parent.getChildren()), "All expected members were updated");
 
         /*
          * No tests for reference integrity since the parent is the owner and
@@ -746,37 +755,37 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
         String result = (String) funResource.getAttribute("field2");
-        Assert.assertEquals(result, "blah", "The correct attribute should be returned.");
+        assertEquals("blah", result, "The correct attribute should be returned.");
         result = (String) funResource.getAttribute("field3");
-        Assert.assertEquals(result, null, "The correct attribute should be returned.");
+        assertNull(result, "The correct attribute should be returned.");
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testGetAttributeInvalidField() {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
-        funResource.getAttribute("invalid");
+        assertThrows(InvalidAttributeException.class, () -> funResource.getAttribute("invalid"));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetAttributeInvalidFieldPermissions() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField1("foo");
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
-        funResource.getAttribute("field1");
+        assertThrows(ForbiddenAccessException.class, () -> funResource.getAttribute("field1"));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetAttributeInvalidEntityPermissions() {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "1", goodUserScope);
 
-        noreadResource.getAttribute("field");
+        assertThrows(ForbiddenAccessException.class, () -> noreadResource.getAttribute("field"));
     }
 
     @Test
@@ -794,7 +803,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
-        Assert.assertEquals(results.size(), 3, "All of relation elements should be returned.");
+        assertEquals(3, results.size(), "All of relation elements should be returned.");
     }
 
     @Test
@@ -813,7 +822,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> results = getRelation(funResource, "relation2");
 
-        Assert.assertEquals(results.size(), 2, "Only filtered relation elements should be returned.");
+        assertEquals(2, results.size(), "Only filtered relation elements should be returned.");
     }
 
     @Test
@@ -837,8 +846,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<PersistentResource> results = getRelation(parentResource, "children");
 
-        Assert.assertEquals(results.size(), 1);
-        Assert.assertEquals(((Child) results.iterator().next().getObject()).getName(), "paul john");
+        assertEquals(1, results.size());
+        assertEquals("paul john", ((Child) results.iterator().next().getObject()).getName());
     }
 
     @Test
@@ -857,25 +866,25 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource childResource = parentResource.getRelation("children", "2");
 
-        Assert.assertEquals(childResource.getId(), "2");
-        Assert.assertEquals(((Child) childResource.getObject()).getName(), "john buzzard");
+        assertEquals("2", childResource.getId());
+        assertEquals("john buzzard", ((Child) childResource.getObject()).getName());
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetRelationForbiddenByEntity() {
         NoReadEntity noread = new NoReadEntity();
 
         PersistentResource<NoReadEntity> noreadResource = new PersistentResource<>(noread, null, "3", goodUserScope);
-        getRelation(noreadResource, "child");
+        assertThrows(ForbiddenAccessException.class, () -> getRelation(noreadResource, "child"));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetRelationForbiddenByField() {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badUserScope);
 
-        getRelation(funResource, "relation1");
+        assertThrows(ForbiddenAccessException.class, () -> getRelation(funResource, "relation1"));
     }
 
     @Test
@@ -896,32 +905,32 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fcResource.getAttribute("public1");
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetRelationForbiddenByEntity2() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields, null, "3", badUserScope);
 
-        getRelation(fcResource, "private2");
+        assertThrows(ForbiddenAccessException.class, () -> getRelation(fcResource, "private2"));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testGetAttributeForbiddenByEntity2() {
         FirstClassFields firstClassFields = new FirstClassFields();
 
         PersistentResource<FirstClassFields> fcResource = new PersistentResource<>(firstClassFields,
                 null, "3", goodUserScope);
 
-        fcResource.getAttribute("private1");
+        assertThrows(ForbiddenAccessException.class, () -> fcResource.getAttribute("private1"));
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testGetRelationInvalidRelation() {
         FunWithPermissions fun = new FunWithPermissions();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
-        getRelation(funResource, "invalid");
+        assertThrows(InvalidAttributeException.class, () -> getRelation(funResource, "invalid"));
     }
 
     @Test
@@ -943,10 +952,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<?> result = funResource.getRelation("relation2", "1");
 
-        Assert.assertEquals(((Child) result.getObject()).getId(), 1, "The correct relationship element should be returned");
+        assertEquals(1, ((Child) result.getObject()).getId(), "The correct relationship element should be returned");
     }
 
-    @Test(expectedExceptions = InvalidObjectIdentifierException.class)
+    @Test
     public void testGetRelationByInvalidId() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child1 = newChild(1);
@@ -963,7 +972,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
 
-        funResource.getRelation("relation2", "-1000");
+        assertThrows(InvalidObjectIdentifierException.class, () -> funResource.getRelation("relation2", "-1000"));
     }
 
     @Test
@@ -973,7 +982,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
         Set set = getRelation(funResource, "relation4");
-        Assert.assertEquals(0,  set.size());
+        assertEquals(0, set.size());
     }
 
     @Test
@@ -983,7 +992,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
         Set set  = getRelation(funResource, "relation5");
-        Assert.assertEquals(0,  set.size());
+        assertEquals(0, set.size());
     }
 
     @Test
@@ -1022,7 +1031,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         /* The inverse relation should not be touched for cascading deletes */
         verify(tx, never()).save(item, goodScope);
-        Assert.assertEquals(invoice.getItems().size(), 1);
+        assertEquals(1, invoice.getItems().size());
     }
 
     @Test
@@ -1035,7 +1044,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         Set<Parent> parents = Sets.newHashSet(parent);
         child.setParents(Sets.newHashSet(parent));
 
-        Assert.assertFalse(parent.getChildren().isEmpty());
+        assertFalse(parent.getChildren().isEmpty());
 
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -1051,10 +1060,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).delete(child, goodScope);
         verify(tx, times(1)).save(parent, goodScope);
         verify(tx, never()).delete(parent, goodScope);
-        Assert.assertTrue(parent.getChildren().isEmpty());
+        assertTrue(parent.getChildren().isEmpty());
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     void testDeleteResourceForbidden() {
         NoDeleteEntity nodelete = new NoDeleteEntity();
         nodelete.setId(1);
@@ -1066,7 +1075,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<NoDeleteEntity> nodeleteResource = new PersistentResource<>(nodelete, null, "1", goodScope);
 
-        nodeleteResource.deleteResource();
+        assertThrows(ForbiddenAccessException.class, nodeleteResource::deleteResource);
 
         verify(tx, never()).delete(nodelete, goodScope);
     }
@@ -1091,10 +1100,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, never()).save(child, goodScope); // Child wasn't modified
         verify(tx, times(1)).save(fun, goodScope);
 
-        Assert.assertTrue(fun.getRelation1().contains(child), "The correct element should be added to the relation");
+        assertTrue(fun.getRelation1().contains(child), "The correct element should be added to the relation");
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     void testAddRelationForbiddenByField() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setRelation1(Sets.newHashSet());
@@ -1107,10 +1116,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", badScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", badScope);
-        funResource.addRelation("relation1", childResource);
+        assertThrows(ForbiddenAccessException.class, () -> funResource.addRelation("relation1", childResource));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     void testAddRelationForbiddenByEntity() {
         NoUpdateEntity noUpdate = new NoUpdateEntity();
         noUpdate.setId(1);
@@ -1123,10 +1132,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<NoUpdateEntity> noUpdateResource = new PersistentResource<>(noUpdate, null, "1", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "2", goodScope);
-        noUpdateResource.addRelation("children", childResource);
+        assertThrows(ForbiddenAccessException.class, () -> noUpdateResource.addRelation("children", childResource));
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testAddRelationInvalidRelation() {
         FunWithPermissions fun = new FunWithPermissions();
 
@@ -1138,8 +1147,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
-        funResource.addRelation("invalid", childResource);
-
+        assertThrows(InvalidAttributeException.class, () -> funResource.addRelation("invalid", childResource));
     }
 
     @Test()
@@ -1157,10 +1165,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<Object> removeResource = new PersistentResource<>(parent1, null, "1", goodScope);
         childResource.removeRelation("parents", removeResource);
 
-        Assert.assertEquals(child.getParents().size(), 2, "The many-2-many relationship should be cleared");
-        Assert.assertEquals(parent1.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
+        assertEquals(2, child.getParents().size(), "The many-2-many relationship should be cleared");
+        assertEquals(0, parent1.getChildren().size(), "The many-2-many inverse relationship should be cleared");
+        assertEquals(1, parent3.getChildren().size(), "The many-2-many inverse relationship should not be cleared");
+        assertEquals(1, parent3.getChildren().size(), "The many-2-many inverse relationship should not be cleared");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(child, goodScope);
@@ -1184,7 +1192,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         funResource.removeRelation("relation3", removeResource);
 
-        Assert.assertEquals(fun.getRelation3(), null, "The one-2-one relationship should be cleared");
+        assertNull(fun.getRelation3(), "The one-2-one relationship should be cleared");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(fun, goodScope);
@@ -1277,7 +1285,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         funResource.removeRelation("relation3", removeResource);
 
-        Assert.assertEquals(fun.getRelation3(), ownedChild, "The one-2-one relationship should NOT be cleared");
+        assertEquals(ownedChild, fun.getRelation3(), "The one-2-one relationship should NOT be cleared");
 
         verify(tx, never()).save(fun, goodScope);
         verify(tx, never()).save(ownedChild, goodScope);
@@ -1300,10 +1308,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<Object> removeResource = new PersistentResource<>(unownedParent, null, "1", goodScope);
         childResource.removeRelation("parents", removeResource);
 
-        Assert.assertEquals(child.getParents().size(), 3, "The many-2-many relationship should not be cleared");
-        Assert.assertEquals(parent1.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 1, "The many-2-many inverse relationship should not be cleared");
+        assertEquals(3, child.getParents().size(), "The many-2-many relationship should not be cleared");
+        assertEquals(1, parent1.getChildren().size(), "The many-2-many inverse relationship should not be cleared");
+        assertEquals(1, parent3.getChildren().size(), "The many-2-many inverse relationship should not be cleared");
+        assertEquals(1, parent3.getChildren().size(), "The many-2-many inverse relationship should not be cleared");
 
         verify(tx, never()).save(child, goodScope);
         verify(tx, never()).save(parent1, goodScope);
@@ -1330,10 +1338,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         childResource.clearRelation("parents");
 
-        Assert.assertEquals(child.getParents().size(), 0, "The many-2-many relationship should be cleared");
-        Assert.assertEquals(parent1.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
-        Assert.assertEquals(parent3.getChildren().size(), 0, "The many-2-many inverse relationship should be cleared");
+        assertEquals(0, child.getParents().size(), "The many-2-many relationship should be cleared");
+        assertEquals(0, parent1.getChildren().size(), "The many-2-many inverse relationship should be cleared");
+        assertEquals(0, parent3.getChildren().size(), "The many-2-many inverse relationship should be cleared");
+        assertEquals(0, parent3.getChildren().size(), "The many-2-many inverse relationship should be cleared");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(child, goodScope);
@@ -1357,7 +1365,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
         funResource.clearRelation("relation3");
 
-        Assert.assertEquals(fun.getRelation3(), null, "The one-2-one relationship should be cleared");
+        assertNull(fun.getRelation3(), "The one-2-one relationship should be cleared");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(fun, goodScope);
@@ -1410,9 +1418,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, never()).save(child4, goodScope);
         verify(tx, never()).save(child5, goodScope);
 
-        Assert.assertEquals(updated, true, "The relationship should have been partially cleared.");
-        Assert.assertTrue(parent.getChildren().containsAll(expected), "The unfiltered remaining members are left");
-        Assert.assertTrue(expected.containsAll(parent.getChildren()), "The unfiltered remaining members are left");
+        assertTrue(updated, "The relationship should have been partially cleared.");
+        assertTrue(parent.getChildren().containsAll(expected), "The unfiltered remaining members are left");
+        assertTrue(expected.containsAll(parent.getChildren()), "The unfiltered remaining members are left");
 
         /*
          * No tests for reference integrity since the parent is the owner and
@@ -1420,7 +1428,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
          */
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testClearRelationInvalidToOneUpdatePermission() {
         Left left = new Left();
         left.setId(1);
@@ -1433,12 +1441,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        leftResource.clearRelation("noUpdateOne2One");
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> leftResource.clearRelation("noUpdateOne2One"));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testNoChangeRelationInvalidToOneUpdatePermission() {
         Left left = new Left();
         left.setId(1);
@@ -1451,12 +1462,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        leftResource.updateRelation("noUpdateOne2One", getRelation(leftResource, "noUpdateOne2One"));
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> leftResource.updateRelation("noUpdateOne2One", getRelation(leftResource, "noUpdateOne2One")));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testClearRelationInvalidToManyUpdatePermission() {
         Left left = new Left();
         left.setId(1);
@@ -1477,7 +1491,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        leftResource.clearRelation("noInverseUpdate");
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> leftResource.clearRelation("noInverseUpdate"));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
@@ -1496,12 +1513,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "1", goodScope);
-        Assert.assertTrue(leftResource.clearRelation("noDeleteOne2One"));
-        Assert.assertNull(leftResource.getObject().getNoDeleteOne2One());
+        assertTrue(leftResource.clearRelation("noDeleteOne2One"));
+        assertNull(leftResource.getObject().getNoDeleteOne2One());
 
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testClearRelationInvalidRelation() {
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
@@ -1511,7 +1528,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
-        funResource.clearRelation("invalid");
+        assertThrows(InvalidAttributeException.class, () -> funResource.clearRelation("invalid"));
     }
 
     @Test
@@ -1525,13 +1542,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
         parentResource.updateAttribute("firstName", "foobar");
 
-        Assert.assertEquals(parent.getFirstName(), "foobar", "The attribute was updated successfully");
+        assertEquals("foobar", parent.getFirstName(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(parent, goodScope);
     }
 
-    @Test(expectedExceptions = InvalidAttributeException.class)
+    @Test
     public void testUpdateAttributeInvalidAttribute() {
         Parent parent = newParent(1);
 
@@ -1540,10 +1557,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "1", goodScope);
-        parentResource.updateAttribute("invalid", "foobar");
+        assertThrows(InvalidAttributeException.class, () -> parentResource.updateAttribute("invalid", "foobar"));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testUpdateAttributeInvalidUpdatePermission() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setId(1);
@@ -1555,12 +1572,15 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", badScope);
-        funResource.updateAttribute("field4", "foobar");
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> funResource.updateAttribute("field4", "foobar"));
         // Updates will defer and wait for the end!
         funResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testUpdateAttributeInvalidUpdatePermissionNoChange() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setId(1);
@@ -1571,7 +1591,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", badScope);
-        funResource.updateAttribute("field4", funResource.getAttribute("field4"));
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> funResource.updateAttribute("field4", funResource.getAttribute("field4")));
         // Updates will defer and wait for the end!
         funResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
@@ -1598,10 +1621,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         Set<Object> actual = loaded.stream().map(PersistentResource::getObject).collect(Collectors.toSet());
 
-        Assert.assertEquals(actual.size(), 3,
+        assertEquals(3, actual.size(),
                 "The returned list should be filtered to only include elements that have read permission"
         );
-        Assert.assertEquals(expected, actual,
+        assertEquals(expected, actual,
                 "The returned list should only include elements with a positive ID"
         );
     }
@@ -1618,10 +1641,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Child> loaded = PersistentResource.loadRecord(Child.class, "1", goodScope);
 
-        Assert.assertEquals(loaded.getObject(), child1, "The load function should return the requested child object");
+        assertEquals(child1, loaded.getObject(), "The load function should return the requested child object");
     }
 
-    @Test(expectedExceptions = InvalidObjectIdentifierException.class)
+    @Test
     public void testLoadRecordInvalidId() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
@@ -1629,10 +1652,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.loadObject(eq(Child.class), eq("1"), any(), any())).thenReturn(null);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource.loadRecord(Child.class, "1", goodScope);
+        assertThrows(
+                InvalidObjectIdentifierException.class,
+                () -> PersistentResource.loadRecord(Child.class, "1", goodScope));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testLoadRecordForbidden() {
         NoReadEntity noRead = new NoReadEntity();
         noRead.setId(1);
@@ -1642,7 +1667,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.loadObject(eq(NoReadEntity.class), eq(1L), any(), any())).thenReturn(noRead);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope);
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> PersistentResource.loadRecord(NoReadEntity.class, "1", goodScope));
     }
 
     @Test()
@@ -1658,7 +1685,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parent.setChildren(new HashSet<>());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
-        Assert.assertEquals(created.getObject(), parent,
+        assertEquals(parent, created.getObject(),
                 "The create function should return the requested parent object"
         );
     }
@@ -1676,25 +1703,21 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<Job> created = PersistentResource.createObject(null, Job.class, goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
-        Assert.assertEquals(created.getObject().getTitle(), "day job",
+        assertEquals("day job", created.getObject().getTitle(),
                 "The create function should return the requested job object"
         );
-        Assert.assertEquals(created.getObject().getJobId(), null,
-                "The create function should not override the ID"
-        );
+        assertNull(created.getObject().getJobId(), "The create function should not override the ID");
 
         created = PersistentResource.createObject(null, Job.class, goodScope, Optional.of("1234"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
-        Assert.assertEquals(created.getObject().getTitle(), "day job",
+        assertEquals("day job", created.getObject().getTitle(),
                 "The create function should return the requested job object"
         );
-        Assert.assertEquals(created.getObject().getJobId(), null,
-                "The create function should not override the ID"
-        );
+        assertNull(created.getObject().getJobId(), "The create function should not override the ID");
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testCreateObjectForbidden() {
         NoCreateEntity noCreate = new NoCreateEntity();
         noCreate.setId(1);
@@ -1704,8 +1727,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1"));
-        created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> {
+                    PersistentResource<NoCreateEntity> created = PersistentResource.createObject(null, NoCreateEntity.class, goodScope, Optional.of("1"));
+                    created.getRequestScope().getPermissionExecutor().executeCommitChecks();
+                }
+        );
     }
 
     @Test
@@ -1727,12 +1756,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope badScope = new RequestScope(null, null, tx, badUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, badScope.getUUIDFor(left), badScope);
 
-        Assert.assertTrue(leftResource.clearRelation("fieldLevelDelete"));
-        Assert.assertEquals(leftResource.getObject().getFieldLevelDelete().size(), 0);
+        assertTrue(leftResource.clearRelation("fieldLevelDelete"));
+        assertEquals(0, leftResource.getObject().getFieldLevelDelete().size());
     }
 
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testUpdatePermissionCheckedOnInverseRelationship() {
         Left left = new Left();
         left.setId(1);
@@ -1752,7 +1781,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope.getUUIDFor(left), goodScope);
 
-        leftResource.updateRelation("noInverseUpdate", ids.toPersistentResources(goodScope));
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> leftResource.updateRelation("noInverseUpdate", ids.toPersistentResources(goodScope)));
         // Modifications have a deferred check component:
         leftResource.getRequestScope().getPermissionExecutor().executeCommitChecks();
     }
@@ -1771,12 +1802,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         childResource.auditField(new ChangeSpec(childResource, "name", parent, null));
 
-        Assert.assertEquals(logger.getMessages().size(), 1, "One message should be logged");
+        assertEquals(1, logger.getMessages().size(), "One message should be logged");
 
         LogMessage message = logger.getMessages().get(0);
-        Assert.assertEquals(message.getMessage(), "UPDATE Child 5 Parent 7", "Logging template should match");
+        assertEquals("UPDATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
-        Assert.assertEquals(message.getOperationCode(), 1, "Operation code should match");
+        assertEquals(1, message.getOperationCode(), "Operation code should match");
     }
 
     @Test
@@ -1794,12 +1825,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         childResource.auditClass(Audit.Action.CREATE, new ChangeSpec(childResource, null, null, childResource.getObject()));
 
-        Assert.assertEquals(logger.getMessages().size(), 1, "One message should be logged");
+        assertEquals(1, logger.getMessages().size(), "One message should be logged");
 
         LogMessage message = logger.getMessages().get(0);
-        Assert.assertEquals(message.getMessage(), "CREATE Child 5 Parent 7", "Logging template should match");
+        assertEquals("CREATE Child 5 Parent 7", message.getMessage(), "Logging template should match");
 
-        Assert.assertEquals(message.getOperationCode(), 0, "Operation code should match");
+        assertEquals(0, message.getOperationCode(), "Operation code should match");
     }
 
     @Test
@@ -1823,11 +1854,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).save(parent, goodScope);
         verify(tx, times(1)).save(child, goodScope);
 
-        Assert.assertEquals(parent.getChildren().size(), 1, "The owning relationship should be updated");
-        Assert.assertTrue(parent.getChildren().contains(child), "The owning relationship should be updated");
+        assertEquals(1, parent.getChildren().size(), "The owning relationship should be updated");
+        assertTrue(parent.getChildren().contains(child), "The owning relationship should be updated");
 
-        Assert.assertEquals(child.getParents().size(), 1, "The non-owning relationship should also be updated");
-        Assert.assertTrue(child.getParents().contains(parent), "The non-owning relationship should also be updated");
+        assertEquals(1, child.getParents().size(), "The non-owning relationship should also be updated");
+        assertTrue(child.getParents().contains(parent), "The non-owning relationship should also be updated");
 
         reset(tx);
         when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(parent.getChildren());
@@ -1838,8 +1869,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         verify(tx, times(1)).save(parent, goodScope);
         verify(tx, times(1)).save(child, goodScope);
 
-        Assert.assertEquals(parent.getChildren().size(), 0, "The owning relationship should be updated");
-        Assert.assertEquals(child.getParents().size(), 0, "The non-owning relationship should also be updated");
+        assertEquals(0, parent.getChildren().size(), "The owning relationship should be updated");
+        assertEquals(0, child.getParents().size(), "The non-owning relationship should also be updated");
     }
 
     @Test
@@ -1847,16 +1878,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<Child> generated = new PersistentResource<>(new Child(), null, "1", goodUserScope);
 
-        Assert.assertTrue(generated.isIdGenerated(),
+        assertTrue(generated.isIdGenerated(),
                 "isIdGenerated returns true when ID field has the GeneratedValue annotation");
 
         PersistentResource<NoCreateEntity> notGenerated = new PersistentResource<>(new NoCreateEntity(), null, "1", goodUserScope);
 
-        Assert.assertFalse(notGenerated.isIdGenerated(),
+        assertFalse(notGenerated.isIdGenerated(),
                 "isIdGenerated returns false when ID field does not have the GeneratedValue annotation");
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testSharePermissionErrorOnUpdateSingularRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
@@ -1875,10 +1906,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
-        userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> userResource.updateRelation("noShare", ids.toPersistentResources(goodScope)));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testSharePermissionErrorOnUpdateRelationshipPackageLevel() {
         ContainerWithPackageShare containerWithPackageShare = new ContainerWithPackageShare();
 
@@ -1896,7 +1929,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<ContainerWithPackageShare> containerResource = new PersistentResource<>(containerWithPackageShare, null, goodScope.getUUIDFor(containerWithPackageShare), goodScope);
 
-        containerResource.updateRelation("unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope));
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> containerResource.updateRelation(
+                        "unshareableWithEntityUnshares", unShareales.toPersistentResources(goodScope)));
     }
 
     @Test
@@ -1919,11 +1955,11 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         containerResource.updateRelation("shareableWithPackageShares", shareables.toPersistentResources(goodScope));
 
-        Assert.assertEquals(containerWithPackageShare.getShareableWithPackageShares().size(), 1);
-        Assert.assertTrue(containerWithPackageShare.getShareableWithPackageShares().contains(shareableWithPackageShare));
+        assertEquals(1, containerWithPackageShare.getShareableWithPackageShares().size());
+        assertTrue(containerWithPackageShare.getShareableWithPackageShares().contains(shareableWithPackageShare));
     }
 
-    @Test(expectedExceptions = ForbiddenAccessException.class)
+    @Test
     public void testSharePermissionErrorOnUpdateManyRelationship() {
         example.User userModel = new example.User();
         userModel.setId(1);
@@ -1946,7 +1982,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
-        userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> userResource.updateRelation("noShares", ids.toPersistentResources(goodScope)));
     }
 
     @Test
@@ -1977,9 +2015,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         boolean returnVal = userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
 
-        Assert.assertTrue(returnVal);
-        Assert.assertEquals(userModel.getNoShares().size(), 1);
-        Assert.assertTrue(userModel.getNoShares().contains(noShare1));
+        assertTrue(returnVal);
+        assertEquals(1, userModel.getNoShares().size());
+        assertTrue(userModel.getNoShares().contains(noShare1));
     }
 
     @Test
@@ -2007,8 +2045,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
 
-        Assert.assertFalse(returnVal);
-        Assert.assertEquals(userModel.getNoShare(), noShare);
+        assertFalse(returnVal);
+        assertEquals(noShare, userModel.getNoShare());
     }
 
     @Test
@@ -2033,8 +2071,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         boolean returnVal = userResource.updateRelation("noShare", ids.toPersistentResources(goodScope));
 
-        Assert.assertTrue(returnVal);
-        Assert.assertNull(userModel.getNoShare());
+        assertTrue(returnVal);
+        assertNull(userModel.getNoShare());
     }
 
     @Test
@@ -2060,24 +2098,24 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         /* Attributes */
         // Set new data from null
-        Assert.assertTrue(model.updateAttribute("testColl", Arrays.asList("a", "b", "c")));
+        assertTrue(model.updateAttribute("testColl", Arrays.asList("a", "b", "c")));
 
         // Set data to empty
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("testColl").apply(spec,
                 (original, modified) -> original.equals(Arrays.asList("a", "b", "c")) && modified.isEmpty());
-        Assert.assertTrue(model.updateAttribute("testColl", Lists.newArrayList()));
+        assertTrue(model.updateAttribute("testColl", Lists.newArrayList()));
 
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("testColl")
                 .apply(spec, (original, modified) -> original.isEmpty() && modified.equals(Arrays.asList("final", "List")));
         // / Overwrite attribute data
-        Assert.assertTrue(model.updateAttribute("testColl", Arrays.asList("final", "List")));
+        assertTrue(model.updateAttribute("testColl", Arrays.asList("final", "List")));
 
         /* ToMany relationships */
         // Learn about the other kids
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> (original == null || original.isEmpty()) && modified.size() == 1 && modified.contains(new ChangeSpecChild(1)));
 
         ChangeSpecChild child1 = new ChangeSpecChild(1);
-        Assert.assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(child1))));
+        assertTrue(model.updateRelation("otherKids", Sets.newHashSet(bootstrapPersistentResource(child1))));
 
         // Add individual
         model.getObject().checkFunction = (spec) -> collectionCheck.apply("otherKids").apply(spec, (original, modified) -> original.equals(Collections.singletonList(new ChangeSpecChild(1))) && modified.size() == 2 && modified.contains(new ChangeSpecChild(1)) && modified.contains(new ChangeSpecChild(2)));
@@ -2114,13 +2152,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         };
 
         PersistentResource<ChangeSpecModel> model = bootstrapPersistentResource(new ChangeSpecModel((spec) -> attrCheck.apply(spec, (original, modified) -> (original == null) && "abc".equals(modified))));
-        Assert.assertTrue(model.updateAttribute("testAttr", "abc"));
+        assertTrue(model.updateAttribute("testAttr", "abc"));
 
         model.getObject().checkFunction = (spec) -> attrCheck.apply(spec, (original, modified) -> "abc".equals(original) && "replace".equals(modified));
-        Assert.assertTrue(model.updateAttribute("testAttr", "replace"));
+        assertTrue(model.updateAttribute("testAttr", "replace"));
 
         model.getObject().checkFunction = (spec) -> attrCheck.apply(spec, (original, modified) -> "replace".equals(original) && modified == null);
-        Assert.assertTrue(model.updateAttribute("testAttr", null));
+        assertTrue(model.updateAttribute("testAttr", null));
     }
 
     @Test
@@ -2144,18 +2182,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(null);
 
             ChangeSpecChild child1 = new ChangeSpecChild(1);
-            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child1, tx))));
+            assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child1, tx))));
             when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child1);
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(1).equals(original) && new ChangeSpecChild(2).equals(modified));
 
             ChangeSpecChild child2 = new ChangeSpecChild(2);
-            Assert.assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child2, tx))));
+            assertTrue(model.updateRelation("child", Sets.newHashSet(bootstrapPersistentResource(child2, tx))));
 
             when(tx.getRelation(any(), eq(model.obj), eq("child"), any(), any(), any(), any())).thenReturn(child2);
 
             model.getObject().checkFunction = (spec) -> relCheck.apply(spec, (original, modified) -> new ChangeSpecChild(2).equals(original) && modified == null);
-            Assert.assertTrue(model.updateRelation("child", null));
+            assertTrue(model.updateRelation("child", null));
         } catch (ForbiddenAccessException e) {
             e.printStackTrace();
         }
@@ -2171,20 +2209,20 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource resourceWithUUID = new PersistentResource<>(childWithoutId, null, "abc", goodUserScope);
         PersistentResource resourceWithIdAndUUID = new PersistentResource<>(childWithId, null, "abc", goodUserScope);
 
-        Assert.assertNotEquals(resourceWithId, resourceWithUUID);
-        Assert.assertNotEquals(resourceWithUUID, resourceWithId);
-        Assert.assertNotEquals(resourceWithId.hashCode(), resourceWithUUID.hashCode(), "Hashcodes were equal...");
+        assertNotEquals(resourceWithUUID, resourceWithId);
+        assertNotEquals(resourceWithId, resourceWithUUID);
+        assertNotEquals(resourceWithId.hashCode(), resourceWithUUID.hashCode(), "Hashcodes were equal...");
 
-        Assert.assertEquals(resourceWithId, resourceWithIdAndUUID);
-        Assert.assertEquals(resourceWithIdAndUUID, resourceWithId);
-        Assert.assertEquals(resourceWithId.hashCode(), resourceWithIdAndUUID.hashCode());
+        assertEquals(resourceWithIdAndUUID, resourceWithId);
+        assertEquals(resourceWithId, resourceWithIdAndUUID);
+        assertEquals(resourceWithIdAndUUID.hashCode(), resourceWithId.hashCode());
 
         // Hashcode's should only ever look at UUID's if no real ID is present (i.e. object id is null or 0)
-        Assert.assertNotEquals(resourceWithUUID.hashCode(), resourceWithIdAndUUID.hashCode());
+        assertNotEquals(resourceWithIdAndUUID.hashCode(), resourceWithUUID.hashCode());
 
-        Assert.assertNotEquals(resourceWithId.hashCode(), resourceWithDifferentId.hashCode());
-        Assert.assertNotEquals(resourceWithId, resourceWithDifferentId);
-        Assert.assertNotEquals(resourceWithDifferentId, resourceWithId);
+        assertNotEquals(resourceWithDifferentId.hashCode(), resourceWithId.hashCode());
+        assertNotEquals(resourceWithDifferentId, resourceWithId);
+        assertNotEquals(resourceWithId, resourceWithDifferentId);
     }
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {

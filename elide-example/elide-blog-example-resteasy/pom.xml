@@ -13,11 +13,12 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-example-parent-pom</artifactId>
-        <version>4.4.6-SNAPSHOT</version>
+        <version>4.5.1-SNAPSHOT</version>
     </parent>
 
     <properties>
         <mysql.data.directory>${project.build.directory}/mysql-data</mysql.data.directory>
+        <resteasy.version>3.1.4.Final</resteasy.version>
     </properties>
 
     <dependencies>
@@ -25,12 +26,18 @@
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>javax.persistence</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
             <version>5.0.2.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -45,12 +52,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
@@ -66,13 +73,13 @@
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jaxrs</artifactId>
-            <version>3.0.19.Final</version>
+            <version>${resteasy.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jackson2-provider</artifactId>
-            <version>3.0.19.Final</version>
+            <version>${resteasy.version}</version>
         </dependency>
         <!-- Logging -->
         <dependency>
@@ -95,7 +102,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${version.jackson}</version>
         </dependency>
 
         <!-- Testing -->
@@ -116,7 +122,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
                 <configuration>
                     <archive>
                         <manifest>

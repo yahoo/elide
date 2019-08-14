@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-example-parent-pom</artifactId>
-        <version>4.4.6-SNAPSHOT</version>
+        <version>4.5.1-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -25,12 +25,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate3</artifactId>
-            <version>4.4.6-SNAPSHOT</version>
+            <version>4.5.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
@@ -61,13 +61,22 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.26</version>
         </dependency>
         <!-- Persistence -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>3.6.6.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -87,7 +96,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${version.jackson}</version>
         </dependency>
     </dependencies>
 

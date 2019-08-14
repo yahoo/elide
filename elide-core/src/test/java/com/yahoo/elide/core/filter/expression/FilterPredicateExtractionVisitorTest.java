@@ -5,17 +5,17 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;
 
 import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,14 +59,14 @@ public class FilterPredicateExtractionVisitorTest {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor();
         Collection<FilterPredicate> filterPredicates = not.accept(visitor);
 
-        Assert.assertTrue(filterPredicates.containsAll(Sets.newHashSet(p1, p2, p3)));
-        Assert.assertEquals(3, filterPredicates.size());
+        assertTrue(filterPredicates.containsAll(Sets.newHashSet(p1, p2, p3)));
+        assertEquals(filterPredicates.size(), 3);
 
         //Second test collecting the predicates in a List
         visitor = new PredicateExtractionVisitor(new ArrayList<>());
         filterPredicates = not.accept(visitor);
 
-        Assert.assertTrue(filterPredicates.containsAll(Arrays.asList(p1, p2, p3, p4)));
-        Assert.assertEquals(4, filterPredicates.size());
+        assertTrue(filterPredicates.containsAll(Arrays.asList(p1, p2, p3, p4)));
+        assertEquals(filterPredicates.size(), 4);
     }
 }

@@ -6,8 +6,14 @@
 package com.yahoo.elide.core.exceptions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.owasp.encoder.Encode;
 
 /**
  * Exception describing error caused from Json Patch Extension request.
@@ -21,7 +27,7 @@ public class JsonPatchExtensionException extends HttpStatusException {
     }
 
     /**
-     * @deprecated use {@link #getErrorResponse()}
+     * @deprecated use {@link #getErrorResponse(boolean encodeResponse)}
      */
     @Deprecated
     public Pair<Integer, JsonNode> getResponse() {
@@ -30,11 +36,48 @@ public class JsonPatchExtensionException extends HttpStatusException {
 
     @Override
     public Pair<Integer, JsonNode> getErrorResponse() {
-        return response;
+        return getErrorResponse(false);
+    }
+
+    @Override
+    public Pair<Integer, JsonNode> getErrorResponse(boolean encodeResponse) {
+        if (!encodeResponse) {
+            return response;
+        }
+
+        return encodeResponse();
     }
 
     @Override
     public Pair<Integer, JsonNode> getVerboseErrorResponse() {
-        return response;
+        return getVerboseErrorResponse(false);
+    }
+
+    @Override
+    public Pair<Integer, JsonNode> getVerboseErrorResponse(boolean encodeResponse) {
+        if (!encodeResponse) {
+            return response;
+        }
+
+        return encodeResponse();
+    }
+
+    private Pair<Integer, JsonNode> encodeResponse() {
+        // response is final, so construct a new response with encoded values
+        ArrayNode encodedArray = JsonNodeFactory.instance.arrayNode();
+        ArrayNode errors = (ArrayNode) response.getRight().get("errors");
+        for (JsonNode node : errors) {
+            ObjectNode objectNode = (ObjectNode) node;
+
+            TextNode text = (TextNode) objectNode.get("detail");
+            IntNode status = (IntNode) objectNode.get("status");
+
+            ObjectNode encodedObjectNode = JsonNodeFactory.instance.objectNode();
+            TextNode encodedTextNode = JsonNodeFactory.instance.textNode(Encode.forHtml(text.asText()));
+            encodedObjectNode.set("detail", encodedTextNode);
+            encodedObjectNode.set("status", status);
+            encodedArray.add(encodedObjectNode);
+        }
+        return Pair.of(response.getLeft(), encodedArray);
     }
 }

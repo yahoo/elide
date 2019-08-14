@@ -1,7 +1,22 @@
 # Change Log
-## 4.4.6
+## 4.5.1
+**Features**
+ * Issue #900. Add `@ApiModelProperty` support to `elide-swagger` that makes it possible to customize `description`, `example`, `readOnly` and `required` attributes of object definitions in resulting generates Swagger document.
+
+**Fixes**
+ * [Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+
+## 4.5.0
 **Features**
  * Issue #815.  Added the ability to customize the JPQL generation for a filter operator globally or for a specific entity attribute.
+ * Alpha release of a new Elide data store (SearchDataStore) that supports full text search on top of an existing data store.
+ * Issue #871. Add ElideSettings property `encodeErrorResponses`, which when enabled will encode error messages to be safe for HTML. This works for both JSONAPI and GraphQL endpoints, with verbose errors or error object settings enabled/disabled.
+ * HttpStatusException class now supports the following additional functions: `getErrorResponse(boolean encodeResponse)` and `getVerboseErrorResponse(boolean encodeResponse)`
+ * Add `GraphQLErrorSerializer` and `ExecutionResultSerializer` which are added to the `ObjectMapper` provided by the ElideSettings. These are used to parse the GraphQL results, instead of using `ExecutionResult#toSpecification`.
+
+**Fixes**
+ * Run vulnerability check during build.  Updated dependencies to fix CVE-2018-1000632, CVE-2017-15708, CVE-2019-10247
+ * Upgrade to Hibernate 5.4.1
 
 ## 4.4.5
 **Fixes**
