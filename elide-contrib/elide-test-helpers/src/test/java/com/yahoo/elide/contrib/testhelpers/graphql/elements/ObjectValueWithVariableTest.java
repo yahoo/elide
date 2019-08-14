@@ -8,6 +8,8 @@ package com.yahoo.elide.contrib.testhelpers.graphql.elements;
 import com.yahoo.elide.contrib.testhelpers.example.Author;
 import com.yahoo.elide.contrib.testhelpers.example.Book;
 
+import com.google.common.collect.Sets;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -15,11 +17,13 @@ public class ObjectValueWithVariableTest {
 
     @Test
     public void testObjectValueSerialization() {
-        Book book = Book.builder()
-                .id(1)
-                .title("my new book!")
-                .author(Author.builder().id(2L).build())
-                .build();
+        Author author = new Author();
+        author.setId(2L);
+
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("my new book!");
+        book.setAuthors(Sets.newHashSet(author));
 
 
         Assert.assertEquals(
