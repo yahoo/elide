@@ -19,6 +19,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
@@ -226,6 +227,26 @@ public class JsonApiTest {
     }
 
     @Test
+    public void readSingleWithMeta() throws IOException {
+        String doc = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":{\"type\":\"child\",\"id\":\"2\"}}}},\"meta\":{\"additional\":\"info\"}}";
+
+        JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
+
+        Meta meta = jsonApiDocument.getMeta();
+        Data<Resource> dataObj = jsonApiDocument.getData();
+        Resource data = dataObj.getSingleValue();
+        Map<String, Object> attributes = data.getAttributes();
+        Map<String, Relationship> relations = data.getRelationships();
+
+        assertEquals(meta.getMetaMap().get("additional"), "info");
+        assertEquals(data.getType(), "parent");
+        assertEquals(data.getId(), "123");
+        assertEquals(attributes.get("firstName"), "bob");
+        assertEquals(relations.get("children").getData().getSingleValue().getType(), "child");
+        assertEquals(relations.get("children").getData().getSingleValue().getId(), "2");
+    }
+
+    @Test
     public void readSingleIncluded() throws Exception {
         String doc = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"links\":{\"self\":\"/parent/123/relationships/child\",\"related\":\"/parent/123/child\"},\"data\":{\"type\":\"child\",\"id\":\"2\"}}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"relationships\":{\"parents\":{\"links\":{\"self\":\"/parent/123/relationships/child\",\"related\":\"/parent/123/child\"},\"data\":{\"type\":\"parent\",\"id\":\"123\"}}}}]}";
 
@@ -285,5 +306,25 @@ public class JsonApiTest {
         assertEquals("child", includedChild.getType());
         assertEquals("2", includedChild.getId());
         assertEquals("123", parent.getId());
+    }
+
+    @Test
+    public void readListWithMeta() throws IOException {
+        String doc = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"links\":{\"self\":\"/parent/123/relationships/child\",\"related\":\"/parent/123/child\"},\"data\":{\"type\":\"child\",\"id\":\"2\"}}}}],\"meta\":{\"additional\":\"info\"}}";
+
+        JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
+
+        Meta meta = jsonApiDocument.getMeta();
+        Data<Resource> list = jsonApiDocument.getData();
+        Resource data = list.get().iterator().next();
+        Map<String, Object> attributes = data.getAttributes();
+        List<Resource> included = jsonApiDocument.getIncluded();
+
+        assertEquals(meta.getMetaMap().get("additional"), "info");
+        assertEquals(data.getType(), "parent");
+        assertEquals(data.getId(), "123");
+        assertEquals(attributes.get("firstName"), "bob");
+        assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
+        assertNull(included);
     }
 }
