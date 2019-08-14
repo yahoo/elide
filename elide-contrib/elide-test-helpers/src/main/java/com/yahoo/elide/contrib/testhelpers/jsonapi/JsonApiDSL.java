@@ -36,6 +36,15 @@ import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Type;
  * }
  */
 public class JsonApiDSL {
+    /**
+     * Data data.
+     *
+     * @param resource the singular resource
+     * @return a data
+     */
+    public static Data datum(Resource resource) {
+        return new Data(resource);
+    }
 
     /**
      * Data data.
