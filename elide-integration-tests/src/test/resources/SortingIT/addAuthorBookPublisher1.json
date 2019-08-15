@@ -1,0 +1,92 @@
+[
+
+  {
+    "op": "add",
+    "path": "/author",
+    "value": {
+      "id": "12345678-1234-1234-1234-1234567890ab",
+      "type": "author",
+      "attributes": {
+        "name": "Ernest Hemingway"
+      },
+      "relationships": {
+        "books": {
+          "data": [
+            {
+              "type": "book",
+              "id": "12345678-1234-1234-1234-1234567890ac"
+            },
+            {
+              "type": "book",
+              "id": "12345678-1234-1234-1234-1234567890ad"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "12345678-1234-1234-1234-1234567890ac",
+      "attributes": {
+        "title": "The Old Man and the Sea",
+        "genre": "Literary Fiction",
+        "language": "English"
+      },
+      "relationships": {
+        "publisher": {
+          "data": {
+            "type": "publisher",
+            "id": "12345678-1234-1234-1234-1234567890ae"
+          }
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book",
+    "value": {
+      "type": "book",
+      "id": "12345678-1234-1234-1234-1234567890ad",
+      "attributes": {
+        "title": "For Whom the Bell Tolls",
+        "genre": "Literary Fiction",
+        "language": "English"
+      },
+      "relationships": {
+        "publisher": {
+          "data": {
+            "type": "publisher",
+            "id": "12345678-1234-1234-1234-1234567890af"
+          }
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book/12345678-1234-1234-1234-1234567890ac/publisher",
+    "value": {
+      "type": "publisher",
+      "id": "12345678-1234-1234-1234-1234567890ae",
+      "attributes": {
+        "name": "Default publisher"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/book/12345678-1234-1234-1234-1234567890ad/publisher",
+    "value": {
+      "type": "publisher",
+      "id": "12345678-1234-1234-1234-1234567890af",
+      "attributes": {
+        "name": "Super Publisher"
+      }
+    }
+  }
+]
