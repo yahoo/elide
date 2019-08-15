@@ -5,19 +5,21 @@
  */
 package com.yahoo.elide.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.utils.JsonParser;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
 
 public class SortingIT extends IntegrationTest {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -187,5 +189,4 @@ public class SortingIT extends IntegrationTest {
             assertEquals(expectedTitle, actualTitle);
         }
     }
-
 }
