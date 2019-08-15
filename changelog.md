@@ -6,6 +6,8 @@
 
 **Fixes**
  * [Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+ * Issue #913. Fix deserialization for optional top-level meta object (#913)
+ * Migrated elide-core tests to JUnit 5.
 
 ## 4.5.0
 **Features**
