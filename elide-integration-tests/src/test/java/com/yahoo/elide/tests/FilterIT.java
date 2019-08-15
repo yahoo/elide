@@ -6,28 +6,29 @@
 
 package com.yahoo.elide.tests;
 
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.utils.JsonParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class FilterIT extends IntegrationTest {
@@ -428,7 +429,7 @@ public class FilterIT extends IntegrationTest {
     void testRootFilterPostfix() throws IOException {
         int genreEndsWithFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("genre").asText().toLowerCase().endsWith("fiction")) {
+            if (node.get("attributes").get("genre").asText().toLowerCase(Locale.ENGLISH).endsWith("fiction")) {
                 genreEndsWithFictionBookCount += 1;
             }
         }
@@ -467,7 +468,7 @@ public class FilterIT extends IntegrationTest {
     void testRootFilterPrefix() throws IOException {
         int titleStartsWithTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("title").asText().toLowerCase().startsWith("the")) {
+            if (node.get("attributes").get("title").asText().toLowerCase(Locale.ENGLISH).startsWith("the")) {
                 titleStartsWithTheBookCount += 1;
             }
         }
@@ -506,7 +507,7 @@ public class FilterIT extends IntegrationTest {
     void testRootFilterPrefixWithSpecialChars() throws IOException {
         int titleStartsWithTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("title").asText().toLowerCase().startsWith("i'm")) {
+            if (node.get("attributes").get("title").asText().toLowerCase(Locale.ENGLISH).startsWith("i'm")) {
                 titleStartsWithTheBookCount += 1;
             }
         }
@@ -545,7 +546,7 @@ public class FilterIT extends IntegrationTest {
     void testRootFilterInfix() throws IOException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : books.get("data")) {
-            if (node.get("attributes").get("title").asText().toLowerCase().contains("the")) {
+            if (node.get("attributes").get("title").asText().toLowerCase(Locale.ENGLISH).contains("the")) {
                 titleContainsTheBookCount += 1;
             }
         }
@@ -1097,7 +1098,7 @@ public class FilterIT extends IntegrationTest {
     void testNonRootFilterInfix() throws IOException {
         int titleContainsTheBookCount = 0;
         for (JsonNode node : asimovBooks.get("data")) {
-            if (node.get("attributes").get("title").asText().toLowerCase().contains("the")) {
+            if (node.get("attributes").get("title").asText().toLowerCase(Locale.ENGLISH).contains("the")) {
                 titleContainsTheBookCount += 1;
             }
         }
@@ -1516,8 +1517,8 @@ public class FilterIT extends IntegrationTest {
         );
 
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: author12\n" +
-                        "Invalid query parameter: filter[book.author12.name]");
+                "InvalidPredicateException: Unknown field in filter: author12\n"
+                         + "Invalid query parameter: filter[book.author12.name]");
 
         /* Test RSQL Global */
         result = mapper.readTree(
@@ -1527,10 +1528,10 @@ public class FilterIT extends IntegrationTest {
         );
 
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n" +
-                        "No such association author12 for type book\n" +
-                        "Invalid filter format: filter\n" +
-                        "Invalid query parameter: filter");
+                "InvalidPredicateException: Invalid filter format: filter\n"
+                        + "No such association author12 for type book\n"
+                        + "Invalid filter format: filter\n"
+                        + "Invalid query parameter: filter");
     }
 
     @Test
@@ -1752,8 +1753,8 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown entity in filter: idontexist\n" +
-                        "Invalid query parameter: filter[idontexist.books.title][in]");
+                "InvalidPredicateException: Unknown entity in filter: idontexist\n"
+                       + "Invalid query parameter: filter[idontexist.books.title][in]");
 
         /* Test RSQL Global */
         result = mapper.readTree(
@@ -1762,10 +1763,10 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n" +
-                        "No such association idontexist for type author\n" +
-                        "Invalid filter format: filter\n" +
-                        "Invalid query parameter: filter");
+                "InvalidPredicateException: Invalid filter format: filter\n"
+                        + "No such association idontexist for type author\n"
+                        + "Invalid filter format: filter\n"
+                        + "Invalid query parameter: filter");
     }
 
     @Test
@@ -1777,8 +1778,8 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist\n" +
-                        "Invalid query parameter: filter[author.idontexist.title][in]");
+                "InvalidPredicateException: Unknown field in filter: idontexist\n"
+                        + "Invalid query parameter: filter[author.idontexist.title][in]");
 
         /* Test RSQL Global */
         result = mapper.readTree(
@@ -1787,10 +1788,10 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n" +
-                        "No such association idontexist for type author\n" +
-                        "Invalid filter format: filter\n" +
-                        "Invalid query parameter: filter");
+                "InvalidPredicateException: Invalid filter format: filter\n"
+                        + "No such association idontexist for type author\n"
+                        + "Invalid filter format: filter\n"
+                        + "Invalid query parameter: filter");
     }
 
     @Test
@@ -1802,8 +1803,8 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Unknown field in filter: idontexist\n" +
-                        "Invalid query parameter: filter[author.books.idontexist][in]");
+                "InvalidPredicateException: Unknown field in filter: idontexist\n"
+                        + "Invalid query parameter: filter[author.books.idontexist][in]");
 
         /* Test RSQL Global */
         result = mapper.readTree(
@@ -1812,10 +1813,10 @@ public class FilterIT extends IntegrationTest {
                         .asString()
         );
         assertEquals(result.get("errors").get(0).asText(),
-                "InvalidPredicateException: Invalid filter format: filter\n" +
-                        "No such association idontexist for type book\n" +
-                        "Invalid filter format: filter\n" +
-                        "Invalid query parameter: filter");
+                "InvalidPredicateException: Invalid filter format: filter\n"
+                        + "No such association idontexist for type book\n"
+                        + "Invalid filter format: filter\n"
+                        + "Invalid query parameter: filter");
     }
 
     /*
