@@ -360,12 +360,13 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedMutationAndRead() throws IOException, JSONException {
-        Book book = Book.builder()
-                .id(1)
-                .title("my new book!")
-                .author(Author.builder().id(2L).build())
-                .build();
+        Author author = new Author();
+        author.setId(2L);
 
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("my new book!");
+        book.setAuthors(Sets.newHashSet(author));
 
         String graphQLRequest = document(
                 selection(
@@ -416,6 +417,14 @@ public class GraphQLEndpointTest {
 
     @Test
     void testNonShareable() throws IOException, JSONException {
+        DisallowShare noShare = new DisallowShare();
+        noShare.setId(1L);
+
+        Author author = new Author();
+        author.setId(123L);
+        author.setName("my new author");
+        author.setNoShare(noShare);
+
         String graphQLRequest = document(
                 typedOperation(
                         TypedOperation.OperationType.MUTATION,
@@ -428,13 +437,7 @@ public class GraphQLEndpointTest {
                                                         "authors",
                                                         arguments(
                                                                 argument("op", enumValue("UPSERT")),
-                                                                argument(
-                                                                        "data",
-                                                                        enumValue("{id: \"123\", " +
-                                                                                "name: \"my new author\", \" +\n" +
-                                                                                "                " +
-                                                                                "\"noShare:{id:\"1\"}}")
-                                                                )
+                                                                argument("data", objectValueWithVariable(author))
                                                         ),
                                                         selections(
                                                                 field("id"),
@@ -513,10 +516,9 @@ public class GraphQLEndpointTest {
         User principal = new User().withName("1");
         Mockito.when(user.getUserPrincipal()).thenReturn(principal);
 
-        Book book = Book.builder()
-                .id(1)
-                .title("my new book!")
-                .build();
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("my new book!");
 
         String graphQLRequest = document(
                 typedOperation(
@@ -564,9 +566,8 @@ public class GraphQLEndpointTest {
     void testAuditLogging() throws IOException {
         Mockito.reset(audit);
 
-        Book book = Book.builder()
-                .title("my new book!")
-                .build();
+        Book book = new Book();
+        book.setTitle("my new book!");
 
         String graphQLRequest = document(
                 typedOperation(
@@ -599,11 +600,13 @@ public class GraphQLEndpointTest {
 
     @Test
     void testSuccessfulMutation() throws JSONException {
-        Book book = Book.builder()
-                .id(123)
-                .title("my new book!")
-                .author(Author.builder().id(2L).build())
-                .build();
+        Author author = new Author();
+        author.setId(2L);
+
+        Book book = new Book();
+        book.setId(123);
+        book.setTitle("my new book!");
+        book.setAuthors(Sets.newHashSet(author));
 
         String graphQLRequest = document(
                 typedOperation(
@@ -697,10 +700,9 @@ public class GraphQLEndpointTest {
 
     @Test
     void testFailedCommitCheck() throws IOException {
-        Book book = Book.builder()
-                .id(1)
-                .title("update title")
-                .build();
+        Book book = new Book();
+        book.setId(1);
+        book.setTitle("update title");
 
         // NOTE: User 3 cannot update books.
         String graphQLRequest = document(
