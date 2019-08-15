@@ -5,6 +5,11 @@
  */
 package com.yahoo.elide.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -15,10 +20,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -47,27 +48,22 @@ import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
 import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
 import example.TestCheckMappings;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Transient
-
-        ;
+import javax.persistence.Transient;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -137,7 +133,7 @@ public class LifeCycleTest {
         dictionary.bindTrigger(Author.class, OnUpdatePostCommit.class, onUpdatePostCommitAuthor, true);
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void clearMocks() {
         clearInvocations(onUpdatePostCommitAuthor, onUpdateImmediateCallback, onUpdatePostCommitCallback, onUpdatePostCommitAuthor);
     }
@@ -156,7 +152,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(Book.class)).thenReturn(book);
 
         ElideResponse response = elide.post("/book", bookBody, null);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_CREATED);
+        assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
 
         /*
          * This gets called for :
@@ -627,7 +623,7 @@ public class LifeCycleTest {
         verify(book, times(1)).onReadPostCommit(scope);
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void testPreSecurityLifecycleHookException() {
         @Entity
         @Include
@@ -648,10 +644,10 @@ public class LifeCycleTest {
         RequestScope scope = new RequestScope(null, null, tx, new User(1), null, getElideSettings(null, dictionary, MOCK_AUDIT_LOGGER));
         PersistentResource resource = new PersistentResource(book, null, "1", scope);
 
-        resource.updateAttribute("title", "New value");
+        assertThrows(IllegalStateException.class, () -> resource.updateAttribute("title", "New value"));
     }
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void testPreCommitLifeCycleHookException() {
         @Entity
         @Include
@@ -674,7 +670,7 @@ public class LifeCycleTest {
 
         resource.updateAttribute("title", "New value");
 
-        scope.runQueuedPreCommitTriggers();
+        assertThrows(IllegalStateException.class, () -> scope.runQueuedPreCommitTriggers());
     }
 
     /**
@@ -728,15 +724,15 @@ public class LifeCycleTest {
 
         resource.getAttribute("title");
 
-        assertEquals(book.readPreSecurityInvoked, 1);
-        assertEquals(book.readPreCommitInvoked, 0);
+        assertEquals(1, book.readPreSecurityInvoked);
+        assertEquals(0, book.readPreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.readPreCommitInvoked, 1);
-        assertEquals(book.readPostCommitInvoked, 0);
+        assertEquals(1, book.readPreCommitInvoked);
+        assertEquals(0, book.readPostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.readPreSecurityInvoked, 1);
-        assertEquals(book.readPreCommitInvoked, 1);
-        assertEquals(book.readPostCommitInvoked, 1);
+        assertEquals(1, book.readPreSecurityInvoked);
+        assertEquals(1, book.readPreCommitInvoked);
+        assertEquals(1, book.readPostCommitInvoked);
     }
 
     /**
@@ -790,15 +786,15 @@ public class LifeCycleTest {
 
         resource.updateAttribute("title", "foo");
 
-        assertEquals(book.updatePreSecurityInvoked, 1);
-        assertEquals(book.updatePreCommitInvoked, 0);
+        assertEquals(1, book.updatePreSecurityInvoked);
+        assertEquals(0, book.updatePreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.updatePreCommitInvoked, 1);
-        assertEquals(book.updatePostCommitInvoked, 0);
+        assertEquals(1, book.updatePreCommitInvoked);
+        assertEquals(0, book.updatePostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.updatePreSecurityInvoked, 1);
-        assertEquals(book.updatePreCommitInvoked, 1);
-        assertEquals(book.updatePostCommitInvoked, 1);
+        assertEquals(1, book.updatePreSecurityInvoked);
+        assertEquals(1, book.updatePreCommitInvoked);
+        assertEquals(1, book.updatePostCommitInvoked);
     }
 
     /**
@@ -852,17 +848,17 @@ public class LifeCycleTest {
         PersistentResource bookResource = PersistentResource.createObject(null, Book.class, scope, Optional.of("123"));
         bookResource.updateAttribute("title", "Foo");
 
-        assertEquals(book.createPreSecurityInvoked, 0);
+        assertEquals(0, book.createPreSecurityInvoked);
         scope.runQueuedPreSecurityTriggers();
-        assertEquals(book.createPreSecurityInvoked, 1);
-        assertEquals(book.createPreCommitInvoked, 0);
+        assertEquals(1, book.createPreSecurityInvoked);
+        assertEquals(0, book.createPreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.createPreCommitInvoked, 1);
-        assertEquals(book.createPostCommitInvoked, 0);
+        assertEquals(1, book.createPreCommitInvoked);
+        assertEquals(0, book.createPostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.createPreSecurityInvoked, 1);
-        assertEquals(book.createPreCommitInvoked, 1);
-        assertEquals(book.createPostCommitInvoked, 1);
+        assertEquals(1, book.createPreSecurityInvoked);
+        assertEquals(1, book.createPreCommitInvoked);
+        assertEquals(1, book.createPostCommitInvoked);
     }
 
     /**
@@ -917,15 +913,15 @@ public class LifeCycleTest {
 
         resource.deleteResource();
 
-        assertEquals(book.deletePreSecurityInvoked, 1);
-        assertEquals(book.deletePreCommitInvoked, 0);
+        assertEquals(1, book.deletePreSecurityInvoked);
+        assertEquals(0, book.deletePreCommitInvoked);
         scope.runQueuedPreCommitTriggers();
-        assertEquals(book.deletePreCommitInvoked, 1);
-        assertEquals(book.deletePostCommitInvoked, 0);
+        assertEquals(1, book.deletePreCommitInvoked);
+        assertEquals(0, book.deletePostCommitInvoked);
         scope.runQueuedPostCommitTriggers();
-        assertEquals(book.deletePreSecurityInvoked, 1);
-        assertEquals(book.deletePreCommitInvoked, 1);
-        assertEquals(book.deletePostCommitInvoked, 1);
+        assertEquals(1, book.deletePreSecurityInvoked);
+        assertEquals(1, book.deletePreCommitInvoked);
+        assertEquals(1, book.deletePostCommitInvoked);
     }
 
     /**

@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
@@ -21,7 +21,7 @@ public class HttpStatusExceptionTest {
         String expected = "{\"errors\":[\": test<script>encoding\"]}";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getErrorResponse();
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 
     @Test
@@ -30,7 +30,7 @@ public class HttpStatusExceptionTest {
         String expected = "{\"errors\":[\": test<script>encoding\"]}";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse();
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 
     @Test
@@ -38,7 +38,7 @@ public class HttpStatusExceptionTest {
         String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
         HttpStatusException exception =  new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getErrorResponse(true);
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class HttpStatusExceptionTest {
         String expected = "{\"errors\":[\": test&lt;script&gt;encoding\"]}";
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding") { };
         Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 
     @Test
@@ -56,7 +56,7 @@ public class HttpStatusExceptionTest {
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
         Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 
     @Test
@@ -66,6 +66,6 @@ public class HttpStatusExceptionTest {
         HttpStatusException exception = new HttpStatusException(500, "test<script>encoding",
                 new RuntimeException("runtime exception"), supplier) { };
         Pair<Integer, JsonNode> res = exception.getVerboseErrorResponse(true);
-        Assert.assertEquals(res.getRight().toString(), expected);
+        assertEquals(expected, res.getRight().toString());
     }
 }

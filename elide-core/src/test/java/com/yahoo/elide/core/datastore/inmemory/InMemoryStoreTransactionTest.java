@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,10 +34,8 @@ import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,8 +60,7 @@ public class InMemoryStoreTransactionTest {
     private Author author;
     private ElideSettings elideSettings;
 
-    @BeforeTest
-    public void init() {
+    public InMemoryStoreTransactionTest() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -119,7 +118,7 @@ public class InMemoryStoreTransactionTest {
         when(scope.getDictionary()).thenReturn(dictionary);
     }
 
-    @BeforeMethod
+    @BeforeEach
     public void resetMocks() {
         reset(wrappedTransaction);
     }
@@ -148,10 +147,10 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book2));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -183,9 +182,9 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -212,10 +211,10 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book2));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -242,9 +241,9 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -274,8 +273,8 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 1);
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(1, loaded.size());
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -307,7 +306,7 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
+        assertEquals(3, loaded.size());
     }
 
     @Test
@@ -339,10 +338,10 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
+        assertEquals(3, loaded.size());
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
-        Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
+        assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 2", "Book 3"));
     }
 
     @Test
@@ -377,10 +376,10 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
+        assertEquals(2, loaded.size());
 
         List<String> bookTitles = loaded.stream().map((o) -> ((Book) o).getTitle()).collect(Collectors.toList());
-        Assert.assertEquals(bookTitles, Lists.newArrayList("Book 1", "Book 3"));
+        assertEquals(Lists.newArrayList("Book 1", "Book 3"), bookTitles);
     }
 
     @Test
@@ -408,7 +407,7 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.of(pagination)),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
+        assertEquals(3, loaded.size());
     }
 
     @Test
@@ -436,10 +435,10 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book2));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -470,9 +469,9 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 2);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(2, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book3));
     }
 
     @Test
@@ -507,9 +506,9 @@ public class InMemoryStoreTransactionTest {
                 eq(Optional.empty()),
                 eq(scope));
 
-        Assert.assertEquals(loaded.size(), 3);
-        Assert.assertTrue(loaded.contains(book1));
-        Assert.assertTrue(loaded.contains(book2));
-        Assert.assertTrue(loaded.contains(book3));
+        assertEquals(3, loaded.size());
+        assertTrue(loaded.contains(book1));
+        assertTrue(loaded.contains(book2));
+        assertTrue(loaded.contains(book3));
     }
 }

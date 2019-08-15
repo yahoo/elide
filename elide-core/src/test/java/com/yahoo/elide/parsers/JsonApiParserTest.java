@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.parsers;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonApiParserTest {
 
@@ -17,15 +17,15 @@ public class JsonApiParserTest {
         String normalizedPath;
 
         normalizedPath = JsonApiParser.normalizePath("books/1/author");
-        assertEquals(normalizedPath, "books/1/author", "it does not change normalized paths");
+        assertEquals("books/1/author", normalizedPath,  "it does not change normalized paths");
 
         normalizedPath = JsonApiParser.normalizePath("/books");
-        assertEquals(normalizedPath, "books", "it removes leading path separators");
+        assertEquals("books", normalizedPath,  "it removes leading path separators");
 
         normalizedPath = JsonApiParser.normalizePath("books/");
-        assertEquals(normalizedPath, "books", "it removes trailing path separators");
+        assertEquals("books", normalizedPath,  "it removes trailing path separators");
 
         normalizedPath = JsonApiParser.normalizePath("///books///1///author////");
-        assertEquals(normalizedPath, "books/1/author", "it deduplicates path separators");
+        assertEquals("books/1/author", normalizedPath,  "it deduplicates path separators");
     }
 }
