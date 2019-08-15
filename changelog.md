@@ -1,10 +1,13 @@
 # Change Log
 ## 4.5.1
 **Features**
+ * Issue #851. Added new method `enableSwagger()` in `ElideStandaloneSettings` class which allows an easier way for binding swagger docs to the given endpoint. Override this method returning the `Map<String, Swagger>` object to bind the swagger docs to string endpoint.
  * Issue #900. Add `@ApiModelProperty` support to `elide-swagger` that makes it possible to customize `description`, `example`, `readOnly` and `required` attributes of object definitions in resulting generates Swagger document.
 
 **Fixes**
  * [Security] Bump jackson databind from 2.9.9 to 2.9.9.3
+ * Issue #913. Fix deserialization for optional top-level meta object (#913)
+ * Migrated elide-core tests to JUnit 5.
 
 ## 4.5.0
 **Features**
