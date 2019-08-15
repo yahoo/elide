@@ -15,12 +15,13 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.standalone.Util;
-
+import io.swagger.models.Swagger;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -132,6 +133,14 @@ public interface ElideStandaloneSettings {
         return "/graphql/api/v1";
     }
 
+
+    /**
+     * API root path specification for the Swagger endpoint. Namely, this is the root uri for Swagger docs.
+     *
+     * @return Default: /swagger/*
+     */
+    default String getSwaggerPathSepc() { return "/swagger/*"; }
+
     /**
      * Enable the JSONAPI endpoint. If false, the endpoint will be disabled.
      *
@@ -167,6 +176,16 @@ public interface ElideStandaloneSettings {
         return true;
     }
 
+
+    /**
+     * Enable swagger documentation by returning non empty map object.
+     * @return Map object that maps document name to swagger object.
+     */
+    default Map<String, Swagger> enableSwagger() {
+        return new HashMap<>();
+    }
+
+
     /**
      * JAX-RS filters to register with the web service.
      *
@@ -187,6 +206,7 @@ public interface ElideStandaloneSettings {
         // Do nothing by default
         return (x) -> {};
     }
+
 
     /**
      * Location to hibernate5 config. This is only required if you're using the <em>default</em> ElideSettings object.

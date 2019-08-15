@@ -128,6 +128,15 @@ public class ElideStandalone {
             context.addServlet(AdminServlet.class, "/stats/*");
         }
 
+        if (!elideStandaloneSettings.enableSwagger().isEmpty()) {
+            ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
+                    elideStandaloneSettings.getSwaggerPathSepc());
+            jerseyServlet.setInitOrder(0);
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.contrib.swagger.resources");
+            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
+
         elideStandaloneSettings.updateServletContextHandler(context);
 
         try {

@@ -69,6 +69,11 @@
             <artifactId>elide-graphql</artifactId>
             <version>4.5.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-swagger</artifactId>
+            <version>4.5.1-SNAPSHOT</version>
+        </dependency>
 
         <!-- JPA -->
         <dependency>
@@ -205,6 +210,12 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${version.jackson}</version>
         </dependency>
     </dependencies>
 

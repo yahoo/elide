@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.hasKey;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
@@ -18,6 +19,8 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.yahoo.elide.standalone.models.Post;
 
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
 import org.apache.http.HttpStatus;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.testng.annotations.AfterClass;
@@ -25,7 +28,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.persistence.EntityManagerFactory;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import com.google.common.collect.Maps;
 
 
 /**
@@ -71,6 +77,21 @@ public class ElideStandaloneTest {
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary));
 
                 return builder.build();
+            }
+
+            @Override
+            public Map<String, Swagger> enableSwagger() {
+                EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
+
+                dictionary.bindEntity(Post.class);
+                Info info = new Info().title("Test Service").version("1.0");
+
+                SwaggerBuilder builder = new SwaggerBuilder(dictionary, info);
+                Swagger swagger = builder.build();
+
+                Map<String, Swagger> docs = new HashMap<>();
+                docs.put("test", swagger);
+                return docs;
             }
 
         });
@@ -121,4 +142,14 @@ public class ElideStandaloneTest {
                 .then()
                 .statusCode(501); //Returns 'Not Implemented' if there are no Health Checks Registered
     }
+
+    @Test
+    public void testSwaggerEndpoint() throws Exception {
+        given()
+                .when()
+                .get("/swagger/doc/test")
+                .then()
+                .statusCode(200);
+    }
 }
+
