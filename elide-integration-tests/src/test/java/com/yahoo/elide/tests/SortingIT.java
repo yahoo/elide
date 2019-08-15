@@ -10,19 +10,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.utils.JsonParser;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class SortingIT extends IntegrationTest {
     private final ObjectMapper mapper = new ObjectMapper();
     private final JsonParser jsonParser = new JsonParser();
 
-    @BeforeClass
+    @BeforeEach
     public void setup() {
         RestAssured
                 .given()
@@ -58,26 +59,27 @@ public class SortingIT extends IntegrationTest {
         JsonNode result = mapper.readTree(
                 RestAssured.get("/book?sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
+
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", firstBookName);
 
         String secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
                 RestAssured.get("/book?sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
 
         books = result.get("data");
         firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", firstBookName);
 
         secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
     @Test
@@ -85,26 +87,26 @@ public class SortingIT extends IntegrationTest {
         JsonNode result = mapper.readTree(
                 RestAssured.get("/author/1/books?sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", firstBookName);
 
         String secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
                 RestAssured.get("/author/1/books?sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
 
         books = result.get("data");
         firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", firstBookName);
 
         secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
     @Test
@@ -112,26 +114,26 @@ public class SortingIT extends IntegrationTest {
         JsonNode result = mapper.readTree(
                 RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", firstBookName);
 
         String secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
                 RestAssured.get("/book?filter[book.authors.name][infixi]=Hemingway&sort=publisher.name").asString());
         //We expect 2 results because the Hibernate does an inner join between book & publisher
-        Assert.assertEquals(result.get("data").size(), 2);
+        assertEquals(2, result.get("data").size());
 
         books = result.get("data");
         firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", firstBookName);
 
         secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
     @Test
@@ -140,25 +142,25 @@ public class SortingIT extends IntegrationTest {
                 RestAssured.get("/book?sort=-publisher.id").asString());
 
         //We expect 8 results because publisher_id is a foreign key inside the book table.
-        Assert.assertEquals(result.get("data").size(), 8);
+        assertEquals(8, result.get("data").size());
 
         JsonNode books = result.get("data");
         String firstBookName = books.get(0).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", firstBookName);
 
         String secondBookName = books.get(1).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", secondBookName);
 
         result = mapper.readTree(
                 RestAssured.get("/book?sort=publisher.id").asString());
-        Assert.assertEquals(result.get("data").size(), 8);
+        assertEquals(8, result.get("data").size());
 
         books = result.get("data");
         firstBookName = books.get(6).get("attributes").get("title").asText();
-        Assert.assertEquals(firstBookName, "The Old Man and the Sea");
+        assertEquals("The Old Man and the Sea", firstBookName);
 
         secondBookName = books.get(7).get("attributes").get("title").asText();
-        Assert.assertEquals(secondBookName, "For Whom the Bell Tolls");
+        assertEquals("For Whom the Bell Tolls", secondBookName);
     }
 
     @Test
@@ -176,13 +178,13 @@ public class SortingIT extends IntegrationTest {
 
         JsonNode result = mapper.readTree(
                 RestAssured.get("/book?sort=-id").asString());
-        Assert.assertEquals(result.get("data").size(), 8);
+        assertEquals(8, result.get("data").size());
 
         JsonNode books = result.get("data");
         for (int idx = 0; idx < bookTitles.size(); idx++) {
             String expectedTitle = bookTitles.get(idx);
             String actualTitle = books.get(idx).get("attributes").get("title").asText();
-            Assert.assertEquals(expectedTitle, actualTitle);
+            assertEquals(expectedTitle, actualTitle);
         }
     }
 
