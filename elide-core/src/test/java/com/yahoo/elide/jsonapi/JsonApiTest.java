@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.jsonapi;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
@@ -19,6 +19,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Meta;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
@@ -26,14 +27,12 @@ import com.yahoo.elide.security.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
-
 import example.Child;
 import example.Parent;
 import example.TestCheckMappings;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,10 +45,11 @@ import java.util.Map;
  * JSON API testing.
  */
 public class JsonApiTest {
-    private RequestScope userScope;
-    private JsonApiMapper mapper;
-    @BeforeTest
-    void init() {
+    private static RequestScope userScope;
+    private static JsonApiMapper mapper;
+
+    @BeforeAll
+    static void init() {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
@@ -89,7 +89,7 @@ public class JsonApiTest {
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":null},\"relationships\":{\"children\":{\"data\":[]},\"spouses\":{\"data\":[]}}}}";
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class JsonApiTest {
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}}";
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class JsonApiTest {
         String expected = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}},\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class JsonApiTest {
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}]}";
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -179,7 +179,7 @@ public class JsonApiTest {
         String expected = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":[{\"type\":\"child\",\"id\":\"2\"}]},\"spouses\":{\"data\":[]}}}],\"included\":[{\"type\":\"child\",\"id\":\"2\",\"attributes\":{\"name\":null},\"relationships\":{\"friends\":{\"data\":[]},\"parents\":{\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}}}]}";
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -192,7 +192,7 @@ public class JsonApiTest {
         jsonApiDocument.setData(empty);
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -205,7 +205,7 @@ public class JsonApiTest {
         jsonApiDocument.setData(empty);
 
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
-        assertEquals(doc, expected);
+        assertEquals(expected, doc);
     }
 
     @Test
@@ -219,6 +219,26 @@ public class JsonApiTest {
         Map<String, Object> attributes = data.getAttributes();
         Map<String, Relationship> relations = data.getRelationships();
 
+        assertEquals("parent", data.getType());
+        assertEquals("123", data.getId());
+        assertEquals("bob", attributes.get("firstName"));
+        assertEquals("child", relations.get("children").getData().getSingleValue().getType());
+        assertEquals("2", relations.get("children").getData().getSingleValue().getId());
+    }
+
+    @Test
+    public void readSingleWithMeta() throws IOException {
+        String doc = "{\"data\":{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"data\":{\"type\":\"child\",\"id\":\"2\"}}}},\"meta\":{\"additional\":\"info\"}}";
+
+        JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
+
+        Meta meta = jsonApiDocument.getMeta();
+        Data<Resource> dataObj = jsonApiDocument.getData();
+        Resource data = dataObj.getSingleValue();
+        Map<String, Object> attributes = data.getAttributes();
+        Map<String, Relationship> relations = data.getRelationships();
+
+        assertEquals(meta.getMetaMap().get("additional"), "info");
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
@@ -241,12 +261,12 @@ public class JsonApiTest {
                 .get("parents")
                 .getResourceIdentifierData().getSingleValue();
 
-        assertEquals(data.getType(), "parent");
-        assertEquals(data.getId(), "123");
-        assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(includedChild.getType(), "child");
-        assertEquals(includedChild.getId(), "2");
-        assertEquals(parent.getId(), "123");
+        assertEquals("parent", data.getType());
+        assertEquals("123", data.getId());
+        assertEquals("bob", attributes.get("firstName"));
+        assertEquals("child", includedChild.getType());
+        assertEquals("2", includedChild.getId());
+        assertEquals("123", parent.getId());
     }
 
     @Test
@@ -260,10 +280,10 @@ public class JsonApiTest {
         Map<String, Object> attributes = data.getAttributes();
         List<Resource> included = jsonApiDocument.getIncluded();
 
-        assertEquals(data.getType(), "parent");
-        assertEquals(data.getId(), "123");
-        assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
+        assertEquals("parent", data.getType());
+        assertEquals("123", data.getId());
+        assertEquals("bob", attributes.get("firstName"));
+        assertEquals("2", data.getRelationships().get("children").getData().getSingleValue().getId());
         assertNull(included);
     }
 
@@ -280,11 +300,31 @@ public class JsonApiTest {
         Resource includedChild = included.iterator().next();
         ResourceIdentifier parent = includedChild.getRelationships().get("parents").getResourceIdentifierData().getSingleValue();
 
+        assertEquals("parent", data.getType());
+        assertEquals("123", data.getId());
+        assertEquals("bob", attributes.get("firstName"));
+        assertEquals("child", includedChild.getType());
+        assertEquals("2", includedChild.getId());
+        assertEquals("123", parent.getId());
+    }
+
+    @Test
+    public void readListWithMeta() throws IOException {
+        String doc = "{\"data\":[{\"type\":\"parent\",\"id\":\"123\",\"attributes\":{\"firstName\":\"bob\"},\"relationships\":{\"children\":{\"links\":{\"self\":\"/parent/123/relationships/child\",\"related\":\"/parent/123/child\"},\"data\":{\"type\":\"child\",\"id\":\"2\"}}}}],\"meta\":{\"additional\":\"info\"}}";
+
+        JsonApiDocument jsonApiDocument = mapper.readJsonApiDocument(doc);
+
+        Meta meta = jsonApiDocument.getMeta();
+        Data<Resource> list = jsonApiDocument.getData();
+        Resource data = list.get().iterator().next();
+        Map<String, Object> attributes = data.getAttributes();
+        List<Resource> included = jsonApiDocument.getIncluded();
+
+        assertEquals(meta.getMetaMap().get("additional"), "info");
         assertEquals(data.getType(), "parent");
         assertEquals(data.getId(), "123");
         assertEquals(attributes.get("firstName"), "bob");
-        assertEquals(includedChild.getType(), "child");
-        assertEquals(includedChild.getId(), "2");
-        assertEquals(parent.getId(), "123");
+        assertEquals(data.getRelationships().get("children").getData().getSingleValue().getId(), "2");
+        assertNull(included);
     }
 }

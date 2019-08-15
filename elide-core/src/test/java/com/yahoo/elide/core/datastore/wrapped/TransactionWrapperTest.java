@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.datastore.wrapped;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -15,8 +17,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.security.User;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public class TransactionWrapperTest {
         User actualUser = wrapper.accessUser(wrappedUser);
 
         verify(wrapped, times(1)).accessUser(eq(wrappedUser));
-        Assert.assertEquals(actualUser, expectedUser);
+        assertEquals(expectedUser, actualUser);
     }
 
     @Test
@@ -64,7 +65,7 @@ public class TransactionWrapperTest {
         Object actual = wrapper.createNewObject(Object.class);
 
         verify(wrapped, times(1)).createNewObject(eq(Object.class));
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -89,7 +90,7 @@ public class TransactionWrapperTest {
                 Optional.empty(), Optional.empty(), null);
 
         verify(wrapped, times(1)).loadObjects(any(), any(), any(), any(), any());
-        Assert.assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -151,7 +152,7 @@ public class TransactionWrapperTest {
         boolean actual = wrapper.supportsSorting(null, null);
 
         verify(wrapped, times(1)).supportsSorting(any(), any());
-        Assert.assertTrue(actual);
+        assertTrue(actual);
     }
 
     @Test
@@ -163,7 +164,7 @@ public class TransactionWrapperTest {
         boolean actual = wrapper.supportsPagination(null);
 
         verify(wrapped, times(1)).supportsPagination(any());
-        Assert.assertTrue(actual);
+        assertTrue(actual);
     }
 
     @Test
@@ -175,7 +176,7 @@ public class TransactionWrapperTest {
         DataStoreTransaction.FeatureSupport actual = wrapper.supportsFiltering(null, null);
 
         verify(wrapped, times(1)).supportsFiltering(any(), any());
-        Assert.assertEquals(actual, DataStoreTransaction.FeatureSupport.FULL);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
     }
 
     @Test
@@ -188,7 +189,7 @@ public class TransactionWrapperTest {
         Object actual = wrapper.getAttribute(null, null, null);
 
         verify(wrapped, times(1)).getAttribute(any(), any(), any());
-        Assert.assertEquals(actual, 1L);
+        assertEquals(1L, actual);
     }
 
     @Test
@@ -232,7 +233,7 @@ public class TransactionWrapperTest {
                 null, null, null);
 
         verify(wrapped, times(1)).getRelation(any(), any(), any(), any(), any(), any(), any());
-        Assert.assertEquals(actual, 1L);
+        assertEquals(1L, actual);
     }
 
     @Test
@@ -245,6 +246,6 @@ public class TransactionWrapperTest {
         Object actual = wrapper.loadObject(null, null, null, null);
 
         verify(wrapped, times(1)).loadObject(any(), any(), any(), any());
-        Assert.assertEquals(actual, 1L);
+        assertEquals(1L, actual);
     }
 }

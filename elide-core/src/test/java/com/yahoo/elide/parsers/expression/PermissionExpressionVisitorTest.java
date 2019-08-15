@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.parsers.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -21,17 +23,14 @@ import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import lombok.AllArgsConstructor;
-
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.persistence.Entity;
 
 /**
@@ -40,7 +39,7 @@ import javax.persistence.Entity;
 public class PermissionExpressionVisitorTest {
     private EntityDictionary dictionary;
 
-    @BeforeMethod
+    @BeforeEach
     public void setupEntityDictionary() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("Allow", Permissions.Succeeds.class);
@@ -56,39 +55,39 @@ public class PermissionExpressionVisitorTest {
     @Test
     public void testAndExpression() {
         Expression expression = getExpressionForPermission(ReadPermission.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testOrExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testNotExpression() {
         Expression expression = getExpressionForPermission(DeletePermission.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testComplexExpression() {
         Expression expression = getExpressionForPermission(UpdatePermission.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testComplexModelCreate() {
         Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testNamesWithSpaces() {
         Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
         Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
-        Assert.assertEquals(expression.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
-        Assert.assertEquals(expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS), ExpressionResult.PASS);
+        assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
+        assertEquals(ExpressionResult.PASS, expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
