@@ -6,17 +6,22 @@
 package com.yahoo.elide.errorEncodingTests;
 
 import static com.jayway.restassured.RestAssured.given;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.initialization.AbstractIntegrationTestInitializer;
+import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.initialization.EncodedErrorObjectsTestApplicationResourceConfig;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.utils.JsonParser;
 
 import org.apache.http.HttpStatus;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
+public class EncodedErrorObjectsIT extends IntegrationTest {
 
     private static final String GRAPHQL_CONTENT_TYPE = "application/json";
     private static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
@@ -25,13 +30,7 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
     private final JsonParser jsonParser = new JsonParser();
 
     public EncodedErrorObjectsIT() {
-        super(EncodedErrorObjectsTestApplicationResourceConfig.class);
-    }
-
-    @BeforeClass
-    public void setup() throws Exception {
-        tearDownServer();
-        setUpServer();
+        super(EncodedErrorObjectsTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
     @Test
@@ -39,19 +38,23 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/InvalidAttributeException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionExceptionErrorObject.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .body(request)
-                .patch("/parent")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo(expected));
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .body(request)
+            .patch("/parent")
+            .then()
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
+            .body(equalTo(expected));
     }
 
     @Test
     public void invalidCollectionException() {
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidCollectionErrorObject.json");
-        given().when().get("/unknown").then().statusCode(HttpStatus.SC_NOT_FOUND).body(equalTo(expected));
+        given()
+            .get("/unknown")
+            .then()
+            .statusCode(HttpStatus.SC_NOT_FOUND)
+            .body(equalTo(expected));
     }
 
     @Test
@@ -59,36 +62,39 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidEntityBodyExceptionErrorObject.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .body(request)
-                .patch("/parent")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo(expected));
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .body(request)
+            .patch("/parent")
+            .then()
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
+            .body(equalTo(expected));
     }
 
     @Test
     public void invalidObjectIdentifierException() {
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidObjectIdentifierExceptionErrorObject.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .get("/parent/100")
-                .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .body(equalTo(expected));
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .get("/parent/100")
+            .then()
+            .statusCode(HttpStatus.SC_NOT_FOUND)
+            .body(equalTo(expected));
     }
-
 
     @Test
     public void invalidValueException() {
-        String request = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueException.req.json");
+        Resource requestBody = resource(
+                type("invoice"),
+                id("a")
+        );
+
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/invalidValueExceptionErrorObject.json");
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
-                .body(request)
+                .body(datum(requestBody))
                 .post("/invoice")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
@@ -100,12 +106,12 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionException.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/jsonPatchExtensionExceptionErrorObject.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
-                .body(request).patch()
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo(expected));
+            .contentType(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .accept(JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION)
+            .body(request).patch()
+            .then()
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
+            .body(equalTo(expected));
     }
 
     @Test
@@ -114,12 +120,12 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = "{\"data\": {\"type\": \"invoice\" \"id\": 100}}";
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/transactionExceptionErrorObject.json");
         given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(request).post("/invoice")
-                .then()
-                .statusCode(HttpStatus.SC_LOCKED)
-                .body(equalTo(expected));
+            .contentType(JSONAPI_CONTENT_TYPE)
+            .accept(JSONAPI_CONTENT_TYPE)
+            .body(request).post("/invoice")
+            .then()
+            .statusCode(HttpStatus.SC_LOCKED)
+            .body(equalTo(expected));
     }
 
     @Test
@@ -127,13 +133,13 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.json");
         given()
-                .contentType(GRAPHQL_CONTENT_TYPE)
-                .accept(GRAPHQL_CONTENT_TYPE)
-                .body(request)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected));
+            .contentType(GRAPHQL_CONTENT_TYPE)
+            .accept(GRAPHQL_CONTENT_TYPE)
+            .body(request)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body(equalTo(expected));
     }
 
     @Test
@@ -141,12 +147,12 @@ public class EncodedErrorObjectsIT extends AbstractIntegrationTestInitializer {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.json");
         given()
-                .contentType(GRAPHQL_CONTENT_TYPE)
-                .accept(GRAPHQL_CONTENT_TYPE)
-                .body(request)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected));
+            .contentType(GRAPHQL_CONTENT_TYPE)
+            .accept(GRAPHQL_CONTENT_TYPE)
+            .body(request)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .body(equalTo(expected));
     }
 }
