@@ -356,8 +356,10 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
             // Drill down into path to find value for comparison
             for (Path.PathElement pathElement : path.getPathElements()) {
-                leftCompare = PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope);
-                rightCompare = PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope);
+                leftCompare = (leftCompare == null ? null
+                        : PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope));
+                rightCompare = (rightCompare == null ? null
+                        : PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope));
             }
 
             if (order == Sorting.SortOrder.asc) {
