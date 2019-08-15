@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.Query;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dimension.Dimension;
 import com.yahoo.elide.datastores.aggregation.dimension.DimensionType;
-import com.yahoo.elide.datastores.aggregation.engine.schema.SQLSchema;
 import com.yahoo.elide.datastores.aggregation.metric.Metric;
 
 import com.google.common.base.Preconditions;
@@ -21,6 +20,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,8 +39,8 @@ public abstract class AbstractEntityHydrator {
     @Getter(AccessLevel.PRIVATE)
     private final StitchList stitchList;
 
-    @Getter(AccessLevel.PRIVATE)
-    private final List<Object> results;
+    @Getter(AccessLevel.PROTECTED)
+    private final List<Map<String, Object>> results = new ArrayList<>();
 
     @Getter(AccessLevel.PRIVATE)
     private final Query query;
@@ -54,9 +54,34 @@ public abstract class AbstractEntityHydrator {
      */
     public AbstractEntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {
         this.stitchList = new StitchList(entityDictionary);
-        this.results = new ArrayList<>(results);
         this.query = query;
         this.entityDictionary = entityDictionary;
+
+        //Get all the projections from the client query.
+        List<String> projections = this.query.getMetrics().keySet().stream()
+                .map(Metric::getName)
+                .collect(Collectors.toList());
+
+        projections.addAll(this.query.getDimensions().stream()
+                .map(Dimension::getName)
+                .collect(Collectors.toList()));
+
+
+        results.forEach(result -> {
+            Map<String, Object> row = new HashMap<>();
+
+            Object[] resultValues = result instanceof Object[] ? (Object[]) result : new Object[] { result };
+
+            Preconditions.checkArgument(projections.size() == resultValues.length);
+
+            for (int idx = 0; idx < resultValues.length; idx++) {
+                Object value = resultValues[idx];
+                String fieldName = projections.get(idx);
+                row.put(fieldName, value);
+            }
+
+            this.results.add(row);
+        });
     }
 
     /**
@@ -109,7 +134,6 @@ public abstract class AbstractEntityHydrator {
         MutableInt counter = new MutableInt(0);
 
         List<Object> queryResults = getResults().stream()
-                .map((result) -> { return result instanceof Object[] ? (Object []) result : new Object[] { result }; })
                 .map((result) -> coerceObjectToEntity(result, counter))
                 .collect(Collectors.toList());
 
@@ -128,22 +152,8 @@ public abstract class AbstractEntityHydrator {
      * @param counter Monotonically increasing number to generate IDs.
      * @return A hydrated entity object.
      */
-    protected Object coerceObjectToEntity(Object[] result, MutableInt counter) {
+    protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
         Class<?> entityClass = query.getSchema().getEntityClass();
-
-        //Get all the projections from the client query.
-        List<String> projections = query.getMetrics().entrySet().stream()
-                .map(Map.Entry::getKey)
-                .map(Metric::getName)
-                .collect(Collectors.toList());
-
-        projections.addAll(query.getDimensions().stream()
-                .map(Dimension::getName)
-                .collect(Collectors.toList()));
-
-        Preconditions.checkArgument(result.length == projections.size());
-
-        SQLSchema schema = (SQLSchema) query.getSchema();
 
         //Construct the object.
         Object entityInstance;
@@ -153,20 +163,15 @@ public abstract class AbstractEntityHydrator {
             throw new IllegalStateException(e);
         }
 
-        //Populate all of the fields.
-        for (int idx = 0; idx < result.length; idx++) {
-            Object value = result[idx];
-            String fieldName = projections.get(idx);
+        result.forEach((fieldName, value) -> {
+            Dimension dim = query.getSchema().getDimension(fieldName);
 
-            Dimension dim = schema.getDimension(fieldName);
             if (dim != null && dim.getDimensionType() == DimensionType.ENTITY) {
-                getStitchList().todo(entityInstance, fieldName, value);
-                //We don't hydrate relationships here.
-                continue;
+                getStitchList().todo(entityInstance, fieldName, value); // We don't hydrate relationships here.
+            } else {
+                getEntityDictionary().setValue(entityInstance, fieldName, value);
             }
-
-            getEntityDictionary().setValue(entityInstance, fieldName, value);
-        }
+        });
 
         //Set the ID (it must be coerced from an integer)
         getEntityDictionary().setValue(
